@@ -1,0 +1,67 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+*.local
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Testing
+coverage/
+.nyc_output/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Kubernetes & Docker
+**/secrets/
+*.secret.yaml
+*.secrets.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# Project specific
+.firebase/
+firebase-debug.log
+.runtimeconfig.json
+
+# Redis
+dump.rdb
+
+# NATS
+gnatsd.conf
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,21 @@
+1. I am creating a music streaming platform using microservices architechture.
+2. It will be deployed on different free tier render accounts but will also be creating skaffold, kubernetes, docker for optional deployement as cluster deployement. when deploying to render will use a fastify/express gateway but on kubernetes depl. will be using ingress-inginx 
+3. will be using redis, NATS, express, nextjs/react (not decided yet), react query, zustand, typescript.
+
+4. I want to create a scalable and production ready project for my portfolio. 
+
+
+5. for auth i want these functionality - 
+    1. using firebase auth + mongo or just mongo and oauth and other functionality manually.
+    2. it should have a robust refresh token functionality.
+    3. it should have features like updating user details, forgot password, two factor authentication using email, login with mail/passwordlesss login, otp system etc.
+    
+Auth ->
+    1. Google login.
+    2. Email and password login.
+    3. Email with email link login.
+    4. Robust refresh token system 
+    5. jwt based auth 
+    6. passport js for auth strategy
+    7. functions like -> forgot password(using mail), reset password, update user details like username.
+    
