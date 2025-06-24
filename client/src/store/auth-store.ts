@@ -7,6 +7,7 @@ export interface IAuthStore {
   email: string | null
   accessToken: string | null
   isEmailVerified: boolean
+  setIsLoggedIn: (isLoggedIn: boolean) => void
   setAuth: (userId: string, accessToken: string) => void
   setToken: (accessToken: string) => void
   clearAuth: () => void
@@ -19,6 +20,7 @@ export const authStore = create<IAuthStore>((set) => ({
   email: null,
   accessToken: null,
   isEmailVerified: false,
+  setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
   setToken: (accessToken: string) => set({ accessToken }),
   setAuth: (userId: string, accessToken: string) =>
     set({ userId, accessToken, isLoggedIn: true }),

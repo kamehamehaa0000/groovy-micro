@@ -5,12 +5,13 @@ import Signin, { CombinedSignin } from './pages/Signin'
 import { authStore } from './store/auth-store'
 import VerifyMagicLink from './components/VerifyMagicLink'
 import { SigninModal } from './store/modal-store'
+import Upload from './pages/upload'
 
 function App() {
   const { isLoggedIn } = authStore()
   const { open: openSigninModal } = SigninModal()
   return (
-    <div className="w-screen min-h-screen">
+    <div className="w-screen min-h-screen ">
       <BrowserRouter>
         <Routes>
           <Route
@@ -47,7 +48,7 @@ function App() {
               </div>
             }
           />
-
+          <Route path="/upload" element={<Upload />} />
           <Route path="/login" element={<Signin />} />
           <Route path="/login-success" element={<SuccessPage />} />
           <Route path="/auth/magic-link" element={<VerifyMagicLink />} />
@@ -60,7 +61,7 @@ function App() {
 export default App
 
 const SuccessPage = () => {
-  const { setToken } = authStore()
+  const { setToken, setIsLoggedIn } = authStore()
   const [isValidRequest, setIsValidRequest] = useState(true)
 
   useEffect(() => {
@@ -69,6 +70,7 @@ const SuccessPage = () => {
     const accessToken = urlParams.get('token')
     if (accessToken) {
       setToken(accessToken)
+      setIsLoggedIn(true)
       window.history.replaceState({}, document.title, window.location.pathname)
       window.close()
     }

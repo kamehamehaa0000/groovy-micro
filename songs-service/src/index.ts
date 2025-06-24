@@ -1,13 +1,13 @@
 import { app } from './app'
+import connectToQueue from './config/cloudAMQP'
 import { closeDatabaseConnections, connectToDatabase } from './config/database'
-import { generateAccessToken } from './services/tokenService'
 import { verifyEnv } from './utils/verify-env'
 
 async function startServer() {
   try {
     verifyEnv() // Ensures all required environment variables are set
+    await connectToQueue()
     await connectToDatabase()
-    console.log(generateAccessToken('testUserId'))
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
