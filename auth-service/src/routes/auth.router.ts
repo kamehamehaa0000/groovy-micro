@@ -23,6 +23,7 @@ import {
   sendVerificationEmail,
 } from '../services/emailService'
 import { EnumMagicLinkType } from '../types'
+import { UserEventPublisher } from '../events/user-event-publisher'
 
 const router = Router()
 
@@ -107,6 +108,12 @@ router.post(
       }
       user.isEmailVerified = true
       await user.save()
+
+      await UserEventPublisher.UserCreatedEvent(
+        user.id,
+        user.email ?? payload.email,
+        user.displayName
+      )
       // await sendTokens(res, user, req.ip)
       res.status(200).json({
         message: 'Email verification successful',
@@ -429,6 +436,11 @@ router.put(
 
       currentUser.displayName = newDisplayName
       await currentUser.save()
+      await UserEventPublisher.UserUpdatedEvent(
+        currentUser.id,
+        newDisplayName,
+        ['displayName']
+      )
 
       res.json({
         message: 'Display name updated successfully',

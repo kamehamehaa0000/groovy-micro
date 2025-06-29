@@ -1,6 +1,7 @@
 import { app } from './app'
 import connectToQueue from './config/cloudAMQP'
 import { closeDatabaseConnections, connectToDatabase } from './config/database'
+import { initializeEventListeners } from './events/initialize-event-listener'
 import { verifyEnv } from './utils/verify-env'
 
 async function startServer() {
@@ -8,6 +9,8 @@ async function startServer() {
     verifyEnv() // Ensures all required environment variables are set
     await connectToQueue()
     await connectToDatabase()
+    await initializeEventListeners()
+
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(

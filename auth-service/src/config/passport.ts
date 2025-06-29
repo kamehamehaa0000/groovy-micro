@@ -5,6 +5,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import User, { IUser } from '../models/User.model'
 
 import { config, configDotenv } from 'dotenv'
+import { UserEventPublisher } from '../events/user-event-publisher'
 configDotenv({
   path: '.env',
 })
@@ -113,6 +114,21 @@ passport.use(
               ? profile.emails[0].verified
               : false,
         })
+        console.log('Creating new user:', user)
+
+        const email =
+          profile.emails && profile.emails[0]
+            ? profile.emails[0].value
+            : user.email
+
+        if (email) {
+          UserEventPublisher.UserCreatedEvent(
+            user.id,
+            email,
+            user.displayName,
+            user.googleId
+          )
+        }
         await user.save()
         return done(null, user as any)
       } catch (err) {

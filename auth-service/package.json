@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google-cloud/pubsub": "^5.1.0",
     "@groovy-streaming/common": "^1.0.10",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -26,7 +27,8 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -40,6 +42,7 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
+    "@types/uuid": "^10.0.0",
     "tsx": "^4.19.4"
   }
 }

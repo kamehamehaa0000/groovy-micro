@@ -1,13 +1,27 @@
 import { app } from './app'
 import { closeDatabaseConnections, connectToDatabase } from './config/database'
-import { generateAccessToken } from './services/tokenService'
+// import { generateAccessToken } from './services/tokenService'
 import { verifyEnv } from './utils/verify-env'
+import { pubSubManager } from './events/pubSubManager'
+import { EventTypes, TOPICS } from './events/events'
 
 async function startServer() {
   try {
     verifyEnv() // Ensures all required environment variables are set
     await connectToDatabase()
-    console.log(generateAccessToken('testUserId'))
+    // console.log(generateAccessToken('testUserId'))
+    pubSubManager.listTopics().then((topics) => {
+      console.log('Available Pub/Sub topics:')
+      console.log(topics)
+    })
+    await pubSubManager.publishEvent(TOPICS.USER_EVENTS, {
+      eventType: EventTypes.USER_CREATED,
+      eventId: `USER_CREATED-testUserId-${Date.now()}`,
+      data: {
+        userId: 'testUserId',
+        email: 'testUser@example.com',
+      },
+    })
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
