@@ -83,7 +83,7 @@ export const sendPasswordResetEmail = async (
   token: string,
   clientUrl: string
 ) => {
-  const resetUrl = `${clientUrl}/api/auth/reset-password?token=${token}`
+  const resetUrl = `${clientUrl}/auth/reset-password?token=${token}`
 
   const mailOptions = {
     from: process.env.FROM_EMAIL ?? 'noreply@musicstream.com',

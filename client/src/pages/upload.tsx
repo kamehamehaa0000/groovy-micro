@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { SingleUpload } from '../components/upload/SingleUpload'
 import { AlbumUpload } from '../components/upload/AlbumUpload'
+import { Link } from 'react-router'
 
 const Upload = () => {
   const [type, setType] = useState<'single' | 'album'>('single')
@@ -27,7 +28,12 @@ const Upload = () => {
       />
     )
   return (
-    <div className="relative w-screen min-h-screen flex items-center justify-center have-bg">
+    <div className="relative w-screen min-h-screen flex flex-col items-center justify-center have-bg">
+      <div className="mt-6 text-center">
+        <Link to="/" className="text-sm text-orange-700 hover:text-orange-500">
+          ← Back to home
+        </Link>
+      </div>
       <div className=" flex flex-col items-center justify-center  rounded-lg p-4 w-full max-w-2xl">
         <h1 className="text-2xl font-semibold my-8">Upload Music to Groovy</h1>
         {/* Toggle between single and album upload */}

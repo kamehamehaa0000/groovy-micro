@@ -10,7 +10,7 @@ import { IUser, User } from '../models/User.model'
 import {
   generateAccessToken,
   generateMagicLinkToken,
-  revokeRefreshToken,
+  refreshTokenRotation,
   sendRefreshTokenCookie,
   sendTokens,
   verifyMagicLinkToken,
@@ -81,6 +81,7 @@ router.post(
   body('token').notEmpty().withMessage('Verification token is required.'),
   validateRequest,
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log('Email verification request received')
     const { token } = req.body
     try {
       const payload = verifyMagicLinkToken(token)
@@ -106,7 +107,7 @@ router.post(
       }
       user.isEmailVerified = true
       await user.save()
-      await sendTokens(res, user, req.ip)
+      // await sendTokens(res, user, req.ip)
       res.status(200).json({
         message: 'Email verification successful',
       })
@@ -293,15 +294,20 @@ router.post(
   '/refresh-token',
   async (req: Request, res: Response, next: NextFunction) => {
     const { refreshToken: token } = req.cookies
+
+    console.log('Refresh token request received')
+
     if (!token) {
       return next(
         new CustomError('Unauthorized', 401, 'Refresh token is required')
       )
     }
+
     try {
       const payload = verifyRefreshToken(token)
-      const user = await User.findById(payload.sub)
+      console.log('Token payload:', payload)
 
+      const user = await User.findById(payload.sub)
       if (!user) {
         return next(new CustomError('Not Found', 404, 'User not found'))
       }
@@ -310,24 +316,53 @@ router.post(
       const storedToken = user.refreshTokens.find(
         (rt) => rt.token === payload.jti
       )
-      if (!storedToken || storedToken.expires < new Date()) {
-        // If token not found or expired, consider revoking all tokens for this user as a security measure
-        if (user) {
-          user.refreshTokens = []
-          await user.save()
-        }
+
+      if (!storedToken) {
+        console.log('Token not found in database')
         return next(
-          new CustomError(
-            'Unauthorized',
-            401,
-            'Invalid or expired refresh token'
-          )
+          new CustomError('Unauthorized', 401, 'Invalid refresh token')
         )
       }
 
-      // Optional: Implement refresh token rotation: revoke old, issue new
-      await revokeRefreshToken(user.id, storedToken.token) // Revoke the used refresh token
-      await sendTokens(res, user, req.ip)
+      if (storedToken.expires < new Date()) {
+        console.log('Token expired')
+        return next(
+          new CustomError('Unauthorized', 401, 'Expired refresh token')
+        )
+      }
+
+      console.log('Token valid, rotating refresh token...')
+
+      // Use the combined function to rotate tokens
+      const newRefreshToken = await refreshTokenRotation(
+        user.id,
+        storedToken.token,
+        req.ip
+      )
+
+      const newAccessToken = generateAccessToken(user.id)
+
+      // Set new refresh token cookie
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: parseInt(
+          process.env.JWT_REFRESH_EXPIRES_IN_MILLISECONDS ?? '604800000'
+        ),
+        path: '/',
+      })
+
+      res.json({
+        message: 'Token refreshed successfully',
+        accessToken: newAccessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          isEmailVerified: user.isEmailVerified,
+        },
+      })
     } catch (error) {
       console.error('Refresh token error:', error)
       return next(error)
@@ -339,7 +374,26 @@ router.get(
   '/profile',
   passport.authenticate('jwt', { session: false }),
   (req: Request, res: Response) => {
-    res.json({ user: req.user })
+    const { email, displayName, id, isEmailVerified } = req.user as IUser
+    res.json({ user: { email, displayName, id, isEmailVerified } })
+  }
+)
+
+router.get(
+  '/me',
+  passport.authenticate('jwt', { session: false }),
+  (req: Request, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Unauthorized' })
+      return
+    }
+    const user = req.user as IUser
+    res.json({
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      isEmailVerified: user.isEmailVerified,
+    })
   }
 )
 
@@ -443,4 +497,30 @@ router.post(
   }
 )
 
+router.post(
+  '/logout',
+  passport.authenticate('jwt', { session: false }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user as IUser
+      console.log('User logging out:', user.email)
+      // Clear the refresh token cookie
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      })
+
+      // Optionally: Remove all refresh tokens from database
+      await User.findByIdAndUpdate(user.id, {
+        $set: { refreshTokens: [] },
+      })
+
+      res.json({ message: 'Logged out successfully' })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 export { router as AuthRouter }

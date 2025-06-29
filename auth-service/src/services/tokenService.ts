@@ -26,81 +26,83 @@ export const generateAccessToken = (userId: string): string => {
     expiresIn: JWT_ACCESS_EXPIRES_IN as jwt.SignOptions['expiresIn'],
   })
 }
-
 export const generateRefreshToken = async (
   userId: string,
-  ipAddress?: string
+  ipAddress?: string,
+  revokeTokenValue?: string // Add optional parameter to revoke old token
 ): Promise<string> => {
   // Generate token values
   const refreshTokenValue = crypto.randomBytes(40).toString('hex')
   const expires = new Date(
     Date.now() + parseInt(JWT_REFRESH_EXPIRES_IN) * 24 * 60 * 60 * 1000
-  ) // Assuming JWT_REFRESH_EXPIRES_IN is in days like '7d'
-
-  // The new token to add
-  const newToken = {
-    token: refreshTokenValue,
-    expires,
-    ipAddress,
-  }
-
-  // Use findOneAndUpdate with aggregation pipeline for atomic operations
-  await User.findByIdAndUpdate(
-    userId,
-    [
-      // Stage 1: Filter out expired tokens
-      {
-        $set: {
-          refreshTokens: {
-            $filter: {
-              input: '$refreshTokens',
-              as: 'token',
-              cond: { $gt: ['$$token.expires', new Date()] },
-            },
-          },
-        },
-      },
-      // Stage 2: Sort tokens by expiration date (newest first)
-      {
-        $set: {
-          refreshTokens: {
-            $sortArray: {
-              input: '$refreshTokens',
-              sortBy: { expires: -1 },
-            },
-          },
-        },
-      },
-      // Stage 3: Keep only the most recent tokens (up to limit - 1)
-      {
-        $set: {
-          refreshTokens: {
-            $slice: ['$refreshTokens', 0, MAX_REFRESH_TOKENS_PER_USER - 1],
-          },
-        },
-      },
-      // Stage 4: Add the new token
-      {
-        $set: {
-          refreshTokens: {
-            $concatArrays: ['$refreshTokens', [newToken]],
-          },
-        },
-      },
-    ],
-    { new: true }
   )
+
+  // Use findByIdAndUpdate with retry logic to handle version conflicts
+  let retries = 3
+  while (retries > 0) {
+    try {
+      const user = await User.findById(userId)
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      // Clean up expired tokens
+      user.refreshTokens = user.refreshTokens.filter(
+        (rt) => rt.expires > new Date()
+      )
+
+      // If revoking a specific token, remove it
+      if (revokeTokenValue) {
+        user.refreshTokens = user.refreshTokens.filter(
+          (rt) => rt.token !== revokeTokenValue
+        )
+      }
+
+      // If we have too many tokens, remove the oldest ones
+      if (user.refreshTokens.length >= MAX_REFRESH_TOKENS_PER_USER) {
+        user.refreshTokens.sort(
+          (a, b) => b.expires.getTime() - a.expires.getTime()
+        )
+        user.refreshTokens = user.refreshTokens.slice(
+          0,
+          MAX_REFRESH_TOKENS_PER_USER - 1
+        )
+      }
+
+      // Add the new token
+      const newToken = {
+        token: refreshTokenValue,
+        expires,
+        ipAddress: ipAddress ?? 'unknown',
+      }
+      user.refreshTokens.push(newToken)
+
+      await user.save()
+      break // Success, exit retry loop
+    } catch (error: any) {
+      if (error.name === 'VersionError' && retries > 1) {
+        retries--
+        console.log(`Version conflict, retrying... (${retries} attempts left)`)
+        // Wait a bit before retrying
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        continue
+      }
+      throw error
+    }
+  }
 
   // The token stored in DB is the raw value, the token signed and returned to client contains user ID
   return jwt.sign({ sub: userId, jti: refreshTokenValue }, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'],
   })
 }
-
 export const verifyRefreshToken = (
   token: string
 ): { sub: string; jti: string } => {
   try {
+    // console.log('Verifying refresh token:', token)
+    // console.log('Using secret:', JWT_REFRESH_SECRET)
+
     return jwt.verify(token, JWT_REFRESH_SECRET) as { sub: string; jti: string }
   } catch (error) {
     throw new Error('Invalid refresh token' + (error as Error).message)
@@ -133,12 +135,28 @@ export const revokeRefreshToken = async (
   userId: string,
   refreshTokenValue: string
 ): Promise<void> => {
-  const user = await User.findById(userId)
-  if (user) {
-    user.refreshTokens = user.refreshTokens.filter(
-      (rt) => rt.token !== refreshTokenValue
-    )
-    await user.save()
+  let retries = 3
+  while (retries > 0) {
+    try {
+      const user = await User.findById(userId)
+      if (!user) return
+
+      user.refreshTokens = user.refreshTokens.filter(
+        (rt) => rt.token !== refreshTokenValue
+      )
+      await user.save()
+      break // Success, exit retry loop
+    } catch (error: any) {
+      if (error.name === 'VersionError' && retries > 1) {
+        retries--
+        console.log(
+          `Version conflict in revoke, retrying... (${retries} attempts left)`
+        )
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        continue
+      }
+      throw error
+    }
   }
 }
 
@@ -148,17 +166,17 @@ export const sendTokens = async (
   ipAddress?: string
 ) => {
   const accessToken = generateAccessToken(user.id)
-  const refreshToken = await generateRefreshToken(user.id, ipAddress) // This is the signed JWT refresh token
+  const refreshToken = await generateRefreshToken(user.id, ipAddress)
 
   // Set refresh token in an HttpOnly cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: parseInt(
       process.env.JWT_REFRESH_EXPIRES_IN_MILLISECONDS ?? '604800000'
     ),
-    // path: '/auth/refresh-token', // Important: Scope the cookie to the refresh token path
+    path: '/', // Make sure it's available for all paths
   })
 
   // Send access token and user info in JSON response
@@ -168,11 +186,22 @@ export const sendTokens = async (
     user: {
       id: user.id,
       email: user.email,
+      displayName: user.displayName,
       isEmailVerified: user.isEmailVerified,
     },
   })
 }
 
+
+
+export const refreshTokenRotation = async (
+  userId: string,
+  oldTokenValue: string,
+  ipAddress?: string
+): Promise<string> => {
+  // Generate new token and revoke old one in a single operation
+  return await generateRefreshToken(userId, ipAddress, oldTokenValue)
+}
 export const sendRefreshTokenCookie = async (
   res: Response,
   user: IUser,

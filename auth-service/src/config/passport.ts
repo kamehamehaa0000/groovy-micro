@@ -102,11 +102,7 @@ passport.use(
         }
 
         user = new User({
-          displayName:
-            profile.displayName ||
-            (profile.emails && profile.emails[0]
-              ? profile.emails[0].value.split('@')[0]
-              : 'Anonymous'),
+          displayName: profile.displayName,
           googleId: profile.id,
           email:
             profile.emails && profile.emails[0]
