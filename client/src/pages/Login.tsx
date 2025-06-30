@@ -1,14 +1,15 @@
-import { Link, redirect, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { LoginTypeToggle } from '../components/auth/LoginTypeToggle'
 import React, { useState } from 'react'
 import { BsMailbox } from 'react-icons/bs'
 import { BiLock } from 'react-icons/bi'
 import { FiEyeOff } from 'react-icons/fi'
 import { FaEye } from 'react-icons/fa6'
-import { authStore } from '../store/auth-store'
+
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FcGoogle } from 'react-icons/fc'
+import { useAuthStore } from '../store/auth-store'
 
 const Login = () => {
   const [type, setType] = useState<'password' | 'password-less'>('password')
@@ -99,7 +100,7 @@ const PasswordLogin = ({
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-  const { login } = authStore()
+  const { login } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -236,7 +237,7 @@ const PasswordlessLogin = ({
     handleSubmit,
     formState: { errors },
   } = useForm<{ email: string }>()
-  const { requestMagicLink } = authStore()
+  const { requestMagicLink } = useAuthStore()
   const onSubmit = async (data: { email: string }) => {
     setLoading(true)
     try {

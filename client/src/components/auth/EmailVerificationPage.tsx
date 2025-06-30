@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router'
-import { authStore } from '../../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 
 export const EmailVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -10,7 +10,7 @@ export const EmailVerificationPage: React.FC = () => {
   )
   const [message, setMessage] = useState('')
 
-  const { verifyEmail, resendVerificationEmail, isLoading, error } = authStore()
+  const { verifyEmail, resendVerificationEmail, isLoading } = useAuthStore()
 
   const token = searchParams.get('token')
   const email = searchParams.get('email')

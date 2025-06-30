@@ -5,38 +5,12 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import r2Client from '../config/cloudflareR2'
 
 export async function createSong(
-  userId: string,
   songFilename: string,
-  coverArtFileName: string,
-  visibility: 'public' | 'private',
-  metaData: {
-    title: string
-    artist: string
-    collaborators: string[]
-    album: string
-    genre: string
-    tags: string[]
-  }
+  coverArtFileName: string
 ) {
   const songId = uuidv4()
   const key = `songs/${songId}/${songFilename}`
   const coverKey = `songs/${songId}/${coverArtFileName}`
-  // Create database entry
-  const song = new Song({
-    _id: songId,
-    filename: songFilename,
-    status: StatusEnum.UPLOADING,
-    metadata: {
-      title: metaData.title,
-      artist: userId,
-      collaborators: metaData.collaborators ?? [],
-      album: metaData.album,
-      genre: metaData.genre ?? '',
-      tags: metaData.tags ?? [],
-    },
-    visibility: visibility ?? 'public',
-  })
-  await song.save()
 
   // Generate presigned URL
   const command = new PutObjectCommand({
@@ -57,17 +31,6 @@ export async function createSong(
   const coverPresignedUrl = await getSignedUrl(r2Client, coverCommand, {
     expiresIn: 3600,
   })
-
-  // Replace R2 domain with custom domain
-  // const customDomain = process.env.R2_CUSTOM_DOMAIN
-  // const finalPresignedUrl = presignedUrl.replace(
-  //   /https:\/\/[^\/]+/,
-  //   `${customDomain}`
-  // )
-  // const finalCoverPresignedUrl = coverPresignedUrl.replace(
-  //   /https:\/\/[^\/]+/,
-  //   `${customDomain}`
-  // )
 
   return {
     presignedSongUrl: presignedUrl,

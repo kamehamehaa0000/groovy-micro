@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router'
-import { authStore } from '../../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 
 export const LoginSuccessHandler: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -9,8 +9,6 @@ export const LoginSuccessHandler: React.FC = () => {
     'loading'
   )
   const [message, setMessage] = useState('')
-
-  // const { checkAuth } = authStore()
 
   const token = searchParams.get('token')
   const from = searchParams.get('from') ?? '/'
@@ -24,7 +22,7 @@ export const LoginSuccessHandler: React.FC = () => {
       setMessage('No authentication token found')
     }
   }, [token])
-  const { refreshToken } = authStore()
+  const { refreshToken } = useAuthStore()
   const handleGoogleAuthSuccess = async () => {
     try {
       const data = await refreshToken()

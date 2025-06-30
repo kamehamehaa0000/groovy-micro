@@ -3,10 +3,10 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { BsMailbox } from 'react-icons/bs'
 import { Link } from 'react-router'
-import { authStore } from '../store/auth-store'
+import { useAuthStore } from '../store/auth-store'
 
 export const SendVerificationEmail = () => {
-  const { resendVerificationEmail } = authStore()
+  const { resendVerificationEmail } = useAuthStore()
 
   const [isLoading, setIsLoading] = useState(false)
   const {

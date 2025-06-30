@@ -8,7 +8,6 @@ export enum StatusEnum {
 }
 export interface ISong extends Document {
   _id: string
-  filename: string
   coverArtUrl?: string
   originalUrl?: string
   hlsUrl?: string
@@ -33,10 +32,6 @@ export interface ISong extends Document {
 const SongSchema: Schema = new Schema(
   {
     _id: {
-      type: String,
-      required: true,
-    },
-    filename: {
       type: String,
       required: true,
     },

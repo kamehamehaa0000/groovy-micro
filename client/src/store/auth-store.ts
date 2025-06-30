@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import toast from 'react-hot-toast'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -44,7 +44,7 @@ export interface AuthActions {
 type AuthStore = AuthState & AuthActions
 let refreshPromise: Promise<void> | null = null
 
-export const authStore = create<AuthStore>()(
+export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
       //Initial State

@@ -535,4 +535,42 @@ router.post(
     }
   }
 )
+
+router.post(
+  '/artist-email-check',
+  requireAuth,
+  body('email').isEmail().withMessage('Invalid email format'),
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const { email } = req.body
+    const user = req.user
+    console.log('Checking artist email:', email)
+    console.log('Current user:', user?.id)
+    if (!user) {
+      return next(
+        new CustomError('Unauthorized', 401, 'User not authenticated')
+      )
+    }
+
+    try {
+      const user = await User.findOne({ email })
+      if (!user) {
+        return next(new CustomError('Not Found', 404, 'User not found'))
+      }
+      if (user.id === req.user?.id) {
+        return next(
+          new CustomError(
+            'Conflict',
+            409,
+            'Artist cannot add himself as collaborator'
+          )
+        )
+      }
+      res.status(200).json({ message: 'Collaborator exists' })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
 export { router as AuthRouter }

@@ -3,6 +3,9 @@ import { WarningNote } from '../shared/Notes'
 import axios from 'axios'
 import { useState } from 'react'
 import { genres } from '../../pages/upload'
+import axiosInstance from '../../utils/axios-interceptor'
+import toast from 'react-hot-toast'
+
 interface SingleUploadForm {
   audioFile: FileList | undefined
   coverArt: FileList | undefined
@@ -30,6 +33,7 @@ export const SingleUpload = ({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
     watch,
     setValue,
@@ -43,11 +47,10 @@ export const SingleUpload = ({
   const [collaboratorEmail, setCollaboratorEmail] = useState('')
 
   const onSubmit = async (data: SingleUploadForm) => {
-    console.log(data)
     const SongFilename = data.audioFile?.[0]?.name
     const coverArtFilename = data.coverArt?.[0]?.name
     if (!SongFilename || !coverArtFilename) {
-      console.error('Audio file and cover art are required')
+      toast.error('Please upload both audio file and cover art.')
       return
     }
     const tags = data.tags.split(',').map((tag) => tag.trim())
@@ -70,8 +73,8 @@ export const SingleUpload = ({
         currentStep: 'Preparing upload...',
         tracks: {},
       })
-      const res = await axios.post(
-        'http://localhost:3000/api/v1/songs/upload/presigned/single',
+      const res = await axiosInstance.post(
+        'http://localhost:3000/api/v1/songs/upload/presign',
         body,
         {
           headers: {
@@ -80,7 +83,7 @@ export const SingleUpload = ({
           },
         }
       )
-      console.log('Upload successful:', res.data)
+
       const {
         songId,
         songUploadKey,
@@ -110,7 +113,6 @@ export const SingleUpload = ({
           }))
         },
       })
-      console.log('Song uploaded successfully')
 
       await axios.put(presignedCoverUrl, data.coverArt?.[0], {
         headers: {
@@ -127,19 +129,24 @@ export const SingleUpload = ({
           }))
         },
       })
-      console.log('Cover art uploaded successfully')
+
       setUploadProgress((prev) => ({
         ...prev,
         currentStep: 'Confirming upload...',
         overall: 80,
       }))
 
-      await axios.post(
-        'http://localhost:3000/api/v1/songs/upload/confirm/single',
+      await axiosInstance.post(
+        'http://localhost:3000/api/v1/songs/upload/confirm',
         {
           songId,
           songUploadKey,
           coverUploadKey,
+          songName: data.songName,
+          genre: data.genre,
+          visibility: data.visibility,
+          tags,
+          collaborators: data.collaborators,
         },
         {
           headers: {
@@ -148,26 +155,21 @@ export const SingleUpload = ({
           },
         }
       )
+
       setUploadProgress((prev) => ({
         ...prev,
         currentStep: 'Upload complete!',
         overall: 100,
       }))
+      toast.success('Song uploaded successfully!')
+
+      reset()
     } catch (error) {
+      toast.error('Error uploading song. Please try again.')
+
       console.error('Error uploading song:', error)
-      // Handle error appropriately, e.g., show a notification
     } finally {
       setIsSingleBeingUploaded(false)
-      // Reset form or show success message
-      setValue('songName', '')
-      setValue('audioFile', undefined)
-      setValue('coverArt', undefined)
-      setValue('genre', '')
-      setValue('visibility', 'public')
-      setValue('tags', '')
-      setValue('collaborators', [])
-      setCollaboratorEmail('')
-      console.log('Form reset after submission')
     }
 
     // Handle form submission here
@@ -176,13 +178,27 @@ export const SingleUpload = ({
   const coverArtFile = watch('coverArt')
   const coverArtSize = coverArtFile?.[0]?.size ?? 0
 
-  const addCollaborator = () => {
+  const addCollaborator = async () => {
     if (collaboratorEmail.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(collaboratorEmail.trim())) {
         return
       }
-
+      //check if user with this email exists or not
+      try {
+        await axiosInstance.post(
+          'http://localhost:4000/api/v1/auth/artist-email-check',
+          {
+            email: collaboratorEmail.trim(),
+          }
+        )
+      } catch (error: any) {
+        toast.error(
+          error.response.data.errors[0].reason ??
+            'Error checking collaborator email'
+        )
+        return
+      }
       const currentCollaborators = getValues('collaborators') || []
       if (
         !currentCollaborators.includes(collaboratorEmail.trim()) &&

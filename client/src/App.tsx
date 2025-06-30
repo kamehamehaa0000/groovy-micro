@@ -1,5 +1,4 @@
-import { Link, Route, BrowserRouter, Routes } from 'react-router'
-import { authStore } from './store/auth-store'
+import { Route, BrowserRouter, Routes, Link } from 'react-router'
 import Upload from './pages/upload'
 import Login from './pages/Login'
 import { Toaster } from 'react-hot-toast'
@@ -13,10 +12,11 @@ import { ForgotPassword } from './pages/ForgetPassword'
 import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 import { useSigninPromptModalStore } from './store/modal-store'
+import { MainLayout } from './routes/MainLayout'
+import { HomePage } from './pages/Homepage'
+import { CgClose } from 'react-icons/cg'
 
 function App() {
-  const { isAuthenticated } = authStore()
-
   return (
     <div className="w-screen min-h-screen ">
       <BrowserRouter>
@@ -24,44 +24,9 @@ function App() {
           <Route
             path="/"
             element={
-              <div className="relative h-full flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-bold text-center mt-10">
-                  Welcome to the Groovy Microservices Project
-                  <br />
-                  <button
-                    onClick={() =>
-                      !isAuthenticated
-                        ? useSigninPromptModalStore.getState().open()
-                        : alert('You are already logged in!')
-                    }
-                    className="bg-blue-500 text-white px-4 py-2 rounded mt-5 hover:bg-blue-600 transition-colors"
-                  >
-                    Play
-                  </button>
-                </h1>
-                {!isAuthenticated ? (
-                  <div>
-                    <Link
-                      to="/login"
-                      className="block text-center mt-5 text-blue-500 hover:underline"
-                    >
-                      login
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <li>{authStore.getState().user?.displayName}</li>
-                    <li>{authStore.getState().user?.email}</li>
-                    <li>{authStore.getState().user?.id}</li>
-                    <button
-                      className="mx-auto block text-center mt-5 text-blue-500 hover:underline"
-                      onClick={() => authStore.getState().logout()}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
             }
           />
           <Route
@@ -98,16 +63,55 @@ const PromptModal = () => {
   const { isOpen, close } = useSigninPromptModalStore()
   if (!isOpen) return null
   return (
-    <div className="fixed top-0 left-0 w-screen h-screen inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Sign In Required</h2>
-        <p className="mb-4">Please sign in to continue.</p>
+    <div className="fixed top-0 left-0 p-6 w-screen h-screen inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50">
+      {/*container*/}
+      <div className="relative flex  bg-white rounded-md shadow-xl max-w-2xl w-full h-96 overflow-hidden">
         <button
           onClick={close}
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-5 hover:bg-blue-600 transition-colors"
+          className=" bg-black/40 rounded-full absolute right-4 top-4 z-10 text-gray-100 hover:text-gray-400 transition-colors"
         >
-          Close
+          <CgClose size={24} />
         </button>
+
+        {/* Left side - Content */}
+        <div className="flex-1 flex flex-col justify-center p-4 lg:p-6">
+          <h2 className="text-2xl lg:text-3xl font-bold mb-4 text-gray-800">
+            Sign-In to tune into your Groovy
+          </h2>
+          <p className="text-gray-600 mb-8 text-base lg:text-md">
+            Please sign in to continue enjoying your music experience.
+          </p>
+
+          <div className="space-y-4">
+            <Link
+              to={'/login'}
+              onClick={close}
+              className="inline-block w-full text-center bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors font-medium"
+            >
+              Sign In
+            </Link>
+
+            <p className="text-sm text-gray-500 text-center">
+              Don't have an account?{' '}
+              <Link
+                to={'/register'}
+                onClick={close}
+                className="text-orange-600 hover:text-orange-700 font-medium"
+              >
+                Sign Up
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Right side - Image */}
+        <div className="flex-1 hidden md:block">
+          <img
+            src="https://plus.unsplash.com/premium_photo-1731612462772-0c7fa0377ccb?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Sign In Prompt"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
     </div>
   )

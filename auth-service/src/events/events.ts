@@ -29,18 +29,11 @@ export const Subscriptions = {
   STATS_SERVICE_USER_EVENTS: 'stats-service-user-events',
   PLAYLISTS_SERVICE_USER_EVENTS: 'playlists-service-user-events',
   COMMENTS_SERVICE_USER_EVENTS: 'comments-service-user-events',
+
+  AUTH_SERVICE_SONG_EVENTS: 'auth-service-song-events',
+  SONGS_SERVICE_SONG_EVENTS: 'songs-service-song-events',
+  STATS_SERVICE_SONG_EVENTS: 'stats-service-song-events',
+  PLAYLISTS_SERVICE_SONG_EVENTS: 'playlists-service-song-events',
+  COMMENTS_SERVICE_SONG_EVENTS: 'comments-service-song-events',
 } as const
 
-// Event data interfaces
-export interface UserCreatedEvent {
-  userId: string
-  email: string
-  displayName: string
-}
-
-export interface UserUpdatedEvent {
-  userId: string
-  email?: string
-  displayName?: string
-  updatedFields: string[]
-}

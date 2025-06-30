@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router'
-import { authStore } from '../../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, checkAuth } = authStore()
+  const { isAuthenticated, isLoading, checkAuth } = useAuthStore()
   const [isInitialized, setIsInitialized] = useState(false)
   const location = useLocation()
 

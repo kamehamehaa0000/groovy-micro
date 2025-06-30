@@ -127,28 +127,32 @@ export class PubSubManager {
   }
 
   /**
-   * Subscribe to messages from a subscription
+   * Subscribe to messages from a topic
    */
   async subscribe<T extends BaseEvent>(
+    topicName: string,
     subscriptionName: string,
-    handler: (event: T) => Promise<void> | void,
-    options?: {
-      maxMessages?: number
-      allowExcessMessages?: boolean
-    }
+    handler: (event: T) => Promise<void> | void
   ): Promise<void> {
     try {
-      const [subscription] = await this.pubSubClient
-        .subscription(subscriptionName)
+      const [topic] = await this.pubSubClient
+        .topic(topicName)
         .get({ autoCreate: true })
-
-      // Configure flow control to prevent overwhelming the service
-      subscription.setOptions({
-        flowControl: {
-          allowExcessMessages: options?.allowExcessMessages ?? false,
-          maxMessages: options?.maxMessages ?? 1000,
-        },
-      })
+      let subscription: Subscription
+      try {
+        ;[subscription] = await topic.createSubscription(subscriptionName, {
+          ackDeadlineSeconds: 60,
+        })
+        console.log(`🆕 Created subscription: ${subscriptionName}`)
+      } catch (error: any) {
+        if (error.code === 6) {
+          // ALREADY_EXISTS
+          subscription = this.pubSubClient.subscription(subscriptionName)
+          console.log(`Subscription '${subscriptionName}' already exists\n`)
+        } else {
+          throw error
+        }
+      }
 
       // Handle incoming messages
       subscription.on('message', async (message: Message) => {

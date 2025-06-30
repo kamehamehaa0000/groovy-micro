@@ -5,7 +5,7 @@ import { BiLock } from 'react-icons/bi'
 import { BsMailbox } from 'react-icons/bs'
 import { FiEye, FiEyeOff } from 'react-icons/fi'
 import { Link } from 'react-router'
-import { authStore } from '../store/auth-store'
+import { useAuthStore } from '../store/auth-store'
 
 export const Register = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -78,7 +78,7 @@ const RegisterForm = ({
     register: registerAuthStore,
     error: storeError,
     clearError,
-  } = authStore()
+  } = useAuthStore()
 
   const onSubmitHandler = async (data: {
     email: string

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router'
-import { authStore } from '../../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 
 export const PasswordResetPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -12,7 +12,7 @@ export const PasswordResetPage: React.FC = () => {
   const [status, setStatus] = useState<'form' | 'success' | 'error'>('form')
   const [message, setMessage] = useState('')
 
-  const { resetPassword, isLoading, error, clearError } = authStore()
+  const { resetPassword, isLoading, error, clearError } = useAuthStore()
 
   const token = searchParams.get('token')
 

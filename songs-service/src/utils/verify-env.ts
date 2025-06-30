@@ -4,7 +4,6 @@ export const verifyEnv = () => {
     'PORT',
     'BASE_URL',
     'CLIENT_URL',
-
     'JWT_ACCESS_SECRET',
     'JWT_REFRESH_SECRET',
     'JWT_ACCESS_EXPIRES_IN',

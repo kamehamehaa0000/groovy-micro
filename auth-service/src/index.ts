@@ -3,7 +3,7 @@ import { closeDatabaseConnections, connectToDatabase } from './config/database'
 // import { generateAccessToken } from './services/tokenService'
 import { verifyEnv } from './utils/verify-env'
 import { pubSubManager } from './events/pubSubManager'
-import { EventTypes, TOPICS } from './events/events'
+import { Subscriptions, TOPICS } from './events/events'
 
 async function startServer() {
   try {
@@ -14,14 +14,13 @@ async function startServer() {
       console.log('Available Pub/Sub topics:')
       console.log(topics)
     })
-    await pubSubManager.publishEvent(TOPICS.USER_EVENTS, {
-      eventType: EventTypes.USER_CREATED,
-      eventId: `USER_CREATED-testUserId-${Date.now()}`,
-      data: {
-        userId: 'testUserId',
-        email: 'testUser@example.com',
-      },
-    })
+    pubSubManager.subscribe(
+      TOPICS.SONG_EVENTS,
+      Subscriptions.AUTH_SERVICE_SONG_EVENTS,
+      async (event) => {
+        console.log('Received song event:', event)
+      }
+    )
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(

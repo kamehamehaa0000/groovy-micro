@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { authStore } from '../store/auth-store'
+import { useAuthStore } from '../store/auth-store'
 import toast from 'react-hot-toast'
 
 const axiosInstance = axios.create({
@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 // Request interceptor to add access token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const { accessToken } = authStore.getState()
+    const { accessToken } = useAuthStore.getState()
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
@@ -28,16 +28,16 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        const { refreshToken } = authStore.getState()
+        const { refreshToken } = useAuthStore.getState()
         await refreshToken()
 
-        const { accessToken } = authStore.getState()
+        const { accessToken } = useAuthStore.getState()
         if (accessToken) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
           return axiosInstance(originalRequest)
         }
       } catch (refreshError) {
-        authStore.getState().logout()
+        useAuthStore.getState().logout()
         toast.error('Session expired. Please log in again.')
         window.location.href = '/login' // LATER: Remove if not needed
         return Promise.reject(refreshError)

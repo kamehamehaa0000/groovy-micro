@@ -6,7 +6,10 @@ import rateLimit from 'express-rate-limit'
 import { config, configDotenv } from 'dotenv'
 
 import { globalErrorHandler } from '@groovy-streaming/common'
-import { SongRouter } from './routes/songs.router'
+import { mainRouter } from './routes/main.router'
+import { verifyWebhookSignature } from './middlewares/verifyWebhookSignature'
+import { Song } from './models/Song.model'
+
 configDotenv({
   path: '.env',
 })
@@ -83,6 +86,44 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
   })
 })
-app.use('/api/v1/songs', generalLimiter, SongRouter)
+app.post(
+  '/webhook/hls-conversion',
+  verifyWebhookSignature,
+  async (req, res) => {
+    const { songId, status, hlsUrl } = req.body
+    console.log('Received webhook:', req.body)
+    if (!songId || !status) {
+      return res.status(400).json({ error: 'Invalid request body' })
+    }
+    try {
+      const song = await Song.findById(req.body.songId)
+      if (!song) {
+        return res.status(404).json({ error: 'Song not found' })
+      }
+      song.status = status
+      if (status === 'failed') {
+        // Changed from StatusEnum.FAILED to string
+        //TODO: publish song.updated event to the queue
+        song.errorMessage = req.body.error ?? 'Unknown error'
+      } else if (status === 'completed') {
+        // Changed from StatusEnum.COMPLETED to string
+        //TODO: publish song.updated event to the queue
+        song.hlsUrl = hlsUrl
+      } else if (status === 'processing') {
+        // Added handling for processing status
+        // Just update the status, no additional fields needed
+      } else {
+        return res.status(400).json({ error: 'Invalid status' })
+      }
+      await song.save()
+      res.status(200).json({ success: true })
+    } catch (error) {
+      console.error('Webhook processing error:', error)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+)
+
+app.use('/api/v1', generalLimiter, mainRouter)
 
 app.use(globalErrorHandler)

@@ -10,6 +10,9 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "../songs-service/src/middleware/verifyWebhookSignature.ts"
+  ],
   "exclude": ["node_modules", "**/*.spec.ts", "dist"]
 }

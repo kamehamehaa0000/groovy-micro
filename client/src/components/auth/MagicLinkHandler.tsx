@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router'
-import { authStore } from '../../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 
 export const MagicLinkHandler: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -10,7 +10,7 @@ export const MagicLinkHandler: React.FC = () => {
   )
   const [message, setMessage] = useState('')
 
-  const { verifyMagicLink } = authStore()
+  const { verifyMagicLink } = useAuthStore()
 
   const token = searchParams.get('token')
 

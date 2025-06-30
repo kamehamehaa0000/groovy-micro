@@ -14,7 +14,7 @@ async function startServer() {
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
-        `🚀 Auth service running on port ${PORT} in ${process.env.NODE_ENV?.toUpperCase()} environment.`
+        `🚀 Songs-service running on port ${PORT} in ${process.env.NODE_ENV?.toUpperCase()} environment.`
       )
       console.log(`📊 Health check: http://localhost:${PORT}/health`)
     })

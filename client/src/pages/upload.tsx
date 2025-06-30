@@ -1,8 +1,7 @@
 import { useState } from 'react'
-
 import { SingleUpload } from '../components/upload/SingleUpload'
-import { AlbumUpload } from '../components/upload/AlbumUpload'
 import { Link } from 'react-router'
+import { AlbumUpload } from '../components/upload/AlbumUpload'
 
 const Upload = () => {
   const [type, setType] = useState<'single' | 'album'>('single')

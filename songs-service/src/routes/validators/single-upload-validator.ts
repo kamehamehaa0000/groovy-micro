@@ -1,6 +1,39 @@
 import { body } from 'express-validator'
 
 export const singleSongUploadValidator = [
+  body('filename')
+    .isString()
+    .withMessage('Filename must be a string')
+    .notEmpty()
+    .withMessage('Filename cannot be empty')
+    .matches(/\.(mp3|wav)$/i)
+    .withMessage('Filename must end with .mp3 or .wav'),
+  body('coverArtFileName')
+    .isString()
+    .withMessage('Cover art file name must be a string')
+    .notEmpty()
+    .withMessage('Cover art file name cannot be empty')
+    .matches(/\.(jpg|png)$/i)
+    .withMessage('Cover art file name must end with .jpg or .png'),
+]
+
+export const singleSongUploadConfirmationBodyValidator = [
+  body('songId')
+    .isString()
+    .withMessage('Song ID must be a string')
+    .notEmpty()
+    .withMessage('Song ID cannot be empty'),
+  body('songUploadKey')
+    .isString()
+    .withMessage('Song key must be a string')
+    .notEmpty()
+    .withMessage('Song key cannot be empty'),
+
+  body('coverUploadKey')
+    .isString()
+    .withMessage('Cover art key must be a string')
+    .notEmpty()
+    .withMessage('Cover art key cannot be empty'),
   body('songName')
     .isString()
     .withMessage('Song name must be a string')
@@ -11,13 +44,6 @@ export const singleSongUploadValidator = [
     .withMessage('Genre must be a string')
     .notEmpty()
     .withMessage('Genre cannot be empty'),
-  body('coverArtFileName')
-    .isString()
-    .withMessage('Cover art file name must be a string')
-    .notEmpty()
-    .withMessage('Cover art file name cannot be empty')
-    .matches(/\.(jpg|png)$/i)
-    .withMessage('Cover art file name must end with .jpg or .png'),
 
   body('tags')
     .optional()
@@ -48,23 +74,4 @@ export const singleSongUploadValidator = [
     .notEmpty()
     .isIn(['public', 'private'])
     .withMessage('Visibility must be either "public" or "private"'),
-]
-
-export const singleSongUploadConfirmationBodyValidator = [
-  body('songId')
-    .isString()
-    .withMessage('Song ID must be a string')
-    .notEmpty()
-    .withMessage('Song ID cannot be empty'),
-  body('songUploadKey')
-    .isString()
-    .withMessage('Song key must be a string')
-    .notEmpty()
-    .withMessage('Song key cannot be empty'),
-
-  body('coverUploadKey')
-    .isString()
-    .withMessage('Cover art key must be a string')
-    .notEmpty()
-    .withMessage('Cover art key cannot be empty'),
 ]
