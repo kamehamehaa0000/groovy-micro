@@ -8,6 +8,7 @@ import {
   verifyEnv,
   connectToQueue,
   testR2Connection,
+  createPubSubManager,
 } from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
 import { r2Client } from './config/cloudflareR2'
@@ -31,7 +32,10 @@ async function startServer() {
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await connectToDatabase(process.env.MONGODB_URI!)
     await initializeEventListeners()
-
+    await createPubSubManager(
+      process.env.GCP_PROJECT_ID!,
+      process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
+    )
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(

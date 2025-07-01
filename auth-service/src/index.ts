@@ -3,9 +3,10 @@ import {
   connectToDatabase,
   closeDatabaseConnections,
   verifyEnv,
+  // SUBSCRIPTIONS,
+  // TOPICS,
 } from '@groovy-streaming/common'
-import { pubSubManager } from './events/pubSubManager'
-import { Subscriptions, TOPICS } from './events/events'
+// import { PubSubManager } from './config/PubSub'
 
 async function startServer() {
   try {
@@ -30,25 +31,28 @@ async function startServer() {
     ]) // Ensures all required environment variables are set
 
     await connectToDatabase(process.env.MONGODB_URI!)
-    pubSubManager.listTopics().then((topics) => {
-      console.log('Available Pub/Sub topics:', topics)
-    })
-    pubSubManager.subscribe(
-      TOPICS.SONG_EVENTS,
-      Subscriptions.AUTH_SERVICE_SONG_EVENTS,
-      async (event) => {
-        console.log('Received song event:', event)
-      }
-    )
+    // TESTING: PUB/SUB CONNECTION
+    // await PubSubManager.listTopics().then((topics) => {
+    //   // console.log('Available Pub/Sub topics:', topics)
+    // })
+    // await PubSubManager.subscribe(
+    //   TOPICS.SONG_EVENTS,
+    //   SUBSCRIPTIONS.AUTH_SERVICE_SONG_EVENTS,
+    //   async (event) => {
+    //     // console.log('Received song event:', event)
+    //   }
+    // )
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
-        `🚀 Auth service running on port ${PORT} in ${process.env.NODE_ENV?.toUpperCase()} environment.`
+        `🚀 Auth-service-started -
+        1. Port ${PORT} 
+        2. Environment ${process.env.NODE_ENV?.toUpperCase()}
+        3. Health check: http://localhost:${PORT}/health `
       )
-      console.log(`📊 Health check: http://localhost:${PORT}/health`)
     })
     server.on('error', (error) => {
-      console.error('❌ Server error: ', error.message)
+      console.log('Error on server Auth service:', error.message)
     })
   } catch (error) {
     console.error('❌ Failed to start auth service:', (error as Error).message)
@@ -60,7 +64,6 @@ const gracefulShutdown = async (signal: string) => {
   console.log(`🔄 ${signal} received, shutting down gracefully...`)
   try {
     await closeDatabaseConnections()
-    console.log('✅ Cleanup completed')
     process.exit(0)
   } catch (error) {
     console.error('❌ Error during cleanup while shutting down:', error)

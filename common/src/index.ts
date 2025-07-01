@@ -14,6 +14,12 @@ export {
 export { default as connectToQueue, channel } from './configs/cloudAMQP'
 export { createR2Client, testR2Connection } from './configs/cloudflareR2'
 export {
+  PubSubManager,
+  createPubSubManager,
+  BaseEvent,
+} from './events/PubSubManager'
+
+export {
   authenticate,
   optionalAuth,
   requireAuth,

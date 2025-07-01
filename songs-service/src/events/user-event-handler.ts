@@ -1,6 +1,5 @@
 import User from '../models/User.model'
-import { EventTypes } from './events'
-import { BaseEvent } from './pub-sub-manager'
+import { BaseEvent, EventTypes } from '@groovy-streaming/common'
 
 export class UserEventHandlers {
   // Handle any user event

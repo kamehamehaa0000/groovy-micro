@@ -1,5 +1,5 @@
-import { EventTypes, TOPICS } from './events'
-import { BaseEvent, pubSubManager } from './pubSubManager'
+import { EventTypes, TOPICS, BaseEvent } from '@groovy-streaming/common'
+import { PubSubManager } from '../config/PubSub'
 
 export class UserEventPublisher {
   static async UserCreatedEvent(
@@ -23,7 +23,7 @@ export class UserEventPublisher {
       },
     }
     try {
-      await pubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
+      await PubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
     } catch (error) {
       console.error('Error publishing user created event:', error)
     }
@@ -48,7 +48,7 @@ export class UserEventPublisher {
       },
     }
     try {
-      await pubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
+      await PubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
     } catch (error) {
       console.error('Error publishing user updated event:', error)
     }

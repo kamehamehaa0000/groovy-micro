@@ -1,7 +1,4 @@
 import { PubSub, Message, Topic, Subscription } from '@google-cloud/pubsub'
-import { config } from 'dotenv'
-
-config()
 
 export interface BaseEvent {
   eventType: string
@@ -17,14 +14,12 @@ export interface BaseEvent {
 export class PubSubManager {
   private pubSubClient: PubSub
 
-  constructor() {
+  constructor(projectId?: string, keyFilename?: string) {
     this.pubSubClient = new PubSub({
-      projectId: process.env.GCP_PROJECT_ID!,
-      keyFilename: process.env.GCP_SERVICE_ACCOUNT_KEY_PATH,
+      projectId: projectId,
+      keyFilename: keyFilename,
     })
-    console.log(
-      `🔧 PubSub initialized for project: ${process.env.GCP_PROJECT_ID!}`
-    )
+    console.log(`# PubSub initialized for project: ${projectId}`)
   }
 
   /**
@@ -148,7 +143,7 @@ export class PubSubManager {
         if (error.code === 6) {
           // ALREADY_EXISTS
           subscription = this.pubSubClient.subscription(subscriptionName)
-          console.log(`Subscription '${subscriptionName}' already exists\n`)
+          console.log(`✅ Subscription '${subscriptionName}' already exists`)
         } else {
           throw error
         }
@@ -253,4 +248,9 @@ export class PubSubManager {
 }
 
 // Create singleton instance
-export const pubSubManager = new PubSubManager()
+export const createPubSubManager = (
+  projectId: string,
+  keyFilename: string
+): PubSubManager => {
+  return new PubSubManager(projectId, keyFilename)
+}

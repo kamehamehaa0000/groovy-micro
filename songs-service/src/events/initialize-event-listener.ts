@@ -1,5 +1,5 @@
-import { Subscriptions, TOPICS } from './events'
-import { pubSubManager } from './pub-sub-manager'
+import { SUBSCRIPTIONS, TOPICS } from '@groovy-streaming/common'
+import { PubSubManager } from '../config/PubSub'
 import { UserEventHandlers } from './user-event-handler'
 
 export async function initializeEventListeners(): Promise<void> {
@@ -7,14 +7,14 @@ export async function initializeEventListeners(): Promise<void> {
     console.log('🎧 Initializing event listeners...')
 
     // Test connection first
-    const connected = await pubSubManager.testConnection()
+    const connected = await PubSubManager.testConnection()
     if (!connected) {
       throw new Error('Failed to connect to PubSub')
     }
 
-    await pubSubManager.subscribe(
+    await PubSubManager.subscribe(
       TOPICS.USER_EVENTS,
-      Subscriptions.AUTH_SERVICE_USER_EVENTS,
+      SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
       UserEventHandlers.handleUserEvent
     )
 
@@ -26,5 +26,5 @@ export async function initializeEventListeners(): Promise<void> {
 }
 
 export async function closeEventListeners(): Promise<void> {
-  await pubSubManager.close()
+  await PubSubManager.close()
 }

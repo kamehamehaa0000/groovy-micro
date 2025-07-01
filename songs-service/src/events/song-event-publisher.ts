@@ -1,6 +1,6 @@
+import { PubSubManager } from '../config/PubSub'
 import { StatusEnum } from '../models/Song.model'
-import { EventTypes, TOPICS } from './events'
-import { BaseEvent, pubSubManager } from './pub-sub-manager'
+import { BaseEvent, EventTypes, TOPICS } from '@groovy-streaming/common'
 
 export class SongEventPublisher {
   static async SongCreatedEvent(
@@ -35,7 +35,7 @@ export class SongEventPublisher {
       },
     }
     try {
-      await pubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
     } catch (error) {
       console.error('Error publishing song created event:', error)
     }
@@ -60,10 +60,9 @@ export class SongEventPublisher {
       },
     }
     try {
-      await pubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
+      await PubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
     } catch (error) {
       console.error('Error publishing user updated event:', error)
     }
   }
 }
-
