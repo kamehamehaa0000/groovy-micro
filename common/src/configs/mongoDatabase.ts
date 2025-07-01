@@ -1,12 +1,11 @@
 import mongoose from 'mongoose'
 
-export const connectToDatabase = async () => {
+export const connectToDatabase = async (mongoURI: string) => {
   try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI is not defined in environment variables')
+    if (!mongoURI) {
+      throw new Error('MONGODB_URI env is not defined in environment variables')
     }
-    await mongoose.connect(process.env.MONGODB_URI)
-    console.log('✅ Database connected')
+    await mongoose.connect(mongoURI)
   } catch (error) {
     throw new Error('Database connection failed: ' + (error as Error).message)
   }
@@ -14,7 +13,6 @@ export const connectToDatabase = async () => {
 export const closeDatabaseConnections = async () => {
   try {
     await mongoose.connection.close()
-    console.log('✅ Database connection closed')
   } catch (error) {
     throw new Error(
       'Failed to close database connection: ' + (error as Error).message

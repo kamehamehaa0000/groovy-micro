@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
-import connectToQueue, { channel } from './config/cloudAMQP'
+import { channel, connectToQueue, verifyEnv } from '@groovy-streaming/common'
 import fs from 'fs'
 import path from 'path'
 const app = express()
@@ -10,6 +10,7 @@ import { sendWebhook } from './utils/send-webhook'
 import { downloadFromR2, uploadToR2 } from './utils/r2-utils'
 import { convertToHLS } from './utils/convert-to-hls'
 import { StatusEnum } from './model/Song'
+
 config({
   path: './.env',
 })
@@ -20,7 +21,7 @@ app.use(express.json())
 
 const connectAndConsume = async () => {
   try {
-    await connectToQueue()
+    await connectToQueue(process.env.CLOUDAMQP_URL!)
     if (!channel) {
       console.error('Worker: Channel is not initialized')
       return
@@ -130,6 +131,19 @@ const startServer = async () => {
         'WEBHOOK_SECRET and WEBHOOK_URL must be set in the environment variables'
       )
     }
+
+    verifyEnv([
+      'WEBHOOK_SECRET',
+      'WEBHOOK_URL',
+      'R2_ENDPOINT',
+      'R2_ACCESS_KEY_ID',
+      'R2_SECRET_ACCESS_KEY',
+      'R2_BUCKET_NAME',
+      'R2_CUSTOM_DOMAIN',
+      'CLOUDAMQP_URL',
+      'PORT',
+      'NODE_ENV',
+    ])
     await connectAndConsume()
     const port = process.env.PORT ?? 3000
 

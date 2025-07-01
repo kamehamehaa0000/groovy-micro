@@ -1,6 +1,6 @@
 {
   "name": "@groovy-streaming/common",
-  "version": "1.0.10",
+  "version": "1.0.18",
   "description": "A common error handling library for groovy streaming platform microservices project.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,10 +16,16 @@
   "author": "kamehamehaa794",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@types/amqplib": "^0.10.7",
+    "@types/dotenv": "^6.1.1",
     "@types/jsonwebtoken": "^9.0.9",
+    "amqplib": "^0.10.8",
+    "dotenv": "^17.0.0",
     "express": "^4.17.1",
     "express-validator": "^7.2.1",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

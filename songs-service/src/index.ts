@@ -1,28 +1,51 @@
 import { app } from './app'
-import connectToQueue from './config/cloudAMQP'
-import { closeDatabaseConnections, connectToDatabase } from './config/database'
+import dotenv, { configDotenv } from 'dotenv'
+dotenv.config()
+configDotenv()
+import {
+  closeDatabaseConnections,
+  connectToDatabase,
+  verifyEnv,
+  connectToQueue,
+  testR2Connection,
+} from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
-import { verifyEnv } from './utils/verify-env'
+import { r2Client } from './config/cloudflareR2'
 
 async function startServer() {
   try {
-    verifyEnv() // Ensures all required environment variables are set
-    await connectToQueue()
-    await connectToDatabase()
+    verifyEnv([
+      'NODE_ENV',
+      'PORT',
+      'BASE_URL',
+      'CLIENT_URL',
+      'JWT_ACCESS_SECRET',
+      'JWT_REFRESH_SECRET',
+      'JWT_ACCESS_EXPIRES_IN',
+      'JWT_REFRESH_EXPIRES_IN',
+      'MAGIC_LINK_SECRET',
+      'MAGIC_LINK_EXPIRES_IN',
+      'CLOUDAMQP_URL',
+    ]) // Ensures all required environment variables are set
+    await connectToQueue(process.env.CLOUDAMQP_URL!)
+    await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
+    await connectToDatabase(process.env.MONGODB_URI!)
     await initializeEventListeners()
 
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
-        `🚀 Songs-service running on port ${PORT} in ${process.env.NODE_ENV?.toUpperCase()} environment.`
+        `🚀 Songs-service-started -
+        1. Port ${PORT} 
+        2. Environment ${process.env.NODE_ENV?.toUpperCase()}
+        3. Health check: http://localhost:${PORT}/health `
       )
-      console.log(`📊 Health check: http://localhost:${PORT}/health`)
     })
     server.on('error', (error) => {
-      console.error('❌ Server error: ', error.message)
+      console.log('Error on server songs service:', error.message)
     })
   } catch (error) {
-    console.error('❌ Failed to start auth service:', (error as Error).message)
+    console.log('Error starting songs service:', (error as Error).message)
     process.exit(1)
   }
 }
@@ -31,14 +54,13 @@ const gracefulShutdown = async (signal: string) => {
   console.log(`🔄 ${signal} received, shutting down gracefully...`)
   try {
     await closeDatabaseConnections()
-    console.log('✅ Cleanup completed')
     process.exit(0)
-  } catch (error) {
-    console.error('❌ Error during cleanup while shutting down:', error)
+  } catch (error: any) {
+    console.error('Error during graceful shutdown:', error.message)
     process.exit(1)
   }
 }
-startServer()
 
+startServer()
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 process.on('SIGINT', () => gracefulShutdown('SIGINT'))

@@ -3,6 +3,7 @@ import {
   validateRequest,
   AuthenticatedRequest,
   requireAuth,
+  channel,
 } from '@groovy-streaming/common'
 import { NextFunction, Response, Router } from 'express'
 import { Song, StatusEnum } from '../models/Song.model'
@@ -14,9 +15,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { Album } from '../models/Album.model'
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import r2Client from '../config/cloudflareR2'
+import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
-import { channel } from '../config/cloudAMQP'
 
 const router = Router()
 router.get('/', (req: AuthenticatedRequest, res: Response) => {

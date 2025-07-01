@@ -1,18 +1,37 @@
 import { app } from './app'
-import { closeDatabaseConnections, connectToDatabase } from './config/database'
-// import { generateAccessToken } from './services/tokenService'
-import { verifyEnv } from './utils/verify-env'
+import {
+  connectToDatabase,
+  closeDatabaseConnections,
+  verifyEnv,
+} from '@groovy-streaming/common'
 import { pubSubManager } from './events/pubSubManager'
 import { Subscriptions, TOPICS } from './events/events'
 
 async function startServer() {
   try {
-    verifyEnv() // Ensures all required environment variables are set
-    await connectToDatabase()
-    // console.log(generateAccessToken('testUserId'))
+    verifyEnv([
+      'NODE_ENV',
+      'PORT',
+      'BASE_URL',
+      'CLIENT_URL',
+      'GOOGLE_CLIENT_ID',
+      'GOOGLE_CLIENT_SECRET',
+      'SMTP_SERVICE',
+      'SMTP_HOST',
+      'SMTP_USER',
+      'SMTP_PASS',
+      'FROM_EMAIL',
+      'JWT_ACCESS_SECRET',
+      'JWT_REFRESH_SECRET',
+      'JWT_ACCESS_EXPIRES_IN',
+      'JWT_REFRESH_EXPIRES_IN',
+      'MAGIC_LINK_SECRET',
+      'MAGIC_LINK_EXPIRES_IN',
+    ]) // Ensures all required environment variables are set
+
+    await connectToDatabase(process.env.MONGODB_URI!)
     pubSubManager.listTopics().then((topics) => {
-      console.log('Available Pub/Sub topics:')
-      console.log(topics)
+      console.log('Available Pub/Sub topics:', topics)
     })
     pubSubManager.subscribe(
       TOPICS.SONG_EVENTS,

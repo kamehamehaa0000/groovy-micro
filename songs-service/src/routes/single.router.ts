@@ -3,6 +3,7 @@ import {
   CustomError,
   requireAuth,
   validateRequest,
+  channel,
 } from '@groovy-streaming/common'
 import { NextFunction, Router, Response } from 'express'
 import {
@@ -12,8 +13,7 @@ import {
 import { createSong } from '../controllers/songsController'
 import { Song, StatusEnum } from '../models/Song.model'
 import { GetObjectCommand } from '@aws-sdk/client-s3'
-import r2Client from '../config/cloudflareR2'
-import { channel } from '../config/cloudAMQP'
+import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
 
 const router = Router()
