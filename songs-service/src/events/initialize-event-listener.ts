@@ -2,25 +2,32 @@ import { SUBSCRIPTIONS, TOPICS } from '@groovy-streaming/common'
 import { PubSubManager } from '../config/PubSub'
 import { UserEventHandlers } from './user-event-handler'
 
-export async function initializeEventListeners(): Promise<void> {
-  try {
-    console.log('🎧 Initializing event listeners...')
+type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'STATS'
 
-    // Test connection first
+export async function initializeEventListeners(
+  listenTo: EventType[] = ['USER']
+): Promise<void> {
+  try {
     const connected = await PubSubManager.testConnection()
     if (!connected) {
-      throw new Error('Failed to connect to PubSub')
+      throw new Error(
+        'Connection to PubSubManager failed..make sure the pubsub connection is established'
+      )
     }
 
-    await PubSubManager.subscribe(
-      TOPICS.USER_EVENTS,
-      SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
-      UserEventHandlers.handleUserEvent
-    )
+    //Subscribing to user events
+    if (listenTo.includes('USER')) {
+      await PubSubManager.subscribe(
+        TOPICS.USER_EVENTS,
+        SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
+        UserEventHandlers.handleUserEvent
+      )
+      console.log('# User Event listener initialized successfully')
+    }
 
-    console.log('✅ Event listeners initialized!')
+    // Add more event listeners as needed
   } catch (error) {
-    console.error('❌ Failed to initialize event listeners:', error)
+    console.error('# Failed to initialize event listeners:', error)
     throw error
   }
 }

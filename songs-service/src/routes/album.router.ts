@@ -13,7 +13,12 @@ import {
 } from './validators/album-upload-validators'
 import { v4 as uuidv4 } from 'uuid'
 import { Album } from '../models/Album.model'
-import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
@@ -252,4 +257,88 @@ router.post(
     }
   }
 )
+router.delete(
+  '/delete/:albumId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { albumId } = req.params
+      const userId = req.user?.id
+      if (!userId) throw new CustomError('User not authenticated', 401)
+      if (!albumId) throw new CustomError('Album ID is required', 400)
+
+      const album = await Album.findById(albumId)
+      if (!album) throw new CustomError('Album not found', 404)
+
+      if (album.artist.toString() !== userId) {
+        throw new CustomError('Unauthorized: You do not own this album', 403)
+      }
+
+      // --- R2 Cleanup ---
+
+      // 1. Delete all song folders associated with the album
+      for (const songId of album.songs) {
+        const songFolderPrefix = `songs/${songId}/`
+        const listObjectsResponse = await r2Client.send(
+          new ListObjectsV2Command({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Prefix: songFolderPrefix,
+          })
+        )
+
+        if (listObjectsResponse.Contents?.length) {
+          await r2Client.send(
+            new DeleteObjectsCommand({
+              Bucket: process.env.R2_BUCKET_NAME,
+              Delete: {
+                Objects: listObjectsResponse.Contents.map((obj) => ({
+                  Key: obj.Key,
+                })),
+              },
+            })
+          )
+        }
+      }
+
+      // 2. Delete the album cover art folder
+      const albumFolderPrefix = `albums/${albumId}/`
+      const listAlbumObjectsResponse = await r2Client.send(
+        new ListObjectsV2Command({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Prefix: albumFolderPrefix,
+        })
+      )
+
+      if (listAlbumObjectsResponse.Contents?.length) {
+        await r2Client.send(
+          new DeleteObjectsCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Delete: {
+              Objects: listAlbumObjectsResponse.Contents.map((obj) => ({
+                Key: obj.Key,
+              })),
+            },
+          })
+        )
+      }
+
+      // --- Database Cleanup ---
+
+      // 1. Delete all song documents in the album
+      await Song.deleteMany({ _id: { $in: album.songs } })
+
+      // 2. Delete the album document
+      await Album.deleteOne({ _id: albumId })
+
+      res.json({
+        message: 'Album and all associated songs deleted successfully',
+        albumId,
+      })
+    } catch (error) {
+      console.error(`Failed to delete album ${req.params.albumId}:`, error)
+      next(error)
+    }
+  }
+)
+
 export { router as AlbumRouter }

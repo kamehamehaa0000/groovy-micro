@@ -12,9 +12,14 @@ import {
 } from './validators/single-upload-validator'
 import { createSong } from '../controllers/songsController'
 import { Song, StatusEnum } from '../models/Song.model'
-import { GetObjectCommand } from '@aws-sdk/client-s3'
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+} from '@aws-sdk/client-s3'
 import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
+import { Album } from '../models/Album.model'
 
 const router = Router()
 const retrySendingConversionJobs = []
@@ -158,6 +163,64 @@ router.post(
         message: 'Upload confirmed and conversion job queued',
         songId,
         status: StatusEnum.UPLOADED,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// DELETE "/delete/:songId" endpoint to delete a single song upload
+router.delete(
+  '/delete/:songId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { songId } = req.params
+      if (!songId) {
+        throw new CustomError('Song ID is required', 400)
+      }
+
+      // Check if the song exists
+      const song = await Song.findById(songId)
+      if (!song) {
+        throw new CustomError('Song not found', 404, 'Song does not exist.')
+      }
+
+      // delete song from cloudflare R2
+      const songFolderPrefix = `songs/${songId}/`
+      const listObjectsResponse = await r2Client.send(
+        new ListObjectsV2Command({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Prefix: songFolderPrefix,
+        })
+      )
+      if (listObjectsResponse.Contents?.length) {
+        await r2Client.send(
+          new DeleteObjectsCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Delete: {
+              Objects: listObjectsResponse.Contents.map((obj) => ({
+                Key: obj.Key,
+              })),
+            },
+          })
+        )
+      }
+
+      //remove song from album's songs array
+      if (song.metadata?.album) {
+        await Album.updateOne(
+          { _id: song.metadata?.album },
+          { $pull: { songs: songId } }
+        )
+      }
+      // Delete the song
+      await Song.deleteOne({ _id: songId })
+
+      res.json({
+        message: 'Song deleted successfully',
+        songId,
       })
     } catch (error) {
       next(error)

@@ -52,7 +52,7 @@ async function startServer() {
       )
     })
     server.on('error', (error) => {
-      console.log('Error on server Auth service:', error.message)
+      console.log('Error on server Auth service:', error)
     })
   } catch (error) {
     console.error('❌ Failed to start auth service:', (error as Error).message)

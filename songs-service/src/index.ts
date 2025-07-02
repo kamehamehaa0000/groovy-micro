@@ -31,7 +31,7 @@ async function startServer() {
     await connectToQueue(process.env.CLOUDAMQP_URL!)
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await connectToDatabase(process.env.MONGODB_URI!)
-    await initializeEventListeners()
+    await initializeEventListeners(['USER'])
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
