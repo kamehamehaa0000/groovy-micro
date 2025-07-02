@@ -15,7 +15,8 @@ export interface ISong extends Document {
   errorMessage?: string
   duration?: number
   fileSize?: number
-  metadata?: {
+  visibility: 'public' | 'private'
+  metadata: {
     title: string
     artist: string
     collaborators: string[]
@@ -74,6 +75,7 @@ const SongSchema: Schema = new Schema(
     visibility: {
       type: String,
       enum: ['public', 'private'],
+      default: 'public',
     },
   },
   {

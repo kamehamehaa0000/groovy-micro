@@ -118,7 +118,7 @@ router.post(
           genre: genre ?? '',
           tags: tags ?? [],
         },
-        visibility: visibility ?? 'public',
+        visibility: visibility,
       })
 
       //send job for hls conversion
@@ -143,12 +143,12 @@ router.post(
       }
 
       // Publish song created event
-      await SongEventPublisher.SongCreatedEvent(
-        songId,
-        originalUrl,
-        coverArtUrl,
-        StatusEnum.UPLOADED,
-        {
+      await SongEventPublisher.SongCreatedEvent({
+        songId: songId,
+        originalUrl: originalUrl,
+        coverArtUrl: coverArtUrl,
+        status: StatusEnum.UPLOADED,
+        metadata: {
           title: songName,
           artist: userId,
           collaborators: collaborators ?? [],
@@ -156,8 +156,8 @@ router.post(
           genre: genre ?? '',
           tags: tags ?? [],
         },
-        visibility ?? 'public'
-      )
+        visibility: visibility ?? 'public',
+      })
 
       res.json({
         message: 'Upload confirmed and conversion job queued',
@@ -218,6 +218,8 @@ router.delete(
       // Delete the song
       await Song.deleteOne({ _id: songId })
 
+      // Publish song deleted event
+      await SongEventPublisher.SongDeletedEvent(songId)
       res.json({
         message: 'Song deleted successfully',
         songId,

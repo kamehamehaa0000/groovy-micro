@@ -210,12 +210,12 @@ router.post(
           }
 
           // Publish song created event
-          await SongEventPublisher.SongCreatedEvent(
-            track.songId,
-            originalUrl,
-            coverArtUrl,
-            StatusEnum.UPLOADED,
-            {
+          await SongEventPublisher.SongCreatedEvent({
+            songId: track.songId,
+            originalUrl: originalUrl,
+            coverArtUrl: coverArtUrl,
+            status: StatusEnum.UPLOADED,
+            metadata: {
               title: track.songName,
               artist: userId,
               collaborators: track.collaborators ?? [],
@@ -223,8 +223,8 @@ router.post(
               genre: track.genre ?? genre,
               tags: track.tags ?? tags,
             },
-            visibility
-          )
+            visibility: visibility,
+          })
 
           return track.songId
         }
@@ -242,9 +242,23 @@ router.post(
         tags,
         collaborators: collaborators ?? [],
         songs: songIds,
+        visibility: visibility,
       })
 
       await album.save()
+
+      // Publish album created event
+      await SongEventPublisher.AlbumCreatedEvent({
+        albumId: album._id,
+        title: album.title,
+        artist: album.artist,
+        coverUrl: album.coverUrl!,
+        genre: album.genre!,
+        tags: album.tags!,
+        collaborators: album.collaborators!,
+        songs: album.songs,
+        visibility: visibility ?? 'public',
+      })
 
       res.json({
         message: 'Album upload confirmed and conversion jobs queued',
@@ -257,6 +271,7 @@ router.post(
     }
   }
 )
+
 router.delete(
   '/delete/:albumId',
   requireAuth,
@@ -322,13 +337,14 @@ router.delete(
         )
       }
 
-      // --- Database Cleanup ---
-
-      // 1. Delete all song documents in the album
+      // Delete all song documents in the album
       await Song.deleteMany({ _id: { $in: album.songs } })
 
-      // 2. Delete the album document
+      // Delete the album document
       await Album.deleteOne({ _id: albumId })
+
+      // Publish album deleted event
+      await SongEventPublisher.AlbumDeletedEvent(albumId)
 
       res.json({
         message: 'Album and all associated songs deleted successfully',

@@ -14,7 +14,7 @@
     "@aws-sdk/client-s3": "^3.0.0",
     "@aws-sdk/s3-request-presigner": "^3.0.0",
     "@google-cloud/pubsub": "^5.1.0",
-    "@groovy-streaming/common": "^1.0.25",
+    "@groovy-streaming/common": "^1.0.26",
     "amqplib": "^0.10.3",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",

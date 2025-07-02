@@ -32,6 +32,7 @@ async function startServer() {
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await connectToDatabase(process.env.MONGODB_URI!)
     await initializeEventListeners(['USER'])
+
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!

@@ -3,11 +3,18 @@ import { StatusEnum } from '../models/Song.model'
 import { BaseEvent, EventTypes, TOPICS } from '@groovy-streaming/common'
 
 export class SongEventPublisher {
-  static async SongCreatedEvent(
-    songId: string,
-    originalUrl: string,
-    coverArtUrl: string,
-    status: StatusEnum,
+  static async SongCreatedEvent({
+    songId,
+    originalUrl,
+    coverArtUrl,
+    status,
+    metadata,
+    visibility,
+  }: {
+    songId: string
+    originalUrl: string
+    coverArtUrl: string
+    status: StatusEnum
     metadata: {
       title: string
       artist: string
@@ -15,9 +22,9 @@ export class SongEventPublisher {
       album: string
       genre: string
       tags: string[]
-    },
+    }
     visibility: 'public' | 'private'
-  ): Promise<void> {
+  }): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.SONG_CREATED,
       eventId: `${EventTypes.SONG_CREATED}-${songId}-${Date.now()}`,
@@ -41,28 +48,181 @@ export class SongEventPublisher {
     }
   }
 
-  static async SongUpdatedEvent(
-    userId: string,
-    displayName?: string,
-    updatedFields: string[] = []
-  ): Promise<void> {
+  static async SongUpdatedEvent({
+    songId,
+    newOriginalUrl,
+    newCoverUrl,
+    newStatus,
+    metadata,
+    updatedFields,
+  }: {
+    songId: string
+    newOriginalUrl?: string
+    newCoverUrl?: string
+    newStatus?: StatusEnum
+    metadata?: {
+      title?: string
+      artist?: string
+      collaborators?: string[]
+      album?: string
+      genre?: string
+      tags?: string[]
+    }
+    updatedFields?: string[]
+  }): Promise<void> {
     const event: BaseEvent = {
-      eventType: EventTypes.USER_UPDATED,
-      eventId: `${EventTypes.USER_UPDATED}-${userId}-${Date.now()}`,
+      eventType: EventTypes.SONG_UPDATED,
+      eventId: `${EventTypes.SONG_UPDATED}-${songId}-${Date.now()}`,
       data: {
-        userId,
-        displayName,
+        songId,
+        newOriginalUrl,
+        newCoverUrl,
+        newStatus,
+        metadata,
         updatedFields,
       },
       metadata: {
-        correlationId: `${userId}-${Date.now()}`,
-        source: 'auth-service',
+        correlationId: `${songId}-${Date.now()}`,
+        source: 'song-service',
       },
     }
     try {
-      await PubSubManager.publishEvent(TOPICS.USER_EVENTS, event)
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
     } catch (error) {
-      console.error('Error publishing user updated event:', error)
+      console.error('Error publishing song updated event:', error)
     }
   }
+
+  static async SongDeletedEvent(songId: string): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.SONG_DELETED,
+      eventId: `${EventTypes.SONG_DELETED}-${songId}-${Date.now()}`,
+      data: { songId },
+      metadata: {
+        correlationId: `${songId}-${Date.now()}`,
+        source: 'song-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing song deleted event:', error)
+    }
+  }
+
+  static async AlbumCreatedEvent({
+    albumId,
+    title,
+    artist,
+    coverUrl,
+    genre,
+    tags,
+    collaborators,
+    songs,
+    visibility,
+  }: {
+    albumId: string
+    title: string
+    artist: string
+    coverUrl: string
+    genre: string
+    tags: string[]
+    collaborators: string[]
+    songs: string[]
+    visibility?: 'public' | 'private'
+  }) {
+    const event: BaseEvent = {
+      eventType: EventTypes.ALBUM_CREATED,
+      eventId: `${EventTypes.ALBUM_CREATED}-${albumId}-${Date.now()}`,
+      data: {
+        albumId,
+        title,
+        artist,
+        coverUrl,
+        genre,
+        tags,
+        collaborators,
+        songs,
+      },
+      metadata: {
+        correlationId: `${albumId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing album created event:', error)
+    }
+  }
+
+  static async AlbumUpdatedEvent({
+    albumId,
+    title,
+    artist,
+    coverUrl,
+    genre,
+    tags,
+    collaborators,
+    songs,
+    updatedFields,
+    visibility,
+  }: {
+    albumId: string
+    title?: string
+    artist?: string
+    coverUrl?: string
+    genre?: string
+    tags?: string[]
+    collaborators?: string[]
+    songs?: string[]
+    visibility?: 'public' | 'private'
+    updatedFields?: string[]
+  }): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.ALBUM_UPDATED,
+      eventId: `${EventTypes.ALBUM_UPDATED}-${albumId}-${Date.now()}`,
+      data: {
+        albumId,
+        title,
+        artist,
+        coverUrl,
+        genre,
+        tags,
+        collaborators,
+        songs,
+        updatedFields,
+      },
+      metadata: {
+        correlationId: `${albumId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing album updated event:', error)
+    }
+  }
+
+  static async AlbumDeletedEvent(albumId: string): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.ALBUM_DELETED,
+      eventId: `${EventTypes.ALBUM_DELETED}-${albumId}-${Date.now()}`,
+      data: { albumId },
+      metadata: {
+        correlationId: `${albumId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing album deleted event:', error)
+    }
+  }
+
+  // static async PlaylistCreatedEvent() {}
+  // static async PlaylistUpdatedEvent() {}
+  // static async PlaylistDeletedEvent() {}
 }

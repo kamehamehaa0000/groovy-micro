@@ -7,8 +7,9 @@ export interface IAlbum extends Document {
   coverUrl?: string
   genre?: string
   tags?: string[]
-  colloborators?: string[]
+  collaborators?: string[]
   songs: string[] // array of Song._id values
+  visibility?: 'public' | 'private'
   createdAt: Date
   updatedAt: Date
 }
@@ -50,6 +51,11 @@ const AlbumSchema: Schema = new Schema(
         ref: 'Song',
       },
     ],
+    visibility: {
+      type: String,
+      enum: ['public', 'private'],
+      default: 'public',
+    },
   },
   {
     timestamps: true,
