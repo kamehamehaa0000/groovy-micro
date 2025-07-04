@@ -18,6 +18,7 @@ import { r2Client } from '../config/cloudflareR2'
 import { extractKeyFromR2Url } from '../utils/extractKeyFromUrl'
 import { Song, StatusEnum } from '../models/Song.model'
 import { SongEventPublisher } from '../events/song-event-publisher'
+import User from '../models/User.model'
 
 const router = Router()
 
@@ -79,7 +80,10 @@ router.put(
         updatedFields.push('genre')
       }
       if (collaborators) {
-        album.collaborators = collaborators
+        const collaboratorUsers = await User.find({
+          email: { $in: collaborators },
+        }).select('_id')
+        album.collaborators = collaboratorUsers.map((user) => user._id)
         updatedFields.push('collaborators')
       }
       if (visibility) {
@@ -241,7 +245,12 @@ router.put(
       if (name) song.metadata.title = name
       if (tags) song.metadata.tags = tags
       if (genre) song.metadata.genre = genre
-      if (collaborators) song.metadata.collaborators = collaborators
+      if (collaborators) {
+        const collaboratorUsers = await User.find({
+          email: { $in: collaborators },
+        }).select('_id')
+        song.metadata.collaborators = collaboratorUsers.map((user) => user._id)
+      }
       if (visibility) song.visibility = visibility
       await song.save()
 
@@ -399,8 +408,12 @@ router.put(
   authenticate,
   coverArtValidators,
   validateRequest,
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
       const { songId } = req.params
       const { coverArtFileName } = req.body
 
@@ -449,6 +462,10 @@ router.put(
   validateRequest,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
       const { songId } = req.params
       const { coverKey } = req.body
 

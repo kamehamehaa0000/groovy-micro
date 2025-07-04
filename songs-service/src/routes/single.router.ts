@@ -20,6 +20,7 @@ import {
 import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
 import { Album } from '../models/Album.model'
+import User from '../models/User.model'
 
 const router = Router()
 const retrySendingConversionJobs = []
@@ -105,6 +106,20 @@ router.post(
       const originalUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${songUploadKey}`
       const coverArtUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${coverUploadKey}`
 
+      let collaboratorIds: string[] = []
+      if (collaborators && collaborators.length > 0) {
+        const collaboratorUsers = await User.find({
+          email: { $in: collaborators },
+        }).select('_id')
+        if (collaboratorUsers.length !== collaborators.length) {
+          throw new CustomError(
+            'Some collaborators not found. Please check the emails.',
+            404
+          )
+        }
+        collaboratorIds = collaboratorUsers.map((user) => user._id)
+      }
+
       await Song.create({
         _id: songId,
         originalUrl: originalUrl,
@@ -113,7 +128,7 @@ router.post(
         metadata: {
           title: songName,
           artist: userId,
-          collaborators: collaborators ?? [],
+          collaborators: collaboratorIds,
           album: '',
           genre: genre ?? '',
           tags: tags ?? [],
@@ -151,7 +166,7 @@ router.post(
         metadata: {
           title: songName,
           artist: userId,
-          collaborators: collaborators ?? [],
+          collaborators: collaboratorIds ?? [],
           album: '',
           genre: genre ?? '',
           tags: tags ?? [],

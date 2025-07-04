@@ -61,11 +61,11 @@ const SongSchema: Schema = new Schema(
     },
     metadata: {
       title: String,
-      artist: String,
+      artist: { type: String, ref: 'User' },
       album: { type: String, ref: 'Album' },
       genre: String,
       description: String,
-      collaborators: [String],
+      collaborators: [{ type: String, ref: 'User' }],
       tags: [String],
       trackNumber: {
         type: Number,
@@ -87,5 +87,13 @@ const SongSchema: Schema = new Schema(
 // Index for efficient queries
 SongSchema.index({ status: 1, createdAt: -1 })
 SongSchema.index({ createdAt: -1 })
+SongSchema.index({ 'metadata.artist': 1 })
+SongSchema.index({ 'metadata.genre': 1 })
+SongSchema.index({ 'metadata.tags': 1 })
+SongSchema.index({ 'metadata.collaborators': 1 })
+SongSchema.index(
+  { 'metadata.title': 'text', 'metadata.genre': 'text' },
+  { name: 'SongTextIndex' }
+)
 
 export const Song = mongoose.model<ISong>('Song', SongSchema)

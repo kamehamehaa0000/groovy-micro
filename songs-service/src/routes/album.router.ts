@@ -22,6 +22,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { r2Client } from '../config/cloudflareR2'
 import { SongEventPublisher } from '../events/song-event-publisher'
+import User from '../models/User.model'
 
 const router = Router()
 router.get('/', (req: AuthenticatedRequest, res: Response) => {
@@ -167,6 +168,14 @@ router.post(
         async (track: any, index: number) => {
           const originalUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${track.songUploadKey}`
 
+          let trackCollaboratorIds: string[] = []
+          if (track.collaborators && track.collaborators.length > 0) {
+            const collaboratorUsers = await User.find({
+              email: { $in: track.collaborators },
+            }).select('_id')
+            trackCollaboratorIds = collaboratorUsers.map((user) => user._id)
+          }
+
           const song = new Song({
             _id: track.songId,
             originalUrl,
@@ -175,7 +184,7 @@ router.post(
             metadata: {
               title: track.songName ?? `Track ${index + 1}`,
               artist: userId,
-              collaborators: track.collaborators ?? [],
+              collaborators: trackCollaboratorIds,
               album: albumId,
               genre: track.genre ?? genre,
               trackNumber: track.trackNumber ?? index + 1,
@@ -218,7 +227,7 @@ router.post(
             metadata: {
               title: track.songName,
               artist: userId,
-              collaborators: track.collaborators ?? [],
+              collaborators: trackCollaboratorIds,
               album: albumId,
               genre: track.genre ?? genre,
               tags: track.tags ?? tags,
@@ -232,6 +241,14 @@ router.post(
 
       await Promise.all(songCreationPromises)
 
+      // Collect all collaborator IDs for the album
+      let albumCollaboratorIds: string[] = []
+      if (collaborators && collaborators.length > 0) {
+        const collaboratorUsers = await User.find({
+          email: { $in: collaborators },
+        }).select('_id')
+        albumCollaboratorIds = collaboratorUsers.map((user) => user._id)
+      }
       // Create album entry
       const album = new Album({
         _id: albumId,
@@ -240,7 +257,7 @@ router.post(
         coverUrl: coverArtUrl,
         genre,
         tags,
-        collaborators: collaborators ?? [],
+        collaborators: albumCollaboratorIds ?? [],
         songs: songIds,
         visibility: visibility,
       })
@@ -255,7 +272,7 @@ router.post(
         coverUrl: album.coverUrl!,
         genre: album.genre!,
         tags: album.tags!,
-        collaborators: album.collaborators!,
+        collaborators: albumCollaboratorIds,
         songs: album.songs,
         visibility: visibility ?? 'public',
       })

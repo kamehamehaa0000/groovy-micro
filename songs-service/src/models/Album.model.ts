@@ -37,6 +37,7 @@ const AlbumSchema: Schema = new Schema(
     collaborators: [
       {
         type: String,
+        ref: 'User',
         required: true,
       },
     ],
@@ -64,6 +65,7 @@ const AlbumSchema: Schema = new Schema(
 )
 
 // Index for efficient querying by artist and release date
-AlbumSchema.index({ artist: 1, releaseDate: -1 })
+AlbumSchema.index({ artist: 1, createdAt: -1 })
+AlbumSchema.index({ title: 'text', genre: 'text' }, { name: 'AlbumTextIndex' })
 
 export const Album = mongoose.model<IAlbum>('Album', AlbumSchema)
