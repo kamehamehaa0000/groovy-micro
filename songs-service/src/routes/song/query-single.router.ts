@@ -1,11 +1,11 @@
 import { Router, Response, NextFunction } from 'express'
-import { Song } from '../models/Song.model'
+import { Song } from '../../models/Song.model'
 import {
   AuthenticatedRequest,
   CustomError,
   requireAuth,
 } from '@groovy-streaming/common'
-import { User } from '../models/User.model'
+import { User } from '../../models/User.model'
 
 const router = Router()
 

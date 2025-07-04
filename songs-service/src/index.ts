@@ -13,6 +13,8 @@ import {
 import { initializeEventListeners } from './events/initialize-event-listener'
 import { r2Client } from './config/cloudflareR2'
 
+import { syncUsers } from './sync/users'
+
 async function startServer() {
   try {
     verifyEnv([
@@ -28,15 +30,17 @@ async function startServer() {
       'MAGIC_LINK_EXPIRES_IN',
       'CLOUDAMQP_URL',
     ]) // Ensures all required environment variables are set
+    await connectToDatabase(process.env.MONGODB_URI!)
+    await syncUsers()
     await connectToQueue(process.env.CLOUDAMQP_URL!)
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
-    await connectToDatabase(process.env.MONGODB_URI!)
     await initializeEventListeners(['USER'])
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
     )
+
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(

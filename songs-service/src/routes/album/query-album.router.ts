@@ -1,18 +1,11 @@
-// get album by id
-// get album by artist id
-// get all albums public
-// get all albums private
-// search albums by title,artist,collaborators
-// // fetch album by genre, tags, or collaborators
-
 import { Router, Response, NextFunction } from 'express'
-import { Album } from '../models/Album.model'
+import { Album } from '../../models/Album.model'
 import {
   AuthenticatedRequest,
   CustomError,
   requireAuth,
 } from '@groovy-streaming/common'
-import { User } from '../models/User.model'
+import { User } from '../../models/User.model'
 
 const router = Router()
 

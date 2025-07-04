@@ -7,6 +7,8 @@ import { config, configDotenv } from 'dotenv'
 import passport from 'passport'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { AuthRouter } from './routes/auth.router'
+import { SyncRouter } from './sync/users'
+
 configDotenv({
   path: '.env',
 })
@@ -84,6 +86,8 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
   })
 })
+
 app.use('/api/v1/auth', generalLimiter, AuthRouter)
+app.use('/api/v1/sync', SyncRouter)
 
 app.use(globalErrorHandler)

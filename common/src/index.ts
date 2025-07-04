@@ -18,7 +18,7 @@ export {
   createPubSubManager,
   BaseEvent,
 } from './events/PubSubManager'
-
+export { requireSyncAuth } from './middlewares/requireSyncAuth'
 export {
   authenticate,
   optionalAuth,

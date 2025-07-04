@@ -1,16 +1,18 @@
 import { Router } from 'express'
-import { singleRouter } from './single.router'
-import { AlbumRouter } from './album.router'
-import { updateRouter } from './update.router'
-import { queryRouter } from './query-single.router'
-import { queryAlbumRouter } from './query-album.router'
+import { singleRouter } from './song/single.router'
+import { AlbumRouter } from './album/album.router'
+import { queryRouter } from './song/query-single.router'
+import { queryAlbumRouter } from './album/query-album.router'
+import { syncRouter } from './sync/sync.router'
+import { playlistRouter } from './playlist/playlist.router'
 
 const router = Router()
 
 router.use('/songs', singleRouter)
 router.use('/albums', AlbumRouter)
-router.use('/update', updateRouter)
+router.use('/playlists', playlistRouter)
 router.use('/query/single', queryRouter)
 router.use('/query/album', queryAlbumRouter)
+router.use('/sync', syncRouter)
 
 export { router as mainRouter }

@@ -1,34 +1,36 @@
-import { NextFunction, Request, Response, Router } from 'express'
 import {
-  authenticate,
   AuthenticatedRequest,
-  channel,
   CustomError,
+  requireAuth,
   validateRequest,
+  channel,
+  authenticate,
 } from '@groovy-streaming/common'
-import { body } from 'express-validator'
-import { Album } from '../models/Album.model'
+import { NextFunction, Router, Response } from 'express'
 import {
+  singleSongUploadConfirmationBodyValidator,
+  singleSongUploadValidator,
+} from '../validators/single-upload-validator'
+import { createSong } from '../../controllers/songsController'
+import { Song, StatusEnum } from '../../models/Song.model'
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
   DeleteObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
 } from '@aws-sdk/client-s3'
+import { r2Client } from '../../config/cloudflareR2'
+import { SongEventPublisher } from '../../events/song-event-publisher'
+import { Album } from '../../models/Album.model'
+import User from '../../models/User.model'
+import { body } from 'express-validator'
+import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { r2Client } from '../config/cloudflareR2'
-import { extractKeyFromR2Url } from '../utils/extractKeyFromUrl'
-import { Song, StatusEnum } from '../models/Song.model'
-import { SongEventPublisher } from '../events/song-event-publisher'
-import User from '../models/User.model'
 
 const router = Router()
-
-const albumMetadataValidators = [
-  body('name').optional().isString(),
-  body('tags').optional().isArray(),
-  body('genre').optional().isString(),
-  body('collaborators').optional().isArray(),
-  body('visibility').optional().isIn(['public', 'private']),
-]
+const retrySendingConversionJobs = []
 
 const singleMetadataValidators = [
   body('name').optional().isString(),
@@ -47,175 +49,164 @@ const coverArtValidators = [
     .withMessage('Cover art file name must end with .jpg or .png'),
 ]
 
-// Album routes -  to update non-file fields
-router.put(
-  '/album/:albumId/metadata',
-  authenticate,
-  albumMetadataValidators,
+router.get('/', (req: AuthenticatedRequest, res: Response) => {
+  res.json({ message: 'Single song routes' })
+})
+
+// "/upload/presigned" endpoint to get presigned URLs for single song upload
+router.post(
+  '/upload/presign',
+  requireAuth,
+  singleSongUploadValidator,
   validateRequest,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const { user } = req
-      if (!user) {
+      const userId = req.user?.id
+      if (!userId) {
         throw new CustomError('User not authenticated', 401)
       }
-      const { albumId } = req.params
-      const { name, tags, genre, collaborators, visibility } = req.body
+      const { filename, coverArtFileName } = req.body
 
-      const updatedFields: string[] = []
-      const album = await Album.findById(albumId)
-      if (!album) {
-        throw new CustomError('Album not found', 404)
+      const {
+        presignedSongUrl,
+        presignedCoverUrl,
+        songUploadKey,
+        coverUploadKey,
+        songId,
+      } = await createSong(filename, coverArtFileName)
+
+      res.json({
+        songId,
+        presignedSongUrl,
+        presignedCoverUrl,
+        songUploadKey,
+        coverUploadKey,
+        message: 'Presigned URL generated successfully',
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// "/upload/confirm/single" endpoint to confirm single song upload
+router.post(
+  '/upload/confirm',
+  requireAuth,
+  singleSongUploadConfirmationBodyValidator,
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id
+      if (!userId) {
+        throw new CustomError('User not authenticated', 401)
       }
-      if (name) {
-        album.title = name
-        updatedFields.push('title')
+      const {
+        songId,
+        songUploadKey,
+        coverUploadKey,
+        collaborators,
+        genre,
+        tags,
+        visibility,
+        songName,
+      } = req.body
+
+      const songFileExists = await r2Client.send(
+        new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: songUploadKey,
+        })
+      )
+      const coverFileExists = await r2Client.send(
+        new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: coverUploadKey,
+        })
+      )
+      if (!songFileExists || !coverFileExists) {
+        throw new CustomError('Uploaded files not found..retry the upload', 404)
       }
-      if (tags) {
-        album.tags = tags
-        updatedFields.push('tags')
-      }
-      if (genre) {
-        album.genre = genre
-        updatedFields.push('genre')
-      }
-      if (collaborators) {
+      const originalUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${songUploadKey}`
+      const coverArtUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${coverUploadKey}`
+
+      let collaboratorIds: string[] = []
+      if (collaborators && collaborators.length > 0) {
         const collaboratorUsers = await User.find({
           email: { $in: collaborators },
         }).select('_id')
-        album.collaborators = collaboratorUsers.map((user) => user._id)
-        updatedFields.push('collaborators')
-      }
-      if (visibility) {
-        album.visibility = visibility
-        updatedFields.push('visibility')
-      }
-      if (updatedFields.length === 0) {
-        throw new CustomError('No fields to update', 400)
-      }
-
-      await album.save()
-
-      await SongEventPublisher.AlbumUpdatedEvent({
-        albumId,
-        title: album.title,
-        artist: album.artist,
-        collaborators: album.collaborators,
-        genre: album.genre,
-        tags: album.tags,
-        visibility: album.visibility,
-        updatedFields: updatedFields,
-      })
-      res.json(album)
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-// presign covert art update
-router.post(
-  '/album/:albumId/cover/presign',
-  authenticate,
-  coverArtValidators,
-  validateRequest,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const { user } = req
-    if (!user) {
-      throw new CustomError('User not authenticated', 401)
-    }
-    const { albumId } = req.params
-    const { coverArtFileName } = req.body
-    try {
-      const album = await Album.findById(albumId)
-      if (!album) {
-        throw new CustomError('Album not found', 404)
-      }
-
-      const coverKey = `albums/${albumId}/${coverArtFileName}`
-      const command = new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: coverKey,
-        ContentType: coverArtFileName.endsWith('.jpg')
-          ? 'image/jpeg'
-          : 'image/png',
-      })
-
-      const presignedUrl = await getSignedUrl(r2Client, command, {
-        expiresIn: 3600,
-      })
-
-      res.json({ presignedUrl, coverKey })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-// Confirm cover art update upload
-router.put(
-  '/album/:albumId/cover/confirm',
-  authenticate,
-  body('coverKey')
-    .isString()
-    .withMessage('Cover key must be a string')
-    .notEmpty()
-    .withMessage('Cover key cannot be empty'),
-  validateRequest,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const { albumId } = req.params
-    const { coverKey } = req.body
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const album = await Album.findById(albumId)
-      if (!album) {
-        throw new CustomError('Album not found', 404)
-      }
-
-      // Check if file exists in R2
-      const headCommand = new HeadObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: coverKey,
-      })
-
-      try {
-        // File exists, update album with cover key
-        await r2Client.send(headCommand)
-        // Delete the previous cover file if it exists
-        if (album.coverUrl) {
-          const previousCoverKey = extractKeyFromR2Url(
-            album.coverUrl,
-            process.env.R2_CUSTOM_DOMAIN!
+        if (collaboratorUsers.length !== collaborators.length) {
+          throw new CustomError(
+            'Some collaborators not found. Please check the emails.',
+            404
           )
-          const deleteCommand = new DeleteObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME,
-            Key: previousCoverKey,
-          })
-          try {
-            await r2Client.send(deleteCommand)
-          } catch (error) {
-            console.error('Error deleting previous cover art:', error)
-          }
         }
-        album.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
-        await album.save()
-      } catch (error: any) {
-        if (error.name === 'NotFound') {
-          throw new CustomError('Cover art file not found in storage', 404)
-        }
-        throw error
+        collaboratorIds = collaboratorUsers.map((user) => user._id)
       }
 
-      await SongEventPublisher.AlbumUpdatedEvent({
-        albumId,
-        coverUrl: album.coverUrl,
-        updatedFields: ['coverUrl'],
+      await Song.create({
+        _id: songId,
+        originalUrl: originalUrl,
+        coverArtUrl: coverArtUrl,
+        status: StatusEnum.UPLOADED,
+        metadata: {
+          title: songName,
+          artist: userId,
+          collaborators: collaboratorIds,
+          album: '',
+          genre: genre ?? '',
+          tags: tags ?? [],
+        },
+        visibility: visibility,
       })
+
+      //send job for hls conversion
+      const job = {
+        songId,
+        inputUrl: originalUrl,
+        inputKey: songUploadKey,
+        outputKey: `songs/${songId}/hls/`,
+        timestamp: new Date().toISOString(),
+      }
+
+      const sent = channel.sendToQueue(
+        'audio-conversion',
+        Buffer.from(JSON.stringify(job)),
+        {
+          persistent: true,
+        }
+      )
+      if (!sent) {
+        retrySendingConversionJobs.push(job)
+        //TODO: Implement retry logic for failed jobs
+      }
+
+      // Publish song created event
+      try {
+        await SongEventPublisher.SongCreatedEvent({
+          songId: songId,
+          originalUrl: originalUrl,
+          coverArtUrl: coverArtUrl,
+          status: StatusEnum.UPLOADED,
+          metadata: {
+            title: songName,
+            artist: userId,
+            collaborators: collaboratorIds ?? [],
+            album: '',
+            genre: genre ?? '',
+            tags: tags ?? [],
+          },
+          visibility: visibility ?? 'public',
+        })
+      } catch (error) {
+        console.error('Error publishing song created event:', error)
+        // TODO:RETRY LOGIC
+      }
 
       res.json({
-        message: 'Cover art updated successfully',
-        coverUrl: album.coverUrl,
+        message: 'Upload confirmed and conversion job queued',
+        songId,
+        status: StatusEnum.UPLOADED,
       })
     } catch (error) {
       next(error)
@@ -223,10 +214,75 @@ router.put(
   }
 )
 
-// Single Song routes
+// DELETE "/delete/:songId" endpoint to delete a single song upload
+router.delete(
+  '/delete/:songId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { songId } = req.params
+      if (!songId) {
+        throw new CustomError('Song ID is required', 400)
+      }
+
+      // Check if the song exists
+      const song = await Song.findById(songId)
+      if (!song) {
+        throw new CustomError('Song not found', 404, 'Song does not exist.')
+      }
+
+      // delete song from cloudflare R2
+      const songFolderPrefix = `songs/${songId}/`
+      const listObjectsResponse = await r2Client.send(
+        new ListObjectsV2Command({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Prefix: songFolderPrefix,
+        })
+      )
+      if (listObjectsResponse.Contents?.length) {
+        await r2Client.send(
+          new DeleteObjectsCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Delete: {
+              Objects: listObjectsResponse.Contents.map((obj) => ({
+                Key: obj.Key,
+              })),
+            },
+          })
+        )
+      }
+
+      //remove song from album's songs array
+      if (song.metadata?.album) {
+        await Album.updateOne(
+          { _id: song.metadata?.album },
+          { $pull: { songs: songId } }
+        )
+      }
+      // Delete the song
+      await Song.deleteOne({ _id: songId })
+
+      // Publish song deleted event
+      try {
+        await SongEventPublisher.SongDeletedEvent(songId)
+      } catch (error) {
+        console.error('Error publishing song deleted event:', error)
+        // TODO:RETRY LOGIC
+      }
+      res.json({
+        message: 'Song deleted successfully',
+        songId,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// single song metadata update
 router.put(
-  '/single/:songId/metadata',
-  authenticate,
+  '/update/metadata/song/:songId',
+  requireAuth,
   singleMetadataValidators,
   validateRequest,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -272,9 +328,9 @@ router.put(
     }
   }
 )
-
+// single song audio upload presign
 router.put(
-  '/single/:songId/audio/presign',
+  '/update/audio/presign/song/:songId',
   authenticate,
   body('audioFileName')
     .notEmpty()
@@ -310,10 +366,10 @@ router.put(
     }
   }
 )
-
+// Confirm single song audio upload
 router.put(
-  '/single/:songId/audio/confirm',
-  authenticate,
+  '/update/audio/confirm/song/:songId',
+  requireAuth,
   body('songKey').notEmpty().isString().withMessage('songKey is required'),
   validateRequest,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -402,10 +458,10 @@ router.put(
     }
   }
 )
-
+// single song cover art upload presign
 router.put(
-  '/single/:songId/cover/presign',
-  authenticate,
+  '/update/cover/song/:songId',
+  requireAuth,
   coverArtValidators,
   validateRequest,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -450,10 +506,10 @@ router.put(
     }
   }
 )
-
+// Confirm single song cover art upload
 router.put(
-  '/single/:songId/cover/confirm',
-  authenticate,
+  '/update/cover/confirm/song/:songId',
+  requireAuth,
   body('coverKey')
     .isString()
     .withMessage('Cover key must be a string')
@@ -521,5 +577,4 @@ router.put(
     }
   }
 )
-
-export { router as updateRouter }
+export { router as singleRouter }

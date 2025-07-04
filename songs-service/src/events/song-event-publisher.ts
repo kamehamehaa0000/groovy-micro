@@ -222,7 +222,116 @@ export class SongEventPublisher {
     }
   }
 
-  // static async PlaylistCreatedEvent() {}
-  // static async PlaylistUpdatedEvent() {}
-  // static async PlaylistDeletedEvent() {}
+  static async PlaylistCreatedEvent({
+    playlistId,
+    title,
+    description,
+    creator,
+    collaborators,
+    visibility,
+    songs,
+    coverUrl,
+  }: {
+    playlistId: string
+    title: string
+    description: string
+    creator: string // User._id
+    collaborators?: string[] // User._id[]
+    visibility: 'public' | 'private'
+    songs: {
+      songId: string // Song._id
+      addedBy: string // User._id
+      order: number
+    }[]
+    coverUrl: string
+  }) {
+    const event: BaseEvent = {
+      eventType: EventTypes.PLAYLIST_CREATED,
+      eventId: `${EventTypes.PLAYLIST_CREATED}-${playlistId}-${Date.now()}`,
+      data: {
+        playlistId,
+        title,
+        description,
+        creator,
+        collaborators,
+        visibility,
+        songs,
+        coverUrl,
+      },
+      metadata: {
+        correlationId: `${playlistId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing playlist created event:', error)
+    }
+  }
+
+  static async PlaylistUpdatedEvent({
+    playlistId,
+    title,
+    description,
+    creator,
+    collaborators,
+    visibility,
+    songs,
+    coverUrl,
+  }: {
+    playlistId: string
+    title?: string
+    description?: string
+    creator?: string // User._id
+    collaborators?: string[] // User._id[]
+    visibility?: 'public' | 'private'
+    songs?: {
+      songId: string // Song._id
+      addedBy: string // User._id
+      order: number
+    }[]
+    coverUrl?: string
+  }) {
+    const event: BaseEvent = {
+      eventType: EventTypes.PLAYLIST_UPDATED,
+      eventId: `${EventTypes.PLAYLIST_UPDATED}-${playlistId}-${Date.now()}`,
+      data: {
+        playlistId,
+        title,
+        description,
+        creator,
+        collaborators,
+        visibility,
+        songs,
+        coverUrl,
+      },
+      metadata: {
+        correlationId: `${playlistId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing playlist updated event:', error)
+    }
+  }
+
+  static async PlaylistDeletedEvent({ playlistId }: { playlistId: string }) {
+    const event: BaseEvent = {
+      eventType: EventTypes.PLAYLIST_DELETED,
+      eventId: `${EventTypes.PLAYLIST_DELETED}-${playlistId}-${Date.now()}`,
+      data: { playlistId },
+      metadata: {
+        correlationId: `${playlistId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing playlist deleted event:', error)
+    }
+  }
 }
