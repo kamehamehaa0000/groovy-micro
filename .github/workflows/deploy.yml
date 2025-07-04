@@ -29,16 +29,16 @@ jobs:
           node-version: lts/*
 
       - name: Install step
-        run: "cd auth-service && npm i"
+        run: "cd auth-service "
 
       - name: Build step
-        run: "npm run build "
+        run: "npm i && npm run build "
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: "aayushgupta-groovy-micr-83"
           entrypoint: "./auth-service/dist/index.js"
-          root: "./auth-service/"
+          root: "./auth-service"
           
           
