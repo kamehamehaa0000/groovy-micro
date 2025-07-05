@@ -9,7 +9,6 @@ import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
 import { verifyWebhookSignature } from './middlewares/verifyWebhookSignature'
 import { Song } from './models/Song.model'
-import { SongEventPublisher } from './events/song-event-publisher'
 
 configDotenv({
   path: '.env',
@@ -82,54 +81,11 @@ const generalLimiter = rateLimit({
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-    service: 'songs-service',
+    service: 'comments-service',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   })
 })
-
-// Webhook endpoint for HLS conversion status updates
-app.post(
-  '/webhook/hls-conversion',
-  verifyWebhookSignature,
-  async (req, res) => {
-    const { songId, status, hlsUrl } = req.body
-    console.log('Received webhook:', req.body)
-    if (!songId || !status) {
-      return res.status(400).json({ error: 'Invalid request body' })
-    }
-    try {
-      const song = await Song.findById(req.body.songId)
-      if (!song) {
-        return res.status(404).json({ error: 'Song not found' })
-      }
-      song.status = status
-      if (status === 'failed') {
-        song.errorMessage = req.body.error ?? 'Unknown error'
-      } else if (status === 'completed') {
-        song.hlsUrl = hlsUrl
-        await SongEventPublisher.SongUpdatedEvent({
-          songId: song._id.toString(),
-          newOriginalUrl: song.originalUrl,
-          newCoverUrl: song.coverArtUrl,
-          newHlsUrl: hlsUrl,
-          metadata: song.metadata,
-          newStatus: status,
-          newVisibility: song.visibility,
-        })
-      } else if (status === 'processing') {
-        // No additional action needed for processing status
-      } else {
-        return res.status(400).json({ error: 'Invalid status' })
-      }
-      await song.save()
-      res.status(200).json({ success: true })
-    } catch (error) {
-      console.error('Webhook processing error:', error)
-      return res.status(500).json({ error: 'Internal server error' })
-    }
-  }
-)
 
 app.use('/api/v1', generalLimiter, mainRouter)
 

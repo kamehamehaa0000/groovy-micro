@@ -59,7 +59,7 @@ router.get(
             hasNextPage: page < totalPages,
           },
           syncInfo: {
-            since: since?.toISOString() || null,
+            since: since?.toISOString() ?? null,
             timestamp: new Date().toISOString(),
             activeUsersCount: users.length,
           },

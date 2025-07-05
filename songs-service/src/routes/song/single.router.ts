@@ -497,9 +497,6 @@ router.put(
         expiresIn: 3600,
       })
 
-      song.coverArtUrl = coverKey
-      await song.save()
-
       res.json({ presignedUrl, coverKey })
     } catch (error: any) {
       next(error)

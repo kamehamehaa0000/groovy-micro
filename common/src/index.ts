@@ -26,3 +26,6 @@ export {
   AuthenticatedRequest,
   AuthOptions,
 } from './middlewares/authenticate'
+
+export { extractKeyFromR2Url } from './util/extractKeyFromR2Url'
+

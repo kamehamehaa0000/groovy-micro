@@ -8,12 +8,17 @@ import {
   validateRequest,
 } from '@groovy-streaming/common'
 import { body } from 'express-validator'
-import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3'
 import { r2Client } from '../../config/cloudflareR2'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import User from '../../models/User.model'
 import { Song } from '../../models/Song.model'
 import { SongEventPublisher } from '../../events/song-event-publisher'
+import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
 
 const router = Router()
 
@@ -195,135 +200,6 @@ router.post(
   }
 )
 
-// get all public playlists
-router.get(
-  '/get/all/public',
-  requireAuth,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const page = parseInt(req.query.page as string) ?? 1
-      const limit = parseInt(req.query.limit as string) ?? 10
-      const skip = (page - 1) * limit
-
-      const playlists = await Playlist.find({ visibility: 'public' })
-        .populate('creator', 'displayName')
-        .populate('collaborators', 'displayName')
-        .populate({
-          path: 'songs.songId',
-          select: 'metadata hlsUrl coverArtUrl duration status',
-          populate: [
-            {
-              path: 'metadata.artist',
-              select: 'displayName',
-            },
-            {
-              path: 'metadata.collaborators',
-              select: 'displayName',
-            },
-          ],
-        })
-        .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-
-      res.status(200).json({ playlists })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-// get all playlists by current user
-router.get(
-  '/me',
-  requireAuth,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-
-      const page = parseInt(req.query.page as string) ?? 1
-      const limit = parseInt(req.query.limit as string) ?? 10
-      const skip = (page - 1) * limit
-
-      const playlists = await Playlist.find({ creator: req.user?._id })
-        .populate('creator', 'displayName')
-        .populate('collaborators', 'displayName')
-        .populate({
-          path: 'songs.songId',
-          select: 'metadata hlsUrl coverArtUrl status',
-          populate: [
-            {
-              path: 'metadata.artist',
-              select: 'displayName',
-            },
-            {
-              path: 'metadata.collaborators',
-              select: 'displayName',
-            },
-          ],
-        })
-        .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-
-      res.status(200).json({ playlists })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-// get playlist by id
-router.get(
-  '/playlist/id/:playlistId',
-  requireAuth,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-
-      const { playlistId } = req.params
-      if (!playlistId) {
-        throw new CustomError('Playlist ID is required', 400)
-      }
-
-      const playlist = await Playlist.findById(playlistId)
-        .populate('creator', 'displayName')
-        .populate('collaborators', 'displayName')
-        .populate({
-          path: 'songs.songId',
-          select: 'metadata hlsUrl coverArtUrl duration status',
-          populate: [
-            {
-              path: 'metadata.artist',
-              select: 'displayName',
-            },
-            {
-              path: 'metadata.collaborators',
-              select: 'displayName',
-            },
-          ],
-        })
-        .populate('songs.addedBy', 'displayName')
-
-      res.status(200).json({ playlist })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
 // delete a playlist
 router.delete(
   '/:playlistId',
@@ -350,6 +226,9 @@ router.delete(
       )
     }
     await Playlist.deleteOne({ _id: playlistId })
+    await SongEventPublisher.PlaylistDeletedEvent({
+      playlistId,
+    })
     res.status(200).json({ message: 'Playlist deleted successfully' })
   }
 )
@@ -404,7 +283,6 @@ router.post(
         },
         {
           new: true,
-          select: 'songs',
         }
       )
 
@@ -435,7 +313,16 @@ router.post(
       }
 
       const addedSong = updatedPlaylist.songs[updatedPlaylist.songs.length - 1]
-
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: updatedPlaylist._id,
+        title: updatedPlaylist.title,
+        description: updatedPlaylist.description,
+        creator: updatedPlaylist.creator,
+        collaborators: updatedPlaylist.collaborators,
+        visibility: updatedPlaylist.visibility,
+        coverUrl: updatedPlaylist.coverUrl,
+        songs: updatedPlaylist.songs,
+      })
       res.status(200).json({
         message: 'Song added to playlist successfully',
         data: {
@@ -486,7 +373,6 @@ router.delete(
         },
         {
           new: true,
-          select: 'songs',
         }
       )
 
@@ -532,6 +418,16 @@ router.delete(
       if (reorderUpdates.length > 0) {
         await Playlist.bulkWrite(reorderUpdates)
       }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: updatedPlaylist._id,
+        title: updatedPlaylist.title,
+        description: updatedPlaylist.description,
+        creator: updatedPlaylist.creator,
+        collaborators: updatedPlaylist.collaborators,
+        visibility: updatedPlaylist.visibility,
+        coverUrl: updatedPlaylist.coverUrl,
+        songs: updatedPlaylist.songs,
+      })
 
       res.status(200).json({
         message: 'Song removed from playlist successfully',
@@ -678,6 +574,20 @@ router.patch(
       if (updateResult.modifiedCount === 0) {
         throw new CustomError('Failed to reorder song', 500)
       }
+      const playlistAfterUpdate = await Playlist.findById(playlistId)
+      if (!playlistAfterUpdate) {
+        throw new CustomError('Playlist not found', 404)
+      }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlistAfterUpdate._id,
+        title: playlistAfterUpdate.title,
+        description: playlistAfterUpdate.description,
+        creator: playlistAfterUpdate.creator,
+        collaborators: playlistAfterUpdate.collaborators,
+        visibility: playlistAfterUpdate.visibility,
+        coverUrl: playlistAfterUpdate.coverUrl,
+        songs: playlistAfterUpdate.songs,
+      })
 
       res.status(200).json({
         message: 'Song reordered successfully',
@@ -789,6 +699,20 @@ router.put(
       if (updateResult.modifiedCount === 0) {
         throw new CustomError('Failed to reorder playlist', 500)
       }
+      const updatedPlaylist = await Playlist.findById(playlistId)
+      if (!updatedPlaylist) {
+        throw new CustomError('Playlist not found', 404)
+      }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: updatedPlaylist._id,
+        title: updatedPlaylist.title,
+        description: updatedPlaylist.description,
+        creator: updatedPlaylist.creator,
+        collaborators: updatedPlaylist.collaborators,
+        visibility: updatedPlaylist.visibility,
+        coverUrl: updatedPlaylist.coverUrl,
+        songs: updatedPlaylist.songs,
+      })
 
       res.status(200).json({
         message: 'Playlist reordered successfully',
@@ -862,6 +786,20 @@ router.put(
       if (updateResult.modifiedCount === 0) {
         throw new CustomError('Failed to reorder playlist', 500)
       }
+      const updatedPlaylist = await Playlist.findById(playlistId)
+      if (!updatedPlaylist) {
+        throw new CustomError('Playlist not found', 404)
+      }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: updatedPlaylist._id,
+        title: updatedPlaylist.title,
+        description: updatedPlaylist.description,
+        creator: updatedPlaylist.creator,
+        collaborators: updatedPlaylist.collaborators,
+        visibility: updatedPlaylist.visibility,
+        coverUrl: updatedPlaylist.coverUrl,
+        songs: updatedPlaylist.songs,
+      })
 
       res.status(200).json({
         message: 'Playlist reordered successfully',
@@ -870,6 +808,352 @@ router.put(
           totalSongs: songs.length,
         },
       })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// remove collaborator from a playlist
+router.delete(
+  '/remove/collaborator/:collaboratorEmail',
+  requireAuth,
+  [
+    body('playlistId')
+      .isString()
+      .withMessage('Playlist ID must be a string')
+      .notEmpty()
+      .withMessage('Playlist ID is required'),
+    validateRequest,
+  ],
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const { collaboratorEmail } = req.params
+      if (!collaboratorEmail) {
+        throw new CustomError('Valid collaborator email is required', 400)
+      }
+      const collaborator = await User.findOne({
+        email: collaboratorEmail,
+      })
+      if (!collaborator) {
+        throw new CustomError('Collaborator not found', 404)
+      }
+      // Find the playlist the user is trying to modify and whether they are authorized
+      const playlist = await Playlist.findOneAndUpdate(
+        {
+          _id: req.body.playlistId,
+          $and: [
+            { creator: user._id },
+            {
+              collaborators: {
+                $in: [collaboratorEmail],
+              },
+            },
+          ],
+        },
+        {
+          $pull: { collaborators: collaborator._id },
+        },
+        {
+          new: true,
+        }
+      )
+
+      if (!playlist) {
+        const existingPlaylist = await Playlist.findById(req.body.playlistId)
+        if (!existingPlaylist) {
+          throw new CustomError('Playlist not found', 404)
+        }
+        // Check if the user is authorized to remove collaborators
+        const isAuthorized =
+          existingPlaylist.creator.toString() === user._id.toString() ||
+          existingPlaylist.collaborators?.some(
+            (c: string) => c.toString() === user._id.toString()
+          )
+        if (!isAuthorized) {
+          throw new CustomError(
+            'You are not authorized to remove collaborators from this playlist',
+            403
+          )
+        }
+      }
+      if (!playlist) {
+        throw new CustomError(
+          'Not able to remove collaborator from playlist, Try again later',
+          403
+        )
+      }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        coverUrl: playlist.coverUrl,
+      })
+
+      res.status(200).json({
+        message: 'Collaborator removed successfully',
+        data: playlist,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// playlist update cover art upload presign
+router.put(
+  '/update/cover/playlist/:playlistId',
+  requireAuth,
+  body('coverFileName')
+    .isString()
+    .withMessage('Cover file name must be a string')
+    .notEmpty()
+    .withMessage('Cover file name cannot be empty')
+    .matches(/\.(jpg|png)$/i)
+    .withMessage('Cover file name must end with .jpg or .png'),
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { playlistId } = req.params
+      const { coverArtFileName } = req.body
+
+      const playlist = await Playlist.findById(playlistId)
+      if (!playlist) {
+        return res.status(404).json({ message: 'Playlist not found' })
+      }
+
+      const coverKey = `playlists/${playlistId}/${coverArtFileName}`
+      const command = new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: coverKey,
+        ContentType: coverArtFileName.endsWith('.jpg')
+          ? 'image/jpeg'
+          : 'image/png',
+      })
+
+      const presignedUrl = await getSignedUrl(r2Client, command, {
+        expiresIn: 3600,
+      })
+
+      res.json({ presignedUrl, coverKey })
+    } catch (error: any) {
+      next(error)
+    }
+  }
+)
+// Confirm playlist cover art update upload
+router.put(
+  '/update/cover/confirm/playlist/:playlistId',
+  requireAuth,
+  body('coverKey')
+    .isString()
+    .withMessage('Cover key must be a string')
+    .notEmpty()
+    .withMessage('Cover key cannot be empty'),
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { playlistId } = req.params
+      const { coverKey } = req.body
+
+      const playlist = await Playlist.findById(playlistId)
+      if (!playlist) {
+        return res.status(404).json({ message: 'Playlist not found' })
+      }
+
+      // Check if file exists in R2
+      const headCommand = new HeadObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: coverKey,
+      })
+
+      try {
+        // File exists, update playlist with cover key
+        await r2Client.send(headCommand)
+        // Delete the previous cover file if it exists
+        if (playlist.coverUrl) {
+          const previousCoverKey = extractKeyFromR2Url(
+            playlist.coverUrl,
+            process.env.R2_CUSTOM_DOMAIN!
+          )
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: previousCoverKey,
+          })
+          try {
+            await r2Client.send(deleteCommand)
+          } catch (error) {
+            console.error('Error deleting previous cover art:', error)
+          }
+        }
+        playlist.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
+        await playlist.save()
+      } catch (error: any) {
+        if (error.name === 'NotFound') {
+          throw new CustomError('Cover art file not found in storage', 404)
+        }
+        throw error
+      }
+      await SongEventPublisher.PlaylistUpdatedEvent({
+        playlistId,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+      })
+      res.json({
+        message: 'Cover art updated successfully',
+        coverUrl: playlist.coverUrl,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// get all public playlists
+router.get(
+  '/get/all/public',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const page = parseInt(req.query.page as string) ?? 1
+      const limit = parseInt(req.query.limit as string) ?? 10
+      const skip = (page - 1) * limit
+
+      const playlists = await Playlist.find({ visibility: 'public' })
+        .populate('creator', 'displayName')
+        .populate('collaborators', 'displayName')
+        .populate({
+          path: 'songs.songId',
+          select: 'metadata hlsUrl coverArtUrl duration status',
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.collaborators',
+              select: 'displayName',
+            },
+          ],
+        })
+        .populate('songs.addedBy', 'displayName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+
+      res.status(200).json({ playlists })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// get all playlists by current user
+router.get(
+  '/me',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const page = parseInt(req.query.page as string) ?? 1
+      const limit = parseInt(req.query.limit as string) ?? 10
+      const skip = (page - 1) * limit
+
+      const playlists = await Playlist.find({ creator: req.user?._id })
+        .populate('creator', 'displayName')
+        .populate('collaborators', 'displayName')
+        .populate({
+          path: 'songs.songId',
+          select: 'metadata hlsUrl coverArtUrl status',
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.collaborators',
+              select: 'displayName',
+            },
+          ],
+        })
+        .populate('songs.addedBy', 'displayName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+
+      res.status(200).json({ playlists })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// get playlist by id
+router.get(
+  '/playlist/id/:playlistId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const { playlistId } = req.params
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+
+      const playlist = await Playlist.findById(playlistId)
+        .populate('creator', 'displayName')
+        .populate('collaborators', 'displayName')
+        .populate({
+          path: 'songs.songId',
+          select: 'metadata hlsUrl coverArtUrl duration status',
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.collaborators',
+              select: 'displayName',
+            },
+          ],
+        })
+        .populate('songs.addedBy', 'displayName')
+
+      res.status(200).json({ playlist })
     } catch (error) {
       next(error)
     }
@@ -1213,101 +1497,6 @@ router.get(
           },
           searchQuery,
         },
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-// remove collaborator from a playlist
-router.delete(
-  '/remove/collaborator/:collaboratorEmail',
-  requireAuth,
-  [
-    body('playlistId')
-      .isString()
-      .withMessage('Playlist ID must be a string')
-      .notEmpty()
-      .withMessage('Playlist ID is required'),
-    validateRequest,
-  ],
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-
-      const { collaboratorEmail } = req.params
-      if (!collaboratorEmail) {
-        throw new CustomError('Valid collaborator email is required', 400)
-      }
-      const collaborator = await User.findOne({
-        email: collaboratorEmail,
-      })
-      if (!collaborator) {
-        throw new CustomError('Collaborator not found', 404)
-      }
-      // Find the playlist the user is trying to modify and whether they are authorized
-      const playlist = await Playlist.findOneAndUpdate(
-        {
-          _id: req.body.playlistId,
-          $and: [
-            { creator: user._id },
-            {
-              collaborators: {
-                $in: [collaboratorEmail],
-              },
-            },
-          ],
-        },
-        {
-          $pull: { collaborators: collaborator._id },
-        },
-        {
-          new: true,
-        }
-      )
-
-      if (!playlist) {
-        const existingPlaylist = await Playlist.findById(req.body.playlistId)
-        if (!existingPlaylist) {
-          throw new CustomError('Playlist not found', 404)
-        }
-        // Check if the user is authorized to remove collaborators
-        const isAuthorized =
-          existingPlaylist.creator.toString() === user._id.toString() ||
-          existingPlaylist.collaborators?.some(
-            (c: string) => c.toString() === user._id.toString()
-          )
-        if (!isAuthorized) {
-          throw new CustomError(
-            'You are not authorized to remove collaborators from this playlist',
-            403
-          )
-        }
-      }
-      if (!playlist) {
-        throw new CustomError(
-          'Not able to remove collaborator from playlist, Try again later',
-          403
-        )
-      }
-      await SongEventPublisher.PlaylistUpdatedEvent({
-        playlistId: playlist._id,
-        title: playlist.title,
-        description: playlist.description,
-        creator: playlist.creator,
-        collaborators: playlist.collaborators,
-        visibility: playlist.visibility,
-        songs: playlist.songs,
-        coverUrl: playlist.coverUrl,
-      })
-
-      res.status(200).json({
-        message: 'Collaborator removed successfully',
-        data: playlist,
       })
     } catch (error) {
       next(error)

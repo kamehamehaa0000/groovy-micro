@@ -52,14 +52,18 @@ export class SongEventPublisher {
     songId,
     newOriginalUrl,
     newCoverUrl,
+    newHlsUrl,
     newStatus,
     metadata,
+    newVisibility,
     updatedFields,
   }: {
     songId: string
     newOriginalUrl?: string
     newCoverUrl?: string
     newStatus?: StatusEnum
+    newHlsUrl?: string
+    newVisibility?: 'public' | 'private'
     metadata?: {
       title?: string
       artist?: string
@@ -77,9 +81,11 @@ export class SongEventPublisher {
         songId,
         newOriginalUrl,
         newCoverUrl,
+        newHlsUrl,
         newStatus,
         metadata,
         updatedFields,
+        newVisibility,
       },
       metadata: {
         correlationId: `${songId}-${Date.now()}`,
