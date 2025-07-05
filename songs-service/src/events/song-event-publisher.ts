@@ -1,30 +1,29 @@
 import { PubSubManager } from '../config/PubSub'
-import { StatusEnum } from '../models/Song.model'
-import { BaseEvent, EventTypes, TOPICS } from '@groovy-streaming/common'
+import {
+  BaseEvent,
+  EventTypes,
+  TOPICS,
+  SongCreatedEventData,
+  SongUpdatedEventData,
+  SongDeletedEventData,
+  AlbumCreatedEventData,
+  AlbumUpdatedEventData,
+  AlbumDeletedEventData,
+  PlaylistCreatedEventData,
+  PlaylistUpdatedEventData,
+  PlaylistDeletedEventData,
+} from '@groovy-streaming/common'
 
-export class SongEventPublisher {
+export class SongServiceEventPublisher {
   static async SongCreatedEvent({
     songId,
-    originalUrl,
     coverArtUrl,
+    originalUrl,
+    hlsUrl,
     status,
     metadata,
     visibility,
-  }: {
-    songId: string
-    originalUrl: string
-    coverArtUrl: string
-    status: StatusEnum
-    metadata: {
-      title: string
-      artist: string
-      collaborators: string[]
-      album: string
-      genre: string
-      tags: string[]
-    }
-    visibility: 'public' | 'private'
-  }): Promise<void> {
+  }: SongCreatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.SONG_CREATED,
       eventId: `${EventTypes.SONG_CREATED}-${songId}-${Date.now()}`,
@@ -32,6 +31,7 @@ export class SongEventPublisher {
         songId,
         originalUrl,
         coverArtUrl,
+        hlsUrl,
         status,
         metadata,
         visibility,
@@ -50,42 +50,24 @@ export class SongEventPublisher {
 
   static async SongUpdatedEvent({
     songId,
-    newOriginalUrl,
-    newCoverUrl,
-    newHlsUrl,
-    newStatus,
+    coverArtUrl,
+    originalUrl,
+    hlsUrl,
+    status,
     metadata,
-    newVisibility,
-    updatedFields,
-  }: {
-    songId: string
-    newOriginalUrl?: string
-    newCoverUrl?: string
-    newStatus?: StatusEnum
-    newHlsUrl?: string
-    newVisibility?: 'public' | 'private'
-    metadata?: {
-      title?: string
-      artist?: string
-      collaborators?: string[]
-      album?: string
-      genre?: string
-      tags?: string[]
-    }
-    updatedFields?: string[]
-  }): Promise<void> {
+    visibility,
+  }: SongUpdatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.SONG_UPDATED,
       eventId: `${EventTypes.SONG_UPDATED}-${songId}-${Date.now()}`,
       data: {
         songId,
-        newOriginalUrl,
-        newCoverUrl,
-        newHlsUrl,
-        newStatus,
+        originalUrl,
+        coverArtUrl,
+        hlsUrl,
+        status,
         metadata,
-        updatedFields,
-        newVisibility,
+        visibility,
       },
       metadata: {
         correlationId: `${songId}-${Date.now()}`,
@@ -99,7 +81,9 @@ export class SongEventPublisher {
     }
   }
 
-  static async SongDeletedEvent(songId: string): Promise<void> {
+  static async SongDeletedEvent({
+    songId,
+  }: SongDeletedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.SONG_DELETED,
       eventId: `${EventTypes.SONG_DELETED}-${songId}-${Date.now()}`,
@@ -126,17 +110,7 @@ export class SongEventPublisher {
     collaborators,
     songs,
     visibility,
-  }: {
-    albumId: string
-    title: string
-    artist: string
-    coverUrl: string
-    genre: string
-    tags: string[]
-    collaborators: string[]
-    songs: string[]
-    visibility?: 'public' | 'private'
-  }) {
+  }: AlbumCreatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.ALBUM_CREATED,
       eventId: `${EventTypes.ALBUM_CREATED}-${albumId}-${Date.now()}`,
@@ -148,6 +122,7 @@ export class SongEventPublisher {
         genre,
         tags,
         collaborators,
+        visibility,
         songs,
       },
       metadata: {
@@ -171,20 +146,8 @@ export class SongEventPublisher {
     tags,
     collaborators,
     songs,
-    updatedFields,
     visibility,
-  }: {
-    albumId: string
-    title?: string
-    artist?: string
-    coverUrl?: string
-    genre?: string
-    tags?: string[]
-    collaborators?: string[]
-    songs?: string[]
-    visibility?: 'public' | 'private'
-    updatedFields?: string[]
-  }): Promise<void> {
+  }: AlbumUpdatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.ALBUM_UPDATED,
       eventId: `${EventTypes.ALBUM_UPDATED}-${albumId}-${Date.now()}`,
@@ -197,7 +160,7 @@ export class SongEventPublisher {
         tags,
         collaborators,
         songs,
-        updatedFields,
+        visibility,
       },
       metadata: {
         correlationId: `${albumId}-${Date.now()}`,
@@ -211,7 +174,9 @@ export class SongEventPublisher {
     }
   }
 
-  static async AlbumDeletedEvent(albumId: string): Promise<void> {
+  static async AlbumDeletedEvent({
+    albumId,
+  }: AlbumDeletedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.ALBUM_DELETED,
       eventId: `${EventTypes.ALBUM_DELETED}-${albumId}-${Date.now()}`,
@@ -237,20 +202,7 @@ export class SongEventPublisher {
     visibility,
     songs,
     coverUrl,
-  }: {
-    playlistId: string
-    title: string
-    description: string
-    creator: string // User._id
-    collaborators?: string[] // User._id[]
-    visibility: 'public' | 'private'
-    songs: {
-      songId: string // Song._id
-      addedBy: string // User._id
-      order: number
-    }[]
-    coverUrl: string
-  }) {
+  }: PlaylistCreatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.PLAYLIST_CREATED,
       eventId: `${EventTypes.PLAYLIST_CREATED}-${playlistId}-${Date.now()}`,
@@ -285,20 +237,7 @@ export class SongEventPublisher {
     visibility,
     songs,
     coverUrl,
-  }: {
-    playlistId: string
-    title?: string
-    description?: string
-    creator?: string // User._id
-    collaborators?: string[] // User._id[]
-    visibility?: 'public' | 'private'
-    songs?: {
-      songId: string // Song._id
-      addedBy: string // User._id
-      order: number
-    }[]
-    coverUrl?: string
-  }) {
+  }: PlaylistUpdatedEventData) {
     const event: BaseEvent = {
       eventType: EventTypes.PLAYLIST_UPDATED,
       eventId: `${EventTypes.PLAYLIST_UPDATED}-${playlistId}-${Date.now()}`,
@@ -324,7 +263,9 @@ export class SongEventPublisher {
     }
   }
 
-  static async PlaylistDeletedEvent({ playlistId }: { playlistId: string }) {
+  static async PlaylistDeletedEvent({
+    playlistId,
+  }: PlaylistDeletedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.PLAYLIST_DELETED,
       eventId: `${EventTypes.PLAYLIST_DELETED}-${playlistId}-${Date.now()}`,

@@ -12,7 +12,7 @@ export interface IPlaylist extends Document {
     addedBy: string // User._id
     order: number
   }[]
-  coverUrl?: string
+  coverUrl: string
   createdAt: Date
   updatedAt: Date
 }
@@ -77,6 +77,7 @@ const PlaylistSchema: Schema<IPlaylist> = new Schema(
     coverUrl: {
       type: String,
       trim: true,
+      default: '',
     },
   },
   {

@@ -8,13 +8,10 @@ export enum StatusEnum {
 }
 export interface ISong extends Document {
   _id: string
-  coverArtUrl?: string
-  originalUrl?: string
+  coverArtUrl: string
+  originalUrl: string
   hlsUrl?: string
   status: StatusEnum
-  errorMessage?: string
-  duration?: number
-  fileSize?: number
   visibility: 'public' | 'private'
   metadata: {
     title: string
@@ -23,7 +20,6 @@ export interface ISong extends Document {
     album: string
     genre: string
     tags: string[]
-    description: string
     trackNumber?: number
   }
   createdAt: Date
@@ -50,32 +46,22 @@ const SongSchema: Schema = new Schema(
       enum: ['uploading', 'uploaded', 'processing', 'completed', 'failed'],
       default: 'uploading',
     },
-    errorMessage: {
+    visibility: {
       type: String,
-    },
-    duration: {
-      type: Number,
-    },
-    fileSize: {
-      type: Number,
+      enum: ['public', 'private'],
+      default: 'public',
     },
     metadata: {
       title: String,
       artist: { type: String, ref: 'User' },
       album: { type: String, ref: 'Album' },
       genre: String,
-      description: String,
       collaborators: [{ type: String, ref: 'User' }],
       tags: [String],
       trackNumber: {
         type: Number,
         default: 1,
       },
-    },
-    visibility: {
-      type: String,
-      enum: ['public', 'private'],
-      default: 'public',
     },
   },
   {

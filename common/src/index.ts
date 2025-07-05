@@ -29,3 +29,20 @@ export {
 
 export { extractKeyFromR2Url } from './util/extractKeyFromR2Url'
 
+export {
+  StatusEnum,
+  SongCreatedEventData,
+  SongUpdatedEventData,
+  SongDeletedEventData,
+  AlbumCreatedEventData,
+  AlbumUpdatedEventData,
+  AlbumDeletedEventData,
+  PlaylistCreatedEventData,
+  PlaylistUpdatedEventData,
+  PlaylistDeletedEventData,
+} from './events/song-service-events'
+export {
+  UserCreatedEventData,
+  UserUpdatedEventData,
+  UserDeletedEventData,
+} from './events/user-service-events'

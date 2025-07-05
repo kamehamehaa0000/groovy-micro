@@ -23,7 +23,7 @@ import {
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { r2Client } from '../../config/cloudflareR2'
-import { SongEventPublisher } from '../../events/song-event-publisher'
+import { SongServiceEventPublisher } from '../../events/song-event-publisher'
 import User from '../../models/User.model'
 import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
 import { body } from 'express-validator'
@@ -240,20 +240,13 @@ router.post(
           }
 
           // Publish song created event
-          await SongEventPublisher.SongCreatedEvent({
-            songId: track.songId,
-            originalUrl: originalUrl,
-            coverArtUrl: coverArtUrl,
-            status: StatusEnum.UPLOADED,
-            metadata: {
-              title: track.songName,
-              artist: userId,
-              collaborators: trackCollaboratorIds,
-              album: albumId,
-              genre: track.genre ?? genre,
-              tags: track.tags ?? tags,
-            },
-            visibility: visibility,
+          await SongServiceEventPublisher.SongCreatedEvent({
+            songId: song._id,
+            originalUrl: song.originalUrl,
+            coverArtUrl: song.coverArtUrl,
+            status: song.status,
+            metadata: song.metadata,
+            visibility: song.visibility,
           })
 
           return track.songId
@@ -286,16 +279,16 @@ router.post(
       await album.save()
 
       // Publish album created event
-      await SongEventPublisher.AlbumCreatedEvent({
+      await SongServiceEventPublisher.AlbumCreatedEvent({
         albumId: album._id,
         title: album.title,
         artist: album.artist,
         coverUrl: album.coverUrl!,
         genre: album.genre!,
         tags: album.tags!,
-        collaborators: albumCollaboratorIds,
+        collaborators: album.collaborators,
         songs: album.songs,
-        visibility: visibility ?? 'public',
+        visibility: album.visibility,
       })
 
       res.json({
@@ -383,7 +376,7 @@ router.delete(
       await Album.deleteOne({ _id: albumId })
 
       // Publish album deleted event
-      await SongEventPublisher.AlbumDeletedEvent(albumId)
+      await SongServiceEventPublisher.AlbumDeletedEvent({ albumId })
 
       res.json({
         message: 'Album and all associated songs deleted successfully',
@@ -445,15 +438,16 @@ router.put(
 
       await album.save()
 
-      await SongEventPublisher.AlbumUpdatedEvent({
-        albumId,
+      await SongServiceEventPublisher.AlbumUpdatedEvent({
+        albumId: album._id,
         title: album.title,
         artist: album.artist,
+        coverUrl: album.coverUrl!,
+        genre: album.genre!,
+        tags: album.tags!,
         collaborators: album.collaborators,
-        genre: album.genre,
-        tags: album.tags,
+        songs: album.songs,
         visibility: album.visibility,
-        updatedFields: updatedFields,
       })
       res.json(album)
     } catch (error) {
@@ -556,10 +550,16 @@ router.put(
         throw error
       }
 
-      await SongEventPublisher.AlbumUpdatedEvent({
-        albumId,
+      await SongServiceEventPublisher.AlbumUpdatedEvent({
+        albumId: album._id,
         coverUrl: album.coverUrl,
-        updatedFields: ['coverUrl'],
+        title: album.title,
+        artist: album.artist,
+        collaborators: album.collaborators,
+        genre: album.genre,
+        tags: album.tags,
+        visibility: album.visibility,
+        songs: album.songs,
       })
 
       res.json({

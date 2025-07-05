@@ -22,7 +22,7 @@ import {
   PutObjectCommand,
 } from '@aws-sdk/client-s3'
 import { r2Client } from '../../config/cloudflareR2'
-import { SongEventPublisher } from '../../events/song-event-publisher'
+import { SongServiceEventPublisher } from '../../events/song-event-publisher'
 import { Album } from '../../models/Album.model'
 import User from '../../models/User.model'
 import { body } from 'express-validator'
@@ -144,7 +144,7 @@ router.post(
         collaboratorIds = collaboratorUsers.map((user) => user._id)
       }
 
-      await Song.create({
+      const song = await Song.create({
         _id: songId,
         originalUrl: originalUrl,
         coverArtUrl: coverArtUrl,
@@ -181,27 +181,14 @@ router.post(
         //TODO: Implement retry logic for failed jobs
       }
 
-      // Publish song created event
-      try {
-        await SongEventPublisher.SongCreatedEvent({
-          songId: songId,
-          originalUrl: originalUrl,
-          coverArtUrl: coverArtUrl,
-          status: StatusEnum.UPLOADED,
-          metadata: {
-            title: songName,
-            artist: userId,
-            collaborators: collaboratorIds ?? [],
-            album: '',
-            genre: genre ?? '',
-            tags: tags ?? [],
-          },
-          visibility: visibility ?? 'public',
-        })
-      } catch (error) {
-        console.error('Error publishing song created event:', error)
-        // TODO:RETRY LOGIC
-      }
+      await SongServiceEventPublisher.SongCreatedEvent({
+        songId: song._id,
+        originalUrl: song.originalUrl,
+        coverArtUrl: song.coverArtUrl,
+        status: song.status,
+        metadata: song.metadata,
+        visibility: song.visibility,
+      })
 
       res.json({
         message: 'Upload confirmed and conversion job queued',
@@ -264,7 +251,7 @@ router.delete(
 
       // Publish song deleted event
       try {
-        await SongEventPublisher.SongDeletedEvent(songId)
+        await SongServiceEventPublisher.SongDeletedEvent({ songId })
       } catch (error) {
         console.error('Error publishing song deleted event:', error)
         // TODO:RETRY LOGIC
@@ -310,17 +297,14 @@ router.put(
       if (visibility) song.visibility = visibility
       await song.save()
 
-      await SongEventPublisher.SongUpdatedEvent({
-        songId,
-        metadata: {
-          title: song.metadata.title,
-          artist: song.metadata.artist,
-          collaborators: song.metadata.collaborators,
-          album: song.metadata.album,
-          genre: song.metadata.genre,
-          tags: song.metadata.tags,
-        },
-        updatedFields: ['metadata'],
+      await SongServiceEventPublisher.SongUpdatedEvent({
+        songId: song._id,
+        coverArtUrl: song.coverArtUrl,
+        originalUrl: song.originalUrl,
+        hlsUrl: song.hlsUrl,
+        status: song.status,
+        metadata: song.metadata,
+        visibility: song.visibility,
       })
       res.json(song)
     } catch (error: any) {
@@ -443,11 +427,14 @@ router.put(
         throw error
       }
       // Publish song updated event
-      await SongEventPublisher.SongUpdatedEvent({
-        songId,
-        newOriginalUrl: song.originalUrl,
-        newStatus: StatusEnum.UPLOADED,
-        updatedFields: ['originalUrl', 'status'],
+      await SongServiceEventPublisher.SongUpdatedEvent({
+        songId: song._id,
+        coverArtUrl: song.coverArtUrl,
+        originalUrl: song.originalUrl,
+        hlsUrl: song.hlsUrl,
+        status: song.status,
+        metadata: song.metadata,
+        visibility: song.visibility,
       })
       res.json({
         message: 'Audio updated successfully',
@@ -460,7 +447,7 @@ router.put(
 )
 // single song cover art upload presign
 router.put(
-  '/update/cover/song/:songId',
+  '/update/cover/presign/song/:songId',
   requireAuth,
   coverArtValidators,
   validateRequest,
@@ -560,10 +547,14 @@ router.put(
         }
         throw error
       }
-      await SongEventPublisher.SongUpdatedEvent({
-        songId,
-        newCoverUrl: song.coverArtUrl,
-        updatedFields: ['coverArtUrl'],
+      await SongServiceEventPublisher.SongUpdatedEvent({
+        songId: song._id,
+        coverArtUrl: song.coverArtUrl,
+        originalUrl: song.originalUrl,
+        hlsUrl: song.hlsUrl,
+        status: song.status,
+        metadata: song.metadata,
+        visibility: song.visibility,
       })
       res.json({
         message: 'Cover art updated successfully',

@@ -4,7 +4,7 @@ export interface IAlbum extends Document {
   _id: string
   title: string
   artist: string
-  coverUrl?: string
+  coverUrl: string
   genre?: string
   tags?: string[]
   collaborators?: string[]

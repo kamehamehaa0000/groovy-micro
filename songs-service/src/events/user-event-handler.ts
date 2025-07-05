@@ -1,5 +1,11 @@
 import User from '../models/User.model'
-import { BaseEvent, EventTypes } from '@groovy-streaming/common'
+import {
+  BaseEvent,
+  EventTypes,
+  UserCreatedEventData,
+  UserDeletedEventData,
+  UserUpdatedEventData,
+} from '@groovy-streaming/common'
 
 export class UserEventHandlers {
   // Handle any user event
@@ -9,19 +15,19 @@ export class UserEventHandlers {
     switch (event.eventType) {
       case EventTypes.USER_CREATED:
         await UserEventHandlers.handleUserCreated(
-          event.data as UserCreatedEvent
+          event.data as UserCreatedEventData
         )
         break
 
       case EventTypes.USER_DELETED:
         await UserEventHandlers.handleUserDeleted(
-          event.data as UserDeletedEvent
+          event.data as UserDeletedEventData
         )
         break
 
       case EventTypes.USER_UPDATED:
         await UserEventHandlers.handleUserUpdated(
-          event.data as UserUpdatedEvent
+          event.data as UserUpdatedEventData
         )
         break
 
@@ -31,7 +37,7 @@ export class UserEventHandlers {
   }
 
   static handleUserCreated = async (
-    eventData: UserCreatedEvent
+    eventData: UserCreatedEventData
   ): Promise<void> => {
     try {
       await User.create({
@@ -56,7 +62,9 @@ export class UserEventHandlers {
     }
   }
 
-  static handleUserUpdated = async (event: UserUpdatedEvent): Promise<void> => {
+  static handleUserUpdated = async (
+    event: UserUpdatedEventData
+  ): Promise<void> => {
     try {
       if (event.displayName) {
         const user = await User.findById(event.userId)
@@ -78,24 +86,9 @@ export class UserEventHandlers {
     }
   }
 
-  static handleUserDeleted = async (event: UserDeletedEvent): Promise<void> => {
+  static handleUserDeleted = async (
+    event: UserDeletedEventData
+  ): Promise<void> => {
     console.log(`🗑️ User deleted: ${event.userId}`)
   }
-}
-
-export interface UserCreatedEvent {
-  userId: string
-  email: string
-  displayName: string
-  googleId?: string
-}
-
-export interface UserUpdatedEvent {
-  userId: string
-  displayName?: string
-  updatedFields: string[]
-}
-
-export interface UserDeletedEvent {
-  userId: string
 }

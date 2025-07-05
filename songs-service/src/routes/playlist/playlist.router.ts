@@ -17,7 +17,7 @@ import { r2Client } from '../../config/cloudflareR2'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import User from '../../models/User.model'
 import { Song } from '../../models/Song.model'
-import { SongEventPublisher } from '../../events/song-event-publisher'
+import { SongServiceEventPublisher } from '../../events/song-event-publisher'
 import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
 
 const router = Router()
@@ -174,7 +174,7 @@ router.post(
       })
 
       try {
-        await SongEventPublisher.PlaylistCreatedEvent({
+        await SongServiceEventPublisher.PlaylistCreatedEvent({
           playlistId,
           title,
           description,
@@ -226,7 +226,7 @@ router.delete(
       )
     }
     await Playlist.deleteOne({ _id: playlistId })
-    await SongEventPublisher.PlaylistDeletedEvent({
+    await SongServiceEventPublisher.PlaylistDeletedEvent({
       playlistId,
     })
     res.status(200).json({ message: 'Playlist deleted successfully' })
@@ -313,7 +313,7 @@ router.post(
       }
 
       const addedSong = updatedPlaylist.songs[updatedPlaylist.songs.length - 1]
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: updatedPlaylist._id,
         title: updatedPlaylist.title,
         description: updatedPlaylist.description,
@@ -418,7 +418,7 @@ router.delete(
       if (reorderUpdates.length > 0) {
         await Playlist.bulkWrite(reorderUpdates)
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: updatedPlaylist._id,
         title: updatedPlaylist.title,
         description: updatedPlaylist.description,
@@ -578,7 +578,7 @@ router.patch(
       if (!playlistAfterUpdate) {
         throw new CustomError('Playlist not found', 404)
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: playlistAfterUpdate._id,
         title: playlistAfterUpdate.title,
         description: playlistAfterUpdate.description,
@@ -703,7 +703,7 @@ router.put(
       if (!updatedPlaylist) {
         throw new CustomError('Playlist not found', 404)
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: updatedPlaylist._id,
         title: updatedPlaylist.title,
         description: updatedPlaylist.description,
@@ -790,7 +790,7 @@ router.put(
       if (!updatedPlaylist) {
         throw new CustomError('Playlist not found', 404)
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: updatedPlaylist._id,
         title: updatedPlaylist.title,
         description: updatedPlaylist.description,
@@ -888,7 +888,7 @@ router.delete(
           403
         )
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: playlist._id,
         title: playlist.title,
         description: playlist.description,
@@ -1011,8 +1011,8 @@ router.put(
         }
         throw error
       }
-      await SongEventPublisher.PlaylistUpdatedEvent({
-        playlistId,
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
         title: playlist.title,
         description: playlist.description,
         coverUrl: playlist.coverUrl,
