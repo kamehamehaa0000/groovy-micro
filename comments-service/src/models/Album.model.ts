@@ -4,7 +4,7 @@ export interface IAlbum extends Document {
   _id: string
   title: string
   artist: string
-  coverUrl?: string
+  coverUrl: string
   genre?: string
   tags?: string[]
   collaborators?: string[]
@@ -68,4 +68,5 @@ const AlbumSchema: Schema = new Schema(
 AlbumSchema.index({ artist: 1, createdAt: -1 })
 AlbumSchema.index({ title: 'text', genre: 'text' }, { name: 'AlbumTextIndex' })
 
-export const Album = mongoose.model<IAlbum>('Album', AlbumSchema)
+export const Album =
+  mongoose.models.Album || mongoose.model<IAlbum>('Album', AlbumSchema)

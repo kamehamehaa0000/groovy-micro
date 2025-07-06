@@ -1,6 +1,8 @@
 import axios from 'axios'
-import { User } from '../models/User.model'
+import { Song } from '../models/Song.model'
 import { SyncMetadata } from '../models/SyncMetadata.model'
+import User from '../models/User.model'
+import { Playlist } from '../models/Playlist.model'
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL ?? 'http://localhost:3000'
 
@@ -189,7 +191,7 @@ const fullSyncUsers = async () => {
 const getLastSyncTimestamp = async (): Promise<Date | null> => {
   try {
     const metadata = await SyncMetadata.findOne({ type: 'user-sync' })
-    return metadata?.lastSyncAt || null
+    return metadata?.lastSyncAt ?? null
   } catch (error) {
     console.error('Error getting last sync timestamp:', error)
     return null
@@ -210,9 +212,6 @@ const updateLastSyncTimestamp = async (timestamp: Date) => {
 
 const cleanupUserReferences = async (deletedUserIds: string[]) => {
   try {
-    const { Playlist } = await import('../models/Playlist.model')
-    const { Song } = await import('../models/Song.model')
-
     console.log(
       `Cleaning up references for ${deletedUserIds.length} deleted users...`
     )

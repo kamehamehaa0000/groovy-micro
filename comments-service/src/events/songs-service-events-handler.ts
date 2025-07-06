@@ -1,8 +1,19 @@
-import { Song } from '../models/Song.model'
+import {
+  AlbumCreatedEventData,
+  AlbumDeletedEventData,
+  AlbumUpdatedEventData,
+  PlaylistCreatedEventData,
+  PlaylistDeletedEventData,
+  PlaylistUpdatedEventData,
+  SongCreatedEventData,
+  SongDeletedEventData,
+  SongUpdatedEventData,
+} from '../../../common/src/events/song-service-events'
+import { EventTypes } from '../../../common/src/events/types'
+import { BaseEvent } from '../../../common/src/events/PubSubManager'
 import { Playlist } from '../models/Playlist.model'
 import { Album } from '../models/Album.model'
-
-import { BaseEvent, EventTypes } from '@groovy-streaming/common'
+import { Song } from '../models/Song.model'
 
 export class SongServiceEventHandlers {
   static async handleSongsServiceEvent(event: BaseEvent): Promise<void> {
@@ -54,21 +65,24 @@ export class SongServiceEventHandlers {
         await SongServiceEventHandlers.handlePlaylistDeleted(
           event.data as PlaylistDeletedEventData
         )
-
+        break
       default:
         console.log(`🤷‍♂️ Unknown event type: ${event.eventType}`)
     }
   }
 
-  static handleSongCreated = async (
+  static readonly handleSongCreated = async (
     eventData: SongCreatedEventData
   ): Promise<void> => {
     try {
       await Song.create({
         _id: eventData.songId,
-        title: eventData.title,
-        artist: eventData.artist,
-        album: eventData.album,
+        coverArtUrl: eventData.coverArtUrl,
+        originalUrl: eventData.originalUrl,
+        hlsUrl: eventData.hlsUrl,
+        status: eventData.status,
+        visibility: eventData.visibility,
+        metadata: eventData.metadata,
       })
     } catch (error: any) {
       if (error.code === 11000) {
@@ -77,18 +91,7 @@ export class SongServiceEventHandlers {
         return
       } else if (error.name === 'ValidationError') {
         console.error(
-          `❌ Validation error creating song ${eventData.songId}:`,
-          error.message
-        )
-        return
-      } else if (error.code === 11000) {
-        console.log(`ℹ️ User ${eventData.userId} already exists - this is OK`) // Duplicate key error - user already exists
-        // DON'T throw - acknowledge message (user creation succeeded in the past)
-        return
-      } else if (error.name === 'ValidationError') {
-        console.error(
-          `❌ Validation error creating user ${eventData.userId}:`,
-          error.message
+          `Error(song-service-song-created-event)-${eventData.songId}: ${error.message}`
         )
         return
       }
@@ -96,43 +99,57 @@ export class SongServiceEventHandlers {
     }
   }
 
-  static handleSongUpdated = async (
+  static readonly handleSongUpdated = async (
     event: SongUpdatedEventData
   ): Promise<void> => {
     try {
-      if (event.title || event.artist || event.album) {
-        const song = await Song.findById(event.songId)
-        if (!song) {
-          console.error(`❌ User ${event.userId} not found for update`)
-          return
-        }
-        user.displayName = event.displayName
-        await user.save()
+      const song = await Song.findById(event.songId)
+      if (!song) {
+        console.error(`❌ Song ${event.songId} not found for update`)
+        return
       }
+      song.originalUrl = event.originalUrl ?? song.originalUrl
+      song.hlsUrl = event.hlsUrl ?? song.hlsUrl
+      song.coverArtUrl = event.coverArtUrl ?? song.coverArtUrl
+      song.status = event.status ?? song.status
+      song.visibility = event.visibility ?? song.visibility
+      if (event.metadata) {
+        song.metadata.title = event.metadata.title ?? song.metadata.title
+        song.metadata.artist = event.metadata.artist ?? song.metadata.artist
+        song.metadata.album = event.metadata.album ?? song.metadata.album
+        song.metadata.genre = event.metadata.genre ?? song.metadata.genre
+        song.metadata.collaborators =
+          event.metadata.collaborators ?? song.metadata.collaborators
+        song.metadata.tags = event.metadata.tags ?? song.metadata.tags
+        song.metadata.trackNumber =
+          event.metadata.trackNumber ?? song.metadata.trackNumber
+      }
+      await song.save()
     } catch (error) {
       console.error(
-        `❌ Error updating user ${event.userId}:`,
-        error instanceof Error ? error.message : error
+        `Error(song-service-song-updated-event) ${event.songId}: ${
+          (error as Error).message
+        }`
       )
       return
     }
   }
 
-  static handleSongDeleted = async (
+  static readonly handleSongDeleted = async (
     event: SongDeletedEventData
   ): Promise<void> => {
     try {
       await Song.findByIdAndDelete(event.songId)
-      console.log(`🗑️ Song deleted: ${event.songId}`)
     } catch (error) {
       console.error(
-        `❌ Error deleting song ${event.songId}:`,
-        error instanceof Error ? error.message : error
+        `Error(song-service-song-deleted-event) ${event.songId}: ${
+          (error as Error).message
+        }`
       )
     }
   }
 
-  static handleAlbumCreated = async (
+  static readonly handleAlbumCreated = async (
     eventData: AlbumCreatedEventData
   ): Promise<void> => {
     try {
@@ -141,74 +158,90 @@ export class SongServiceEventHandlers {
         title: eventData.title,
         artist: eventData.artist,
         coverUrl: eventData.coverUrl,
+        songs: eventData.songs,
+        genre: eventData.genre,
+        collaborators: eventData.collaborators,
+        tags: eventData.tags,
       })
     } catch (error: any) {
       if (error.code === 11000) {
-        console.log(`ℹ️ Album ${eventData.albumId} already exists - this is OK`)
+        console.log(
+          `Error - Album ${eventData.albumId} already exists - this is OK`
+        )
         return
       } else if (error.name === 'ValidationError') {
         console.error(
-          `❌ Validation error creating album ${eventData.albumId}:`,
-          error.message
+          `Error(song-service-album-created-event) ${eventData.albumId}: ${
+            (error as Error).message
+          }`
         )
         return
       }
       throw error
     }
   }
-  static handleAlbumUpdated = async (
+  static readonly handleAlbumUpdated = async (
     event: AlbumUpdatedEventData
   ): Promise<void> => {
     try {
       const album = await Album.findById(event.albumId)
       if (!album) {
-        console.error(`❌ Album ${event.albumId} not found for update`)
+        console.error(`Error: Album ${event.albumId} not found for update`)
         return
       }
-      if (event.title) album.title = event.title
-      if (event.artist) album.artist = event.artist
-      if (event.coverUrl) album.coverUrl = event.coverUrl
+      album.title = event.title ?? album.title
+      album.artist = event.artist ?? album.artist
+      album.coverUrl = event.coverUrl ?? album.coverUrl
+      album.genre = event.genre ?? album.genre
+      album.collaborators = event.collaborators ?? album.collaborators
+      album.tags = event.tags ?? album.tags
+      album.songs = event.songs ?? album.songs
       await album.save()
     } catch (error) {
       console.error(
-        `❌ Error updating album ${event.albumId}:`,
-        error instanceof Error ? error.message : error
+        `Error(song-service-album-updated-event) ${event.albumId}: ${
+          (error as Error).message
+        }`
       )
     }
   }
-  static handleAlbumDeleted = async (
+  static readonly handleAlbumDeleted = async (
     event: AlbumDeletedEventData
   ): Promise<void> => {
     try {
       await Album.findByIdAndDelete(event.albumId)
-      console.log(`🗑️ Album deleted: ${event.albumId}`)
     } catch (error) {
       console.error(
-        `❌ Error deleting album ${event.albumId}:`,
-        error instanceof Error ? error.message : error
+        `Error(song-service-album-deleted-event) ${event.albumId}: ${
+          (error as Error).message
+        }`
       )
     }
   }
 
-  static handlePlaylistCreated = async (
+  static readonly handlePlaylistCreated = async (
     eventData: PlaylistCreatedEventData
   ): Promise<void> => {
     try {
       await Playlist.create({
         _id: eventData.playlistId,
         title: eventData.title,
+        description: eventData.description,
         creator: eventData.creator,
+        collaborators: eventData.collaborators,
+        visibility: eventData.visibility,
         songs: eventData.songs,
+        coverUrl: eventData.coverUrl,
       })
     } catch (error: any) {
       if (error.code === 11000) {
         console.log(
-          `ℹ️ Playlist ${eventData.playlistId} already exists - this is OK`
+          `Error: Playlist ${eventData.playlistId} already exists - this is OK`
         )
         return
       } else if (error.name === 'ValidationError') {
         console.error(
-          `❌ Validation error creating playlist ${eventData.playlistId}:`,
+          `Error(song-service-playlist-created-event) ${eventData.playlistId}:`,
           error.message
         )
         return
@@ -217,47 +250,41 @@ export class SongServiceEventHandlers {
     }
   }
 
-  static handlePlaylistUpdated = async (
+  static readonly handlePlaylistUpdated = async (
     event: PlaylistUpdatedEventData
   ): Promise<void> => {
     try {
       const playlist = await Playlist.findById(event.playlistId)
       if (!playlist) {
-        console.error(`❌ Playlist ${event.playlistId} not found for update`)
         return
       }
-      if (event.title) playlist.title = event.title
-      if (event.songs) playlist.songs = event.songs
+      playlist.title = event.title ?? playlist.title
+      playlist.description = event.description ?? playlist.description
+      playlist.creator = event.creator ?? playlist.creator
+      playlist.collaborators = event.collaborators ?? playlist.collaborators
+      playlist.visibility = event.visibility ?? playlist.visibility
+      playlist.songs = event.songs ?? playlist.songs
+      playlist.coverUrl = event.coverUrl ?? playlist.coverUrl
+
       await playlist.save()
     } catch (error) {
       console.error(
-        `❌ Error updating playlist ${event.playlistId}:`,
+        `Error(song-service-playlist-updated-event) ${event.playlistId}:`,
         error instanceof Error ? error.message : error
       )
     }
   }
 
-  static handlePlaylistDeleted = async (
+  static readonly handlePlaylistDeleted = async (
     event: PlaylistDeletedEventData
   ): Promise<void> => {
     try {
       await Playlist.findByIdAndDelete(event.playlistId)
-      console.log(`🗑️ Playlist deleted: ${event.playlistId}`)
     } catch (error) {
       console.error(
-        `❌ Error deleting playlist ${event.playlistId}:`,
+        `Error(song-service-playlist-deleted-event) ${event.playlistId}:`,
         error instanceof Error ? error.message : error
       )
     }
   }
 }
-
-export interface SongCreatedEventData {}
-export interface SongUpdatedEventData {}
-export interface SongDeletedEventData {}
-export interface AlbumCreatedEventData {}
-export interface AlbumUpdatedEventData {}
-export interface AlbumDeletedEventData {}
-export interface PlaylistCreatedEventData {}
-export interface PlaylistUpdatedEventData {}
-export interface PlaylistDeletedEventData {}

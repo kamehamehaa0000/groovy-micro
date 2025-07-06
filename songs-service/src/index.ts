@@ -31,7 +31,7 @@ async function startServer() {
       'CLOUDAMQP_URL',
     ]) // Ensures all required environment variables are set
     await connectToDatabase(process.env.MONGODB_URI!)
-    await syncUsers()
+    // await syncUsers()
     await connectToQueue(process.env.CLOUDAMQP_URL!)
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await initializeEventListeners(['USER'])

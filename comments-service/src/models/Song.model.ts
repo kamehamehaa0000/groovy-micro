@@ -12,6 +12,7 @@ export interface ISong extends Document {
   originalUrl: string
   hlsUrl?: string
   status: StatusEnum
+  // duration?: number
   visibility: 'public' | 'private'
   metadata: {
     title: string
@@ -82,4 +83,5 @@ SongSchema.index(
   { name: 'SongTextIndex' }
 )
 
-export const Song = mongoose.model<ISong>('Song', SongSchema)
+export const Song =
+  mongoose.models.Song || mongoose.model<ISong>('Song', SongSchema)

@@ -1,7 +1,8 @@
 import axios from 'axios'
-import { User } from '../models/User.model'
+import User from '../models/User.model'
+import { Playlist } from '../models/Playlist.model'
+import { Song } from '../models/Song.model'
 import { SyncMetadata } from '../models/SyncMetadata.model'
-
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL ?? 'http://localhost:3000'
 
 const syncUsers = async () => {
@@ -210,9 +211,6 @@ const updateLastSyncTimestamp = async (timestamp: Date) => {
 
 const cleanupUserReferences = async (deletedUserIds: string[]) => {
   try {
-    const { Playlist } = await import('../models/Playlist.model')
-    const { Song } = await import('../models/Song.model')
-
     console.log(
       `Cleaning up references for ${deletedUserIds.length} deleted users...`
     )

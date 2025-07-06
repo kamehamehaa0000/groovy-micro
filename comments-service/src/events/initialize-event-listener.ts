@@ -1,8 +1,7 @@
 import { SUBSCRIPTIONS, TOPICS } from '@groovy-streaming/common'
 import { PubSubManager } from '../config/PubSub'
-import { UserEventHandlers } from './user-event-handler'
-import { SongEventPublisher } from './song-event-publisher'
-import { SongServiceEventHandlers } from './song-event-handler'
+import { UserServiceEventHandlers } from './user-service-events-handler'
+import { SongServiceEventHandlers } from './songs-service-events-handler'
 
 type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'STATS'
 
@@ -22,7 +21,7 @@ export async function initializeEventListeners(
       await PubSubManager.subscribe(
         TOPICS.USER_EVENTS,
         SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
-        UserEventHandlers.handleUserEvent
+        UserServiceEventHandlers.handleUserServiceEvents
       )
       console.log('# user-auth-service Event listener initialized successfully')
     }

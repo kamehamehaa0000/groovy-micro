@@ -15,7 +15,7 @@ import {
 } from '@aws-sdk/client-s3'
 import { r2Client } from '../../config/cloudflareR2'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import User from '../../models/User.model'
+import { User } from '../../models/User.model'
 import { Song } from '../../models/Song.model'
 import { SongServiceEventPublisher } from '../../events/song-event-publisher'
 import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
@@ -403,17 +403,19 @@ router.delete(
       }
 
       // Reorder remaining songs to maintain sequence
-      const reorderUpdates = updatedPlaylist.songs.map((song, index) => ({
-        updateOne: {
-          filter: {
-            _id: playlistId,
-            'songs.songId': song.songId,
+      const reorderUpdates = updatedPlaylist.songs.map(
+        (song: { songId: string }, index: number) => ({
+          updateOne: {
+            filter: {
+              _id: playlistId,
+              'songs.songId': song.songId,
+            },
+            update: {
+              $set: { 'songs.$.order': index + 1 },
+            },
           },
-          update: {
-            $set: { 'songs.$.order': index + 1 },
-          },
-        },
-      }))
+        })
+      )
 
       if (reorderUpdates.length > 0) {
         await Playlist.bulkWrite(reorderUpdates)
@@ -490,7 +492,7 @@ router.patch(
 
       // Find the song to reorder
       const songIndex = playlist.songs.findIndex(
-        (s) => s.songId.toString() === songId
+        (s: { songId: string }) => s.songId.toString() === songId
       )
 
       if (songIndex === -1) {
@@ -663,13 +665,15 @@ router.put(
 
       // Validate that all songs exist and count matches
       const playlistSongIds = playlist.songs
-        .map((s) => s.songId.toString())
+        .map((s: { songId: string }) => s.songId.toString())
         .sort()
       const providedSongIds = orderedSongIds.slice().sort() //using slice to avoid mutating original array
 
       if (
         playlistSongIds.length !== providedSongIds.length ||
-        !playlistSongIds.every((id, index) => id === providedSongIds[index])
+        !playlistSongIds.every(
+          (id: string, index: number) => id === providedSongIds[index]
+        )
       ) {
         throw new CustomError(
           'Provided song IDs must exactly match all songs in the playlist',
@@ -681,7 +685,7 @@ router.put(
       const reorderedSongs = orderedSongIds.map(
         (songId: string, index: number) => {
           const originalSong = playlist.songs.find(
-            (s) => s.songId.toString() === songId
+            (s: { songId: string }) => s.songId.toString() === songId
           )
           return {
             ...originalSong,

@@ -24,7 +24,6 @@ const SyncMetadataSchema = new Schema<ISyncMetadata>(
   }
 )
 
-export const SyncMetadata = mongoose.model<ISyncMetadata>(
-  'SyncMetadata',
-  SyncMetadataSchema
-)
+export const SyncMetadata =
+  mongoose.models.SyncMetadata ||
+  mongoose.model<ISyncMetadata>('SyncMetadata', SyncMetadataSchema)

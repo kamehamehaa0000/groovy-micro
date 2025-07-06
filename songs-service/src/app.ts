@@ -6,10 +6,11 @@ import rateLimit from 'express-rate-limit'
 import { config, configDotenv } from 'dotenv'
 
 import { globalErrorHandler } from '@groovy-streaming/common'
+
 import { mainRouter } from './routes/main.router'
 import { verifyWebhookSignature } from './middlewares/verifyWebhookSignature'
+import { SongServiceEventPublisher } from './events/song-event-publisher'
 import { Song } from './models/Song.model'
-import { SongEventPublisher } from './events/song-event-publisher'
 
 configDotenv({
   path: '.env',
@@ -105,17 +106,17 @@ app.post(
       }
       song.status = status
       if (status === 'failed') {
-        song.errorMessage = req.body.error ?? 'Unknown error'
+        console.error('HLS conversion failed for song:', songId)
       } else if (status === 'completed') {
         song.hlsUrl = hlsUrl
-        await SongEventPublisher.SongUpdatedEvent({
+        await SongServiceEventPublisher.SongUpdatedEvent({
           songId: song._id.toString(),
-          newOriginalUrl: song.originalUrl,
-          newCoverUrl: song.coverArtUrl,
-          newHlsUrl: hlsUrl,
+          originalUrl: song.originalUrl,
+          coverArtUrl: song.coverArtUrl,
+          hlsUrl: hlsUrl,
           metadata: song.metadata,
-          newStatus: status,
-          newVisibility: song.visibility,
+          status: status,
+          visibility: song.visibility,
         })
       } else if (status === 'processing') {
         // No additional action needed for processing status

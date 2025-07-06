@@ -7,8 +7,6 @@ import { config, configDotenv } from 'dotenv'
 
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
-import { verifyWebhookSignature } from './middlewares/verifyWebhookSignature'
-import { Song } from './models/Song.model'
 
 configDotenv({
   path: '.env',

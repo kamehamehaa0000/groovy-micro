@@ -1,27 +1,31 @@
-import User from '../models/User.model'
-import { BaseEvent, EventTypes } from '@groovy-streaming/common'
+import { User } from '../models/User.model'
+import {
+  UserDeletedEventData,
+  UserCreatedEventData,
+  UserUpdatedEventData,
+  BaseEvent,
+  EventTypes,
+} from '@groovy-streaming/common'
 
 export class UserServiceEventHandlers {
   // Handle any user event
   static async handleUserServiceEvents(event: BaseEvent): Promise<void> {
-    console.log(`🎯 Processing event: ${event.eventType}`)
-
     switch (event.eventType) {
       case EventTypes.USER_CREATED:
         await UserServiceEventHandlers.handleUserCreated(
-          event.data as UserCreatedEvent
+          event.data as UserCreatedEventData
         )
         break
 
       case EventTypes.USER_DELETED:
         await UserServiceEventHandlers.handleUserDeleted(
-          event.data as UserDeletedEvent
+          event.data as UserDeletedEventData
         )
         break
 
       case EventTypes.USER_UPDATED:
         await UserServiceEventHandlers.handleUserUpdated(
-          event.data as UserUpdatedEvent
+          event.data as UserUpdatedEventData
         )
         break
 
@@ -30,8 +34,8 @@ export class UserServiceEventHandlers {
     }
   }
 
-  static handleUserCreated = async (
-    eventData: UserCreatedEvent
+  static readonly handleUserCreated = async (
+    eventData: UserCreatedEventData
   ): Promise<void> => {
     try {
       await User.create({
@@ -42,12 +46,14 @@ export class UserServiceEventHandlers {
       })
     } catch (error: any) {
       if (error.code === 11000) {
-        console.log(`ℹ️ User ${eventData.userId} already exists - this is OK`) // Duplicate key error - user already exists
+        console.log(
+          `Error- User ${eventData.userId} already exists - this is OK`
+        )
         // DON'T throw - acknowledge message (user creation succeeded in the past)
         return
       } else if (error.name === 'ValidationError') {
         console.error(
-          `❌ Validation error creating user ${eventData.userId}:`,
+          `Error(user-service-user-created-event) ${eventData.userId}:`,
           error.message
         )
         return
@@ -56,7 +62,9 @@ export class UserServiceEventHandlers {
     }
   }
 
-  static handleUserUpdated = async (event: UserUpdatedEvent): Promise<void> => {
+  static readonly handleUserUpdated = async (
+    event: UserUpdatedEventData
+  ): Promise<void> => {
     try {
       if (event.displayName) {
         const user = await User.findById(event.userId)
@@ -69,8 +77,9 @@ export class UserServiceEventHandlers {
       }
     } catch (error) {
       console.error(
-        `❌ Error updating user ${event.userId}:`,
-        error instanceof Error ? error.message : error
+        `Error(user-service-user-updated-event) ${event.userId}:${
+          (error as Error).message
+        }`
       )
       // not rethrowing to avoid message reprocessing
       // This is a non-critical operation, so we log the error and return
@@ -78,24 +87,18 @@ export class UserServiceEventHandlers {
     }
   }
 
-  static handleUserDeleted = async (event: UserDeletedEvent): Promise<void> => {
-    console.log(`🗑️ User deleted: ${event.userId}`)
+  static readonly handleUserDeleted = async (
+    event: UserDeletedEventData
+  ): Promise<void> => {
+    try {
+      await User.findByIdAndDelete(event.userId)
+    } catch (error) {
+      console.error(
+        `Error(user-service-user-deleted-event) ${event.userId}: ${
+          (error as Error).message
+        }`
+      )
+      return
+    }
   }
-}
-
-export interface UserCreatedEvent {
-  userId: string
-  email: string
-  displayName: string
-  googleId?: string
-}
-
-export interface UserUpdatedEvent {
-  userId: string
-  displayName?: string
-  updatedFields: string[]
-}
-
-export interface UserDeletedEvent {
-  userId: string
 }

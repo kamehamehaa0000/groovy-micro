@@ -92,4 +92,6 @@ PlaylistSchema.index({ title: 'text', description: 'text', tags: 'text' })
 PlaylistSchema.index({ collaborators: 1, visibility: 1 })
 // Compound index for visibility and creator
 PlaylistSchema.index({ creator: 1, visibility: 1 })
-export const Playlist = mongoose.model<IPlaylist>('Playlist', PlaylistSchema)
+export const Playlist =
+  mongoose.models.Playlist ||
+  mongoose.model<IPlaylist>('Playlist', PlaylistSchema)

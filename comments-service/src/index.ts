@@ -6,14 +6,14 @@ import {
   closeDatabaseConnections,
   connectToDatabase,
   verifyEnv,
-  connectToQueue,
-  testR2Connection,
   createPubSubManager,
 } from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
-import { r2Client } from './config/cloudflareR2'
 
 import { syncUsers } from './sync/users'
+import { syncAlbums } from './sync/albums'
+import { syncPlaylists } from './sync/playlists'
+import { syncSongs } from './sync/songs'
 
 async function startServer() {
   try {
@@ -28,12 +28,13 @@ async function startServer() {
       'JWT_REFRESH_EXPIRES_IN',
       'MAGIC_LINK_SECRET',
       'MAGIC_LINK_EXPIRES_IN',
-      'CLOUDAMQP_URL',
+      'MONGODB_URI',
     ]) // Ensures all required environment variables are set
     await connectToDatabase(process.env.MONGODB_URI!)
-    await syncUsers()
-    await connectToQueue(process.env.CLOUDAMQP_URL!)
-    await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
+    // await syncUsers()
+    // await syncAlbums()
+    // await syncPlaylists()
+    // await syncSongs()
     await initializeEventListeners(['USER'])
 
     await createPubSubManager(

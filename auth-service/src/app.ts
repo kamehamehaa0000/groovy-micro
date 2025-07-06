@@ -7,7 +7,7 @@ import { config, configDotenv } from 'dotenv'
 import passport from 'passport'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { AuthRouter } from './routes/auth.router'
-import { SyncRouter } from './sync/users'
+import { syncRouter } from './sync/users'
 
 configDotenv({
   path: '.env',
@@ -88,6 +88,6 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/api/v1/auth', generalLimiter, AuthRouter)
-app.use('/api/v1/sync', SyncRouter)
+app.use('/api/v1/sync', syncRouter)
 
 app.use(globalErrorHandler)

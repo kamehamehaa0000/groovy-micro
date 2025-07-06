@@ -83,4 +83,5 @@ SongSchema.index(
   { name: 'SongTextIndex' }
 )
 
-export const Song = mongoose.model<ISong>('Song', SongSchema)
+export const Song =
+  mongoose.models.Song || mongoose.model<ISong>('Song', SongSchema)
