@@ -1,6 +1,6 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
-import { Song, StatusEnum } from '@groovy-streaming/common'
+import { Song, StatusEnum } from '../models/Song.model'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { r2Client } from '../config/cloudflareR2'
 
