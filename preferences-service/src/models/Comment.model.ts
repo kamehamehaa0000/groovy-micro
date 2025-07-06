@@ -5,13 +5,20 @@ export enum CommentEntityEnum {
   ALBUM = 'album',
   PLAYLIST = 'playlist',
 }
+interface CommentAttrs {
+  content: string
+  authorId: string
+  entityType: CommentEntityEnum
+  entityId: string
+  parentId?: string
+}
 
 interface CommentDoc extends mongoose.Document {
   content: string
   authorId: string
   entityType: CommentEntityEnum
   entityId: string
-  parentId: string
+  parentId?: string
   upvotes: string[]
   downvotes: string[]
   createdAt: Date
@@ -32,7 +39,7 @@ const commentSchema = new mongoose.Schema(
       required: true,
     },
     entityId: { type: String, required: true },
-    parentId: { type: String, ref: 'Comment', default: null },
+    parentId: { type: String, ref: 'Comment' },
     upvotes: [{ type: String, ref: 'User' }],
     downvotes: [{ type: String, ref: 'User' }],
   },

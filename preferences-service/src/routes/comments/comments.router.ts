@@ -12,7 +12,6 @@ import { Album } from '../../models/Album.model'
 import { Playlist } from '../../models/Playlist.model'
 
 import mongoose from 'mongoose'
-import { CommentsServiceEventPublisher } from '../../events/comments-event-publisher'
 const router = Router()
 
 //create a comment
@@ -61,21 +60,9 @@ router.post(
         entityId,
         parentId,
       })
-
       if (!comment) {
         throw new CustomError('Comment creation failed', 400)
       }
-
-      await CommentsServiceEventPublisher.CommentCreatedEvent({
-        commentId: comment.id,
-        content: comment.content,
-        authorId: comment.authorId,
-        entityType: comment.entityType,
-        entityId: comment.entityId,
-        parentId: comment.parentId,
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })
       res.status(201).json(comment)
     } catch (error) {
       next(error)
@@ -110,16 +97,6 @@ router.post(
         comment.downvotes.push(user.id) // User has not downvoted, add the downvote
       }
       await comment.save()
-      await CommentsServiceEventPublisher.CommentUpdatedEvent({
-        commentId: comment.id,
-        content: comment.content,
-        authorId: comment.authorId,
-        entityType: comment.entityType,
-        entityId: comment.entityId,
-        parentId: comment.parentId,
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })
       res.status(200).json(comment)
     } catch (error) {
       next(error)
@@ -154,16 +131,6 @@ router.post(
         comment.upvotes.push(user.id) // User has not upvoted, add the upvote
       }
       await comment.save()
-      await CommentsServiceEventPublisher.CommentUpdatedEvent({
-        commentId: comment.id,
-        content: comment.content,
-        authorId: comment.authorId,
-        entityType: comment.entityType,
-        entityId: comment.entityId,
-        parentId: comment.parentId,
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })
       res.status(200).json(comment)
     } catch (error) {
       next(error)
@@ -206,16 +173,6 @@ router.put(
       if (!comment) {
         throw new CustomError('Comment not found', 404)
       }
-      await CommentsServiceEventPublisher.CommentUpdatedEvent({
-        commentId: comment.id,
-        content: comment.content,
-        authorId: comment.authorId,
-        entityType: comment.entityType,
-        entityId: comment.entityId,
-        parentId: comment.parentId,
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })
 
       res.status(200).json(comment)
     } catch (error) {
@@ -242,9 +199,6 @@ router.delete(
       if (!deletedComment) {
         throw new CustomError('Comment not found or unauthorized', 404)
       }
-      await CommentsServiceEventPublisher.CommentDeletedEvent({
-        commentId: deletedComment.id,
-      })
       res.status(200).json({ message: 'Comment deleted successfully' })
     } catch (error) {
       next(error)
