@@ -11,3 +11,15 @@ export const useSigninPromptModalStore = create<IModal>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }))
+
+export const useCreatePlaylistModalStore = create<IModal>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+}))
+
+export const useJamModalStore = create<IModal>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+}));

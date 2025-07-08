@@ -17,9 +17,8 @@ const UserSchema: Schema = new Schema(
     email: { type: String, unique: true, sparse: true }, // sparse allows for unique constraint to be ignored if the field is not present
     googleId: { type: String, unique: true, sparse: true },
   },
-  { _id: false, timestamps: true }
+  { timestamps: true }
 )
 
-export const User =
-  mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
+export const User = mongoose.model<IUser>('User', UserSchema)
 export default User

@@ -1,21 +1,7 @@
-1. I am creating a music streaming platform using microservices architechture.
-2. It will be deployed on different free tier render accounts but will also be creating skaffold, kubernetes, docker for optional deployement as cluster deployement. when deploying to render will use a fastify/express gateway but on kubernetes depl. will be using ingress-inginx 
-3. will be using redis, NATS, express, nextjs/react (not decided yet), react query, zustand, typescript.
-
-4. I want to create a scalable and production ready project for my portfolio. 
-
-
-5. for auth i want these functionality - 
-    1. using firebase auth + mongo or just mongo and oauth and other functionality manually.
-    2. it should have a robust refresh token functionality.
-    3. it should have features like updating user details, forgot password, two factor authentication using email, login with mail/passwordlesss login, otp system etc.
-    
-Auth ->
-    1. Google login.
-    2. Email and password login.
-    3. Email with email link login.
-    4. Robust refresh token system 
-    5. jwt based auth 
-    6. passport js for auth strategy
-    7. functions like -> forgot password(using mail), reset password, update user details like username.
-    
+Jam functionality-
+1. creator of jam can pause everyone's playback on pause.
+2. anyone in jam that is not the creator of jam when pauses only his playback will pause.
+3. anyone can change the song in the jam.
+4. if creator and listener both are paused, listener can resume for both of them.
+5. jam will have queue on which user can add songs. jam will be like a mode so whenever a user clicks on song when jam is on the song is added to jam queue.
+6. jam will also have features like shuffle and repeat.

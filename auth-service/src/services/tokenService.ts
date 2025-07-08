@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
+import mongoose from 'mongoose'
 import User, { IUser } from '../models/User.model'
 import { config, configDotenv } from 'dotenv'
 import { EnumMagicLinkType } from '../types'
@@ -41,7 +42,12 @@ export const generateRefreshToken = async (
   let retries = 3
   while (retries > 0) {
     try {
+      console.log(
+        `Generating refresh token for user ${userId} with IP ${ipAddress}`
+      )
+
       const user = await User.findById(userId)
+      console.log(`Found user: ${user ? user.email : 'not found'}`)
       if (!user) {
         throw new Error('User not found')
       }
@@ -140,6 +146,7 @@ export const revokeRefreshToken = async (
     try {
       const user = await User.findById(userId)
       if (!user) return
+      if (!user) return
 
       user.refreshTokens = user.refreshTokens.filter(
         (rt) => rt.token !== refreshTokenValue
@@ -191,8 +198,6 @@ export const sendTokens = async (
     },
   })
 }
-
-
 
 export const refreshTokenRotation = async (
   userId: string,

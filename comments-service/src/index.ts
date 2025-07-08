@@ -6,14 +6,12 @@ import {
   closeDatabaseConnections,
   connectToDatabase,
   verifyEnv,
-  createPubSubManager,
 } from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
-
-import { syncUsers } from './sync/users'
-import { syncAlbums } from './sync/albums'
-import { syncPlaylists } from './sync/playlists'
-import { syncSongs } from './sync/songs'
+import { fullSyncUsers, syncUsers } from './sync/users'
+import { fullSyncAlbums, syncAlbums } from './sync/albums'
+import { fullSyncPlaylists, syncPlaylists } from './sync/playlists'
+import { fullSyncSongs, syncSongs } from './sync/songs'
 
 async function startServer() {
   try {
@@ -29,18 +27,20 @@ async function startServer() {
       'MAGIC_LINK_SECRET',
       'MAGIC_LINK_EXPIRES_IN',
       'MONGODB_URI',
+      'GCP_PROJECT_ID',
+      'GCP_SERVICE_ACCOUNT_KEY_PATH',
     ]) // Ensures all required environment variables are set
     await connectToDatabase(process.env.MONGODB_URI!)
-    // await syncUsers()
-    // await syncAlbums()
-    // await syncPlaylists()
-    // await syncSongs()
-    await initializeEventListeners(['USER'])
+    await syncUsers()
+    await syncAlbums()
+    await syncPlaylists()
+    await syncSongs()
+    await fullSyncAlbums()
+    await fullSyncUsers()
+    await fullSyncPlaylists()
+    await fullSyncSongs()
 
-    await createPubSubManager(
-      process.env.GCP_PROJECT_ID!,
-      process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
-    )
+    await initializeEventListeners(['USER', 'SONG'])
 
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {

@@ -4,9 +4,13 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { config, configDotenv } from 'dotenv'
-
+import http from 'http'
+import { Server } from 'socket.io'
+import { createClient } from 'redis'
+import { createAdapter } from '@socket.io/redis-adapter'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
+import { initializeJamHandler } from './events/jam.handler'
 
 configDotenv({
   path: '.env',
@@ -14,7 +18,38 @@ configDotenv({
 config({
   path: '.env',
 }) // Load environment variables from .env file
+
 export const app = express()
+export const httpServer = http.createServer(app)
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+})
+
+const redisPubClient = createClient({ url: process.env.REDIS_URL })
+const redisSubClient = redisPubClient.duplicate()
+redisPubClient.on('error', (err) => {
+  console.error('Redis Pub Client Error:', err)
+})
+
+redisSubClient.on('error', (err) => {
+  console.error('Redis Sub Client Error:', err)
+})
+
+Promise.all([redisPubClient.connect(), redisSubClient.connect()])
+  .then(() => {
+    io.adapter(createAdapter(redisPubClient, redisSubClient))
+    console.log('Socket.IO Redis adapter connected')
+  })
+  .catch((err) => {
+    console.error('Failed to connect to Redis:', err)
+  })
+
+initializeJamHandler(io)
 
 app.use(
   helmet({
@@ -28,19 +63,7 @@ app.use(
     },
   })
 )
-// app.use(
-//   cors({
-//     origin:
-//       process.env.NODE_ENV === 'production'
-//         ? process.env.CLIENT_URL
-//         : [
-//             'http://localhost:5173',
-//             'http://localhost:5174',
-//             'http://localhost:3000',
-//           ],
-//     credentials: true,
-//   })
-// )
+
 app.use(
   cors({
     origin: 'http://localhost:5173',

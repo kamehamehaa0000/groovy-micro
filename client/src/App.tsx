@@ -11,32 +11,20 @@ import { Register } from './pages/Register'
 import { ForgotPassword } from './pages/ForgetPassword'
 import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
-import { useSigninPromptModalStore } from './store/modal-store'
-import { MainLayout } from './routes/MainLayout'
+import {
+  useCreatePlaylistModalStore,
+  useSigninPromptModalStore,
+} from './store/modal-store'
+import { MainLayout } from './layouts/MainLayout'
 import { HomePage } from './pages/Homepage'
 import { CgClose } from 'react-icons/cg'
 
 function App() {
   return (
-    <div className="w-screen min-h-screen ">
+    <div className="w-screen min-h-screen">
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <MainLayout>
-                <HomePage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <div> PROFILE BOLTE</div>
-              </ProtectedRoute>
-            }
-          />
+          {/* Routes WITHOUT MainLayout (auth pages, etc.) */}
           <Route path="/upload" element={<Upload />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/login" element={<Login />} />
@@ -49,8 +37,40 @@ function App() {
           <Route path="/auth/reset-password" element={<PasswordResetPage />} />
           <Route path="/auth/magic-link" element={<MagicLinkHandler />} />
           <Route path="/login-success" element={<LoginSuccessHandler />} />
+
+          {/* Routes WITH MainLayout - catch all other routes */}
+          <Route
+            path="/*"
+            element={
+              <MainLayout>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/home" element={<HomePage />} />
+
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <div>Profile Page</div>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/playlists"
+                    element={
+                      <ProtectedRoute>
+                        <div>Playlists Page</div>
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Add any other main app routes here */}
+                </Routes>
+              </MainLayout>
+            }
+          />
         </Routes>
         <PromptModal />
+        <CreatePlaylistModal />
       </BrowserRouter>
       <Toaster />
     </div>
@@ -111,6 +131,43 @@ const PromptModal = () => {
             alt="Sign In Prompt"
             className="w-full h-full object-cover"
           />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const CreatePlaylistModal = () => {
+  const { isOpen, close } = useCreatePlaylistModalStore()
+  if (!isOpen) return null
+  return (
+    <div className="fixed top-0 left-0 p-6 w-screen h-screen inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="relative flex  bg-white rounded-md shadow-xl max-w-2xl w-full h-96 overflow-hidden">
+        <button
+          onClick={close}
+          className=" bg-black/40 rounded-full absolute right-4 top-4 z-10 text-gray-100 hover:text-gray-400 transition-colors"
+        >
+          <CgClose size={24} />
+        </button>
+
+        <div className="flex-1 flex flex-col justify-center p-4 lg:p-6">
+          <h2 className="text-2xl lg:text-3xl font-bold mb-4 text-gray-800">
+            Create a New Playlist
+          </h2>
+          <p className="text-gray-600 mb-8 text-base lg:text-md">
+            Give your playlist a name and start adding your favorite tracks.
+          </p>
+
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Playlist Name"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+            />
+            <button className="inline-block w-full text-center bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors font-medium">
+              Create Playlist
+            </button>
+          </div>
         </div>
       </div>
     </div>

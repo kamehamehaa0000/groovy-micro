@@ -1,4 +1,4 @@
-import { app } from './app'
+import { httpServer } from './app'
 import dotenv, { configDotenv } from 'dotenv'
 dotenv.config()
 configDotenv()
@@ -43,7 +43,7 @@ async function startServer() {
     )
 
     const PORT = process.env.PORT
-    const server = app.listen(PORT, () => {
+    const server = httpServer.listen(PORT, () => {
       console.log(
         `🚀 Songs-service-started -
         1. Port ${PORT} 
