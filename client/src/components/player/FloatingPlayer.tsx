@@ -72,6 +72,25 @@ export const FloatingPlayer: React.FC = () => {
     }
   }, [forceSeekToZero, seek, clearForceSeekToZero])
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        event.preventDefault() // Prevent default spacebar behavior (e.g., scrolling)
+        if (isPlaying) {
+          playerActions.pause()
+        } else {
+          playerActions.play()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isPlaying, playerActions])
+
   const handlePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (isPlaying) {

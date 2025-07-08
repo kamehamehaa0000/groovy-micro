@@ -16,6 +16,8 @@ export interface Song {
       coverUrl: string
     }
     coverUrl: string
+    genre: string
+    trackNumber: number
   }
 }
 interface PlayerState {
@@ -77,7 +79,11 @@ export const usePlayerStore = create<PlayerState>()(
             (s) => s._id === currentSong?._id
           )
           if (currentIndex > 0) {
-            set({ currentSong: queue[currentIndex - 1], playbackPosition: 0, forceSeekToZero: true })
+            set({
+              currentSong: queue[currentIndex - 1],
+              playbackPosition: 0,
+              forceSeekToZero: true,
+            })
           } else {
             // Optionally, loop to the end of the queue or stop playback
             set({ isPlaying: false }) // Beginning of queue

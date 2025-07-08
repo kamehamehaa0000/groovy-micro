@@ -5,6 +5,8 @@ import { FloatingPlayer } from '../components/player/FloatingPlayer'
 import { LeftSidebar } from '../components/player/LeftSidebar'
 import { JamModal } from '../components/shared/JamModal'
 import { usePlayerStore } from '../store/player-store'
+import { useAuthStore } from '../store/auth-store'
+import { Link } from 'react-router'
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const {
@@ -39,12 +41,12 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
           <UserProfile />
 
-          <button
+          {/* <button
             className="hidden lg:block text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             onClick={() => setIsExpanded(!isPlayerExpanded)}
           >
             {!isPlayerExpanded && <BiChevronDown className="w-5 h-5" />}
-          </button>
+          </button> */}
         </header>
 
         {/* Main Content */}
@@ -95,16 +97,36 @@ const SearchBar = () => {
 }
 
 const UserProfile = () => {
+  const { user, isAuthenticated, logout } = useAuthStore()
+  if (!user) return null
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center">
+        <Link
+          to="/login"
+          className="flex items-center gap-2  px-4 py-1 border border-gray-300 rounded-full text-sm font-semibold"
+        >
+          <BiUser className="w-4 h-4" />
+          <span>Sign In</span>
+        </Link>
+      </div>
+    )
+  }
   return (
-    <div className="group flex items-center lg:space-x-3 lg:p-3 p-1.5 rounded-lg cursor-pointer transition-colors">
-      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:border-orange-800 group-hover:border">
-        <BiUser className="w-4 h-4 group-hover:text-orange-800 text-gray-500" />
+    <div className=" flex items-center lg:space-x-3 lg:p-3 p-1.5 rounded-lg cursor-pointer transition-colors">
+      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ">
+        <BiUser className="w-4 h-4  text-gray-500" />
       </div>
       <div className="flex-1 hidden lg:block">
-        <p className="group-hover:text-orange-800 text-sm font-medium text-gray-900">
-          John Doe
+        <p className=" text-sm font-medium text-gray-900">
+          {user.displayName || user.email}
         </p>
-        <p className="text-xs text-gray-400">Premium</p>
+        <button
+          onClick={logout}
+          className="text-xs font-semibold text-gray-600 hover:text-red-700 "
+        >
+          Sign Out
+        </button>
       </div>
     </div>
   )
