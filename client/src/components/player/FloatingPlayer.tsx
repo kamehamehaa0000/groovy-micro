@@ -9,6 +9,7 @@ import { usePlayerStore } from '../../store/player-store'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import useJamStore from '../../store/jam-store'
 import { useAuthStore } from '../../store/auth-store'
+import { HiOutlineQueueList } from 'react-icons/hi2'
 
 export const FloatingPlayer: React.FC = () => {
   const [isQueueOpen, setIsQueueOpen] = useState(false)
@@ -148,16 +149,16 @@ export const FloatingPlayer: React.FC = () => {
     <>
       <audio ref={audioRef} />
       {isExpanded ? (
-        <div className="fixed top-0 right-0 w-full sm:w-[350px] h-full bg-white flex flex-col z-50 overflow-hidden rounded-lg">
-          {/* Expanded Player Content (Responsive) */}
-          <div className="flex p-6 flex-col h-full min-h-0">
+        <div className="fixed top-0 right-0 w-full sm:w-[380px] h-full bg-white/95 backdrop-blur-md border-l border-gray-200/50 flex flex-col z-50 overflow-hidden">
+          {/* Expanded Player Content */}
+          <div className="flex p-8 flex-col h-full min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6 pb-4 flex-shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Now Playing
+            <div className="flex items-center justify-between mb-8 flex-shrink-0">
+              <h2 className="text-sm font-medium text-gray-700 tracking-wide">
+                NOW PLAYING
               </h2>
               <button
-                className="w-8 h-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 transition-all duration-200"
                 onClick={() => setIsExpanded(false)}
               >
                 <FiMinimize2 className="w-4 h-4" />
@@ -165,10 +166,11 @@ export const FloatingPlayer: React.FC = () => {
             </div>
 
             {/* Album Art */}
-            <div className="flex flex-col items-center mb-6 flex-shrink-0">
+            <div className="flex flex-col items-center mb-8 flex-shrink-0">
               <motion.div
-                className="w-3/5 aspect-square bg-gradient-to-br rounded mb-4 overflow-hidden border border-black p-1"
+                className="w-48 h-48 bg-gray-100 rounded-2xl mb-6 overflow-hidden shadow-sm"
                 whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
               >
                 <img
                   src={currentTrack.cover}
@@ -177,82 +179,99 @@ export const FloatingPlayer: React.FC = () => {
                 />
               </motion.div>
 
-              <div className="text-center">
-                <h3 className="text-xl font-bold mb-1 text-gray-900">
+              <div className="text-center max-w-full">
+                <h3 className="text-lg font-semibold mb-1 text-gray-900 truncate">
                   {currentTrack.title}
                 </h3>
-                <p className="text-sm text-gray-500">{currentTrack.album}</p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-gray-500 mb-1 truncate">
                   {currentTrack.artist}
+                </p>
+                <p className="text-xs text-gray-400 truncate">
+                  {currentTrack.album}
                 </p>
               </div>
             </div>
 
             {/* Progress */}
-            <div className="mb-4 flex-shrink-0">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>{currentTrack.currentTime}</span>
+            <div className="mb-6 flex-shrink-0">
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <span className="font-mono">{currentTrack.currentTime}</span>
+                <span className="font-mono">{currentTrack.duration}</span>
+              </div>
+              <div className="relative">
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gray-900 transition-all duration-100"
+                    style={{
+                      width: `${
+                        (playbackPosition / (audioRef.current?.duration ?? 1)) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
                 <input
                   type="range"
                   min="0"
                   max={audioRef.current?.duration ?? 0}
                   value={playbackPosition}
                   onChange={handleSeek}
-                  className="flex-1"
+                  className="absolute inset-0 w-full h-1 opacity-0 cursor-pointer"
                 />
-                <span>{currentTrack.duration}</span>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="flex items-center justify-center space-x-4 mb-4 p-2 flex-shrink-0">
-              <button className="text-gray-500 hover:text-orange-600 hover:bg-orange-50">
-                <BiShuffle className="w-5 h-5" />
+            <div className="flex items-center justify-center space-x-6 mb-8 flex-shrink-0">
+              <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                <BiShuffle className="w-4 h-4" />
               </button>
               <button
-                className="text-gray-700 hover:text-orange-600 hover:bg-orange-50"
+                className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
                 onClick={playerActions.previousSong}
               >
-                <BsSkipBackward className="w-6 h-6" />
+                <BsSkipBackward className="w-5 h-5" />
               </button>
               <motion.button
-                className="w-12 h-12 text-orange-700 hover:bg-orange-600 rounded-full flex items-center justify-center border border-orange-600"
-                whileHover={{ scale: 1.1 }}
+                className="w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center transition-colors"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handlePlayPause}
               >
                 {isPlaying ? (
-                  <BiPause className="w-6 h-6" />
+                  <BiPause className="w-5 h-5" />
                 ) : (
-                  <BiPlay className="w-6 h-6 ml-1" />
+                  <BiPlay className="w-5 h-5 ml-0.5" />
                 )}
               </motion.button>
               <button
-                className="text-gray-700 hover:text-orange-600 hover:bg-orange-50"
+                className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
                 onClick={playerActions.nextSong}
               >
-                <BsSkipForward className="w-6 h-6" />
+                <BsSkipForward className="w-5 h-5" />
               </button>
-              <button className="text-gray-500 hover:text-orange-600 hover:bg-orange-50">
-                <BiRepeat className="w-5 h-5" />
+              <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                <BiRepeat className="w-4 h-4" />
               </button>
             </div>
 
             {/* Next Songs */}
-            <div className="flex-1 min-h-0 flex flex-col">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold mb-4 text-gray-700 pb-2 border-b border-gray-100 flex-shrink-0">
-                  Next Songs
+            <div className="flex-1 min-h-0 mt-12 lg:mt-0 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="   text-xs font-medium text-gray-700 tracking-wide uppercase">
+                  Queue
                 </h3>
-                <button
-                  className="px-2 py-1 mb-4 bg-purple-600 text-white rounded-full"
-                  onClick={handleStartJam}
-                >
-                  Start Jam
-                </button>
+                <div className="flex items-center  space-x-2">
+                  <button
+                    className="px-3 py-1.5 flex items-center  gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors sm:hidden"
+                    onClick={() => setIsQueueOpen(true)}
+                  >
+                    <HiOutlineQueueList className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                <div className="space-y-2 pb-4">
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="space-y-1 pb-4 hidden sm:block">
                   {queue.map((song, i) => (
                     <div
                       key={
@@ -260,10 +279,10 @@ export const FloatingPlayer: React.FC = () => {
                         song.metadata.artist.displayName +
                         song.metadata.title
                       }
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-200"
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                       onClick={() => playerActions.loadSong(song, true)}
                     >
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                         <img
                           src={song.metadata.album.coverUrl}
                           alt={song.metadata.title}
@@ -271,16 +290,13 @@ export const FloatingPlayer: React.FC = () => {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate text-gray-900">
+                        <p className="text-sm font-medium truncate text-gray-900 group-hover:text-gray-700">
                           {song.metadata.title}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
                           {song.metadata.artist.displayName}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-400">
-                        {/* {formatTime(song.duration)} */}
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -288,17 +304,15 @@ export const FloatingPlayer: React.FC = () => {
             </div>
 
             {/* Volume */}
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100 flex-shrink-0">
+            <div className="hidden lg:block mt-6 flex-shrink-0">
               <div className="flex items-center space-x-3">
-                <FiVolume2 className="w-4 h-4 text-gray-500" />
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div className="bg-orange-500 rounded-full h-2 w-3/4"></div>
+                <FiVolume2 className="w-4 h-4 text-gray-400" />
+                <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="bg-gray-900 h-full w-3/4 rounded-full"></div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div></div>
         </div>
       ) : (
         <motion.div
@@ -314,34 +328,38 @@ export const FloatingPlayer: React.FC = () => {
             x: 20,
             y: typeof window !== 'undefined' ? window.innerHeight - 100 : 500,
           }}
-          className="fixed z-50 cursor-grab active:cursor-grabbing border border-orange-600 rounded-full"
-          whileDrag={{ scale: 1.1 }}
+          className="fixed z-50 cursor-grab active:cursor-grabbing"
+          whileDrag={{ scale: 1.05 }}
         >
           <motion.div
-            className="bg-white border border-gray-200 text-gray-900 shadow-lg rounded-full px-2 py-3"
-            animate={{ width: 220, height: 50 }}
+            className="bg-white/95 backdrop-blur-md border border-gray-200/50 shadow-lg rounded-full px-4 py-3"
+            animate={{ width: 240, height: 56 }}
           >
             <div className="flex items-center justify-between h-full">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <motion.button
-                  className="w-9 h-9 bg-orange-50 hover:bg-orange-100 rounded-full flex items-center justify-center border border-orange-200"
-                  whileHover={{ scale: 1.1 }}
+                  className="w-10 h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center transition-colors"
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePlayPause}
                 >
                   {isPlaying ? (
-                    <BiPause className="h-10 w-10 text-orange-600" />
+                    <BiPause className="w-4 h-4" />
                   ) : (
-                    <BiPlay className="h-10 w-10 ml-0.5 text-orange-600" />
+                    <BiPlay className="w-4 h-4 ml-0.5" />
                   )}
                 </motion.button>
-                <div className="min-w-0">
-                  <p className="text-xs text-left font-medium truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate text-gray-900">
                     {currentTrack.title}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {currentTrack.artist}
                   </p>
                 </div>
               </div>
               <motion.button
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
@@ -349,7 +367,7 @@ export const FloatingPlayer: React.FC = () => {
                   setIsExpanded(true)
                 }}
               >
-                <PiArrowCircleUpRightThin className="text-4xl font-extralight text-orange-500" />
+                <PiArrowCircleUpRightThin className="w-6 h-6" />
               </motion.button>
             </div>
           </motion.div>
@@ -365,7 +383,7 @@ export const FloatingPlayer: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-[60] sm:hidden"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] sm:hidden"
               onClick={() => setIsQueueOpen(false)}
             />
 
@@ -375,13 +393,15 @@ export const FloatingPlayer: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[70] sm:hidden max-h-[70vh] flex flex-col"
+              className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md rounded-t-2xl z-[70] sm:hidden max-h-[70vh] flex flex-col"
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">Queue</h3>
+                <h3 className="text-sm font-medium text-gray-700 tracking-wide uppercase">
+                  Queue
+                </h3>
                 <button
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 rounded-full transition-colors"
                   onClick={() => setIsQueueOpen(false)}
                 >
                   <IoClose className="w-5 h-5" />
@@ -398,10 +418,10 @@ export const FloatingPlayer: React.FC = () => {
                         song.metadata.artist.displayName +
                         song.metadata.title
                       }
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                       onClick={() => playerActions.loadSong(song, true)}
                     >
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                         <img
                           src={song.metadata.album.coverUrl}
                           alt={song.metadata.title}
@@ -409,16 +429,13 @@ export const FloatingPlayer: React.FC = () => {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-gray-900">
+                        <p className="font-medium truncate text-gray-900 group-hover:text-gray-700">
                           {song.metadata.title}
                         </p>
                         <p className="text-sm text-gray-500 truncate">
                           {song.metadata.artist.displayName}
                         </p>
                       </div>
-                      <span className="text-sm text-gray-400">
-                        {/* {formatTime(song.duration)} */}
-                      </span>
                     </div>
                   ))}
                 </div>
