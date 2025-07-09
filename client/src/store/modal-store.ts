@@ -22,4 +22,19 @@ export const useJamModalStore = create<IModal>((set) => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
-}));
+}))
+
+interface IAddToPlaylistModal extends IModal {
+  songId: string
+  setSongId: (id: string) => void
+}
+
+export const useAddToPlaylistModalStore = create<IAddToPlaylistModal>(
+  (set) => ({
+    isOpen: false,
+    open: () => set({ isOpen: true }),
+    close: () => set({ isOpen: false }),
+    songId: '',
+    setSongId: (id: string) => set({ songId: id }),
+  })
+)

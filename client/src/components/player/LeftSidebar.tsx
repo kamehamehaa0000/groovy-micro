@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BiHeart,
   BiHome,
@@ -14,6 +14,7 @@ import {
   useCreatePlaylistModalStore,
   useJamModalStore,
 } from '../../store/modal-store'
+import { getUserPlaylist } from '../../service/playlistService'
 
 interface LeftSidebarProps {
   isVisible: boolean
@@ -22,6 +23,7 @@ interface LeftSidebarProps {
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
   const [activeItem, setActiveItem] = useState<string>('home')
+  const [playlists, setPlaylists] = useState<string[]>([])
   const { open } = useCreatePlaylistModalStore()
   const { open: openJamModal } = useJamModalStore()
   const navigationItems = [
@@ -37,21 +39,21 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
     { id: 'recently', label: 'Recently Played', icon: BiRadio },
   ]
   const dotColors = [
-    'bg-red-600',
-    'bg-blue-600',
-    'bg-green-600',
-    'bg-yellow-600',
-    'bg-purple-600',
-    'bg-pink-600',
-  ]
-  const playlists = [
-    'My Playlist #1',
-    'Chill Vibes',
-    'Workout Mix',
-    'Road Trip',
-    'Focus Music',
+    'bg-amber-500',
+    'bg-emerald-500',
+    'bg-violet-500',
+    'bg-indigo-500',
+    'bg-yellow-500',
+    'bg-pink-500',
   ]
 
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      const { playlists } = await getUserPlaylist()
+      setPlaylists(playlists)
+    }
+    fetchPlaylists()
+  }, [])
   return (
     <div
       className={`w-56 h-full bg-background flex flex-col ${
@@ -129,9 +131,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
           </button>
         </div>
         <div className="space-y-0.5 overflow-y-auto">
-          {playlists.map((playlist, i) => (
+          {playlists.map((playlist: any, i) => (
             <button
-              key={i + playlist}
+              key={playlist._id}
               className="w-full flex items-center text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-all duration-200 truncate"
             >
               <span
@@ -139,7 +141,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
                   dotColors[i % dotColors.length]
                 }`}
               />
-              {playlist}
+              {playlist.title}
             </button>
           ))}
         </div>

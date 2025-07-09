@@ -200,6 +200,55 @@ router.post(
   }
 )
 
+// quick create playlist without cover and colaborators
+router.post(
+  '/create/quick',
+  requireAuth,
+  body('title')
+    .isString()
+    .withMessage('Title must be a string')
+    .notEmpty()
+    .withMessage('Title cannot be empty'),
+  body('visibility')
+    .notEmpty()
+    .isIn(['public', 'private'])
+    .withMessage('Visibility must be either "public" or "private"'),
+  validateRequest,
+
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { title, visibility } = req.body
+      console.log(
+        'Creating playlist with title:',
+        title,
+        'visibility:',
+        visibility
+      )
+      const playlist = new Playlist({
+        _id: uuid(),
+        title,
+        creator: user.id,
+        collaborators: [],
+        visibility: visibility,
+        coverUrl: '',
+        songs: [],
+      })
+
+      await playlist.save()
+
+      res
+        .status(201)
+        .json({ message: 'Playlist created successfully', playlist })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
 // delete a playlist
 router.delete(
   '/:playlistId',
@@ -234,7 +283,7 @@ router.delete(
 )
 
 // add a song to a playlist
-router.post(
+router.patch(
   '/add/song/:songId',
   requireAuth,
   [
@@ -258,61 +307,70 @@ router.post(
       // Validate song exists and is available in one query
       const song = await Song.findOne({
         _id: songId,
-        status: 'published',
       }).select('_id')
 
       if (!song) {
         throw new CustomError('Song not found or not available', 404)
       }
 
-      // Use findOneAndUpdate with conditions to handle all validations atomically
-      const updatedPlaylist = await Playlist.findOneAndUpdate(
-        {
-          _id: playlistId,
-          $or: [{ creator: user._id }, { collaborators: user._id }],
-          'songs.songId': { $ne: songId }, // Ensure song doesn't already exist
-        },
+      // Get the playlist first to check authorization and calculate order
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        $or: [{ creator: user.id }, { collaborators: user.id }],
+      }).select('songs creator collaborators')
+
+      if (!playlist) {
+        // Check specific failure reason
+        const playlistCheck = await Playlist.findById(playlistId).select(
+          'creator collaborators'
+        )
+
+        if (!playlistCheck) {
+          throw new CustomError('Playlist not found', 404)
+        }
+
+        throw new CustomError(
+          'You are not authorized to add songs to this playlist',
+          403
+        )
+      }
+
+      // Check if song already exists in playlist
+      const songExists = playlist.songs.some(
+        (s: { songId: string }) => s.songId.toString() === songId
+      )
+
+      if (songExists) {
+        res.status(200).json({
+          message: 'Song already exists in the playlist',
+        })
+        return
+      }
+
+      // Calculate the next order number
+      const nextOrder = playlist.songs.length + 1
+
+      // Update the playlist with the new song
+      const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
         {
           $push: {
             songs: {
               songId,
               addedBy: user._id,
-              order: { $add: [{ $size: '$songs' }, 1] }, // Calculate order dynamically
+              order: nextOrder,
             },
           },
         },
-        {
-          new: true,
-        }
+        { new: true }
       )
 
       if (!updatedPlaylist) {
-        // Check specific failure reason
-        const playlist = await Playlist.findById(playlistId).select(
-          'creator collaborators songs'
-        )
-
-        if (!playlist) {
-          throw new CustomError('Playlist not found', 404)
-        }
-
-        const isAuthorized =
-          playlist.creator.toString() === user._id.toString() ||
-          playlist.collaborators?.some(
-            (c: string) => c.toString() === user._id.toString()
-          )
-
-        if (!isAuthorized) {
-          throw new CustomError(
-            'You are not authorized to add songs to this playlist',
-            403
-          )
-        }
-
-        throw new CustomError('Song already exists in the playlist', 400)
+        throw new CustomError('Failed to add song to playlist', 500)
       }
 
       const addedSong = updatedPlaylist.songs[updatedPlaylist.songs.length - 1]
+
       await SongServiceEventPublisher.PlaylistUpdatedEvent({
         playlistId: updatedPlaylist._id,
         title: updatedPlaylist.title,
@@ -323,6 +381,7 @@ router.post(
         coverUrl: updatedPlaylist.coverUrl,
         songs: updatedPlaylist.songs,
       })
+
       res.status(200).json({
         message: 'Song added to playlist successfully',
         data: {
@@ -338,7 +397,7 @@ router.post(
 )
 
 // remove a song from a playlist (including reordering)
-router.delete(
+router.patch(
   '/remove/song/:songId',
   requireAuth,
   [
@@ -363,7 +422,7 @@ router.delete(
       const updatedPlaylist = await Playlist.findOneAndUpdate(
         {
           _id: playlistId,
-          $or: [{ creator: user._id }, { collaborators: user._id }],
+          $or: [{ creator: user.id }, { collaborators: user.id }],
           'songs.songId': songId, // Ensure song exists in playlist
         },
         {
@@ -387,9 +446,9 @@ router.delete(
         }
 
         const isAuthorized =
-          playlist.creator.toString() === user._id.toString() ||
+          playlist.creator.toString() === user.id.toString() ||
           playlist.collaborators?.some(
-            (c: string) => c.toString() === user._id.toString()
+            (c: string) => c.toString() === user.id.toString()
           )
 
         if (!isAuthorized) {
@@ -1093,7 +1152,7 @@ router.get(
       const limit = parseInt(req.query.limit as string) ?? 10
       const skip = (page - 1) * limit
 
-      const playlists = await Playlist.find({ creator: req.user?._id })
+      const playlists = await Playlist.find({ creator: user.id })
         .populate('creator', 'displayName')
         .populate('collaborators', 'displayName')
         .populate({

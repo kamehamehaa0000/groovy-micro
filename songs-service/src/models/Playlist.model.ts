@@ -31,7 +31,6 @@ const PlaylistSchema: Schema<IPlaylist> = new Schema(
     description: {
       type: String,
       trim: true,
-      required: true,
       default: '',
     },
     creator: {

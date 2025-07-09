@@ -16,7 +16,6 @@ export const FloatingPlayer: React.FC = () => {
     currentSong,
     isPlaying,
     playbackPosition,
-    isLoading,
     queue,
     isExpanded,
     forceSeekToZero,
@@ -74,8 +73,15 @@ export const FloatingPlayer: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space') {
-        event.preventDefault() // Prevent default spacebar behavior (e.g., scrolling)
+      const target = event.target as HTMLElement
+      const isTypingInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true' ||
+        target.isContentEditable
+
+      if (event.code === 'Space' && !isTypingInput) {
+        event.preventDefault()
         if (isPlaying) {
           playerActions.pause()
         } else {
