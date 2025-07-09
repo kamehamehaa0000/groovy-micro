@@ -20,26 +20,34 @@ export interface Song {
     trackNumber: number
   }
 }
+export type RepeatMode = 'off' | 'all' | 'one'
 interface PlayerState {
   currentSong: null | Song
   queue: Song[]
+  shuffledQueue: Song[]
   isPlaying: boolean
   playbackPosition: number
   isLoading: boolean
   isExpanded: boolean
   forceSeekToZero: boolean
+  isShuffled: boolean
+  repeatMode: RepeatMode
+  currentSongIndex: number
   actions: {
     loadSong: (song: Song, playNow?: boolean) => void
     play: () => void
     pause: () => void
     seek: (time: number) => void
     nextSong: () => void
+    previousSong: () => void
     setQueue: (songs: Song[]) => void
     updatePlaybackPosition: (time: number) => void
     setIsLoading: (loading: boolean) => void
     setIsExpanded: (expanded: boolean) => void
     clearForceSeekToZero: () => void
-    previousSong: () => void
+    toggleShuffle: () => void
+    cycleRepeatMode: () => void
+    loadQueue: (songs: Song[], startPlayingFromIndex?: number) => void
   }
 }
 
@@ -52,8 +60,12 @@ export const usePlayerStore = create<PlayerState>()(
     isPlaying: false,
     playbackPosition: 0,
     isLoading: true,
+    currentSongIndex: -1,
     isExpanded: false,
     forceSeekToZero: false,
+    isShuffled: false,
+    repeatMode: 'off',
+    shuffledQueue: [],
     actions: {
       loadSong: (song, playNow = false) => {
         set({ currentSong: song, playbackPosition: 0, isPlaying: playNow })
@@ -62,32 +74,40 @@ export const usePlayerStore = create<PlayerState>()(
       pause: () => set({ isPlaying: false }),
       seek: (time) => set({ playbackPosition: time }),
       nextSong: () => {
-        const { queue, currentSong } = get()
-        const currentIndex = queue.findIndex((s) => s._id === currentSong?._id)
-        if (currentIndex !== -1 && currentIndex < queue.length - 1) {
-          set({ currentSong: queue[currentIndex + 1], playbackPosition: 0 })
-        } else {
-          set({ isPlaying: false }) // End of queue
-        }
+        const { queue, currentSongIndex, shuffledQueue, isShuffled } = get()
+
+        const activeQueue = isShuffled ? shuffledQueue : queue
+        if (activeQueue.length === 0) return
+        const nextIndex = (currentSongIndex + 1) % activeQueue.length
+
+        set({
+          currentSong: activeQueue[nextIndex],
+          currentSongIndex: nextIndex,
+          forceSeekToZero: true,
+          isPlaying: true,
+        })
       },
       previousSong: () => {
-        const { queue, currentSong, playbackPosition } = get()
+        const {
+          queue,
+          playbackPosition,
+          isShuffled,
+          shuffledQueue,
+          currentSongIndex,
+        } = get()
         if (playbackPosition > 10) {
           set({ playbackPosition: 0, forceSeekToZero: true })
         } else {
-          const currentIndex = queue.findIndex(
-            (s) => s._id === currentSong?._id
-          )
-          if (currentIndex > 0) {
-            set({
-              currentSong: queue[currentIndex - 1],
-              playbackPosition: 0,
-              forceSeekToZero: true,
-            })
-          } else {
-            // Optionally, loop to the end of the queue or stop playback
-            set({ isPlaying: false }) // Beginning of queue
-          }
+          const activeQueue = isShuffled ? shuffledQueue : queue
+          if (activeQueue.length === 0) return
+          const prevIndex =
+            (currentSongIndex - 1 + activeQueue.length) % activeQueue.length
+          set({
+            currentSong: activeQueue[prevIndex],
+            currentSongIndex: prevIndex,
+            forceSeekToZero: true,
+            isPlaying: true,
+          })
         }
       },
       setQueue: (songs) => set({ queue: songs }),
@@ -95,6 +115,62 @@ export const usePlayerStore = create<PlayerState>()(
       setIsLoading: (loading) => set({ isLoading: loading }),
       setIsExpanded: (expanded) => set({ isExpanded: expanded }),
       clearForceSeekToZero: () => set({ forceSeekToZero: false }),
+      loadQueue: (songs, startPlayingFromIndex = 0) => {
+        const { isShuffled } = get()
+        const newQueue = [...songs]
+        const currentSong = newQueue[startPlayingFromIndex]
+
+        set({
+          queue: newQueue,
+          currentSong,
+          currentSongIndex: startPlayingFromIndex,
+          isPlaying: true,
+          forceSeekToZero: true,
+        })
+
+        if (isShuffled) {
+          const remainingSongs = newQueue.filter(
+            (s) => s._id !== currentSong._id
+          )
+          const shuffledRemaining = remainingSongs.sort(
+            () => Math.random() - 0.5
+          )
+          set({ shuffledQueue: [currentSong, ...shuffledRemaining] })
+        }
+      },
+      toggleShuffle: () => {
+        const { isShuffled, queue, currentSong } = get()
+        const newIsShuffled = !isShuffled
+
+        if (newIsShuffled && currentSong) {
+          const remainingSongs = queue.filter((s) => s._id !== currentSong._id)
+          const shuffledRemaining = remainingSongs.sort(
+            () => Math.random() - 0.5
+          )
+          const newShuffledQueue = [currentSong, ...shuffledRemaining]
+          set({
+            isShuffled: true,
+            shuffledQueue: newShuffledQueue,
+            currentSongIndex: 0,
+          })
+        } else {
+          const originalIndex = queue.findIndex(
+            (s) => s._id === currentSong?._id
+          )
+          set({
+            isShuffled: false,
+            shuffledQueue: [],
+            currentSongIndex: originalIndex,
+          })
+        }
+      },
+      cycleRepeatMode: () => {
+        const { repeatMode } = get()
+        const modes: RepeatMode[] = ['off', 'all', 'one']
+        const currentIndex = modes.indexOf(repeatMode)
+        const nextMode = modes[(currentIndex + 1) % modes.length]
+        set({ repeatMode: nextMode })
+      },
     },
   }))
 )

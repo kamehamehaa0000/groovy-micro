@@ -3,7 +3,6 @@ import {
   BiHeart,
   BiHome,
   BiLibrary,
-  BiMusic,
   BiPlus,
   BiRadio,
   BiSearch,
@@ -15,13 +14,18 @@ import {
   useJamModalStore,
 } from '../../store/modal-store'
 import { getUserPlaylist } from '../../service/playlistService'
+import { IoClose } from 'react-icons/io5'
+import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
 
 interface LeftSidebarProps {
   isVisible: boolean
   onClose: () => void
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  isVisible,
+  onClose,
+}) => {
   const [activeItem, setActiveItem] = useState<string>('home')
   const [playlists, setPlaylists] = useState<string[]>([])
   const { open } = useCreatePlaylistModalStore()
@@ -56,15 +60,25 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
   }, [])
   return (
     <div
-      className={`w-56 h-full bg-background flex flex-col ${
+      className={`w-screen md:w-56 h-full bg-background flex flex-col ${
         isVisible ? ' block' : ' hidden'
       } lg:block `}
     >
       {/* Header */}
       <div className="p-6 pb-8">
-        <div className="flex items-center space-x-2">
-          <PiCassetteTapeLight className="w-8 h-8 " />
-          <h1 className="text-lg font-medium text-foreground">Groovy-Gaana</h1>
+        <div className="flex items-center justify-between ">
+          <div className="flex items-center space-x-2">
+            <PiCassetteTapeLight className="w-8 h-8 " />
+            <h1 className="text-lg font-medium text-foreground">
+              Groovy-Gaana
+            </h1>
+          </div>
+          <button
+            onClick={onClose}
+            className="md:hidden w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 transition-all duration-200"
+          >
+            <TbLayoutSidebarLeftCollapse className="w-6 h-6 text-black" />
+          </button>
         </div>
       </div>
 
@@ -73,7 +87,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isVisible }) => {
         <nav className="space-y-2">
           <button
             onClick={openJamModal}
-            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-left transition-all duration-200 text-sm group text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-left transition-all duration-200 text-md sm:text-sm  group text-muted-foreground hover:text-foreground hover:bg-accent/50"
           >
             <FaUsers className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
             <span className="font-medium">Start Jam</span>

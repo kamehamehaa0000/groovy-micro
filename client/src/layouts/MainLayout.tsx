@@ -7,12 +7,13 @@ import { JamModal } from '../components/shared/JamModal'
 import { usePlayerStore } from '../store/player-store'
 import { useAuthStore } from '../store/auth-store'
 import { Link } from 'react-router'
+import {
+  TbLayoutSidebarLeftCollapse,
+  TbLayoutSidebarRightCollapse,
+} from 'react-icons/tb'
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
-  const {
-    isExpanded: isPlayerExpanded,
-    actions: { setIsExpanded },
-  } = usePlayerStore()
+  const { isExpanded: isPlayerExpanded } = usePlayerStore()
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false)
 
   return (
@@ -25,36 +26,39 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
       <JamModal />
 
       {/* Middle Section - Main Content */}
-      <div className="flex-1 flex flex-col min-w-0  ">
+      {/* This div will now shrink to make space for the expanded player */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+          isPlayerExpanded ? 'lg:mr-[380px]' : 'mr-0'
+        }`}
+      >
         {/* Top Bar */}
-        <header className="w-full h-16 bg-white border-gray-200 flex items-center justify-between px-4 lg:px-6">
+        <header className="w-full h-16 bg-white border-gray-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-4 flex-1">
             <button
               className="lg:hidden text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               onClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
             >
-              <BiMenu className="w-5 h-5" />
+              {isLeftSidebarOpen ? (
+                <TbLayoutSidebarLeftCollapse className="w-6 h-6 " />
+              ) : (
+                <TbLayoutSidebarRightCollapse className="w-6 h-6 " />
+              )}
             </button>
             <div className="w-full mx-auto lg:m-0 max-w-4xl">
               <SearchBar />
             </div>
           </div>
           <UserProfile />
-
-          {/* <button
-            className="hidden lg:block text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            onClick={() => setIsExpanded(!isPlayerExpanded)}
-          >
-            {!isPlayerExpanded && <BiChevronDown className="w-5 h-5" />}
-          </button> */}
         </header>
 
         {/* Main Content */}
-        <main className="mx-auto w-[98%] h-full overflow-auto rounded-xl bg-zinc-50 mb-4  scrollbar-hide">
+        <main className="flex-1 mx-auto max-w-[98%] w-full h-full overflow-auto rounded-xl bg-zinc-50 mb-6 scrollbar-hide">
           {children}
         </main>
       </div>
-      {/* Floating Player */}
+
+      {/* Floating Player is always mounted, but its appearance is handled internally */}
       <FloatingPlayer />
     </div>
   )
