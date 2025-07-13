@@ -156,6 +156,7 @@ router.post(
           album: '',
           genre: genre ?? '',
           tags: tags ?? [],
+          likedBy: [],
         },
         visibility: visibility,
       })
@@ -559,6 +560,57 @@ router.put(
       res.json({
         message: 'Cover art updated successfully',
         coverArtUrl: song.coverArtUrl,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// toggle like on a song
+router.post(
+  '/like/:songId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { songId } = req.params
+      const song = await Song.findById(songId)
+      if (!song) {
+        throw new CustomError('Song not found', 404)
+      }
+      const isLiked = song.likedBy.includes(user._id)
+      const updateOperation = isLiked
+        ? { $pull: { likedBy: user.id } }
+        : { $addToSet: { likedBy: user.id } }
+
+      const updatedSong = await Song.findByIdAndUpdate(
+        songId,
+        updateOperation,
+        {
+          new: true,
+        }
+      )
+      if (!updatedSong) {
+        throw new CustomError('Failed to update song likes', 500)
+      }
+      await SongServiceEventPublisher.SongUpdatedEvent({
+        songId: updatedSong._id,
+        coverArtUrl: updatedSong.coverArtUrl,
+        originalUrl: updatedSong.originalUrl,
+        hlsUrl: updatedSong.hlsUrl,
+        status: updatedSong.status,
+        metadata: updatedSong.metadata,
+        visibility: updatedSong.visibility,
+      })
+
+      res.json({
+        message: isLiked ? 'Song unliked' : 'Song liked',
+        isLikedByCurrentUser: !isLiked,
+        likeCount: updatedSong.likedBy.length,
       })
     } catch (error) {
       next(error)

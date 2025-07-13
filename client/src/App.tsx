@@ -20,6 +20,9 @@ import { HomePage } from './pages/Homepage'
 import { CgClose } from 'react-icons/cg'
 import { CreatePlaylistModal } from './components/shared/CreatePlaylistModal'
 import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
+import { FiDivideCircle } from 'react-icons/fi'
+import SongDetailPage from './pages/SongDetailPage'
+import AlbumDetailPage from './pages/AlbumDetailPage'
 
 function App() {
   return (
@@ -27,7 +30,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Routes WITHOUT MainLayout (auth pages, etc.) */}
-          <Route path="/upload" element={<Upload />} />
+
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -48,7 +51,23 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/home" element={<HomePage />} />
-
+                  <Route path="/upload" element={<Upload />} />
+                  <Route
+                    path="/songs/song/:id"
+                    element={
+                      <ProtectedRoute>
+                        <SongDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/albums/album/:id"
+                    element={
+                      <ProtectedRoute>
+                        <AlbumDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/profile"
                     element={

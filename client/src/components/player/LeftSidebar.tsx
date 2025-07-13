@@ -6,16 +6,17 @@ import {
   BiPlus,
   BiRadio,
   BiSearch,
+  BiUpload,
 } from 'react-icons/bi'
-import { FaUsers } from 'react-icons/fa'
+
 import { PiCassetteTapeLight } from 'react-icons/pi'
 import {
   useCreatePlaylistModalStore,
   useJamModalStore,
 } from '../../store/modal-store'
 import { getUserPlaylist } from '../../service/playlistService'
-import { IoClose } from 'react-icons/io5'
-import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
+import { TbBlendMode, TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
+import { Link, NavLink } from 'react-router'
 
 interface LeftSidebarProps {
   isVisible: boolean
@@ -31,17 +32,31 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const { open } = useCreatePlaylistModalStore()
   const { open: openJamModal } = useJamModalStore()
   const navigationItems = [
-    { id: 'home', label: 'Home', icon: BiHome },
-    { id: 'search', label: 'Search', icon: BiSearch },
-    { id: 'library', label: 'Library', icon: BiLibrary },
+    { id: 'home', label: 'Home', icon: BiHome, linkTo: '/' },
+    { id: 'search', label: 'Search', icon: BiSearch, linkTo: '/search' },
+    { id: 'library', label: 'Library', icon: BiLibrary, linkTo: '/library' },
+    { id: 'upload', label: 'Upload', icon: BiUpload, linkTo: '/upload' },
+    { id: 'likedSongs', label: 'Liked Songs', icon: BiHeart, linkTo: '/' },
+    {
+      id: 'likedAlbums',
+      label: 'Liked Albums',
+      icon: BiHeart,
+      linkTo: '/search',
+    },
+    {
+      id: 'likedPlaylists',
+      label: 'Liked Playlists',
+      icon: BiHeart,
+      linkTo: '/library',
+    },
+    {
+      id: 'recently',
+      label: 'Recently Played',
+      icon: BiRadio,
+      linkTo: '/upload',
+    },
   ]
 
-  const libraryItems = [
-    { id: 'likedSongs', label: 'Liked Songs', icon: BiHeart },
-    { id: 'likedAlbums', label: 'Liked Albums', icon: BiHeart },
-    { id: 'likedPlaylists', label: 'Liked Playlists', icon: BiHeart },
-    { id: 'recently', label: 'Recently Played', icon: BiRadio },
-  ]
   const dotColors = [
     'bg-amber-500',
     'bg-emerald-500',
@@ -85,52 +100,28 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       {/* Navigation */}
       <div className="px-4 mb-8">
         <nav className="space-y-2">
-          <button
-            onClick={openJamModal}
-            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-left transition-all duration-200 text-md sm:text-sm  group text-muted-foreground hover:text-foreground hover:bg-accent/50"
-          >
-            <FaUsers className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-            <span className="font-medium">Start Jam</span>
-          </button>
           {navigationItems.map((item) => (
-            <button
+            <Link
+              to={item.linkTo}
               key={item.id}
               onClick={() => setActiveItem(item.id)}
               className={
-                'w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-left transition-all duration-200 text-sm group' +
-                (activeItem === item.id
-                  ? ' bg-accent text-foreground'
-                  : ' text-muted-foreground hover:text-foreground hover:bg-accent/50')
-              }
-            >
-              <item.icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span className="font-medium">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Library Section */}
-      <div className="px-4 mb-6">
-        <nav className="space-y-1">
-          {libraryItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveItem(item.id)}
-              className={
-                'w-full flex items-center space-x-3 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group' +
-                (activeItem === item.id
-                  ? ' bg-accent text-foreground'
-                  : ' text-muted-foreground hover:text-foreground hover:bg-accent/50')
+                'w-full flex items-center space-x-3 hover:text-orange-600 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group'
               }
             >
               <item.icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               <span>{item.label}</span>
-            </button>
+            </Link>
           ))}
+          <button
+            onClick={openJamModal}
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group hover:text-orange-600"
+          >
+            <TbBlendMode className="w-4  h-4 transition-transform duration-200 group-hover:scale-110 " />
+            <span>Start Jam</span>
+          </button>
         </nav>
       </div>
-
       {/* Playlists */}
       <div className="flex-1 px-4 overflow-hidden">
         <div className="flex items-center justify-between mb-4">

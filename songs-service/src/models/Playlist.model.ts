@@ -13,6 +13,7 @@ export interface IPlaylist extends Document {
     order: number
   }[]
   coverUrl: string
+  likedBy: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -23,6 +24,7 @@ const PlaylistSchema: Schema<IPlaylist> = new Schema(
       type: String,
       required: true,
     },
+    likedBy: { type: [{ type: String, ref: 'User' }], default: [] },
     title: {
       type: String,
       trim: true,

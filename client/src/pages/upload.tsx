@@ -27,7 +27,7 @@ const Upload = () => {
       />
     )
   return (
-    <div className="relative w-screen min-h-screen flex flex-col items-center justify-center have-bg">
+    <div className="relative flex flex-col items-center justify-center have-bg">
       <div className="mt-6 text-center">
         <Link to="/" className="text-sm text-orange-700 hover:text-orange-500">
           ← Back to home

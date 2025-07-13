@@ -8,6 +8,7 @@ export interface IAlbum extends Document {
   genre?: string
   tags?: string[]
   collaborators?: string[]
+  likedBy: string[]
   songs: string[] // array of Song._id values
   visibility?: 'public' | 'private'
   createdAt: Date
@@ -20,6 +21,7 @@ const AlbumSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    likedBy: { type: [{ type: String, ref: 'User' }], default: [] },
     title: {
       type: String,
       required: true,
@@ -60,7 +62,6 @@ const AlbumSchema: Schema = new Schema(
   },
   {
     timestamps: true,
-    _id: false,
   }
 )
 

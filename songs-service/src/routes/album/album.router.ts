@@ -210,6 +210,7 @@ router.post(
               genre: track.genre ?? genre,
               trackNumber: track.trackNumber ?? index + 1,
               tags: track.tags ?? tags,
+              likedBy: [],
             },
             visibility,
           })
@@ -274,6 +275,7 @@ router.post(
         collaborators: albumCollaboratorIds ?? [],
         songs: songIds,
         visibility: visibility,
+        likedBy: [],
       })
 
       await album.save()
@@ -289,6 +291,7 @@ router.post(
         collaborators: album.collaborators,
         songs: album.songs,
         visibility: album.visibility,
+        likedBy: album.likedBy,
       })
 
       res.json({
@@ -448,6 +451,7 @@ router.put(
         collaborators: album.collaborators,
         songs: album.songs,
         visibility: album.visibility,
+        likedBy: album.likedBy,
       })
       res.json(album)
     } catch (error) {
@@ -455,6 +459,7 @@ router.put(
     }
   }
 )
+
 // presign covert art update
 router.post(
   '/update/cover/presign/album/:albumId',
@@ -493,6 +498,7 @@ router.post(
     }
   }
 )
+
 // Confirm cover art update upload
 router.put(
   '/update/cover/confirm/album/:albumId',
@@ -560,6 +566,7 @@ router.put(
         tags: album.tags,
         visibility: album.visibility,
         songs: album.songs,
+        likedBy: album.likedBy,
       })
 
       res.json({
@@ -572,4 +579,68 @@ router.put(
   }
 )
 
+// Toggle like status for an album
+router.put(
+  '/like/:albumId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { albumId } = req.params
+      if (!albumId) {
+        throw new CustomError('Album ID is required', 400)
+      }
+
+      // Check if user already liked the album
+      const album = await Album.findById(albumId)
+      if (!album) {
+        throw new CustomError('Album not found', 404)
+      }
+
+      const userLikedAlbum = album.likedBy.includes(user.id)
+
+      const updateOperation = userLikedAlbum
+        ? { $pull: { likedBy: user.id } }
+        : { $addToSet: { likedBy: user.id } }
+
+      const updatedAlbum = await Album.findByIdAndUpdate(
+        albumId,
+        updateOperation,
+        { new: true }
+      )
+
+      if (!updatedAlbum) {
+        throw new CustomError('Album not found', 404)
+      }
+
+      // Publish album updated event
+      await SongServiceEventPublisher.AlbumUpdatedEvent({
+        albumId: updatedAlbum._id,
+        title: updatedAlbum.title,
+        artist: updatedAlbum.artist,
+        coverUrl: updatedAlbum.coverUrl!,
+        genre: updatedAlbum.genre!,
+        tags: updatedAlbum.tags!,
+        collaborators: updatedAlbum.collaborators,
+        songs: updatedAlbum.songs,
+        visibility: updatedAlbum.visibility,
+        likedBy: updatedAlbum.likedBy,
+      })
+
+      res.json({
+        message: userLikedAlbum
+          ? 'Album unliked successfully'
+          : 'Album liked successfully',
+        albumId,
+        isLikedByCurrentUser: !userLikedAlbum,
+        likeCount: updatedAlbum.likedBy.length,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 export { router as AlbumRouter }

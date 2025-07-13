@@ -123,26 +123,37 @@ router.get(
 
 // get all public albums
 router.get(
-  '/all/public',
+  '/all/public?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
+      const sort = (req.query.sort as string) ?? 'Ascending'
       console.log(await Album.find())
       const albums = await Album.find({ visibility: 'public' })
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
         .populate('songs')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
       const total = await Album.countDocuments({ visibility: 'public' })
 
+      const albumsData = albums.map((album) => {
+        return {
+          likedBy: album.likedBy.length,
+          isLikedByCurrentUser: req.user?.id
+            ? album.likedBy.includes(req.user.id)
+            : false,
+          ...album,
+        }
+      })
+
       res.json({
-        albums,
+        albums: albumsData,
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalAlbums: total,
@@ -154,7 +165,7 @@ router.get(
 )
 // get all private albums for the logged-in user
 router.get(
-  '/all/private',
+  '/all/private?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -163,7 +174,7 @@ router.get(
         throw new CustomError('User not authenticated', 401)
       }
       const { id: userId } = user
-
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
@@ -176,14 +187,20 @@ router.get(
       const albums = await Album.find(filter)
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
       const total = await Album.countDocuments(filter)
-
+      const albumsData = albums.map((album) => {
+        return {
+          likedBy: album.likedBy.length,
+          isLikedByCurrentUser: album.likedBy.includes(userId),
+          ...album,
+        }
+      })
       res.json({
-        albums,
+        albums: albumsData,
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalAlbums: total,
@@ -196,7 +213,7 @@ router.get(
 
 // get album by artist id
 router.get(
-  '/artist/:artistId',
+  '/artist/:artistId?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -205,6 +222,7 @@ router.get(
         throw new CustomError('User not authenticated', 401)
       }
       const { artistId } = req.params
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
@@ -218,14 +236,20 @@ router.get(
       const albums = await Album.find(filter)
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
       const total = await Album.countDocuments(filter)
-
+      const albumsData = albums.map((album) => {
+        return {
+          likedBy: album.likedBy.length,
+          isLikedByCurrentUser: album.likedBy.includes(user.id),
+          ...album,
+        }
+      })
       res.json({
-        albums,
+        albums: albumsData,
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalAlbums: total,
@@ -237,7 +261,7 @@ router.get(
 )
 // get album by current user id
 router.get(
-  '/me',
+  '/me?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -246,6 +270,7 @@ router.get(
         throw new CustomError('User not authenticated', 401)
       }
       const { id: userId } = user
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
@@ -253,14 +278,20 @@ router.get(
       const albums = await Album.find({ artist: userId })
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
       const total = await Album.countDocuments({ artist: userId })
-
+      const albumsData = albums.map((album) => {
+        return {
+          likedBy: album.likedBy.length,
+          isLikedByCurrentUser: album.likedBy.includes(userId),
+          ...album,
+        }
+      })
       res.json({
-        albums,
+        albums: albumsData,
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalAlbums: total,
@@ -306,8 +337,14 @@ router.get(
           403
         )
       }
-
-      res.json(album)
+      const isLikedByCurrentUser = album.likedBy.includes(user.id)
+      res.json({
+        album: {
+          ...album.toObject(),
+          likedBy: album.likedBy.length,
+          isLikedByCurrentUser,
+        },
+      })
     } catch (error) {
       next(error)
     }

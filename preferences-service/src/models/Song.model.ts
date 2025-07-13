@@ -21,6 +21,7 @@ export interface ISong extends Document {
     album: string
     genre: string
     tags: string[]
+    likedBy: string[]
     trackNumber?: number
   }
   createdAt: Date
@@ -35,13 +36,17 @@ const SongSchema: Schema = new Schema(
     },
     originalUrl: {
       type: String,
+      required: true,
     },
     hlsUrl: {
       type: String,
+      default: null,
     },
     coverArtUrl: {
       type: String,
+      default: null,
     },
+
     status: {
       type: String,
       enum: ['uploading', 'uploaded', 'processing', 'completed', 'failed'],
@@ -63,6 +68,7 @@ const SongSchema: Schema = new Schema(
         type: Number,
         default: 1,
       },
+      likedBy: { type: [{ type: String, ref: 'User' }], default: [] },
     },
   },
   {
@@ -82,4 +88,5 @@ SongSchema.index(
   { name: 'SongTextIndex' }
 )
 
-export const Song = mongoose.model<ISong>('Song', SongSchema)
+export const Song =
+  mongoose.models.Song || mongoose.model<ISong>('Song', SongSchema)

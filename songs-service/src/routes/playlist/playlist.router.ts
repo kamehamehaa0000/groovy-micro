@@ -64,142 +64,6 @@ const PlaylistCreateBodyValidator = [
     .withMessage('Visibility must be either "public" or "private"'),
 ]
 
-// presign URL for uploading a cover image
-router.post(
-  '/upload/cover/presign',
-  requireAuth,
-  body('coverFileName')
-    .isString()
-    .withMessage('Cover file name must be a string')
-    .notEmpty()
-    .withMessage('Cover file name cannot be empty')
-    .matches(/\.(jpg|png)$/i)
-    .withMessage('Cover file name must end with .jpg or .png'),
-  validateRequest,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const { coverFileName } = req.body
-      const userId = req.user?.id
-
-      if (!userId) {
-        throw new CustomError('User not authenticated', 401)
-      }
-
-      // Generate a presigned URL for cover upload
-      const playlistId = uuid()
-      const coverUploadKey = `playlists/${playlistId}/${coverFileName}`
-
-      const command = new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: coverUploadKey,
-        ContentType: coverFileName.endsWith('.jpg')
-          ? 'image/jpeg'
-          : 'image/png',
-      })
-
-      const presignedUrl = await getSignedUrl(r2Client, command, {
-        expiresIn: 3600,
-      })
-
-      res.status(200).json({
-        message: 'Presigned URL generated successfully',
-        presignedUrl,
-        playlistId,
-        coverUploadKey,
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-// confirm cover upload and create playlist
-router.post(
-  '/upload/confirm',
-  requireAuth,
-  PlaylistCreateBodyValidator,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const {
-        coverUploadKey,
-        playlistId,
-        title,
-        description,
-        collaborators,
-        visibility,
-      } = req.body
-
-      // confirm upload of cover file
-      try {
-        await r2Client.send(
-          new HeadObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME,
-            Key: coverUploadKey,
-          })
-        )
-      } catch (error) {
-        throw new CustomError(
-          'Cover file not found. Please upload the file first.',
-          400,
-          `${(error as Error).message}`
-        )
-      }
-
-      // Check if collaborators are valid users
-      let validCollaborators: string[] = []
-      if (collaborators && collaborators.length > 0) {
-        const collaboratorUsers = await User.find({
-          email: { $in: collaborators },
-        }).select('_id')
-        validCollaborators = collaboratorUsers.map((user) => user._id)
-      }
-
-      const playlist = new Playlist({
-        _id: playlistId,
-        title,
-        description,
-        creator: user._id,
-        collaborators: validCollaborators ?? [],
-        visibility: visibility,
-        coverUrl: `https://${process.env.R2_CUSTOM_DOMAIN}/${coverUploadKey}`,
-        songs: [],
-      })
-
-      try {
-        await SongServiceEventPublisher.PlaylistCreatedEvent({
-          playlistId,
-          title,
-          description,
-          creator: user._id,
-          collaborators: validCollaborators ?? [],
-          visibility: visibility,
-          coverUrl: `https://${process.env.R2_CUSTOM_DOMAIN}/${coverUploadKey}`,
-          songs: [],
-        })
-      } catch (error) {
-        console.error('Error publishing playlist created event:', error)
-        // TODO:RETRY LOGIC
-      }
-
-      await playlist.save()
-
-      res
-        .status(201)
-        .json({ message: 'Playlist created successfully', playlist })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
 // quick create playlist without cover and colaborators
 router.post(
   '/create/quick',
@@ -248,7 +112,128 @@ router.post(
     }
   }
 )
+// playlist update cover art upload presign
+router.put(
+  '/update/cover/playlist/:playlistId',
+  requireAuth,
+  body('coverFileName')
+    .isString()
+    .withMessage('Cover file name must be a string')
+    .notEmpty()
+    .withMessage('Cover file name cannot be empty')
+    .matches(/\.(jpg|png)$/i)
+    .withMessage('Cover file name must end with .jpg or .png'),
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { playlistId } = req.params
+      const { coverArtFileName } = req.body
 
+      const playlist = await Playlist.findById(playlistId)
+      if (!playlist) {
+        return res.status(404).json({ message: 'Playlist not found' })
+      }
+
+      const coverKey = `playlists/${playlistId}/${coverArtFileName}`
+      const command = new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: coverKey,
+        ContentType: coverArtFileName.endsWith('.jpg')
+          ? 'image/jpeg'
+          : 'image/png',
+      })
+
+      const presignedUrl = await getSignedUrl(r2Client, command, {
+        expiresIn: 3600,
+      })
+
+      res.json({ presignedUrl, coverKey })
+    } catch (error: any) {
+      next(error)
+    }
+  }
+)
+// Confirm playlist cover art update upload
+router.put(
+  '/update/cover/confirm/playlist/:playlistId',
+  requireAuth,
+  body('coverKey')
+    .isString()
+    .withMessage('Cover key must be a string')
+    .notEmpty()
+    .withMessage('Cover key cannot be empty'),
+  validateRequest,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { playlistId } = req.params
+      const { coverKey } = req.body
+
+      const playlist = await Playlist.findById(playlistId)
+      if (!playlist) {
+        return res.status(404).json({ message: 'Playlist not found' })
+      }
+
+      // Check if file exists in R2
+      const headCommand = new HeadObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: coverKey,
+      })
+
+      try {
+        // File exists, update playlist with cover key
+        await r2Client.send(headCommand)
+        // Delete the previous cover file if it exists
+        if (playlist.coverUrl) {
+          const previousCoverKey = extractKeyFromR2Url(
+            playlist.coverUrl,
+            process.env.R2_CUSTOM_DOMAIN!
+          )
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: previousCoverKey,
+          })
+          try {
+            await r2Client.send(deleteCommand)
+          } catch (error) {
+            console.error('Error deleting previous cover art:', error)
+          }
+        }
+        playlist.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
+        await playlist.save()
+      } catch (error: any) {
+        if (error.name === 'NotFound') {
+          throw new CustomError('Cover art file not found in storage', 404)
+        }
+        throw error
+      }
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        likedBy: playlist.likedBy,
+      })
+      res.json({
+        message: 'Cover art updated successfully',
+        coverUrl: playlist.coverUrl,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 // delete a playlist
 router.delete(
   '/:playlistId',
@@ -380,6 +365,7 @@ router.patch(
         visibility: updatedPlaylist.visibility,
         coverUrl: updatedPlaylist.coverUrl,
         songs: updatedPlaylist.songs,
+        likedBy: updatedPlaylist.likedBy,
       })
 
       res.status(200).json({
@@ -488,6 +474,7 @@ router.patch(
         visibility: updatedPlaylist.visibility,
         coverUrl: updatedPlaylist.coverUrl,
         songs: updatedPlaylist.songs,
+        likedBy: updatedPlaylist.likedBy,
       })
 
       res.status(200).json({
@@ -496,167 +483,6 @@ router.patch(
           playlistId,
           songId,
           remainingSongs: updatedPlaylist.songs.length,
-        },
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-// reorder single song in a playlist
-router.patch(
-  '/reorder/song/:songId',
-  requireAuth,
-  [
-    body('playlistId')
-      .isString()
-      .withMessage('Playlist ID must be a string')
-      .notEmpty()
-      .withMessage('Playlist ID cannot be empty'),
-    body('newOrder')
-      .isInt({ min: 1 })
-      .withMessage('New order must be a positive integer'),
-    validateRequest,
-  ],
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-
-      const { songId } = req.params
-      const { playlistId, newOrder } = req.body
-
-      // Get playlist and verify authorization
-      const playlist = await Playlist.findOne({
-        _id: playlistId,
-        $or: [{ creator: user._id }, { collaborators: user._id }],
-      }).select('songs')
-
-      if (!playlist) {
-        // Check specific failure reason
-        const playlistCheck = await Playlist.findById(playlistId).select(
-          'creator collaborators'
-        )
-        if (!playlistCheck) {
-          throw new CustomError('Playlist not found', 404)
-        }
-        throw new CustomError(
-          'You are not authorized to reorder songs in this playlist',
-          403
-        )
-      }
-
-      // Find the song to reorder
-      const songIndex = playlist.songs.findIndex(
-        (s: { songId: string }) => s.songId.toString() === songId
-      )
-
-      if (songIndex === -1) {
-        throw new CustomError('Song not found in playlist', 404)
-      }
-
-      // Validate new order
-      if (newOrder > playlist.songs.length || newOrder < 1) {
-        throw new CustomError(
-          `New order must be between 1 and ${playlist.songs.length}`,
-          400
-        )
-      }
-
-      const currentOrder = playlist.songs[songIndex].order
-
-      // If new order is the same as current, no change needed
-      if (currentOrder === newOrder) {
-        return res.status(200).json({
-          message: 'Song already at the specified position',
-          data: { playlistId, songId, order: newOrder },
-        })
-      }
-
-      // Use aggregation to reorder songs atomically
-      const updateResult = await Playlist.updateOne({ _id: playlistId }, [
-        {
-          $set: {
-            songs: {
-              // Use $map to iterate over songs and adjust orders
-              $map: {
-                input: '$songs', // Process each item in the songs array
-                as: 'song', // Refer to each item as '$$song'
-                in: {
-                  $mergeObjects: [
-                    '$$song', // Keep all existing song properties
-                    {
-                      order: {
-                        $switch: {
-                          branches: [
-                            // Case 1: The song being moved
-                            {
-                              case: { $eq: ['$$song.songId', songId] },
-                              then: newOrder,
-                            },
-                            // Case 2: Songs shifting up (target song moves down)
-                            {
-                              case: {
-                                $and: [
-                                  { $gt: [newOrder, currentOrder] }, //move down
-                                  { $gt: ['$$song.order', currentOrder] }, // Song is after current position
-                                  { $lte: ['$$song.order', newOrder] }, // Song is at or before new position
-                                ],
-                              },
-                              then: { $subtract: ['$$song.order', 1] }, // Shift down
-                            },
-                            // Case 3: Songs shifting down (when target song moves up)
-                            {
-                              case: {
-                                $and: [
-                                  { $lt: [newOrder, currentOrder] }, //move up
-                                  { $gte: ['$$song.order', newOrder] }, // song is at or after new order
-                                  { $lt: ['$$song.order', currentOrder] }, // song is before current order
-                                ],
-                              },
-                              then: { $add: ['$$song.order', 1] },
-                            },
-                          ],
-                          default: '$$song.order',
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      ])
-
-      if (updateResult.modifiedCount === 0) {
-        throw new CustomError('Failed to reorder song', 500)
-      }
-      const playlistAfterUpdate = await Playlist.findById(playlistId)
-      if (!playlistAfterUpdate) {
-        throw new CustomError('Playlist not found', 404)
-      }
-      await SongServiceEventPublisher.PlaylistUpdatedEvent({
-        playlistId: playlistAfterUpdate._id,
-        title: playlistAfterUpdate.title,
-        description: playlistAfterUpdate.description,
-        creator: playlistAfterUpdate.creator,
-        collaborators: playlistAfterUpdate.collaborators,
-        visibility: playlistAfterUpdate.visibility,
-        coverUrl: playlistAfterUpdate.coverUrl,
-        songs: playlistAfterUpdate.songs,
-      })
-
-      res.status(200).json({
-        message: 'Song reordered successfully',
-        data: {
-          playlistId,
-          songId,
-          oldOrder: currentOrder,
-          newOrder,
         },
       })
     } catch (error) {
@@ -775,6 +601,7 @@ router.put(
         visibility: updatedPlaylist.visibility,
         coverUrl: updatedPlaylist.coverUrl,
         songs: updatedPlaylist.songs,
+        likedBy: updatedPlaylist.likedBy,
       })
 
       res.status(200).json({
@@ -862,6 +689,7 @@ router.put(
         visibility: updatedPlaylist.visibility,
         coverUrl: updatedPlaylist.coverUrl,
         songs: updatedPlaylist.songs,
+        likedBy: updatedPlaylist.likedBy,
       })
 
       res.status(200).json({
@@ -960,6 +788,7 @@ router.delete(
         visibility: playlist.visibility,
         songs: playlist.songs,
         coverUrl: playlist.coverUrl,
+        likedBy: playlist.likedBy,
       })
 
       res.status(200).json({
@@ -972,131 +801,9 @@ router.delete(
   }
 )
 
-// playlist update cover art upload presign
-router.put(
-  '/update/cover/playlist/:playlistId',
-  requireAuth,
-  body('coverFileName')
-    .isString()
-    .withMessage('Cover file name must be a string')
-    .notEmpty()
-    .withMessage('Cover file name cannot be empty')
-    .matches(/\.(jpg|png)$/i)
-    .withMessage('Cover file name must end with .jpg or .png'),
-  validateRequest,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const { playlistId } = req.params
-      const { coverArtFileName } = req.body
-
-      const playlist = await Playlist.findById(playlistId)
-      if (!playlist) {
-        return res.status(404).json({ message: 'Playlist not found' })
-      }
-
-      const coverKey = `playlists/${playlistId}/${coverArtFileName}`
-      const command = new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: coverKey,
-        ContentType: coverArtFileName.endsWith('.jpg')
-          ? 'image/jpeg'
-          : 'image/png',
-      })
-
-      const presignedUrl = await getSignedUrl(r2Client, command, {
-        expiresIn: 3600,
-      })
-
-      res.json({ presignedUrl, coverKey })
-    } catch (error: any) {
-      next(error)
-    }
-  }
-)
-// Confirm playlist cover art update upload
-router.put(
-  '/update/cover/confirm/playlist/:playlistId',
-  requireAuth,
-  body('coverKey')
-    .isString()
-    .withMessage('Cover key must be a string')
-    .notEmpty()
-    .withMessage('Cover key cannot be empty'),
-  validateRequest,
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
-      const { playlistId } = req.params
-      const { coverKey } = req.body
-
-      const playlist = await Playlist.findById(playlistId)
-      if (!playlist) {
-        return res.status(404).json({ message: 'Playlist not found' })
-      }
-
-      // Check if file exists in R2
-      const headCommand = new HeadObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: coverKey,
-      })
-
-      try {
-        // File exists, update playlist with cover key
-        await r2Client.send(headCommand)
-        // Delete the previous cover file if it exists
-        if (playlist.coverUrl) {
-          const previousCoverKey = extractKeyFromR2Url(
-            playlist.coverUrl,
-            process.env.R2_CUSTOM_DOMAIN!
-          )
-          const deleteCommand = new DeleteObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME,
-            Key: previousCoverKey,
-          })
-          try {
-            await r2Client.send(deleteCommand)
-          } catch (error) {
-            console.error('Error deleting previous cover art:', error)
-          }
-        }
-        playlist.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
-        await playlist.save()
-      } catch (error: any) {
-        if (error.name === 'NotFound') {
-          throw new CustomError('Cover art file not found in storage', 404)
-        }
-        throw error
-      }
-      await SongServiceEventPublisher.PlaylistUpdatedEvent({
-        playlistId: playlist._id,
-        title: playlist.title,
-        description: playlist.description,
-        coverUrl: playlist.coverUrl,
-        creator: playlist.creator,
-        collaborators: playlist.collaborators,
-        visibility: playlist.visibility,
-        songs: playlist.songs,
-      })
-      res.json({
-        message: 'Cover art updated successfully',
-        coverUrl: playlist.coverUrl,
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
 // get all public playlists
 router.get(
-  '/get/all/public',
+  '/get/all/public?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1104,6 +811,7 @@ router.get(
       if (!user) {
         throw new CustomError('User not authenticated', 401)
       }
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
       const limit = parseInt(req.query.limit as string) ?? 10
       const skip = (page - 1) * limit
@@ -1126,11 +834,19 @@ router.get(
           ],
         })
         .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
-      res.status(200).json({ playlists })
+      const playlistData = playlists.map((playlist) => {
+        return {
+          likedBy: playlist.likedBy.length,
+          likedByCurrentUser: playlist.likedBy.includes(user.id),
+          ...playlist,
+        }
+      })
+
+      res.status(200).json({ playlists: playlistData })
     } catch (error) {
       next(error)
     }
@@ -1139,7 +855,7 @@ router.get(
 
 // get all playlists by current user
 router.get(
-  '/me',
+  '/me?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1147,7 +863,7 @@ router.get(
       if (!user) {
         throw new CustomError('User not authenticated', 401)
       }
-
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
       const limit = parseInt(req.query.limit as string) ?? 10
       const skip = (page - 1) * limit
@@ -1170,11 +886,17 @@ router.get(
           ],
         })
         .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
-
-      res.status(200).json({ playlists })
+      const playlistData = playlists.map((playlist) => {
+        return {
+          likedBy: playlist.likedBy.length,
+          likedByCurrentUser: playlist.likedBy.includes(user.id),
+          ...playlist,
+        }
+      })
+      res.status(200).json({ playlists: playlistData })
     } catch (error) {
       next(error)
     }
@@ -1216,7 +938,11 @@ router.get(
         })
         .populate('songs.addedBy', 'displayName')
 
-      res.status(200).json({ playlist })
+      res.status(200).json({
+        likedBy: playlist.likedBy.length,
+        likedByCurrentUser: playlist.likedBy.includes(user.id),
+        ...playlist,
+      })
     } catch (error) {
       next(error)
     }
@@ -1225,7 +951,7 @@ router.get(
 
 // get public playlists where user is either creator or collaborator
 router.get(
-  '/user/:userId/public',
+  '/user/:userId/public?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1233,6 +959,7 @@ router.get(
       if (!user) {
         throw new CustomError('User not authenticated', 401)
       }
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
       const limit = parseInt(req.query.limit as string) ?? 10
       const skip = (page - 1) * limit
@@ -1274,7 +1001,7 @@ router.get(
           ],
         })
         .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
@@ -1314,7 +1041,7 @@ router.get(
 
 // get public playlists where user is creator
 router.get(
-  '/user/:userId/created/public',
+  '/user/:userId/created/public?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1327,8 +1054,9 @@ router.get(
       if (!userId) {
         throw new CustomError('User ID is required', 400)
       }
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
-      const limit = parseInt(req.query.limit as string) ?? 10
+      const limit = parseInt(req.query.limit as string) ?? 20
       const skip = (page - 1) * limit
 
       // Validate that the user exists
@@ -1359,7 +1087,7 @@ router.get(
           ],
         })
         .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
@@ -1382,7 +1110,7 @@ router.get(
 )
 // get public playlists where user is a collaborator
 router.get(
-  '/user/:userId/collaborated/public',
+  '/user/:userId/collaborated/public?page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1395,6 +1123,7 @@ router.get(
       if (!userId) {
         throw new CustomError('User ID is required', 400)
       }
+      const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
       const limit = parseInt(req.query.limit as string) ?? 10
       const skip = (page - 1) * limit
@@ -1427,7 +1156,7 @@ router.get(
           ],
         })
         .populate('songs.addedBy', 'displayName')
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
 
@@ -1451,7 +1180,7 @@ router.get(
 
 // search playlists by title or description or creator/collaborators name
 router.get(
-  '/search',
+  '/search?q=:q&page=:page&limit=:limit&sort=:sort',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -1461,6 +1190,7 @@ router.get(
       }
 
       const query = req.query.q as string
+      const sort = (req.query.sort as string) ?? 'Descending'
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 10
       const skip = (page - 1) * limit
@@ -1538,7 +1268,7 @@ router.get(
             ],
           })
           .populate('songs.addedBy', 'displayName')
-          .sort({ createdAt: -1 })
+          .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
           .skip(skip)
           .limit(limit),
         Playlist.countDocuments(searchFilter),
@@ -1567,4 +1297,67 @@ router.get(
   }
 )
 
+// like or unlike a playlist
+router.put(
+  '/like/:playlistId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+      const { playlistId } = req.params
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+
+      // Check if user already liked the playlist
+      const playlist = await Playlist.findById(playlistId)
+      if (!playlist) {
+        throw new CustomError('Playlist not found', 404)
+      }
+
+      const userLikedPlaylist = playlist.likedBy.includes(user.id)
+
+      const updateOperation = userLikedPlaylist
+        ? { $pull: { likedBy: user.id } }
+        : { $addToSet: { likedBy: user.id } }
+
+      const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        updateOperation,
+        { new: true }
+      )
+
+      if (!updatedPlaylist) {
+        throw new CustomError('Playlist not found', 404)
+      }
+
+      // Publish playlist updated event
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: updatedPlaylist._id,
+        title: updatedPlaylist.title,
+        creator: updatedPlaylist.creator,
+        collaborators: updatedPlaylist.collaborators,
+        songs: updatedPlaylist.songs,
+        visibility: updatedPlaylist.visibility,
+        likedBy: updatedPlaylist.likedBy,
+        coverUrl: updatedPlaylist.coverUrl,
+        description: updatedPlaylist.description,
+      })
+
+      res.json({
+        message: userLikedPlaylist
+          ? 'Playlist unliked successfully'
+          : 'Playlist liked successfully',
+        playlistId,
+        isLikedByCurrentUser: !userLikedPlaylist,
+        likeCount: updatedPlaylist.likedBy.length,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 export { router as playlistRouter }

@@ -110,6 +110,7 @@ export class SongServiceEventPublisher {
     collaborators,
     songs,
     visibility,
+    likedBy,
   }: AlbumCreatedEventData): Promise<void> {
     const event: BaseEvent = {
       eventType: EventTypes.ALBUM_CREATED,
@@ -124,6 +125,7 @@ export class SongServiceEventPublisher {
         collaborators,
         visibility,
         songs,
+        likedBy,
       },
       metadata: {
         correlationId: `${albumId}-${Date.now()}`,
@@ -146,6 +148,7 @@ export class SongServiceEventPublisher {
     tags,
     collaborators,
     songs,
+    likedBy,
     visibility,
   }: AlbumUpdatedEventData): Promise<void> {
     const event: BaseEvent = {
@@ -158,6 +161,7 @@ export class SongServiceEventPublisher {
         coverUrl,
         genre,
         tags,
+        likedBy,
         collaborators,
         songs,
         visibility,
@@ -201,6 +205,7 @@ export class SongServiceEventPublisher {
     collaborators,
     visibility,
     songs,
+    likedBy,
     coverUrl,
   }: PlaylistCreatedEventData): Promise<void> {
     const event: BaseEvent = {
@@ -215,6 +220,7 @@ export class SongServiceEventPublisher {
         visibility,
         songs,
         coverUrl,
+        likedBy,
       },
       metadata: {
         correlationId: `${playlistId}-${Date.now()}`,
@@ -237,6 +243,7 @@ export class SongServiceEventPublisher {
     visibility,
     songs,
     coverUrl,
+    likedBy,
   }: PlaylistUpdatedEventData) {
     const event: BaseEvent = {
       eventType: EventTypes.PLAYLIST_UPDATED,
@@ -249,6 +256,7 @@ export class SongServiceEventPublisher {
         collaborators,
         visibility,
         songs,
+        likedBy,
         coverUrl,
       },
       metadata: {

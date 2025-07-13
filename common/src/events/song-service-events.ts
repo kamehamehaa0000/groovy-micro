@@ -19,6 +19,7 @@ export interface SongCreatedEventData {
     genre: string
     tags: string[]
     trackNumber?: number
+    likedBy: string[]
   }
   visibility: 'public' | 'private'
 }
@@ -35,6 +36,7 @@ export interface AlbumCreatedEventData {
   genre?: string
   tags?: string[]
   collaborators?: string[]
+  likedBy: string[]
   songs?: string[]
   visibility?: 'public' | 'private'
 }
@@ -51,6 +53,7 @@ export interface PlaylistCreatedEventData {
   creator: string // User._id
   collaborators?: string[] // User._id[]
   visibility: 'public' | 'private'
+  likedBy: string[]
   songs: {
     songId: string // Song._id
     addedBy: string // User._id

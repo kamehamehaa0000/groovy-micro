@@ -46,7 +46,7 @@ export function CreatePlaylistModal() {
         <div className=" border-b px-4 py-3 border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              New Playlist
+              Create Playlist
             </h2>
             <button
               onClick={close}
@@ -70,7 +70,7 @@ export function CreatePlaylistModal() {
                   console.log(e.target.value)
                   setFormData({ ...formData, title: e.target.value })
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-none focus:ring-orange-500 focus:border-transparent focus:outline-[1px] focus:outline-orange-400 text-sm"
                 placeholder="Playlist title *"
               />
             </div>
@@ -81,7 +81,7 @@ export function CreatePlaylistModal() {
                 onChange={(e) =>
                   setFormData({ ...formData, visibility: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
               >
                 {' '}
                 <option value="public">🌍 Public</option>
@@ -101,7 +101,7 @@ export function CreatePlaylistModal() {
             <button
               onClick={handleSubmit}
               disabled={!formData.title || loading}
-              className="flex-1 py-2 px-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              className="flex-1 py-2 px-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
             >
               {loading ? 'Creating...' : 'Create'}
             </button>
