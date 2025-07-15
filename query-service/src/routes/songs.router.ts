@@ -1,17 +1,17 @@
-import { Router, Response, NextFunction } from 'express'
-import { Song } from '../../models/Song.model'
 import {
   AuthenticatedRequest,
   CustomError,
   requireAuth,
 } from '@groovy-streaming/common'
-import { User } from '../../models/User.model'
+import { Router, Response, NextFunction } from 'express'
+import { Song } from '../models/Song.model'
+
+import User from '../models/User.model'
 
 const router = Router()
-
 // fetch songs by genre, tags, or collaborators
 router.get(
-  '/songs/filter?genre=:genre&tags=:tags&collaborators=:collaborators&page=:page&limit=:limit&sort=:sort',
+  '/songs/filter',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -65,7 +65,7 @@ router.get(
 )
 // search songs by matching pattern (title, artist, or collaborator name)
 router.get(
-  '/songs/search?q=:q&page=:page&limit=:limit&sort=:sort',
+  '/songs/search',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -175,7 +175,7 @@ router.get(
 )
 // fetch songs by artistId
 router.get(
-  '/songs/artist/:artistId?page=:page&limit=:limit&sort=:sort',
+  '/songs/artist/:artistId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -229,7 +229,7 @@ router.get(
 )
 // fetch songs by current user
 router.get(
-  '/songs/me?page=:page&limit=:limit&sort=:sort',
+  '/songs/me',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -269,7 +269,7 @@ router.get(
 )
 // get all public songs
 router.get(
-  '/songs/all/public?page=:page&limit=:limit&sort=:sort',
+  '/all/public',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -288,11 +288,11 @@ router.get(
 
       const total = await Song.countDocuments({ visibility: 'public' })
       const songsData = songs.map((song) => ({
-        likeBy: song.likedBy.length,
-        isLikeByCurrentUser: req.user?.id
-          ? song.likedBy.includes(req.user.id)
+        likedBy: song.metadata?.likedBy?.length,
+        isLikedByCurrentUser: req.user?.id
+          ? song.metadata?.likedBy?.includes(req.user.id)
           : false,
-        ...song,
+        ...song.toObject(),
       }))
       res.json({
         songs: songsData,
@@ -307,7 +307,7 @@ router.get(
 )
 // get all private songs
 router.get(
-  '/songs/all/private?page=:page&limit=:limit&sort=:sort',
+  '/songs/all/private',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -355,4 +355,4 @@ router.get(
     }
   }
 )
-export { router as queryRouter }
+export { router as songsRouter }

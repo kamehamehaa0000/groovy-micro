@@ -6,13 +6,13 @@ import {
   channel,
 } from '@groovy-streaming/common'
 import { NextFunction, Response, Router } from 'express'
-import { Song, StatusEnum } from '../../models/Song.model'
+import { Song, StatusEnum } from '../models/Song.model'
 import {
   albumConfirmationValidator,
   albumPresignedUrlValidator,
-} from '../validators/album-upload-validators'
+} from './validators/album-upload-validators'
 import { v4 as uuidv4 } from 'uuid'
-import { Album } from '../../models/Album.model'
+import { Album } from '../models/Album.model'
 import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
@@ -22,10 +22,10 @@ import {
   PutObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { r2Client } from '../../config/cloudflareR2'
-import { SongServiceEventPublisher } from '../../events/song-event-publisher'
-import User from '../../models/User.model'
-import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
+import { r2Client } from '../config/cloudflareR2'
+import { SongServiceEventPublisher } from '../events/song-event-publisher'
+import User from '../models/User.model'
+import { extractKeyFromR2Url } from '../utils/extractKeyFromUrl'
 import { body } from 'express-validator'
 
 const router = Router()

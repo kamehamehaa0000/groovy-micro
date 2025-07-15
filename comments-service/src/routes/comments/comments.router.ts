@@ -21,7 +21,6 @@ router.post(
   requireAuth,
   [
     body('content').isString().withMessage('Content must be a string'),
-    body('authorId').isString().withMessage('Author ID must be a string'),
     body('entityType').isString().withMessage('Entity type must be a string'),
     body('entityId').isString().withMessage('Entity ID must be a string'),
     body('parentId')
@@ -36,7 +35,7 @@ router.post(
       if (!user) {
         throw new CustomError('User not authenticated', 401)
       }
-      const { content, authorId, entityType, entityId, parentId } = req.body
+      const { content, entityType, entityId, parentId } = req.body
       if (entityType == CommentEntityEnum.SONG) {
         const song = await Song.findById(entityId)
         if (!song) {
@@ -56,10 +55,10 @@ router.post(
 
       const comment = await Comment.create({
         content,
-        authorId,
+        authorId: user.id,
         entityType,
         entityId,
-        parentId,
+        parentId: parentId || null,
       })
 
       if (!comment) {
@@ -254,7 +253,7 @@ router.delete(
 
 // get comments by entity type and ID
 router.get(
-  '/get/comments/:entityType/:entityId',
+  '/get/:entityType/:entityId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {

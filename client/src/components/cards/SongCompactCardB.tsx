@@ -7,10 +7,17 @@ import {
 } from '../../store/modal-store'
 import { BiHeart, BiPause, BiPlay, BiPlus, BiShare } from 'react-icons/bi'
 import { FiMoreHorizontal } from 'react-icons/fi'
+import { Link } from 'react-router'
 
-export function SongCompactCardB({ song }: { song: Song }) {
+export function SongCompactCardB({
+  song,
+  isLikedByCurrentUser,
+}: {
+  song: Song
+  isLikedByCurrentUser?: boolean
+}) {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isLiked, setIsLiked] = useState(isLikedByCurrentUser ?? false)
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { isAuthenticated } = useAuthStore()
@@ -57,14 +64,15 @@ export function SongCompactCardB({ song }: { song: Song }) {
           {song?.metadata?.trackNumber}
         </div>
         <div className="flex-1 min-w-0">
-          <h3
+          <Link
+            to={`/songs/song/${song._id}`}
             className={
               'font-semibold text-gray-900 truncate' +
               (isPlaying ? ' text-orange-600' : '')
             }
           >
             {song.metadata.title ?? 'Song Title'}
-          </h3>
+          </Link>
 
           <div className="flex items-center space-x-2 mt-1">
             <span className="text-xs text-gray-500">

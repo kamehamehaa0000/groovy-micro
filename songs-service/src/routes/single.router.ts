@@ -10,9 +10,9 @@ import { NextFunction, Router, Response } from 'express'
 import {
   singleSongUploadConfirmationBodyValidator,
   singleSongUploadValidator,
-} from '../validators/single-upload-validator'
-import { createSong } from '../../controllers/songsController'
-import { Song, StatusEnum } from '../../models/Song.model'
+} from './validators/single-upload-validator'
+import { createSong } from './../controllers/songsController'
+import { Song, StatusEnum } from './../models/Song.model'
 import {
   DeleteObjectsCommand,
   GetObjectCommand,
@@ -21,12 +21,12 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
 } from '@aws-sdk/client-s3'
-import { r2Client } from '../../config/cloudflareR2'
-import { SongServiceEventPublisher } from '../../events/song-event-publisher'
-import { Album } from '../../models/Album.model'
-import User from '../../models/User.model'
+import { r2Client } from '../config/cloudflareR2'
+import { SongServiceEventPublisher } from '../events/song-event-publisher'
+import { Album } from '../models/Album.model'
+import User from '../models/User.model'
 import { body } from 'express-validator'
-import { extractKeyFromR2Url } from '../../utils/extractKeyFromUrl'
+import { extractKeyFromR2Url } from '../utils/extractKeyFromUrl'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 const router = Router()

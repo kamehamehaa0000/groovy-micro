@@ -11,16 +11,13 @@ import { Register } from './pages/Register'
 import { ForgotPassword } from './pages/ForgetPassword'
 import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
-import {
-  useCreatePlaylistModalStore,
-  useSigninPromptModalStore,
-} from './store/modal-store'
+import { useSigninPromptModalStore } from './store/modal-store'
 import { MainLayout } from './layouts/MainLayout'
 import { HomePage } from './pages/Homepage'
 import { CgClose } from 'react-icons/cg'
 import { CreatePlaylistModal } from './components/shared/CreatePlaylistModal'
 import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
-import { FiDivideCircle } from 'react-icons/fi'
+
 import SongDetailPage from './pages/SongDetailPage'
 import AlbumDetailPage from './pages/AlbumDetailPage'
 
@@ -51,7 +48,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/home" element={<HomePage />} />
-                  <Route path="/upload" element={<Upload />} />
+                  <Route path="/upload" element={<Upload />} />{' '}
                   <Route
                     path="/songs/song/:id"
                     element={
@@ -59,7 +56,7 @@ function App() {
                         <SongDetailPage />
                       </ProtectedRoute>
                     }
-                  />
+                  />{' '}
                   <Route
                     path="/albums/album/:id"
                     element={

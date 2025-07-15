@@ -10,10 +10,10 @@ import {
 } from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
 
-import { syncUsers } from './sync/users'
-import { syncAlbums } from './sync/albums'
-import { syncPlaylists } from './sync/playlists'
-import { syncSongs } from './sync/songs'
+import { fullSyncUsers, syncUsers } from './sync/users'
+import { fullSyncAlbums, syncAlbums } from './sync/albums'
+import { fullSyncPlaylists, syncPlaylists } from './sync/playlists'
+import { fullSyncSongs, syncSongs } from './sync/songs'
 
 async function startServer() {
   try {
@@ -31,10 +31,15 @@ async function startServer() {
       'MONGODB_URI',
     ]) // Ensures all required environment variables are set
     await connectToDatabase(process.env.MONGODB_URI!)
-    // await syncUsers()
-    // await syncAlbums()
-    // await syncPlaylists()
-    // await syncSongs()
+    await syncUsers()
+    await syncAlbums()
+    await syncPlaylists()
+    await syncSongs()
+    await fullSyncAlbums()
+    await fullSyncUsers()
+    await fullSyncPlaylists()
+    await fullSyncSongs()
+
     await initializeEventListeners(['USER', 'SONG', 'COMMENT'])
 
     await createPubSubManager(

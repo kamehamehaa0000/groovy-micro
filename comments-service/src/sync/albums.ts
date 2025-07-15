@@ -5,8 +5,7 @@ import { SyncMetadata } from '../models/SyncMetadata.model'
 
 import { Comment, CommentEntityEnum } from '../models/Comment.model'
 
-const SONGS_SERVICE_URL =
-  process.env.SONGS_SERVICE_URL ?? 'http://localhost:3000'
+const SONGS_SERVICE_URL = process.env.SONGS_SERVICE_URL
 
 const syncAlbums = async () => {
   try {

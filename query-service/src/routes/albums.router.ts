@@ -1,11 +1,11 @@
 import { Router, Response, NextFunction } from 'express'
-import { Album } from '../../models/Album.model'
+import { Album } from '../models/Album.model'
 import {
   AuthenticatedRequest,
   CustomError,
   requireAuth,
 } from '@groovy-streaming/common'
-import { User } from '../../models/User.model'
+import User from '../models/User.model'
 
 const router = Router()
 
@@ -123,7 +123,7 @@ router.get(
 
 // get all public albums
 router.get(
-  '/all/public?page=:page&limit=:limit&sort=:sort',
+  '/all/public',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -165,7 +165,7 @@ router.get(
 )
 // get all private albums for the logged-in user
 router.get(
-  '/all/private?page=:page&limit=:limit&sort=:sort',
+  '/all/private',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -213,7 +213,7 @@ router.get(
 
 // get album by artist id
 router.get(
-  '/artist/:artistId?page=:page&limit=:limit&sort=:sort',
+  '/artist/:artistId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -261,7 +261,7 @@ router.get(
 )
 // get album by current user id
 router.get(
-  '/me?page=:page&limit=:limit&sort=:sort',
+  '/me',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -351,4 +351,4 @@ router.get(
   }
 )
 
-export { router as queryAlbumRouter }
+export { router as albumRouter }

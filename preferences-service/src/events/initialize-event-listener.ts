@@ -20,7 +20,7 @@ export async function initializeEventListeners(
     if (listenTo.includes('USER')) {
       await PubSubManager.subscribe(
         TOPICS.USER_EVENTS,
-        SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
+        SUBSCRIPTIONS.PREFERENCES_SERVICE_USER_EVENTS,
         UserServiceEventHandlers.handleUserServiceEvents
       )
       console.log('# user-auth-service Event listener initialized successfully')
@@ -28,7 +28,7 @@ export async function initializeEventListeners(
     if (listenTo.includes('SONG')) {
       await PubSubManager.subscribe(
         TOPICS.SONG_EVENTS,
-        SUBSCRIPTIONS.COMMENTS_SERVICE_SONG_EVENTS,
+        SUBSCRIPTIONS.PREFERENCES_SERVICE_SONG_EVENTS,
         SongServiceEventHandlers.handleSongsServiceEvent
       )
       console.log('# songs-service Event listener initialized successfully')

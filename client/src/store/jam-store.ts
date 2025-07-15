@@ -2,8 +2,8 @@ import { create } from 'zustand'
 import { io, Socket } from 'socket.io-client'
 import { usePlayerStore } from './player-store'
 
-// Assuming IJamSession is defined in a shared types folder
-// For now, we'll define a basic version here.
+const API_BASE_URL = `${import.meta.env.API_GATEWAY_URL!}/api/preferences`
+
 export interface IJamSession {
   _id: string
   creator: string // Populate with user type later
@@ -38,12 +38,9 @@ const useJamStore = create<JamState>((set, get) => ({
   isActive: false,
   actions: {
     startJam: (songId, token) => {
-      const socket = io(
-        import.meta.env.VITE_PREFERENCES_SERVICE_URL ?? 'http://localhost:4004',
-        {
-          auth: { token },
-        }
-      )
+      const socket = io(API_BASE_URL, {
+        auth: { token },
+      })
 
       socket.on('connect', () => {
         console.log('[socket] Connected!')
@@ -56,16 +53,21 @@ const useJamStore = create<JamState>((set, get) => ({
 
         // Sync with player store
         const { queue, actions: playerActions } = usePlayerStore.getState()
-        const songToPlay = queue.find(s => s._id === session.currentSong.songId)
+        const songToPlay = queue.find(
+          (s) => s._id === session.currentSong.songId
+        )
 
         if (songToPlay) {
-            playerActions.loadSong(songToPlay, session.playbackState === 'playing')
-            playerActions.seek(session.currentSong.playbackPosition)
+          playerActions.loadSong(
+            songToPlay,
+            session.playbackState === 'playing'
+          )
+          playerActions.seek(session.currentSong.playbackPosition)
         }
         if (session.playbackState === 'playing') {
-            playerActions.play()
+          playerActions.play()
         } else {
-            playerActions.pause()
+          playerActions.pause()
         }
       })
 
@@ -84,12 +86,9 @@ const useJamStore = create<JamState>((set, get) => ({
     },
 
     joinJam: (joinCode, token) => {
-      const socket = io(
-        import.meta.env.VITE_PREFERENCES_SERVICE_URL ?? 'http://localhost:4004',
-        {
-          auth: { token },
-        }
-      )
+      const socket = io(API_BASE_URL, {
+        auth: { token },
+      })
 
       socket.on('connect', () => {
         console.log('[socket] Connected!')
@@ -102,16 +101,21 @@ const useJamStore = create<JamState>((set, get) => ({
 
         // Sync with player store
         const { queue, actions: playerActions } = usePlayerStore.getState()
-        const songToPlay = queue.find(s => s._id === session.currentSong.songId)
+        const songToPlay = queue.find(
+          (s) => s._id === session.currentSong.songId
+        )
 
         if (songToPlay) {
-            playerActions.loadSong(songToPlay, session.playbackState === 'playing')
-            playerActions.seek(session.currentSong.playbackPosition)
+          playerActions.loadSong(
+            songToPlay,
+            session.playbackState === 'playing'
+          )
+          playerActions.seek(session.currentSong.playbackPosition)
         }
-         if (session.playbackState === 'playing') {
-            playerActions.play()
+        if (session.playbackState === 'playing') {
+          playerActions.play()
         } else {
-            playerActions.pause()
+          playerActions.pause()
         }
       })
 
@@ -131,8 +135,8 @@ const useJamStore = create<JamState>((set, get) => ({
       const { socket, session } = get()
       if (socket && session) {
         // Optimistically update UI
-        if(action === 'playing') usePlayerStore.getState().actions.play();
-        else usePlayerStore.getState().actions.pause();
+        if (action === 'playing') usePlayerStore.getState().actions.play()
+        else usePlayerStore.getState().actions.pause()
 
         socket.emit('control-playback', { sessionId: session._id, action })
       }

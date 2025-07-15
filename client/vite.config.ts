@@ -22,7 +22,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1/auth/google': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },

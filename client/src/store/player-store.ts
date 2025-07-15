@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 export interface Song {
+  isLikedByCurrentUser?: boolean
+  likedBy?: number
   _id: string
   hlsUrl: string
   originalUrl: string
@@ -18,6 +20,7 @@ export interface Song {
     coverUrl: string
     genre: string
     trackNumber: number
+    likedBy: string[]
   }
 }
 export type RepeatMode = 'off' | 'all' | 'one'

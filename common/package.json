@@ -1,6 +1,6 @@
 {
   "name": "@groovy-streaming/common",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "A common error handling library for groovy streaming platform microservices project.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

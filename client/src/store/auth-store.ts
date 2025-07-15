@@ -4,7 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axiosInstance from '../utils/axios-interceptor'
 
-const API_BASE_URL = 'http://localhost:4000/api/v1'
+const API_BASE_URL = `${import.meta.env.VITE_API_GATEWAY_URL!}/auth`
 
 export interface User {
   id: string
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null })
         try {
           const response = await axios.post(
-            `${API_BASE_URL}/auth/login`,
+            `${API_BASE_URL}/login`,
             {
               email,
               password,
@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthStore>()(
       register: async (userData) => {
         set({ isLoading: true, error: null })
         try {
-          await axios.post(`${API_BASE_URL}/auth/register`, userData, {
+          await axios.post(`${API_BASE_URL}/register`, userData, {
             withCredentials: true,
           })
           set({ isLoading: false })
@@ -113,7 +113,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: async () => {
         try {
           await axios.post(
-            `${API_BASE_URL}/auth/logout`,
+            `${API_BASE_URL}/logout`,
             {},
             {
               headers: {
@@ -154,7 +154,7 @@ export const useAuthStore = create<AuthStore>()(
         refreshPromise = (async () => {
           try {
             const response = await axios.post(
-              `${API_BASE_URL}/auth/refresh-token`,
+              `${API_BASE_URL}/refresh-token`,
               {},
               {
                 withCredentials: true,
@@ -191,7 +191,7 @@ export const useAuthStore = create<AuthStore>()(
       requestPasswordReset: async (email: string) => {
         set({ isLoading: true, error: null })
         try {
-          await axios.post(`${API_BASE_URL}/auth/reset-password/request`, {
+          await axios.post(`${API_BASE_URL}/reset-password/request`, {
             email,
           })
           set({ isLoading: false })
@@ -205,7 +205,7 @@ export const useAuthStore = create<AuthStore>()(
       verifyEmail: async (token: string) => {
         set({ isLoading: true, error: null })
         try {
-          const res = await axios.post(`${API_BASE_URL}/auth/verify-email`, {
+          const res = await axios.post(`${API_BASE_URL}/verify-email`, {
             token,
           })
           const { user, accessToken } = res.data
@@ -239,7 +239,7 @@ export const useAuthStore = create<AuthStore>()(
       resendVerificationEmail: async (email: string) => {
         set({ isLoading: true, error: null })
         try {
-          await axios.post(`${API_BASE_URL}/auth/resend-verification-email`, {
+          await axios.post(`${API_BASE_URL}/resend-verification-email`, {
             email,
           })
           set({ isLoading: false })
@@ -253,7 +253,7 @@ export const useAuthStore = create<AuthStore>()(
       resetPassword: async (token: string, newPassword: string) => {
         set({ isLoading: true, error: null })
         try {
-          await axios.post(`${API_BASE_URL}/auth/reset-password/verify`, {
+          await axios.post(`${API_BASE_URL}/reset-password/verify`, {
             token,
             newPassword,
           })
@@ -269,7 +269,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null })
         try {
           const response = await axios.post(
-            `${API_BASE_URL}/auth/magic-link/verify`,
+            `${API_BASE_URL}/magic-link/verify`,
             { token },
             {
               withCredentials: true,
@@ -293,7 +293,7 @@ export const useAuthStore = create<AuthStore>()(
       requestMagicLink: async (email: string) => {
         set({ isLoading: true, error: null })
         try {
-          await axios.post(`${API_BASE_URL}/auth/magic-link/request`, { email })
+          await axios.post(`${API_BASE_URL}/magic-link/request`, { email })
           set({ isLoading: false })
           toast.success('Magic link sent to your email!')
         } catch (error) {
@@ -305,7 +305,7 @@ export const useAuthStore = create<AuthStore>()(
       getCurrentUser: async (): Promise<void | User | null> => {
         set({ isLoading: true, error: null })
         try {
-          const response = await axiosInstance.get(`${API_BASE_URL}/auth/me`)
+          const response = await axiosInstance.get(`${API_BASE_URL}/me`)
           set({
             isLoading: false,
             user: response.data.user,
@@ -341,7 +341,7 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           // Try to get user data with current token
-          const response = await axios.get(`${API_BASE_URL}/auth/me`, {
+          const response = await axios.get(`${API_BASE_URL}/me`, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

@@ -1,9 +1,11 @@
 import axiosInstance from '../utils/axios-interceptor'
-const basePlaylistUrl = 'http://localhost:3000/api/v1/playlists'
+const API_BASE_URL = `${import.meta.env.VITE_API_GATEWAY_URL}`
 
 export const getUserPlaylist = async () => {
   try {
-    const response = await axiosInstance.get(`${basePlaylistUrl}/me`)
+    const response = await axiosInstance.get(
+      `${API_BASE_URL}/query/playlists/me`
+    )
     return response.data
   } catch (error) {
     throw error
@@ -12,7 +14,7 @@ export const getUserPlaylist = async () => {
 export const addSongToPlaylist = async (playlistId: string, songId: string) => {
   try {
     const response = await axiosInstance.patch(
-      `${basePlaylistUrl}/add/song/${songId}`,
+      `${API_BASE_URL}/songs/playlists/${playlistId}/add/song/${songId}`,
       { playlistId }
     )
 
@@ -27,7 +29,7 @@ export const removeSongFromPlaylist = async (
 ) => {
   try {
     const response = await axiosInstance.patch(
-      `${basePlaylistUrl}/remove/song/${songId}`,
+      `${API_BASE_URL}/songs/playlists/${playlistId}/remove/song/${songId}`,
       { playlistId }
     )
     return response.data

@@ -148,9 +148,9 @@ const fullSyncPlaylists = async () => {
       page++
     } while (page <= totalPages)
 
-    // After full sync, clean up albums that don't exist in source
+    // After full sync, clean up playlists that don't exist in source
     const allPlaylistIdResponse = await axios.get(
-      `${SONGS_SERVICE_URL}/api/v1/sync/albums`,
+      `${SONGS_SERVICE_URL}/api/v1/sync/playlists`,
       {
         headers: { 'x-sync-api-key': process.env.SYNC_API_KEY },
         params: { getAllIds: 'true' },

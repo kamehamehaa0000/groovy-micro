@@ -84,7 +84,7 @@ const SigninWithGoogleButton = () => {
   return (
     <button
       onClick={
-        () => (window.location.href = 'api/v1/auth/google') // Using proxy path defined in vite.config.ts
+        () => (window.location.href = 'http://localhost:3001/api/auth/google') // Using proxy path defined in vite.config.ts
       }
       className=" w-full flex items-center gap-2 justify-center  bg-orange-700/40 hover:bg-orange-700/80 border border-orange-600/30 py-2.5 px-4 text-white font-medium rounded-lg transition"
     >

@@ -4,7 +4,7 @@ import { SyncMetadata } from '../models/SyncMetadata.model'
 import User from '../models/User.model'
 import { Playlist } from '../models/Playlist.model'
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL ?? 'http://localhost:3000'
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL
 
 const syncUsers = async () => {
   try {
