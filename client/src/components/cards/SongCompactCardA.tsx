@@ -8,6 +8,11 @@ import {
 import { BiHeart, BiPause, BiPlay, BiPlus, BiShare } from 'react-icons/bi'
 import { FiMoreHorizontal } from 'react-icons/fi'
 import { Link } from 'react-router'
+import {
+  addSongToListenLater,
+  addSongToRecentlyPlayed,
+} from '../../service/libraryService'
+import toast from 'react-hot-toast'
 
 export function SongCompactCardA({
   song,
@@ -23,7 +28,7 @@ export function SongCompactCardA({
   const { open } = useSigninPromptModalStore()
   const { isPlaying: playerIsPlaying, currentSong, actions } = usePlayerStore()
   const { open: openAddToPlaylist, setSongId } = useAddToPlaylistModalStore()
-  const handlePlaySong = () => {
+  const handlePlaySong = async () => {
     if (!isAuthenticated) {
       open()
       return
@@ -32,6 +37,9 @@ export function SongCompactCardA({
       actions.pause()
     } else {
       actions.loadSong(song, true)
+      try {
+        await addSongToRecentlyPlayed(song._id)
+      } catch (error) {}
     }
   }
   const handleAddToPlaylist = () => {
@@ -50,6 +58,19 @@ export function SongCompactCardA({
     }
     const currentQueue = usePlayerStore.getState().queue ?? []
     actions.setQueue([...currentQueue, song])
+    setIsDropdownOpen(false)
+  }
+  const handleAddToListenLater = async () => {
+    if (!isAuthenticated) {
+      open()
+      return
+    }
+    try {
+      await addSongToListenLater(song._id)
+      toast.success('Song added to Listen Later')
+    } catch (error) {
+      toast.error('Failed to add song to Listen Later')
+    }
     setIsDropdownOpen(false)
   }
   useEffect(() => {
@@ -134,8 +155,15 @@ export function SongCompactCardA({
                   <BiPlus className="w-4 h-4" />
                   <span>Add to Queue</span>
                 </button>
-
+                <button
+                  onClick={handleAddToListenLater}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                >
+                  <BiPlus className="w-4 h-4" />
+                  <span>Add to Listen Later</span>
+                </button>
                 <hr className="my-1 border-gray-200" />
+
                 <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
                   Go to Artist
                 </button>

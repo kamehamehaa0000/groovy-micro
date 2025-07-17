@@ -2,6 +2,8 @@ import {
   AlbumCreatedEventData,
   AlbumDeletedEventData,
   AlbumUpdatedEventData,
+  LibraryCreatedEventData,
+  LibraryUpdatedEventData,
   PlaylistCreatedEventData,
   PlaylistDeletedEventData,
   PlaylistUpdatedEventData,
@@ -14,6 +16,7 @@ import { BaseEvent } from '../../../common/src/events/PubSubManager'
 import { Playlist } from '../models/Playlist.model'
 import { Album } from '../models/Album.model'
 import { Song } from '../models/Song.model'
+import Library from '../models/Library.model'
 
 export class SongServiceEventHandlers {
   static async handleSongsServiceEvent(event: BaseEvent): Promise<void> {
@@ -66,6 +69,16 @@ export class SongServiceEventHandlers {
           event.data as PlaylistDeletedEventData
         )
         break
+
+      case EventTypes.LIBRARY_CREATED:
+        await SongServiceEventHandlers.handleLibraryCreated(
+          event.data as LibraryCreatedEventData
+        )
+        break
+      case EventTypes.LIBRARY_UPDATED:
+        await SongServiceEventHandlers.handleLibraryUpdated(
+          event.data as LibraryUpdatedEventData
+        )
       default:
         console.log(`🤷‍♂️ Unknown event type: ${event.eventType}`)
     }
@@ -283,6 +296,45 @@ export class SongServiceEventHandlers {
     } catch (error) {
       console.error(
         `Error(song-service-playlist-deleted-event) ${event.playlistId}:`,
+        error instanceof Error ? error.message : error
+      )
+    }
+  }
+
+  static readonly handleLibraryCreated = async (
+    eventData: LibraryCreatedEventData
+  ): Promise<void> => {
+    try {
+      await Library.create({
+        _id: eventData.LibraryId,
+        recentlyPlayed: eventData.recentlyPlayed,
+        listenLater: eventData.listenLater,
+        userId: eventData.userId,
+      })
+    } catch (error) {
+      console.error(
+        `Error(song-service-library-created-event) ${eventData.LibraryId}:`,
+        error instanceof Error ? error.message : error
+      )
+    }
+  }
+
+  static readonly handleLibraryUpdated = async (
+    event: LibraryUpdatedEventData
+  ): Promise<void> => {
+    try {
+      const library = await Library.findById(event.LibraryId)
+      if (!library) {
+        console.error(`Error: Library ${event.LibraryId} not found for update`)
+        return
+      }
+      library.recentlyPlayed = event.recentlyPlayed ?? library.recentlyPlayed
+      library.listenLater = event.listenLater ?? library.listenLater
+      library.userId = event.userId ?? library.userId
+      await library.save()
+    } catch (error) {
+      console.error(
+        `Error(song-service-library-updated-event) ${event.LibraryId}:`,
         error instanceof Error ? error.message : error
       )
     }

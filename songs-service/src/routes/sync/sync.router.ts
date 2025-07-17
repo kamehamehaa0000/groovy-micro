@@ -3,6 +3,7 @@ import { Request, Router, Response, NextFunction } from 'express'
 import { Song } from '../../models/Song.model'
 import { Album } from '../../models/Album.model'
 import { Playlist } from '../../models/Playlist.model'
+import Library from '../../models/Library.model'
 
 const router = Router()
 
@@ -182,6 +183,67 @@ router.get(
             since: since?.toISOString() ?? null,
             timestamp: new Date().toISOString(),
             activePlaylistsCount: playlists.length,
+          },
+        },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.get(
+  '/libraries',
+  requireSyncAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 100
+      const since = req.query.since ? new Date(req.query.since as string) : null
+      const getAllIds = req.query.getAllIds === 'true' // New parameter for getting all song IDs
+
+      if (getAllIds) {
+        // Return all library IDs for deletion comparison
+        const allLibraryIds = await Library.find({}).select('_id')
+        res.status(200).json({
+          message: 'All library IDs retrieved',
+          data: {
+            libraryIds: allLibraryIds.map((l) => l._id),
+            timestamp: new Date().toISOString(),
+          },
+        })
+        return
+      }
+
+      const skip = (page - 1) * limit
+      let userQuery = {}
+
+      if (since) {
+        userQuery = { updatedAt: { $gte: since } }
+      }
+
+      const [libraries, totalLibraries] = await Promise.all([
+        Library.find(userQuery).sort({ updatedAt: 1 }).skip(skip).limit(limit),
+        Library.countDocuments(userQuery),
+      ])
+
+      const totalPages = Math.ceil(totalLibraries / limit)
+
+      res.status(200).json({
+        message: 'Libraries retrieved successfully',
+        data: {
+          libraries,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalLibraries,
+            limit,
+            hasNextPage: page < totalPages,
+          },
+          syncInfo: {
+            since: since?.toISOString() ?? null,
+            timestamp: new Date().toISOString(),
+            activeLibrariesCount: libraries.length,
           },
         },
       })

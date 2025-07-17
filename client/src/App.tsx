@@ -20,6 +20,8 @@ import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
 
 import SongDetailPage from './pages/SongDetailPage'
 import AlbumDetailPage from './pages/AlbumDetailPage'
+import ArtistDetailPage from './pages/ArtistDetailPage'
+import PlaylistDetailPage from './pages/PlaylistDetailPage'
 
 function App() {
   return (
@@ -50,6 +52,48 @@ function App() {
                   <Route path="/home" element={<HomePage />} />
                   <Route path="/upload" element={<Upload />} />{' '}
                   <Route
+                    path="/search"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          Search page
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/songs"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          {' '}
+                          All Songs
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/songs/genre"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          Songs by Genre
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/songs/genre/:genre"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          {' '}
+                          Songs by Genre {':genre'}
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/songs/song/:id"
                     element={
                       <ProtectedRoute>
@@ -58,10 +102,79 @@ function App() {
                     }
                   />{' '}
                   <Route
+                    path="/albums"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          {' '}
+                          All Albums
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/albums/genre"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          albums by Genre
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/albums/genre/:genre"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          Albums by Genre {':genre'}
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/albums/album/:id"
                     element={
                       <ProtectedRoute>
                         <AlbumDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/artists"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          {' '}
+                          All Artists
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/artists/artist/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ArtistDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/playlists"
+                    element={
+                      <ProtectedRoute>
+                        <h1 className="text-2xl font-semibold mb-4">
+                          {' '}
+                          All playlists
+                        </h1>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/playlists/playlist/:id"
+                    element={
+                      <ProtectedRoute>
+                        <PlaylistDetailPage />
                       </ProtectedRoute>
                     }
                   />

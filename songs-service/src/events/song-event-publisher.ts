@@ -12,6 +12,8 @@ import {
   PlaylistCreatedEventData,
   PlaylistUpdatedEventData,
   PlaylistDeletedEventData,
+  LibraryUpdatedEventData,
+  LibraryCreatedEventData,
 } from '@groovy-streaming/common'
 
 export class SongServiceEventPublisher {
@@ -287,6 +289,60 @@ export class SongServiceEventPublisher {
       await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
     } catch (error) {
       console.error('Error publishing playlist deleted event:', error)
+    }
+  }
+
+  static async LibraryCreatedEvent({
+    LibraryId,
+    recentlyPlayed,
+    listenLater,
+    userId,
+  }: LibraryCreatedEventData): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.LIBRARY_CREATED,
+      eventId: `${EventTypes.LIBRARY_CREATED}-${LibraryId}-${Date.now()}`,
+      data: {
+        LibraryId,
+        recentlyPlayed,
+        listenLater,
+        userId,
+      },
+      metadata: {
+        correlationId: `${LibraryId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing library created event:', error)
+    }
+  }
+
+  static async LibraryUpdatedEvent({
+    LibraryId,
+    recentlyPlayed,
+    listenLater,
+    userId,
+  }: LibraryUpdatedEventData): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.LIBRARY_UPDATED,
+      eventId: `${EventTypes.LIBRARY_UPDATED}-${LibraryId}-${Date.now()}`,
+      data: {
+        LibraryId,
+        recentlyPlayed,
+        listenLater,
+        userId,
+      },
+      metadata: {
+        correlationId: `${LibraryId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
+    } catch (error) {
+      console.error('Error publishing library updated event:', error)
     }
   }
 }

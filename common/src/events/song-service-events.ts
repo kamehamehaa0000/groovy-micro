@@ -65,3 +65,16 @@ export interface PlaylistUpdatedEventData extends PlaylistCreatedEventData {}
 export interface PlaylistDeletedEventData {
   playlistId: string
 }
+
+export interface LibraryUpdatedEventData {
+  LibraryId: string
+  recentlyPlayed: string[]
+  listenLater: string[]
+  userId: string
+}
+export interface LibraryCreatedEventData {
+  LibraryId: string
+  recentlyPlayed: string[]
+  listenLater: string[]
+  userId: string
+}

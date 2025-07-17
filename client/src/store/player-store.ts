@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 export interface Song {
   isLikedByCurrentUser?: boolean
+  coverArtUrl?: string
   likedBy?: number
   _id: string
   hlsUrl: string

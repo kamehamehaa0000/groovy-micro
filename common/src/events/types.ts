@@ -14,6 +14,8 @@ export const EventTypes = {
   PLAYLIST_CREATED: 'playlist-created',
   PLAYLIST_UPDATED: 'playlist-updated',
   PLAYLIST_DELETED: 'playlist-deleted',
+  LIBRARY_UPDATED: 'library-updated',
+  LIBRARY_CREATED: 'library-created',
 
   //comments-service events
   COMMENT_CREATED: 'comment-created',
@@ -34,8 +36,8 @@ export const SUBSCRIPTIONS = {
 
   SONGS_SERVICE_USER_EVENTS: 'songs-service-user-events',
 
-  COMMENTS_SERVICE_SONG_EVENTS: 'comments-service-song-events',
   COMMENTS_SERVICE_USER_EVENTS: 'comments-service-user-events',
+  COMMENTS_SERVICE_SONG_EVENTS: 'comments-service-song-events',
 
   PREFERENCES_SERVICE_USER_EVENTS: 'preferences-service-user-events',
   PREFERENCES_SERVICE_SONG_EVENTS: 'preferences-service-song-events',

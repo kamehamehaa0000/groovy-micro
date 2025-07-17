@@ -176,9 +176,7 @@ export const FloatingPlayer: React.FC = () => {
       album: currentSong?.metadata.album.title ?? 'Unknown Album',
       duration: formatTime(audioRef.current?.duration ?? 0),
       currentTime: formatTime(playbackPosition),
-      cover:
-        currentSong?.metadata.album.coverUrl ??
-        'https://via.placeholder.com/150',
+      cover: currentSong?.metadata.album.coverUrl ?? currentSong?.coverArtUrl ?? '',
     }),
     [currentSong, playbackPosition, audioRef.current?.duration]
   )

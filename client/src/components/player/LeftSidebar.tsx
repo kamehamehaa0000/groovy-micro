@@ -34,26 +34,24 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const navigationItems = [
     { id: 'home', label: 'Home', icon: BiHome, linkTo: '/' },
     { id: 'search', label: 'Search', icon: BiSearch, linkTo: '/search' },
-    { id: 'library', label: 'Library', icon: BiLibrary, linkTo: '/library' },
     { id: 'upload', label: 'Upload', icon: BiUpload, linkTo: '/upload' },
-    { id: 'likedSongs', label: 'Liked Songs', icon: BiHeart, linkTo: '/' },
+    {
+      id: 'likedSongs',
+      label: 'Liked Songs',
+      icon: BiHeart,
+      linkTo: '/liked-songs',
+    },
     {
       id: 'likedAlbums',
       label: 'Liked Albums',
       icon: BiHeart,
-      linkTo: '/search',
+      linkTo: '/liked-albums',
     },
     {
       id: 'likedPlaylists',
       label: 'Liked Playlists',
       icon: BiHeart,
-      linkTo: '/library',
-    },
-    {
-      id: 'recently',
-      label: 'Recently Played',
-      icon: BiRadio,
-      linkTo: '/upload',
+      linkTo: '/liked-playlists',
     },
   ]
 

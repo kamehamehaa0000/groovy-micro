@@ -40,6 +40,8 @@ export {
   PlaylistCreatedEventData,
   PlaylistUpdatedEventData,
   PlaylistDeletedEventData,
+  LibraryCreatedEventData,
+  LibraryUpdatedEventData,
 } from './events/song-service-events'
 export {
   UserCreatedEventData,

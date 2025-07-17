@@ -5,8 +5,8 @@ import {
 } from '@groovy-streaming/common'
 import { Playlist } from '../models/Playlist.model'
 import { User } from '../models/User.model'
-import { Response, NextFunction } from 'express'
-import { Router } from 'express'
+import { Response, NextFunction, Router } from 'express'
+
 const router = Router()
 
 // get all public playlists
@@ -369,7 +369,6 @@ router.get(
     }
   }
 )
-
 // search playlists by title or description or creator/collaborators name
 router.get(
   '/search',

@@ -148,7 +148,7 @@ router.get(
           isLikedByCurrentUser: req.user?.id
             ? album.likedBy.includes(req.user.id)
             : false,
-          ...album,
+          ...album.toObject(),
         }
       })
 

@@ -14,7 +14,8 @@ import { fullSyncUsers, syncUsers } from './sync/users'
 import { fullSyncAlbums, syncAlbums } from './sync/albums'
 import { fullSyncPlaylists, syncPlaylists } from './sync/playlists'
 import { fullSyncSongs, syncSongs } from './sync/songs'
-
+import { fullSyncLibraries, syncLibraries } from './sync/libraries'
+let SyncInterval: NodeJS.Timeout
 async function startServer() {
   try {
     verifyEnv([
@@ -31,14 +32,31 @@ async function startServer() {
       'MONGODB_URI',
     ]) // Ensures all required environment variables are set
     await connectToDatabase(process.env.MONGODB_URI!)
-    await syncUsers()
-    await syncAlbums()
-    await syncPlaylists()
-    await syncSongs()
+    // Schedule partial syncs to run every hour
+    SyncInterval = setInterval(async () => {
+      try {
+        console.log('🔄 Starting hourly partial sync...')
+        await Promise.all([
+          syncUsers(),
+          syncAlbums(),
+          syncPlaylists(),
+          syncSongs(),
+          syncLibraries(),
+        ])
+        console.log('✅ Hourly partial sync completed')
+      } catch (error) {
+        console.error(
+          '❌ Error during hourly partial sync:',
+          (error as Error).message
+        )
+      }
+    }, 60 * 60 * 1000) // 1 hour in milliseconds
+
     await fullSyncAlbums()
     await fullSyncUsers()
     await fullSyncPlaylists()
     await fullSyncSongs()
+    await fullSyncLibraries()
 
     await initializeEventListeners(['USER', 'SONG', 'COMMENT'])
 
@@ -69,6 +87,9 @@ const gracefulShutdown = async (signal: string) => {
   console.log(`🔄 ${signal} received, shutting down gracefully...`)
   try {
     await closeDatabaseConnections()
+    if (SyncInterval) {
+      clearInterval(SyncInterval)
+    }
     process.exit(0)
   } catch (error: any) {
     console.error('Error during graceful shutdown:', error.message)

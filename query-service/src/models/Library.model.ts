@@ -1,28 +1,34 @@
 import mongoose, { Schema } from 'mongoose'
 
 interface ILibrary extends Document {
-  _id: mongoose.Types.ObjectId
-  likedPlaylists: string[]
-  likedAlbums: string[]
-  likedSongs: string[]
+  _id: string
   recentlyPlayed: string[]
   listenLater: string[]
   userId: string
 }
 
 const LibrarySchema = new Schema<ILibrary>({
-  likedPlaylists: { type: [String], default: [] },
-  likedAlbums: { type: [String], default: [] },
-  likedSongs: { type: [String], default: [] },
-  recentlyPlayed: { type: [String], default: [] },
-  listenLater: { type: [String], default: [] },
+  _id: {
+    type: String,
+    required: true,
+  },
+  recentlyPlayed: {
+    type: [{ type: String, ref: 'Song' }],
+    default: [],
+  },
+  listenLater: { type: [{ type: String, ref: 'Song' }], default: [] },
   userId: { type: String, required: true },
 })
 
+// Ensure that the recentlyPlayed array does not exceed 12 items, pops the oldest added song if it does
+LibrarySchema.pre('save', function (next) {
+  if (this.recentlyPlayed.length > 12) {
+    this.recentlyPlayed = this.recentlyPlayed.slice(-12)
+  }
+  next()
+})
+
 LibrarySchema.index({ userId: 1 }, { unique: true })
-LibrarySchema.index({ likedPlaylists: 1 })
-LibrarySchema.index({ likedAlbums: 1 })
-LibrarySchema.index({ likedSongs: 1 })
 LibrarySchema.index({ recentlyPlayed: 1 })
 LibrarySchema.index({ listenLater: 1 })
 
