@@ -582,10 +582,12 @@ router.post(
       if (!song) {
         throw new CustomError('Song not found', 404)
       }
-      const isLiked = song.likedBy.includes(user._id)
+
+      const isLiked = song.metadata.likedBy.includes(user.id)
+
       const updateOperation = isLiked
-        ? { $pull: { likedBy: user.id } }
-        : { $addToSet: { likedBy: user.id } }
+        ? { $pull: { 'metadata.likedBy': user.id } }
+        : { $addToSet: { 'metadata.likedBy': user.id } }
 
       const updatedSong = await Song.findByIdAndUpdate(
         songId,
@@ -594,9 +596,11 @@ router.post(
           new: true,
         }
       )
+
       if (!updatedSong) {
         throw new CustomError('Failed to update song likes', 500)
       }
+
       await SongServiceEventPublisher.SongUpdatedEvent({
         songId: updatedSong._id,
         coverArtUrl: updatedSong.coverArtUrl,
@@ -610,7 +614,7 @@ router.post(
       res.json({
         message: isLiked ? 'Song unliked' : 'Song liked',
         isLikedByCurrentUser: !isLiked,
-        likeCount: updatedSong.likedBy.length,
+        likeCount: updatedSong.metadata.likedBy.length,
       })
     } catch (error) {
       next(error)

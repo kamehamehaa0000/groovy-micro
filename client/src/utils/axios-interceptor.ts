@@ -39,7 +39,6 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         useAuthStore.getState().logout()
         toast.error('Session expired. Please log in again.')
-        window.location.href = '/login' // LATER: Remove if not needed
         return Promise.reject(refreshError)
       }
     }

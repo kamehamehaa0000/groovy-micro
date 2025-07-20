@@ -13,3 +13,26 @@ export const fetchPublicAlbums = async (page: number, limit: number) => {
   )
   return response.data
 }
+export const fetchAlbumById = async (albumId: string) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/albums/album/${albumId}`
+  )
+  return response.data
+}
+
+export const toggleAlbumLike = async (albumId: string) => {
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/songs/albums/like/${albumId}`
+  )
+  return response.data
+}
+
+export const addAlbumToPlaylist = async (
+  albumId: string,
+  playlistId: string
+) => {
+  const response = await axiosInstance.post(
+    `${API_BASE_URL}/songs/playlists/add/album/${albumId}/playlist/${playlistId}`
+  )
+  return response.data
+}

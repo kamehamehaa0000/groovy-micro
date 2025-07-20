@@ -19,50 +19,9 @@ import { User } from '../models/User.model'
 import { Song } from '../models/Song.model'
 import { SongServiceEventPublisher } from '../events/song-event-publisher'
 import { extractKeyFromR2Url } from '../utils/extractKeyFromUrl'
+import { Album } from '../models/Album.model'
 
 const router = Router()
-
-const PlaylistCreateBodyValidator = [
-  body('coverUploadKey')
-    .isString()
-    .withMessage('Cover upload key must be a string')
-    .notEmpty()
-    .withMessage('Cover upload key cannot be empty'),
-  body('playlistId')
-    .isString()
-    .withMessage('Playlist ID must be a string')
-    .notEmpty()
-    .withMessage('Playlist ID cannot be empty'),
-  body('title')
-    .isString()
-    .withMessage('Title must be a string')
-    .notEmpty()
-    .withMessage('Title cannot be empty'),
-  body('description')
-    .isString()
-    .withMessage('Description must be a string')
-    .optional()
-    .trim(),
-  body('collaborators')
-    .optional()
-    .isArray()
-    .withMessage('Collaborators must be an array of emails')
-    .custom((value) => {
-      if (
-        !value.every(
-          (item: any) =>
-            typeof item === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item)
-        )
-      ) {
-        throw new Error('Each collaborator must be a valid email address')
-      }
-      return true
-    }),
-  body('visibility')
-    .notEmpty()
-    .isIn(['public', 'private'])
-    .withMessage('Visibility must be either "public" or "private"'),
-]
 
 // quick create playlist without cover and colaborators
 router.post(
@@ -268,17 +227,10 @@ router.delete(
 )
 
 // add a song to a playlist
-router.patch(
-  '/add/song/:songId',
+router.post(
+  '/add/song/:songId/playlist/:playlistId',
   requireAuth,
-  [
-    body('playlistId')
-      .isString()
-      .withMessage('Playlist ID must be a string')
-      .notEmpty()
-      .withMessage('Playlist ID cannot be empty'),
-    validateRequest,
-  ],
+
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { user } = req
@@ -287,8 +239,10 @@ router.patch(
       }
 
       const { songId } = req.params
-      const { playlistId } = req.body
-
+      const { playlistId } = req.params
+      if (!songId || !playlistId) {
+        throw new CustomError('Song ID and Playlist ID are required', 400)
+      }
       // Validate song exists and is available in one query
       const song = await Song.findOne({
         _id: songId,
@@ -342,7 +296,7 @@ router.patch(
           $push: {
             songs: {
               songId,
-              addedBy: user._id,
+              addedBy: user.id,
               order: nextOrder,
             },
           },
@@ -383,17 +337,10 @@ router.patch(
 )
 
 // remove a song from a playlist (including reordering)
-router.patch(
-  '/remove/song/:songId',
+router.delete(
+  '/remove/song/:songId/playlist/:playlistId',
   requireAuth,
-  [
-    body('playlistId')
-      .isString()
-      .withMessage('Playlist ID must be a string')
-      .notEmpty()
-      .withMessage('Playlist ID cannot be empty'),
-    validateRequest,
-  ],
+
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { user } = req
@@ -402,8 +349,11 @@ router.patch(
       }
 
       const { songId } = req.params
-      const { playlistId } = req.body
+      const { playlistId } = req.params
 
+      if (!songId || !playlistId) {
+        throw new CustomError('Song ID and Playlist ID are required', 400)
+      }
       // Use findOneAndUpdate with conditions to handle all validations atomically
       const updatedPlaylist = await Playlist.findOneAndUpdate(
         {
@@ -864,5 +814,100 @@ router.put(
     }
   }
 )
+router.post(
+  '/add/album/:albumId/playlist/:playlistId',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError(
+          'User not authenticated',
+          401,
+          'User must be logged in to like a song'
+        )
+      }
+      const { albumId } = req.params
+      const { playlistId } = req.params
+      if (!albumId) {
+        throw new CustomError(
+          'Album ID is required',
+          400,
+          'Please provide a valid album ID'
+        )
+      }
+      const album = await Album.findById(albumId)
+      if (!album) {
+        throw new CustomError(
+          'Album not found',
+          404,
+          'The specified album does not exist'
+        )
+      }
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        $or: [{ creator: user.id }, { collaborators: user.id }],
+      })
 
+      if (!playlist) {
+        throw new CustomError(
+          'Playlist not found',
+          404,
+          'The specified playlist does not exist or you are not authorized to add songs to it'
+        )
+      }
+
+      let songsAdded = 0
+      const songsToAdd: {
+        songId: string
+        addedBy: string
+        order: number
+      }[] = []
+
+      album.songs.forEach((songId: string) => {
+        const songExists = playlist.songs.some(
+          (playlistSong: any) =>
+            playlistSong.songId.toString() === songId.toString()
+        )
+        if (!songExists) {
+          songsToAdd.push({
+            songId,
+            addedBy: user.id,
+            order: playlist.songs.length + songsToAdd.length + 1,
+          })
+          songsAdded++
+        }
+      })
+
+      if (songsToAdd.length > 0) {
+        playlist.songs.push(...songsToAdd)
+        await playlist.save()
+
+        // Publish playlist updated event
+        await SongServiceEventPublisher.PlaylistUpdatedEvent({
+          playlistId: playlist._id,
+          coverUrl: playlist.coverUrl,
+          title: playlist.title,
+          description: playlist.description,
+          creator: playlist.creator,
+          collaborators: playlist.collaborators,
+          visibility: playlist.visibility,
+          songs: playlist.songs,
+          likedBy: playlist.likedBy,
+        })
+      }
+
+      res.status(200).json({
+        message:
+          songsAdded > 0
+            ? `${songsAdded} songs from album added to playlist successfully`
+            : 'All songs from this album are already in the playlist',
+        songsAdded,
+        totalAlbumSongs: album.songs.length,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 export { router as playlistRouter }

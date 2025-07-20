@@ -49,8 +49,6 @@ const generalLimiter = rateLimit({
   },
 })
 
-
-
-app.use('/api/v1/query', generalLimiter, mainRouter)
+app.use('/api/v1/query', mainRouter)
 
 app.use(globalErrorHandler)

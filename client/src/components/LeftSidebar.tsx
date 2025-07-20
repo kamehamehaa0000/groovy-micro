@@ -13,8 +13,8 @@ import { PiCassetteTapeLight } from 'react-icons/pi'
 import {
   useCreatePlaylistModalStore,
   useJamModalStore,
-} from '../../store/modal-store'
-import { getUserPlaylist } from '../../service/playlistService'
+} from '../store/modal-store'
+import { getUserPlaylist } from '../service/playlistService'
 import { TbBlendMode, TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
 import { Link, NavLink } from 'react-router'
 

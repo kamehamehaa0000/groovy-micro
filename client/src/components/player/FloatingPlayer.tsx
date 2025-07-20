@@ -155,6 +155,7 @@ export const FloatingPlayer: React.FC = () => {
     if (volume < 0.5) return <FiVolume1 className="w-4 h-4 text-gray-400" />
     return <FiVolume2 className="w-4 h-4 text-gray-400" />
   }
+
   const handleStartJam = () => {
     if (currentSong && accessToken) {
       startJam(currentSong._id, accessToken)
@@ -176,7 +177,8 @@ export const FloatingPlayer: React.FC = () => {
       album: currentSong?.metadata.album.title ?? 'Unknown Album',
       duration: formatTime(audioRef.current?.duration ?? 0),
       currentTime: formatTime(playbackPosition),
-      cover: currentSong?.metadata.album.coverUrl ?? currentSong?.coverArtUrl ?? '',
+      cover:
+        currentSong?.metadata.album.coverUrl ?? currentSong?.coverArtUrl ?? '',
     }),
     [currentSong, playbackPosition, audioRef.current?.duration]
   )
@@ -343,26 +345,29 @@ export const FloatingPlayer: React.FC = () => {
               <div className="flex-1 min-h-0 overflow-y-auto">
                 <div className="space-y-1 pb-4 hidden sm:block">
                   {!isShuffled &&
-                    queue.map((song, i) => (
+                    queue.map((song) => (
                       <div
-                        key={
-                          i +
-                          song.metadata.artist.displayName +
-                          song.metadata.title
-                        }
+                        role="button"
+                        key={song._id}
                         className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => playerActions.loadSong(song, true)}
                       >
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
-                            src={song.metadata.album.coverUrl}
+                            src={
+                              song.metadata.album.coverUrl
+                                ? song.metadata.album.coverUrl
+                                : song.coverArtUrl
+                            }
                             alt={song.metadata.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate text-gray-900 group-hover:text-gray-700">
-                            {song.metadata.title}
+                            {song.metadata.title
+                              ? song.metadata.title
+                              : 'Unknown Title'}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
                             {song.metadata.artist.displayName}
@@ -378,6 +383,7 @@ export const FloatingPlayer: React.FC = () => {
                           song.metadata.artist.displayName +
                           song.metadata.title
                         }
+                        role="button"
                         className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                         onClick={() => playerActions.loadSong(song, true)}
                       >
@@ -580,7 +586,11 @@ export const FloatingPlayer: React.FC = () => {
                       >
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
-                            src={song.metadata.album.coverUrl}
+                            src={
+                              song.metadata.album.coverUrl
+                                ? song.metadata.album.coverUrl
+                                : song.coverArtUrl
+                            }
                             alt={song.metadata.title}
                             className="w-full h-full object-cover"
                           />

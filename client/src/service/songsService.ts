@@ -13,3 +13,11 @@ export const fetchPublicSongs = async (page: number, limit: number) => {
   )
   return response.data
 }
+
+export const toggleLikeSong = async (songId: string) => {
+  const response = await axiosInstance.post(
+    `${API_BASE_URL}/songs/songs/like/${songId}`
+  )
+  return response.data
+}
+

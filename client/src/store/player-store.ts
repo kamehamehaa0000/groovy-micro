@@ -39,19 +39,19 @@ interface PlayerState {
   currentSongIndex: number
   actions: {
     loadSong: (song: Song, playNow?: boolean) => void
+    loadQueue: (songs: Song[], startPlayingFromIndex?: number) => void
+    setQueue: (songs: Song[]) => void
     play: () => void
     pause: () => void
     seek: (time: number) => void
     nextSong: () => void
     previousSong: () => void
-    setQueue: (songs: Song[]) => void
     updatePlaybackPosition: (time: number) => void
     setIsLoading: (loading: boolean) => void
     setIsExpanded: (expanded: boolean) => void
     clearForceSeekToZero: () => void
     toggleShuffle: () => void
     cycleRepeatMode: () => void
-    loadQueue: (songs: Song[], startPlayingFromIndex?: number) => void
   }
 }
 

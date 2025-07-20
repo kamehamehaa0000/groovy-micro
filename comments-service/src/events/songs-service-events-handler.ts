@@ -126,17 +126,7 @@ export class SongServiceEventHandlers {
       song.coverArtUrl = event.coverArtUrl ?? song.coverArtUrl
       song.status = event.status ?? song.status
       song.visibility = event.visibility ?? song.visibility
-      if (event.metadata) {
-        song.metadata.title = event.metadata.title ?? song.metadata.title
-        song.metadata.artist = event.metadata.artist ?? song.metadata.artist
-        song.metadata.album = event.metadata.album ?? song.metadata.album
-        song.metadata.genre = event.metadata.genre ?? song.metadata.genre
-        song.metadata.collaborators =
-          event.metadata.collaborators ?? song.metadata.collaborators
-        song.metadata.tags = event.metadata.tags ?? song.metadata.tags
-        song.metadata.trackNumber =
-          event.metadata.trackNumber ?? song.metadata.trackNumber
-      }
+      song.metadata = event.metadata ?? song.metadata
       await song.save()
     } catch (error) {
       console.error(
@@ -175,6 +165,7 @@ export class SongServiceEventHandlers {
         genre: eventData.genre,
         collaborators: eventData.collaborators,
         tags: eventData.tags,
+        likedBy: eventData.likedBy,
       })
     } catch (error: any) {
       if (error.code === 11000) {
@@ -209,6 +200,7 @@ export class SongServiceEventHandlers {
       album.collaborators = event.collaborators ?? album.collaborators
       album.tags = event.tags ?? album.tags
       album.songs = event.songs ?? album.songs
+      album.likedBy = event.likedBy ?? album.likedBy
       await album.save()
     } catch (error) {
       console.error(
@@ -311,6 +303,7 @@ export class SongServiceEventHandlers {
         listenLater: eventData.listenLater,
         userId: eventData.userId,
       })
+      console.log(`Library created successfully: ${eventData.LibraryId}`)
     } catch (error) {
       console.error(
         `Error(song-service-library-created-event) ${eventData.LibraryId}:`,
@@ -332,6 +325,7 @@ export class SongServiceEventHandlers {
       library.listenLater = event.listenLater ?? library.listenLater
       library.userId = event.userId ?? library.userId
       await library.save()
+      console.log(`Library updated successfully: ${event.LibraryId}`)
     } catch (error) {
       console.error(
         `Error(song-service-library-updated-event) ${event.LibraryId}:`,

@@ -13,21 +13,22 @@ import {
   addSongToRecentlyPlayed,
 } from '../../service/libraryService'
 import toast from 'react-hot-toast'
+import { toggleLikeSong } from '../../service/songsService'
 
-export function SongCompactCardA({
-  song,
-  isLikedByCurrentUser,
-}: {
-  song: Song
-  isLikedByCurrentUser?: boolean
-}) {
+export function SongCompactCardA({ song: initialSong }: { song: Song }) {
+  const [song, setSong] = useState(initialSong)
+  const [likeLoading, setLikeLoading] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isLiked, setIsLiked] = useState(isLikedByCurrentUser || false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { isAuthenticated } = useAuthStore()
   const { open } = useSigninPromptModalStore()
   const { isPlaying: playerIsPlaying, currentSong, actions } = usePlayerStore()
   const { open: openAddToPlaylist, setSongId } = useAddToPlaylistModalStore()
+
+  useEffect(() => {
+    setSong(initialSong)
+  }, [initialSong])
+
   const handlePlaySong = async () => {
     if (!isAuthenticated) {
       open()
@@ -57,8 +58,13 @@ export function SongCompactCardA({
       return
     }
     const currentQueue = usePlayerStore.getState().queue ?? []
-    actions.setQueue([...currentQueue, song])
-    setIsDropdownOpen(false)
+    if (currentQueue.length === 0) {
+      actions.loadQueue([song], 0)
+      setIsDropdownOpen(false)
+    } else {
+      actions.setQueue([...currentQueue, song])
+      setIsDropdownOpen(false)
+    }
   }
   const handleAddToListenLater = async () => {
     if (!isAuthenticated) {
@@ -72,6 +78,26 @@ export function SongCompactCardA({
       toast.error('Failed to add song to Listen Later')
     }
     setIsDropdownOpen(false)
+  }
+  const handleLikeSong = async () => {
+    if (!isAuthenticated) {
+      open()
+      return
+    }
+    if (likeLoading) return
+    try {
+      setLikeLoading(true)
+      const wasLiked = song.isLikedByCurrentUser
+      await toggleLikeSong(song._id)
+      setSong((prev) => ({
+        ...prev,
+        isLikedByCurrentUser: !wasLiked,
+      }))
+    } catch (error) {
+      toast.error('An error occurred while liking the song')
+    } finally {
+      setLikeLoading(false)
+    }
   }
   useEffect(() => {
     setIsPlaying(currentSong?._id === song._id && playerIsPlaying)
@@ -111,23 +137,28 @@ export function SongCompactCardA({
             <span className="text-xs text-gray-500">
               {song?.metadata?.artist?.displayName ?? 'Unknown Artist'}
             </span>
-            <span className="text-xs text-gray-400">•</span>
+            {/* <span className="text-xs text-gray-400">•</span>
 
             <span className="text-xs text-gray-500">
               {song?.metadata?.genre ?? 'Unknown Genre'}
-            </span>
+            </span> */}
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setIsLiked(!isLiked)}
-            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+            onClick={handleLikeSong}
+            disabled={likeLoading}
+            className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
           >
-            <BiHeart
-              className={`w-4 h-4 ${
-                isLiked ? 'text-red-500 fill-current' : ''
-              }`}
-            />
+            {likeLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400" />
+            ) : (
+              <BiHeart
+                className={`w-4 h-4 transition-colors ${
+                  song.isLikedByCurrentUser ? 'text-red-500 fill-current' : ''
+                }`}
+              />
+            )}
           </button>
           <button
             onClick={handleAddToPlaylist}
@@ -167,9 +198,12 @@ export function SongCompactCardA({
                 <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
                   Go to Artist
                 </button>
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
+                <Link
+                  to={`/albums/album/${song?.metadata?.album?._id}`}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                >
                   Go to Album
-                </button>
+                </Link>
               </div>
             )}
           </div>

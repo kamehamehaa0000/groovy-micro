@@ -7,7 +7,6 @@ import { MagicLinkHandler } from './components/auth/MagicLinkHandler'
 import { PasswordResetPage } from './components/auth/PasswordResetPage'
 import { EmailVerificationPage } from './components/auth/EmailVerificationPage'
 import { Register } from './pages/Register'
-
 import { ForgotPassword } from './pages/ForgetPassword'
 import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
@@ -17,13 +16,43 @@ import { HomePage } from './pages/Homepage'
 import { CgClose } from 'react-icons/cg'
 import { CreatePlaylistModal } from './components/shared/CreatePlaylistModal'
 import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
-
 import SongDetailPage from './pages/SongDetailPage'
 import AlbumDetailPage from './pages/AlbumDetailPage'
 import ArtistDetailPage from './pages/ArtistDetailPage'
 import PlaylistDetailPage from './pages/PlaylistDetailPage'
+import { useAuthStore } from './store/auth-store'
+import { useEffect, useState } from 'react'
+import AddAlbumToPlaylistModal from './components/shared/AddAlbumToPlaylistModal'
 
 function App() {
+  const { initializeAuth, isLoading, isInitialized } = useAuthStore()
+  const [appReady, setAppReady] = useState<boolean>(false)
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        await initializeAuth()
+      } catch (error) {
+        console.error('Failed to initialize auth:', error)
+      } finally {
+        setAppReady(true)
+      }
+    }
+
+    initialize()
+  }, [initializeAuth])
+
+  // Show loading while initializing
+  if (!appReady || (isLoading && !isInitialized)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-700 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Initializing app...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-screen min-h-screen">
       <BrowserRouter>
@@ -203,6 +232,7 @@ function App() {
         <PromptModal />
         <CreatePlaylistModal />
         <AddToPlaylistModal />
+        <AddAlbumToPlaylistModal />
       </BrowserRouter>
       <Toaster />
     </div>

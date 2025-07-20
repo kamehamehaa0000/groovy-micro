@@ -131,11 +131,22 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
       const sort = (req.query.sort as string) ?? 'Ascending'
-      console.log(await Album.find())
       const albums = await Album.find({ visibility: 'public' })
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
-        .populate('songs')
+        .populate({
+          path: 'songs',
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.album',
+              select: 'title',
+            },
+          ],
+        })
         .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
@@ -303,7 +314,7 @@ router.get(
 )
 // get album by id
 router.get(
-  '/:albumId',
+  '/album/:albumId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -318,10 +329,16 @@ router.get(
         .populate('collaborators', 'displayName')
         .populate({
           path: 'songs',
-          populate: {
-            path: 'metadata.artist',
-            select: 'displayName',
-          },
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.album',
+              select: 'title',
+            },
+          ],
         })
 
       if (!album) {
@@ -337,10 +354,19 @@ router.get(
           403
         )
       }
+      const songs = album.songs.map((song: any) => {
+        return {
+          ...song.toObject(),
+          isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
+          likedBy: song.metadata.likedBy.length,
+        }
+      })
+
       const isLikedByCurrentUser = album.likedBy.includes(user.id)
       res.json({
         album: {
           ...album.toObject(),
+          songs,
           likedBy: album.likedBy.length,
           isLikedByCurrentUser,
         },

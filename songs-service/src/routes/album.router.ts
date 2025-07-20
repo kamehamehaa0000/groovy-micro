@@ -615,7 +615,7 @@ router.put(
       if (!updatedAlbum) {
         throw new CustomError('Album not found', 404)
       }
-
+      
       // Publish album updated event
       await SongServiceEventPublisher.AlbumUpdatedEvent({
         albumId: updatedAlbum._id,
@@ -643,4 +643,6 @@ router.put(
     }
   }
 )
+
+
 export { router as AlbumRouter }

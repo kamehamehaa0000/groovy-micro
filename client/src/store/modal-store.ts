@@ -38,3 +38,17 @@ export const useAddToPlaylistModalStore = create<IAddToPlaylistModal>(
     setSongId: (id: string) => set({ songId: id }),
   })
 )
+interface IAddAlbumToPlaylistModal extends IModal {
+  albumId: string
+  setAlbumId: (id: string) => void
+}
+
+export const useAddAlbumToPlaylistModalStore = create<IAddAlbumToPlaylistModal>(
+  (set) => ({
+    isOpen: false,
+    open: () => set({ isOpen: true }),
+    close: () => set({ isOpen: false }),
+    albumId: '',
+    setAlbumId: (id: string) => set({ albumId: id }),
+  })
+)
