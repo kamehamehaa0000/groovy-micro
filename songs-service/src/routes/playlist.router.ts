@@ -230,7 +230,6 @@ router.delete(
 router.post(
   '/add/song/:songId/playlist/:playlistId',
   requireAuth,
-
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { user } = req
@@ -570,7 +569,7 @@ router.put(
 
 // reorder all songs in a playlist - simplified version
 router.put(
-  '/reorder/complete',
+  '/reorder/complete/simplified',
   requireAuth,
   [
     body('playlistId')
@@ -814,6 +813,7 @@ router.put(
     }
   }
 )
+
 router.post(
   '/add/album/:albumId/playlist/:playlistId',
   requireAuth,

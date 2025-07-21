@@ -23,6 +23,9 @@ import PlaylistDetailPage from './pages/PlaylistDetailPage'
 import { useAuthStore } from './store/auth-store'
 import { useEffect, useState } from 'react'
 import AddAlbumToPlaylistModal from './components/shared/AddAlbumToPlaylistModal'
+import AllSongsPage from './pages/AllSongsPage'
+import AllAlbumsPage from './pages/AllAlbumsPage'
+import AllPlaylistsPage from './pages/AllPlaylistsPage'
 
 function App() {
   const { initializeAuth, isLoading, isInitialized } = useAuthStore()
@@ -94,10 +97,7 @@ function App() {
                     path="/songs"
                     element={
                       <ProtectedRoute>
-                        <h1 className="text-2xl font-semibold mb-4">
-                          {' '}
-                          All Songs
-                        </h1>
+                        <AllSongsPage />
                       </ProtectedRoute>
                     }
                   />
@@ -134,10 +134,7 @@ function App() {
                     path="/albums"
                     element={
                       <ProtectedRoute>
-                        <h1 className="text-2xl font-semibold mb-4">
-                          {' '}
-                          All Albums
-                        </h1>
+                        <AllAlbumsPage />
                       </ProtectedRoute>
                     }
                   />
@@ -192,10 +189,7 @@ function App() {
                     path="/playlists"
                     element={
                       <ProtectedRoute>
-                        <h1 className="text-2xl font-semibold mb-4">
-                          {' '}
-                          All playlists
-                        </h1>
+                        <AllPlaylistsPage />
                       </ProtectedRoute>
                     }
                   />

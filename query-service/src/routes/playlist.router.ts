@@ -1,6 +1,7 @@
 import {
   AuthenticatedRequest,
   CustomError,
+  optionalAuth,
   requireAuth,
 } from '@groovy-streaming/common'
 import { Playlist } from '../models/Playlist.model'
@@ -12,13 +13,12 @@ const router = Router()
 // get all public playlists
 router.get(
   '/get/all/public',
-  requireAuth,
+  optionalAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const { user } = req
-      if (!user) {
-        throw new CustomError('User not authenticated', 401)
-      }
+      const { user } = req as AuthenticatedRequest
+      const userId = user ? user.id : null
+
       const sort = (req.query.sort as string) ?? 'Ascending'
       const page = parseInt(req.query.page as string) ?? 1
       const limit = parseInt(req.query.limit as string) ?? 10
@@ -49,7 +49,7 @@ router.get(
       const playlistData = playlists.map((playlist) => {
         return {
           likedBy: playlist.likedBy.length,
-          likedByCurrentUser: playlist.likedBy.includes(user.id),
+          likedByCurrentUser: userId ? playlist.likedBy.includes(userId) : false,
           ...playlist.toObject(),
         }
       })

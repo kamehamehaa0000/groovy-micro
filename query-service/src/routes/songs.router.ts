@@ -1,6 +1,7 @@
 import {
   AuthenticatedRequest,
   CustomError,
+  optionalAuth,
   requireAuth,
 } from '@groovy-streaming/common'
 import { Router, Response, NextFunction } from 'express'
@@ -132,9 +133,8 @@ router.get(
 )
 // fetch song by id
 router.get(
-  '/songs/:songId',
+  '/song/:songId',
   requireAuth,
-
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { user } = req
@@ -152,10 +152,10 @@ router.get(
       if (!song) {
         throw new CustomError('Song not found', 404)
       }
-
+      console.log(song.metadata)
       if (
         song.visibility !== 'public' &&
-        song.metadata.artist.toString() !== user._id.toString()
+        song.metadata.artist.toString() !== user.id.toString()
       ) {
         throw new CustomError(
           'You do not have permission to view this song',
@@ -164,9 +164,9 @@ router.get(
       }
 
       res.json({
-        likeBy: song.likedBy.length,
-        isLikeByCurrentUser: song.likedBy.includes(user._id),
-        ...song,
+        likedBy: song.metadata.likedBy.length,
+        isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
+        ...song.toObject(),
       })
     } catch (error) {
       next(error)
@@ -211,8 +211,8 @@ router.get(
 
       const total = await Song.countDocuments(filter)
       const songsData = songs.map((song) => ({
-        likeBy: song.likedBy.length,
-        isLikeByCurrentUser: song.likedBy.includes(user._id),
+        likeBy: song.metadata.likedBy.length,
+        isLikeByCurrentUser: song.metadata.likedBy.includes(user._id),
         ...song,
       }))
 
@@ -252,8 +252,8 @@ router.get(
 
       const total = await Song.countDocuments({ 'metadata.artist': user.id })
       const songsData = songs.map((song) => ({
-        likeBy: song.likedBy.length,
-        isLikeByCurrentUser: song.likedBy.includes(user._id),
+        likeBy: song.metadata.likedBy.length,
+        isLikeByCurrentUser: song.metadata.likedBy.includes(user._id),
         ...song,
       }))
       res.json({
@@ -270,7 +270,7 @@ router.get(
 // get all public songs
 router.get(
   '/all/public',
-  requireAuth,
+  optionalAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const sort = (req.query.sort as string) ?? 'Descending'
@@ -339,8 +339,8 @@ router.get(
       })
 
       const songsData = songs.map((song) => ({
-        likeBy: song.likedBy.length,
-        isLikeByCurrentUser: song.likedBy.includes(user._id),
+        likeBy: song.metadata.likedBy.length,
+        isLikeByCurrentUser: song.metadata.likedBy.includes(user._id),
         ...song,
       }))
 

@@ -21,3 +21,9 @@ export const toggleLikeSong = async (songId: string) => {
   return response.data
 }
 
+export const fetchSongById = async (songId: string) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/songs/song/${songId}`
+  )
+  return response.data
+}

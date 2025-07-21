@@ -18,7 +18,6 @@ export interface Song {
       title: string
       coverUrl: string
     }
-    coverUrl: string
     genre: string
     trackNumber: number
     likedBy: string[]

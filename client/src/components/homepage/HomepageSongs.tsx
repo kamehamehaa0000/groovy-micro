@@ -1,30 +1,35 @@
 import { useEffect, useState } from 'react'
-import { getRecentlyPlayed } from '../../service/libraryService'
+import { type Song } from '../../store/player-store'
 import { SongCompactCardA } from '../cards/SongCompactCardA'
-import type { Song } from '../../store/player-store'
+import { fetchPublicSongs } from '../../service/songsService'
+import { Link } from 'react-router'
 
-const RecentlyPlayedSongs = () => {
+const HomepageSongs = () => {
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchRecentlyPlayedSongs = async () => {
+    async function fetchSongs() {
       try {
-        setLoading(true)
-        const data = await getRecentlyPlayed()
+        const data = await fetchPublicSongs(1, 12)
         setSongs(data.songs)
       } catch (error) {
-        console.error('Failed to fetch recently played songs:', error)
+        console.error('Failed to fetch songs:', error)
       } finally {
         setLoading(false)
       }
     }
-    fetchRecentlyPlayedSongs()
+    fetchSongs()
   }, [])
+  const firstColumn = songs.slice(0, 4)
+  const secondColumn = songs.slice(4, 8)
+  const thirdColumn = songs.slice(8, 12)
+  const mobileColumn = songs.slice(0, 8)
+
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold mb-4">Recently Listened</h1>
+      <div className="space-y-4 bg-white">
+        <h1 className="text-2xl font-semibold mb-4"> All Songs</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {Array.from({ length: 12 }).map((_, index) => (
             <div
@@ -42,19 +47,15 @@ const RecentlyPlayedSongs = () => {
       </div>
     )
   }
-  // Split songs into two columns of 6 each
-  const firstColumn = songs.slice(0, 4)
-  const secondColumn = songs.slice(4, 8)
-  const thirdColumn = songs.slice(8, 12)
-  const mobileColumn = songs.slice(0, 8)
 
   return (
-    <div className="w-full rounded-xl p-3">
+    <div className="w-full  p-3">
       <div className="w-full flex justify-between items-center my-2 px-3">
-        <h1 className="text-xl font-semibold ">Recently Played</h1>
+        <h1 className="text-xl font-semibold ">All Songs</h1>
+        <Link to="/songs">See all</Link>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile: Single column stack */}
 
       <div className="block md:hidden space-y-1 max-w-sm">
         {mobileColumn.map((song: Song) => (
@@ -62,21 +63,23 @@ const RecentlyPlayedSongs = () => {
         ))}
       </div>
 
-      {/* Desktop */}
+      {/* Desktop: Two column layout like Spotify */}
 
       <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 w-full gap-x-4">
+        {/* First column - first 4 songs */}
         <div className="space-y-1">
           {firstColumn.map((song: Song) => (
             <SongCompactCardA key={song._id} song={song} />
           ))}
         </div>
 
+        {/* Second column - next 4 songs */}
         <div className="space-y-1">
           {secondColumn.map((song: Song) => (
             <SongCompactCardA key={song._id} song={song} />
           ))}
         </div>
-
+        {/* Third column - next 4 songs */}
         <div className="space-y-1 hidden lg:block">
           {thirdColumn.map((song: Song) => (
             <SongCompactCardA key={song._id} song={song} />
@@ -86,12 +89,10 @@ const RecentlyPlayedSongs = () => {
 
       {/* Show message if no songs */}
       {songs.length === 0 && !loading && (
-        <div className="text-gray-500 text-center py-8">
-          No recently played songs found
-        </div>
+        <div className="text-gray-500 text-center py-8">No songs found</div>
       )}
     </div>
   )
 }
 
-export default RecentlyPlayedSongs
+export default HomepageSongs

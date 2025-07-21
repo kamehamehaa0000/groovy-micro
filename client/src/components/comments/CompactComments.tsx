@@ -22,7 +22,14 @@ interface Reply extends Comment {
 }
 
 // Version 3: Compact Threaded Comments (GitHub/Forum style)
-export default function CompactComments() {
+export default function CompactComments({
+  entityType,
+  entityId,
+}: {
+  entityType: string
+  entityId: string
+}) {
+  console.log('Rendering CompactComments for:', entityType, entityId)
   const [comments, setComments] = useState<Comment[]>([])
   const [replies, setReplies] = useState<{ [key: string]: Reply[] }>({})
   const [newComment, setNewComment] = useState('')

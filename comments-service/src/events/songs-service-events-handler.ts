@@ -10,7 +10,7 @@ import {
   SongCreatedEventData,
   SongDeletedEventData,
   SongUpdatedEventData,
-} from '../../../common/src/events/song-service-events'
+} from '@groovy-streaming/common'
 import { EventTypes } from '../../../common/src/events/types'
 import { BaseEvent } from '../../../common/src/events/PubSubManager'
 import { Playlist } from '../models/Playlist.model'
@@ -156,6 +156,16 @@ export class SongServiceEventHandlers {
     eventData: AlbumCreatedEventData
   ): Promise<void> => {
     try {
+      console.log(
+        `🔍 Creating album with data:`,
+        JSON.stringify(eventData, null, 2)
+      )
+
+      // Validate that this is actually album data
+      if (!eventData.albumId || !eventData.title) {
+        console.error(`❌ Invalid album data received:`, eventData)
+        return
+      }
       await Album.create({
         _id: eventData.albumId,
         title: eventData.title,
@@ -270,6 +280,7 @@ export class SongServiceEventHandlers {
       playlist.visibility = event.visibility ?? playlist.visibility
       playlist.songs = event.songs ?? playlist.songs
       playlist.coverUrl = event.coverUrl ?? playlist.coverUrl
+      playlist.likedBy = event.likedBy ?? playlist.likedBy
 
       await playlist.save()
     } catch (error) {

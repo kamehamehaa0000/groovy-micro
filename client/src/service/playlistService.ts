@@ -21,3 +21,10 @@ export const removeSongFromPlaylist = async (
   )
   return response.data
 }
+
+export const getPublicPlaylists = async (page: number, limit: number) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/playlists/get/all/public?page=${page}&limit=${limit}`
+  )
+  return response.data
+}

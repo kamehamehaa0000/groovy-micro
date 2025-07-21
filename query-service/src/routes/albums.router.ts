@@ -3,6 +3,7 @@ import { Album } from '../models/Album.model'
 import {
   AuthenticatedRequest,
   CustomError,
+  optionalAuth,
   requireAuth,
 } from '@groovy-streaming/common'
 import User from '../models/User.model'
@@ -124,7 +125,7 @@ router.get(
 // get all public albums
 router.get(
   '/all/public',
-  requireAuth,
+  optionalAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1
