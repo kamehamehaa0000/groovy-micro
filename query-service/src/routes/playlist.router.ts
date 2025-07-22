@@ -49,7 +49,9 @@ router.get(
       const playlistData = playlists.map((playlist) => {
         return {
           likedBy: playlist.likedBy.length,
-          likedByCurrentUser: userId ? playlist.likedBy.includes(userId) : false,
+          likedByCurrentUser: userId
+            ? playlist.likedBy.includes(userId)
+            : false,
           ...playlist.toObject(),
         }
       })
@@ -129,9 +131,18 @@ router.get(
         })
         .populate('songs.addedBy', 'displayName')
 
+      const songs = playlist.songs.map((song: any) => ({
+        songId: {
+          ...song.songId,
+          likedBy: song.songId.metadata.likedBy.length,
+          isLikedByCurrentUser: song.songId.metadata.likedBy.includes(user.id),
+        },
+      }))
+      playlist.songs = songs
+
       res.status(200).json({
         likedBy: playlist.likedBy.length,
-        likedByCurrentUser: playlist.likedBy.includes(user.id),
+        isLikedByCurrentUser: playlist.likedBy.includes(user.id),
         ...playlist.toObject(),
       })
     } catch (error) {

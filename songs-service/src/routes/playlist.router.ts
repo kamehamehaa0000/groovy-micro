@@ -75,7 +75,7 @@ router.post(
 router.put(
   '/update/cover/playlist/:playlistId',
   requireAuth,
-  body('coverFileName')
+  body('coverArtFileName')
     .isString()
     .withMessage('Cover file name must be a string')
     .notEmpty()
@@ -92,7 +92,14 @@ router.put(
       const { playlistId } = req.params
       const { coverArtFileName } = req.body
 
-      const playlist = await Playlist.findById(playlistId)
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        $or: [{ creator: user.id }, { collaborators: { $in: [user.id] } }],
+      })
       if (!playlist) {
         return res.status(404).json({ message: 'Playlist not found' })
       }
@@ -134,8 +141,13 @@ router.put(
       }
       const { playlistId } = req.params
       const { coverKey } = req.body
-
-      const playlist = await Playlist.findById(playlistId)
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        $or: [{ creator: user.id }, { collaborators: { $in: [user.id] } }],
+      })
       if (!playlist) {
         return res.status(404).json({ message: 'Playlist not found' })
       }
@@ -165,7 +177,7 @@ router.put(
             console.error('Error deleting previous cover art:', error)
           }
         }
-        playlist.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
+        playlist.coverUrl = `${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
         await playlist.save()
       } catch (error: any) {
         if (error.name === 'NotFound') {
@@ -193,6 +205,208 @@ router.put(
     }
   }
 )
+
+// update playlist details
+router.put(
+  '/update/details/:playlistId',
+  [
+    body('title').isString().withMessage('Title must be a string').optional(),
+    body('description')
+      .isString()
+      .withMessage('Description must be a string')
+      .optional(),
+    body('visibility')
+      .isString()
+      .withMessage('Visibility must be a string')
+      .isIn(['public', 'private'])
+      .withMessage('Visibility must be either public or private')
+      .optional(),
+    validateRequest,
+  ],
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const { playlistId } = req.params
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+
+      const { title, description, visibility } = req.body
+
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        $or: [{ creator: user.id }, { collaborators: { $in: [user.id] } }],
+      })
+
+      if (!playlist) {
+        throw new CustomError('Playlist not found', 404)
+      }
+
+      if (playlist.creator.toString() !== user.id.toString()) {
+        throw new CustomError(
+          'You are not authorized to update this playlist',
+          403
+        )
+      }
+      if (title) {
+        playlist.title = title
+      }
+      if (description) {
+        playlist.description = description
+      }
+
+      if (visibility && ['public', 'private'].includes(visibility)) {
+        playlist.visibility = visibility
+      }
+      await playlist.save()
+
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        likedBy: playlist.likedBy,
+      })
+
+      res.json({
+        message: 'Playlist details updated successfully',
+        playlist,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// add a collaborator to a playlist
+router.post(
+  '/playlist/:playlistId/add/collaborator',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const { playlistId } = req.params
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+      const { collaboratorEmail } = req.body
+      if (!collaboratorEmail) {
+        throw new CustomError('Collaborator email is required', 400)
+      }
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        creator: user.id,
+      })
+      if (!playlist) {
+        throw new CustomError(
+          'Playlist not found or you are not authorized',
+          404
+        )
+      }
+      const collaborator = await User.findOne({
+        email: collaboratorEmail,
+      })
+      if (!collaborator) {
+        throw new CustomError('Collaborator not found', 404)
+      }
+      if (playlist.collaborators.includes(collaborator._id)) {
+        return res.status(200).json({
+          message: 'Collaborator already exists in the playlist',
+        })
+      }
+      playlist.collaborators.push(collaborator._id)
+      await playlist.save()
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        likedBy: playlist.likedBy,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+//remove a collaborator from a playlist
+router.delete(
+  '/playlist/:playlistId/remove/collaborator',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { user } = req
+      if (!user) {
+        throw new CustomError('User not authenticated', 401)
+      }
+
+      const { playlistId } = req.params
+      if (!playlistId) {
+        throw new CustomError('Playlist ID is required', 400)
+      }
+      const { collaboratorEmail } = req.body
+      if (!collaboratorEmail) {
+        throw new CustomError('Collaborator email is required', 400)
+      }
+      const playlist = await Playlist.findOne({
+        _id: playlistId,
+        creator: user.id,
+      })
+      if (!playlist) {
+        throw new CustomError(
+          'Playlist not found or you are not authorized',
+          404
+        )
+      }
+      const collaborator = await User.findOne({
+        email: collaboratorEmail,
+      })
+      if (!collaborator) {
+        throw new CustomError('Collaborator not found', 404)
+      }
+      if (!playlist.collaborators.includes(collaborator._id)) {
+        return res.status(200).json({
+          message: 'Collaborator does not exist in the playlist',
+        })
+      }
+      playlist.collaborators = playlist.collaborators.filter(
+        (c: any) => c.toString() !== collaborator._id.toString()
+      )
+      await playlist.save()
+      await SongServiceEventPublisher.PlaylistUpdatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        likedBy: playlist.likedBy,
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
 // delete a playlist
 router.delete(
   '/:playlistId',

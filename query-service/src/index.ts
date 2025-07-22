@@ -52,13 +52,17 @@ async function startServer() {
           (error as Error).message
         )
       }
-    }, 60 * 60 * 1000) // 1 hour in milliseconds
-
-    await fullSyncAlbums()
-    await fullSyncUsers()
-    await fullSyncPlaylists()
-    await fullSyncSongs()
-    await fullSyncLibraries()
+    }, 10 * 60 * 1000) // 10 minutes in milliseconds
+    
+    try {
+      await fullSyncAlbums()
+      await fullSyncUsers()
+      await fullSyncPlaylists()
+      await fullSyncSongs()
+      await fullSyncLibraries()
+    } catch (error) {
+      console.error('❌ Error during full sync:', (error as Error).message)
+    }
 
     await initializeEventListeners(['USER', 'SONG'])
 

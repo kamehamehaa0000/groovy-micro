@@ -28,3 +28,59 @@ export const getPublicPlaylists = async (page: number, limit: number) => {
   )
   return response.data
 }
+
+export const fetchPlaylistById = async (playlistId: string) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/playlists/playlist/id/${playlistId}`
+  )
+  return response.data
+}
+export const togglePlaylistLike = async (playlistId: string) => {
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/songs/playlists/like/${playlistId}/`
+  )
+  return response.data
+}
+
+export const getPresignedUrlForCoverUpload = async (
+  fileName: string,
+  playlistId: string
+) => {
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/songs/playlists/update/cover/playlist/${playlistId}`,
+    {
+      coverArtFileName: fileName,
+    }
+  )
+  return response.data
+}
+
+export const confirmCoverUpload = async (
+  playlistId: string,
+  coverKey: string
+) => {
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/songs/playlists/update/cover/confirm/playlist/${playlistId}`,
+    {
+      coverKey,
+    }
+  )
+  return response.data
+}
+
+export const updatePlaylistDetails = async (
+  playlistId: string,
+  title?: string,
+  description?: string,
+  visibility?: 'public' | 'private'
+) => {
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/songs/playlists/update/details/${playlistId}`,
+    {
+      title,
+      description,
+      visibility,
+    }
+  )
+  return response.data
+}

@@ -389,7 +389,9 @@ export const FloatingPlayer: React.FC = () => {
                       >
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
-                            src={song.metadata.album.coverUrl}
+                            src={
+                              song.metadata.album.coverUrl ?? song.coverArtUrl
+                            }
                             alt={song.metadata.title}
                             className="w-full h-full object-cover"
                           />
