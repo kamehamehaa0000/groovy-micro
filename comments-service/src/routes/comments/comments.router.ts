@@ -35,7 +35,9 @@ router.post(
       if (!user) {
         throw new CustomError('User not authenticated', 401)
       }
+
       const { content, entityType, entityId, parentId } = req.body
+
       if (entityType == CommentEntityEnum.SONG) {
         const song = await Song.findById(entityId)
         if (!song) {
@@ -50,6 +52,14 @@ router.post(
         const playlist = await Playlist.findById(entityId)
         if (!playlist) {
           throw new CustomError('Playlist not found', 404)
+        }
+      }
+
+      // If replying to a comment, validate parent exists
+      if (parentId) {
+        const parentComment = await Comment.findById(parentId)
+        if (!parentComment) {
+          throw new CustomError('Parent comment not found', 404)
         }
       }
 
@@ -233,16 +243,30 @@ router.delete(
         throw new CustomError('User not authenticated', 401)
       }
       const { commentId } = req.params
-      const deletedComment = await Comment.findOneAndDelete({
+      const comment = await Comment.findOne({
         _id: commentId,
         authorId: user.id,
+        isDeleted: false,
       })
 
-      if (!deletedComment) {
+      if (!comment) {
         throw new CustomError('Comment not found or unauthorized', 404)
       }
+
+      // Soft delete instead of hard delete
+      comment.isDeleted = true
+      comment.content = '[deleted]'
+      await comment.save()
+      
+      // Decrement reply count of parent comment if it exists
+      if (comment.parentId) {
+        await Comment.findByIdAndUpdate(comment.parentId, {
+          $inc: { replyCount: -1 },
+        })
+      }
+
       await CommentsServiceEventPublisher.CommentDeletedEvent({
-        commentId: deletedComment.id,
+        commentId: comment.id,
       })
       res.status(200).json({ message: 'Comment deleted successfully' })
     } catch (error) {
@@ -319,12 +343,16 @@ router.get(
       }
       const query = {
         parentId: commentId,
+        isDeleted: false, // Don't show deleted comments
       }
       const replies = await Comment.find(query)
         .populate('authorId', 'displayName')
+        .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit)
+
       const totalReplies = await Comment.countDocuments(query)
+
       res.status(200).json({
         replies,
         currentPage: page,

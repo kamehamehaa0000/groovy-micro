@@ -14,6 +14,8 @@ interface CommentDoc extends mongoose.Document {
   parentId: string
   upvotes: string[]
   downvotes: string[]
+  replyCount: number // Add this
+  isDeleted: boolean // Add this for soft deletes
   createdAt: Date
   updatedAt: Date
 }
@@ -35,11 +37,17 @@ const commentSchema = new mongoose.Schema(
     parentId: { type: String, ref: 'Comment', default: null },
     upvotes: [{ type: String, ref: 'User' }],
     downvotes: [{ type: String, ref: 'User' }],
+    replyCount: { type: Number, default: 0 }, // Track reply count
+    isDeleted: { type: Boolean, default: false }, // Soft delete
   },
   {
     timestamps: true,
   }
 )
+
+commentSchema.index({ entityType: 1, entityId: 1, parentId: 1 })
+commentSchema.index({ parentId: 1 })
+commentSchema.index({ authorId: 1 })
 
 const Comment = mongoose.model<CommentDoc, mongoose.Model<CommentDoc>>(
   'Comment',
