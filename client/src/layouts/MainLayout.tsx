@@ -53,7 +53,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 mx-auto max-w-[98%] border border-white w-full h-full overflow-auto rounded-xl bg-white mb-6 scrollbar-hide">
+        <main className="flex-1 mx-auto max-w-[98%] border border-gray-200 w-full h-full overflow-auto rounded-xl bg-white mb-6 scrollbar-hide">
           {children}
         </main>
       </div>

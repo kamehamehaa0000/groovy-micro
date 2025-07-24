@@ -144,7 +144,7 @@ const SongDetailPage = () => {
         <div className="flex-1 p-4 sm:p-6 lg:p-8 min-h-full max-w-2xl ">
           <div className="max-w-3xl">
             {/* Song Title */}
-            <div className="mx-auto w-full max-w-lg aspect-square rounded-lg mb-6 flex items-center justify-center">
+            <div className="mx-auto w-full max-w-md aspect-square rounded-lg mb-6 flex items-center justify-center">
               <div className="w-full h-full  bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
                 <img
                   src={song.coverArtUrl}
@@ -282,7 +282,7 @@ const SongDetailPage = () => {
         </div>
 
         {/* Right Panel - Album Art & Controls */}
-        <div className=" h-full flex-1 border-l border-gray-200 overflow-y-scroll ">
+        <div className="flex-1 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
           <CompactComments entityType="song" entityId={song._id} />
         </div>
       </div>

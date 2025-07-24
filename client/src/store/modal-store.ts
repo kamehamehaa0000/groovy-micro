@@ -52,3 +52,20 @@ export const useAddAlbumToPlaylistModalStore = create<IAddAlbumToPlaylistModal>(
     setAlbumId: (id: string) => set({ albumId: id }),
   })
 )
+
+interface IEditCommentModal extends IModal {
+  commentId: string
+  content: string
+  setComment: (id: string, content: string) => void
+  clear: () => void
+}
+
+export const useEditCommentModalStore = create<IEditCommentModal>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+  commentId: '',
+  content: '',
+  setComment: (id: string, content: string) => set({ commentId: id, content }),
+  clear: () => set({ commentId: '', content: '' }),
+}))

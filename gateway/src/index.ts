@@ -35,7 +35,7 @@ server.register(fastifyHttpProxy, {
 server.register(fastifyHttpProxy, {
   upstream: process.env.COMMENTS_SERVICE_URL!,
   prefix: '/api/comments',
-  rewritePrefix: '/api/v1',
+  rewritePrefix: '/api/v1/comments',
 })
 
 // 4. Preferences Service Proxy (Handles HTTP and WebSockets)

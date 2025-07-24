@@ -245,7 +245,7 @@ const PlaylistDetailPage = () => {
           </div>
         </div>{' '}
         {/*Center panel - Tracks */}
-        <div className="flex-1 py-4 sm:p-6 lg:p-8">
+        <div className="flex-1 py-4 sm:p-6 lg:p-8 md:h-full md:overflow-y-auto">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Tracks</h2>
           <div>
             {playlist?.songs
@@ -256,7 +256,7 @@ const PlaylistDetailPage = () => {
           </div>
         </div>
         {/* Right Panel - Additional Info */}
-        <div className="lg:w-1/3 md:border-l  border-gray-200 p-4 sm:p-6">
+        <div className="lg:w-1/3 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
           <CompactComments entityId={playlist._id} entityType="playlist" />
         </div>
         <PlaylistEditModal

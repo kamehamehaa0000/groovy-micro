@@ -88,6 +88,23 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
       setLikeLoading(false)
     }
   }
+
+  const handleShareSong = () => {
+    const shareData = {
+      title: song.metadata.title,
+      text: `Check out this song: ${song.metadata.title} by ${song.metadata.artist.displayName}`,
+      url: `${window.location.origin}/songs/song/${initialSong._id}`,
+    }
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => toast.success('Song shared successfully!'))
+        .catch(() => toast.error('Failed to share song'))
+    } else {
+      toast.error('Sharing not supported in this browser')
+    }
+    setIsDropdownOpen(false)
+  }
   useEffect(() => {
     setIsPlaying(currentSong?._id === song._id && playerIsPlaying)
   }, [currentSong, song, playerIsPlaying])
@@ -161,7 +178,10 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
             </button>
             {isDropdownOpen && (
               <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-2 w-48 z-10">
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                <button
+                  onClick={handleShareSong}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                >
                   <BiShare className="w-4 h-4" />
                   <span>Share</span>
                 </button>
