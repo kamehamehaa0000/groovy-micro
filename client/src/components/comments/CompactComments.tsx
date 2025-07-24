@@ -187,6 +187,7 @@ export default function CompactComments({
     if (score < 0) return 'text-red-600'
     return 'text-gray-500'
   }
+
   const renderComment = (comment: Comment, isReply = false, depth = 0) => {
     return (
       <div
@@ -402,7 +403,7 @@ export default function CompactComments({
   }
 
   // Error state
-  if (isError) {
+  if (isError || !entityId || !entityType) {
     return (
       <div className="bg-white border-gray-200">
         <div className="px-6 py-4 text-center text-zinc-600">

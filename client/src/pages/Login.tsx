@@ -243,7 +243,7 @@ const PasswordlessLogin = ({
     try {
       await requestMagicLink(data.email)
     } catch (error) {
-      toast.error('Failed to send a magic link')
+      error && toast.error('Failed to send a magic link')
     } finally {
       setLoading(false)
     }

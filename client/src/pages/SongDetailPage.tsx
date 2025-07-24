@@ -58,7 +58,7 @@ const SongDetailPage = () => {
         const data = await fetchSongById(songId)
         setSong(data)
       } catch (error) {
-        toast.error('Failed to fetch song details')
+        error && toast.error('Failed to fetch song details')
       } finally {
         setLoading(false)
       }
@@ -109,7 +109,7 @@ const SongDetailPage = () => {
         isLikedByCurrentUser: !prev.isLikedByCurrentUser,
       }))
     } catch (error) {
-      toast.error('Failed to like song')
+      error && toast.error('Failed to like song')
     } finally {
       setLikeLoading(false)
     }
@@ -125,7 +125,7 @@ const SongDetailPage = () => {
       await addSongToListenLater(song._id)
       toast.success('Song added to Listen Later')
     } catch (error) {
-      toast.error('Failed to add song to Listen Later')
+      error && toast.error('Failed to add song to Listen Later')
     }
   }
 

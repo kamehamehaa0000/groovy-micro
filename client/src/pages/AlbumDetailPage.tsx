@@ -106,7 +106,7 @@ const AlbumDetailPage = () => {
       navigator
         .share(shareData)
         .then(() => toast.success('Album shared successfully!'))
-        .catch((error) => toast.error('Failed to share album'))
+        .catch(() => toast.error('Failed to share album'))
     } else {
       toast.error('Sharing not supported in this browser')
     }
@@ -205,18 +205,15 @@ const AlbumDetailPage = () => {
           <div className="max-w-3xl">
             {album?.songs
               .sort((a, b) => a.metadata.trackNumber - b.metadata.trackNumber)
-              .map((song: any, index) => (
-                <SongCompactCardB song={song} key={index} />
+              .map((song: any) => (
+                <SongCompactCardB song={song} key={song._id} />
               ))}
           </div>
         </div>
 
         {/* Right Panel - comments */}
         <div className="lg:w-1/3 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
-          <CompactComments
-            entityType="album"
-            entityId={albumId ? albumId : ''}
-          />
+          {albumId && <CompactComments entityType="album" entityId={albumId} />}
         </div>
       </div>
     </div>

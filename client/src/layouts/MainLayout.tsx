@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { BiChevronDown, BiMenu, BiUser } from 'react-icons/bi'
-import { AnimatePresence } from 'framer-motion'
+import { BiUser } from 'react-icons/bi'
 import { FloatingPlayer } from '../components/player/FloatingPlayer'
 import { LeftSidebar } from '../components/LeftSidebar'
 import { JamModal } from '../components/shared/JamModal'
