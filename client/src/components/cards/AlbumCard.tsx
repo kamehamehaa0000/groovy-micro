@@ -27,9 +27,7 @@ export const AlbumCard = ({
       return
     }
     actions.setQueue([])
-    console.log('Playing album:', album.songs)
     actions.loadQueue(album.songs, 0)
-    actions.play()
   }
   if (!album) return null
   return (

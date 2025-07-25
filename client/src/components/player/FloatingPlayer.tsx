@@ -6,10 +6,23 @@ import { FiMinimize2, FiVolume1, FiVolume2, FiVolumeX } from 'react-icons/fi'
 import { BsSkipBackward, BsSkipForward } from 'react-icons/bs'
 import { IoClose } from 'react-icons/io5'
 import { usePlayerStore } from '../../store/player-store'
-import { useAudioPlayer } from '../../hooks/useAudioPlayer'
-import useJamStore from '../../store/jam-store'
-import { useAuthStore } from '../../store/auth-store'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { SortableSongItem } from './SortableSongItem'
 import { HiOutlineQueueList } from 'react-icons/hi2'
+import PlayerCore from './PlayerCore'
 
 export const FloatingPlayer: React.FC = () => {
   const [isQueueOpen, setIsQueueOpen] = useState(false)
@@ -19,92 +32,44 @@ export const FloatingPlayer: React.FC = () => {
     playbackPosition,
     queue,
     isExpanded,
-    forceSeekToZero,
-    isShuffled, // Get new state
-    repeatMode, // Get new state
-    currentSongIndex,
+    isShuffled,
+    repeatMode,
+    volume,
+    isMuted,
     shuffledQueue,
+    duration,
     actions: {
       setIsExpanded,
       cycleRepeatMode,
-      clearForceSeekToZero,
+      seek: seekAction,
       ...playerActions
     },
   } = usePlayerStore()
-  const {
-    actions: { startJam },
-  } = useJamStore()
-  const { accessToken } = useAuthStore()
-
-  const handleTimeUpdate = useCallback(
-    (time: number) => {
-      playerActions.updatePlaybackPosition(time)
-    },
-    [playerActions]
+  // Add a unique ID to each song for dnd-kit if it doesn't exist
+  const queueWithIds = useMemo(
+    () =>
+      queue.map((song, index) => ({
+        ...song,
+        uniqueId: `${song._id}-${index}`,
+      })),
+    [queue]
   )
-  const handleError = useCallback((error: string) => {
-    console.error('Audio Player Error:', error)
-  }, [])
 
-  const [songHasEnded, setSongHasEnded] = useState(0) // State to signal when a song has ended
-  const handleEnded = useCallback(() => {
-    setSongHasEnded((v) => v + 1) // Increment the state to trigger the songEnd/handleEnd effect below.
-  }, [])
-  const {
-    audioRef,
-    play,
-    pause,
-    seek,
-    canPlay,
-    volume,
-    isMuted,
-    duration,
-    setVolume,
-    toggleMute,
-  } = useAudioPlayer({
-    hlsUrl: currentSong?.hlsUrl ?? '',
-    fallbackUrl: currentSong?.originalUrl ?? '',
-    onTimeUpdate: handleTimeUpdate,
-    onEnded: handleEnded,
-    onError: handleError,
-  })
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
-  useEffect(() => {
-    const currentRepeatMode = repeatMode
-    if (currentRepeatMode === 'one') {
-      seek(0) // Repeat the current song
-      playerActions.play() // Ensure playback continues
-      play()
-    } else if (currentRepeatMode === 'all') {
-      playerActions.nextSong() // Go to the next song
-    } else {
-      const activeQueue = isShuffled ? shuffledQueue : queue
-      if (currentSongIndex < activeQueue.length - 1) {
-        playerActions.nextSong()
-      } else {
-        playerActions.pause()
-      }
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = queueWithIds.findIndex((s) => s.uniqueId === active.id)
+      const newIndex = queueWithIds.findIndex((s) => s.uniqueId === over.id)
+      playerActions.reorderQueue(oldIndex, newIndex)
     }
-  }, [songHasEnded])
-
-  // Core effect to sync global state with the audio element
-  useEffect(() => {
-    if (canPlay) {
-      if (isPlaying) {
-        play()
-      } else {
-        pause()
-      }
-    }
-  }, [isPlaying, canPlay, play, pause])
-
-  useEffect(() => {
-    if (forceSeekToZero) {
-      seek(0)
-      clearForceSeekToZero()
-    }
-  }, [forceSeekToZero, seek, clearForceSeekToZero])
-
+  }
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement
@@ -142,11 +107,11 @@ export const FloatingPlayer: React.FC = () => {
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value)
-    playerActions.seek(time)
-    seek(time)
+    seekAction(time)
   }
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(Number(e.target.value))
+    playerActions.setVolume(Number(e.target.value))
   }
 
   const getVolumeIcon = () => {
@@ -154,12 +119,6 @@ export const FloatingPlayer: React.FC = () => {
       return <FiVolumeX className="w-4 h-4 text-gray-400" />
     if (volume < 0.5) return <FiVolume1 className="w-4 h-4 text-gray-400" />
     return <FiVolume2 className="w-4 h-4 text-gray-400" />
-  }
-
-  const handleStartJam = () => {
-    if (currentSong && accessToken) {
-      startJam(currentSong._id, accessToken)
-    }
   }
 
   const formatTime = (time: number) => {
@@ -175,13 +134,14 @@ export const FloatingPlayer: React.FC = () => {
       title: currentSong?.metadata.title ?? 'No song selected',
       artist: currentSong?.metadata.artist?.displayName ?? 'Unknown Artist',
       album: currentSong?.metadata.album.title ?? 'Unknown Album',
-      duration: formatTime(audioRef.current?.duration ?? 0),
+      duration: formatTime(duration),
       currentTime: formatTime(playbackPosition),
       cover:
         currentSong?.metadata.album.coverUrl ?? currentSong?.coverArtUrl ?? '',
     }),
-    [currentSong, playbackPosition, audioRef.current?.duration]
+    [currentSong, playbackPosition, duration]
   )
+
   const [windowSize, setWindowSize] = useState({
     width: 0,
     height: 0,
@@ -200,13 +160,14 @@ export const FloatingPlayer: React.FC = () => {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
   if (!currentSong) {
     return null // Don't render the player if no song is loaded
   }
 
   return (
     <>
-      <audio ref={audioRef} />
+      <PlayerCore />
       {isExpanded ? (
         <div className="fixed top-0 right-0 w-full sm:w-[380px] h-full bg-white/95 backdrop-blur-md  border-gray-200/50 flex flex-col z-50 overflow-hidden">
           {/* Expanded Player Content */}
@@ -250,6 +211,7 @@ export const FloatingPlayer: React.FC = () => {
                 </p>
               </div>
             </div>
+            {/* Progress Bar and Controls */}
             <div className="mt-auto">
               {/* Progress */}
               <div className="mb-8 flex-shrink-0">
@@ -262,11 +224,7 @@ export const FloatingPlayer: React.FC = () => {
                     <div
                       className="h-full bg-gray-900 transition-all duration-100"
                       style={{
-                        width: `${
-                          (playbackPosition /
-                            (audioRef.current?.duration ?? 1)) *
-                          100
-                        }%`,
+                        width: `${(playbackPosition / (duration || 1)) * 100}%`,
                       }}
                     />
                   </div>
@@ -334,6 +292,7 @@ export const FloatingPlayer: React.FC = () => {
                 </button>
               </div>
             </div>
+
             {/* Next Songs */}
             <div className="hidden sm:flex flex-1 min-h-0 mt-12 lg:mt-0 flex-col">
               {' '}
@@ -344,49 +303,13 @@ export const FloatingPlayer: React.FC = () => {
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto">
                 <div className="space-y-1 pb-4 hidden sm:block">
-                  {!isShuffled &&
-                    queue.map((song) => (
+                  {isShuffled ? (
+                    shuffledQueue.map((song, index) => (
                       <div
-                        role="button"
-                        key={song._id}
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
-                        onClick={() => playerActions.loadSong(song, true)}
+                        key={`${song._id}-${index}`}
+                        className="flex items-center space-x-3 p-3 rounded-lg"
                       >
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                          <img
-                            src={
-                              song.metadata.album.coverUrl
-                                ? song.metadata.album.coverUrl
-                                : song.coverArtUrl
-                            }
-                            alt={song.metadata.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate text-gray-900 group-hover:text-gray-700">
-                            {song.metadata.title
-                              ? song.metadata.title
-                              : 'Unknown Title'}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {song.metadata.artist.displayName}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  {isShuffled &&
-                    shuffledQueue.map((song, i) => (
-                      <div
-                        key={
-                          i +
-                          song.metadata.artist.displayName +
-                          song.metadata.title
-                        }
-                        role="button"
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
-                        onClick={() => playerActions.loadSong(song, true)}
-                      >
+                        {/* Non-draggable item for shuffled queue */}
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
                             src={
@@ -397,15 +320,35 @@ export const FloatingPlayer: React.FC = () => {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate text-gray-900 group-hover:text-gray-700">
-                            {song.metadata.title}
+                          <p className="text-sm font-medium truncate text-gray-900">
+                            {song.metadata.title ?? 'Unknown Title'}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
                             {song.metadata.artist.displayName}
                           </p>
                         </div>
                       </div>
-                    ))}
+                    ))
+                  ) : (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={queueWithIds.map((s) => s.uniqueId!)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {queueWithIds.map((song) => (
+                          <SortableSongItem
+                            key={song.uniqueId}
+                            song={song}
+                            onPlay={() => playerActions.loadSong(song, true)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  )}
                 </div>
               </div>
             </div>
@@ -414,7 +357,7 @@ export const FloatingPlayer: React.FC = () => {
             <div className="hidden lg:block mt-6 flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={toggleMute}
+                  onClick={playerActions.toggleMute}
                   className="hover:text-gray-600 transition-colors"
                 >
                   {getVolumeIcon()}
@@ -547,17 +490,13 @@ export const FloatingPlayer: React.FC = () => {
               {/* Queue List */}
               <div className="flex-1 overflow-y-auto px-6">
                 <div className="space-y-1 pb-6">
-                  {isShuffled &&
+                  {isShuffled ? (
                     shuffledQueue.map((song, i) => (
                       <div
-                        key={
-                          i +
-                          song.metadata.artist.displayName +
-                          song.metadata.title
-                        }
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
-                        onClick={() => playerActions.loadSong(song, true)}
+                        key={`${song._id}-${i}`}
+                        className="flex items-center space-x-3 p-3 rounded-lg"
                       >
+                        {/* Non-draggable item for shuffled queue */}
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
                             src={song.metadata.album.coverUrl}
@@ -566,7 +505,7 @@ export const FloatingPlayer: React.FC = () => {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate text-gray-900 group-hover:text-gray-700">
+                          <p className="font-medium truncate text-gray-900">
                             {song.metadata.title}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
@@ -574,39 +513,27 @@ export const FloatingPlayer: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                    ))}
-                  {!isShuffled &&
-                    queue.map((song, i) => (
-                      <div
-                        key={
-                          i +
-                          song.metadata.artist.displayName +
-                          song.metadata.title
-                        }
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
-                        onClick={() => playerActions.loadSong(song, true)}
+                    ))
+                  ) : (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={queueWithIds.map((s) => s.uniqueId!)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                          <img
-                            src={
-                              song.metadata.album.coverUrl
-                                ? song.metadata.album.coverUrl
-                                : song.coverArtUrl
-                            }
-                            alt={song.metadata.title}
-                            className="w-full h-full object-cover"
+                        {queueWithIds.map((song) => (
+                          <SortableSongItem
+                            key={song.uniqueId}
+                            song={song}
+                            onPlay={() => playerActions.loadSong(song, true)}
                           />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate text-gray-900 group-hover:text-gray-700">
-                            {song.metadata.title}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate">
-                            {song.metadata.artist.displayName}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  )}
                 </div>
               </div>
             </motion.div>

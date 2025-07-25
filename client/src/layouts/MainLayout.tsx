@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { BiUser } from 'react-icons/bi'
 import { FloatingPlayer } from '../components/player/FloatingPlayer'
 import { LeftSidebar } from '../components/LeftSidebar'
-import { JamModal } from '../components/shared/JamModal'
 import { usePlayerStore } from '../store/player-store'
 import { useAuthStore } from '../store/auth-store'
 import { Link } from 'react-router'
@@ -22,7 +21,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         isVisible={isLeftSidebarOpen}
         onClose={() => setIsLeftSidebarOpen(false)}
       />
-      <JamModal />
 
       {/* Middle Section - Main Content */}
       {/* This div will now shrink to make space for the expanded player */}

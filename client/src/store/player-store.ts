@@ -36,6 +36,9 @@ interface PlayerState {
   isShuffled: boolean
   repeatMode: RepeatMode
   currentSongIndex: number
+  duration: number
+  volume: number
+  isMuted: boolean
   actions: {
     loadSong: (song: Song, playNow?: boolean) => void
     loadQueue: (songs: Song[], startPlayingFromIndex?: number) => void
@@ -51,11 +54,19 @@ interface PlayerState {
     clearForceSeekToZero: () => void
     toggleShuffle: () => void
     cycleRepeatMode: () => void
+    setDuration: (duration: number) => void
+    setVolume: (volume: number) => void
+    toggleMute: () => void
+    reorderQueue: (oldIndex: number, newIndex: number) => void
   }
 }
+function arrayMove<T>(array: T[], from: number, to: number): T[] {
+  const newArray = [...array]
+  const [item] = newArray.splice(from, 1)
+  newArray.splice(to, 0, item)
+  return newArray
+}
 
-// This is a conceptual store. The actual implementation will need to
-// interact with the useAudioPlayer hook, likely within the main Player component.
 export const usePlayerStore = create<PlayerState>()(
   devtools((set, get) => ({
     currentSong: null,
@@ -69,6 +80,9 @@ export const usePlayerStore = create<PlayerState>()(
     isShuffled: false,
     repeatMode: 'off',
     shuffledQueue: [],
+    duration: 0,
+    volume: 1,
+    isMuted: false,
     actions: {
       loadSong: (song, playNow = false) => {
         set({ currentSong: song, playbackPosition: 0, isPlaying: playNow })
@@ -173,6 +187,20 @@ export const usePlayerStore = create<PlayerState>()(
         const currentIndex = modes.indexOf(repeatMode)
         const nextMode = modes[(currentIndex + 1) % modes.length]
         set({ repeatMode: nextMode })
+      },
+      setDuration: (duration) => set({ duration }),
+      setVolume: (volume) => {
+        set({ volume, isMuted: volume === 0 ? true : false })
+      },
+      toggleMute: () => {
+        set((state) => ({ isMuted: !state.isMuted }))
+      },
+
+      reorderQueue: (oldIndex, newIndex) => {
+        const { queue } = get()
+        set({
+          queue: arrayMove(queue, oldIndex, newIndex),
+        })
       },
     },
   }))

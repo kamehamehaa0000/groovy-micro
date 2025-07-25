@@ -111,13 +111,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <span>{item.label}</span>
             </Link>
           ))}
-          <button
-            onClick={openJamModal}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group hover:text-orange-600"
-          >
-            <TbBlendMode className="w-4  h-4 transition-transform duration-200 group-hover:scale-110 " />
-            <span>Start Jam</span>
-          </button>
         </nav>
       </div>
       {/* Playlists */}
