@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useJamActions } from '../store/jam-store'
+
 import { BiUser } from 'react-icons/bi'
 import { FloatingPlayer } from '../components/player/FloatingPlayer'
 import { LeftSidebar } from '../components/LeftSidebar'
@@ -11,8 +13,16 @@ import {
 } from 'react-icons/tb'
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const { connect, disconnect } = useJamActions()
   const { isExpanded: isPlayerExpanded } = usePlayerStore()
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    connect()
+    return () => {
+      disconnect()
+    }
+  }, [connect, disconnect])
 
   return (
     <div className="w-screen h-screen flex bg-white overflow-hidden">

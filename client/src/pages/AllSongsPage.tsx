@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import { fetchPublicSongs } from '../service/songsService'
 import { SongCompactCardA } from '../components/cards/SongCompactCardA'
-import { type Song } from '../store/player-store'
+import type { Song } from '../types'
 
 interface SongsResponse {
   songs: Song[]

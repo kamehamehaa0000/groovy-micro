@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getRecentlyPlayed } from '../../service/libraryService'
 import { SongCompactCardA } from '../cards/SongCompactCardA'
-import type { Song } from '../../store/player-store'
+import type { Song } from '../../types'
 
 const RecentlyPlayedSongs = () => {
   const [songs, setSongs] = useState<Song[]>([])

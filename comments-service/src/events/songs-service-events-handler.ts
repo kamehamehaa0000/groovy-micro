@@ -79,6 +79,7 @@ export class SongServiceEventHandlers {
         await SongServiceEventHandlers.handleLibraryUpdated(
           event.data as LibraryUpdatedEventData
         )
+        break
       default:
         console.log(`🤷‍♂️ Unknown event type: ${event.eventType}`)
     }

@@ -1,3 +1,8 @@
+import {
+  useJamActions,
+  useIsJamming,
+  useJamSession,
+} from '../../store/jam-store'
 import { usePlayerStore } from '../../store/player-store'
 import albumCoverArtPlaceholder from '../../assets/albumPlaceholder.svg'
 import { useAuthStore } from '../../store/auth-store'
@@ -21,19 +26,31 @@ export const AlbumCard = ({
   const { actions } = usePlayerStore()
   const { isAuthenticated } = useAuthStore()
   const { open: openSigninPrompt } = useSigninPromptModalStore()
+  const isJamming = useIsJamming()
+  const { changeSong: jamChangeSong, addToQueue: jamAddToQueue } =
+    useJamActions()
   const handlePlayAlbum = (album: any) => {
     if (!isAuthenticated) {
       openSigninPrompt()
       return
     }
-    actions.setQueue([])
-    actions.loadQueue(album.songs, 0)
+    if (isJamming) {
+      if (album.songs && album.songs.length > 0) {
+        jamChangeSong(album.songs[0]._id)
+        for (let i = 1; i < album.songs.length; i++) {
+          jamAddToQueue(album.songs[i]._id)
+        }
+      }
+    } else {
+      actions.setQueue([])
+      actions.loadQueue(album.songs, 0)
+    }
   }
   if (!album) return null
   return (
     <div
       key={album._id}
-      className="group cursor-pointer hover:shadow-md transition-shadow bg-white rounded-lg shadow-sm p-3"
+      className="group cursor-pointer hover:shadow-md transition-shadow bg-white rounded-lg shadow-sm p-3 min-w-[135px] max-w-[135px] lg:min-w-[150px] lg:max-w-[150px] text-clip "
     >
       <div className="relative mb-2">
         <img
@@ -51,11 +68,15 @@ export const AlbumCard = ({
       <div className="space-y-1">
         <Link
           to={`/albums/album/${album._id}`}
-          className="font-medium text-sm text-gray-900 truncate"
+          className="font-medium text-sm text-gray-900 truncate block"
+          title={album.title}
         >
           {album.title}
         </Link>
-        <p className="text-xs text-gray-600 truncate">
+        <p
+          className="text-xs text-gray-600 truncate"
+          title={album.artist?.displayName || 'N/A'}
+        >
           {album.artist?.displayName || 'N/A'}
         </p>
       </div>

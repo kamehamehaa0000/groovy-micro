@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { type Song } from '../../store/player-store'
 import { SongCompactCardA } from '../cards/SongCompactCardA'
 import { fetchPublicSongs } from '../../service/songsService'
 import { Link } from 'react-router'
+import type { Song } from '../../types'
 
 const HomepageSongs = () => {
   const [songs, setSongs] = useState<Song[]>([])

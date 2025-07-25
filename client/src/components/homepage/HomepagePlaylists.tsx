@@ -26,7 +26,7 @@ const HomepagePlaylists = () => {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold mb-4"> All Playlists</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {Array.from({ length: 12 }).map((_, index) => (
             <div
               key={index + 'loading-public-songs'}
@@ -54,7 +54,7 @@ const HomepagePlaylists = () => {
           </h2>
           <Link to="/playlists">See all</Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8  gap-3">
+        <div className="flex flex-wrap gap-4 items-center justify-start">
           {playlists.length > 0 &&
             playlists?.map((playlist: any) => (
               <PlaylistCard key={playlist._id} playlist={playlist} />

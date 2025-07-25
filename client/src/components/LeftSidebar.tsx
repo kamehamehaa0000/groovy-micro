@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react'
-import {
-  BiHeart,
-  BiHome,
-  BiLibrary,
-  BiPlus,
-  BiRadio,
-  BiSearch,
-  BiUpload,
-} from 'react-icons/bi'
-
+import { BiHeart, BiHome, BiPlus, BiSearch, BiUpload } from 'react-icons/bi'
 import { PiCassetteTapeLight } from 'react-icons/pi'
 import {
   useCreatePlaylistModalStore,
   useJamModalStore,
 } from '../store/modal-store'
 import { getUserPlaylist } from '../service/playlistService'
-import { TbBlendMode, TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
-import { Link, NavLink } from 'react-router'
+import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
+import { Link } from 'react-router'
 
 interface LeftSidebarProps {
   isVisible: boolean
@@ -73,7 +64,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   }, [])
   return (
     <div
-      className={`w-screen md:w-56 h-full bg-background flex flex-col ${
+      className={`w-screen lg:w-56 h-full bg-background flex flex-col ${
         isVisible ? ' block' : ' hidden'
       } lg:block `}
     >

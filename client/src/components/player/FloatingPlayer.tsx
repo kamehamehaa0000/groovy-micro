@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { JoinJamModal } from '../jam/JoinJamModal'
+import {
+  useJamActions,
+  useIsJamming,
+  useJamSession,
+} from '../../store/jam-store'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PiArrowCircleUpRightThin } from 'react-icons/pi'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BiPause, BiPlay, BiRepeat, BiShuffle } from 'react-icons/bi'
@@ -23,8 +29,29 @@ import {
 import { SortableSongItem } from './SortableSongItem'
 import { HiOutlineQueueList } from 'react-icons/hi2'
 import PlayerCore from './PlayerCore'
+import type { RepeatMode } from '../../types'
+import HostControlModal from '../jam/HostControlModal'
+import { useAuthStore } from '../../store/auth-store'
+import {
+  useHostControlModalStore,
+  useJoinJamModalStore,
+} from '../../store/modal-store'
 
 export const FloatingPlayer: React.FC = () => {
+  const isJamming = useIsJamming()
+  const session = useJamSession()
+  const { user } = useAuthStore()
+  const { open: openHostControlModal } = useHostControlModalStore()
+  const {
+    startJam,
+    controlPlayback,
+    changeSong,
+    seek: jamSeek,
+    controlRepeatMode,
+    leaveJam,
+  } = useJamActions()
+  const { open: openJoinModal } = useJoinJamModalStore()
+
   const [isQueueOpen, setIsQueueOpen] = useState(false)
   const {
     currentSong,
@@ -98,16 +125,24 @@ export const FloatingPlayer: React.FC = () => {
 
   const handlePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isPlaying) {
-      playerActions.pause()
+    if (isJamming) {
+      controlPlayback(isPlaying ? 'paused' : 'playing', playbackPosition)
     } else {
-      playerActions.play()
+      if (isPlaying) {
+        playerActions.pause()
+      } else {
+        playerActions.play()
+      }
     }
   }
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value)
-    seekAction(time)
+    if (isJamming) {
+      jamSeek(time)
+    } else {
+      seekAction(time)
+    }
   }
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,9 +209,50 @@ export const FloatingPlayer: React.FC = () => {
           <div className="flex flex-col h-full min-h-0 p-6 sm:p-8 sm:justify-start">
             {/* Header */}
             <div className="flex items-center justify-between mb-12 flex-shrink-0">
-              <h2 className="text-sm font-medium text-gray-700 tracking-wide">
-                NOW PLAYING
+              <h2 className="text-sm font-medium text-gray-700 ">
+                Now Playing{' '}
+                {isJamming &&
+                  session?.joinCode &&
+                  `(Jam Code: ${session.joinCode})`}
               </h2>
+              <div className="flex  space-x-1 ">
+                {!isJamming && currentSong && (
+                  <button
+                    title="Start Jam Mode"
+                    onClick={() => startJam(currentSong._id)}
+                    className="px-2 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
+                  >
+                    Start Jam
+                  </button>
+                )}
+                {!isJamming && (
+                  <button
+                    title="Join Jam Mode"
+                    onClick={openJoinModal}
+                    className="px-2 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
+                  >
+                    Join Jam
+                  </button>
+                )}
+                {isJamming && (
+                  <button
+                    title="Leave Jam Mode"
+                    onClick={leaveJam}
+                    className="px-1 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-red-100 hover:bg-gray-200 text-red-700 "
+                  >
+                    Leave Jam
+                  </button>
+                )}
+                {isJamming && session?.creator === user?.id && (
+                  <button
+                    onClick={openHostControlModal}
+                    className="px-1 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
+                    title="Open Host Controls"
+                  >
+                    Jam Controls
+                  </button>
+                )}
+              </div>
               <button
                 className="w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 transition-all duration-200"
                 onClick={() => setIsExpanded(false)}
@@ -253,7 +329,27 @@ export const FloatingPlayer: React.FC = () => {
                 </button>
                 <button
                   className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
-                  onClick={playerActions.previousSong}
+                  onClick={() => {
+                    console.log('Previous song clicked in Jam Mode.')
+                    console.log('isJamming:', isJamming)
+                    console.log('session:', session)
+                    console.log('currentSong:', currentSong)
+                    if (isJamming && session?.queue && currentSong) {
+                      if (playbackPosition > 10) {
+                        jamSeek(0)
+                      } else {
+                        const currentIndex = session.queue.findIndex(
+                          (s) => s._id === currentSong._id
+                        )
+                        console.log('currentIndex (previous):', currentIndex)
+                        if (currentIndex > 0) {
+                          changeSong(session.queue[currentIndex - 1]._id)
+                        }
+                      }
+                    } else {
+                      playerActions.previousSong()
+                    }
+                  }}
                 >
                   <BsSkipBackward className="w-5 h-5" />
                 </button>
@@ -271,7 +367,23 @@ export const FloatingPlayer: React.FC = () => {
                 </motion.button>
                 <button
                   className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
-                  onClick={playerActions.nextSong}
+                  onClick={() => {
+                    console.log('Next song clicked in Jam Mode.')
+                    console.log('isJamming:', isJamming)
+                    console.log('session:', session)
+                    console.log('currentSong:', currentSong)
+                    if (isJamming && session?.queue) {
+                      const currentIndex = session.queue.findIndex(
+                        (s) => s._id === currentSong?._id
+                      )
+                      console.log('currentIndex (next):', currentIndex)
+                      if (currentIndex < session.queue.length - 1) {
+                        changeSong(session.queue[currentIndex + 1]._id)
+                      }
+                    } else {
+                      playerActions.nextSong()
+                    }
+                  }}
                 >
                   <BsSkipForward className="w-5 h-5" />
                 </button>
@@ -281,7 +393,16 @@ export const FloatingPlayer: React.FC = () => {
                       ? 'text-orange-600 hover:text-orange-700'
                       : 'text-gray-400 hover:text-gray-600'
                   }`}
-                  onClick={cycleRepeatMode}
+                  onClick={() => {
+                    if (isJamming) {
+                      const modes: RepeatMode[] = ['off', 'all', 'one']
+                      const currentIndex = modes.indexOf(repeatMode)
+                      const nextMode = modes[(currentIndex + 1) % modes.length]
+                      controlRepeatMode(nextMode)
+                    } else {
+                      cycleRepeatMode()
+                    }
+                  }}
                 >
                   <BiRepeat className="w-4 h-4" />
                   {repeatMode === 'one' && (
@@ -297,9 +418,45 @@ export const FloatingPlayer: React.FC = () => {
             <div className="hidden sm:flex flex-1 min-h-0 mt-12 lg:mt-0 flex-col">
               {' '}
               <div className="flex items-center justify-between mb-4 ">
-                <h3 className="text-sm font-medium text-gray-700 tracking-wide ">
-                  Queue
-                </h3>
+                <div className="flex items-center justify-between w-full">
+                  <h3 className="text-sm font-medium text-gray-700 tracking-wide">
+                    Queue
+                  </h3>
+                  <div className="flex space-x-2">
+                    {!isJamming && currentSong && (
+                      <button
+                        onClick={() => startJam(currentSong._id)}
+                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors"
+                      >
+                        Start Jam
+                      </button>
+                    )}
+                    {!isJamming && (
+                      <button
+                        onClick={openJoinModal}
+                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors"
+                      >
+                        Join Jam
+                      </button>
+                    )}
+                    {isJamming && (
+                      <button
+                        onClick={leaveJam}
+                        className="px-3 py-1 flex items-center gap-2 font-semibold bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors"
+                      >
+                        Exit Jam
+                      </button>
+                    )}
+                    {isJamming && session?.creator === user?.id && (
+                      <button
+                        onClick={openHostControlModal}
+                        className="px-3 py-1 flex items-center gap-2 font-semibold bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
+                      >
+                        Host Controls
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto">
                 <div className="space-y-1 pb-4 hidden sm:block">
@@ -336,14 +493,20 @@ export const FloatingPlayer: React.FC = () => {
                       onDragEnd={handleDragEnd}
                     >
                       <SortableContext
-                        items={queueWithIds.map((s) => s.uniqueId!)}
+                        items={queueWithIds.map((s) => s.uniqueId)}
                         strategy={verticalListSortingStrategy}
                       >
                         {queueWithIds.map((song) => (
                           <SortableSongItem
                             key={song.uniqueId}
                             song={song}
-                            onPlay={() => playerActions.loadSong(song, true)}
+                            onPlay={() => {
+                              if (isJamming) {
+                                changeSong(song._id)
+                              } else {
+                                playerActions.loadSong(song, true)
+                              }
+                            }}
                           />
                         ))}
                       </SortableContext>
@@ -383,7 +546,7 @@ export const FloatingPlayer: React.FC = () => {
             {/* Queue Button */}
             <div className="flex items-center  w-full justify-end">
               <button
-                className="px-3 py-1.5 flex items-center  gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors sm:hidden"
+                className="px-3 py-1 flex items-center  gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors sm:hidden"
                 onClick={() => setIsQueueOpen(true)}
               >
                 <HiOutlineQueueList className="w-5 h-5" />
@@ -499,7 +662,7 @@ export const FloatingPlayer: React.FC = () => {
                         {/* Non-draggable item for shuffled queue */}
                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
-                            src={song.metadata.album.coverUrl}
+                            src={song.coverArtUrl}
                             alt={song.metadata.title}
                             className="w-full h-full object-cover"
                           />
@@ -521,14 +684,20 @@ export const FloatingPlayer: React.FC = () => {
                       onDragEnd={handleDragEnd}
                     >
                       <SortableContext
-                        items={queueWithIds.map((s) => s.uniqueId!)}
+                        items={queueWithIds.map((s) => s.uniqueId)}
                         strategy={verticalListSortingStrategy}
                       >
                         {queueWithIds.map((song) => (
                           <SortableSongItem
                             key={song.uniqueId}
                             song={song}
-                            onPlay={() => playerActions.loadSong(song, true)}
+                            onPlay={() => {
+                              if (isJamming) {
+                                changeSong(song._id)
+                              } else {
+                                playerActions.loadSong(song, true)
+                              }
+                            }}
                           />
                         ))}
                       </SortableContext>
@@ -540,6 +709,8 @@ export const FloatingPlayer: React.FC = () => {
           </>
         )}
       </AnimatePresence>
+      <JoinJamModal />
+      <HostControlModal />
     </>
   )
 }

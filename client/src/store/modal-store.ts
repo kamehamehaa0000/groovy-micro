@@ -69,3 +69,19 @@ export const useEditCommentModalStore = create<IEditCommentModal>((set) => ({
   setComment: (id: string, content: string) => set({ commentId: id, content }),
   clear: () => set({ commentId: '', content: '' }),
 }))
+
+interface IHostControlModal extends IModal {}
+
+export const useHostControlModalStore = create<IHostControlModal>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+}))
+
+interface IJoinJamModal extends IModal {}
+
+export const useJoinJamModalStore = create<IJoinJamModal>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+}))

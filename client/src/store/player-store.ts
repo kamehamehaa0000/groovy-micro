@@ -1,29 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-export interface Song {
-  isLikedByCurrentUser?: boolean
-  coverArtUrl?: string
-  likedBy?: number
-  _id: string
-  hlsUrl: string
-  originalUrl: string
-  metadata: {
-    title: string
-    artist: {
-      _id: string
-      displayName: string
-    }
-    album: {
-      _id: string
-      title: string
-      coverUrl: string
-    }
-    genre: string
-    trackNumber: number
-    likedBy: string[]
-  }
-}
-export type RepeatMode = 'off' | 'all' | 'one'
+import { type Song, type RepeatMode } from '../types'
 interface PlayerState {
   currentSong: null | Song
   queue: Song[]
@@ -58,6 +35,8 @@ interface PlayerState {
     setVolume: (volume: number) => void
     toggleMute: () => void
     reorderQueue: (oldIndex: number, newIndex: number) => void
+    setShuffle: (isShuffled: boolean) => void
+    setRepeatMode: (mode: RepeatMode) => void
   }
 }
 function arrayMove<T>(array: T[], from: number, to: number): T[] {
@@ -155,11 +134,17 @@ export const usePlayerStore = create<PlayerState>()(
           set({ shuffledQueue: [currentSong, ...shuffledRemaining] })
         }
       },
-      toggleShuffle: () => {
-        const { isShuffled, queue, currentSong } = get()
-        const newIsShuffled = !isShuffled
 
-        if (newIsShuffled && currentSong) {
+      cycleRepeatMode: () => {
+        const { repeatMode } = get()
+        const modes: RepeatMode[] = ['off', 'all', 'one']
+        const currentIndex = modes.indexOf(repeatMode)
+        const nextMode = modes[(currentIndex + 1) % modes.length]
+        set({ repeatMode: nextMode })
+      },
+      setShuffle: (isShuffled: boolean) => {
+        const { queue, currentSong } = get()
+        if (isShuffled && currentSong) {
           const remainingSongs = queue.filter((s) => s._id !== currentSong._id)
           const shuffledRemaining = remainingSongs.sort(
             () => Math.random() - 0.5
@@ -181,13 +166,7 @@ export const usePlayerStore = create<PlayerState>()(
           })
         }
       },
-      cycleRepeatMode: () => {
-        const { repeatMode } = get()
-        const modes: RepeatMode[] = ['off', 'all', 'one']
-        const currentIndex = modes.indexOf(repeatMode)
-        const nextMode = modes[(currentIndex + 1) % modes.length]
-        set({ repeatMode: nextMode })
-      },
+      setRepeatMode: (mode: RepeatMode) => set({ repeatMode: mode }),
       setDuration: (duration) => set({ duration }),
       setVolume: (volume) => {
         set({ volume, isMuted: volume === 0 ? true : false })

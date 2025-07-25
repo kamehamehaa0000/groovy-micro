@@ -1,5 +1,7 @@
+import { useJamActions, useIsJamming } from '../../store/jam-store'
+
 import { useEffect, useState } from 'react'
-import { usePlayerStore, type Song } from '../../store/player-store'
+import { usePlayerStore } from '../../store/player-store'
 import { useAuthStore } from '../../store/auth-store'
 import {
   useAddToPlaylistModalStore,
@@ -11,8 +13,11 @@ import { Link } from 'react-router'
 import { addSongToListenLater } from '../../service/libraryService'
 import toast from 'react-hot-toast'
 import { toggleLikeSong } from '../../service/songsService'
+import type { Song } from '../../types'
 
-export function SongCompactCardB({ song: initialSong }: { song: Song }) {
+export function SongCompactCardB({
+  song: initialSong,
+}: Readonly<{ song: Song }>) {
   const [song, setSong] = useState(initialSong)
   const [likeLoading, setLikeLoading] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -21,6 +26,10 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
   const { open } = useSigninPromptModalStore()
   const { isPlaying: playerIsPlaying, currentSong, actions } = usePlayerStore()
   const { open: openAddToPlaylist, setSongId } = useAddToPlaylistModalStore()
+  const isJamming = useIsJamming()
+  const { addToQueue: jamAddToQueue, changeSong: jamChangeSong } =
+    useJamActions()
+
   useEffect(() => {
     setSong(initialSong)
   }, [initialSong])
@@ -30,10 +39,15 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
       open()
       return
     }
-    if (playerIsPlaying && currentSong?._id === song._id) {
-      actions.pause()
+
+    if (isJamming) {
+      jamChangeSong(song._id)
     } else {
-      actions.loadSong(song, true)
+      if (playerIsPlaying && currentSong?._id === song._id) {
+        actions.pause()
+      } else {
+        actions.loadSong(song, true)
+      }
     }
   }
   const handleAddToPlaylist = () => {
@@ -54,7 +68,7 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
       await addSongToListenLater(song._id)
       toast.success('Song added to Listen Later')
     } catch (error) {
-      toast.error('Failed to add song to Listen Later')
+      error && toast.error('Failed to add song to Listen Later')
     }
     setIsDropdownOpen(false)
   }
@@ -63,8 +77,13 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
       open()
       return
     }
-    const currentQueue = usePlayerStore.getState().queue ?? []
-    actions.setQueue([...currentQueue, song])
+
+    if (isJamming) {
+      jamAddToQueue(song._id)
+    } else {
+      const currentQueue = usePlayerStore.getState().queue ?? []
+      actions.setQueue([...currentQueue, song])
+    }
     setIsDropdownOpen(false)
   }
 
@@ -83,7 +102,7 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
         isLikedByCurrentUser: !wasLiked,
       }))
     } catch (error) {
-      toast.error('An error occurred while liking the song')
+      error && toast.error('An error occurred while liking the song')
     } finally {
       setLikeLoading(false)
     }
@@ -110,7 +129,7 @@ export function SongCompactCardB({ song: initialSong }: { song: Song }) {
   }, [currentSong, song, playerIsPlaying])
 
   return (
-    <div className="hover:bg-gray-50 border-b border-gray-100 p-4 transition-colors">
+    <div className="hover:bg-gray-50 border-b border-gray-100 p-4 transition-colors min-w-3xs">
       <div className="flex items-center space-x-4">
         <div className="text-sm text-gray-400 w-8 text-center">
           {song?.metadata?.trackNumber}

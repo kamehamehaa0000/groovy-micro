@@ -13,7 +13,8 @@ export interface IJamSession extends Document {
   }
   playbackState: 'playing' | 'paused'
   shuffle: boolean
-  repeat: 'none' | 'one' | 'all'
+  repeat: 'off' | 'one' | 'all'
+  hasControlPermissions: string[]
   joinCode: string
   createdAt: Date
 }
@@ -33,7 +34,8 @@ const JamSessionSchema = new Schema<IJamSession>({
     default: 'playing',
   },
   shuffle: { type: Boolean, default: false },
-  repeat: { type: String, enum: ['none', 'one', 'all'], default: 'none' },
+  hasControlPermissions: [{ type: String, ref: 'User', default: [] }],
+  repeat: { type: String, enum: ['off', 'one', 'all'], default: 'off' },
   joinCode: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now, expires: '12h' }, // Automatically clean up sessions after 12 hours
 })
@@ -42,6 +44,7 @@ const JamSessionSchema = new Schema<IJamSession>({
 JamSessionSchema.pre('save', function (next) {
   if (this.isNew) {
     this.participants.push(this.creator)
+    this.participants = [...new Set(this.participants)] // Deduplicate
   }
   next()
 })

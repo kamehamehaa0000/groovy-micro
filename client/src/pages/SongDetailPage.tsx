@@ -1,3 +1,4 @@
+import { useJamActions, useIsJamming } from '../store/jam-store'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import CompactComments from '../components/comments/CompactComments'
@@ -50,6 +51,9 @@ const SongDetailPage = () => {
     open: openAddToPlaylist,
     setSongId,
   } = useAddToPlaylistModalStore()
+  const isJamming = useIsJamming()
+  const { addToQueue: jamAddToQueue, changeSong: jamChangeSong } =
+    useJamActions()
 
   useEffect(() => {
     const fetchSong = async () => {
@@ -67,12 +71,16 @@ const SongDetailPage = () => {
   }, [songId])
 
   const handlePlaySong = () => {
-    if (currentSong?._id === songId && isPlaying) {
-      actions.pause()
-      setIsPlaying(false)
+    if (isJamming) {
+      jamChangeSong(song._id)
     } else {
-      actions.loadSong(song, true)
-      setIsPlaying(true)
+      if (currentSong?._id === songId && isPlaying) {
+        actions.pause()
+        setIsPlaying(false)
+      } else {
+        actions.loadSong(song, true)
+        setIsPlaying(true)
+      }
     }
   }
   const handleShareSong = () => {
@@ -117,7 +125,12 @@ const SongDetailPage = () => {
 
   const handleAddToQueue = () => {
     if (!song._id) return
-    actions.setQueue([...queue, song])
+
+    if (isJamming) {
+      jamAddToQueue(song._id)
+    } else {
+      actions.setQueue([...queue, song])
+    }
   }
 
   const handleAddToListenLater = async () => {

@@ -49,6 +49,7 @@ Promise.all([redisPubClient.connect(), redisSubClient.connect()])
     console.error('Failed to connect to Redis:', err)
   })
 
+
 initializeJamHandler(io)
 
 app.use(
