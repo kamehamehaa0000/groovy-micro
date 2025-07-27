@@ -1,8 +1,4 @@
-import {
-  useJamActions,
-  useIsJamming,
-  useJamSession,
-} from '../../store/jam-store'
+import { useJamActions, useIsJamming } from '../../store/jam-store'
 import { usePlayerStore } from '../../store/player-store'
 import { Link } from 'react-router'
 import albumCoverArtPlaceholder from '../../assets/albumPlaceholder.svg'
@@ -16,7 +12,7 @@ export const PlaylistCard = ({
   playlist: {
     _id: string
     title: string
-    coverUrl: string
+    coverUrl?: string
     creator: { displayName: string }
     songs: any[]
   }

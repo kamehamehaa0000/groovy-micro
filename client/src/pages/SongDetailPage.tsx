@@ -240,11 +240,23 @@ const SongDetailPage = () => {
             </div>
             <div className="mb-8">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-                Hello
+                {song.metadata.title || 'N/A'}
               </h1>
-              <p className="text-xl text-gray-600 mb-1">Aayush Gupta</p>
+              <p className="text-xl text-gray-600 mb-1">
+                {song.metadata.artist.displayName || 'N/A'}
+              </p>
+
+              {song.metadata.likedBy && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Liked by {song.metadata.likedBy.length} user
+                  {song.metadata.likedBy.length > 1 ? 's' : ''}
+                </p>
+              )}
               <p className="text-sm text-gray-500 uppercase tracking-wide">
-                Pop • 2024
+                {song.metadata.genre || 'N/A'} •{' '}
+                {new Date(song.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                })}
               </p>
             </div>
 

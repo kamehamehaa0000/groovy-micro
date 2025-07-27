@@ -23,14 +23,15 @@ router.get(
       } else {
         const userLibrary = await Library.findOne({
           userId: user.id,
-        })
-          .populate({
-            path: 'recentlyPlayed',
-            populate: {
+        }).populate({
+          path: 'recentlyPlayed',
+          populate: [
+            {
               path: 'metadata.artist',
-              select: 'displayName'
-            }
-          })
+              select: 'displayName',
+            },
+          ],
+        })
 
         if (!userLibrary) {
           res.status(200).json({
@@ -38,9 +39,19 @@ router.get(
             songs: [],
           })
         } else {
+          const songs = userLibrary.recentlyPlayed.map((song: any) => {
+            const songObject = song.toObject()
+            const isLiked = song.metadata.likedBy.some(
+              (liker: any) => liker === user.id
+            )
+            return {
+              ...songObject,
+              isLikedByCurrentUser: isLiked,
+            }
+          })
           res.status(200).json({
             message: 'Recently played songs retrieved successfully.',
-            songs: userLibrary.recentlyPlayed,
+            songs,
           })
         }
       }

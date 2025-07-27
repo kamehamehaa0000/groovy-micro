@@ -23,10 +23,11 @@ export const convertToHLS = async (
       '-f',
       'hls', // Output format
       '-hls_time',
-      '15', // Segment duration (in seconds)
-      '-hls_list_size',
-      '0', // Include all segments in playlist
-
+      '6', // Segment duration (in seconds)
+      '-hls_segment_type',
+      'fmp4', // Segment type
+      '-hls_flags',
+      'independent_segments', // Ensure segments are independent
       outputPath, // Output .m3u8 file path
     ])
 

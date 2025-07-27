@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { SongCompactCardB } from '../components/cards/SongCompactCardB'
-import { usePlayerStore, type Song } from '../store/player-store'
+import { usePlayerStore } from '../store/player-store'
 import { fetchAlbumById, toggleAlbumLike } from '../service/albumService'
 import toast from 'react-hot-toast'
 import { BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
 import { useAddAlbumToPlaylistModalStore } from '../store/modal-store'
 import CompactComments from '../components/comments/CompactComments'
+import type { Song } from '../types'
 
 export interface Album {
   _id: string
@@ -18,6 +19,8 @@ export interface Album {
   }
   songs: Song[]
   genre: string
+  likedBy?: string[]
+  visibility?: 'public' | 'private'
   isLikedByCurrentUser?: boolean
   createdAt: string
 }
@@ -188,6 +191,13 @@ const AlbumDetailPage = () => {
                 {album.title}
               </p>
               <p>{album.artist.displayName}</p>
+              <p className="text-sm text-gray-500 mt-1">{album.genre}</p>
+              {album.likedBy && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Liked by {album.likedBy} user
+                  {album.likedBy.length > 1 ? 's' : ''}
+                </p>
+              )}
               <p className="text-sm text-gray-500 mt-1">
                 {new Date(album.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',

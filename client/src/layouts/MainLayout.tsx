@@ -52,9 +52,9 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 <TbLayoutSidebarRightCollapse className="w-6 h-6 " />
               )}
             </button>
-            <div className="w-full mx-auto lg:m-0 max-w-4xl">
+            {/* <div className="w-full mx-auto lg:m-0 max-w-4xl">
               <SearchBar />
-            </div>
+            </div> */}
           </div>
           <UserProfile />
         </header>

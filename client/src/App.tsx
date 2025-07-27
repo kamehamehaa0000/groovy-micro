@@ -26,6 +26,11 @@ import AddAlbumToPlaylistModal from './components/shared/AddAlbumToPlaylistModal
 import AllSongsPage from './pages/AllSongsPage'
 import AllAlbumsPage from './pages/AllAlbumsPage'
 import AllPlaylistsPage from './pages/AllPlaylistsPage'
+import SearchPage from './pages/SearchPage'
+import SearchSongsPage from './pages/SearchSongsPage'
+import SearchAlbumsPage from './pages/SearchAlbumsPage'
+import SearchPlaylistsPage from './pages/SearchPlaylistsPage'
+import SearchArtistsPage from './pages/SearchArtistsPage'
 
 function App() {
   const { initializeAuth, isLoading, isInitialized } = useAuthStore()
@@ -87,9 +92,39 @@ function App() {
                     path="/search"
                     element={
                       <ProtectedRoute>
-                        <h1 className="text-2xl font-semibold mb-4">
-                          Search page
-                        </h1>
+                        <SearchPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/search/songs"
+                    element={
+                      <ProtectedRoute>
+                        <SearchSongsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/search/albums"
+                    element={
+                      <ProtectedRoute>
+                        <SearchAlbumsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/search/playlists"
+                    element={
+                      <ProtectedRoute>
+                        <SearchPlaylistsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/search/artists"
+                    element={
+                      <ProtectedRoute>
+                        <SearchArtistsPage />
                       </ProtectedRoute>
                     }
                   />
