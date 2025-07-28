@@ -44,6 +44,7 @@ const SongDetailPage = () => {
     coverArtUrl: '',
     isLikedByCurrentUser: false,
     createdAt: '',
+    streamCount: 0,
   })
   const { queue, currentSong, actions } = usePlayerStore()
   const {
@@ -245,11 +246,16 @@ const SongDetailPage = () => {
               <p className="text-xl text-gray-600 mb-1">
                 {song.metadata.artist.displayName || 'N/A'}
               </p>
-
               {song.metadata.likedBy && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 my-1">
                   Liked by {song.metadata.likedBy.length} user
                   {song.metadata.likedBy.length > 1 ? 's' : ''}
+                </p>
+              )}{' '}
+              {song.streamCount > 0 && (
+                <p className="text-sm text-gray-500 my-1">
+                  {song.streamCount} Total play{' '}
+                  {song.streamCount > 1 ? 's' : ''}
                 </p>
               )}
               <p className="text-sm text-gray-500 uppercase tracking-wide">

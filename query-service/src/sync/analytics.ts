@@ -119,6 +119,7 @@ const fullSyncSongAnalytics = async () => {
       totalPages = pagination.totalPages
 
       if (songAnalytics && songAnalytics.length > 0) {
+        console.log('songAnalytics', songAnalytics)
         const bulkOps = songAnalytics.map((sa: any) => ({
           updateOne: {
             filter: { _id: sa._id },
@@ -153,7 +154,7 @@ const fullSyncSongAnalytics = async () => {
     )
     const localSongAnalytics = await SongAnalytics.find({}).select('_id')
     const songAnalyticsToDelete = localSongAnalytics.filter(
-      (sa) => !activeSongAnalyticsIds.has(sa._id)
+      (sa: any) => !activeSongAnalyticsIds.has(sa._id.toString())
     )
 
     if (songAnalyticsToDelete.length > 0) {

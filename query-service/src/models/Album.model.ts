@@ -11,6 +11,7 @@ export interface IAlbum extends Document {
   likedBy: string[]
   songs: string[] // array of Song._id values
   visibility?: 'public' | 'private'
+  streamCount?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -58,6 +59,11 @@ const AlbumSchema: Schema = new Schema(
       type: String,
       enum: ['public', 'private'],
       default: 'public',
+    },
+    streamCount: {
+      type: Number,
+      required: false,
+      default: 0,
     },
   },
   {

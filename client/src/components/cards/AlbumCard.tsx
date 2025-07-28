@@ -1,35 +1,20 @@
-import {
-  useJamActions,
-  useIsJamming,
-  useJamSession,
-} from '../../store/jam-store'
+import { useJamActions, useIsJamming } from '../../store/jam-store'
 import { usePlayerStore } from '../../store/player-store'
 import albumCoverArtPlaceholder from '../../assets/albumPlaceholder.svg'
 import { useAuthStore } from '../../store/auth-store'
 import { useSigninPromptModalStore } from '../../store/modal-store'
 import { BiPlay } from 'react-icons/bi'
 import { Link } from 'react-router'
+import type { Album } from '../../types'
 
-export const AlbumCard = ({
-  album,
-}: {
-  album: {
-    _id: string
-    title: string
-    coverUrl: string
-    artist?: {
-      displayName: string
-    }
-    songs: any[]
-  }
-}) => {
+export const AlbumCard = ({ album }: { album: Album }) => {
   const { actions } = usePlayerStore()
   const { isAuthenticated } = useAuthStore()
   const { open: openSigninPrompt } = useSigninPromptModalStore()
   const isJamming = useIsJamming()
   const { changeSong: jamChangeSong, addToQueue: jamAddToQueue } =
     useJamActions()
-  const handlePlayAlbum = (album: any) => {
+  const handlePlayAlbum = (album: Album) => {
     if (!isAuthenticated) {
       openSigninPrompt()
       return

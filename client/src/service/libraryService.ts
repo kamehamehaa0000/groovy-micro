@@ -39,3 +39,22 @@ export const getRecentlyPlayed = async () => {
   )
   return response.data
 }
+
+export const getLikedSongs = async (page: number, limit: number) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/libraries/liked-songs?page=${page}&limit=${limit}`
+  )
+  return response.data
+}
+export const getLikedAlbums = async (page: number, limit: number) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/libraries/liked-albums?page=${page}&limit=${limit}`
+  )
+  return response.data
+}
+export const getLikedPlaylists = async (page: number, limit: number) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/query/libraries/liked-playlists?page=${page}&limit=${limit}`
+  )
+  return response.data
+}

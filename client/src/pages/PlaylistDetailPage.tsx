@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { SongCompactCardB } from '../components/cards/SongCompactCardB'
-import { usePlayerStore, type Song } from '../store/player-store'
+import { usePlayerStore } from '../store/player-store'
 import toast from 'react-hot-toast'
 import { BiEdit, BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
 import albumPlaceholder from '../assets/albumPlaceholder.svg'
@@ -12,31 +12,7 @@ import {
 import CompactComments from '../components/comments/CompactComments'
 
 import { PlaylistEditModal } from '../components/shared/PlaylistEditModal'
-
-interface Playlist {
-  _id: string
-  title: string
-  description?: string
-  creator: {
-    _id: string
-    displayName: string
-  }
-  coverUrl?: string
-  collaborators?: { _id: string; displayName: string }[]
-  songs: {
-    songId: Song
-    order: number
-    addedBy: {
-      _id: string
-      displayName: string
-    }
-    _id: string
-  }[]
-  createdAt: string
-  updatedAt: string
-  visibility: 'public' | 'private'
-  isLikedByCurrentUser?: boolean
-}
+import type { Playlist } from '../types'
 
 const PlaylistDetailPage = () => {
   const param = useParams<{ id: string }>()
@@ -62,7 +38,7 @@ const PlaylistDetailPage = () => {
       }
     }
     fetchPlaylist()
-  }, [])
+  }, [playlistId])
 
   const handlePlayPlaylist = () => {
     actions.setQueue([])
@@ -222,15 +198,30 @@ const PlaylistDetailPage = () => {
                       </span>
                     ))}
                 </p>
+                <p className="text-muted-foreground text-sm">
+                  <p className="text-gray-500 mt-1">
+                    {playlist?.songs?.length} tracks
+                  </p>
+                  {playlist.likedBy && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Liked by {playlist.likedBy.length} user
+                      {playlist.likedBy.length > 1 ? 's' : ''}
+                    </p>
+                  )}
+                  {playlist.streamCount && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      {playlist.streamCount} Total Play
+                      {playlist.streamCount > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </p>
+
                 <p className="text-sm text-gray-500 mt-1">
                   {new Date(playlist.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                   })}
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  {playlist?.songs?.length} tracks
                 </p>
               </div>
             </div>

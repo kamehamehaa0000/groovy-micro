@@ -7,6 +7,7 @@ import {
   requireAuth,
 } from '@groovy-streaming/common'
 import User from '../models/User.model'
+import { SongAnalytics } from '../models/SongAnalytics.model'
 
 const router = Router()
 
@@ -55,7 +56,6 @@ router.get(
     }
   }
 )
-
 
 // get all public albums
 router.get(
@@ -290,12 +290,26 @@ router.get(
           403
         )
       }
-      const songs = album.songs.map((song: any) => {
-        return {
-          ...song.toObject(),
-          isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
-          likedBy: song.metadata.likedBy.length,
-        }
+      let albumStreamCount = 0
+      const songs = await Promise.all(
+        album.songs.map(async (song: any) => {
+          const analytics = await SongAnalytics.findOne({
+            songId: song._id,
+          })
+          albumStreamCount += analytics ? analytics.streamCount : 0
+          return {
+            ...song.toObject(),
+            isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
+            likedBy: song.metadata.likedBy.length,
+            streamCount: analytics ? analytics.streamCount : 0,
+          }
+        })
+      )
+
+      await album.updateOne({
+        $set: {
+          streamCount: albumStreamCount,
+        },
       })
 
       const isLikedByCurrentUser = album.likedBy.includes(user.id)
@@ -305,6 +319,7 @@ router.get(
           songs,
           likedBy: album.likedBy.length,
           isLikedByCurrentUser,
+          streamCount: albumStreamCount,
         },
       })
     } catch (error) {

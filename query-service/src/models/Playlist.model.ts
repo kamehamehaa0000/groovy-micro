@@ -16,6 +16,7 @@ export interface IPlaylist extends Document {
   likedBy: string[]
   createdAt: Date
   updatedAt: Date
+  streamCount?: number
 }
 
 const PlaylistSchema: Schema<IPlaylist> = new Schema(
@@ -79,6 +80,11 @@ const PlaylistSchema: Schema<IPlaylist> = new Schema(
       type: String,
       trim: true,
       default: '',
+    },
+    streamCount: {
+      type: Number,
+      required: false,
+      default: 0,
     },
   },
   {

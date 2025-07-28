@@ -7,6 +7,7 @@ import {
 import { Playlist } from '../models/Playlist.model'
 import { User } from '../models/User.model'
 import { Response, NextFunction, Router } from 'express'
+import { SongAnalytics } from '../models/SongAnalytics.model'
 
 const router = Router()
 
@@ -131,18 +132,36 @@ router.get(
         })
         .populate('songs.addedBy', 'displayName')
 
-      const songs = playlist.songs.map((song: any) => ({
-        songId: {
-          ...song.songId,
-          likedBy: song.songId.metadata.likedBy.length,
-          isLikedByCurrentUser: song.songId.metadata.likedBy.includes(user.id),
-        },
-      }))
+      let playlistStreamCount = 0
+      const songs = await Promise.all(
+        playlist.songs.map(async (song: any) => {
+          const analytics = await SongAnalytics.findOne({
+            songId: song.songId._id,
+          })
+          playlistStreamCount += analytics ? analytics.streamCount : 0
+          return {
+            songId: {
+              ...song.songId,
+              likedBy: song.songId.metadata.likedBy.length,
+              isLikedByCurrentUser: song.songId.metadata.likedBy.includes(
+                user.id
+              ),
+            },
+          }
+        })
+      )
       playlist.songs = songs
+
+      await Playlist.findByIdAndUpdate(playlist._id, {
+        $set: {
+          streamCount: playlistStreamCount,
+        },
+      })
 
       res.status(200).json({
         likedBy: playlist.likedBy.length,
         isLikedByCurrentUser: playlist.likedBy.includes(user.id),
+        streamCount: playlistStreamCount,
         ...playlist.toObject(),
       })
     } catch (error) {
@@ -380,6 +399,5 @@ router.get(
     }
   }
 )
-
 
 export { router as playlistRouter }

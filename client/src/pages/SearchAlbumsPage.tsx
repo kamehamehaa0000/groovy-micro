@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { searchAlbums } from '../service/searchService'
-import { type Album } from './AlbumDetailPage'
+import { type Album } from '../types'
 import { useSearchParams } from 'react-router'
 import { AlbumCard } from '../components/cards/AlbumCard'
 

@@ -1,4 +1,5 @@
 export interface Song {
+  streamCount?: number | 'N/A'
   isLikedByCurrentUser?: boolean
   coverArtUrl?: string
   likedBy?: number
@@ -23,19 +24,46 @@ export interface Song {
 }
 export type RepeatMode = 'off' | 'all' | 'one'
 
+export interface Album {
+  _id: string
+  title: string
+  coverUrl: string
+  artist: {
+    _id: string
+    displayName: string
+  }
+  updatedAt: string
+  likedBy?: string[]
+  isLikedByCurrentUser?: boolean
+  streamCount?: number
+  songs: Song[]
+  genre: string
+  visibility?: 'public' | 'private'
+  createdAt: string
+}
 export interface Playlist {
   _id: string
   title: string
-  coverUrl?: string
   description?: string
   creator: {
     _id: string
     displayName: string
   }
-  songs: Song[]
+  coverUrl?: string
+  collaborators?: { _id: string; displayName: string }[]
+  songs: {
+    songId: Song
+    order: number
+    addedBy: {
+      _id: string
+      displayName: string
+    }
+    _id: string
+  }[]
   createdAt: string
   updatedAt: string
   visibility: 'public' | 'private'
-  likedBy?: string[]
   isLikedByCurrentUser?: boolean
+  likedBy?: string[]
+  streamCount?: number
 }

@@ -16,6 +16,7 @@ import { syncSongs, fullSyncSongs } from './sync/songs'
 import { app } from './app'
 import { fullSyncLibraries, syncLibraries } from './sync/libraries'
 import { fullSyncSongAnalytics, syncSongAnalytics } from './sync/analytics'
+import { SongAnalytics } from './models/SongAnalytics.model'
 
 let SyncInterval: NodeJS.Timeout
 
@@ -63,6 +64,7 @@ async function startServer() {
       await fullSyncSongs()
       await fullSyncLibraries()
       await fullSyncSongAnalytics()
+      console.log(await SongAnalytics.find({}).countDocuments())
     } catch (error) {
       console.error('❌ Error during full sync:', (error as Error).message)
     }

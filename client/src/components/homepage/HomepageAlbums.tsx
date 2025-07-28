@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { fetchPublicAlbums } from '../../service/albumService'
 import { AlbumCard } from '../cards/AlbumCard'
+import { BiLoader } from 'react-icons/bi'
 
 const HomepageAlbums = () => {
   const [albums, setAlbums] = useState([])
@@ -24,22 +25,11 @@ const HomepageAlbums = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold mb-4"> All Albums</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <div
-              key={index + 'loading-public-songs'}
-              className="flex items-center space-x-3 p-2 rounded-md bg-gray-100 animate-pulse"
-            >
-              <div className="w-12 h-12 bg-gray-300 rounded"></div>
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="space-y-4 w-full h-full flex flex-col items-center justify-center">
+        <BiLoader className="animate-spin text-black" />{' '}
+        <h1 className="text-lg font-semibold mb-4 text-gray-700">
+          Loading Albums
+        </h1>
       </div>
     )
   }

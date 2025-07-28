@@ -6,6 +6,7 @@ import {
 } from '@groovy-streaming/common'
 import { Router, Response, NextFunction } from 'express'
 import { Song } from '../models/Song.model'
+import { SongAnalytics } from '../models/SongAnalytics.model'
 
 const router = Router()
 
@@ -24,7 +25,7 @@ router.get(
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
       const skip = (page - 1) * limit
-      
+
       const filter: any = { visibility: 'public' }
       if (genre) {
         filter['metadata.genre'] = genre as string
@@ -77,7 +78,7 @@ router.get(
       if (!song) {
         throw new CustomError('Song not found', 404)
       }
-      console.log(song.metadata)
+
       if (
         song.visibility !== 'public' &&
         song.metadata.artist.toString() !== user.id.toString()
@@ -87,10 +88,14 @@ router.get(
           403
         )
       }
+      const analytics = await SongAnalytics.findOne({
+        songId: song._id,
+      })
 
       res.json({
         likedBy: song.metadata.likedBy.length,
         isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
+        streamCount: analytics ? analytics.streamCount : 0,
         ...song.toObject(),
       })
     } catch (error) {
@@ -98,6 +103,7 @@ router.get(
     }
   }
 )
+
 // fetch songs by artistId
 router.get(
   '/songs/artist/:artistId',
@@ -280,4 +286,5 @@ router.get(
     }
   }
 )
+
 export { router as songsRouter }

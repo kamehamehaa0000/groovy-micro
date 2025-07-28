@@ -167,11 +167,11 @@ export function SongCompactCardA({
             <span className="text-xs text-gray-500">
               {song?.metadata?.artist?.displayName ?? 'Unknown Artist'}
             </span>
-            {/* <span className="text-xs text-gray-400">•</span>
+            <span className="text-xs text-gray-400">•</span>
 
             <span className="text-xs text-gray-500">
               {song?.metadata?.genre ?? 'Unknown Genre'}
-            </span> */}
+            </span>
           </div>
         </div>
         <div className="flex items-center space-x-2">

@@ -7,23 +7,7 @@ import toast from 'react-hot-toast'
 import { BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
 import { useAddAlbumToPlaylistModalStore } from '../store/modal-store'
 import CompactComments from '../components/comments/CompactComments'
-import type { Song } from '../types'
-
-export interface Album {
-  _id: string
-  title: string
-  coverUrl: string
-  artist: {
-    _id: string
-    displayName: string
-  }
-  songs: Song[]
-  genre: string
-  likedBy?: string[]
-  visibility?: 'public' | 'private'
-  isLikedByCurrentUser?: boolean
-  createdAt: string
-}
+import type { Album } from '../types'
 
 const AlbumDetailPage = () => {
   const param = useParams<{ id: string }>()
@@ -40,6 +24,9 @@ const AlbumDetailPage = () => {
     genre: '',
     isLikedByCurrentUser: false,
     createdAt: '',
+    likedBy: [],
+    updatedAt: '',
+    streamCount: 0,
   })
   const [loading, setLoading] = useState(true)
   const [likeLoading, setLikeLoading] = useState(false)
@@ -190,12 +177,19 @@ const AlbumDetailPage = () => {
               <p className="text-xl lg:text-2xl font-medium text-gray-900">
                 {album.title}
               </p>
-              <p>{album.artist.displayName}</p>
+              <p>{album.artist?.displayName}</p>
+
               <p className="text-sm text-gray-500 mt-1">{album.genre}</p>
               {album.likedBy && (
                 <p className="text-sm text-gray-500 mt-1">
                   Liked by {album.likedBy} user
                   {album.likedBy.length > 1 ? 's' : ''}
+                </p>
+              )}
+              {album.streamCount && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {album.streamCount} Total Play
+                  {album.streamCount > 1 ? 's' : ''}
                 </p>
               )}
               <p className="text-sm text-gray-500 mt-1">

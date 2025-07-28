@@ -21,7 +21,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [activeItem, setActiveItem] = useState<string>('home')
   const [playlists, setPlaylists] = useState<string[]>([])
   const { open } = useCreatePlaylistModalStore()
-  const { open: openJamModal } = useJamModalStore()
+
   const navigationItems = [
     { id: 'home', label: 'Home', icon: BiHome, linkTo: '/' },
     { id: 'search', label: 'Search', icon: BiSearch, linkTo: '/search' },
@@ -73,9 +73,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="flex items-center justify-between ">
           <div className="flex items-center space-x-2">
             <PiCassetteTapeLight className="w-8 h-8 " />
-            <h1 className="text-lg font-medium text-foreground">
+            <Link to={'/'} className="text-lg font-medium text-foreground">
               Groovy-Gaana
-            </h1>
+            </Link>
           </div>
           <button
             onClick={onClose}
@@ -105,7 +105,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         </nav>
       </div>
       {/* Playlists */}
-      <div className="flex-1 px-4 overflow-hidden">
+      <div className="flex-1 max-h-96 px-4 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Playlists
@@ -119,7 +119,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         </div>
         <div className="space-y-0.5 overflow-y-auto">
           {playlists.map((playlist: any, i) => (
-            <button
+            <Link
+              to={`/playlists/playlist/${playlist._id}`}
               key={playlist._id}
               className="w-full flex items-center text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-all duration-200 truncate"
             >
@@ -129,7 +130,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 }`}
               />
               {playlist.title}
-            </button>
+            </Link>
           ))}
         </div>
       </div>
