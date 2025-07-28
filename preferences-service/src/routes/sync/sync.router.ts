@@ -3,6 +3,7 @@ import { Request, Router, Response, NextFunction } from 'express'
 import { Song } from '../../models/Song.model'
 import { Album } from '../../models/Album.model'
 import { Playlist } from '../../models/Playlist.model'
+import { SongAnalytics } from '../../models/SongAnalytics.model'
 
 const router = Router()
 
@@ -182,6 +183,70 @@ router.get(
             since: since?.toISOString() ?? null,
             timestamp: new Date().toISOString(),
             activePlaylistsCount: playlists.length,
+          },
+        },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.get(
+  '/song-analytics',
+  requireSyncAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 100
+      const since = req.query.since ? new Date(req.query.since as string) : null
+      const getAllIds = req.query.getAllIds === 'true' // New parameter for getting all song IDs
+
+      if (getAllIds) {
+        // Return all song analytics IDs for deletion comparison
+        const allSongAnalyticsIds = await SongAnalytics.find({}).select('_id')
+        res.status(200).json({
+          message: 'All song analytics IDs retrieved',
+          data: {
+            songAnalyticsIds: allSongAnalyticsIds.map((p) => p._id),
+            timestamp: new Date().toISOString(),
+          },
+        })
+        return
+      }
+
+      const skip = (page - 1) * limit
+      let query = {}
+
+      if (since) {
+        query = { updatedAt: { $gte: since } }
+      }
+
+      const [songAnalytics, totalSongAnalytics] = await Promise.all([
+        SongAnalytics.find(query)
+          .sort({ updatedAt: 1 })
+          .skip(skip)
+          .limit(limit),
+        SongAnalytics.countDocuments(query),
+      ])
+
+      const totalPages = Math.ceil(totalSongAnalytics / limit)
+
+      res.status(200).json({
+        message: 'Song analytics retrieved successfully',
+        data: {
+          songAnalytics,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalSongAnalytics,
+            limit,
+            hasNextPage: page < totalPages,
+          },
+          syncInfo: {
+            since: since?.toISOString() ?? null,
+            timestamp: new Date().toISOString(),
+            activeSongAnalyticsCount: songAnalytics.length,
           },
         },
       })

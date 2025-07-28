@@ -12,7 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@google-cloud/pubsub": "^5.1.0",
-    "@groovy-streaming/common": "^1.0.38",
+    "@groovy-streaming/common": "^1.0.40",
     "amqplib": "^0.10.3",
     "axios": "^1.10.0",
     "cookie-parser": "^1.4.7",

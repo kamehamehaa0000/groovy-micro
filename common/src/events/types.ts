@@ -21,6 +21,9 @@ export const EventTypes = {
   COMMENT_CREATED: 'comment-created',
   COMMENT_UPDATED: 'comment-updated',
   COMMENT_DELETED: 'comment-deleted',
+
+  // preferences-and-analytics-service events
+  SONG_STREAMED: 'song-streamed',
 } as const
 
 export const TOPICS = {
@@ -28,13 +31,15 @@ export const TOPICS = {
   SONG_EVENTS: 'song-events',
   PLAYLIST_EVENTS: 'playlist-events',
   COMMENT_EVENTS: 'comment-events',
-  STATS_EVENTS: 'stats-events',
+  PREFERENCES_AND_ANALYTICS_EVENTS: 'preferences-and-analytics-events',
 } as const
 
 export const SUBSCRIPTIONS = {
   AUTH_SERVICE_USER_EVENTS: 'auth-service-user-events',
 
   SONGS_SERVICE_USER_EVENTS: 'songs-service-user-events',
+  SONGS_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS:
+    'songs-service-preferences-and-analytics-events',
 
   COMMENTS_SERVICE_USER_EVENTS: 'comments-service-user-events',
   COMMENTS_SERVICE_SONG_EVENTS: 'comments-service-song-events',
@@ -44,6 +49,6 @@ export const SUBSCRIPTIONS = {
 
   QUERY_SERVICE_USER_EVENTS: 'query-service-user-events',
   QUERY_SERVICE_SONG_EVENTS: 'query-service-song-events',
-  QUERY_SERVICE_COMMENT_EVENTS: 'query-service-comment-events',
-  QUERY_SERVICE_PREFERENCES_EVENTS: 'query-service-preferences-events',
+  QUERY_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS:
+    'query-service-preferences-and-analytics-events',
 } as const

@@ -58,12 +58,12 @@ async function startServer() {
     await fullSyncSongs()
     await fullSyncLibraries()
 
-    await initializeEventListeners(['USER', 'SONG', 'COMMENT'])
-
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
     )
+
+    await initializeEventListeners(['USER', 'SONG'])
 
     const PORT = process.env.PORT
     const server = httpServer.listen(PORT, () => {

@@ -30,6 +30,10 @@ router.get(
               path: 'metadata.artist',
               select: 'displayName',
             },
+            {
+              path: 'metadata.album',
+              select: 'title coverUrl',
+            },
           ],
         })
 

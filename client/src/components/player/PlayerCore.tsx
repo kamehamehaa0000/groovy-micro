@@ -90,6 +90,7 @@ const PlayerCore = () => {
   const { audioRef, play, pause, seek } = useAudioPlayer({
     hlsUrl: currentSong?.hlsUrl ?? '',
     fallbackUrl: currentSong?.originalUrl ?? '',
+    songId: currentSong?._id ?? '', // Pass songId here
     onTimeUpdate: handleTimeUpdate,
     onEnded: handleEnded,
     onError: handleError, // Use the memoized callback

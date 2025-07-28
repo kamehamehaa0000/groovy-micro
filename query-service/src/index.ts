@@ -15,6 +15,7 @@ import { syncPlaylists, fullSyncPlaylists } from './sync/playlists'
 import { syncSongs, fullSyncSongs } from './sync/songs'
 import { app } from './app'
 import { fullSyncLibraries, syncLibraries } from './sync/libraries'
+import { fullSyncSongAnalytics, syncSongAnalytics } from './sync/analytics'
 
 let SyncInterval: NodeJS.Timeout
 
@@ -44,6 +45,7 @@ async function startServer() {
           syncPlaylists(),
           syncSongs(),
           syncLibraries(),
+          syncSongAnalytics(),
         ])
         console.log('✅ Hourly partial sync completed')
       } catch (error) {
@@ -53,18 +55,19 @@ async function startServer() {
         )
       }
     }, 10 * 60 * 1000) // 10 minutes in milliseconds
-    
+
     try {
       await fullSyncAlbums()
       await fullSyncUsers()
       await fullSyncPlaylists()
       await fullSyncSongs()
       await fullSyncLibraries()
+      await fullSyncSongAnalytics()
     } catch (error) {
       console.error('❌ Error during full sync:', (error as Error).message)
     }
 
-    await initializeEventListeners(['USER', 'SONG'])
+    await initializeEventListeners(['USER', 'SONG', 'ANALYTICS'])
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,

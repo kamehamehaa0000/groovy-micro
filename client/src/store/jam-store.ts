@@ -162,12 +162,10 @@ const useJamStore = create<JamState>()(
         },
 
         leaveJam: () => {
-          // Clear local state immediately
-          set({ session: null, isJamming: false });
-          localStorage.removeItem('jamSessionId');
-          localStorage.removeItem('jamJoinCode');
-          // Then disconnect the socket
-          get().socket?.disconnect();
+          set({ session: null, isJamming: false })
+          localStorage.removeItem('jamSessionId')
+          localStorage.removeItem('jamJoinCode')
+          get().socket?.disconnect()
         },
 
         controlPlayback: (action, playbackPosition) => {
@@ -268,7 +266,7 @@ const useJamStore = create<JamState>()(
     }
   )
 )
-
+export default useJamStore
 export const useJamActions = () => useJamStore((state) => state.actions)
 export const useIsJamming = () => useJamStore((state) => state.isJamming)
 export const useJamSession = () => useJamStore((state) => state.session)

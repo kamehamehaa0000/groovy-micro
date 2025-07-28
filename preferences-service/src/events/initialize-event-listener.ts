@@ -3,7 +3,7 @@ import { PubSubManager } from '../config/PubSub'
 import { UserServiceEventHandlers } from './user-service-events-handler'
 import { SongServiceEventHandlers } from './songs-service-events-handler'
 
-type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'STATS'
+type EventType = 'USER' | 'SONG' | 'COMMENT' | 'ANALYTICS'
 
 export async function initializeEventListeners(
   listenTo: EventType[] = ['USER', 'SONG']

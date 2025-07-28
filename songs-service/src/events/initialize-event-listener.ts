@@ -1,8 +1,9 @@
 import { SUBSCRIPTIONS, TOPICS } from '@groovy-streaming/common'
 import { PubSubManager } from '../config/PubSub'
 import { UserServiceEventHandlers } from './user-service-events-handler'
+import { AnalyticsEventHandlers } from './preferences-and-analytics-event-handler'
 
-type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'STATS'
+type EventType = 'USER' | 'ANALYTICS'
 
 export async function initializeEventListeners(
   listenTo: EventType[] = ['USER']
@@ -23,6 +24,14 @@ export async function initializeEventListeners(
         UserServiceEventHandlers.handleUserServiceEvents
       )
       console.log('# User Event listener initialized successfully')
+    }
+    if (listenTo.includes('ANALYTICS')) {
+      await PubSubManager.subscribe(
+        TOPICS.PREFERENCES_AND_ANALYTICS_EVENTS,
+        SUBSCRIPTIONS.SONGS_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS,
+        AnalyticsEventHandlers.handleAnalyticsEvents
+      )
+      console.log('# Analytics Event listener initialized successfully')
     }
 
     // Add more event listeners as needed

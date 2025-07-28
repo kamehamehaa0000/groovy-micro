@@ -1,9 +1,11 @@
 import Hls from 'hls.js'
 import { useEffect, useRef, useState, useCallback } from 'react'
+import useJamStore from '../store/jam-store'
 
 interface UseAudioPlayerProps {
   hlsUrl: string
   fallbackUrl: string
+  songId: string // Add songId here
   onTimeUpdate?: (currentTime: number) => void
   onEnded?: () => void
   onError?: (error: string) => void
@@ -15,6 +17,7 @@ interface UseAudioPlayerProps {
 export const useAudioPlayer = ({
   hlsUrl,
   fallbackUrl,
+  songId,
   onEnded,
   onError,
   onTimeUpdate,
@@ -26,6 +29,10 @@ export const useAudioPlayer = ({
   const hlsRef = useRef<Hls | null>(null)
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
+  const hasStreamed = useRef(false) //  track if stream is counted
+  const playTimeRef = useRef(0) // tracks cumulative play time in seconds
+  const lastTimeUpdateRef = useRef(0) // Ref to track the last time for delta calculation
+  const { socket: jamSocket } = useJamStore() // Get socket from jam store
 
   useEffect(() => {
     const audio = audioRef.current
@@ -35,6 +42,10 @@ export const useAudioPlayer = ({
     hlsRef.current?.destroy()
     hlsRef.current = null
     audio.src = ''
+    // Reset stream count tracking
+    hasStreamed.current = false
+    playTimeRef.current = 0
+    lastTimeUpdateRef.current = 0
 
     if (!hlsUrl) {
       onLoading?.(false)
@@ -58,7 +69,7 @@ export const useAudioPlayer = ({
       })
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error('HLS error:', data)
+        console.error('HLS error:', data, event)
         if (data.fatal) {
           onError?.(`HLS error: ${data.details}`)
           hls.destroy()
@@ -77,22 +88,53 @@ export const useAudioPlayer = ({
     }
   }, [hlsUrl, fallbackUrl, onError, onCanPlay, onLoading])
 
+  const handleTimeUpdate = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    onTimeUpdate?.(audio.currentTime) // for ui updates
+
+    if (audio.paused || hasStreamed.current) return
+    const currentTime = audio.currentTime
+    const timeDelta = currentTime - lastTimeUpdateRef.current
+
+    // Only add to playTime if the delta is small and positive (i.e. not a seek)
+    if (timeDelta > 0 && timeDelta < 1) {
+      playTimeRef.current += timeDelta
+    }
+
+    lastTimeUpdateRef.current = currentTime
+    if (playTimeRef.current >= 30 && !hasStreamed.current) {
+      console.log(`Cumulative play time reached 30s for song ${songId}.`)
+      jamSocket?.emit('songStreamed', { songId })
+      hasStreamed.current = true
+    }
+  }, [jamSocket, songId, onTimeUpdate])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-
-    const handleTimeUpdate = () => onTimeUpdate?.(audio.currentTime)
-    const handleEnded = () => onEnded?.()
+    const handleEnded = () => {
+      onEnded?.()
+      hasStreamed.current = false // Reset for next play
+      hasStreamed.current = false // Reset for next play
+      playTimeRef.current = 0
+    }
     const handleCanPlay = () => onCanPlay?.()
-    const handleErrorEvent = () =>
+    const handleErrorEvent = () => {
       onError?.(audio.error?.message || 'Unknown audio error')
+      hasStreamed.current = false // Reset on error
+      playTimeRef.current = 0
+    }
     const handleLoadedMetadata = () => {
       if (isFinite(audio.duration)) {
         onDurationChange?.(audio.duration)
       }
     }
     const handleWaiting = () => onLoading?.(true)
-    const handlePlaying = () => onLoading?.(false)
+    const handlePlaying = () => {
+      onLoading?.(false)
+      lastTimeUpdateRef.current = audio.currentTime // Reset last time update on playing
+    }
 
     audio.addEventListener('timeupdate', handleTimeUpdate)
     audio.addEventListener('ended', handleEnded)
@@ -111,7 +153,15 @@ export const useAudioPlayer = ({
       audio.removeEventListener('waiting', handleWaiting)
       audio.removeEventListener('playing', handlePlaying)
     }
-  }, [onTimeUpdate, onEnded, onCanPlay, onError, onDurationChange, onLoading])
+  }, [
+    onTimeUpdate,
+    onEnded,
+    onCanPlay,
+    onError,
+    onDurationChange,
+    onLoading,
+    handleTimeUpdate,
+  ])
 
   const play = useCallback(() => {
     audioRef.current
@@ -126,6 +176,8 @@ export const useAudioPlayer = ({
   const seek = useCallback((time: number) => {
     if (audioRef.current && isFinite(time)) {
       audioRef.current.currentTime = time
+      // Update lastTimeUpdateRef on seek to prevent large delta calculation
+      lastTimeUpdateRef.current = time
     }
   }, [])
 

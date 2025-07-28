@@ -2,10 +2,11 @@ import { SUBSCRIPTIONS, TOPICS } from '@groovy-streaming/common'
 import { PubSubManager } from '../config/PubSub'
 import { UserServiceEventHandlers } from './user-service-events-handler'
 import { SongServiceEventHandlers } from './songs-service-events-handler'
+import { AnalyticsEventHandlers } from './analytics-service-events-handler'
 
-type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT'
+type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'ANALYTICS'
 export async function initializeEventListeners(
-  listenTo: EventType[] = ['USER', 'SONG']
+  listenTo: EventType[] = ['USER', 'SONG', 'ANALYTICS']
 ): Promise<void> {
   try {
     const connected = await PubSubManager.testConnection()
@@ -32,13 +33,14 @@ export async function initializeEventListeners(
       )
       console.log('# songs-service Event listener initialized successfully')
     }
-    if (listenTo.includes('COMMENT')) {
+
+    if (listenTo.includes('ANALYTICS')) {
       await PubSubManager.subscribe(
-        TOPICS.COMMENT_EVENTS,
-        SUBSCRIPTIONS.QUERY_SERVICE_COMMENT_EVENTS,
-        SongServiceEventHandlers.handleSongsServiceEvent
+        TOPICS.PREFERENCES_AND_ANALYTICS_EVENTS,
+        SUBSCRIPTIONS.QUERY_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS,
+        AnalyticsEventHandlers.handleAnalyticsEvents
       )
-      console.log('# comment-service Event listener initialized successfully')
+      console.log('# analytics-service Event listener initialized successfully')
     }
     // Add more event listeners as needed
   } catch (error) {

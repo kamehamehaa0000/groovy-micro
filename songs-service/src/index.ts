@@ -12,8 +12,10 @@ import {
 } from '@groovy-streaming/common'
 import { initializeEventListeners } from './events/initialize-event-listener'
 import { r2Client } from './config/cloudflareR2'
+import { fullSyncUsers, syncUsers } from './sync/users'
+import { fullSyncSongAnalytics, syncSongAnalytics } from './sync/analytics'
 
-import { syncUsers } from './sync/users'
+let SyncInterval: NodeJS.Timeout
 
 async function startServer() {
   try {
@@ -30,11 +32,31 @@ async function startServer() {
       'MAGIC_LINK_EXPIRES_IN',
       'CLOUDAMQP_URL',
     ]) // Ensures all required environment variables are set
+
     await connectToDatabase(process.env.MONGODB_URI!)
-    // await syncUsers()
+
+    SyncInterval = setInterval(async () => {
+      try {
+        console.log('🔄 Starting hourly partial sync...')
+        await Promise.all([syncUsers(), syncSongAnalytics()])
+        console.log('✅ Hourly partial sync completed')
+      } catch (error) {
+        console.error(
+          '❌ Error during hourly partial sync:',
+          (error as Error).message
+        )
+      }
+    }, 10 * 60 * 1000) // 10 minutes in milliseconds
+
+    try {
+      await fullSyncUsers()
+      await fullSyncSongAnalytics()
+    } catch (error) {
+      console.error('❌ Error during full sync:', (error as Error).message)
+    }
     await connectToQueue(process.env.CLOUDAMQP_URL!)
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
-    await initializeEventListeners(['USER'])
+    await initializeEventListeners(['USER', 'ANALYTICS'])
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,

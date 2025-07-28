@@ -10,7 +10,8 @@ import { createClient } from 'redis'
 import { createAdapter } from '@socket.io/redis-adapter'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
-import { initializeJamHandler } from './events/jam.handler'
+import { initializeJamHandler } from './events/jam.handler';
+import { initializeStreamHandler } from './events/stream.handler';
 
 configDotenv({
   path: '.env',
@@ -50,7 +51,8 @@ Promise.all([redisPubClient.connect(), redisSubClient.connect()])
   })
 
 
-initializeJamHandler(io)
+initializeJamHandler(io);
+initializeStreamHandler(io);
 
 app.use(
   helmet({
