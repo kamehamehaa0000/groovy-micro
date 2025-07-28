@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type Song } from '../../store/player-store'
+import { type Song } from '../../types'
 import { HiOutlineMenu } from 'react-icons/hi'
 
 interface SortableSongItemProps {

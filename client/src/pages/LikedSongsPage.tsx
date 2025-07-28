@@ -1,7 +1,6 @@
 import { useRef, useCallback } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { getLikedAlbums, getLikedSongs } from '../service/libraryService'
-import { AlbumCard } from '../components/cards/AlbumCard'
+import { getLikedSongs } from '../service/libraryService'
 import toast from 'react-hot-toast'
 import { SongCompactCardA } from '../components/cards/SongCompactCardA'
 

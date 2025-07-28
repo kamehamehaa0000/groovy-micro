@@ -3,6 +3,7 @@ import { useAddAlbumToPlaylistModalStore } from '../../store/modal-store'
 import { getUserPlaylist } from '../../service/playlistService'
 import toast from 'react-hot-toast'
 import { addAlbumToPlaylist, fetchAlbumById } from '../../service/albumService'
+import type { Album } from '../../types'
 
 interface Playlist {
   _id: string
@@ -12,10 +13,6 @@ interface Playlist {
       _id: string
     }
   }>
-}
-interface Album {
-  _id: string
-  songs: string[] // Array of song IDs
 }
 
 const AddAlbumToPlaylistModal = () => {
@@ -85,9 +82,9 @@ const AddAlbumToPlaylistModal = () => {
       <div className="bg-white rounded-lg w-full max-w-sm max-h-[90vh] overflow-hidden shadow-xl">
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-100">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between ">
             <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-              Add Album to Playlist
+              Add Album {album ? `"${album.title}"` : ''} to Playlist
             </h2>
             <button
               onClick={close}
@@ -111,7 +108,7 @@ const AddAlbumToPlaylistModal = () => {
         </div>
 
         {/* Content */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto pb-2">
           {fetchingData && (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>

@@ -9,7 +9,6 @@ import {
   deleteComment,
   downvoteComment,
   getReplies,
-  getThread,
   updateComment,
   upvoteComment,
   createComment,
@@ -81,7 +80,7 @@ export const useComments = (
         page: pageParam as number,
         limit: 10, // Adjust page size as needed
       }),
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage) => {
       if (lastPage.hasMore) {
         return lastPage.currentPage + 1
       }

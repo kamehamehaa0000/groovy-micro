@@ -3,20 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import { fetchPublicAlbums } from '../service/albumService'
 import { AlbumCard } from '../components/cards/AlbumCard'
-
-interface Album {
-  _id: string
-  title: string
-  coverUrl: string
-  artist?: {
-    _id: string
-    displayName: string
-  }
-  songs: any[]
-  genre?: string
-  likedBy?: string[]
-  isLikedByCurrentUser?: boolean
-}
+import type { Album } from '../types'
 
 interface AlbumsResponse {
   albums: Album[]

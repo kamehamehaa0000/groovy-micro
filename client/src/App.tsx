@@ -1,4 +1,4 @@
-import { Route, BrowserRouter, Routes, Link } from 'react-router'
+import { Route, BrowserRouter, Routes } from 'react-router'
 import Upload from './pages/upload'
 import Login from './pages/Login'
 import { Toaster } from 'react-hot-toast'
@@ -10,10 +10,8 @@ import { Register } from './pages/Register'
 import { ForgotPassword } from './pages/ForgetPassword'
 import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
-import { useSigninPromptModalStore } from './store/modal-store'
 import { MainLayout } from './layouts/MainLayout'
 import { HomePage } from './pages/Homepage'
-import { CgClose } from 'react-icons/cg'
 import { CreatePlaylistModal } from './components/shared/CreatePlaylistModal'
 import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
 import SongDetailPage from './pages/SongDetailPage'
@@ -91,7 +89,14 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/home" element={<HomePage />} />
-                  <Route path="/upload" element={<Upload />} />{' '}
+                  <Route
+                    path="/upload"
+                    element={
+                      <ProtectedRoute>
+                        <Upload />
+                      </ProtectedRoute>
+                    }
+                  />{' '}
                   <Route
                     path="/search"
                     element={

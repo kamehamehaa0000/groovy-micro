@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { searchAll } from '../service/searchService'
-import { type Song, type Playlist } from '../types'
+import { type Song, type Playlist, type Album } from '../types'
 import { Link } from 'react-router'
-import type { Album } from './AlbumDetailPage'
+
 import { useDebounce } from '../hooks/useDebounce'
 import { SongCompactCardA } from '../components/cards/SongCompactCardA'
 import { AlbumCard } from '../components/cards/AlbumCard'

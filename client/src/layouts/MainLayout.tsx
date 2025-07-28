@@ -71,42 +71,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-const SearchBar = () => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const recentSearches = ['Song 1', 'Song 2', 'Playlist 1']
-
-  return (
-    <div className="relative w-full">
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full peer border border-gray-300 z-[21] px-6 py-2 rounded-xl outline-none duration-200 ring-1 ring-[transparent] focus:ring-orange-800"
-        placeholder="Search for your groove"
-      />
-      <div className="opacity-0 -translate-y-2 peer-focus:translate-y-0 pointer-events-none peer-focus:pointer-events-auto duration-200 peer-focus:opacity-100 absolute top-16 w-full z-[500] left-0 rounded-xl border border-white-222 p-4 bg-white shadow-lg">
-        <p className="font-semibold text-xs text-zinc-600">Recent Searches</p>
-        <ul className="flex gap-2 flex-col mt-2">
-          {recentSearches.map((item, index) => (
-            <li
-              key={index + item}
-              className="px-2 cursor-pointer text-sm border-b border-zinc-200 py-2 "
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-        <p className="font-semibold text-xs text-zinc-600 mt-4">
-          Search Results
-        </p>
-        <ul className="flex text-sm gap-2 mt-4">
-          <li>Songs,Playlists and album searches will come here</li>
-        </ul>
-      </div>
-    </div>
-  )
-}
-
 const UserProfile = () => {
   const { user, isAuthenticated, logout } = useAuthStore()
   if (!user) return null

@@ -38,7 +38,6 @@ export default function CompactComments({
     totalComments,
     isLoading,
     isError,
-    error,
     isCreating,
     isUpdating,
     isDeleting,
@@ -188,7 +187,7 @@ export default function CompactComments({
     return 'text-gray-500'
   }
 
-  const renderComment = (comment: Comment, isReply = false, depth = 0) => {
+  const renderComment = (comment: Comment, depth = 0) => {
     return (
       <div
         key={comment._id}
@@ -469,7 +468,7 @@ export default function CompactComments({
         ) : (
           <div>
             {flattenComments(comments).map((comment) =>
-              renderComment(comment, comment.depth > 0, comment.depth)
+              renderComment(comment, comment.depth)
             )}
 
             {/* Infinite scroll trigger */}

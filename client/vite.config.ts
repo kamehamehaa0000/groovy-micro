@@ -19,6 +19,23 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'react-vendor'
+            }
+            if (id.includes('hls.js')) {
+              return 'hls'
+            }
+            return 'vendor' // Group other dependencies
+          }
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api/v1/auth/google': {

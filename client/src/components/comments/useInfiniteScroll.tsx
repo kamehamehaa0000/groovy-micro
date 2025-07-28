@@ -10,7 +10,7 @@ interface UseInfiniteScrollOptions {
 export const useInfiniteScroll = ({
   hasMore,
   isLoading,
-  threshold = 100,
+
   rootMargin = '0px',
 }: UseInfiniteScrollOptions) => {
   const [isFetching, setIsFetching] = useState(false)

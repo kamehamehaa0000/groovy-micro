@@ -68,7 +68,7 @@ const AllPlaylistsPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {Array.from({ length: 12 }).map((_, index) => (
               <div
-                key={index}
+                key={index + 'loading-public-playlists'}
                 className="animate-pulse bg-white rounded-lg shadow-sm p-3"
               >
                 <div className="w-full aspect-square bg-gray-200 rounded-md mb-2"></div>

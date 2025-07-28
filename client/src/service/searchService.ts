@@ -1,5 +1,4 @@
-import type { Album } from '../pages/AlbumDetailPage'
-import type { Playlist, Song } from '../types'
+import type { Playlist, Song, Album } from '../types'
 import axios from '../utils/axios-interceptor'
 
 const API_BASE_URL = `${import.meta.env.VITE_API_GATEWAY_URL}/query`

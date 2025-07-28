@@ -250,7 +250,9 @@ const useJamStore = create<JamState>()(
           if (session) {
             return session
           } else {
-            get().socket?.emit('get-session', (session: JamSession) => {})
+            get().socket?.emit('get-session', (session: JamSession) => {
+              set({ session })
+            })
           }
         },
         clearQueue: () => {

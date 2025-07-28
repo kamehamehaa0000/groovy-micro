@@ -3,11 +3,12 @@ import { BiHeart, BiHome, BiPlus, BiSearch, BiUpload } from 'react-icons/bi'
 import { PiCassetteTapeLight } from 'react-icons/pi'
 import {
   useCreatePlaylistModalStore,
-  useJamModalStore,
+  useSigninPromptModalStore,
 } from '../store/modal-store'
 import { getUserPlaylist } from '../service/playlistService'
 import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
 import { Link } from 'react-router'
+import { useAuthStore } from '../store/auth-store'
 
 interface LeftSidebarProps {
   isVisible: boolean
@@ -18,9 +19,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   isVisible,
   onClose,
 }) => {
-  const [activeItem, setActiveItem] = useState<string>('home')
   const [playlists, setPlaylists] = useState<string[]>([])
   const { open } = useCreatePlaylistModalStore()
+  const { isAuthenticated } = useAuthStore()
+  const { open: openSigninPrompt } = useSigninPromptModalStore()
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: BiHome, linkTo: '/' },
@@ -93,7 +95,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <Link
               to={item.linkTo}
               key={item.id}
-              onClick={() => setActiveItem(item.id)}
               className={
                 'w-full flex items-center space-x-3 hover:text-orange-600 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group'
               }
@@ -111,7 +112,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             Playlists
           </h3>
           <button
-            onClick={open}
+            onClick={() => {
+              if (!isAuthenticated) {
+                openSigninPrompt()
+                return
+              }
+              open()
+            }}
             className="w-6 h-6 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 flex items-center justify-center group"
           >
             <BiPlus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
