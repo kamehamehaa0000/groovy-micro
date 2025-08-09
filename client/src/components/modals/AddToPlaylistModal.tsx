@@ -6,8 +6,9 @@ import {
   removeSongFromPlaylist,
 } from '../../service/playlistService'
 import toast from 'react-hot-toast'
+import { withModal } from './withModal'
 
-const AddToPlaylistModal = () => {
+const AddSongToPlaylistModalContent = () => {
   const { isOpen, close, songId } = useAddToPlaylistModalStore()
   const [playlists, setPlaylists] = React.useState([])
   const [loading, setLoading] = React.useState<number | null>(null)
@@ -176,4 +177,4 @@ const AddToPlaylistModal = () => {
   )
 }
 
-export default AddToPlaylistModal
+export const AddSongToPlaylistModal = withModal(AddSongToPlaylistModalContent)

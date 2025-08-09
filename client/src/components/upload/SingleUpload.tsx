@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { genres } from '../../pages/upload'
 import axiosInstance from '../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
+import { BiX, BiXCircle } from 'react-icons/bi'
 
 interface SingleUploadForm {
   audioFile: FileList | undefined
@@ -437,29 +439,31 @@ export const SingleUpload = ({
               placeholder="Enter collaborator's email"
               disabled={collaborators.length >= 5}
             />
-            <button
+            <Button
               type="button"
               onClick={addCollaborator}
               disabled={!collaboratorEmail.trim() || collaborators.length >= 5}
-              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              variant="outline"
+              className="border-orange-600 text-orange-600"
             >
               Add
-            </button>
+            </Button>
           </div>
           {collaborators.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1 flex items-center flex-wrap gap-2">
               {collaborators.map((email) => (
                 <div
                   key={email}
-                  className="flex items-center justify-between bg-gray-100 p-2 rounded"
+                  className="flex items-center bg-gray-100 px-4 py-1 rounded-full gap-1"
                 >
-                  <span className="text-sm">{email}</span>
+                  <span className="text-xs">{email}</span>
                   <button
                     type="button"
+                    title="Remove collaborator"
                     onClick={() => removeCollaborator(email)}
-                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-2 py-1 text-gray-500 rounded-full "
                   >
-                    Remove
+                    <BiXCircle />
                   </button>
                 </div>
               ))}
@@ -470,12 +474,13 @@ export const SingleUpload = ({
           </p>
         </div>
 
-        <button
+        <Button
+          variant={'outline'}
           type="submit"
-          className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
+          className="w-full text-orange-600 border border-orange-600 py-2 px-4 rounded-lg hover:bg-orange-600 hover:text-white transition-colors"
         >
           Upload Song
-        </button>
+        </Button>
       </form>
     </div>
   )

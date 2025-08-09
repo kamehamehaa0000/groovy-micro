@@ -3,6 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { getLikedAlbums } from '../service/libraryService'
 import { AlbumCard } from '../components/cards/AlbumCard'
 import toast from 'react-hot-toast'
+import { useLikedAlbums } from '@/service/queries/albumOuery'
 
 const Loader = () => <span className="loader" />
 
@@ -14,17 +15,7 @@ const LikedAlbumsPage = () => {
     isFetching,
     isFetchingNextPage,
     status,
-  } = useInfiniteQuery({
-    queryKey: ['likedAlbums'],
-    queryFn: ({ pageParam = 1 }) => getLikedAlbums(pageParam, 20),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.currentPage < lastPage.pagination.totalPages) {
-        return lastPage.pagination.currentPage + 1
-      }
-      return undefined
-    },
-  })
+  } = useLikedAlbums()
 
   const observer = useRef<IntersectionObserver>(null)
   const lastAlbumElementRef = useCallback(
@@ -58,7 +49,8 @@ const LikedAlbumsPage = () => {
 
   return (
     <div className=" p-4 sm:p-6 lg:p-8 w-full">
-      <h1 className="text-2xl font-bold mb-6">Liked Albums</h1>
+      <h1 className="text-xl font-semibold mb-5">Liked Albums</h1>
+
       {allAlbums.length === 0 && !isFetching ? (
         <p>You have not liked any albums yet.</p>
       ) : (

@@ -17,7 +17,7 @@ router.get(
   optionalAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const { user } = req as AuthenticatedRequest
+      const { user } = req
       const userId = user ? user.id : null
 
       const sort = (req.query.sort as string) ?? 'Ascending'
@@ -56,8 +56,20 @@ router.get(
           ...playlist.toObject(),
         }
       })
+      // Calculate total pages and total playlists
+      const totalPlaylists = await Playlist.countDocuments({
+        visibility: 'public',
+      })
+      const totalPages = Math.ceil(totalPlaylists / limit)
 
-      res.status(200).json({ playlists: playlistData })
+      res.status(200).json({
+        playlists: playlistData,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalPlaylists,
+        },
+      })
     } catch (error) {
       next(error)
     }
@@ -330,6 +342,7 @@ router.get(
     }
   }
 )
+
 // get public playlists where user is a collaborator
 router.get(
   '/user/:userId/collaborated/public',

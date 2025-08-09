@@ -1,16 +1,8 @@
 import React from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
-import { fetchPublicSongs } from '../service/songsService'
 import { SongCompactCardA } from '../components/cards/SongCompactCardA'
-import type { Song } from '../types'
-
-interface SongsResponse {
-  songs: Song[]
-  currentPage: number
-  totalPages: number
-  totalSongs: number
-}
+import { usePublicSongs } from '@/service/queries/songQuery'
+import SongsSkeleton from '@/components/skeletons/SongsSkeleton'
 
 const AllSongsPage = () => {
   const { ref, inView } = useInView({
@@ -25,16 +17,7 @@ const AllSongsPage = () => {
     hasNextPage,
     isFetchingNextPage,
     status,
-  } = useInfiniteQuery({
-    queryKey: ['songs', 'public'],
-    queryFn: ({ pageParam = 1 }) => fetchPublicSongs(pageParam, 20),
-    getNextPageParam: (lastPage: SongsResponse) => {
-      return lastPage.currentPage < lastPage.totalPages
-        ? lastPage.currentPage + 1
-        : undefined
-    },
-    initialPageParam: 1,
-  })
+  } = usePublicSongs()
 
   React.useEffect(() => {
     if (inView && hasNextPage) {
@@ -50,27 +33,7 @@ const AllSongsPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">All Songs</h1>
             <p className="text-gray-600">Discover amazing music</p>
           </div>
-          <div className="space-y-4">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <div
-                key={index}
-                className="animate-pulse border-b border-gray-100 p-4"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <SongsSkeleton />
         </div>
       </div>
     )

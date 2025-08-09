@@ -1,16 +1,8 @@
 import React from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
-import { fetchPublicAlbums } from '../service/albumService'
 import { AlbumCard } from '../components/cards/AlbumCard'
-import type { Album } from '../types'
-
-interface AlbumsResponse {
-  albums: Album[]
-  currentPage: number
-  totalPages: number
-  totalAlbums: number
-}
+import { usePublicAlbums } from '@/service/queries/albumOuery'
+import AlbumsSkeleton from '@/components/skeletons/AlbumsSkeleton'
 
 const AllAlbumsPage = () => {
   const { ref, inView } = useInView({
@@ -25,16 +17,7 @@ const AllAlbumsPage = () => {
     hasNextPage,
     isFetchingNextPage,
     status,
-  } = useInfiniteQuery({
-    queryKey: ['albums', 'public'],
-    queryFn: ({ pageParam = 1 }) => fetchPublicAlbums(pageParam, 20),
-    getNextPageParam: (lastPage: AlbumsResponse) => {
-      return lastPage.currentPage < lastPage.totalPages
-        ? lastPage.currentPage + 1
-        : undefined
-    },
-    initialPageParam: 1,
-  })
+  } = usePublicAlbums()
 
   React.useEffect(() => {
     if (inView && hasNextPage) {
@@ -52,20 +35,7 @@ const AllAlbumsPage = () => {
             </h1>
             <p className="text-gray-600">Discover amazing albums</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {Array.from({ length: 12 }).map((_, index) => (
-              <div
-                key={index + 'loading-public-albums'}
-                className="animate-pulse bg-white rounded-lg shadow-sm p-3"
-              >
-                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AlbumsSkeleton />
         </div>
       </div>
     )

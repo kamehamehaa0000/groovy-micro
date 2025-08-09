@@ -4,6 +4,8 @@ import { Link } from 'react-router'
 import { fetchPublicAlbums } from '../../service/albumService'
 import { AlbumCard } from '../cards/AlbumCard'
 import { BiLoader } from 'react-icons/bi'
+import AlbumsSkeleton from '../skeletons/AlbumsSkeleton'
+import { Button } from '../ui/button'
 
 const HomepageAlbums = () => {
   const [albums, setAlbums] = useState([])
@@ -25,11 +27,9 @@ const HomepageAlbums = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4 w-full h-full flex flex-col items-center justify-center">
-        <BiLoader className="animate-spin text-black" />{' '}
-        <h1 className="text-lg font-semibold mb-4 text-gray-700">
-          Loading Albums
-        </h1>
+      <div className="w-full p-4">
+        <h2 className="text-xl font-bold mb-4 text-gray-900">Albums</h2>
+        <AlbumsSkeleton />
       </div>
     )
   }
@@ -39,8 +39,10 @@ const HomepageAlbums = () => {
       <section>
         {' '}
         <div className="w-full flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">All Albums</h2>
-          <Link to="/albums">See all</Link>
+          <h2 className="text-xl font-bold mb-4 text-gray-900">Albums</h2>
+          <Link to="/albums" className="text-sm border px-2 py-1 rounded-lg ">
+            See all
+          </Link>
         </div>
         <div className="flex flex-wrap gap-4 items-center justify-start">
           {albums.length > 0 &&

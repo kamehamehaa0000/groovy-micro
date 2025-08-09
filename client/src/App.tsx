@@ -12,15 +12,13 @@ import { SendVerificationEmail } from './pages/SendVerificationEmail'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 import { MainLayout } from './layouts/MainLayout'
 import { HomePage } from './pages/Homepage'
-import { CreatePlaylistModal } from './components/shared/CreatePlaylistModal'
-import AddToPlaylistModal from './components/shared/AddToPlaylistModal'
+import { CreatePlaylistModal } from './components/modals/CreatePlaylistModal'
 import SongDetailPage from './pages/SongDetailPage'
 import AlbumDetailPage from './pages/AlbumDetailPage'
 import ArtistDetailPage from './pages/ArtistDetailPage'
 import PlaylistDetailPage from './pages/PlaylistDetailPage'
 import { useAuthStore } from './store/auth-store'
 import { useEffect, useState } from 'react'
-import AddAlbumToPlaylistModal from './components/shared/AddAlbumToPlaylistModal'
 import AllSongsPage from './pages/AllSongsPage'
 import AllAlbumsPage from './pages/AllAlbumsPage'
 import AllPlaylistsPage from './pages/AllPlaylistsPage'
@@ -32,7 +30,18 @@ import SearchArtistsPage from './pages/SearchArtistsPage'
 import LikedAlbumsPage from './pages/LikedAlbumsPage'
 import LikedSongsPage from './pages/LikedSongsPage'
 import LikedPlaylistsPage from './pages/LikedPlaylistsPage'
-import { PromptModal } from './components/shared/PromtModal'
+import { PromptModal } from './components/modals/PromtModal'
+import AllArtistsPage from './pages/AllArtistsPage'
+import {
+  useAddAlbumToPlaylistModalStore,
+  useAddToPlaylistModalStore,
+  useChangeDisplayNameModalStore,
+  useCreatePlaylistModalStore,
+} from './store/modal-store'
+import { ChangeDisplayNameModal } from './components/modals/ChangeDisplayNameModal'
+import { AddAlbumToPlaylistModal } from './components/modals/AddAlbumToPlaylistModal'
+import { AddSongToPlaylistModal } from './components/modals/AddToPlaylistModal'
+import MyUploads from './pages/MyUploads'
 
 function App() {
   const { initializeAuth, isLoading, isInitialized } = useAuthStore()
@@ -173,15 +182,12 @@ function App() {
                     path="/artists"
                     element={
                       <ProtectedRoute>
-                        <h1 className="text-2xl font-semibold mb-4">
-                          {' '}
-                          All Artists
-                        </h1>
+                        <AllArtistsPage />
                       </ProtectedRoute>
                     }
                   />
                   <Route
-                    path="/artists/artist/:id"
+                    path="/artists/artist/:artistId"
                     element={
                       <ProtectedRoute>
                         <ArtistDetailPage />
@@ -243,6 +249,14 @@ function App() {
                         <LikedPlaylistsPage />
                       </ProtectedRoute>
                     }
+                  />{' '}
+                  <Route
+                    path="/my-uploads"
+                    element={
+                      <ProtectedRoute>
+                        <MyUploads />
+                      </ProtectedRoute>
+                    }
                   />
                   {/* Add any other main app routes here */}
                 </Routes>
@@ -251,9 +265,22 @@ function App() {
           />
         </Routes>
         <PromptModal />
-        <CreatePlaylistModal />
-        <AddToPlaylistModal />
-        <AddAlbumToPlaylistModal />
+        <CreatePlaylistModal
+          useStore={useCreatePlaylistModalStore}
+          title="Create New Playlist"
+        />
+        <ChangeDisplayNameModal
+          title="Change Display Name"
+          useStore={useChangeDisplayNameModalStore}
+        />
+        <AddAlbumToPlaylistModal
+          title="Add Album to Playlist"
+          useStore={useAddAlbumToPlaylistModalStore}
+        />
+        <AddSongToPlaylistModal
+          title="Add Song to Playlist"
+          useStore={useAddToPlaylistModalStore}
+        />
       </BrowserRouter>
       <Toaster />
     </div>

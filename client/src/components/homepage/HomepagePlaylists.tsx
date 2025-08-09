@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-
 import { getPublicPlaylists } from '../../service/playlistService'
 import { Link } from 'react-router'
 import { PlaylistCard } from '../cards/PlaylistCard'
-import { BiLoader } from 'react-icons/bi'
+import AlbumsSkeleton from '../skeletons/AlbumsSkeleton'
 
 const HomepagePlaylists = () => {
   const [playlists, setPlaylists] = useState([])
@@ -25,11 +24,9 @@ const HomepagePlaylists = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4 w-full h-full flex flex-col items-center justify-center">
-        <BiLoader className="animate-spin text-black" />{' '}
-        <h1 className="text-lg font-semibold mb-4 text-gray-700">
-          Loading Playlists
-        </h1>
+      <div className="w-full p-4">
+        <h2 className="text-xl font-bold mb-4 text-gray-900">Playlists</h2>
+        <AlbumsSkeleton />
       </div>
     )
   }
@@ -39,10 +36,13 @@ const HomepagePlaylists = () => {
       <section>
         {' '}
         <div className="w-full flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">
-            All Playlists
-          </h2>
-          <Link to="/playlists">See all</Link>
+          <h2 className="text-xl font-bold mb-4 text-gray-900">Playlists</h2>
+          <Link
+            to="/playlists"
+            className="text-sm border px-2 py-1 rounded-lg "
+          >
+            See all
+          </Link>
         </div>
         <div className="flex flex-wrap gap-4 items-center justify-start">
           {playlists.length > 0 &&

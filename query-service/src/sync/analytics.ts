@@ -92,7 +92,7 @@ const syncSongAnalytics = async () => {
 
     await updateLastSyncTimestamp(new Date())
   } catch (error) {
-    console.error('Error syncing libraries:', error)
+    console.error('Error syncing libraries:', (error as Error).message)
     throw error
   }
 }
@@ -170,7 +170,7 @@ const fullSyncSongAnalytics = async () => {
       `Full sync completed - processed ${totalProcessed} song analytics`
     )
   } catch (error) {
-    console.error('Error in full sync:', error)
+    console.error('Error in full sync:', (error as Error).message)
     throw error
   }
 }
@@ -181,7 +181,10 @@ const getLastSyncTimestamp = async (): Promise<Date | null> => {
     const metadata = await SyncMetadata.findOne({ type: 'song-analytics-sync' })
     return metadata?.lastSyncAt || null
   } catch (error) {
-    console.error('Error getting last sync timestamp:', error)
+    console.error(
+      'Error getting last sync timestamp:',
+      (error as Error).message
+    )
     return null
   }
 }

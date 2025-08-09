@@ -1,8 +1,8 @@
 import { useRef, useCallback } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { getLikedPlaylists } from '../service/libraryService'
+
 import { PlaylistCard } from '../components/cards/PlaylistCard'
 import toast from 'react-hot-toast'
+import { useLikedPlaylists } from '@/service/queries/playlistQuery'
 
 const Loader = () => <span className="loader" />
 
@@ -14,17 +14,7 @@ const LikedPlaylistsPage = () => {
     isFetching,
     isFetchingNextPage,
     status,
-  } = useInfiniteQuery({
-    queryKey: ['likedPlaylists'],
-    queryFn: ({ pageParam = 1 }) => getLikedPlaylists(pageParam, 20),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.currentPage < lastPage.pagination.totalPages) {
-        return lastPage.pagination.currentPage + 1
-      }
-      return undefined
-    },
-  })
+  } = useLikedPlaylists()
 
   const observer = useRef<IntersectionObserver>(null)
   const lastPlaylistElementRef = useCallback(
@@ -58,7 +48,7 @@ const LikedPlaylistsPage = () => {
 
   return (
     <div className=" p-4 sm:p-6 lg:p-8 w-full">
-      <h1 className="text-2xl font-bold mb-6">Liked Playlists</h1>
+      <h1 className="text-xl font-semibold mb-5">Liked Playlists</h1>
       {allPlaylists.length === 0 && !isFetching ? (
         <p>You have not liked any playlists yet.</p>
       ) : (

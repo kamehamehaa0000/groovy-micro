@@ -41,6 +41,7 @@ export interface AuthActions {
   clearError: () => void
   setTokens: (accessToken: string) => void
   checkAuth: () => Promise<void>
+  changeDisplayName: (newDisplayName: string) => Promise<void>
   initializeAuth: () => Promise<void> // New method for app startup
 }
 
@@ -388,6 +389,17 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
         isAuthenticated: true,
       })
       return response.data
+    } catch (error) {
+      set({ isLoading: false, error: (error as Error).message })
+      throw error
+    }
+  },
+  changeDisplayName: async (newDisplayName: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      await axiosInstance.put(`${API_BASE_URL}/change-display-name`, {
+        newDisplayName,
+      })
     } catch (error) {
       set({ isLoading: false, error: (error as Error).message })
       throw error

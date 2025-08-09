@@ -6,7 +6,6 @@ const axiosInstance = axios.create({
   withCredentials: true,
 })
 
-// Request interceptor to add access token
 axiosInstance.interceptors.request.use(
   (config) => {
     const { accessToken } = useAuthStore.getState()
@@ -18,7 +17,6 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor for automatic token refresh
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {

@@ -206,6 +206,7 @@ router.get(
     }
   }
 )
+
 // get album by current user id
 router.get(
   '/me',
@@ -225,6 +226,19 @@ router.get(
       const albums = await Album.find({ artist: userId })
         .populate('artist', 'displayName')
         .populate('collaborators', 'displayName')
+        .populate({
+          path: 'songs',
+          populate: [
+            {
+              path: 'metadata.artist',
+              select: 'displayName',
+            },
+            {
+              path: 'metadata.album',
+              select: 'title',
+            },
+          ],
+        })
         .sort({ createdAt: sort === 'Ascending' ? 1 : -1 })
         .skip(skip)
         .limit(limit)
@@ -234,7 +248,7 @@ router.get(
         return {
           likedBy: album.likedBy.length,
           isLikedByCurrentUser: album.likedBy.includes(userId),
-          ...album,
+          ...album.toObject(),
         }
       })
       res.json({

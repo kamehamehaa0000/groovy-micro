@@ -3,6 +3,9 @@ import type { AlbumUploadForm } from '../../../types/UploadComponentTypes'
 import { genres } from '../../../pages/upload'
 import axiosInstance from '../../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
+import { BiXCircle } from 'react-icons/bi'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface TrackItemProps {
   index: number
@@ -89,7 +92,7 @@ export const TrackItem = ({
   }
 
   return (
-    <div className="border rounded p-3 mb-3 bg-gray-50">
+    <div className="border rounded-lg bg-accent p-3 mb-3">
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-sm font-medium">Track {index + 1}</h4>
         {trackCount > 1 && (
@@ -107,7 +110,7 @@ export const TrackItem = ({
         {/* Track Name */}
         <div className="mb-2 sm:w-1/2">
           <label className="block text-xs font-medium mb-1">Track Name</label>
-          <input
+          <Input
             type="text"
             {...register(`tracks.${index}.trackName` as const, {
               required: 'Track name is required',
@@ -146,7 +149,7 @@ export const TrackItem = ({
           >
             Audio File (MP3, max 15MB)
           </label>
-          <input
+          <Input
             id={`track-${index}-audio`}
             type="file"
             accept=".mp3,audio/mp3"
@@ -221,7 +224,7 @@ export const TrackItem = ({
           >
             Tags
           </label>
-          <input
+          <Input
             id={`track-${index}-tags`}
             type="text"
             {...register(`tracks.${index}.tags` as const, {
@@ -244,7 +247,7 @@ export const TrackItem = ({
           Track Collaborators ({tracks[index]?.collaborators?.length || 0}/5)
         </label>
         <div className="flex space-x-2 mb-2">
-          <input
+          <Input
             type="email"
             value={trackCollaboratorEmails[index] || ''}
             onChange={(e) => {
@@ -262,32 +265,33 @@ export const TrackItem = ({
             placeholder="Enter collaborator's email"
             disabled={(tracks[index]?.collaborators?.length || 0) >= 5}
           />
-          <button
+          <Button
+            variant="outline"
             type="button"
             onClick={addTrackCollaborator}
             disabled={
               !trackCollaboratorEmails[index]?.trim() ||
               (tracks[index]?.collaborators?.length || 0) >= 5
             }
-            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="border-orange-600 text-orange-600"
           >
             Add
-          </button>
+          </Button>
         </div>
         {tracks[index]?.collaborators?.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-1 flex items-center flex-wrap gap-2">
             {tracks[index].collaborators.map((email) => (
               <div
                 key={email}
-                className="flex items-center justify-between bg-white p-1 rounded border"
+                className="flex items-center bg-gray-100 px-4 py-1 rounded-full gap-1"
               >
                 <span className="text-xs">{email}</span>
                 <button
                   type="button"
                   onClick={() => removeTrackCollaborator(email)}
-                  className="px-1 py-0.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                  className="px-2 py-1 text-gray-500 rounded-full "
                 >
-                  Remove
+                  <BiXCircle />
                 </button>
               </div>
             ))}

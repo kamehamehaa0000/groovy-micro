@@ -62,7 +62,17 @@ router.post(
       })
 
       await playlist.save()
-
+      await SongServiceEventPublisher.PlaylistCreatedEvent({
+        playlistId: playlist._id,
+        title: playlist.title,
+        description: playlist.description,
+        coverUrl: playlist.coverUrl,
+        creator: playlist.creator,
+        collaborators: playlist.collaborators,
+        visibility: playlist.visibility,
+        songs: playlist.songs,
+        likedBy: playlist.likedBy,
+      })
       res
         .status(201)
         .json({ message: 'Playlist created successfully', playlist })
@@ -409,7 +419,7 @@ router.delete(
 
 // delete a playlist
 router.delete(
-  '/:playlistId',
+  '/delete/playlist/:playlistId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const { user } = req
@@ -426,7 +436,7 @@ router.delete(
     if (!playlist) {
       throw new CustomError('Playlist not found', 404)
     }
-    if (playlist.creator.toString() !== user._id.toString()) {
+    if (playlist.creator.toString() !== user.id) {
       throw new CustomError(
         'You are not authorized to delete this playlist',
         403

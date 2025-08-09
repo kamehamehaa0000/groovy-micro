@@ -202,9 +202,9 @@ router.post(
   }
 )
 
-// DELETE "/delete/:songId" endpoint to delete a single song upload
+// DELETE "/delete/song/:songId" endpoint to delete a single song upload
 router.delete(
-  '/delete/:songId',
+  '/delete/song/:songId',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {

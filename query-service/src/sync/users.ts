@@ -102,8 +102,8 @@ const syncUsers = async () => {
     console.log(`- Created: ${totalCreated}`)
     console.log(`- Updated: ${totalUpdated}`)
     console.log(`- Deleted: ${usersToDelete.length}`)
-  } catch (error) {
-    console.error('Error syncing users:', error)
+  } catch (error: any) {
+    console.error('Error syncing users:', error.message)
     throw error
   }
 }
@@ -181,8 +181,8 @@ const fullSyncUsers = async () => {
 
     await updateLastSyncTimestamp(new Date())
     console.log(`Full sync completed - processed ${totalProcessed} users`)
-  } catch (error) {
-    console.error('Error in full sync:', error)
+  } catch (error: any) {
+    console.error('Error full syncing users:', error.message)
     throw error
   }
 }
@@ -206,7 +206,10 @@ const updateLastSyncTimestamp = async (timestamp: Date) => {
       { upsert: true }
     )
   } catch (error) {
-    console.error('Error updating last sync timestamp:', error)
+    console.error(
+      'Error updating last sync timestamp:',
+      (error as Error).message
+    )
   }
 }
 
@@ -238,7 +241,10 @@ const cleanupUserReferences = async (deletedUserIds: string[]) => {
       `Cleanup: ${deletedPlaylists.deletedCount} playlists, ${deletedSongs.deletedCount} songs`
     )
   } catch (error) {
-    console.error('Error cleaning up user references:', error)
+    console.error(
+      'Error cleaning up user references:',
+      (error as Error).message
+    )
   }
 }
 

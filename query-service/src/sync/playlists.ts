@@ -96,7 +96,7 @@ const syncPlaylists = async () => {
 
     await updateLastSyncTimestamp(new Date())
   } catch (error) {
-    console.error('Error syncing albums:', error)
+    console.error('Error syncing albums:', (error as Error).message)
     throw error
   }
 }
@@ -172,7 +172,7 @@ const fullSyncPlaylists = async () => {
     await updateLastSyncTimestamp(new Date())
     console.log(`Full sync completed - processed ${totalProcessed} playlists`)
   } catch (error) {
-    console.error('Error in full sync:', error)
+    console.error('Error in full sync:', (error as Error).message)
     throw error
   }
 }
@@ -183,7 +183,10 @@ const getLastSyncTimestamp = async (): Promise<Date | null> => {
     const metadata = await SyncMetadata.findOne({ type: 'playlist-sync' })
     return metadata?.lastSyncAt || null
   } catch (error) {
-    console.error('Error getting last sync timestamp:', error)
+    console.error(
+      'Error getting last sync timestamp:',
+      (error as Error).message
+    )
     return null
   }
 }
@@ -196,7 +199,10 @@ const updateLastSyncTimestamp = async (timestamp: Date) => {
       { upsert: true }
     )
   } catch (error) {
-    console.error('Error updating last sync timestamp:', error)
+    console.error(
+      'Error updating last sync timestamp:',
+      (error as Error).message
+    )
   }
 }
 
@@ -207,7 +213,10 @@ const cleanupPlaylistReferences = async (deletedPlaylistIds: string[]) => {
       _id: { $in: deletedPlaylistIds },
     })
   } catch (error) {
-    console.error('Error cleaning up playlist references:', error)
+    console.error(
+      'Error cleaning up playlist references:',
+      (error as Error).message
+    )
   }
 }
 

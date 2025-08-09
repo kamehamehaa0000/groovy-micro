@@ -1,14 +1,25 @@
 import { useJamActions, useIsJamming } from '../store/jam-store'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import CompactComments from '../components/comments/CompactComments'
-import { fetchSongById, toggleLikeSong } from '../service/songsService'
+import {
+  deleteSong,
+  fetchSongById,
+  toggleLikeSong,
+} from '../service/songsService'
 import toast from 'react-hot-toast'
-import { BiAddToQueue, BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
+import {
+  BiAddToQueue,
+  BiHeart,
+  BiPlusCircle,
+  BiShare,
+  BiTrashAlt,
+} from 'react-icons/bi'
 import { usePlayerStore } from '../store/player-store'
 import { useAddToPlaylistModalStore } from '../store/modal-store'
 import { addSongToListenLater } from '../service/libraryService'
 import { MdOutlineWatchLater } from 'react-icons/md'
+import { useAuthStore } from '@/store/auth-store'
 
 const SongDetailPage = () => {
   const param = useParams<{ id: string }>()
@@ -47,6 +58,7 @@ const SongDetailPage = () => {
     streamCount: 0,
   })
   const { queue, currentSong, actions } = usePlayerStore()
+  const { isAuthenticated, user } = useAuthStore()
   const {
     isOpen: isAddToPlaylistOpen,
     open: openAddToPlaylist,
@@ -55,7 +67,7 @@ const SongDetailPage = () => {
   const isJamming = useIsJamming()
   const { addToQueue: jamAddToQueue, changeSong: jamChangeSong } =
     useJamActions()
-
+  const navigate = useNavigate()
   useEffect(() => {
     const fetchSong = async () => {
       if (!songId) return
@@ -142,6 +154,15 @@ const SongDetailPage = () => {
       error && toast.error('Failed to add song to Listen Later')
     }
   }
+  const handleDeleteSong = async () => {
+    try {
+      await deleteSong(song._id)
+      toast.success('Song deleted successfully')
+      navigate('/songs')
+    } catch (error) {
+      error && toast.error('Failed to delete song')
+    }
+  }
 
   if (loading) {
     return (
@@ -209,13 +230,7 @@ const SongDetailPage = () => {
                     />
                   )}
                 </button>
-                <button
-                  onClick={handleShareSong}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Share song"
-                >
-                  <BiShare className="w-5 h-5" />
-                </button>
+
                 <button
                   onClick={handleAddToPlaylist}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -236,6 +251,22 @@ const SongDetailPage = () => {
                   title="Add to Listen Later"
                 >
                   <MdOutlineWatchLater className="w-5 h-5" />
+                </button>
+                {isAuthenticated && user?.id === song.metadata.artist._id && (
+                  <button
+                    onClick={handleDeleteSong}
+                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Delete song"
+                  >
+                    <BiTrashAlt className="w-5 h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={handleShareSong}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Share song"
+                >
+                  <BiShare className="w-5 h-5" />
                 </button>
               </div>
             </div>

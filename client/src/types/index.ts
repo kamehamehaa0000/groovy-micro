@@ -67,3 +67,12 @@ export interface Playlist {
   likedBy?: string[]
   streamCount?: number
 }
+
+export const dotColors = [
+  'bg-amber-500',
+  'bg-emerald-500',
+  'bg-violet-500',
+  'bg-indigo-500',
+  'bg-yellow-500',
+  'bg-pink-500',
+]

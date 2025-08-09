@@ -160,7 +160,7 @@ router.get(
 )
 // fetch songs by current user
 router.get(
-  '/songs/me',
+  '/me',
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
@@ -185,7 +185,7 @@ router.get(
       const songsData = songs.map((song) => ({
         likeBy: song.metadata.likedBy.length,
         isLikeByCurrentUser: song.metadata.likedBy.includes(user._id),
-        ...song,
+        ...song.toObject(),
       }))
       res.json({
         songs: songsData,
@@ -286,5 +286,7 @@ router.get(
     }
   }
 )
+
+
 
 export { router as songsRouter }

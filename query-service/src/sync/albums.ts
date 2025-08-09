@@ -97,7 +97,7 @@ const syncAlbums = async () => {
 
     await updateLastSyncTimestamp(new Date())
   } catch (error) {
-    console.error('Error syncing albums:', error)
+    console.error('Error syncing albums:', (error as Error).message)
     throw error
   }
 }
@@ -175,7 +175,7 @@ const fullSyncAlbums = async () => {
     await updateLastSyncTimestamp(new Date())
     console.log(`Full sync completed - processed ${totalProcessed} albums`)
   } catch (error) {
-    console.error('Error in full sync:', error)
+    console.error('Error in full sync:', (error as Error).message)
     throw error
   }
 }

@@ -1,7 +1,5 @@
 import { Server, Socket } from 'socket.io'
 import { SongAnalytics } from '../models/SongAnalytics.model'
-import { PubSubManager } from '../config/PubSub'
-import { TOPICS, EventTypes } from '@groovy-streaming/common'
 import { AnalyticsEventPublisher } from './analytics-event-publisher'
 
 export const initializeStreamHandler = (io: Server) => {

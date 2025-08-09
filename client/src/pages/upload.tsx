@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SingleUpload } from '../components/upload/SingleUpload'
-import { Link } from 'react-router'
 import { AlbumUpload } from '../components/upload/AlbumUpload'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const Upload = () => {
   const [type, setType] = useState<'single' | 'album'>('single')
@@ -14,94 +14,48 @@ const Upload = () => {
     currentStep: '',
     tracks: {} as { [key: number]: number },
   })
-  const UploadComponent =
-    type === 'single' ? (
-      <SingleUpload
-        setIsSingleBeingUploaded={setIsSingleBeingUploaded}
-        setUploadProgress={setUploadProgress}
-      />
-    ) : (
-      <AlbumUpload
-        setIsAlbumBeingUploaded={setIsAlbumBeingUploaded}
-        setUploadProgress={setUploadProgress}
-      />
-    )
+
+  const isUploading = isSingleBeingUploaded || isAlbumBeingUploaded
+
   return (
-    <div className="relative flex flex-col items-center justify-center have-bg">
-      <div className="mt-6 text-center">
-        <Link to="/" className="text-sm text-orange-700 hover:text-orange-500">
-          ← Back to home
-        </Link>
-      </div>
-      <div className=" flex flex-col items-center justify-center  rounded-lg p-4 w-full max-w-2xl">
+    <div className="relative flex flex-col items-center justify-center w-full ">
+      <div className="flex flex-col items-center justify-center rounded-lg p-4 w-full max-w-2xl">
         <h1 className="text-2xl font-semibold my-8">Upload Music to Groovy</h1>
-        {/* Toggle between single and album upload */}
-        <UploadTypeToggle
-          type={type}
-          setType={setType}
-          isSingleBeingUploaded={isSingleBeingUploaded}
-          isAlbumBeingUploaded={isAlbumBeingUploaded}
-        />
-        {/* Render content based on the selected type */}
-        <div className="w-full ">
-          {isAlbumBeingUploaded || isSingleBeingUploaded ? (
-            <UploadInProcessLoading uploadProgress={uploadProgress} />
-          ) : (
-            UploadComponent
-          )}
-        </div>
+        {/* Show upload progress if uploading, otherwise show tabs */}
+        {isUploading ? (
+          <UploadInProcessLoading uploadProgress={uploadProgress} />
+        ) : (
+          <Tabs
+            value={type}
+            onValueChange={(value) => setType(value as 'single' | 'album')}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="single">Single</TabsTrigger>
+              <TabsTrigger value="album">Album</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="single" className="w-full">
+              <SingleUpload
+                setIsSingleBeingUploaded={setIsSingleBeingUploaded}
+                setUploadProgress={setUploadProgress}
+              />
+            </TabsContent>
+
+            <TabsContent value="album" className="w-full">
+              <AlbumUpload
+                setIsAlbumBeingUploaded={setIsAlbumBeingUploaded}
+                setUploadProgress={setUploadProgress}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   )
 }
 
 export default Upload
-
-const UploadTypeToggle = ({
-  type,
-  setType,
-  isSingleBeingUploaded,
-  isAlbumBeingUploaded,
-}: {
-  type: 'single' | 'album'
-  setType: (type: 'single' | 'album') => void
-  isSingleBeingUploaded: boolean
-  isAlbumBeingUploaded: boolean
-}) => {
-  return (
-    <div className="w-full bg-zinc-100 relative flex my-4  rounded-md px-1 py-1 border">
-      <div
-        className={`absolute border border-gray-500 top-1 bottom-1 bg-white  rounded-md transition-all duration-300 ease-in-out ${
-          type === 'single'
-            ? 'left-1 right-1/2 mr-0.5'
-            : 'left-1/2 right-1 ml-0.5'
-        }`}
-      />
-      <button
-        onClick={() => setType('single')}
-        disabled={isSingleBeingUploaded || isAlbumBeingUploaded}
-        className={`disabled:cursor-not-allowed relative z-10 flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-          type === 'single'
-            ? 'text-red-600'
-            : 'text-gray-600 hover:text-gray-900'
-        }`}
-      >
-        Single
-      </button>
-      <button
-        onClick={() => setType('album')}
-        disabled={isSingleBeingUploaded || isAlbumBeingUploaded}
-        className={`disabled:cursor-not-allowed relative z-10 flex-1 px-4 py-2 text-sm font-medium rounded-2xl transition-colors duration-200 ${
-          type === 'album'
-            ? 'text-red-600'
-            : 'text-gray-600 hover:text-gray-900'
-        }`}
-      >
-        Album
-      </button>
-    </div>
-  )
-}
 
 const UploadInProcessLoading = ({
   uploadProgress,
@@ -210,6 +164,7 @@ const UploadInProcessLoading = ({
     </div>
   )
 }
+
 export const genres: string[] = [
   'Pop',
   'Rock',

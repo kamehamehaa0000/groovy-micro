@@ -41,8 +41,10 @@ const HomepageSongs = () => {
   return (
     <div className="w-full  p-3">
       <div className="w-full flex justify-between items-center my-2 px-3">
-        <h1 className="text-xl font-semibold ">All Songs</h1>
-        <Link to="/songs">See all</Link>
+        <h1 className="text-xl font-semibold "> Songs</h1>
+        <Link to="/songs" className="text-sm border px-2 py-1 rounded-lg ">
+          See all
+        </Link>
       </div>
 
       {/* Mobile: Single column stack */}

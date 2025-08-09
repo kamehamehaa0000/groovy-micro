@@ -93,7 +93,7 @@ const syncSongs = async () => {
 
     await updateLastSyncTimestamp(new Date())
   } catch (error) {
-    console.error('Error syncing albums:', error)
+    console.error('Error syncing albums:', (error as Error).message)
     throw error
   }
 }
@@ -169,7 +169,7 @@ const fullSyncSongs = async () => {
     await updateLastSyncTimestamp(new Date())
     console.log(`Full sync completed - processed ${totalProcessed} songs`)
   } catch (error) {
-    console.error('Error in full sync:', error)
+    console.error('Error in full sync:', (error as Error).message)
     throw error
   }
 }
@@ -180,7 +180,10 @@ const getLastSyncTimestamp = async (): Promise<Date | null> => {
     const metadata = await SyncMetadata.findOne({ type: 'song-sync' })
     return metadata?.lastSyncAt || null
   } catch (error) {
-    console.error('Error getting last sync timestamp:', error)
+    console.error(
+      'Error getting last sync timestamp:',
+      (error as Error).message
+    )
     return null
   }
 }
@@ -193,7 +196,10 @@ const updateLastSyncTimestamp = async (timestamp: Date) => {
       { upsert: true }
     )
   } catch (error) {
-    console.error('Error updating last sync timestamp:', error)
+    console.error(
+      'Error updating last sync timestamp:',
+      (error as Error).message
+    )
   }
 }
 
@@ -206,7 +212,10 @@ const cleanupSongReferences = async (deletedSongIds: string[]) => {
       entityId: { $in: deletedSongIds },
     })
   } catch (error) {
-    console.error('Error cleaning up Song references:', error)
+    console.error(
+      'Error cleaning up Song references:',
+      (error as Error).message
+    )
   }
 }
 

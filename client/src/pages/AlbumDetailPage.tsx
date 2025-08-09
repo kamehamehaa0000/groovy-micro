@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { SongCompactCardB } from '../components/cards/SongCompactCardB'
 import { usePlayerStore } from '../store/player-store'
-import { fetchAlbumById, toggleAlbumLike } from '../service/albumService'
 import toast from 'react-hot-toast'
 import { BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
 import { useAddAlbumToPlaylistModalStore } from '../store/modal-store'
 import CompactComments from '../components/comments/CompactComments'
 import type { Album } from '../types'
+import { useAlbumById, useToggleAlbumLike } from '@/service/queries/albumOuery'
 
 const AlbumDetailPage = () => {
   const param = useParams<{ id: string }>()
@@ -28,29 +28,31 @@ const AlbumDetailPage = () => {
     updatedAt: '',
     streamCount: 0,
   })
-  const [loading, setLoading] = useState(true)
-  const [likeLoading, setLikeLoading] = useState(false)
   const { isPlaying, currentSong, actions } = usePlayerStore()
   const { setAlbumId, open } = useAddAlbumToPlaylistModalStore()
+
+  const { data: albumData, isPending: loading } = useAlbumById(albumId || '')
+  const { mutate: toggleAlbumLike, isPending: likeLoading } =
+    useToggleAlbumLike({
+      onSuccess: () => {
+        setAlbum((prev) => ({
+          ...prev,
+          isLikedByCurrentUser: !prev.isLikedByCurrentUser,
+        }))
+        toast.success(
+          album.isLikedByCurrentUser ? 'Album unliked' : 'Album liked'
+        )
+      },
+    })
   useEffect(() => {
-    async function fetchAlbum() {
-      if (!albumId) return
-      try {
-        setLoading(true)
-        const data = await fetchAlbumById(albumId)
-        setAlbum(data.album)
-      } catch (error) {
-        console.error('Failed to fetch albums:', error)
-      } finally {
-        setLoading(false)
-      }
+    if (albumId) {
+      if (loading) return
+      setAlbum(albumData?.album)
     }
-    fetchAlbum()
-  }, [])
+  }, [albumId, albumData, loading])
 
   const handlePlayAlbum = () => {
     actions.setQueue([])
-    console.log('playing album:', album)
     actions.loadQueue(album.songs, 0)
   }
   if (!album || loading) {
@@ -61,21 +63,9 @@ const AlbumDetailPage = () => {
     )
   }
 
-  const handleLikeAlbum = async (album: any) => {
-    try {
-      if (!album) return
-      setLikeLoading(true)
-      await toggleAlbumLike(album._id)
-      setAlbum((prev) => ({
-        ...prev,
-        isLikedByCurrentUser: !prev.isLikedByCurrentUser,
-      }))
-    } catch (error) {
-      console.error('Failed to like album:', error)
-      toast.error('Failed to like album')
-    } finally {
-      setLikeLoading(false)
-    }
+  const handleLikeAlbum = async () => {
+    if (!albumId) return
+    toggleAlbumLike(albumId)
   }
   const handleAddAlbumToPlaylist = () => {
     if (!albumId) {
@@ -141,7 +131,7 @@ const AlbumDetailPage = () => {
 
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => handleLikeAlbum(album)}
+                  onClick={handleLikeAlbum}
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                 >
                   {likeLoading ? (

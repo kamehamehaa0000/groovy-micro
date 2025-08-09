@@ -228,12 +228,15 @@ export function SongCompactCardA({
                 </button>
                 <hr className="my-1 border-gray-200" />
 
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
+                <Link
+                  to={`/artists/artist/${song?.metadata?.artist?._id}`}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                >
                   Go to Artist
-                </button>
+                </Link>
                 <Link
                   to={`/albums/album/${song?.metadata?.album?._id}`}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Go to Album
                 </Link>

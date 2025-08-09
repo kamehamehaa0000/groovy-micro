@@ -27,3 +27,20 @@ export const fetchSongById = async (songId: string) => {
   )
   return response.data
 }
+
+export const fetchCurrentUserSongs = async (page: number, limit: number) => {
+  const response = await axiosInstance.get(`${API_BASE_URL}/query/songs/me`, {
+    params: {
+      page,
+      limit,
+    },
+  })
+  return response.data
+}
+
+export const deleteSong = async (songId: string) => {
+  const response = await axiosInstance.delete(
+    `${API_BASE_URL}/songs/delete/song/${songId}`
+  )
+  return response.data
+}

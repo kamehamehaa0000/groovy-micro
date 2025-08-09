@@ -1,79 +1,81 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import { SongCompactCardB } from '../components/cards/SongCompactCardB'
 import { usePlayerStore } from '../store/player-store'
 import toast from 'react-hot-toast'
-import { BiEdit, BiHeart, BiPlusCircle, BiShare } from 'react-icons/bi'
+import { BiEdit, BiHeart, BiPlusCircle, BiShare, BiTrash } from 'react-icons/bi'
 import albumPlaceholder from '../assets/albumPlaceholder.svg'
-import {
-  fetchPlaylistById,
-  togglePlaylistLike,
-} from '../service/playlistService'
 import CompactComments from '../components/comments/CompactComments'
 
-import { PlaylistEditModal } from '../components/shared/PlaylistEditModal'
-import type { Playlist } from '../types'
+import { PlaylistEditModal } from '../components/modals/PlaylistEditModal'
+import {
+  useDeletePlaylist,
+  usePlaylistById,
+  useTogglePlaylistLike,
+} from '@/service/queries/playlistQuery'
+import { useAuthStore } from '@/store/auth-store'
 
 const PlaylistDetailPage = () => {
   const param = useParams<{ id: string }>()
   const playlistId = param.id
-  const [playlist, setPlaylist] = useState<Playlist>({} as Playlist)
-  const [loading, setLoading] = useState(true)
-  const [likeLoading, setLikeLoading] = useState(false)
+  const { user } = useAuthStore()
+
   const [inEditMode, setInEditMode] = useState(false)
   const { isPlaying, queue, shuffledQueue, isShuffled, actions } =
     usePlayerStore()
+  const { mutate: deletePlaylist } = useDeletePlaylist({
+    onSuccess: () => {
+      navigate('/playlists')
+    },
+  })
+  const { mutate: togglePlaylistLike, isPending: likeLoading } =
+    useTogglePlaylistLike()
+  const { data: playlist, isPending } = usePlaylistById(playlistId || '')
 
-  useEffect(() => {
-    async function fetchPlaylist() {
-      if (!playlistId) return
-      try {
-        setLoading(true)
-        const data = await fetchPlaylistById(playlistId)
-        setPlaylist(data)
-      } catch (error) {
-        console.error('Failed to fetch playlist:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchPlaylist()
-  }, [playlistId])
+  const navigate = useNavigate()
 
   const handlePlayPlaylist = () => {
+    if (!playlist || !playlist.songs) {
+      return
+    }
     actions.setQueue([])
-    const songs = playlist.songs.map((song) => song.songId)
+    const songs = playlist.songs.map((song: any) => song.songId)
     actions.loadQueue(songs, 0)
   }
+  const handleDeletePlaylist = async () => {
+    if (!playlistId) return
+    deletePlaylist(playlistId)
+  }
+
   const handleAddPlaylistToQueue = () => {
     if (!playlist || !playlist.songs) return
     if (isShuffled) {
       actions.setQueue([
         ...shuffledQueue,
-        ...playlist.songs.map((song) => song.songId),
+        ...playlist.songs.map((song: any) => song.songId),
       ])
       toast.success(`Playlist added to shuffled queue`)
     } else {
-      actions.setQueue([...queue, ...playlist.songs.map((song) => song.songId)])
+      actions.setQueue([
+        ...queue,
+        ...playlist.songs.map((song: any) => song.songId),
+      ])
       toast.success(`Playlist added to queue`)
     }
   }
+
   const handleLikePlaylist = async () => {
     try {
+      if (!playlist || !playlist.songs) {
+        return
+      }
       if (!playlist._id) return
-      setLikeLoading(true)
-      await togglePlaylistLike(playlist._id)
-      setPlaylist((prev) => ({
-        ...prev,
-        isLikedByCurrentUser: !prev.isLikedByCurrentUser,
-      }))
+      togglePlaylistLike(playlist._id)
     } catch (error) {
-      console.error('Failed to like album:', error)
-      toast.error('Failed to like album')
-    } finally {
-      setLikeLoading(false)
+      error && toast.error('Failed to like album')
     }
   }
+
   const handleSharePlaylist = () => {
     const shareData = {
       title: playlist.title,
@@ -94,7 +96,7 @@ const PlaylistDetailPage = () => {
     setInEditMode((prev) => !prev)
   }
 
-  if (!playlist || loading) {
+  if (!playlist || isPending) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-gray-500">Loading playlist details...</p>
@@ -142,6 +144,7 @@ const PlaylistDetailPage = () => {
 
               <div className="flex items-center space-x-2">
                 <button
+                  title="Like Playlist"
                   onClick={handleLikePlaylist}
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                 >
@@ -158,18 +161,30 @@ const PlaylistDetailPage = () => {
                   )}
                 </button>
                 <button
+                  title="Add Playlist to Queue"
                   onClick={handleAddPlaylistToQueue}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <BiPlusCircle className="w-5 h-5" />
                 </button>
                 <button
+                  title="Edit Playlist"
                   onClick={handleToggleEditMode}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <BiEdit className="w-5 h-5" />
-                </button>
+                </button>{' '}
+                {playlist.creator._id == user?.id && (
+                  <button
+                    title="Delete Playlist"
+                    onClick={handleDeletePlaylist}
+                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <BiTrash className="w-5 h-5" />
+                  </button>
+                )}
                 <button
+                  title="Share Playlist"
                   onClick={handleSharePlaylist}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
@@ -189,7 +204,7 @@ const PlaylistDetailPage = () => {
                 <p>
                   {playlist.creator.displayName}
                   {playlist.collaborators &&
-                    playlist.collaborators.map((collaborator) => (
+                    playlist.collaborators.map((collaborator: any) => (
                       <span
                         key={collaborator._id}
                         className="text-gray-600 mx-2"
@@ -198,7 +213,7 @@ const PlaylistDetailPage = () => {
                       </span>
                     ))}
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <span className="text-muted-foreground text-sm">
                   <p className="text-gray-500 mt-1">
                     {playlist?.songs?.length} tracks
                   </p>
@@ -214,7 +229,7 @@ const PlaylistDetailPage = () => {
                       {playlist.streamCount > 1 ? 's' : ''}
                     </p>
                   )}
-                </p>
+                </span>
 
                 <p className="text-sm text-gray-500 mt-1">
                   {new Date(playlist.createdAt).toLocaleDateString('en-US', {
@@ -231,11 +246,12 @@ const PlaylistDetailPage = () => {
         <div className="flex-1 py-4 sm:p-6 lg:p-8 md:h-full md:overflow-y-auto">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Tracks</h2>
           <div>
-            {playlist?.songs
-              .sort((a, b) => a.order - b.order)
-              .map((song: any) => (
-                <SongCompactCardB song={song.songId} key={song.songId._id} />
-              ))}
+            {playlist.songs &&
+              playlist?.songs
+                ?.sort((a: any, b: any) => a.order - b.order)
+                .map((song: any) => (
+                  <SongCompactCardB song={song.songId} key={song.songId._id} />
+                ))}
           </div>
         </div>
         {/* Right Panel - Additional Info */}

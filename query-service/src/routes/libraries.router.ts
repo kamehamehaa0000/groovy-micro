@@ -12,6 +12,7 @@ import { Playlist } from '../models/Playlist.model'
 
 const router = Router()
 
+// fetch recently played songs
 router.get(
   '/recently-played',
   optionalAuth,
@@ -73,6 +74,7 @@ router.get(
   }
 )
 
+// fetch liked songs
 router.get(
   '/liked-songs',
   requireAuth,
@@ -128,6 +130,7 @@ router.get(
   }
 )
 
+// fetch liked albums
 router.get(
   '/liked-albums',
   requireAuth,
@@ -195,6 +198,7 @@ router.get(
   }
 )
 
+// fetch liked playlists
 router.get(
   '/liked-playlists',
   requireAuth,

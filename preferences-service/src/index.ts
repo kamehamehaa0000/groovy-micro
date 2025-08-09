@@ -52,11 +52,15 @@ async function startServer() {
       }
     }, 60 * 60 * 1000) // 1 hour in milliseconds
 
-    await fullSyncAlbums()
-    await fullSyncUsers()
-    await fullSyncPlaylists()
-    await fullSyncSongs()
-    await fullSyncLibraries()
+    try {
+      await fullSyncAlbums()
+      await fullSyncUsers()
+      await fullSyncPlaylists()
+      await fullSyncSongs()
+      await fullSyncLibraries()
+    } catch (error) {
+      console.error('Error during full sync:', (error as Error).message)
+    }
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,

@@ -2,10 +2,10 @@ import { useState } from 'react'
 import {
   confirmCoverUpload,
   getPresignedUrlForCoverUpload,
-  updatePlaylistDetails,
 } from '../../service/playlistService'
 import toast from 'react-hot-toast'
 import axios from 'axios'
+import { useUpdatePlaylistDetails } from '@/service/queries/playlistQuery'
 
 interface PlaylistEditModalProps {
   isOpen: boolean
@@ -24,7 +24,7 @@ export const PlaylistEditModal = ({
   const [title, setTitle] = useState<string>('')
   const [description, setDescription] = useState<string>('')
   const [visibility, setVisibility] = useState<'public' | 'private'>('public')
-
+  const { mutate: updatePlaylistDetails } = useUpdatePlaylistDetails()
   const handleUpdateCover = async () => {
     if (!coverFile) {
       toast.error('Please select a cover file')
@@ -55,13 +55,13 @@ export const PlaylistEditModal = ({
   }
   const handleUpdateDetails = async () => {
     try {
-      await updatePlaylistDetails(
+      updatePlaylistDetails({
         playlistId,
-        title.trim(),
-        description.trim(),
-        visibility.trim() as 'public' | 'private'
-      )
-      toast.success('Playlist details updated successfully')
+        title: title.trim(),
+        description: description.trim(),
+        visibility: visibility.trim() as 'public' | 'private',
+      })
+
       setTitle('')
       setDescription('')
       setVisibility('public')

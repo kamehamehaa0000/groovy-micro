@@ -4,6 +4,7 @@ import { albumRouter } from './albums.router'
 import { playlistRouter } from './playlist.router'
 import { libraryRouter } from './libraries.router'
 import { searchRouter } from './search.router'
+import { artistsRouter } from './artists.router'
 
 const router = Router()
 router.use('/songs', songsRouter)
@@ -12,6 +13,8 @@ router.use('/albums', albumRouter)
 router.use('/comments', songsRouter)
 router.use('/libraries', libraryRouter)
 router.use('/search', searchRouter)
+router.use('/artists', artistsRouter)
+
 router.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -20,4 +23,5 @@ router.get('/health', (req, res) => {
     uptime: process.uptime(),
   })
 })
+
 export { router as mainRouter }

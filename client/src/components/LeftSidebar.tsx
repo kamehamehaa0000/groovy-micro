@@ -1,14 +1,26 @@
 import { useEffect, useState } from 'react'
-import { BiHeart, BiHome, BiPlus, BiSearch, BiUpload } from 'react-icons/bi'
+import {
+  BiAlbum,
+  BiHeart,
+  BiHome,
+  BiPlus,
+  BiRefresh,
+  BiSearch,
+  BiSolidPlaylist,
+  BiUpload,
+} from 'react-icons/bi'
 import { PiCassetteTapeLight } from 'react-icons/pi'
 import {
   useCreatePlaylistModalStore,
   useSigninPromptModalStore,
 } from '../store/modal-store'
-import { getUserPlaylist } from '../service/playlistService'
 import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
-import { Link } from 'react-router'
+import { Link, NavLink } from 'react-router'
 import { useAuthStore } from '../store/auth-store'
+import { Button, buttonVariants } from './ui/button'
+import { ScrollArea } from './ui/scroll-area'
+import { PlaylistSkeleton } from './skeletons/PlaylistsSkeleton'
+import { useUserPlaylists } from '@/service/queries/playlistQuery'
 
 interface LeftSidebarProps {
   isVisible: boolean
@@ -19,15 +31,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   isVisible,
   onClose,
 }) => {
-  const [playlists, setPlaylists] = useState<string[]>([])
-  const { open } = useCreatePlaylistModalStore()
-  const { isAuthenticated } = useAuthStore()
-  const { open: openSigninPrompt } = useSigninPromptModalStore()
-
   const navigationItems = [
     { id: 'home', label: 'Home', icon: BiHome, linkTo: '/' },
     { id: 'search', label: 'Search', icon: BiSearch, linkTo: '/search' },
     { id: 'upload', label: 'Upload', icon: BiUpload, linkTo: '/upload' },
+    {
+      id: 'myUploads',
+      label: 'My Uploads',
+      icon: BiUpload,
+      linkTo: '/my-uploads',
+    },
     {
       id: 'likedSongs',
       label: 'Liked Songs',
@@ -37,17 +50,71 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     {
       id: 'likedAlbums',
       label: 'Liked Albums',
-      icon: BiHeart,
+      icon: BiAlbum,
       linkTo: '/liked-albums',
     },
     {
       id: 'likedPlaylists',
       label: 'Liked Playlists',
-      icon: BiHeart,
+      icon: BiSolidPlaylist,
       linkTo: '/liked-playlists',
     },
   ]
 
+  return (
+    <div
+      className={`w-screen h-full lg:w-56 bg-background flex flex-col ${
+        isVisible ? ' block' : ' hidden'
+      } lg:block `}
+    >
+      {/* Header */}
+      <div className="p-4 pb-6 mt-2 ml-2">
+        <div className="flex items-center justify-between">
+          <Link to={'/'} className="flex items-center space-x-2 group">
+            <PiCassetteTapeLight className="w-8 h-8 group-hover:text-orange-700 group-hover:rotate-12 transition-transform" />
+            <span className="text-lg font-semibold text-foreground">
+              Groovy
+            </span>
+          </Link>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="lg:hidden"
+            >
+              <TbLayoutSidebarLeftCollapse className="w-6 h-6" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation */}
+
+      <div className="px-4 py-0.5 mb-8">
+        <nav className="space-y-1">
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.id}
+              to={item.linkTo}
+              className={({ isActive }) =>
+                `${buttonVariants({
+                  variant: isActive ? 'secondary' : 'ghost',
+                })} w-full justify-start px-2  text-sm font-normal`
+              }
+            >
+              <item.icon className="w-4 h-4 mr-3" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+      <UserPlaylist />
+    </div>
+  )
+}
+
+const UserPlaylist = () => {
   const dotColors = [
     'bg-amber-500',
     'bg-emerald-500',
@@ -56,91 +123,84 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     'bg-yellow-500',
     'bg-pink-500',
   ]
+  const { open: openCreatePlaylistModal } = useCreatePlaylistModalStore()
+  const { isAuthenticated } = useAuthStore()
+  const { open: openSigninPrompt } = useSigninPromptModalStore()
 
-  useEffect(() => {
-    const fetchPlaylists = async () => {
-      const { playlists } = await getUserPlaylist()
-      setPlaylists(playlists)
+  const { data: playlistData, isLoading, isError, refetch } = useUserPlaylists()
+  const playlists = playlistData?.playlists || []
+
+  const handleCreatePlaylist = () => {
+    if (!isAuthenticated) {
+      openSigninPrompt()
+      return
     }
-    fetchPlaylists()
-  }, [])
-  return (
-    <div
-      className={`w-screen lg:w-56 h-full bg-background flex flex-col ${
-        isVisible ? ' block' : ' hidden'
-      } lg:block `}
-    >
-      {/* Header */}
-      <div className="p-6 pb-8">
-        <div className="flex items-center justify-between ">
-          <div className="flex items-center space-x-2">
-            <PiCassetteTapeLight className="w-8 h-8 " />
-            <Link to={'/'} className="text-lg font-medium text-foreground">
-              Groovy-Gaana
-            </Link>
-          </div>
-          <button
-            onClick={onClose}
-            className="md:hidden w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 transition-all duration-200"
-          >
-            <TbLayoutSidebarLeftCollapse className="w-6 h-6 text-black" />
-          </button>
-        </div>
-      </div>
+    openCreatePlaylistModal()
+  }
 
-      {/* Navigation */}
-      <div className="px-4 mb-8">
-        <nav className="space-y-2">
-          {navigationItems.map((item) => (
-            <Link
-              to={item.linkTo}
-              key={item.id}
-              className={
-                'w-full flex items-center space-x-3 hover:text-orange-600 px-3 py-2 rounded-md text-left transition-all duration-200 text-sm group'
-              }
-            >
-              <item.icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </div>
-      {/* Playlists */}
-      <div className="flex-1 max-h-96 px-4 overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Playlists
-          </h3>
-          <button
-            onClick={() => {
-              if (!isAuthenticated) {
-                openSigninPrompt()
-                return
-              }
-              open()
-            }}
-            className="w-6 h-6 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 flex items-center justify-center group"
+  return (
+    <div className="flex-1 flex flex-col px-4 overflow-hidden ">
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Playlists
+        </h3>
+
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={!isAuthenticated || isLoading}
+            title="Refresh Playlists"
+            className="h-7 w-7"
           >
-            <BiPlus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-          </button>
+            <BiRefresh className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCreatePlaylist}
+            className="h-7 w-7"
+          >
+            <BiPlus className="w-5 h-5" />
+          </Button>
         </div>
-        <div className="space-y-0.5 overflow-y-auto">
-          {playlists.map((playlist: any, i) => (
+      </div>
+      {/* Simple scrollable div instead of ScrollArea */}
+
+      <ScrollArea className="flex-1 overflow-y-auto -mx-4 max-h-[50vh] h-full space-y-0.5 px-4">
+        {isLoading && <PlaylistSkeleton />}
+        {isError && (
+          <p className="px-3 py-2 text-sm text-destructive">
+            Failed to load playlists.
+          </p>
+        )}
+        {!isLoading &&
+          !isError &&
+          isAuthenticated &&
+          playlists.length === 0 && (
+            <p className="px-3 py-2 text-sm text-muted-foreground">
+              No playlists created.
+            </p>
+          )}
+        {!isLoading &&
+          !isError &&
+          playlists.map((playlist: any, i: number) => (
             <Link
               to={`/playlists/playlist/${playlist._id}`}
               key={playlist._id}
-              className="w-full flex items-center text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-all duration-200 truncate"
+              className="w-full flex items-center text-left px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-200 truncate"
             >
               <span
-                className={`w-3 h-3 rounded-full mr-3 ${
+                className={`w-2.5 h-2.5 rounded-full mr-3 flex-shrink-0 ${
                   dotColors[i % dotColors.length]
                 }`}
               />
-              {playlist.title}
+              <span className="truncate">{playlist.title}</span>
             </Link>
           ))}
-        </div>
-      </div>
+      </ScrollArea>
     </div>
   )
 }

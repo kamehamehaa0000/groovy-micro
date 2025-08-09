@@ -39,7 +39,7 @@ async function startServer() {
     // Schedule partial syncs to run every hour
     SyncInterval = setInterval(async () => {
       try {
-        console.log('🔄 Starting hourly partial sync...')
+        console.log('🔄 Starting regular partial sync...')
         await Promise.all([
           syncUsers(),
           syncAlbums(),
@@ -48,14 +48,14 @@ async function startServer() {
           syncLibraries(),
           syncSongAnalytics(),
         ])
-        console.log('✅ Hourly partial sync completed')
+        console.log('✅ regular partial sync completed')
       } catch (error) {
         console.error(
-          '❌ Error during hourly partial sync:',
+          '❌ Error during regular partial sync:',
           (error as Error).message
         )
       }
-    }, 10 * 60 * 1000) // 10 minutes in milliseconds
+    }, 2 * 60 * 1000) // 2 minutes in milliseconds
 
     try {
       await fullSyncAlbums()

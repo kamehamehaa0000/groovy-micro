@@ -6,6 +6,7 @@ import { AlbumCollaborators } from './album/AlbumCollaborators'
 import { AlbumTracks } from './album/AlbumTracks'
 import { useAlbumUpload } from './album/useAlbumUpload'
 import type { AlbumUploadForm } from '../../types/UploadComponentTypes'
+import { Button } from '../ui/button'
 
 export const AlbumUpload = ({
   setIsAlbumBeingUploaded,
@@ -102,12 +103,13 @@ export const AlbumUpload = ({
           removeTrack={removeTrack}
         />
 
-        <button
+        <Button
+          variant={'outline'}
           type="submit"
-          className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors"
+          className="w-full text-orange-600 border border-orange-600 py-2 px-4 rounded-lg hover:bg-orange-600 hover:text-white transition-colors"
         >
           Upload Album
-        </button>
+        </Button>
       </form>
     </div>
   )

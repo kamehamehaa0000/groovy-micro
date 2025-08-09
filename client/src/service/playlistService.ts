@@ -5,6 +5,20 @@ export const getUserPlaylist = async () => {
   const response = await axiosInstance.get(`${API_BASE_URL}/query/playlists/me`)
   return response.data
 }
+export const createPlaylist = async (
+  title: string,
+  visibility: 'public' | 'private'
+) => {
+  const response = await axiosInstance.post(
+    `${API_BASE_URL}/songs/playlists/create/quick`,
+    {
+      title,
+      visibility,
+    }
+  )
+  return response.data
+}
+
 export const addSongToPlaylist = async (songId: string, playlistId: string) => {
   const response = await axiosInstance.post(
     `${API_BASE_URL}/songs/playlists/add/song/${songId}/playlist/${playlistId}`
@@ -81,6 +95,22 @@ export const updatePlaylistDetails = async (
       description,
       visibility,
     }
+  )
+  return response.data
+}
+
+export const addAlbumToPlaylist = async (
+  albumId: string,
+  playlistId: string
+) => {
+  const response = await axiosInstance.post(
+    `${API_BASE_URL}/songs/playlists/add/album/${albumId}/playlist/${playlistId}`
+  )
+  return response.data
+}
+export const deletePlaylist = async (playlistId: string) => {
+  const response = await axiosInstance.delete(
+    `${API_BASE_URL}/songs/playlists/delete/playlist/${playlistId}`
   )
   return response.data
 }

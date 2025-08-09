@@ -2,6 +2,8 @@ import type { UseFormReturn } from 'react-hook-form'
 import type { AlbumUploadForm } from '../../../types/UploadComponentTypes'
 import axiosInstance from '../../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
+import { BiXCircle } from 'react-icons/bi'
+import { Button } from '@/components/ui/button'
 
 interface AlbumCollaboratorsProps {
   form: UseFormReturn<AlbumUploadForm>
@@ -80,29 +82,31 @@ export const AlbumCollaborators = ({
           placeholder="Enter collaborator's email"
           disabled={collaborators.length >= 5}
         />
-        <button
+        <Button
           type="button"
           onClick={addCollaborator}
           disabled={!collaboratorEmail.trim() || collaborators.length >= 5}
-          className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          variant="outline"
+          className="border-orange-600 text-orange-600"
         >
           Add
-        </button>
+        </Button>
       </div>
       {collaborators.length > 0 && (
-        <div className="space-y-1">
+        <div className="space-y-1 flex items-center flex-wrap gap-2">
           {collaborators.map((email) => (
             <div
               key={email}
-              className="flex items-center justify-between bg-gray-100 p-2 rounded"
+              className="flex items-center bg-gray-100 px-4 py-1 rounded-full gap-1"
             >
-              <span className="text-sm">{email}</span>
+              <span className="text-xs">{email}</span>
               <button
                 type="button"
+                title="Remove collaborator"
                 onClick={() => removeCollaborator(email)}
-                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-2 py-1 text-gray-500 rounded-full "
               >
-                Remove
+                <BiXCircle />
               </button>
             </div>
           ))}

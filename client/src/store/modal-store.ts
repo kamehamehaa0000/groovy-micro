@@ -85,3 +85,13 @@ export const useJoinJamModalStore = create<IJoinJamModal>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }))
+
+interface IChangeDisplayNameModal extends IModal {}
+
+export const useChangeDisplayNameModalStore = create<IChangeDisplayNameModal>(
+  (set) => ({
+    isOpen: false,
+    open: () => set({ isOpen: true }),
+    close: () => set({ isOpen: false }),
+  })
+)
