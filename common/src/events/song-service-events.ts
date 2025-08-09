@@ -20,11 +20,15 @@ export interface SongCreatedEventData {
     tags: string[]
     trackNumber?: number
     likedBy: string[]
+    streamCount?: number
   }
   visibility: 'public' | 'private'
 }
 export interface SongUpdatedEventData extends SongCreatedEventData {}
 export interface SongDeletedEventData {
+  songId: string
+}
+export interface SongStreamedEventData {
   songId: string
 }
 
@@ -78,4 +82,3 @@ export interface LibraryCreatedEventData {
   listenLater: string[]
   userId: string
 }
-

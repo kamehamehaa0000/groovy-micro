@@ -8,6 +8,7 @@ export const EventTypes = {
   SONG_CREATED: 'song-created',
   SONG_UPDATED: 'song-updated',
   SONG_DELETED: 'song-deleted',
+  SONG_STREAMED: 'song-streamed',
   ALBUM_CREATED: 'album-created',
   ALBUM_UPDATED: 'album-updated',
   ALBUM_DELETED: 'album-deleted',
@@ -23,7 +24,6 @@ export const EventTypes = {
   COMMENT_DELETED: 'comment-deleted',
 
   // preferences-and-analytics-service events
-  SONG_STREAMED: 'song-streamed',
 } as const
 
 export const TOPICS = {
@@ -31,7 +31,6 @@ export const TOPICS = {
   SONG_EVENTS: 'song-events',
   PLAYLIST_EVENTS: 'playlist-events',
   COMMENT_EVENTS: 'comment-events',
-  PREFERENCES_AND_ANALYTICS_EVENTS: 'preferences-and-analytics-events',
 } as const
 
 export const SUBSCRIPTIONS = {

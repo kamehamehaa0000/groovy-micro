@@ -31,8 +31,21 @@ export const convertToHLS = async (
       outputPath, // Output .m3u8 file path
     ])
 
+    let duration: string | null = null
+
     ffmpeg.stderr.on('data', (data) => {
-      console.log(`FFmpeg: ${data}`)
+      const output = data.toString()
+      console.log(`FFmpeg: ${output}`)
+
+      // Extract duration from FFmpeg output
+      if (!duration) {
+        const durationMatch = output.match(
+          /Duration: (\d{2}:\d{2}:\d{2}\.\d{2})/
+        )
+        if (durationMatch && durationMatch[1]) {
+          duration = durationMatch[1]
+        }
+      }
     })
 
     ffmpeg.on('close', (code) => {

@@ -1,5 +1,3 @@
-import { SongStreamedEventData } from './events/preference-and-analytics-service-events'
-
 export { default as BadRequestError } from './errors/BadRequestError'
 export { default as NotFoundError } from './errors/NotFoundError'
 export { default as CustomError } from './errors/CustomError'
@@ -44,8 +42,8 @@ export {
   PlaylistDeletedEventData,
   LibraryCreatedEventData,
   LibraryUpdatedEventData,
+  SongStreamedEventData,
 } from './events/song-service-events'
-export { SongStreamedEventData } from './events/preference-and-analytics-service-events'
 export {
   UserCreatedEventData,
   UserUpdatedEventData,

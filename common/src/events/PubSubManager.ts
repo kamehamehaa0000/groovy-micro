@@ -178,7 +178,6 @@ export class PubSubManager {
       subscription.on('error', (error) => {
         console.error(`❌ Subscription error for ${subscriptionName}:`, error)
       })
-
       console.log(
         `🎯 Started listening for messages on subscription: ${subscriptionName}`
       )
