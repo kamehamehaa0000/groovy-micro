@@ -77,7 +77,10 @@ const processConversionJob = async (job: any) => {
     // Download - convert - upload
     const inputPath = path.join(tempDir, 'input.mp3')
     await downloadFromR2(inputKey, inputPath)
-    await convertToHLS(inputPath, outputDir)
+    const { duration } = await convertToHLS(inputPath, outputDir)
+    console.log(
+      `Worker: Conversion completed for song ${songId}, duration: ${duration}`
+    )
     const hlsFiles = fs.readdirSync(outputDir)
     for (const file of hlsFiles) {
       const filePath = path.join(outputDir, file)
@@ -94,6 +97,7 @@ const processConversionJob = async (job: any) => {
       songId,
       status: StatusEnum.COMPLETED,
       hlsUrl,
+      duration,
     })
 
     console.log(`Worker: Successfully processed song ${songId}`)

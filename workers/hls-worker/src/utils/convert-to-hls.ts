@@ -4,7 +4,7 @@ import path from 'path'
 export const convertToHLS = async (
   inputPath: string,
   outputDir: string
-): Promise<string> => {
+): Promise<{ outputPath: string; duration: string | null }> => {
   return new Promise((resolve, reject) => {
     const outputPath = path.join(outputDir, 'playlist.m3u8')
     const ffmpeg = spawn('ffmpeg', [
@@ -43,17 +43,36 @@ export const convertToHLS = async (
           /Duration: (\d{2}:\d{2}:\d{2}\.\d{2})/
         )
         if (durationMatch && durationMatch[1]) {
-          duration = durationMatch[1]
+          const durationString = durationMatch[1]
+          const [hours, minutes, seconds] = durationString
+            .split(':')
+            .map(parseFloat)
+          const durationInSeconds = hours * 3600 + minutes * 60 + seconds
+          duration = formatDuration(durationInSeconds)
         }
       }
     })
 
     ffmpeg.on('close', (code) => {
       if (code === 0) {
-        resolve(outputPath)
+        resolve({ outputPath, duration })
       } else {
         reject(new Error(`FFmpeg exited with code ${code}`))
       }
     })
   })
+}
+
+const formatDuration = (totalSeconds: number | null | undefined): string => {
+  if (totalSeconds == null || isNaN(totalSeconds) || totalSeconds < 0) {
+    return '00:00'
+  }
+
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = Math.floor(totalSeconds % 60)
+
+  const formattedMinutes = String(minutes).padStart(2, '0')
+  const formattedSeconds = String(seconds).padStart(2, '0')
+
+  return `${formattedMinutes}:${formattedSeconds}`
 }

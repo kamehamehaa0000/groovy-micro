@@ -94,7 +94,7 @@ app.post(
   '/webhook/hls-conversion',
   verifyWebhookSignature,
   async (req, res) => {
-    const { songId, status, hlsUrl } = req.body
+    const { songId, status, hlsUrl, duration } = req.body
     console.log('Received webhook:', req.body)
     if (!songId || !status) {
       return res.status(400).json({ error: 'Invalid request body' })
@@ -109,6 +109,7 @@ app.post(
         console.error('HLS conversion failed for song:', songId)
       } else if (status === 'completed') {
         song.hlsUrl = hlsUrl
+        song.metadata.duration = duration
         await SongServiceEventPublisher.SongUpdatedEvent({
           songId: song._id.toString(),
           originalUrl: song.originalUrl,

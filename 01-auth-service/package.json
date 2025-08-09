@@ -12,7 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@google-cloud/pubsub": "^5.1.0",
-    "@groovy-streaming/common": "^1.0.43",
+    "@groovy-streaming/common": "^1.0.44",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

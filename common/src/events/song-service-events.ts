@@ -21,6 +21,7 @@ export interface SongCreatedEventData {
     trackNumber?: number
     likedBy: string[]
     streamCount?: number
+    duration?: string
   }
   visibility: 'public' | 'private'
 }
