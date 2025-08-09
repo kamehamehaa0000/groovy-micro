@@ -55,7 +55,7 @@ async function startServer() {
     }
     await connectToQueue(process.env.CLOUDAMQP_URL!)
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
-    await initializeEventListeners(['USER', 'ANALYTICS'])
+    await initializeEventListeners()
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,

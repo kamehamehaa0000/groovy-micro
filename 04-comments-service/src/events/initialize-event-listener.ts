@@ -3,11 +3,7 @@ import { PubSubManager } from '../config/PubSub'
 import { UserServiceEventHandlers } from './user-events-handler'
 import { SongServiceEventHandlers } from './song-events-handler'
 
-type EventType = 'USER' | 'SONG' | 'PLAYLIST' | 'COMMENT' | 'STATS'
-
-export async function initializeEventListeners(
-  listenTo: EventType[] = ['USER', 'SONG']
-): Promise<void> {
+export async function initializeEventListeners(): Promise<void> {
   try {
     const connected = await PubSubManager.testConnection()
     if (!connected) {
@@ -16,23 +12,21 @@ export async function initializeEventListeners(
       )
     }
 
-    //Subscribing to user events
-    if (listenTo.includes('USER')) {
-      await PubSubManager.subscribe(
-        TOPICS.USER_EVENTS,
-        SUBSCRIPTIONS.COMMENTS_SERVICE_USER_EVENTS,
-        UserServiceEventHandlers.handleUserServiceEvents
-      )
-      console.log('# user-auth-service Event listener initialized successfully')
-    }
-    if (listenTo.includes('SONG')) {
-      await PubSubManager.subscribe(
-        TOPICS.SONG_EVENTS,
-        SUBSCRIPTIONS.COMMENTS_SERVICE_SONG_EVENTS,
-        SongServiceEventHandlers.handleSongsServiceEvent
-      )
-      console.log('# songs-service Event listener initialized successfully')
-    }
+    // Subscribing to user events
+    await PubSubManager.subscribe(
+      TOPICS.USER_EVENTS,
+      SUBSCRIPTIONS.COMMENTS_SERVICE_USER_EVENTS,
+      UserServiceEventHandlers.handleUserServiceEvents
+    )
+    console.log('# user-auth-service Event listener initialized successfully')
+
+    // Subscribing to song events
+    await PubSubManager.subscribe(
+      TOPICS.SONG_EVENTS,
+      SUBSCRIPTIONS.COMMENTS_SERVICE_SONG_EVENTS,
+      SongServiceEventHandlers.handleSongsServiceEvent
+    )
+    console.log('# songs-service Event listener initialized successfully')
 
     // Add more event listeners as needed
   } catch (error) {

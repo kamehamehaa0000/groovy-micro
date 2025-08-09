@@ -63,22 +63,22 @@ async function startServer() {
       console.error('Error during full sync:', (error as Error).message)
     }
 
-    await initializeEventListeners(['USER', 'SONG'])
+    await initializeEventListeners()
 
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(
-        `🚀 Songs-service-started -
+        `🚀 Comments-service-started -
         1. Port ${PORT} 
         2. Environment ${process.env.NODE_ENV?.toUpperCase()}
         3. Health check: http://localhost:${PORT}/health `
       )
     })
     server.on('error', (error) => {
-      console.log('Error on server songs service:', error.message)
+      console.log('Error on server Comments service:', error.message)
     })
   } catch (error) {
-    console.log('Error starting songs service:', (error as Error).message)
+    console.log('Error starting Comments service:', (error as Error).message)
     process.exit(1)
   }
 }

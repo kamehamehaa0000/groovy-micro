@@ -64,8 +64,7 @@ async function startServer() {
       console.error('❌ Error during full sync:', (error as Error).message)
     }
 
-    await initializeEventListeners(['USER', 'SONG', 'ANALYTICS'])
-
+    await initializeEventListeners()
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
@@ -81,10 +80,10 @@ async function startServer() {
       )
     })
     server.on('error', (error: any) => {
-      console.log('Error on server songs service:', error.message)
+      console.log('Error on server Query service:', error.message)
     })
   } catch (error) {
-    console.log('Error starting songs service:', (error as Error).message)
+    console.log('Error starting Query service:', (error as Error).message)
     process.exit(1)
   }
 }

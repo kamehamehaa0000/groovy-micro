@@ -48,6 +48,4 @@ export const SUBSCRIPTIONS = {
 
   QUERY_SERVICE_USER_EVENTS: 'query-service-user-events',
   QUERY_SERVICE_SONG_EVENTS: 'query-service-song-events',
-  QUERY_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS:
-    'query-service-preferences-and-analytics-events',
 } as const

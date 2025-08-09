@@ -14,7 +14,7 @@
     "@aws-sdk/client-s3": "^3.0.0",
     "@aws-sdk/s3-request-presigner": "^3.0.0",
     "@google-cloud/pubsub": "^5.1.0",
-    "@groovy-streaming/common": "^1.0.42",
+    "@groovy-streaming/common": "^1.0.43",
     "@socket.io/redis-adapter": "^8.3.0",
     "amqplib": "^0.10.3",
     "axios": "^1.10.0",

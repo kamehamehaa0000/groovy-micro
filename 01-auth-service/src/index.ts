@@ -3,10 +3,7 @@ import {
   connectToDatabase,
   closeDatabaseConnections,
   verifyEnv,
-  // SUBSCRIPTIONS,
-  // TOPICS,
 } from '@groovy-streaming/common'
-// import { PubSubManager } from './config/PubSub'
 
 async function startServer() {
   try {
@@ -31,17 +28,7 @@ async function startServer() {
     ]) // Ensures all required environment variables are set
 
     await connectToDatabase(process.env.MONGODB_URI!)
-    // TESTING: PUB/SUB CONNECTION
-    // await PubSubManager.listTopics().then((topics) => {
-    //   // console.log('Available Pub/Sub topics:', topics)
-    // })
-    // await PubSubManager.subscribe(
-    //   TOPICS.SONG_EVENTS,
-    //   SUBSCRIPTIONS.AUTH_SERVICE_SONG_EVENTS,
-    //   async (event) => {
-    //     // console.log('Received song event:', event)
-    //   }
-    // )
+
     const PORT = process.env.PORT
     const server = app.listen(PORT, () => {
       console.log(

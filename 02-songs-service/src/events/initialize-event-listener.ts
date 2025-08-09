@@ -3,11 +3,7 @@ import { PubSubManager } from '../config/PubSub'
 import { UserServiceEventHandlers } from './user-events-handler'
 import { SongEventHandler } from './song-event-handler'
 
-type EventType = 'USER' | 'SONG'
-
-export async function initializeEventListeners(
-  listenTo: EventType[] = ['USER']
-): Promise<void> {
+export async function initializeEventListeners(): Promise<void> {
   try {
     const connected = await PubSubManager.testConnection()
     if (!connected) {
@@ -16,23 +12,21 @@ export async function initializeEventListeners(
       )
     }
 
-    //Subscribing to user events
-    if (listenTo.includes('USER')) {
-      await PubSubManager.subscribe(
-        TOPICS.USER_EVENTS,
-        SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
-        UserServiceEventHandlers.handleUserServiceEvents
-      )
-      console.log('# User Event listener initialized successfully')
-    }
-    if (listenTo.includes('SONG')) {
-      await PubSubManager.subscribe(
-        TOPICS.SONG_EVENTS,
-        SUBSCRIPTIONS.SONGS_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS,
-        SongEventHandler.handleSongEvents
-      )
-      console.log('# Song Event listener initialized successfully')
-    }
+    // Subscribing to user events
+    await PubSubManager.subscribe(
+      TOPICS.USER_EVENTS,
+      SUBSCRIPTIONS.AUTH_SERVICE_USER_EVENTS,
+      UserServiceEventHandlers.handleUserServiceEvents
+    )
+    console.log('# User Event listener initialized successfully')
+
+    // Subscribing to Song events - for preferences and analytics service
+    await PubSubManager.subscribe(
+      TOPICS.SONG_EVENTS,
+      SUBSCRIPTIONS.SONGS_SERVICE_PREFERENCES_AND_ANALYTICS_EVENTS,
+      SongEventHandler.handleSongEvents
+    )
+    console.log('# Song Event listener initialized successfully')
 
     // Add more event listeners as needed
   } catch (error) {

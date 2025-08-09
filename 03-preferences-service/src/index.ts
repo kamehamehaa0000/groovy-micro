@@ -67,22 +67,22 @@ async function startServer() {
       process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
     )
 
-    await initializeEventListeners(['USER', 'SONG'])
+    await initializeEventListeners()
 
     const PORT = process.env.PORT
     const server = httpServer.listen(PORT, () => {
       console.log(
-        `🚀 Songs-service-started -
+        `🚀 preference-service-started -
         1. Port ${PORT} 
         2. Environment ${process.env.NODE_ENV?.toUpperCase()}
         3. Health check: http://localhost:${PORT}/health `
       )
     })
     server.on('error', (error) => {
-      console.log('Error on server songs service:', error.message)
+      console.log('Error on server preference service:', error.message)
     })
   } catch (error) {
-    console.log('Error starting songs service:', (error as Error).message)
+    console.log('Error starting preference service:', (error as Error).message)
     process.exit(1)
   }
 }
