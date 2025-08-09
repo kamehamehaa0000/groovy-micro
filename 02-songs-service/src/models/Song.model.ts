@@ -77,7 +77,7 @@ const SongSchema: Schema = new Schema(
       },
       duration: {
         type: String,
-        default: '_:_',
+        default: '00:00',
       },
     },
   },

@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose'
+
 export enum StatusEnum {
   UPLOADING = 'uploading',
   UPLOADED = 'uploaded',
@@ -6,6 +7,7 @@ export enum StatusEnum {
   COMPLETED = 'completed',
   FAILED = 'failed',
 }
+
 export interface ISong extends Document {
   _id: string
   coverArtUrl: string
@@ -24,6 +26,7 @@ export interface ISong extends Document {
     likedBy: string[]
     trackNumber?: number
     streamCount?: number
+    duration?: string
   }
   createdAt: Date
   updatedAt: Date
@@ -73,6 +76,10 @@ const SongSchema: Schema = new Schema(
       streamCount: {
         type: Number,
         default: 0,
+      },
+      duration: {
+        type: String,
+        default: '00:00',
       },
     },
   },
