@@ -23,6 +23,7 @@ export interface ISong extends Document {
     tags: string[]
     likedBy: string[]
     trackNumber?: number
+    streamCount?: number
   }
   createdAt: Date
   updatedAt: Date
@@ -69,6 +70,10 @@ const SongSchema: Schema = new Schema(
         default: 1,
       },
       likedBy: { type: [{ type: String, ref: 'User' }], default: [] },
+      streamCount: {
+        type: Number,
+        default: 0,
+      },
     },
   },
   {

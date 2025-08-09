@@ -307,15 +307,12 @@ router.get(
       let albumStreamCount = 0
       const songs = await Promise.all(
         album.songs.map(async (song: any) => {
-          const analytics = await SongAnalytics.findOne({
-            songId: song._id,
-          })
-          albumStreamCount += analytics ? analytics.streamCount : 0
+          albumStreamCount += song.metadata.streamCount
           return {
             ...song.toObject(),
             isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
             likedBy: song.metadata.likedBy.length,
-            streamCount: analytics ? analytics.streamCount : 0,
+            streamCount: song.metadata.streamCount,
           }
         })
       )

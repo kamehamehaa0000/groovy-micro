@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io'
-import { SongAnalytics } from '../models/SongAnalytics.model'
+import { Song } from '../models/Song.model'
 import { AnalyticsEventPublisher } from './analytics-event-publisher'
 
 export const initializeStreamHandler = (io: Server) => {
@@ -7,16 +7,13 @@ export const initializeStreamHandler = (io: Server) => {
     socket.on('songStreamed', async (data: { songId: string }) => {
       try {
         const { songId } = data
-
         if (!songId) {
-          console.error('songId is missing from songStreamed event')
           return
         }
-
-        await SongAnalytics.findOneAndUpdate(
-          { songId },
-          { $inc: { streamCount: 1 } },
-          { new: true, upsert: true, setDefaultsOnInsert: true }
+        await Song.findOneAndUpdate(
+          { _id: songId },
+          { $inc: { 'metadata.streamCount': 1 } },
+          { new: true }
         )
         await AnalyticsEventPublisher.SongStreamedEvent({ songId })
       } catch (error) {

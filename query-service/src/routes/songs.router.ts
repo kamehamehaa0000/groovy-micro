@@ -88,14 +88,10 @@ router.get(
           403
         )
       }
-      const analytics = await SongAnalytics.findOne({
-        songId: song._id,
-      })
-
       res.json({
         likedBy: song.metadata.likedBy.length,
         isLikedByCurrentUser: song.metadata.likedBy.includes(user.id),
-        streamCount: analytics ? analytics.streamCount : 0,
+        streamCount: song.metadata.streamCount,
         ...song.toObject(),
       })
     } catch (error) {

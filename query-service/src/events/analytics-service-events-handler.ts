@@ -3,7 +3,7 @@ import {
   EventTypes,
   SongStreamedEventData,
 } from '@groovy-streaming/common'
-import { SongAnalytics } from '../models/SongAnalytics.model'
+import { Song } from '../models/Song.model'
 
 export class AnalyticsEventHandlers {
   // Handle any user event
@@ -27,19 +27,19 @@ export class AnalyticsEventHandlers {
     eventData: SongStreamedEventData
   ): Promise<void> => {
     try {
-      const analytics = await SongAnalytics.findOneAndUpdate(
-        { songId: eventData.songId },
-        { $inc: { streamCount: 1 } },
-        { new: true, upsert: true }
+      const song = await Song.findOneAndUpdate(
+        { _id: eventData.songId },
+        { $inc: { 'metadata.streamCount': 1 } },
+        { new: true }
       )
-      if (!analytics) {
+      if (!song) {
         console.error(
           `Failed to update analytics for songId: ${eventData.songId}`
         )
         return
       }
       console.log(
-        `Updated stream count for songId: ${eventData.songId}, new count: ${analytics.streamCount}`
+        `Updated stream count for songId: ${eventData.songId}, new count: ${song.metadata.streamCount}`
       )
     } catch (error: any) {
       console.error('SONG STREAMED EVENT HANDLER ERROR - ' + error.message)

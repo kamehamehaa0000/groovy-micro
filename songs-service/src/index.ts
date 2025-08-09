@@ -50,7 +50,6 @@ async function startServer() {
 
     try {
       await fullSyncUsers()
-      await fullSyncSongAnalytics()
     } catch (error) {
       console.error('❌ Error during full sync:', (error as Error).message)
     }

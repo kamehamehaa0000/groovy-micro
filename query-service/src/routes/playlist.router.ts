@@ -147,10 +147,7 @@ router.get(
       let playlistStreamCount = 0
       const songs = await Promise.all(
         playlist.songs.map(async (song: any) => {
-          const analytics = await SongAnalytics.findOne({
-            songId: song.songId._id,
-          })
-          playlistStreamCount += analytics ? analytics.streamCount : 0
+          playlistStreamCount += song.songId.metadata.streamCount
           return {
             songId: {
               ...song.songId,
