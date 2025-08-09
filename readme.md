@@ -9,50 +9,51 @@ The system is composed of several independent services that communicate with eac
 ### Architectural Diagram
 
 ```mermaid
-graph TD
-    subgraph "User Interaction"
-        A[Client/Browser]
-    end
+flowchart TD
+ subgraph subGraph0["User Interaction"]
+        A["Client/Browser"]
+  end
+ subgraph subGraph1["Backend Services"]
+        B["API Gateway"]
+        C["Auth Service"]
+        D["Songs Service"]
+        E["Comments Service"]
+        F["Preferences Service"]
+        G["Query Service"]
+        K["HLS Worker"]
+  end
+ subgraph Infrastructure["Infrastructure"]
+        H["Event Bus - Pub-Sub"]
+        L["Cloud Storage - Cloudflare R2"]
+  end
+ subgraph Databases["Databases"]
+        CDB["Auth DB (MongoDB)"]
+        DDB["Songs DB (MongoDB)"]
+        EDB["Comments DB (MongoDB)"]
+        FDB["Preferences DB (MongoDB)"]
+        GDB["Query DB (MongoDB)"]
+  end
 
-    subgraph "Backend Services"
-        B[API Gateway]
-        C[Auth Service]
-        D[Songs Service]
-        E[Comments Service]
-        F[Preferences Service]
-        G[Query Service]
-        K[HLS Worker]
-    end
+    A -- API Calls --> B
+    B --> C & D & E & F & G
+    D -- "Pre-signed URL" --> A
+    A -- Upload file --> L
+    L -- Trigger processing --> K
+    K -- Download from --> L
+    K -- Upload HLS to --> L
+    K -- Webhook: HLS manifest URL --> D
+    D -- Publish SONG_UPDATED --> H
+    E -- Consume events --> H
+    G -- Consume events --> H
+    F -- Consume events --> H
 
-    subgraph "Infrastructure"
-        H[Event Bus (Pub/Sub)]
-        L[Cloud Storage (S3)]
-        M[Database (MongoDB)]
-    end
+    C --> CDB
+    D --> DDB
+    E --> EDB
+    F --> FDB
+    G --> GDB
 
-    A -- API Calls --> B;
-    B --> C;
-    B --> D;
-    B --> E;
-    B --> F;
-    B --> G;
 
-    D -- Generates Pre-signed URL --> A;
-    A -- Uploads File Directly --> L;
-
-    L -- Triggers Processing --> K;
-    K -- Downloads from --> L;
-    K -- Uploads HLS segments to --> L;
-
-    K -- Publishes 'SONG_PROCESSED' --> H;
-    D -- Consumes 'SONG_PROCESSED' --> H;
-    D -- Publishes 'SONG_UPDATED' --> H;
-
-    E -- Consumes Events --> H;
-    G -- Consumes Events --> H;
-    F -- Consumes Events --> H;
-
-    C & D & E & F & G --- M;
 ```
 
 ### Services
