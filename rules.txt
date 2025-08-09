@@ -1,7 +1,0 @@
-Jam functionality-
-1. creator of jam can pause everyone's playback on pause.
-2. anyone in jam that is not the creator of jam when pauses only his playback will pause.
-3. anyone can change the song in the jam.
-4. if creator and listener both are paused, listener can resume for both of them.
-5. jam will have queue on which user can add songs. jam will be like a mode so whenever a user clicks on song when jam is on the song is added to jam queue.
-6. jam will also have features like shuffle and repeat.

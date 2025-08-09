@@ -125,6 +125,15 @@ app.post(
         return res.status(400).json({ error: 'Invalid status' })
       }
       await song.save()
+      await SongServiceEventPublisher.SongUpdatedEvent({
+        songId: song._id.toString(),
+        originalUrl: song.originalUrl,
+        coverArtUrl: song.coverArtUrl,
+        hlsUrl: hlsUrl,
+        metadata: song.metadata,
+        status: status,
+        visibility: song.visibility,
+      })
       res.status(200).json({ success: true })
     } catch (error) {
       console.error('Webhook processing error:', error)
