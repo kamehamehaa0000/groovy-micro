@@ -13,7 +13,6 @@ import {
 import { initializeEventListeners } from './events/initialize-event-listener'
 import { r2Client } from './config/cloudflareR2'
 import { fullSyncUsers, syncUsers } from './sync/users'
-import { fullSyncSongAnalytics, syncSongAnalytics } from './sync/analytics'
 
 let SyncInterval: NodeJS.Timeout
 
@@ -38,7 +37,7 @@ async function startServer() {
     SyncInterval = setInterval(async () => {
       try {
         console.log('🔄 Starting hourly partial sync...')
-        await Promise.all([syncUsers(), syncSongAnalytics()])
+        await Promise.all([syncUsers()])
         console.log('✅ Hourly partial sync completed')
       } catch (error) {
         console.error(

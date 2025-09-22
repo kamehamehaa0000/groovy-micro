@@ -10,8 +10,8 @@ import { createClient } from 'redis'
 import { createAdapter } from '@socket.io/redis-adapter'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
-import { initializeJamHandler } from './events/jam.handler';
-import { initializeStreamHandler } from './events/stream.handler';
+import { initializeJamHandler } from './events/jam.handler'
+import { initializeStreamHandler } from './events/stream.handler'
 
 configDotenv({
   path: '.env',
@@ -50,9 +50,8 @@ Promise.all([redisPubClient.connect(), redisSubClient.connect()])
     console.error('Failed to connect to Redis:', err)
   })
 
-
-initializeJamHandler(io);
-initializeStreamHandler(io);
+initializeJamHandler(io)
+initializeStreamHandler(io)
 
 app.use(
   helmet({
@@ -100,15 +99,6 @@ const generalLimiter = rateLimit({
     error: 'Too many requests',
     retryAfter: '5 minutes',
   },
-})
-
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    service: 'comments-service',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  })
 })
 
 app.use('/api/v1', generalLimiter, mainRouter)

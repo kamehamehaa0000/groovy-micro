@@ -191,11 +191,11 @@ export default function CompactComments({
     return (
       <div
         key={comment._id}
-        className="px-6 py-4 border-b border-gray-200" // Consistent styling for ALL comments
+        className="px-6 py-4 " // Consistent styling for ALL comments
       >
         {/* Reply context for ALL replies */}
         {depth > 0 && comment.parentId && (
-          <div className="text-xs text-gray-500 mb-2 flex items-center bg-gray-50 px-2 py-1 rounded">
+          <div className="text-xs text-gray-500 mb-2 flex items-center bg-gray-50px-2 py-1 rounded">
             <svg
               className="w-3 h-3 mr-1 text-gray-400"
               fill="currentColor"
@@ -267,11 +267,13 @@ export default function CompactComments({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-gray-400">
                 {comment.authorId.displayName}
               </span>
               <span>•</span>
-              <span>{formatTimeAgo(comment.createdAt)}</span>
+              <span className="text-xs">
+                {formatTimeAgo(comment.createdAt)}
+              </span>
             </div>
 
             <p className="text-gray-800 text-sm leading-relaxed mb-3">
@@ -351,12 +353,12 @@ export default function CompactComments({
 
             {/* Reply form */}
             {replyingTo === comment._id && (
-              <div className="mt-4 bg-gray-50 p-3 rounded-lg">
+              <div className="mt-4  p-3 rounded-lg">
                 <textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder={`Write a reply to ${comment.authorId.displayName}...`}
-                  className="w-full p-2 border border-gray-300 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-colors"
+                  className="w-full p-2 bg-gray-100 dark:bg-zinc-900 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-colors"
                   rows={2}
                 />
                 <div className="flex space-x-2 mt-2">
@@ -404,7 +406,7 @@ export default function CompactComments({
   // Error state
   if (isError || !entityId || !entityType) {
     return (
-      <div className="bg-white border-gray-200">
+      <div className="">
         <div className="px-6 py-4 text-center text-zinc-600">
           Error loading comments. Please try again.
         </div>
@@ -414,17 +416,17 @@ export default function CompactComments({
 
   return (
     <>
-      <div className="bg-white border-gray-200 h-full overflow-y-auto">
+      <div className="bg-gray-50 rounded-2xl dark:bg-zinc-950 dark:text-gray-5000 border-gray-200 h-full overflow-y-auto">
         {/* Header */}
-        <div className="border-b border-gray-200 px-6 py-4">
+        <div className=" border-gray-200 p-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl px-3 font-semibold text-gray-900 dark:text-gray-200">
               Comments ({totalComments})
             </h2>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as any)}
-              className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="text-sm border dark:bg-zinc-900 border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-zinc-500"
             >
               <option value="best">Best</option>
               <option value="newest">Newest</option>
@@ -435,7 +437,7 @@ export default function CompactComments({
         </div>
 
         {/* Add Comment Form */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="px-6 py-4  border-gray-200  sticky top-0 z-10">
           <form onSubmit={handleSubmitComment}>
             <div className="flex space-x-3">
               <div className="flex-1">
@@ -443,7 +445,7 @@ export default function CompactComments({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Add a comment..."
-                  className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
+                  className="w-full p-3 bg-gray-200 dark:border-none dark:bg-zinc-900 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
                   rows={3}
                 />
                 <div className="flex justify-end items-center mt-2">

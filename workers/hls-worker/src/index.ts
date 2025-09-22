@@ -82,16 +82,43 @@ const processConversionJob = async (job: any) => {
       `Worker: Conversion completed for song ${songId}, duration: ${duration}`
     )
     const hlsFiles = fs.readdirSync(outputDir)
+    console.log(`Worker: Generated HLS files:`, hlsFiles)
+    // Check each file in detail
+    hlsFiles.forEach((file) => {
+      const filePath = path.join(outputDir, file)
+      const stats = fs.statSync(filePath)
+      console.log(`Worker: File found: ${file} (${stats.size} bytes)`)
+    })
     for (const file of hlsFiles) {
       const filePath = path.join(outputDir, file)
       const r2Key = `${outputKey}${file}`
-      const contentType = file.endsWith('.m3u8')
-        ? 'application/vnd.apple.mpegurl'
-        : 'video/mp2t'
-      await uploadToR2(filePath, r2Key, contentType)
+
+      // Check if file exists and log its size
+      const stats = fs.statSync(filePath)
+      console.log(`Worker: Uploading ${file} (${stats.size} bytes) to ${r2Key}`)
+
+      let contentType: string
+      if (file.endsWith('.m3u8')) {
+        contentType = 'application/vnd.apple.mpegurl'
+      } else if (
+        file.endsWith('.m4s') ||
+        file === 'init.mp4' ||
+        file.endsWith('.mp4')
+      ) {
+        contentType = 'video/mp4'
+      } else {
+        contentType = 'application/octet-stream'
+      }
+      try {
+        await uploadToR2(filePath, r2Key, contentType)
+        console.log(`Worker: Successfully uploaded ${file}`)
+      } catch (uploadError) {
+        console.error(`Worker: Failed to upload ${file}:`, uploadError)
+        throw uploadError
+      }
     }
     // Send success webhook
-    const hlsUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${outputKey}playlist.m3u8`
+    const hlsUrl = `${process.env.R2_CUSTOM_DOMAIN}/${outputKey}playlist.m3u8`
 
     await sendWebhook(process.env.WEBHOOK_URL!, {
       songId,

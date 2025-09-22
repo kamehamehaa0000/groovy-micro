@@ -6,7 +6,6 @@ import rateLimit from 'express-rate-limit'
 import { config, configDotenv } from 'dotenv'
 import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
-import { SongAnalytics } from './models/SongAnalytics.model'
 
 configDotenv({
   path: '.env',

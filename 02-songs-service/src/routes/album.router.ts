@@ -181,13 +181,13 @@ router.post(
         }
       }
 
-      const coverArtUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${coverUploadKey}`
+      const coverArtUrl = `${process.env.R2_CUSTOM_DOMAIN}/${coverUploadKey}`
       const songIds: string[] = []
 
       // Create song entries for each track
       const songCreationPromises = tracksData.map(
         async (track: any, index: number) => {
-          const originalUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${track.songUploadKey}`
+          const originalUrl = `${process.env.R2_CUSTOM_DOMAIN}/${track.songUploadKey}`
 
           let trackCollaboratorIds: string[] = []
           if (track.collaborators && track.collaborators.length > 0) {
@@ -547,7 +547,7 @@ router.put(
             console.error('Error deleting previous cover art:', error)
           }
         }
-        album.coverUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
+        album.coverUrl = `${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
         await album.save()
       } catch (error: any) {
         if (error.name === 'NotFound') {
@@ -615,7 +615,7 @@ router.put(
       if (!updatedAlbum) {
         throw new CustomError('Album not found', 404)
       }
-      
+
       // Publish album updated event
       await SongServiceEventPublisher.AlbumUpdatedEvent({
         albumId: updatedAlbum._id,
@@ -643,6 +643,5 @@ router.put(
     }
   }
 )
-
 
 export { router as AlbumRouter }

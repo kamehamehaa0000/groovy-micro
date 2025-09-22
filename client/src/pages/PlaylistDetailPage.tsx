@@ -105,10 +105,10 @@ const PlaylistDetailPage = () => {
   }
 
   return (
-    <div className="flex-1 rounded-xl h-full">
+    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-zinc-900">
       <div className="flex flex-col lg:flex-row h-full px-4 sm:px-6 py-4">
         {/* Left Panel - Playlist Art & Controls */}
-        <div className="lg:w-96 md:border-r  border-gray-200 p-4 sm:p-6">
+        <div className="lg:w-96 p-4 sm:p-6">
           <div className="sticky top-6">
             {/* playlist Art */}
             <img
@@ -223,11 +223,16 @@ const PlaylistDetailPage = () => {
                       {playlist.likedBy.length > 1 ? 's' : ''}
                     </p>
                   )}
-                  {playlist.streamCount && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {playlist.streamCount} Total Play
+                  {playlist.streamCount && playlist.streamCount > 0 ? (
+                    <p className="text-sm mt-1">
+                      {playlist.streamCount < 1
+                        ? 'Not Streamed yet'
+                        : playlist.streamCount}{' '}
+                      Total Play
                       {playlist.streamCount > 1 ? 's' : ''}
                     </p>
+                  ) : (
+                    ''
                   )}
                 </span>
 
@@ -243,9 +248,11 @@ const PlaylistDetailPage = () => {
           </div>
         </div>{' '}
         {/*Center panel - Tracks */}
-        <div className="flex-1 py-4 sm:p-6 lg:p-8 md:h-full md:overflow-y-auto">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Tracks</h2>
-          <div>
+        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-zinc-950 rounded-lg lg:mt-6 lg:mb-5">
+          <h2 className="text-xl font-semibold dark:text-gray-300 text-gray-900 mb-4 ">
+            Tracks
+          </h2>
+          <div className="max-w-3xl space-y-2  ">
             {playlist.songs &&
               playlist?.songs
                 ?.sort((a: any, b: any) => a.order - b.order)
@@ -255,7 +262,7 @@ const PlaylistDetailPage = () => {
           </div>
         </div>
         {/* Right Panel - Additional Info */}
-        <div className="lg:w-1/3 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
+        <div className="lg:w-1/3  border-gray-200 py-2 px-0.5 sm:p-6">
           <CompactComments entityId={playlist._id} entityType="playlist" />
         </div>
         <PlaylistEditModal

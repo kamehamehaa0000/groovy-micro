@@ -40,7 +40,7 @@ export const fetchCurrentUserSongs = async (page: number, limit: number) => {
 
 export const deleteSong = async (songId: string) => {
   const response = await axiosInstance.delete(
-    `${API_BASE_URL}/songs/delete/song/${songId}`
+    `${API_BASE_URL}/songs/songs/delete/song/${songId}`
   )
   return response.data
 }

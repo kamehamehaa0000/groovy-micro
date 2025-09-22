@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useJamActions } from '../store/jam-store'
 import { FloatingPlayer } from '../components/player/FloatingPlayer'
-import { LeftSidebar } from '../components/LeftSidebar'
+import { LeftSidebar } from '../components/sidebar/LeftSidebar'
 import { usePlayerStore } from '../store/player-store'
 import {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
 } from 'react-icons/tb'
-import { UserProfile } from '@/components/UserProfile'
+import { UserProfile } from '@/components/sidebar/UserProfile'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { connect, disconnect } = useJamActions()
@@ -22,7 +23,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }, [connect, disconnect])
 
   return (
-    <div className="w-screen h-screen flex bg-white overflow-hidden">
+    <div className="w-screen h-screen flex bg-white dark:bg-zinc-950 overflow-hidden">
       {/* Left Sidebar */}
       <LeftSidebar
         isVisible={isLeftSidebarOpen}
@@ -36,7 +37,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }`}
       >
         {/* Top Bar */}
-        <header className="w-full h-16 bg-white border-gray-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <header className="w-full h-16 bg-white dark:bg-zinc-950 border-gray-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-4 flex-1">
             <button
               className="lg:hidden text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -49,11 +50,12 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
               )}
             </button>
           </div>
+          <ThemeToggle />
           <UserProfile />
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 mx-auto max-w-[98%] border border-gray-200 w-full h-full overflow-auto rounded-xl bg-white mb-6 scrollbar-hide">
+        <main className="flex-1 mx-auto max-w-[98%] border dark:border-none border-gray-200 w-full h-full overflow-auto rounded-lg bg-white dark:bg-zinc-950 mb-6 scrollbar-hide">
           {children}
         </main>
       </div>

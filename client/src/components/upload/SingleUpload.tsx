@@ -6,7 +6,8 @@ import { genres } from '../../pages/upload'
 import axiosInstance from '../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/button'
-import { BiX, BiXCircle } from 'react-icons/bi'
+import { BiXCircle } from 'react-icons/bi'
+const API_BASE_URL = `${import.meta.env.VITE_API_GATEWAY_URL}`
 
 interface SingleUploadForm {
   audioFile: FileList | undefined
@@ -76,14 +77,8 @@ export const SingleUpload = ({
         tracks: {},
       })
       const res = await axiosInstance.post(
-        'http://localhost:3000/api/v1/songs/upload/presign',
-        body,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0VXNlcklkIiwiaWF0IjoxNzUwNzc2OTY5LCJleHAiOjE3NTA3Nzc4Njl9.U6QNa4wmmfw8CkSvnQExtAkd1zgiX_-svkQ7jK9ZuA8`,
-          },
-        }
+        `${API_BASE_URL}/songs/songs/upload/presign`,
+        body
       )
 
       const {
@@ -139,7 +134,7 @@ export const SingleUpload = ({
       }))
 
       await axiosInstance.post(
-        'http://localhost:3000/api/v1/songs/upload/confirm',
+        `${API_BASE_URL}/songs/songs/upload/confirm`,
         {
           songId,
           songUploadKey,
@@ -168,7 +163,6 @@ export const SingleUpload = ({
       reset()
     } catch (error) {
       toast.error('Error uploading song. Please try again.')
-
       console.error('Error uploading song:', error)
     } finally {
       setIsSingleBeingUploaded(false)

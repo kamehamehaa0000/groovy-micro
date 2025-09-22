@@ -35,7 +35,7 @@ export const AlbumCard = ({ album }: { album: Album }) => {
   return (
     <div
       key={album._id}
-      className="group cursor-pointer hover:shadow-md transition-shadow bg-white rounded-lg shadow-sm p-3 min-w-[135px] max-w-[135px] lg:min-w-[150px] lg:max-w-[150px] text-clip "
+      className="group cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-zinc-900 rounded-lg shadow-sm p-3 min-w-[135px] max-w-[135px] lg:min-w-[150px] lg:max-w-[150px] text-clip "
     >
       <div className="relative mb-2">
         <img
@@ -53,13 +53,13 @@ export const AlbumCard = ({ album }: { album: Album }) => {
       <div className="space-y-1">
         <Link
           to={`/albums/album/${album._id}`}
-          className="font-medium text-sm text-gray-900 truncate block"
+          className="font-medium text-sm dark:text-gray-300 text-gray-900 truncate block"
           title={album.title}
         >
           {album.title}
         </Link>
         <p
-          className="text-xs text-gray-600 truncate"
+          className="text-xs text-gray-400 truncate"
           title={album.artist?.displayName || 'N/A'}
         >
           {album.artist?.displayName || 'N/A'}

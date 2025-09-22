@@ -7,7 +7,6 @@ import {
 import { Playlist } from '../models/Playlist.model'
 import { User } from '../models/User.model'
 import { Response, NextFunction, Router } from 'express'
-import { SongAnalytics } from '../models/SongAnalytics.model'
 
 const router = Router()
 

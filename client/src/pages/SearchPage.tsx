@@ -30,9 +30,9 @@ const SearchPage = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className=" w-full peer border border-gray-300 z-[21] px-6 py-2 rounded-xl outline-none duration-200 ring-1 ring-[transparent] focus:ring-orange-600"
-            placeholder=" for your groovy"
-          />{' '}
+            className=" w-full peer bg-zinc-800 z-[21] px-6 py-2 rounded-xl outline-none duration-200 ring-1 ring-[transparent] focus:ring-orange-600"
+            placeholder="Search for songs, albums, artists, playlists..."
+          />
           <button
             onClick={() => setQuery('')}
             title="Clear Search Query"

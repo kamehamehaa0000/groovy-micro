@@ -173,17 +173,17 @@ const SongDetailPage = () => {
   }
 
   return (
-    <div className="flex-1 bg-white  md:h-full">
+    <div className="flex-1 bg-white dark:bg-zinc-900 md:h-full overflow-y-auto scrollbar-hide ">
       <div className="flex flex-col lg:flex-row h-full">
         {/* Center Panel - Details */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 min-h-full max-w-2xl ">
           <div className="max-w-3xl">
             {/* Song Title */}
-            <div className="mx-auto w-full max-w-md aspect-square rounded-lg mb-6 flex items-center justify-center">
-              <div className="w-full h-full  bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+            <div className="mx-auto w-full max-w-sm aspect-square rounded-lg mb-6 flex items-center justify-center">
+              <div className="w-full h-full bg-opacity-20 rounded-lg flex items-center justify-center">
                 <img
                   src={song.coverArtUrl}
-                  alt="Album Art"
+                  alt="cover Art"
                   className="w-full h-full object-cover rounded-lg"
                 />
               </div>
@@ -192,7 +192,7 @@ const SongDetailPage = () => {
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={handlePlaySong}
-                className="bg-gray-900 text-white p-3 rounded-full hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 dark:bg-orange-500 text-white p-3 rounded-full hover:bg-gray-800 dark:hover:bg-orange-400 transition-colors"
               >
                 {isPlaying && currentSong?._id === songId ? (
                   <svg
@@ -270,11 +270,12 @@ const SongDetailPage = () => {
                 </button>
               </div>
             </div>
-            <div className="mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            <div className="space-y-2 ">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-300 mb-2">
                 {song.metadata.title || 'N/A'}
               </h1>
-              <p className="text-xl text-gray-600 mb-1">
+              <p className="text-lg text-gray-600 mb-1">
+                <span className="text-sm"> by -</span>{' '}
                 {song.metadata.artist.displayName || 'N/A'}
               </p>
               {song.metadata.likedBy && (
@@ -295,56 +296,35 @@ const SongDetailPage = () => {
                   year: 'numeric',
                 })}
               </p>
-            </div>
-
-            {/* Track Information */}
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Track Information
-              </h2>
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
-                  <div>
-                    <dt className="text-gray-500 mb-1">Release Date</dt>
-                    <dd className="text-gray-900 font-medium">
-                      {new Date(song.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500 mb-1">Album</dt>
-                    <dd className="text-gray-900 font-medium">
-                      {song.metadata.album.title ??
-                        'Does not belong to any album'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500 mb-1">Artist</dt>
-                    <dd className="text-gray-900 font-medium">
-                      {song.metadata.artist.displayName ?? 'Unknown Artist'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500 mb-1">Collaborators</dt>
-                    <dd className="text-gray-900 font-medium">
-                      {song.metadata?.collaborators.length
-                        ? song.metadata.collaborators
-                            .map((collaborator) => collaborator.displayName)
-                            .join(', ')
-                        : 'N/A'}
-                    </dd>
-                  </div>
-                </div>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p className=" mb-1">
+                  Album -{' '}
+                  {song.metadata?.album?.title ??
+                    'Does not belong to any album'}
+                </p>
+                <p>
+                  Release Date -{' '}
+                  {new Date(song.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+                <p>
+                  Collaborators -{' '}
+                  {song.metadata?.collaborators.length
+                    ? song.metadata.collaborators
+                        .map((collaborator) => collaborator.displayName)
+                        .join(', ')
+                    : 'No collaborators'}
+                </p>
               </div>
-            </section>
+            </div>
           </div>
         </div>
 
         {/* Right Panel - Album Art & Controls */}
-        <div className="flex-1 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
+        <div className="flex-1 dark:md:border-none  py-2 px-0.5 sm:p-6">
           <CompactComments entityType="song" entityId={song._id} />
         </div>
       </div>

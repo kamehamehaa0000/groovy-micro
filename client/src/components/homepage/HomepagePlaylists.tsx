@@ -25,18 +25,22 @@ const HomepagePlaylists = () => {
   if (loading) {
     return (
       <div className="w-full p-4">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">Playlists</h2>
+        <h2 className="text-xl font-bold mb-4 dark:text-gray-300 text-gray-900">
+          Playlists
+        </h2>
         <AlbumsSkeleton />
       </div>
     )
   }
 
   return (
-    <div className="w-full bg-white p-3">
+    <div className="w-full bg-white dark:bg-zinc-950 p-3">
       <section>
         {' '}
         <div className="w-full flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">Playlists</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-300">
+            Playlists
+          </h2>
           <Link
             to="/playlists"
             className="text-sm border px-2 py-1 rounded-lg "

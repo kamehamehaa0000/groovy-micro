@@ -1,4 +1,7 @@
 import { createR2Client } from '@groovy-streaming/common'
+import { configDotenv } from 'dotenv'
+
+configDotenv()
 
 const r2Client = createR2Client({
   endpoint: process.env.R2_ENDPOINT!,

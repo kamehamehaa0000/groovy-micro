@@ -27,7 +27,7 @@ const UserUploadedSongs = () => {
 
   if (status === 'pending') {
     return (
-      <div className="h-full bg-white">
+      <div className="h-full bg-white  dark:bg-zinc-950">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">All Songs</h1>
@@ -41,7 +41,7 @@ const UserUploadedSongs = () => {
 
   if (status === 'error') {
     return (
-      <div className="h-full bg-white flex items-center justify-center">
+      <div className="h-full bg-white dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -65,11 +65,11 @@ const UserUploadedSongs = () => {
   const totalSongs = data?.pages[0]?.totalSongs ?? 0
 
   return (
-    <div className="h-full bg-white">
+    <div className="h-full bg-white  dark:bg-zinc-950">
       <div className=" ">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-gray-900  dark:text-zinc-300 mb-2 flex items-center gap-2">
             User Uploaded Songs{' '}
             <span className="text-gray-600 text-xs">
               ( {`${totalSongs} songs`} )

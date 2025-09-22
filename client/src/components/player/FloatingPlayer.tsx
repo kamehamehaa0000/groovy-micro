@@ -166,13 +166,15 @@ export const FloatingPlayer: React.FC = () => {
 
   const currentTrack = useMemo(
     () => ({
-      title: currentSong?.metadata.title ?? 'No song selected',
-      artist: currentSong?.metadata.artist?.displayName ?? 'N/A',
-      album: currentSong?.metadata.album.title ?? 'N/A',
+      title: currentSong?.metadata?.title ?? 'No song selected',
+      artist: currentSong?.metadata?.artist?.displayName ?? 'N/A',
+      album: currentSong?.metadata?.album?.title ?? 'N/A',
       duration: formatTime(duration),
       currentTime: formatTime(playbackPosition),
       cover:
-        currentSong?.metadata.album.coverUrl ?? currentSong?.coverArtUrl ?? '',
+        currentSong?.metadata?.album?.coverUrl ??
+        currentSong?.coverArtUrl ??
+        '',
     }),
     [currentSong, playbackPosition, duration]
   )

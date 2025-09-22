@@ -1,8 +1,14 @@
 import { Router } from 'express'
-import { syncRouter } from './sync/sync.router'
 
 const router = Router()
 
-router.use('/sync', syncRouter)
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'comments-service',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  })
+})
 
 export { router as mainRouter }

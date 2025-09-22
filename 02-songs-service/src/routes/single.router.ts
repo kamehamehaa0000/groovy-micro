@@ -127,8 +127,8 @@ router.post(
       if (!songFileExists || !coverFileExists) {
         throw new CustomError('Uploaded files not found..retry the upload', 404)
       }
-      const originalUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${songUploadKey}`
-      const coverArtUrl = `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com/${coverUploadKey}`
+      const originalUrl = `${process.env.R2_CUSTOM_DOMAIN}/${songUploadKey}`
+      const coverArtUrl = `${process.env.R2_CUSTOM_DOMAIN}/${coverUploadKey}`
 
       let collaboratorIds: string[] = []
       if (collaborators && collaborators.length > 0) {
@@ -177,6 +177,19 @@ router.post(
           persistent: true,
         }
       )
+
+      // EXPERIMENTAL: send inngest event
+      const inngest = new Inngest({ id: 'groovy-hls-client' })
+
+      await inngest.send({
+        name: 'audio/convert.requested',
+        data: {
+          songId: songId,
+          inputKey: songUploadKey,
+          outputKey: `songs/${songId}/hls/`,
+        },
+      })
+
       if (!sent) {
         retrySendingConversionJobs.push(job)
         //TODO: Implement retry logic for failed jobs
@@ -401,7 +414,7 @@ router.put(
             console.error('Error deleting previous song audio:', error)
           }
         }
-        const newOriginalUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${songKey}`
+        const newOriginalUrl = `${process.env.R2_CUSTOM_DOMAIN}/${songKey}`
         song.originalUrl = newOriginalUrl
         song.status = StatusEnum.UPLOADED
         await song.save()
@@ -540,7 +553,7 @@ router.put(
             console.error('Error deleting previous cover art:', error)
           }
         }
-        song.coverArtUrl = `https://${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
+        song.coverArtUrl = `${process.env.R2_CUSTOM_DOMAIN}/${coverKey}`
         await song.save()
       } catch (error: any) {
         if (error.name === 'NotFound') {

@@ -8,6 +8,7 @@ import { useAddAlbumToPlaylistModalStore } from '../store/modal-store'
 import CompactComments from '../components/comments/CompactComments'
 import type { Album } from '../types'
 import { useAlbumById, useToggleAlbumLike } from '@/service/queries/albumOuery'
+import { Underline } from 'lucide-react'
 
 const AlbumDetailPage = () => {
   const param = useParams<{ id: string }>()
@@ -92,25 +93,25 @@ const AlbumDetailPage = () => {
     }
   }
   return (
-    <div className="flex-1 rounded-xl h-full">
+    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-zinc-900">
       <div className="flex flex-col lg:flex-row h-full px-4 sm:px-6 py-4">
         {/* Left Panel - Album Art & Controls */}
-        <div className="lg:w-96 md:border-r  border-gray-200 p-4 sm:p-6">
+        <div className="lg:w-96  border-gray-200 p-4 sm:p-6">
           <div className="sticky top-6">
             {/* Album Art */}
             <img
               src={album.coverUrl}
               alt={album.title}
-              className="w-full aspect-square rounded-lg mb-6 flex items-center justify-center "
+              className="w-full aspect-square rounded-lg mb-6 flex items-center justify-center max-w-md "
             />
 
             {/* Controls */}
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={handlePlayAlbum}
-                className="bg-gray-900 text-white p-3 rounded-full hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 dark:bg-orange-500 text-white p-3 rounded-full hover:bg-gray-800 dark:hover:bg-orange-400 transition-colors"
               >
-                {isPlaying && currentSong?.metadata.album._id === albumId ? (
+                {isPlaying && currentSong?.metadata?.album?._id === albumId ? (
                   <svg
                     className="w-6 h-6"
                     fill="currentColor"
@@ -163,26 +164,30 @@ const AlbumDetailPage = () => {
             </div>
 
             {/* Quick Info */}
-            <div className="text-md text-gray-600 pt-4">
-              <p className="text-xl lg:text-2xl font-medium text-gray-900">
+            <div className="text-md text-gray-500 dark:text-gray-300 pt-4">
+              <p className="text-xl lg:text-2xl font-medium text-gray-900 dark:text-gray-300">
                 {album.title}
               </p>
               <p>{album.artist?.displayName}</p>
-
               <p className="text-sm text-gray-500 mt-1">{album.genre}</p>
               {album.likedBy && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm mt-1">
                   Liked by {album.likedBy} user
                   {album.likedBy.length > 1 ? 's' : ''}
                 </p>
-              )}
-              {album.streamCount && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {album.streamCount} Total Play
+              )}{' '}
+              {album.streamCount && album.streamCount > 0 ? (
+                <p className="text-sm mt-1">
+                  {album.streamCount < 1
+                    ? 'Not Streamed yet'
+                    : album.streamCount}{' '}
+                  Total Play
                   {album.streamCount > 1 ? 's' : ''}
                 </p>
+              ) : (
+                ''
               )}
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm mt-1">
                 {new Date(album.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -194,9 +199,11 @@ const AlbumDetailPage = () => {
         </div>
 
         {/*Center panel - Tracks */}
-        <div className="flex-1 py-4 sm:p-6 lg:p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Tracks</h2>
-          <div className="max-w-3xl">
+        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-zinc-950 rounded-lg lg:mt-6 lg:mb-5">
+          <h2 className="text-xl font-semibold dark:text-gray-300 text-gray-900 mb-4 ">
+            Tracks
+          </h2>
+          <div className="max-w-3xl space-y-2  ">
             {album?.songs
               .sort((a, b) => a.metadata.trackNumber - b.metadata.trackNumber)
               .map((song: any) => (
@@ -206,7 +213,7 @@ const AlbumDetailPage = () => {
         </div>
 
         {/* Right Panel - comments */}
-        <div className="lg:w-1/3 md:border-l  border-gray-200 py-2 px-0.5 sm:p-6">
+        <div className="lg:w-1/3  border-gray-200 py-2 px-0.5 sm:p-6">
           {albumId && <CompactComments entityType="album" entityId={albumId} />}
         </div>
       </div>

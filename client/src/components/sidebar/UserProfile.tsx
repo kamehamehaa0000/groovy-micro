@@ -1,5 +1,5 @@
 import { BiUser } from 'react-icons/bi'
-import { useAuthStore } from '../store/auth-store'
+import { useAuthStore } from '../../store/auth-store'
 import { Link } from 'react-router'
 import {
   DropdownMenu,
