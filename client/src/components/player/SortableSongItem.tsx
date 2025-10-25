@@ -33,23 +33,23 @@ export const SortableSongItem: React.FC<SortableSongItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group relative"
+      className="flex items-center space-x-3 p-3 rounded-lg hover:dark:bg-stone-900 hover:bg-gray-50 transition-colors group relative"
     >
       <div
         className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden cursor-pointer"
         onClick={onPlay}
       >
         <img
-          src={song.metadata.album.coverUrl ?? song.coverArtUrl}
-          alt={song.metadata.title}
+          src={song?.metadata?.album?.coverUrl ?? song?.coverArtUrl}
+          alt={song?.metadata?.title}
           className="w-full h-full object-cover"
         />
       </div>
       <div className="flex-1 min-w-0 cursor-pointer" onClick={onPlay}>
-        <p className="text-sm font-medium truncate text-gray-900 group-hover:text-gray-700">
+        <p className="text-sm font-medium truncate text-stone-500 dark:text-stone-400 group-hover:text-gray-700">
           {song.metadata.title ?? 'Unknown Title'}
         </p>
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-xs text-stone-400 dark:text-stone-500 truncate">
           {song.metadata.artist.displayName}
         </p>
       </div>

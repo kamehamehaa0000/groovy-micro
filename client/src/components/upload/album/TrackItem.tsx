@@ -1,6 +1,6 @@
 import type { UseFormReturn } from 'react-hook-form'
 import type { AlbumUploadForm } from '../../../types/UploadComponentTypes'
-import { genres } from '../../../pages/upload'
+import { genres } from '../../../pages/Upload'
 import axiosInstance from '../../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
 import { BiXCircle } from 'react-icons/bi'

@@ -50,7 +50,7 @@ export const PlaylistCard = ({
   return (
     <div
       key={playlist._id}
-      className="group cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-zinc-900 rounded-lg shadow-sm p-3 min-w-[140px] max-w-[140px] lg:min-w-[150px] lg:max-w-[150px] text-clip "
+      className="group cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-stone-900 rounded-lg shadow-sm p-3 min-w-[140px] max-w-[140px] lg:min-w-[150px] lg:max-w-[150px] text-clip "
     >
       <div className="relative mb-2">
         <img
@@ -68,11 +68,11 @@ export const PlaylistCard = ({
       <div className="space-y-1">
         <Link
           to={`/playlists/playlist/${playlist._id}`}
-          className="font-medium text-sm dark:text-gray-300 text-gray-900 truncate block"
+          className="font-medium text-sm dark:text-stone-300 text-stone-900 truncate block"
         >
           {playlist.title}
         </Link>
-        <p className="text-xs text-gray-400 truncate">
+        <p className="text-xs text-stone-400 truncate">
           {playlist.creator?.displayName || 'N/A'}
         </p>
       </div>

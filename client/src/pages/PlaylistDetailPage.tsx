@@ -105,7 +105,7 @@ const PlaylistDetailPage = () => {
   }
 
   return (
-    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-zinc-900">
+    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-stone-900 hide-scrollbar">
       <div className="flex flex-col lg:flex-row h-full px-4 sm:px-6 py-4">
         {/* Left Panel - Playlist Art & Controls */}
         <div className="lg:w-96 p-4 sm:p-6">
@@ -121,7 +121,7 @@ const PlaylistDetailPage = () => {
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={handlePlayPlaylist}
-                className="bg-gray-900 text-white p-3 rounded-full hover:bg-gray-800 transition-colors"
+                className="bg-stone-950 text-white p-3 rounded-full hover:bg-stone-800 transition-colors"
               >
                 {isPlaying ? (
                   <svg
@@ -146,10 +146,10 @@ const PlaylistDetailPage = () => {
                 <button
                   title="Like Playlist"
                   onClick={handleLikePlaylist}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1 text-stone-400 hover:text-red-500 transition-colors"
                 >
                   {likeLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2  border-gray-900" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2  border-stone-900" />
                   ) : (
                     <BiHeart
                       className={`w-5 h-5 ${
@@ -163,14 +163,14 @@ const PlaylistDetailPage = () => {
                 <button
                   title="Add Playlist to Queue"
                   onClick={handleAddPlaylistToQueue}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                 >
                   <BiPlusCircle className="w-5 h-5" />
                 </button>
                 <button
                   title="Edit Playlist"
                   onClick={handleToggleEditMode}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                 >
                   <BiEdit className="w-5 h-5" />
                 </button>{' '}
@@ -178,7 +178,7 @@ const PlaylistDetailPage = () => {
                   <button
                     title="Delete Playlist"
                     onClick={handleDeletePlaylist}
-                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                   >
                     <BiTrash className="w-5 h-5" />
                   </button>
@@ -186,7 +186,7 @@ const PlaylistDetailPage = () => {
                 <button
                   title="Share Playlist"
                   onClick={handleSharePlaylist}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                 >
                   <BiShare className="w-5 h-5" />
                 </button>
@@ -196,29 +196,29 @@ const PlaylistDetailPage = () => {
             {/** Playlist Details */}
             <div className="mb-8">
               <h1 className="text-3xl font-light mb-1">{playlist?.title}</h1>
-              <p className="text-gray-600 text-sm">
+              <p className="text-stone-600 ">
                 {playlist?.description ||
                   'No description available for this playlist.'}
               </p>
-              <div className="text-md text-gray-600 pt-4">
+              <div className=" text-stone-600 pt-4 text-lg">
                 <p>
                   {playlist.creator.displayName}
                   {playlist.collaborators &&
                     playlist.collaborators.map((collaborator: any) => (
                       <span
                         key={collaborator._id}
-                        className="text-gray-600 mx-2"
+                        className="text-stone-600 mx-2"
                       >
                         | {collaborator.displayName}
                       </span>
                     ))}
                 </p>
                 <span className="text-muted-foreground text-sm">
-                  <p className="text-gray-500 mt-1">
+                  <p className="text-stone-500 mt-1">
                     {playlist?.songs?.length} tracks
                   </p>
                   {playlist.likedBy && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-stone-500 mt-1">
                       Liked by {playlist.likedBy.length} user
                       {playlist.likedBy.length > 1 ? 's' : ''}
                     </p>
@@ -236,7 +236,7 @@ const PlaylistDetailPage = () => {
                   )}
                 </span>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-stone-500 mt-1">
                   {new Date(playlist.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -248,8 +248,8 @@ const PlaylistDetailPage = () => {
           </div>
         </div>{' '}
         {/*Center panel - Tracks */}
-        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-zinc-950 rounded-lg lg:mt-6 lg:mb-5">
-          <h2 className="text-xl font-semibold dark:text-gray-300 text-gray-900 mb-4 ">
+        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-stone-950 rounded-lg lg:mt-6 lg:mb-5">
+          <h2 className="text-xl font-semibold dark:text-stone-300 text-stone-900 mb-4 ">
             Tracks
           </h2>
           <div className="max-w-3xl space-y-2  ">
@@ -262,7 +262,7 @@ const PlaylistDetailPage = () => {
           </div>
         </div>
         {/* Right Panel - Additional Info */}
-        <div className="lg:w-1/3  border-gray-200 py-2 px-0.5 sm:p-6">
+        <div className="lg:w-1/3  border-stone-200 py-2 px-0.5 sm:p-6">
           <CompactComments entityId={playlist._id} entityType="playlist" />
         </div>
         <PlaylistEditModal

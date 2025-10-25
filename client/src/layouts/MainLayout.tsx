@@ -23,7 +23,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }, [connect, disconnect])
 
   return (
-    <div className="w-screen h-screen flex bg-white dark:bg-zinc-950 overflow-hidden">
+    <div className="w-screen h-screen flex bg-white dark:bg-stone-950 overflow-hidden">
       {/* Left Sidebar */}
       <LeftSidebar
         isVisible={isLeftSidebarOpen}
@@ -37,7 +37,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }`}
       >
         {/* Top Bar */}
-        <header className="w-full h-16 bg-white dark:bg-zinc-950 border-gray-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <header className="w-full h-16 bg-white dark:bg-stone-950 border-gray-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-4 flex-1">
             <button
               className="lg:hidden text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -50,12 +50,14 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
               )}
             </button>
           </div>
-          <ThemeToggle />
+          <span className="mx-2">
+            <ThemeToggle />
+          </span>
           <UserProfile />
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 mx-auto max-w-[98%] border dark:border-none border-gray-200 w-full h-full overflow-auto rounded-lg bg-white dark:bg-zinc-950 mb-6 scrollbar-hide">
+        <main className="hide-scrollbar flex-1 mx-auto max-w-[98%] border dark:border-none border-gray-200 w-full h-full overflow-auto rounded-lg bg-white dark:bg-stone-950 mb-6 scrollbar-hide">
           {children}
         </main>
       </div>

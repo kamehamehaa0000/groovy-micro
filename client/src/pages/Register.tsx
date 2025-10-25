@@ -6,24 +6,27 @@ import { BsMailbox } from 'react-icons/bs'
 import { FiEye, FiEyeOff } from 'react-icons/fi'
 import { Link } from 'react-router'
 import { useAuthStore } from '../store/auth-store'
+import { ArrowLeftCircle } from 'lucide-react'
 
 export const Register = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-950 flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md ">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-stone-300">
             Welcome to Groovy
           </h2>
-          <p className="mt-2 text-sm text-gray-600">Your streaming platform</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-stone-400">
+            Your streaming platform
+          </p>
         </div>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-stone-900 py-8 px-4 shadow rounded-md sm:rounded-lg sm:px-10">
           <div className="text-center mb-6">
-            <h3 className="text-base font-medium text-gray-900">
+            <h3 className="text-base font-medium text-gray-900 dark:text-stone-300">
               Create an Account
             </h3>
           </div>
@@ -31,23 +34,21 @@ export const Register = () => {
             <RegisterForm loading={isLoading} setIsLoading={setIsLoading} />
           </div>
         </div>
-        <div className="mt-6 text-center  ">
+        <div className="mt-6 text-center text-sm  text-stone-400">
           <span>Already Have an Account ? </span>
           <Link
             to="/login"
-            className="ml-1 text-orange-700 underline hover:text-orange-500"
+            className="ml-1 text-orange-600 underline hover:text-orange-500"
           >
             Login Now!!!
           </Link>
         </div>
-        <div className="mt-6 text-center">
-          <Link
-            to="/"
-            className="text-sm text-orange-700 hover:text-orange-500"
-          >
-            ← Back to home
-          </Link>
-        </div>
+        <Link
+          to="/"
+          className="text-sm text-orange-600 hover:text-orange-500 flex items-center justify-center mt-4 gap-2"
+        >
+          <ArrowLeftCircle /> Back to Home
+        </Link>
       </div>
     </div>
   )
@@ -127,13 +128,13 @@ const RegisterForm = ({
       <div>
         <label
           htmlFor="email"
-          className="block text-md font-medium text-zinc-400 mb-2"
+          className="block text-md font-medium text-stone-400 mb-2"
         >
           Email
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <BsMailbox size={16} className="text-zinc-500" />
+            <BsMailbox size={16} className="text-stone-500" />
           </div>
           <input
             id="email"
@@ -145,7 +146,7 @@ const RegisterForm = ({
                 message: 'Invalid email address',
               },
             })}
-            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+            className="text-sm w-full pl-10 py-2.5 bg-stone-100 dark:bg-stone-950 border border-stone-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
             placeholder="Enter your email"
             disabled={loading}
             autoComplete="email"
@@ -159,13 +160,13 @@ const RegisterForm = ({
       <div>
         <label
           htmlFor="displayName"
-          className="block text-md font-medium text-zinc-400 mb-2"
+          className="block text-md font-medium text-stone-400 mb-2"
         >
           Display Name
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <BsMailbox size={16} className="text-zinc-500" />
+            <BsMailbox size={16} className="text-stone-500" />
           </div>
           <input
             id="displayName"
@@ -175,7 +176,7 @@ const RegisterForm = ({
               minLength: 2,
               maxLength: 20,
             })}
-            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+            className="text-sm w-full pl-10 py-2.5 bg-stone-100 dark:bg-stone-950 border border-stone-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
             placeholder="Enter your display name"
             disabled={loading}
           />
@@ -190,13 +191,13 @@ const RegisterForm = ({
       <div>
         <label
           htmlFor="password"
-          className="block text-md font-medium text-zinc-400 mb-1"
+          className="block text-md font-medium text-stone-400 mb-1"
         >
           Password
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <BiLock size={16} className="text-zinc-500" />
+            <BiLock size={16} className="text-stone-500" />
           </div>
           <input
             id="password"
@@ -208,7 +209,7 @@ const RegisterForm = ({
                 message: 'Password must be at least 6 characters long',
               },
             })}
-            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+            className="text-sm w-full pl-10 py-2.5 bg-stone-100 dark:bg-stone-950 border border-stone-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
             placeholder="Enter your password"
             disabled={loading}
             autoComplete="current-password"
@@ -216,7 +217,7 @@ const RegisterForm = ({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500 hover:text-zinc-300"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-500 hover:text-stone-300"
           >
             {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
           </button>
@@ -229,13 +230,13 @@ const RegisterForm = ({
       <div>
         <label
           htmlFor="confirmPassword"
-          className="block text-md font-medium text-zinc-400 mb-1"
+          className="block text-md font-medium text-stone-400 mb-1"
         >
           Confirm Password
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <BiLock size={16} className="text-zinc-500" />
+            <BiLock size={16} className="text-stone-500" />
           </div>
           <input
             id="confirmPassword"
@@ -245,7 +246,7 @@ const RegisterForm = ({
               validate: (value) =>
                 value === watch('password') || 'Passwords do not match',
             })}
-            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+            className="text-sm w-full pl-10 py-2.5 bg-stone-100 dark:bg-stone-950 border border-stone-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
             placeholder="Confirm your password"
             disabled={loading}
             autoComplete="current-password"
@@ -253,7 +254,7 @@ const RegisterForm = ({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500 hover:text-zinc-300"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-500 hover:text-stone-300"
           >
             {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
           </button>
@@ -268,7 +269,7 @@ const RegisterForm = ({
       <div>
         <button
           type="submit"
-          className={`w-full py-2.5 px-4 mt-2 hover:bg-orange-600 hover:text-white bg-zinc-100 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
+          className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 dark:hover:bg-stone-900 dark:bg-stone-950 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
             loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           disabled={loading}

@@ -12,6 +12,7 @@ import { globalErrorHandler } from '@groovy-streaming/common'
 import { mainRouter } from './routes/main.router'
 import { initializeJamHandler } from './events/jam.handler'
 import { initializeStreamHandler } from './events/stream.handler'
+import Redis from 'ioredis'
 
 configDotenv({
   path: '.env',
@@ -31,8 +32,17 @@ const io = new Server(httpServer, {
   },
 })
 
-const redisPubClient = createClient({ url: process.env.REDIS_URL })
+const redisPubClient = new Redis(process.env.REDIS_URL!, {
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+  retryStrategy(times) {
+    const delay = Math.min(times * 50, 2000)
+    return delay
+  },
+})
+
 const redisSubClient = redisPubClient.duplicate()
+
 redisPubClient.on('error', (err) => {
   console.error('Redis Pub Client Error:', err)
 })
@@ -41,13 +51,25 @@ redisSubClient.on('error', (err) => {
   console.error('Redis Sub Client Error:', err)
 })
 
-Promise.all([redisPubClient.connect(), redisSubClient.connect()])
+redisPubClient.on('ready', () => {
+  console.log('✅ Redis Pub Client connected')
+})
+
+redisSubClient.on('ready', () => {
+  console.log('✅ Redis Sub Client connected')
+})
+
+// Wait for both clients to be ready before setting up adapter
+Promise.all([
+  new Promise((resolve) => redisPubClient.on('ready', resolve)),
+  new Promise((resolve) => redisSubClient.on('ready', resolve)),
+])
   .then(() => {
     io.adapter(createAdapter(redisPubClient, redisSubClient))
-    console.log('Socket.IO Redis adapter connected')
+    console.log('✅ Socket.IO Redis adapter connected')
   })
   .catch((err) => {
-    console.error('Failed to connect to Redis:', err)
+    console.error('❌ Failed to setup Redis adapter:', err)
   })
 
 initializeJamHandler(io)

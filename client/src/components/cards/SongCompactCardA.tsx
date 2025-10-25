@@ -142,7 +142,7 @@ export function SongCompactCardA({
   }, [currentSong, song, playerIsPlaying])
 
   return (
-    <div className=" rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 dark:bg-zinc-900 border-gray-100 px-4 py-2 transition-colors min-w-3xs">
+    <div className=" rounded-xl hover:bg-gray-50 dark:hover:bg-stone-800 dark:bg-stone-900 border-gray-100 px-4 py-3 transition-colors min-w-3xs">
       <div className="flex items-center space-x-4">
         <div className="relative group">
           <button onClick={handlePlaySong} className="relative">

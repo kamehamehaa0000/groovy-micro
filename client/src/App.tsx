@@ -1,5 +1,5 @@
 import { Route, BrowserRouter, Routes } from 'react-router'
-import Upload from './pages/upload'
+import Upload from './pages/Upload'
 import Login from './pages/Login'
 import { Toaster } from 'react-hot-toast'
 import { LoginSuccessHandler } from './components/auth/LoginSuccessHandler'

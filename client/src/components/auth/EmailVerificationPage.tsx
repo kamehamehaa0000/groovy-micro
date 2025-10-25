@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router'
 import { useAuthStore } from '../../store/auth-store'
+import { ArrowLeftCircle } from 'lucide-react'
 
 export const EmailVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -51,14 +52,14 @@ export const EmailVerificationPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white  dark:bg-stone-900 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             {status === 'loading' && (
               <>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                <h3 className="mt-4 text-lg font-medium text-stone-900">
                   Verifying your email...
                 </h3>
               </>
@@ -81,11 +82,11 @@ export const EmailVerificationPage: React.FC = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                <h3 className="mt-4 text-lg font-medium text-stone-900">
                   Email Verified!
                 </h3>
-                <p className="mt-2 text-sm text-gray-600">{message}</p>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-sm text-stone-600">{message}</p>
+                <p className="mt-2 text-xs text-stone-500">
                   Redirecting to login in 3 seconds...
                 </p>
               </>
@@ -95,7 +96,7 @@ export const EmailVerificationPage: React.FC = () => {
               <>
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                   <svg
-                    className="h-6 w-6 text-red-600"
+                    className="h-6 w-6 text-orange-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -108,10 +109,10 @@ export const EmailVerificationPage: React.FC = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                <h3 className="mt-4 text-lg font-medium ">
                   Verification Failed
                 </h3>
-                <p className="mt-2 text-sm text-gray-600">{message}</p>
+                <p className="mt-2 text-sm text-stone-600">{message}</p>
 
                 {email && (
                   <button
@@ -129,9 +130,9 @@ export const EmailVerificationPage: React.FC = () => {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-orange-600 hover:text-orange-500 flex items-center justify-center mt-4 gap-2"
             >
-              Back to login
+              <ArrowLeftCircle /> Back to login
             </Link>
           </div>
         </div>

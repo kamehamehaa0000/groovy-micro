@@ -27,11 +27,13 @@ const UserUploadedSongs = () => {
 
   if (status === 'pending') {
     return (
-      <div className="h-full bg-white  dark:bg-zinc-950">
+      <div className="h-full bg-white  dark:bg-stone-950">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">All Songs</h1>
-            <p className="text-gray-600">Discover amazing music</p>
+            <h1 className="text-3xl font-bold text-stone-900 mb-2">
+              All Songs
+            </h1>
+            <p className="text-stone-600">Discover amazing music</p>
           </div>
           <SongsSkeleton />
         </div>
@@ -41,13 +43,13 @@ const UserUploadedSongs = () => {
 
   if (status === 'error') {
     return (
-      <div className="h-full bg-white dark:bg-zinc-950 flex items-center justify-center">
+      <div className="h-full bg-white dark:bg-stone-950 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-stone-900 mb-2">
             Something went wrong
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-stone-600 mb-4">
             {error instanceof Error ? error.message : 'Failed to load songs'}
           </p>
           <button
@@ -65,17 +67,17 @@ const UserUploadedSongs = () => {
   const totalSongs = data?.pages[0]?.totalSongs ?? 0
 
   return (
-    <div className="h-full bg-white  dark:bg-zinc-950">
+    <div className="h-full bg-white  dark:bg-stone-950">
       <div className=" ">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-gray-900  dark:text-zinc-300 mb-2 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-stone-900  dark:text-stone-300 mb-2 flex items-center gap-2">
             User Uploaded Songs{' '}
-            <span className="text-gray-600 text-xs">
+            <span className="text-stone-600 text-xs">
               ( {`${totalSongs} songs`} )
             </span>
           </h1>
-          <p className="text-gray-600">
+          <p className="text-stone-600">
             {totalSongs >= 0 && 'Discover Your Discography'}
           </p>
         </div>
@@ -83,11 +85,11 @@ const UserUploadedSongs = () => {
         {/* Songs List */}
         {allSongs.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-gray-400 text-6xl mb-4">🎵</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <div className="text-stone-400 text-6xl mb-4">🎵</div>
+            <h3 className="text-xl font-semibold text-stone-700 mb-2">
               No songs available
             </h3>
-            <p className="text-gray-500">Upload your music to see it here!</p>{' '}
+            <p className="text-stone-500">Upload your music to see it here!</p>{' '}
           </div>
         ) : (
           <>
@@ -105,7 +107,9 @@ const UserUploadedSongs = () => {
                 <div className="p-8 text-center col-span-full">
                   <div className="inline-flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
-                    <span className="text-gray-600">Loading more songs...</span>
+                    <span className="text-stone-600">
+                      Loading more songs...
+                    </span>
                   </div>
                 </div>
               )}
@@ -115,7 +119,7 @@ const UserUploadedSongs = () => {
                   ref={ref}
                   className="h-10 flex items-center justify-center mt-8"
                 >
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-stone-400 text-sm">
                     Load more songs...
                   </div>
                 </div>
@@ -124,7 +128,7 @@ const UserUploadedSongs = () => {
               {/* End of list indicator - Desktop */}
               {!hasNextPage && allSongs.length > 0 && (
                 <div className="p-8 text-center mt-8">
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-stone-400 text-sm">
                     🎉 You've reached the end! That's all the songs we have.
                   </div>
                 </div>
@@ -142,7 +146,7 @@ const UserUploadedSongs = () => {
                   <div className="p-8 text-center">
                     <div className="inline-flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
-                      <span className="text-gray-600">
+                      <span className="text-stone-600">
                         Loading more songs...
                       </span>
                     </div>
@@ -154,7 +158,7 @@ const UserUploadedSongs = () => {
                     ref={ref}
                     className="h-10 flex items-center justify-center"
                   >
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-stone-400 text-sm">
                       Load more songs...
                     </div>
                   </div>
@@ -162,7 +166,7 @@ const UserUploadedSongs = () => {
 
                 {!hasNextPage && allSongs.length > 0 && (
                   <div className="p-8 text-center">
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-stone-400 text-sm">
                       🎉 You've reached the end! That's all the songs we have.
                     </div>
                   </div>

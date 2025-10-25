@@ -151,9 +151,9 @@ export const FloatingPlayer: React.FC = () => {
 
   const getVolumeIcon = () => {
     if (isMuted || volume === 0)
-      return <FiVolumeX className="w-4 h-4 text-gray-400" />
-    if (volume < 0.5) return <FiVolume1 className="w-4 h-4 text-gray-400" />
-    return <FiVolume2 className="w-4 h-4 text-gray-400" />
+      return <FiVolumeX className="w-6 h-6 text-stone-400" />
+    if (volume < 0.5) return <FiVolume1 className="w-6 h-6 text-stone-400" />
+    return <FiVolume2 className="w-6 h-6 text-stone-400" />
   }
 
   const formatTime = (time: number) => {
@@ -206,86 +206,44 @@ export const FloatingPlayer: React.FC = () => {
     <>
       <PlayerCore />
       {isExpanded ? (
-        <div className="fixed top-0 right-0 w-full sm:w-[380px] h-full bg-white/95 backdrop-blur-md  border-gray-200/50 flex flex-col z-50 overflow-hidden">
+        <div className="fixed top-0 right-0 w-full dark:text-stone-400 text-stone-700 sm:w-[380px] h-full dark:bg-stone-950 bg-white/95 backdrop-blur-md  border-stone-200/50 flex flex-col z-50 overflow-hidden">
           {/* Expanded Player Content */}
           <div className="flex flex-col h-full min-h-0 p-6 sm:p-8 sm:justify-start">
             {/* Header */}
             <div className="flex items-center justify-between mb-12 flex-shrink-0">
-              <h2 className="text-sm font-medium text-gray-700 ">
-                Now Playing{' '}
-                {isJamming &&
-                  session?.joinCode &&
-                  `(Jam Code: ${session.joinCode})`}
-              </h2>
-              <div className="flex  space-x-1 ">
-                {!isJamming && currentSong && (
-                  <button
-                    title="Start Jam Mode"
-                    onClick={() => startJam(currentSong._id)}
-                    className="px-2 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
-                  >
-                    Start Jam
-                  </button>
-                )}
-                {!isJamming && (
-                  <button
-                    title="Join Jam Mode"
-                    onClick={openJoinModal}
-                    className="px-2 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
-                  >
-                    Join Jam
-                  </button>
-                )}
-                {isJamming && (
-                  <button
-                    title="Leave Jam Mode"
-                    onClick={leaveJam}
-                    className="px-1 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-red-100 hover:bg-gray-200 text-red-700 "
-                  >
-                    Leave Jam
-                  </button>
-                )}
-                {isJamming && session?.creator === user?.id && (
-                  <button
-                    onClick={openHostControlModal}
-                    className="px-1 py-1 flex items-center gap-2 font-semibold  text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 "
-                    title="Open Host Controls"
-                  >
-                    Jam Controls
-                  </button>
-                )}
+              <div>
+                <h2 className="font-medium">Now Playing</h2>
+                <span>
+                  {isJamming && session?.joinCode && `${session.joinCode}`}
+                </span>
               </div>
               <button
-                className="w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 transition-all duration-200"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100/50 transition-all duration-200"
                 onClick={() => setIsExpanded(false)}
               >
-                <FiMinimize2 className="w-4 h-4" />
+                <FiMinimize2 className="w-6 h-6" />
               </button>
             </div>
 
             {/* Album Art */}
             <div className=" my-auto flex flex-col items-center mb-12 flex-shrink-0">
-              <motion.div
-                className=" w-60 h-60 lg:w-48 lg:h-48  bg-gray-100 rounded-2xl mb-6 overflow-hidden shadow-sm"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
+              <div className="hover:scale-105 transition-transform duration-200 w-60 h-60 lg:w-48 lg:h-48 border-4 border-stone-200 bg-stone-100 rounded-2xl mb-6 overflow-hidden shadow-sm">
                 <img
                   src={currentTrack.cover}
                   alt={currentTrack.title}
                   className="w-full h-full object-cover"
                 />
-              </motion.div>
+              </div>
 
               <div className="text-center max-w-full">
-                <h3 className="text-lg font-semibold mb-1 text-gray-900 truncate">
+                <h3 className="text-lg font-semibold mb-1  truncate">
                   {currentTrack.title}
                 </h3>
-                <p className="text-sm text-gray-500 mb-1 truncate">
-                  {currentTrack.artist}
-                </p>
-                <p className="text-xs text-gray-400 truncate">
-                  {currentTrack.album}
+                <p className="text-sm mb-1 truncate">{currentTrack.artist}</p>
+                <p className="text-xs  truncate">
+                  {currentTrack.album &&
+                    currentTrack.album !== 'N/A' &&
+                    currentTrack.album}
                 </p>
               </div>
             </div>
@@ -293,14 +251,14 @@ export const FloatingPlayer: React.FC = () => {
             <div className="mt-auto">
               {/* Progress */}
               <div className="mb-8 flex-shrink-0">
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <div className="flex items-center justify-between text-sm  mb-2">
                   <span className="font-mono">{currentTrack.currentTime}</span>
                   <span className="font-mono">{currentTrack.duration}</span>
                 </div>
                 <div className="relative">
-                  <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gray-900 transition-all duration-100"
+                      className="h-full bg-orange-700 transition-all rounded-full duration-100"
                       style={{
                         width: `${(playbackPosition / (duration || 1)) * 100}%`,
                       }}
@@ -312,7 +270,7 @@ export const FloatingPlayer: React.FC = () => {
                     max={duration || 1}
                     value={playbackPosition}
                     onChange={handleSeek}
-                    className="absolute inset-0 w-full h-1 opacity-0 cursor-pointer"
+                    className="absolute inset-0 w-full h-1 opacity-0 cursor-pointer "
                   />
                 </div>
               </div>
@@ -323,14 +281,14 @@ export const FloatingPlayer: React.FC = () => {
                   className={`w-8 h-8 flex items-center justify-center transition-colors ${
                     isShuffled
                       ? 'text-orange-600 hover:text-orange-700'
-                      : 'text-gray-400 hover:text-gray-600'
+                      : 'text-stone-400 hover:text-stone-600'
                   }`}
                   onClick={playerActions.toggleShuffle}
                 >
                   <BiShuffle className="w-4 h-4" />
                 </button>
                 <button
-                  className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
                   onClick={() => {
                     console.log('Previous song clicked in Jam Mode.')
                     console.log('isJamming:', isJamming)
@@ -356,7 +314,7 @@ export const FloatingPlayer: React.FC = () => {
                   <BsSkipBackward className="w-5 h-5" />
                 </button>
                 <motion.button
-                  className="w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center transition-colors"
+                  className="w-12 h-12 bg-stone-900 hover:bg-stone-800 text-white rounded-full flex items-center justify-center transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePlayPause}
@@ -368,7 +326,7 @@ export const FloatingPlayer: React.FC = () => {
                   )}
                 </motion.button>
                 <button
-                  className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
                   onClick={() => {
                     console.log('Next song clicked in Jam Mode.')
                     console.log('isJamming:', isJamming)
@@ -393,7 +351,7 @@ export const FloatingPlayer: React.FC = () => {
                   className={`w-8 h-8 flex items-center justify-center transition-colors relative ${
                     repeatMode !== 'off'
                       ? 'text-orange-600 hover:text-orange-700'
-                      : 'text-gray-400 hover:text-gray-600'
+                      : 'text-stone-400 hover:text-stone-600'
                   }`}
                   onClick={() => {
                     if (isJamming) {
@@ -421,14 +379,12 @@ export const FloatingPlayer: React.FC = () => {
               {' '}
               <div className="flex items-center justify-between mb-4 ">
                 <div className="flex items-center justify-between w-full">
-                  <h3 className="text-sm font-medium text-gray-700 tracking-wide">
-                    Queue
-                  </h3>
+                  <h3 className=" font-medium  tracking-wide">Queue</h3>
                   <div className="flex space-x-2">
                     {!isJamming && currentSong && (
                       <button
                         onClick={() => startJam(currentSong._id)}
-                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors"
+                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded-lg transition-colors"
                       >
                         Start Jam
                       </button>
@@ -436,7 +392,7 @@ export const FloatingPlayer: React.FC = () => {
                     {!isJamming && (
                       <button
                         onClick={openJoinModal}
-                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors"
+                        className="px-3 py-1.5 flex items-center gap-2 font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded-lg transition-colors"
                       >
                         Join Jam
                       </button>
@@ -469,7 +425,7 @@ export const FloatingPlayer: React.FC = () => {
                         className="flex items-center space-x-3 p-3 rounded-lg"
                       >
                         {/* Non-draggable item for shuffled queue */}
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 bg-stone-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
                             src={
                               song.metadata.album.coverUrl ?? song.coverArtUrl
@@ -479,10 +435,10 @@ export const FloatingPlayer: React.FC = () => {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate text-gray-900">
+                          <p className="text-sm font-medium truncate text-stone-900">
                             {song.metadata.title ?? 'Unknown Title'}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-stone-500 truncate">
                             {song.metadata.artist.displayName}
                           </p>
                         </div>
@@ -523,13 +479,13 @@ export const FloatingPlayer: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={playerActions.toggleMute}
-                  className="hover:text-gray-600 transition-colors"
+                  className="hover:text-stone-600 transition-colors"
                 >
                   {getVolumeIcon()}
                 </button>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden relative group">
+                <div className="flex-1 h-2 bg-stone-700 rounded-full overflow-hidden relative group">
                   <div
-                    className="bg-gray-900 h-full rounded-full transition-all duration-100"
+                    className="bg-stone-400 h-full rounded-full transition-all duration-100"
                     style={{ width: `${isMuted ? 0 : volume * 100}%` }}
                   />
                   <input
@@ -548,7 +504,7 @@ export const FloatingPlayer: React.FC = () => {
             {/* Queue Button */}
             <div className="flex items-center  w-full justify-end">
               <button
-                className="px-3 py-1 flex items-center  gap-2 font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-lg transition-colors sm:hidden"
+                className="px-3 py-1 flex items-center  gap-2 font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded-lg transition-colors sm:hidden"
                 onClick={() => setIsQueueOpen(true)}
               >
                 <HiOutlineQueueList className="w-5 h-5" />
@@ -576,34 +532,32 @@ export const FloatingPlayer: React.FC = () => {
           whileDrag={{ scale: 1.05 }}
         >
           <motion.div
-            className="bg-white/95 backdrop-blur-md border border-gray-200/50 shadow-lg rounded-full px-4 py-3"
+            className="bg-white/95 dark:bg-stone-900 dark:text-stone-400 text-stone-700 backdrop-blur-md border border-stone-200/50 dark:border-none shadow-lg rounded-full px-4 py-3"
             animate={{ width: 240, height: 56 }}
           >
             <div className="flex items-center justify-between h-full">
               <div className="flex items-center space-x-3">
                 <motion.button
-                  className="w-10 h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center transition-colors"
+                  className="w-10 h-10 bg-orange-700 hover:bg-stone-800 dark:hover:bg-orange-800 rounded-full flex items-center justify-center transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePlayPause}
                 >
                   {isPlaying ? (
-                    <BiPause className="w-4 h-4" />
+                    <BiPause className="w-6 h-6  text-white dark:text-stone-950" />
                   ) : (
-                    <BiPlay className="w-4 h-4 ml-0.5" />
+                    <BiPlay className="w-6 h-6 ml-0.5 text-white dark:text-stone-950" />
                   )}
                 </motion.button>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate text-gray-900">
+                  <p className="text-sm font-medium truncate">
                     {currentTrack.title}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {currentTrack.artist}
-                  </p>
+                  <p className="text-xs  truncate">{currentTrack.artist}</p>
                 </div>
               </div>
               <motion.button
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
@@ -611,7 +565,7 @@ export const FloatingPlayer: React.FC = () => {
                   setIsExpanded(true)
                 }}
               >
-                <PiArrowCircleUpRightThin className="w-6 h-6" />
+                <PiArrowCircleUpRightThin className="w-8 h-8" />
               </motion.button>
             </div>
           </motion.div>
@@ -640,12 +594,12 @@ export const FloatingPlayer: React.FC = () => {
               className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md rounded-t-2xl z-[70] sm:hidden max-h-[70vh] flex flex-col"
             >
               {/* Drawer Header */}
-              <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-sm font-medium text-gray-700 tracking-wide uppercase">
+              <div className="flex items-center justify-between p-6 pb-4 border-b border-stone-100">
+                <h3 className="text-sm font-medium text-stone-700 tracking-wide uppercase">
                   Queue
                 </h3>
                 <button
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 rounded-full transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100/50 rounded-full transition-colors"
                   onClick={() => setIsQueueOpen(false)}
                 >
                   <IoClose className="w-5 h-5" />
@@ -662,7 +616,7 @@ export const FloatingPlayer: React.FC = () => {
                         className="flex items-center space-x-3 p-3 rounded-lg"
                       >
                         {/* Non-draggable item for shuffled queue */}
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 bg-stone-100 rounded-lg flex-shrink-0 overflow-hidden">
                           <img
                             src={song.coverArtUrl}
                             alt={song.metadata.title}
@@ -670,10 +624,10 @@ export const FloatingPlayer: React.FC = () => {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate text-gray-900">
+                          <p className="font-medium truncate text-stone-900">
                             {song.metadata.title}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-sm text-stone-500 truncate">
                             {song.metadata.artist.displayName}
                           </p>
                         </div>

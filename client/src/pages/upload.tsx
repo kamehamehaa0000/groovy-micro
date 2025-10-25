@@ -35,14 +35,14 @@ const Upload = () => {
               <TabsTrigger value="album">Album</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="single" className="w-full">
+            <TabsContent value="single" className="w-full ">
               <SingleUpload
                 setIsSingleBeingUploaded={setIsSingleBeingUploaded}
                 setUploadProgress={setUploadProgress}
               />
             </TabsContent>
 
-            <TabsContent value="album" className="w-full">
+            <TabsContent value="album" className="w-full ">
               <AlbumUpload
                 setIsAlbumBeingUploaded={setIsAlbumBeingUploaded}
                 setUploadProgress={setUploadProgress}
@@ -75,35 +75,35 @@ const UploadInProcessLoading = ({
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-b-2 border-r-1 border-red-600"></div>
 
         <div className="text-center space-y-2 w-full max-w-md">
-          <h3 className="text-lg font-semibold text-gray-700">
+          <h3 className="text-lg font-semibold text-stone-700">
             Upload in Progress
           </h3>
 
           {uploadProgress && (
             <>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-sm text-stone-600 font-medium">
                 {uploadProgress.currentStep}
               </p>
 
               {/* Overall Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+              <div className="w-full bg-stone-200 rounded-full h-3 mt-4">
                 <div
                   className="bg-red-600 h-3 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${uploadProgress.overall}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-stone-500">
                 Overall Progress: {Math.round(uploadProgress.overall)}%
               </p>
 
               {/* Single song progress */}
               {uploadProgress.song > 0 && (
                 <div className="mt-3">
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <div className="flex justify-between text-xs text-stone-600 mb-1">
                     <span>Song Upload</span>
                     <span>{uploadProgress.song}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-stone-200 rounded-full h-2">
                     <div
                       className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress.song}%` }}
@@ -115,11 +115,11 @@ const UploadInProcessLoading = ({
               {/* Cover art progress */}
               {uploadProgress.coverArt > 0 && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <div className="flex justify-between text-xs text-stone-600 mb-1">
                     <span>Cover Art Upload</span>
                     <span>{uploadProgress.coverArt}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-stone-200 rounded-full h-2">
                     <div
                       className="bg-green-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress.coverArt}%` }}
@@ -135,11 +135,11 @@ const UploadInProcessLoading = ({
                     {Object.entries(uploadProgress.tracks).map(
                       ([trackIndex, progress]) => (
                         <div key={trackIndex}>
-                          <div className="flex justify-between text-xs text-gray-600 mb-1">
+                          <div className="flex justify-between text-xs text-stone-600 mb-1">
                             <span>Track {parseInt(trackIndex) + 1} Upload</span>
                             <span>{progress}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-stone-200 rounded-full h-2">
                             <div
                               className="bg-purple-500 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${progress}%` }}
@@ -153,10 +153,10 @@ const UploadInProcessLoading = ({
             </>
           )}
 
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-stone-600">
             Please do not close or refresh the window
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-stone-500">
             This may take a few minutes depending on file size
           </p>
         </div>

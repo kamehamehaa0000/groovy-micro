@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { BsMailbox } from 'react-icons/bs'
 import { Link } from 'react-router'
 import { useAuthStore } from '../store/auth-store'
+import { ArrowLeftCircle } from 'lucide-react'
 
 export const SendVerificationEmail = () => {
   const { resendVerificationEmail } = useAuthStore()
@@ -25,19 +26,21 @@ export const SendVerificationEmail = () => {
     }
   }
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-950 flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md ">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-stone-300">
             Welcome to Groovy
           </h2>
-          <p className="mt-2 text-sm text-gray-600">Your streaming platform</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-stone-400">
+            Your streaming platform
+          </p>
         </div>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white  py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-stone-900 py-6 px-4 shadow rounded-md sm:rounded-lg sm:px-10">
           <div className="text-center mb-6">
-            <h3 className="text-base font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-stone-300">
               Verify Your Email
             </h3>
           </div>
@@ -65,7 +68,7 @@ export const SendVerificationEmail = () => {
                         message: 'Invalid email address',
                       },
                     })}
-                    className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                    className="text-sm w-full pl-10 py-2.5 bg-zinc-100 dark:bg-stone-950 border border-zinc-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
                     placeholder="Enter your email"
                     disabled={isLoading}
                     autoComplete="email"
@@ -81,7 +84,7 @@ export const SendVerificationEmail = () => {
               <div>
                 <button
                   type="submit"
-                  className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
+                  className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 dark:hover:bg-stone-900 dark:bg-stone-950 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
                     isLoading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={isLoading}
@@ -92,14 +95,12 @@ export const SendVerificationEmail = () => {
             </form>
           </div>
         </div>
-        <div className="mt-6 text-center">
-          <Link
-            to="/login"
-            className="text-sm text-orange-700 hover:text-orange-500"
-          >
-            ← Back to login
-          </Link>
-        </div>
+        <Link
+          to="/login"
+          className="text-sm text-orange-600 hover:text-orange-500 flex items-center justify-center mt-4 gap-2"
+        >
+          <ArrowLeftCircle /> Back to Login
+        </Link>
       </div>
     </div>
   )

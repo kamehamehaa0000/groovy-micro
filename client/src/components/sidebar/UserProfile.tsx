@@ -19,8 +19,7 @@ export const UserProfile = () => {
   if (!isAuthenticated) {
     return (
       <Link to="/login">
-        <BiUser className="w-4 h-4 mr-2" />
-        Sign In
+        <span className="text-sm text-orange-500">Sign In</span>
       </Link>
     )
   }

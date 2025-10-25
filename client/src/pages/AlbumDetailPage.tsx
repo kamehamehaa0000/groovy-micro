@@ -93,7 +93,7 @@ const AlbumDetailPage = () => {
     }
   }
   return (
-    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-zinc-900">
+    <div className="flex-1 rounded-xl h-full overflow-y-scroll dark:bg-stone-900 hide-scrollbar">
       <div className="flex flex-col lg:flex-row h-full px-4 sm:px-6 py-4">
         {/* Left Panel - Album Art & Controls */}
         <div className="lg:w-96  border-gray-200 p-4 sm:p-6">
@@ -199,7 +199,7 @@ const AlbumDetailPage = () => {
         </div>
 
         {/*Center panel - Tracks */}
-        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-zinc-950 rounded-lg lg:mt-6 lg:mb-5">
+        <div className="flex-1 py-4 sm:p-6 lg:p-8 overflow-y-auto  dark:bg-stone-950 rounded-lg lg:mt-6 lg:mb-5">
           <h2 className="text-xl font-semibold dark:text-gray-300 text-gray-900 mb-4 ">
             Tracks
           </h2>

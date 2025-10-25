@@ -25,7 +25,7 @@ const HomepageAlbums = () => {
   if (loading) {
     return (
       <div className="w-full p-4">
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-300">
+        <h2 className="text-xl font-bold mb-4 text-stone-900 dark:text-stone-300">
           Albums
         </h2>
         <AlbumsSkeleton />
@@ -34,10 +34,10 @@ const HomepageAlbums = () => {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-950 p-3">
+    <div className="w-full bg-white dark:bg-stone-950 p-3">
       <section>
         <div className="w-full px-3 flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold mb-4  text-gray-900 dark:text-gray-300">
+          <h2 className="text-xl font-bold mb-4  text-stone-900 dark:text-stone-300">
             Albums
           </h2>
           <Link to="/albums" className="text-sm border px-2 py-1 rounded-lg ">
@@ -54,7 +54,7 @@ const HomepageAlbums = () => {
 
       {/* Show message if no songs */}
       {albums.length === 0 && !loading && (
-        <div className="text-gray-500 text-center py-8">No albums found</div>
+        <div className="text-stone-500 text-center py-8">No albums found</div>
       )}
     </div>
   )

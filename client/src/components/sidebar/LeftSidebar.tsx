@@ -1,10 +1,7 @@
 import { PiCassetteTapeLight } from 'react-icons/pi'
-
 import { TbLayoutSidebarLeftCollapse } from 'react-icons/tb'
 import { Link, NavLink } from 'react-router'
-
 import { Button, buttonVariants } from '../ui/button'
-
 import {
   Disc3,
   FolderUp,
@@ -85,7 +82,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
       {/* Navigation */}
 
-      <div className="px-4 py-0.5 mb-8">
+      <div className="px-4 py-1 mb-8">
         <nav className="space-y-1">
           {navigationItems.map((item) => (
             <NavLink
@@ -94,10 +91,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               className={({ isActive }) =>
                 `${buttonVariants({
                   variant: isActive ? 'secondary' : 'ghost',
-                })} w-full justify-start px-2  text-sm font-normal`
+                })} w-full justify-start px-2  py-1 text-md font-normal`
               }
             >
-              <item.icon className="w-4 h-4 mr-3" />
+              <item.icon className="w-6 h-6 mr-3" />
               <span>{item.label}</span>
             </NavLink>
           ))}

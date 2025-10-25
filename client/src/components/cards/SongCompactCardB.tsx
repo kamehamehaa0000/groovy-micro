@@ -130,7 +130,7 @@ export function SongCompactCardB({
   }, [currentSong, song, playerIsPlaying])
 
   return (
-    <div className="hover:bg-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 px-4 py-2  transition-colors min-w-3xs rounded-xl">
+    <div className=" rounded-xl hover:bg-gray-50 dark:hover:bg-stone-800 dark:bg-stone-900 border-gray-100 px-4 py-3 transition-colors min-w-3xs">
       <div className="flex items-center space-x-4">
         <div className="text-sm text-gray-400 w-8 text-center">
           {song?.metadata?.trackNumber}

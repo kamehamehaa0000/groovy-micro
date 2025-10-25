@@ -251,7 +251,7 @@ export default function CompactComments({
               disabled={isVoting}
               className={`p-1 rounded hover:bg-gray-100 disabled:opacity-50 transition-colors ${
                 user && comment.downvotes.includes(user.id)
-                  ? 'text-zinc-500'
+                  ? 'text-stone-500'
                   : 'text-gray-400'
               }`}
             >
@@ -324,7 +324,7 @@ export default function CompactComments({
                     }
                   }}
                   disabled={loadingReplies[comment._id]}
-                  className="hover:text-zinc-600 font-medium flex items-center space-x-1 disabled:opacity-50 transition-colors"
+                  className="hover:text-stone-600 font-medium flex items-center space-x-1 disabled:opacity-50 transition-colors"
                 >
                   {loadingReplies[comment._id] ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500" />
@@ -358,14 +358,14 @@ export default function CompactComments({
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder={`Write a reply to ${comment.authorId.displayName}...`}
-                  className="w-full p-2 bg-gray-100 dark:bg-zinc-900 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-colors"
+                  className="w-full p-2 bg-gray-100 dark:bg-stone-900 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-colors"
                   rows={2}
                 />
                 <div className="flex space-x-2 mt-2">
                   <button
                     onClick={() => handleSubmitReply(comment._id)}
                     disabled={isCreating}
-                    className="px-3 py-1 bg-zinc-600 text-white text-xs rounded hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+                    className="px-3 py-1 bg-stone-600 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-50 transition-colors"
                   >
                     {isCreating ? 'Posting...' : 'Reply'}
                   </button>
@@ -407,7 +407,7 @@ export default function CompactComments({
   if (isError || !entityId || !entityType) {
     return (
       <div className="">
-        <div className="px-6 py-4 text-center text-zinc-600">
+        <div className="px-6 py-4 text-center text-stone-600">
           Error loading comments. Please try again.
         </div>
       </div>
@@ -416,7 +416,7 @@ export default function CompactComments({
 
   return (
     <>
-      <div className="bg-gray-50 rounded-2xl dark:bg-zinc-950 dark:text-gray-5000 border-gray-200 h-full overflow-y-auto">
+      <div className="bg-gray-50 rounded-2xl dark:bg-stone-950 dark:text-gray-5000 border-gray-200 h-full overflow-y-auto hide-scrollbar">
         {/* Header */}
         <div className=" border-gray-200 p-4">
           <div className="flex justify-between items-center">
@@ -426,7 +426,7 @@ export default function CompactComments({
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as any)}
-              className="text-sm border dark:bg-zinc-900 border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="text-sm border dark:bg-stone-900 border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-stone-500"
             >
               <option value="best">Best</option>
               <option value="newest">Newest</option>
@@ -445,14 +445,14 @@ export default function CompactComments({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Add a comment..."
-                  className="w-full p-3 bg-gray-200 dark:border-none dark:bg-zinc-900 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
+                  className="w-full p-3 bg-gray-200 dark:border-none dark:bg-stone-900 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent"
                   rows={3}
                 />
                 <div className="flex justify-end items-center mt-2">
                   <button
                     type="submit"
                     disabled={!newComment.trim() || isCreating}
-                    className="px-4 py-2 bg-zinc-600 text-white text-sm rounded-md hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-stone-600 text-white text-sm rounded-md hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCreating ? 'Posting...' : 'Comment'}
                   </button>
@@ -465,7 +465,7 @@ export default function CompactComments({
         {/* Comments List - COMPLETELY FLAT */}
         {isLoading && comments.length === 0 ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-zinc-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-stone-600 mx-auto"></div>
           </div>
         ) : (
           <div>
@@ -477,7 +477,7 @@ export default function CompactComments({
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && (
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-zinc-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-stone-600 mx-auto"></div>
                   <p className="text-sm text-gray-500 mt-2">
                     Loading more comments...
                   </p>

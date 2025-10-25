@@ -6,7 +6,6 @@ import {
 } from '@groovy-streaming/common'
 import { Router, Response, NextFunction } from 'express'
 import { Song } from '../models/Song.model'
-import { SongAnalytics } from '../models/SongAnalytics.model'
 
 const router = Router()
 

@@ -173,7 +173,7 @@ const SongDetailPage = () => {
   }
 
   return (
-    <div className="flex-1 bg-white dark:bg-zinc-900 md:h-full overflow-y-auto scrollbar-hide ">
+    <div className="flex-1 bg-white dark:bg-stone-900 md:h-full overflow-y-auto scrollbar-hide ">
       <div className="flex flex-col lg:flex-row h-full">
         {/* Center Panel - Details */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 min-h-full max-w-2xl ">
@@ -192,7 +192,7 @@ const SongDetailPage = () => {
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={handlePlaySong}
-                className="bg-gray-900 dark:bg-orange-500 text-white p-3 rounded-full hover:bg-gray-800 dark:hover:bg-orange-400 transition-colors"
+                className="bg-stone-900 dark:bg-orange-500 text-white p-3 rounded-full hover:bg-stone-800 dark:hover:bg-orange-400 transition-colors"
               >
                 {isPlaying && currentSong?._id === songId ? (
                   <svg
@@ -216,10 +216,10 @@ const SongDetailPage = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleLikeSong}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1 text-stone-400 hover:text-red-500 transition-colors"
                 >
                   {likeLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2  border-gray-900" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2  border-stone-900" />
                   ) : (
                     <BiHeart
                       className={`w-5 h-5 ${
@@ -233,21 +233,21 @@ const SongDetailPage = () => {
 
                 <button
                   onClick={handleAddToPlaylist}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                   title="Add album to Playlist"
                 >
                   <BiPlusCircle className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleAddToQueue}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                   title="Add to Queue"
                 >
                   <BiAddToQueue className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleAddToListenLater}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                   title="Add to Listen Later"
                 >
                   <MdOutlineWatchLater className="w-5 h-5" />
@@ -255,7 +255,7 @@ const SongDetailPage = () => {
                 {isAuthenticated && user?.id === song.metadata.artist._id && (
                   <button
                     onClick={handleDeleteSong}
-                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                     title="Delete song"
                   >
                     <BiTrashAlt className="w-5 h-5" />
@@ -263,7 +263,7 @@ const SongDetailPage = () => {
                 )}
                 <button
                   onClick={handleShareSong}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
                   title="Share song"
                 >
                   <BiShare className="w-5 h-5" />
@@ -271,32 +271,32 @@ const SongDetailPage = () => {
               </div>
             </div>
             <div className="space-y-2 ">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-300 mb-2">
+              <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 dark:text-stone-300 mb-2">
                 {song.metadata.title || 'N/A'}
               </h1>
-              <p className="text-lg text-gray-600 mb-1">
+              <p className="text-lg text-stone-600 mb-1">
                 <span className="text-sm"> by -</span>{' '}
                 {song.metadata.artist.displayName || 'N/A'}
               </p>
               {song.metadata.likedBy && (
-                <p className="text-sm text-gray-500 my-1">
+                <p className="text-sm text-stone-500 my-1">
                   Liked by {song.metadata.likedBy.length} user
                   {song.metadata.likedBy.length > 1 ? 's' : ''}
                 </p>
               )}{' '}
               {song.streamCount > 0 && (
-                <p className="text-sm text-gray-500 my-1">
+                <p className="text-sm text-stone-500 my-1">
                   {song.streamCount} Total play{' '}
                   {song.streamCount > 1 ? 's' : ''}
                 </p>
               )}
-              <p className="text-sm text-gray-500 uppercase tracking-wide">
+              <p className="text-sm text-stone-500 uppercase tracking-wide">
                 {song.metadata.genre || 'N/A'} •{' '}
                 {new Date(song.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                 })}
               </p>
-              <div className="space-y-2 text-sm text-gray-500">
+              <div className="space-y-2 text-sm text-stone-500">
                 <p className=" mb-1">
                   Album -{' '}
                   {song.metadata?.album?.title ??

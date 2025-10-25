@@ -5,35 +5,37 @@ import { BsMailbox } from 'react-icons/bs'
 import { BiLock } from 'react-icons/bi'
 import { FiEyeOff } from 'react-icons/fi'
 import { FaEye } from 'react-icons/fa6'
-
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FcGoogle } from 'react-icons/fc'
 import { useAuthStore } from '../store/auth-store'
+import { ArrowLeftCircle } from 'lucide-react'
 
 const Login = () => {
   const [type, setType] = useState<'password' | 'password-less'>('password')
   const [isLoading, setIsLoading] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-950 flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md ">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-stone-300">
             Welcome to Groovy
           </h2>
-          <p className="mt-2 text-sm text-gray-600">Your streaming platform</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-stone-400">
+            Your streaming platform
+          </p>
         </div>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-stone-900 py-8 px-4 shadow rounded-md sm:rounded-lg sm:px-10">
           <div className="text-center mb-6">
-            <h3 className="text-base font-medium text-gray-900">
+            <h3 className="text-base font-medium text-gray-900 dark:text-stone-300">
               Choose your login method
             </h3>
           </div>
           <SigninWithGoogleButton />
-          <div className="space-y-4">
+          <div className="space-y-4 ">
             <LoginTypeToggle
               type={type}
               setType={setType}
@@ -49,32 +51,30 @@ const Login = () => {
             )}
           </div>
         </div>
-        <div className="mt-2 text-center  ">
+        <div className="mt-2 text-sm text-center space-y-3 text-stone-400">
           <span> Don't have an account?</span>
           <Link
             to="/register"
-            className="ml-1 text-orange-700  hover:text-orange-500"
+            className="ml-1 text-orange-600  hover:text-orange-500"
           >
             Register now
           </Link>
-        </div>
-        <div className="mt-2 text-center  ">
+          <br />
           <span> Need to verify email? </span>
           <Link
             to="/verify-email"
-            className="ml-1 text-orange-700  hover:text-orange-500"
+            className="ml-1 text-orange-600  hover:text-orange-500"
           >
             Verify now
           </Link>
         </div>
-        <div className="mt-6 text-center">
-          <Link
-            to="/"
-            className="text-sm text-orange-700 hover:text-orange-500"
-          >
-            ← Back to home
-          </Link>
-        </div>
+
+        <Link
+          to="/"
+          className="text-sm text-orange-600 hover:text-orange-500 flex items-center justify-center mt-4 gap-2"
+        >
+          <ArrowLeftCircle /> Back to Home
+        </Link>
       </div>
     </div>
   )
@@ -83,10 +83,10 @@ const Login = () => {
 const SigninWithGoogleButton = () => {
   return (
     <button
-      onClick={
-        () => (window.location.href = 'http://localhost:3001/api/auth/google') // Using proxy path defined in vite.config.ts
+      onClick={() =>
+        (window.location.href = 'http://localhost:3001/api/auth/google')
       }
-      className=" w-full flex items-center gap-2 justify-center  bg-orange-700/40 hover:bg-orange-700/80 border border-orange-600/30 py-2.5 px-4 text-white font-medium rounded-lg transition"
+      className=" w-full flex items-center gap-2 justify-center  bg-orange-600/40 hover:bg-orange-600/80 border border-orange-400/30 py-1.5 px-4 text-sm text-white font-medium rounded-lg transition"
     >
       <FcGoogle size={24} /> Sign-in with Google
     </button>
@@ -131,13 +131,13 @@ const PasswordLogin = ({
         <div>
           <label
             htmlFor="email"
-            className="block text-md font-medium text-zinc-400 mb-2"
+            className="block text-md font-medium text-stone-400 mb-2"
           >
             Email
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <BsMailbox size={16} className="text-zinc-500" />
+              <BsMailbox size={16} className="text-stone-500" />
             </div>
             <input
               id="email"
@@ -149,7 +149,7 @@ const PasswordLogin = ({
                   message: 'Invalid email address',
                 },
               })}
-              className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="text-sm w-full pl-10 py-2.5 bg-zinc-100 dark:bg-stone-950 border border-zinc-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
               placeholder="Enter your email"
               disabled={loading}
               autoComplete="email"
@@ -181,7 +181,7 @@ const PasswordLogin = ({
                   message: 'Password must be at least 6 characters long',
                 },
               })}
-              className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="text-sm w-full pl-10 py-2.5 bg-zinc-100 dark:bg-stone-950 border border-zinc-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
               placeholder="Enter your password"
               disabled={loading}
               autoComplete="current-password"
@@ -203,7 +203,7 @@ const PasswordLogin = ({
         <div className="flex justify-end items-center">
           <Link
             to="/forgot-password"
-            className="text-sm  text-orange-700 hover:text-orange-500"
+            className="text-sm  text-orange-600 hover:text-orange-500"
           >
             Forgot Password?
           </Link>
@@ -212,7 +212,7 @@ const PasswordLogin = ({
         <div>
           <button
             type="submit"
-            className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
+            className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 dark:hover:bg-stone-900 dark:bg-stone-950 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
               loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             disabled={loading}
@@ -272,7 +272,7 @@ const PasswordlessLogin = ({
                 message: 'Invalid email address',
               },
             })}
-            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 border border-zinc-700 rounded-lg text-black focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+            className="text-sm w-full pl-10 py-2.5 bg-zinc-100 dark:bg-stone-950 border border-zinc-700 dark:border-stone-700 rounded-lg text-black dark:text-stone-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
             placeholder="Enter your email"
             disabled={loading}
             autoComplete="email"
@@ -286,7 +286,7 @@ const PasswordlessLogin = ({
       <div>
         <button
           type="submit"
-          className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
+          className={`w-full py-2.5 px-4 hover:bg-orange-600 hover:text-white bg-zinc-100 dark:hover:bg-stone-900 dark:bg-stone-950 border border-orange-700 text-orange-700 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ${
             loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           disabled={loading}
