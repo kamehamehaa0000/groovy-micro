@@ -6,11 +6,14 @@ import type {
 } from '../../../types/UploadComponentTypes'
 import axiosInstance from '../../../utils/axios-interceptor'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '@/store/auth-store'
 
 export const useAlbumUpload = (
   setIsAlbumBeingUploaded: (isUploading: boolean) => void,
   setUploadProgress: React.Dispatch<React.SetStateAction<UploadProgress>>
 ) => {
+  const { accessToken } = useAuthStore()
+
   const handleAlbumUpload = useCallback(
     async (data: AlbumUploadForm) => {
       try {
@@ -60,7 +63,7 @@ export const useAlbumUpload = (
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0VXNlcklkIiwiaWF0IjoxNzUwNzkxMjM2LCJleHAiOjE3NTA3OTIxMzZ9.YHYapKgjtBtE9HpV_yripiFywbqzf1k3Px6M3jGdAhA`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         )
@@ -196,7 +199,7 @@ export const useAlbumUpload = (
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0VXNlcklkIiwiaWF0IjoxNzUwNzkxMjM2LCJleHAiOjE3NTA3OTIxMzZ9.YHYapKgjtBtE9HpV_yripiFywbqzf1k3Px6M3jGdAhA`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         )
