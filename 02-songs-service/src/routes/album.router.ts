@@ -227,19 +227,12 @@ router.post(
             timestamp: new Date().toISOString(),
           }
 
-          if (!Common.channel) {
-            throw new CustomError('AMQP channel not initialized', 500)
-          }
-
-          const sent = Common.channel.sendToQueue(
-            'audio-conversion',
-            Buffer.from(JSON.stringify(conversionJob)),
-            { persistent: true },
-          )
-
-          if (!sent) {
+          try {
+            await SongServiceEventPublisher.AudioConversionEvent(conversionJob)
+          } catch (pubSubError) {
             console.error(
-              `Failed to queue conversion job for song ${track.songId}`,
+              `Failed to queue conversion job via Pub/Sub for song ${track.songId}:`,
+              pubSubError,
             )
             // TODO: Implement retry logic for failed jobs
           }

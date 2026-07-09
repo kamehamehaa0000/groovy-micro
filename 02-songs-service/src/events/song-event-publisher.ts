@@ -14,6 +14,7 @@ import {
   PlaylistDeletedEventData,
   LibraryUpdatedEventData,
   LibraryCreatedEventData,
+  AudioConversionEventData,
 } from '@groovy-streaming/common'
 
 export class SongServiceEventPublisher {
@@ -343,6 +344,36 @@ export class SongServiceEventPublisher {
       await PubSubManager.publishEvent(TOPICS.SONG_EVENTS, event)
     } catch (error) {
       console.error('Error publishing library updated event:', error)
+    }
+  }
+
+  static async AudioConversionEvent({
+    songId,
+    inputUrl,
+    inputKey,
+    outputKey,
+    timestamp,
+  }: AudioConversionEventData): Promise<void> {
+    const event: BaseEvent = {
+      eventType: EventTypes.AUDIO_CONVERSION,
+      eventId: `${EventTypes.AUDIO_CONVERSION}-${songId}-${Date.now()}`,
+      data: {
+        songId,
+        inputUrl,
+        inputKey,
+        outputKey,
+        timestamp,
+      },
+      metadata: {
+        correlationId: `${songId}-${Date.now()}`,
+        source: 'songs-service',
+      },
+    }
+    try {
+      await PubSubManager.publishEvent(TOPICS.AUDIO_CONVERSION, event)
+    } catch (error) {
+      console.error('Error publishing audio conversion event:', error)
+      throw error
     }
   }
 }

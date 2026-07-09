@@ -102,7 +102,7 @@ router.get(
       const [albums, totalAlbums] = await Promise.all([
         Album.find(userQuery).sort({ updatedAt: 1 }).skip(skip).limit(limit),
 
-        Song.countDocuments(userQuery),
+        Album.countDocuments(userQuery),
       ])
 
       const totalPages = Math.ceil(totalAlbums / limit)

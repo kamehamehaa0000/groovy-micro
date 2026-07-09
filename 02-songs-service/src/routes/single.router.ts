@@ -170,21 +170,14 @@ router.post(
         timestamp: new Date().toISOString(),
       }
 
-      if (!Common.channel) {
-        throw new CustomError('AMQP channel not initialized', 500)
-      }
-
-      const sent = Common.channel.sendToQueue(
-        'audio-conversion',
-        Buffer.from(JSON.stringify(job)),
-        {
-          persistent: true,
-        },
-      )
-
-      if (!sent) {
+      try {
+        await SongServiceEventPublisher.AudioConversionEvent(job)
+      } catch (pubSubError) {
+        console.error(
+          'Failed to queue conversion job via Pub/Sub, adding to retry list:',
+          pubSubError,
+        )
         retrySendingConversionJobs.push(job)
-        //TODO: Implement retry logic for failed jobs
       }
 
       await SongServiceEventPublisher.SongCreatedEvent({
@@ -419,17 +412,15 @@ router.put(
           timestamp: new Date().toISOString(),
         }
 
-        if (!Common.channel) {
-          throw new CustomError('AMQP channel not initialized', 500)
+        try {
+          await SongServiceEventPublisher.AudioConversionEvent(job)
+        } catch (pubSubError) {
+          console.error(
+            'Failed to queue conversion job via Pub/Sub, adding to retry list:',
+            pubSubError,
+          )
+          retrySendingConversionJobs.push(job)
         }
-
-        Common.channel.sendToQueue(
-          'audio-conversion',
-          Buffer.from(JSON.stringify(job)),
-          {
-            persistent: true,
-          },
-        )
       } catch (error: any) {
         if (error.name === 'NotFound') {
           throw new CustomError('Audio file not found in storage', 404)

@@ -1,17 +1,2 @@
-import amqp from 'amqplib'
-
-export let channel: amqp.Channel
-
-const connectToQueue = async (CloudAMQP_URL: string) => {
-  try {
-    const connection = await amqp.connect(CloudAMQP_URL)
-    channel = await connection.createChannel()
-    await channel.assertQueue('audio-conversion', { durable: true })
-    console.log('Connected to CloudAMQP')
-  } catch (error) {
-    console.error('Failed to connect to CloudAMQP:', error)
-  }
-}
-
-export default connectToQueue
-
+// Deprecated: RabbitMQ / CloudAMQP is no longer used in the project.
+// The project has consolidated on GCP Pub/Sub for all messaging requirements.

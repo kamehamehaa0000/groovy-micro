@@ -11,7 +11,6 @@ export {
   connectToDatabase,
   getMongoDb,
 } from './configs/mongoDatabase'
-export { default as connectToQueue, channel } from './configs/cloudAMQP'
 export { createR2Client, testR2Connection } from './configs/cloudflareR2'
 export {
   PubSubManager,
@@ -49,3 +48,4 @@ export {
   UserUpdatedEventData,
   UserDeletedEventData,
 } from './events/user-service-events'
+export { AudioConversionEventData } from './events/audio-conversion-events'

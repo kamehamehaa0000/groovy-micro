@@ -6,7 +6,6 @@ import {
   closeDatabaseConnections,
   connectToDatabase,
   verifyEnv,
-  connectToQueue,
   testR2Connection,
   createPubSubManager,
 } from '@groovy-streaming/common'
@@ -29,7 +28,6 @@ async function startServer() {
       'JWT_REFRESH_EXPIRES_IN',
       'MAGIC_LINK_SECRET',
       'MAGIC_LINK_EXPIRES_IN',
-      'CLOUDAMQP_URL',
     ]) // Ensures all required environment variables are set
 
     await connectToDatabase(process.env.MONGODB_URI!)
@@ -54,14 +52,6 @@ async function startServer() {
       await fullSyncUsers()
     } catch (error) {
       console.error('❌ Error during full sync:', (error as Error).message)
-    }
-    try {
-      await connectToQueue(process.env.CLOUDAMQP_URL!)
-    } catch (error) {
-      console.error(
-        '❌ Error connecting to CloudAMQP:',
-        (error as Error).message,
-      )
     }
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await initializeEventListeners()

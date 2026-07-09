@@ -1,11 +1,14 @@
 import express from 'express'
 import cors from 'cors'
 import { v4 as uuidv4 } from 'uuid'
+import os from 'os'
 import {
-  channel,
-  connectToQueue,
   verifyEnv,
   StatusEnum,
+  createPubSubManager,
+  TOPICS,
+  SUBSCRIPTIONS,
+  BaseEvent,
 } from '@groovy-streaming/common'
 import fs from 'fs'
 import path from 'path'
@@ -23,29 +26,34 @@ configDotenv()
 app.use(cors())
 app.use(express.json())
 
+let PubSubManager: any
+
 const connectAndConsume = async () => {
   try {
-    await connectToQueue(process.env.CLOUDAMQP_URL!)
-    if (!channel) {
-      console.error('Worker: Channel is not initialized')
+    const connected = await PubSubManager.testConnection()
+    if (!connected) {
+      console.error('Worker: Connection to PubSubManager failed')
       return
     }
-    channel.prefetch(1) // Set prefetch to 1 to process one job at a time
-    channel.consume('audio-conversion', async (msg) => {
-      if (msg) {
+
+    // Subscribe to GCP Pub/Sub for audio conversion tasks
+    await PubSubManager.subscribe(
+      TOPICS.AUDIO_CONVERSION,
+      SUBSCRIPTIONS.HLS_WORKER_AUDIO_CONVERSION,
+      async (event: BaseEvent) => {
         try {
-          const job = JSON.parse(msg.content.toString())
+          const job = event.data
           await processConversionJob(job)
-          channel.ack(msg)
         } catch (error) {
           console.log(`Worker: Error processing job: ${error}`)
-          channel.nack(msg, false, false) // don't requeue failed jobs
+          // Do not rethrow here so the message is acknowledged and not retried/requeued
         }
       }
-    })
+    )
+    console.log('Worker: Subscribed to audio-conversion topic')
   } catch (error) {
-    console.error('Worker: Failed to connect to CloudAMQP:', error)
-    setTimeout(connectAndConsume, 30000) // Retry connection after 30 seconds
+    console.error('Worker: Failed to initialize Pub/Sub subscription:', error)
+    setTimeout(connectAndConsume, 30000) // Retry subscription initialization
   }
 }
 app.get('/', (req, res) => {
@@ -54,7 +62,7 @@ app.get('/', (req, res) => {
 
 const processConversionJob = async (job: any) => {
   const { songId, inputKey, outputKey } = job
-  const tempDir = `/tmp/${uuidv4()}`
+  const tempDir = path.join(os.tmpdir(), uuidv4())
 
   try {
     console.log(`Worker: Starting conversion for song ${songId}`)
@@ -175,10 +183,17 @@ const startServer = async () => {
       'R2_SECRET_ACCESS_KEY',
       'R2_BUCKET_NAME',
       'R2_CUSTOM_DOMAIN',
-      'CLOUDAMQP_URL',
+      'GCP_PROJECT_ID',
+      'GCP_SERVICE_ACCOUNT_KEY_PATH',
       'PORT',
       'NODE_ENV',
     ])
+
+    PubSubManager = createPubSubManager(
+      process.env.GCP_PROJECT_ID!,
+      process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
+    )
+
     await connectAndConsume()
     const port = process.env.PORT ?? 3000
 
@@ -199,5 +214,12 @@ startServer().catch(console.error)
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...')
-  process.exit(0) // Remove 'await' here
+  if (PubSubManager) {
+    try {
+      await PubSubManager.close()
+    } catch (err) {
+      console.error('Error closing PubSubManager:', err)
+    }
+  }
+  process.exit(0)
 })

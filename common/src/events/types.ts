@@ -24,6 +24,7 @@ export const EventTypes = {
   COMMENT_DELETED: 'comment-deleted',
 
   // preferences-and-analytics-service events
+  AUDIO_CONVERSION: 'audio-conversion',
 } as const
 
 export const TOPICS = {
@@ -31,6 +32,7 @@ export const TOPICS = {
   SONG_EVENTS: 'song-events',
   PLAYLIST_EVENTS: 'playlist-events',
   COMMENT_EVENTS: 'comment-events',
+  AUDIO_CONVERSION: 'audio-conversion',
 } as const
 
 export const SUBSCRIPTIONS = {
@@ -48,4 +50,6 @@ export const SUBSCRIPTIONS = {
 
   QUERY_SERVICE_USER_EVENTS: 'query-service-user-events',
   QUERY_SERVICE_SONG_EVENTS: 'query-service-song-events',
+
+  HLS_WORKER_AUDIO_CONVERSION: 'hls-worker-audio-conversion',
 } as const
