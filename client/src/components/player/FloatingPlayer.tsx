@@ -332,6 +332,7 @@ export const FloatingPlayer: React.FC = () => {
                     console.log('isJamming:', isJamming)
                     console.log('session:', session)
                     console.log('currentSong:', currentSong)
+                    console.log('current url:', currentSong)
                     if (isJamming && session?.queue) {
                       const currentIndex = session.queue.findIndex(
                         (s) => s._id === currentSong?._id

@@ -34,31 +34,41 @@ async function startServer() {
 
     await connectToDatabase(process.env.MONGODB_URI!)
 
-    SyncInterval = setInterval(async () => {
-      try {
-        console.log('🔄 Starting hourly partial sync...')
-        await Promise.all([syncUsers()])
-        console.log('✅ Hourly partial sync completed')
-      } catch (error) {
-        console.error(
-          '❌ Error during hourly partial sync:',
-          (error as Error).message
-        )
-      }
-    }, 10 * 60 * 1000) // 10 minutes in milliseconds
+    SyncInterval = setInterval(
+      async () => {
+        try {
+          console.log('🔄 Starting hourly partial sync...')
+          await Promise.all([syncUsers()])
+          console.log('✅ Hourly partial sync completed')
+        } catch (error) {
+          console.error(
+            '❌ Error during hourly partial sync:',
+            (error as Error).message,
+          )
+        }
+      },
+      10 * 60 * 1000,
+    ) // 10 minutes in milliseconds
 
     try {
       await fullSyncUsers()
     } catch (error) {
       console.error('❌ Error during full sync:', (error as Error).message)
     }
-    await connectToQueue(process.env.CLOUDAMQP_URL!)
+    try {
+      await connectToQueue(process.env.CLOUDAMQP_URL!)
+    } catch (error) {
+      console.error(
+        '❌ Error connecting to CloudAMQP:',
+        (error as Error).message,
+      )
+    }
     await testR2Connection(r2Client, process.env.R2_BUCKET_NAME!)
     await initializeEventListeners()
 
     await createPubSubManager(
       process.env.GCP_PROJECT_ID!,
-      process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!
+      process.env.GCP_SERVICE_ACCOUNT_KEY_PATH!,
     )
 
     const PORT = process.env.PORT
@@ -67,7 +77,7 @@ async function startServer() {
         `🚀 Songs-service-started -
         1. Port ${PORT} 
         2. Environment ${process.env.NODE_ENV?.toUpperCase()}
-        3. Health check: http://localhost:${PORT}/health `
+        3. Health check: http://localhost:${PORT}/health `,
       )
     })
     server.on('error', (error) => {

@@ -3,8 +3,8 @@ import {
   validateRequest,
   AuthenticatedRequest,
   requireAuth,
-  channel,
 } from '@groovy-streaming/common'
+import * as Common from '@groovy-streaming/common'
 import { NextFunction, Response, Router } from 'express'
 import { Song, StatusEnum } from '../models/Song.model'
 import {
@@ -104,7 +104,7 @@ router.post(
             trackNumber: track.trackNumber,
             songName: track.songName,
           }
-        })
+        }),
       )
 
       res.json({
@@ -117,7 +117,7 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // POST: upload/confirm
@@ -150,13 +150,13 @@ router.post(
           new GetObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
             Key: coverUploadKey,
-          })
+          }),
         )
       } catch (error) {
         console.error('Error verifying cover art file:', error)
         throw new CustomError(
           'Cover art file not found. Please retry the upload',
-          404
+          404,
         )
       }
 
@@ -167,16 +167,16 @@ router.post(
             new GetObjectCommand({
               Bucket: process.env.R2_BUCKET_NAME,
               Key: track.songUploadKey,
-            })
+            }),
           )
         } catch (error) {
           console.error(
             `Error verifying track file for song ${track.songId}:`,
-            error
+            error,
           )
           throw new CustomError(
             `Track file not found for song ${track.songId}. Please retry the upload`,
-            404
+            404,
           )
         }
       }
@@ -227,15 +227,19 @@ router.post(
             timestamp: new Date().toISOString(),
           }
 
-          const sent = channel.sendToQueue(
+          if (!Common.channel) {
+            throw new CustomError('AMQP channel not initialized', 500)
+          }
+
+          const sent = Common.channel.sendToQueue(
             'audio-conversion',
             Buffer.from(JSON.stringify(conversionJob)),
-            { persistent: true }
+            { persistent: true },
           )
 
           if (!sent) {
             console.error(
-              `Failed to queue conversion job for song ${track.songId}`
+              `Failed to queue conversion job for song ${track.songId}`,
             )
             // TODO: Implement retry logic for failed jobs
           }
@@ -251,7 +255,7 @@ router.post(
           })
 
           return track.songId
-        }
+        },
       )
 
       await Promise.all(songCreationPromises)
@@ -303,7 +307,7 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // delete album and all associated songs
@@ -333,7 +337,7 @@ router.delete(
           new ListObjectsV2Command({
             Bucket: process.env.R2_BUCKET_NAME,
             Prefix: songFolderPrefix,
-          })
+          }),
         )
 
         if (listObjectsResponse.Contents?.length) {
@@ -345,7 +349,7 @@ router.delete(
                   Key: obj.Key,
                 })),
               },
-            })
+            }),
           )
         }
       }
@@ -356,7 +360,7 @@ router.delete(
         new ListObjectsV2Command({
           Bucket: process.env.R2_BUCKET_NAME,
           Prefix: albumFolderPrefix,
-        })
+        }),
       )
 
       if (listAlbumObjectsResponse.Contents?.length) {
@@ -368,7 +372,7 @@ router.delete(
                 Key: obj.Key,
               })),
             },
-          })
+          }),
         )
       }
 
@@ -389,7 +393,7 @@ router.delete(
       console.error(`Failed to delete album ${req.params.albumId}:`, error)
       next(error)
     }
-  }
+  },
 )
 
 // Album routes - to update non-file fields
@@ -457,7 +461,7 @@ router.put(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // presign covert art update
@@ -496,7 +500,7 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // Confirm cover art update upload
@@ -535,7 +539,7 @@ router.put(
         if (album.coverUrl) {
           const previousCoverKey = extractKeyFromR2Url(
             album.coverUrl,
-            process.env.R2_CUSTOM_DOMAIN!
+            process.env.R2_CUSTOM_DOMAIN!,
           )
           const deleteCommand = new DeleteObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
@@ -576,7 +580,7 @@ router.put(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // Toggle like status for an album
@@ -609,7 +613,7 @@ router.put(
       const updatedAlbum = await Album.findByIdAndUpdate(
         albumId,
         updateOperation,
-        { new: true }
+        { new: true },
       )
 
       if (!updatedAlbum) {
@@ -641,7 +645,7 @@ router.put(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 export { router as AlbumRouter }

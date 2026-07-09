@@ -3,9 +3,9 @@ import {
   CustomError,
   requireAuth,
   validateRequest,
-  channel,
   authenticate,
 } from '@groovy-streaming/common'
+import * as Common from '@groovy-streaming/common'
 import { NextFunction, Router, Response } from 'express'
 import {
   singleSongUploadConfirmationBodyValidator,
@@ -86,7 +86,7 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // "/upload/confirm/single" endpoint to confirm single song upload
@@ -116,13 +116,13 @@ router.post(
         new GetObjectCommand({
           Bucket: process.env.R2_BUCKET_NAME,
           Key: songUploadKey,
-        })
+        }),
       )
       const coverFileExists = await r2Client.send(
         new GetObjectCommand({
           Bucket: process.env.R2_BUCKET_NAME,
           Key: coverUploadKey,
-        })
+        }),
       )
       if (!songFileExists || !coverFileExists) {
         throw new CustomError('Uploaded files not found..retry the upload', 404)
@@ -138,7 +138,7 @@ router.post(
         if (collaboratorUsers.length !== collaborators.length) {
           throw new CustomError(
             'Some collaborators not found. Please check the emails.',
-            404
+            404,
           )
         }
         collaboratorIds = collaboratorUsers.map((user) => user._id)
@@ -170,25 +170,17 @@ router.post(
         timestamp: new Date().toISOString(),
       }
 
-      const sent = channel.sendToQueue(
+      if (!Common.channel) {
+        throw new CustomError('AMQP channel not initialized', 500)
+      }
+
+      const sent = Common.channel.sendToQueue(
         'audio-conversion',
         Buffer.from(JSON.stringify(job)),
         {
           persistent: true,
-        }
-      )
-
-      // EXPERIMENTAL: send inngest event
-      const inngest = new Inngest({ id: 'groovy-hls-client' })
-
-      await inngest.send({
-        name: 'audio/convert.requested',
-        data: {
-          songId: songId,
-          inputKey: songUploadKey,
-          outputKey: `songs/${songId}/hls/`,
         },
-      })
+      )
 
       if (!sent) {
         retrySendingConversionJobs.push(job)
@@ -212,7 +204,7 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // DELETE "/delete/song/:songId" endpoint to delete a single song upload
@@ -238,7 +230,7 @@ router.delete(
         new ListObjectsV2Command({
           Bucket: process.env.R2_BUCKET_NAME,
           Prefix: songFolderPrefix,
-        })
+        }),
       )
       if (listObjectsResponse.Contents?.length) {
         await r2Client.send(
@@ -249,7 +241,7 @@ router.delete(
                 Key: obj.Key,
               })),
             },
-          })
+          }),
         )
       }
 
@@ -257,7 +249,7 @@ router.delete(
       if (song.metadata?.album) {
         await Album.updateOne(
           { _id: song.metadata?.album },
-          { $pull: { songs: songId } }
+          { $pull: { songs: songId } },
         )
       }
       // Delete the song
@@ -277,7 +269,7 @@ router.delete(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // single song metadata update
@@ -324,7 +316,7 @@ router.put(
     } catch (error: any) {
       next(error)
     }
-  }
+  },
 )
 // single song audio upload presign
 router.put(
@@ -362,7 +354,7 @@ router.put(
     } catch (error: any) {
       next(error)
     }
-  }
+  },
 )
 // Confirm single song audio upload
 router.put(
@@ -389,26 +381,26 @@ router.put(
           new HeadObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
             Key: songKey,
-          })
+          }),
         )
         //delete the previous audio file and corresponding hls files if it exists
         if (song.originalUrl) {
           const previousSongKey = extractKeyFromR2Url(
             song.originalUrl,
-            process.env.R2_CUSTOM_DOMAIN!
+            process.env.R2_CUSTOM_DOMAIN!,
           )
           try {
             await r2Client.send(
               new DeleteObjectCommand({
                 Bucket: process.env.R2_BUCKET_NAME,
                 Key: previousSongKey,
-              })
+              }),
             )
             await r2Client.send(
               new DeleteObjectCommand({
                 Bucket: process.env.R2_BUCKET_NAME,
                 Key: `songs/${songId}/hls/`,
-              })
+              }),
             )
           } catch (error) {
             console.error('Error deleting previous song audio:', error)
@@ -427,12 +419,16 @@ router.put(
           timestamp: new Date().toISOString(),
         }
 
-        channel.sendToQueue(
+        if (!Common.channel) {
+          throw new CustomError('AMQP channel not initialized', 500)
+        }
+
+        Common.channel.sendToQueue(
           'audio-conversion',
           Buffer.from(JSON.stringify(job)),
           {
             persistent: true,
-          }
+          },
         )
       } catch (error: any) {
         if (error.name === 'NotFound') {
@@ -457,7 +453,7 @@ router.put(
     } catch (error: any) {
       next(error)
     }
-  }
+  },
 )
 // single song cover art upload presign
 router.put(
@@ -502,7 +498,7 @@ router.put(
     } catch (error: any) {
       next(error)
     }
-  }
+  },
 )
 // Confirm single song cover art upload
 router.put(
@@ -541,7 +537,7 @@ router.put(
         if (song.coverArtUrl) {
           const previousCoverKey = extractKeyFromR2Url(
             song.coverArtUrl,
-            process.env.R2_CUSTOM_DOMAIN!
+            process.env.R2_CUSTOM_DOMAIN!,
           )
           const deleteCommand = new DeleteObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
@@ -577,7 +573,7 @@ router.put(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 
 // toggle like on a song
@@ -607,7 +603,7 @@ router.post(
         updateOperation,
         {
           new: true,
-        }
+        },
       )
 
       if (!updatedSong) {
@@ -632,6 +628,6 @@ router.post(
     } catch (error) {
       next(error)
     }
-  }
+  },
 )
 export { router as singleRouter }

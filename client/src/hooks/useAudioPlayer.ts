@@ -48,6 +48,12 @@ export const useAudioPlayer = ({
     lastTimeUpdateRef.current = 0
 
     if (!hlsUrl) {
+      if (fallbackUrl) {
+        audio.src = fallbackUrl
+        onCanPlay?.()
+      } else {
+        audio.src = ''
+      }
       onLoading?.(false)
       return
     }

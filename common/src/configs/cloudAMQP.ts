@@ -1,6 +1,6 @@
 import amqp from 'amqplib'
 
-let channel: amqp.Channel
+export let channel: amqp.Channel
 
 const connectToQueue = async (CloudAMQP_URL: string) => {
   try {
@@ -14,4 +14,4 @@ const connectToQueue = async (CloudAMQP_URL: string) => {
 }
 
 export default connectToQueue
-export { channel }
+
