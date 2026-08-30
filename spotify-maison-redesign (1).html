@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spotify — Maison Redesign</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#FAF8F3;
+    --canvas-deep:#F1ECE1;
+    --panel:#FFFFFF;
+    --ink:#17160F;
+    --ink-soft:#79766D;
+    --stone:#D8D2C2;
+    --blue:#1B5FA6;
+    --blue-deep:#123D6B;
+    --line: rgba(23,22,15,0.12);
+    --line-soft: rgba(23,22,15,0.07);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    height:100vh;
+    overflow:hidden;
+  }
+  button{font-family:inherit;}
+
+  /* ===================== APP SHELL ===================== */
+  .app{
+    display:grid;
+    grid-template-columns:58px 1fr 360px;
+    height:100vh;
+    transition:grid-template-columns .2s ease;
+  }
+  .app.desk-min{grid-template-columns:58px 1fr 84px;}
+
+  /* ---- SPINE ---- */
+  .spine{
+    background:var(--canvas-deep);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    padding:24px 0;
+  }
+  .spine-mark{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--ink);writing-mode:vertical-rl;}
+  .spine-mark span{color:var(--blue);font-style:normal;}
+  .chapters{display:flex;flex-direction:column;gap:38px;align-items:center;}
+  .chapter{
+    writing-mode:vertical-rl;transform:rotate(180deg);
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--ink-soft);text-decoration:none;
+    display:flex;align-items:center;gap:9px;cursor:pointer;
+    background:none;border:none;padding:0;
+  }
+  .chapter .num{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft);opacity:.6;letter-spacing:0;}
+  .chapter.active{color:var(--ink);font-weight:500;}
+  .chapter.active::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--blue);}
+  .chapter:hover{color:var(--ink);}
+  .spine-foot{display:flex;flex-direction:column;align-items:center;gap:18px;}
+  .spine-btn{background:none;border:none;cursor:pointer;color:var(--ink-soft);padding:6px;display:flex;}
+  .spine-btn:hover{color:var(--ink);}
+  .spine-avatar{width:22px;height:22px;border-radius:50%;background:var(--ink);cursor:pointer;border:none;}
+
+  /* ---- CATALOG ---- */
+  .catalog{overflow-y:auto;padding:40px 48px 60px;border-right:1px solid var(--line);}
+  .chapter-panel{display:none;}
+  .chapter-panel.active{display:block;}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:16px;}
+  h1.hero-title{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:42px;line-height:1.08;margin:0 0 14px;max-width:520px;color:var(--ink);}
+  .hero-sub{font-size:13.5px;color:var(--ink-soft);max-width:420px;line-height:1.6;margin-bottom:38px;}
+
+  .swatch-row{display:flex;gap:20px;overflow-x:auto;padding-bottom:10px;margin-bottom:52px;}
+  .swatch-card{flex:0 0 148px;cursor:pointer;}
+  .swatch-frame{width:148px;height:148px;border:1px solid var(--line);background:var(--panel);position:relative;margin-bottom:12px;overflow:hidden;}
+  .swatch-art{width:100%;height:100%;position:relative;overflow:hidden;}
+  .swatch-card:hover .play-ring{opacity:1;}
+  .swatch-card:hover .swatch-frame{border-color:var(--ink);}
+  .play-ring{position:absolute;top:50%;left:50%;width:34px;height:34px;border-radius:50%;background:var(--panel);border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;opacity:0;transform:translate(-50%,-50%);transition:opacity .18s ease;}
+  .play-ring::after{content:'';width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--ink);margin-left:3px;}
+  .swatch-name{font-family:'Fraunces',serif;font-size:14px;font-weight:500;margin-bottom:2px;color:var(--ink);}
+  .swatch-meta{font-size:10.5px;color:var(--ink-soft);}
+
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:4px;}
+  .section-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:0;color:var(--ink);}
+  .section-head a{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-soft);text-decoration:none;}
+  .section-head a:hover{color:var(--ink);}
+
+  .slip{margin-bottom:44px;}
+  .track{display:grid;grid-template-columns:26px 1fr 130px 56px 42px;align-items:center;gap:16px;padding:14px 6px;border-bottom:1px solid var(--line-soft);cursor:pointer;transition:background .12s ease;}
+  .track:hover{background:var(--canvas-deep);}
+  .track.current{background:var(--canvas-deep);}
+  .track:hover .idx-num, .track.current .idx-num{opacity:0;}
+  .track:hover .idx-play, .track.current .idx-play{opacity:1;}
+  .idx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);position:relative;width:16px;height:13px;}
+  .idx-num{position:absolute;left:0;top:0;transition:opacity .12s ease;}
+  .idx-play{position:absolute;left:0;top:0;opacity:0;transition:opacity .12s ease;}
+  .idx-play::after{content:'';display:inline-block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--ink);}
+  .track-title{font-size:13px;font-weight:500;color:var(--ink);}
+  .track-artist{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .track-collection{font-size:11.5px;color:var(--ink-soft);}
+  .track-tag{font-family:'Fraunces',serif;font-style:italic;font-size:11px;color:var(--blue-deep);}
+  .track-time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);text-align:right;}
+  .empty-note{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--ink-soft);padding:20px 4px;}
+
+  /* Discover */
+  .feature{display:flex;gap:28px;margin-bottom:56px;padding-bottom:44px;border-bottom:1px solid var(--line);}
+  .feature-art{width:220px;height:220px;flex:0 0 220px;border:1px solid var(--line);overflow:hidden;position:relative;cursor:pointer;}
+  .feature-art:hover .play-ring{opacity:1;}
+  .feature-body{padding-top:6px;}
+  .feature-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px;}
+  .feature-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:28px;margin:0 0 12px;max-width:340px;}
+  .feature-copy{font-size:13px;line-height:1.65;color:var(--ink-soft);max-width:360px;margin-bottom:16px;}
+  .feature-meta{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+
+  .notebook{margin-bottom:20px;}
+  .notebook-item{padding:16px 0;border-bottom:1px solid var(--line-soft);}
+  .notebook-item .n-date{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);opacity:.7;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+  .notebook-item .n-title{font-family:'Fraunces',serif;font-size:15px;font-weight:500;margin-bottom:4px;}
+  .notebook-item .n-dek{font-size:12.5px;color:var(--ink-soft);line-height:1.55;max-width:480px;}
+
+  /* Search */
+  .search-hero{margin-bottom:30px;}
+  .search-input-lg{width:100%;border:none;border-bottom:1px solid var(--line);background:none;outline:none;font-family:'Fraunces',serif;font-style:italic;font-size:30px;color:var(--ink);padding:10px 2px;}
+  .search-input-lg::placeholder{color:var(--stone);}
+  .search-input-lg:focus{border-bottom-color:var(--ink);}
+  .tag-row{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 44px;}
+  .tag-chip{font-size:11px;letter-spacing:0.05em;color:var(--ink-soft);border:1px solid var(--line);padding:7px 14px;cursor:pointer;transition:all .15s ease;}
+  .tag-chip:hover{border-color:var(--ink);color:var(--ink);}
+  .result-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+
+  /* Collections */
+  .col-group{margin-bottom:48px;}
+  .collections-grid{display:grid;grid-template-columns:repeat(auto-fill,148px);gap:24px 20px;}
+  .col-card{cursor:pointer;}
+  .col-card .swatch-frame{margin-bottom:12px;}
+  .col-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:4px;display:block;}
+
+  /* Archive */
+  .archive-group{margin-bottom:36px;}
+  .archive-date{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-soft);opacity:.75;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:2px;}
+
+  /* ---- DESK ---- */
+  .desk{background:var(--panel);display:flex;flex-direction:column;padding:32px 28px 24px;overflow-y:auto;overflow-x:hidden;}
+  .desk-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .desk-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-soft);opacity:.7;}
+  .desk-toggle{background:none;border:1px solid var(--line);width:22px;height:22px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);flex:0 0 auto;}
+  .desk-toggle:hover{color:var(--ink);border-color:var(--ink);}
+  .desk-toggle svg{transition:transform .2s ease;}
+  .desk.minimized .desk-toggle svg{transform:rotate(180deg);}
+
+  .desk-art{width:100%;aspect-ratio:1;border:1px solid var(--line);margin-bottom:22px;overflow:hidden;}
+  .desk-title{font-family:'Fraunces',serif;font-style:italic;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:5px;}
+  .desk-artist{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;}
+  .desk-note{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;line-height:1.55;color:var(--ink-soft);border-left:1px solid var(--stone);padding-left:14px;margin-bottom:26px;}
+
+  .desk-progress{display:flex;align-items:center;gap:9px;margin-bottom:16px;}
+  .np-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);width:30px;}
+  .track-bar{flex:1;height:2px;background:var(--line);position:relative;cursor:pointer;}
+  .track-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--blue);width:31%;}
+  .track-bar-fill::after{content:'';position:absolute;right:-4px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--blue-deep);transform:translateY(-50%);box-shadow:0 0 0 2px var(--panel);}
+
+  .desk-buttons{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:30px;}
+  .np-side-btn{background:none;border:none;cursor:pointer;color:var(--ink-soft);padding:4px;display:flex;align-items:center;justify-content:center;opacity:.8;}
+  .np-side-btn:hover{opacity:1;color:var(--ink);}
+  .seal-btn{width:42px;height:42px;border-radius:50%;background:var(--panel);border:1.5px solid var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;transition:background .15s ease;flex:0 0 auto;}
+  .seal-btn:hover{background:var(--canvas-deep);}
+  .seal-btn .bar{width:3px;height:13px;background:var(--ink);margin:0 1.5px;display:none;}
+  .seal-btn .tri{width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:11px solid var(--ink);margin-left:3px;}
+  .seal-btn.playing .tri{display:none;}
+  .seal-btn.playing .bar{display:block;}
+  .seal-btn.playing .bars{display:flex;}
+  .bars{display:none;}
+
+  .vol{display:flex;align-items:center;gap:8px;margin-bottom:30px;}
+  .vol-track{flex:1;height:2px;background:var(--line);position:relative;}
+  .vol-fill{position:absolute;left:0;top:0;height:100%;width:62%;background:var(--ink-soft);}
+
+  .queue-label{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;margin-bottom:12px;}
+  .queue-label h3{font-family:'Fraunces',serif;font-weight:500;font-size:13px;margin:0;color:var(--ink);}
+  .queue-label span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);}
+  .queue-item{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line-soft);cursor:pointer;}
+  .queue-item:hover .q-title{color:var(--blue-deep);}
+  .q-title{font-size:12px;color:var(--ink);transition:color .12s ease;}
+  .q-artist{font-size:10.5px;color:var(--ink-soft);margin-top:1px;}
+  .q-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);}
+
+  /* Minimized desk state */
+  .desk.minimized{align-items:center;padding:24px 12px;}
+  .desk.minimized .desk-note,
+  .desk.minimized .queue-label,
+  .desk.minimized #queueList,
+  .desk.minimized .vol,
+  .desk.minimized .desk-progress,
+  .desk.minimized .desk-artist,
+  .desk.minimized .np-side-btn,
+  .desk.minimized .desk-label{display:none;}
+  .desk.minimized .desk-head{margin-bottom:22px;}
+  .desk.minimized .desk-art{width:44px;height:44px;margin-bottom:16px;}
+  .desk.minimized .desk-buttons{margin-bottom:16px;}
+  .desk.minimized .seal-btn{width:34px;height:34px;}
+  .desk.minimized .desk-title{writing-mode:vertical-rl;font-size:11px;font-style:normal;font-weight:500;max-height:220px;}
+
+  /* ===================== HOVER THUMBNAIL PREVIEW ===================== */
+  .hover-preview{
+    position:fixed;
+    display:none;
+    align-items:center;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:8px;
+    pointer-events:none;
+    z-index:50;
+    box-shadow:0 8px 20px rgba(23,22,15,0.14);
+    transition:opacity .1s ease;
+  }
+  .hp-art{width:52px;height:52px;flex:0 0 52px;border:1px solid var(--line-soft);overflow:hidden;}
+  .hp-title{font-family:'Fraunces',serif;font-size:12.5px;font-weight:500;color:var(--ink);white-space:nowrap;}
+  .hp-artist{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;margin-top:2px;}
+
+  /* ===================== AUTH SCREEN ===================== */
+  .auth-screen{
+    display:none;
+    position:fixed;inset:0;
+    background:var(--canvas);
+    align-items:center;justify-content:center;
+    z-index:100;
+  }
+  .auth-screen.active{display:flex;}
+  .auth-card{width:100%;max-width:340px;padding:20px;text-align:center;}
+  .auth-mark{font-family:'Fraunces',serif;font-style:italic;font-size:24px;margin-bottom:8px;}
+  .auth-mark span{color:var(--blue);font-style:normal;}
+  .auth-tagline{font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:44px;}
+  .auth-tabs{display:flex;gap:26px;justify-content:center;margin-bottom:32px;border-bottom:1px solid var(--line);}
+  .auth-tab{background:none;border:none;cursor:pointer;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-soft);padding:0 2px 12px;border-bottom:1.5px solid transparent;}
+  .auth-tab.active{color:var(--ink);border-bottom-color:var(--blue);font-weight:500;}
+  .auth-form{display:flex;flex-direction:column;gap:20px;text-align:left;}
+  .auth-form label{display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);}
+  .auth-form input{border:none;border-bottom:1px solid var(--line);background:none;outline:none;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);padding:6px 2px;}
+  .auth-form input:focus{border-bottom-color:var(--ink);}
+  .auth-submit{margin-top:10px;background:var(--ink);color:var(--canvas);border:1.5px solid var(--ink);padding:13px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all .15s ease;}
+  .auth-submit:hover{background:var(--canvas);color:var(--ink);}
+  .auth-foot{font-size:12px;color:var(--ink-soft);text-align:center;margin-top:6px;}
+  .auth-foot a{color:var(--blue-deep);cursor:pointer;text-decoration:none;}
+  .auth-foot a:hover{text-decoration:underline;}
+  .auth-close{margin-top:36px;background:none;border:none;font-size:11px;color:var(--ink-soft);cursor:pointer;letter-spacing:0.03em;}
+  .auth-close:hover{color:var(--ink);}
+
+  ::-webkit-scrollbar{width:7px;height:7px;}
+  ::-webkit-scrollbar-thumb{background:var(--stone);border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+</head>
+<body>
+
+<div class="app" id="appRoot">
+
+  <!-- SPINE -->
+  <div class="spine">
+    <div class="spine-mark">spot<span>i</span>fy</div>
+    <div class="chapters">
+      <button class="chapter active" data-chapter="foyer"><span class="num">I</span>Foyer</button>
+      <button class="chapter" data-chapter="discover"><span class="num">II</span>Discover</button>
+      <button class="chapter" data-chapter="collections"><span class="num">III</span>Collections</button>
+      <button class="chapter" data-chapter="archive"><span class="num">IV</span>Archive</button>
+    </div>
+    <div class="spine-foot">
+      <button class="spine-btn" id="searchIconBtn" aria-label="Search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="spine-avatar" id="avatarBtn" aria-label="Account"></button>
+    </div>
+  </div>
+
+  <!-- CATALOG -->
+  <div class="catalog">
+
+    <!-- FOYER -->
+    <div class="chapter-panel active" id="panel-foyer">
+      <div class="eyebrow">Selection — Late Summer 2026</div>
+      <h1 class="hero-title">What we're keeping<br>close this season.</h1>
+      <p class="hero-sub">Six records, chosen by hand, for the walk home when the light goes long. Renewed each Sunday.</p>
+      <div class="swatch-row" id="swatchRow"></div>
+      <div class="section-head"><h2>Correspondence</h2><a href="#">View all</a></div>
+      <div class="slip" id="trackList"></div>
+    </div>
+
+    <!-- DISCOVER -->
+    <div class="chapter-panel" id="panel-discover">
+      <div class="eyebrow">Discover — Curated By the Maison</div>
+      <h1 class="hero-title">The record<br>we keep returning to.</h1>
+      <div class="feature" id="featureCard"></div>
+      <div class="section-head"><h2>Recently Added to the Cabinet</h2><a href="#">View all</a></div>
+      <div class="swatch-row" id="discoverSwatchRow"></div>
+      <div class="section-head"><h2>From the Notebook</h2><a href="#">Read more</a></div>
+      <div class="notebook" id="notebookList"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="chapter-panel" id="panel-search">
+      <div class="eyebrow">Search</div>
+      <div class="search-hero">
+        <input type="text" class="search-input-lg" id="searchInput" placeholder="Search a title, an artist, a collection…">
+      </div>
+      <div class="tag-row" id="tagRow"></div>
+      <div class="result-count" id="resultCount">10 results</div>
+      <div class="slip" id="searchResults"></div>
+    </div>
+
+    <!-- COLLECTIONS -->
+    <div class="chapter-panel" id="panel-collections">
+      <div class="eyebrow">Collections</div>
+      <h1 class="hero-title">Kept, and<br>kept coming back to.</h1>
+      <div class="col-group">
+        <div class="section-head"><h2>Yours</h2><a href="#">New collection</a></div>
+        <div class="collections-grid" id="colGridYours"></div>
+      </div>
+      <div class="col-group">
+        <div class="section-head"><h2>Curated by the Maison</h2><a href="#">View all</a></div>
+        <div class="collections-grid" id="colGridCurated"></div>
+      </div>
+    </div>
+
+    <!-- ARCHIVE -->
+    <div class="chapter-panel" id="panel-archive">
+      <div class="eyebrow">Archive</div>
+      <h1 class="hero-title">A ledger of<br>what was played.</h1>
+      <p class="hero-sub">Every piece, in the order you kept it.</p>
+      <div id="archiveList"></div>
+    </div>
+
+  </div>
+
+  <!-- DESK -->
+  <div class="desk" id="desk">
+    <div class="desk-head">
+      <span class="desk-label">Now at the Desk</span>
+      <button class="desk-toggle" id="deskToggle" aria-label="Minimise player">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+    <div class="desk-art"><div id="deskArt" style="width:100%;height:100%;"></div></div>
+    <div class="desk-title" id="deskTitle">Ledger, Pt. II</div>
+    <div class="desk-artist" id="deskArtist">Low Tide Society</div>
+    <div class="desk-note" id="deskNote">Recorded live, kept in one take.</div>
+
+    <div class="desk-progress">
+      <span class="np-time">1:04</span>
+      <div class="track-bar"><div class="track-bar-fill"></div></div>
+      <span class="np-time" id="deskTime">3:22</span>
+    </div>
+
+    <div class="desk-buttons">
+      <button class="np-side-btn" id="prevBtn" aria-label="Previous">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l9-6v12z"/></svg>
+      </button>
+      <button class="seal-btn playing" id="playBtn">
+        <div class="tri"></div>
+        <div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+      </button>
+      <button class="np-side-btn" id="nextBtn" aria-label="Next">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM5.5 6l9 6-9 6z"/></svg>
+      </button>
+    </div>
+
+    <div class="vol">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#79766D" stroke-width="1.4"><path d="M11 5L6 9H2v6h4l5 4V5z"/></svg>
+      <div class="vol-track"><div class="vol-fill"></div></div>
+    </div>
+
+    <div class="queue-label"><h3>Up Next</h3><span id="queueCount">3 pieces</span></div>
+    <div id="queueList"></div>
+  </div>
+
+</div>
+
+<!-- HOVER THUMBNAIL PREVIEW (for rows with no inline art) -->
+<div class="hover-preview" id="hoverPreview">
+  <div class="hp-art" id="hpArt"></div>
+  <div>
+    <div class="hp-title" id="hpTitle"></div>
+    <div class="hp-artist" id="hpArtist"></div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-mark">spot<span>i</span>fy</div>
+    <div class="auth-tagline">Maison Édition — Sound Atelier</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="signin">Sign In</button>
+      <button class="auth-tab" data-tab="signup">Create Account</button>
+    </div>
+    <div class="auth-form" id="signinForm">
+      <label>Email<input type="email" placeholder="you@example.com"></label>
+      <label>Password<input type="password" placeholder="••••••••"></label>
+      <button class="auth-submit" id="signinSubmit">Enter the Maison</button>
+      <div class="auth-foot">New here? <a data-tab-link="signup">Create an account</a></div>
+    </div>
+    <div class="auth-form" id="signupForm" style="display:none">
+      <label>Name<input type="text" placeholder="Your name"></label>
+      <label>Email<input type="email" placeholder="you@example.com"></label>
+      <label>Password<input type="password" placeholder="Choose a password"></label>
+      <button class="auth-submit" id="signupSubmit">Create Account</button>
+      <div class="auth-foot">Already a member? <a data-tab-link="signin">Sign in</a></div>
+    </div>
+    <button class="auth-close" id="authClose">Continue browsing without an account →</button>
+  </div>
+</div>
+
+<script>
+  const INK = "#17160F";
+  const BLUE = "#1B5FA6";
+
+  function swatchSVG(c1, c2){
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="${c1}"/>
+      <g stroke="${c2}" stroke-width="0.5" fill="none" opacity="0.85">
+        ${Array.from({length:7}).map((_,i)=>`<circle cx="50" cy="50" r="${8+i*7}" />`).join('')}
+      </g>
+      <line x1="0" y1="0" x2="100" y2="100" stroke="${c2}" stroke-width="0.35" opacity="0.4"/>
+      <line x1="100" y1="0" x2="0" y2="100" stroke="${c2}" stroke-width="0.35" opacity="0.4"/>
+    </svg>`;
+  }
+
+  /* ===================== DATA ===================== */
+  const tracks = [
+    {t:"Ledger, Pt. II", a:"Low Tide Society", col:"Correspondence", tag:"New", time:"3:22", note:"Recorded live, kept in one take.", c1:"#EAE4D6", c2:INK},
+    {t:"Rue de l'Est", a:"Bureau of Sound", col:"Sunday, Slowly", tag:"", time:"4:07", note:"Written on a train between two cities.", c1:"#F1ECE1", c2:INK},
+    {t:"Nine Stitches", a:"Half-Light", col:"Half-Light", tag:"", time:"2:51", note:"The demo version — never re-cut.", c1:"#EBE5D9", c2:INK},
+    {t:"Study in Ochre", a:"M. Vance", col:"Study, No. 3", tag:"New", time:"5:14", note:"First pressing. The version we kept.", c1:"#ECE6D8", c2:BLUE},
+    {t:"Weathered Brass", a:"Low Tide Society", col:"Field Recordings ’24", tag:"", time:"3:38", note:"Mixed at the end of a long day.", c1:"#F2EDE2", c2:INK},
+    {t:"Held, Briefly", a:"Sanne Voss", col:"Correspondence", tag:"", time:"3:59", note:"A quiet song for a loud year.", c1:"#F4EFE5", c2:INK},
+    {t:"The Long Walk Home", a:"Bureau of Sound", col:"Sunday, Slowly", tag:"", time:"4:22", note:"Closes side one on the original tape.", c1:"#F1ECE1", c2:INK},
+    {t:"Two Rooms", a:"Sanne Voss", col:"Half-Light", tag:"", time:"3:15", note:"Quiet enough to hear the tape hiss.", c1:"#EBE5D9", c2:INK},
+    {t:"Morning, Unhurried", a:"M. Vance", col:"Study, No. 3", tag:"", time:"4:48", note:"The alternate take, a minute slower.", c1:"#ECE6D8", c2:INK},
+    {t:"Coastal", a:"Bureau of Sound", col:"Field Recordings ’24", tag:"New", time:"3:50", note:"Windows down, mic left running.", c1:"#F2EDE2", c2:BLUE},
+  ];
+
+  const collectionsYours = [
+    {name:"Sunday, Slowly", meta:"Playlist · 42 pieces", c1:"#F1ECE1", c2:INK, tag:"Yours"},
+    {name:"Correspondence", meta:"Playlist · 27 pieces", c1:"#F4EFE5", c2:BLUE, tag:"Yours"},
+    {name:"Field Recordings ’24", meta:"Playlist · 63 pieces", c1:"#F2EDE2", c2:INK, tag:"Yours"},
+    {name:"Half-Light", meta:"Album · 9 pieces", c1:"#EBE5D9", c2:INK, tag:"Yours"},
+  ];
+  const collectionsCurated = [
+    {name:"Low Tide Society", meta:"Album · Ledger", c1:"#EAE4D6", c2:INK, tag:"Curated"},
+    {name:"Study, No. 3", meta:"EP · Four movements", c1:"#ECE6D8", c2:BLUE, tag:"Curated"},
+    {name:"The Long Season", meta:"Playlist · 34 pieces", c1:"#F0EADC", c2:INK, tag:"Curated"},
+    {name:"Rainy Weekday", meta:"Playlist · 19 pieces", c1:"#EEE8DA", c2:INK, tag:"Curated"},
+  ];
+
+  const notebook = [
+    {date:"Aug 27", title:"Why side one closes early", dek:"A short note on sequencing, and why the quiet song goes last, not first."},
+    {date:"Aug 22", title:"Recorded in one afternoon", dek:"Low Tide Society on the four hours that became Ledger."},
+    {date:"Aug 15", title:"A season of unhurried mornings", dek:"The thinking behind this season's Selection, in the maison's own words."},
+  ];
+
+  const history = [
+    {group:"Today", entries:[{time:"9:14 AM", i:0},{time:"8:52 AM", i:6}]},
+    {group:"Yesterday", entries:[{time:"10:40 PM", i:3},{time:"9:02 PM", i:1},{time:"6:15 PM", i:8}]},
+    {group:"Aug 24", entries:[{time:"7:30 PM", i:2},{time:"7:24 PM", i:7},{time:"11:05 AM", i:9}]},
+  ];
+
+  /* ===================== HOVER PREVIEW ===================== */
+  const hp = document.getElementById('hoverPreview');
+  const hpArt = document.getElementById('hpArt');
+  const hpTitle = document.getElementById('hpTitle');
+  const hpArtist = document.getElementById('hpArtist');
+
+  function wireHoverPreview(el, tr){
+    el.addEventListener('mouseenter', ()=>{
+      hpArt.innerHTML = swatchSVG(tr.c1, tr.c2);
+      hpTitle.textContent = tr.t;
+      hpArtist.textContent = tr.a;
+      hp.style.display = 'flex';
+    });
+    el.addEventListener('mousemove', (e)=>{
+      let x = e.clientX + 18;
+      let y = e.clientY + 18;
+      if(x + 220 > window.innerWidth) x = e.clientX - 220;
+      if(y + 70 > window.innerHeight) y = e.clientY - 70;
+      hp.style.left = x + 'px';
+      hp.style.top = y + 'px';
+    });
+    el.addEventListener('mouseleave', ()=>{ hp.style.display = 'none'; });
+  }
+
+  /* ===================== ROW BUILDERS ===================== */
+  function makeTrackRow(tr, idx, opts){
+    opts = opts || {};
+    const row = document.createElement('div');
+    row.className = 'track';
+    const idxLabel = opts.timeLabel ? opts.timeLabel : String(idx+1).padStart(2,'0');
+    row.innerHTML = `
+      <div class="idx"><span class="idx-num">${idxLabel}</span><span class="idx-play"></span></div>
+      <div><div class="track-title">${tr.t}</div><div class="track-artist">${tr.a}</div></div>
+      <div class="track-collection">${tr.col}</div>
+      <div>${tr.tag && !opts.hideTag ? `<div class="track-tag">${tr.tag}</div>` : ''}</div>
+      <div class="track-time">${tr.time}</div>`;
+    row.addEventListener('click', ()=> setCurrent(tracks.indexOf(tr)));
+    wireHoverPreview(row, tr);
+    return row;
+  }
+
+  function makeSwatchCard(name, meta, c1, c2, onClick){
+    const card = document.createElement('div');
+    card.className = 'swatch-card';
+    card.innerHTML = `
+      <div class="swatch-frame"><div class="swatch-art">${swatchSVG(c1,c2)}</div><div class="play-ring"></div></div>
+      <div class="swatch-name">${name}</div><div class="swatch-meta">${meta}</div>`;
+    card.addEventListener('click', onClick);
+    return card;
+  }
+
+  /* ===================== FOYER ===================== */
+  const swatches = [
+    {name:"Sunday, Slowly", meta:"Playlist · 42 pieces", c1:"#F1ECE1", c2:INK},
+    {name:"Low Tide Society", meta:"Album · Ledger", c1:"#EAE4D6", c2:INK},
+    {name:"Correspondence", meta:"Playlist · 27 pieces", c1:"#F4EFE5", c2:BLUE},
+    {name:"Study, No. 3", meta:"EP · Four movements", c1:"#ECE6D8", c2:INK},
+    {name:"Field Recordings ’24", meta:"Playlist · 63 pieces", c1:"#F2EDE2", c2:INK},
+    {name:"Half-Light", meta:"Album · Nine tracks", c1:"#EBE5D9", c2:INK},
+  ];
+  const swatchRow = document.getElementById('swatchRow');
+  swatches.forEach(s=>{
+    swatchRow.appendChild(makeSwatchCard(s.name, s.meta, s.c1, s.c2, ()=>{
+      document.getElementById('deskTitle').textContent = s.name;
+      document.getElementById('deskArtist').textContent = s.meta.split('·')[0].trim();
+      document.getElementById('deskArt').innerHTML = swatchSVG(s.c1, s.c2);
+    }));
+  });
+
+  const listEl = document.getElementById('trackList');
+  const rows = [];
+  tracks.forEach((tr,i)=>{
+    const row = makeTrackRow(tr, i);
+    listEl.appendChild(row);
+    rows.push(row);
+  });
+
+  let current = 0;
+  function setCurrent(i){
+    current = i;
+    const tr = tracks[i];
+    document.getElementById('deskTitle').textContent = tr.t;
+    document.getElementById('deskArtist').textContent = tr.a;
+    document.getElementById('deskNote').textContent = tr.note;
+    document.getElementById('deskTime').textContent = tr.time;
+    document.getElementById('deskArt').innerHTML = swatchSVG(tr.c1, tr.c2);
+    rows.forEach((r,idx)=> r.classList.toggle('current', idx===i));
+    renderQueue();
+  }
+  function renderQueue(){
+    const q = document.getElementById('queueList');
+    q.innerHTML = '';
+    const upcoming = [];
+    for(let k=1;k<=3;k++) upcoming.push(tracks[(current+k)%tracks.length]);
+    document.getElementById('queueCount').textContent = upcoming.length + ' pieces';
+    upcoming.forEach(tr=>{
+      const item = document.createElement('div');
+      item.className = 'queue-item';
+      item.innerHTML = `<div><div class="q-title">${tr.t}</div><div class="q-artist">${tr.a}</div></div><div class="q-time">${tr.time}</div>`;
+      item.addEventListener('click', ()=> setCurrent(tracks.indexOf(tr)));
+      q.appendChild(item);
+    });
+  }
+  document.getElementById('prevBtn').addEventListener('click', ()=> setCurrent((current-1+tracks.length)%tracks.length));
+  document.getElementById('nextBtn').addEventListener('click', ()=> setCurrent((current+1)%tracks.length));
+  const playBtn = document.getElementById('playBtn');
+  let playing = true;
+  playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.classList.toggle('playing', playing); });
+  setCurrent(0);
+
+  /* ===================== DISCOVER ===================== */
+  const feature = tracks[6];
+  document.getElementById('featureCard').innerHTML = `
+    <div class="feature-art"><div style="width:100%;height:100%;">${swatchSVG(feature.c1, feature.c2)}</div><div class="play-ring"></div></div>
+    <div class="feature-body">
+      <div class="feature-eyebrow">Cover Story</div>
+      <div class="feature-title">${feature.t}</div>
+      <p class="feature-copy">Four minutes recorded near closing time, the room mostly empty. It closes the season the way it opened — unhurried, and a little worn at the edges.</p>
+      <div class="feature-meta">${feature.a} · ${feature.time}</div>
+    </div>`;
+  document.querySelector('#featureCard .feature-art').addEventListener('click', ()=> setCurrent(tracks.indexOf(feature)));
+
+  const discoverSwatchRow = document.getElementById('discoverSwatchRow');
+  [tracks[3], tracks[8], tracks[9], tracks[2]].forEach(tr=>{
+    discoverSwatchRow.appendChild(makeSwatchCard(tr.t, tr.a, tr.c1, tr.c2, ()=> setCurrent(tracks.indexOf(tr))));
+  });
+
+  const notebookEl = document.getElementById('notebookList');
+  notebook.forEach(n=>{
+    const item = document.createElement('div');
+    item.className = 'notebook-item';
+    item.innerHTML = `<div class="n-date">${n.date}</div><div class="n-title">${n.title}</div><div class="n-dek">${n.dek}</div>`;
+    notebookEl.appendChild(item);
+  });
+
+  /* ===================== SEARCH ===================== */
+  const tagRow = document.getElementById('tagRow');
+  ["Sunday, Slowly","Correspondence","Half-Light","Study, No. 3","Field Recordings ’24"].forEach(name=>{
+    const chip = document.createElement('button');
+    chip.className = 'tag-chip';
+    chip.textContent = name;
+    chip.addEventListener('click', ()=>{ searchInput.value = name; runSearch(); });
+    tagRow.appendChild(chip);
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+  const resultCount = document.getElementById('resultCount');
+  function runSearch(){
+    const q = searchInput.value.trim().toLowerCase();
+    const matches = tracks.filter(tr => !q || (tr.t+tr.a+tr.col).toLowerCase().includes(q));
+    resultCount.textContent = matches.length + (matches.length===1 ? ' result' : ' results');
+    searchResults.innerHTML = '';
+    if(matches.length===0){
+      searchResults.innerHTML = '<div class="empty-note">Nothing found under that name yet.</div>';
+      return;
+    }
+    matches.forEach(tr=> searchResults.appendChild(makeTrackRow(tr, tracks.indexOf(tr))));
+  }
+  searchInput.addEventListener('input', runSearch);
+  runSearch();
+
+  /* ===================== COLLECTIONS ===================== */
+  const colGridYours = document.getElementById('colGridYours');
+  collectionsYours.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'col-card';
+    card.innerHTML = `<span class="col-tag">${c.tag}</span><div class="swatch-frame"><div class="swatch-art">${swatchSVG(c.c1,c.c2)}</div></div><div class="swatch-name">${c.name}</div><div class="swatch-meta">${c.meta}</div>`;
+    colGridYours.appendChild(card);
+  });
+  const colGridCurated = document.getElementById('colGridCurated');
+  collectionsCurated.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'col-card';
+    card.innerHTML = `<span class="col-tag">${c.tag}</span><div class="swatch-frame"><div class="swatch-art">${swatchSVG(c.c1,c.c2)}</div></div><div class="swatch-name">${c.name}</div><div class="swatch-meta">${c.meta}</div>`;
+    colGridCurated.appendChild(card);
+  });
+
+  /* ===================== ARCHIVE ===================== */
+  const archiveList = document.getElementById('archiveList');
+  history.forEach(group=>{
+    const g = document.createElement('div');
+    g.className = 'archive-group';
+    const label = document.createElement('div');
+    label.className = 'archive-date';
+    label.textContent = group.group;
+    g.appendChild(label);
+    group.entries.forEach(entry=>{
+      const tr = tracks[entry.i];
+      g.appendChild(makeTrackRow(tr, entry.i, {timeLabel: entry.time, hideTag:true}));
+    });
+    archiveList.appendChild(g);
+  });
+
+  /* ===================== CHAPTER NAV ===================== */
+  const chapters = document.querySelectorAll('.chapter');
+  const panels = document.querySelectorAll('.chapter-panel');
+  function goToChapter(name){
+    chapters.forEach(c=> c.classList.toggle('active', c.dataset.chapter===name));
+    panels.forEach(p=> p.classList.toggle('active', p.id==='panel-'+name));
+  }
+  chapters.forEach(c=> c.addEventListener('click', ()=> goToChapter(c.dataset.chapter)));
+  document.getElementById('searchIconBtn').addEventListener('click', ()=>{
+    goToChapter('search');
+    document.getElementById('searchInput').focus();
+  });
+
+  /* ===================== DESK MINIMISE ===================== */
+  const desk = document.getElementById('desk');
+  const appRoot = document.getElementById('appRoot');
+  document.getElementById('deskToggle').addEventListener('click', ()=>{
+    desk.classList.toggle('minimized');
+    appRoot.classList.toggle('desk-min');
+  });
+
+  /* ===================== AUTH SCREEN ===================== */
+  const authScreen = document.getElementById('authScreen');
+  const authTabs = document.querySelectorAll('.auth-tab');
+  function showAuthTab(name){
+    authTabs.forEach(t=> t.classList.toggle('active', t.dataset.tab===name));
+    document.getElementById('signinForm').style.display = name==='signin' ? 'flex' : 'none';
+    document.getElementById('signupForm').style.display = name==='signup' ? 'flex' : 'none';
+  }
+  authTabs.forEach(t=> t.addEventListener('click', ()=> showAuthTab(t.dataset.tab)));
+  document.querySelectorAll('[data-tab-link]').forEach(a=>{
+    a.addEventListener('click', ()=> showAuthTab(a.dataset.tabLink));
+  });
+  document.getElementById('avatarBtn').addEventListener('click', ()=> authScreen.classList.add('active'));
+  document.getElementById('authClose').addEventListener('click', ()=> authScreen.classList.remove('active'));
+  document.getElementById('signinSubmit').addEventListener('click', ()=> authScreen.classList.remove('active'));
+  document.getElementById('signupSubmit').addEventListener('click', ()=> authScreen.classList.remove('active'));
+</script>
+
+</body>
+</html>
