@@ -1,0 +1,13 @@
+{
+  "name": "groovy-project",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && bun run dev",
+    "infra:up": "docker compose -f docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f docker-compose.dev.yml down"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
