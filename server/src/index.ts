@@ -8,6 +8,8 @@ import sensible from "@fastify/sensible";
 import Redis from "ioredis";
 import { client as pgClient } from "./db";
 import { authRoutes } from "./modules/auth";
+import { usersRoutes } from "./modules/users";
+import { storageRoutes } from "./modules/storage";
 
 dotenv.config();
 
@@ -70,6 +72,8 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
 
   // 2. Register Modular Monolith API Domains
   await app.register(authRoutes, { prefix: "/api/v1/auth" });
+  await app.register(usersRoutes, { prefix: "/api/v1/users" });
+  await app.register(storageRoutes, { prefix: "/api/v1/storage" });
 
   // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {
