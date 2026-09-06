@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuthStore } from "../stores/auth.store";
+import { useGoogleFedCM } from "../hooks/useGoogleFedCM";
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>;
@@ -17,6 +18,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   const { user, isAuthenticated, isLoading, checkAuth, logout } =
     useAuthStore();
+
+  // Native Browser FedCM for Google Single-Tap (Zero script tags, pure Web API)
+  useGoogleFedCM();
 
   useEffect(() => {
     checkAuth();
