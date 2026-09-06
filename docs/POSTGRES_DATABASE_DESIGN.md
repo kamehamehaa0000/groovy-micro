@@ -9,6 +9,7 @@ This document details the complete production PostgreSQL schema design for the r
 ### 1. `users`
 **Features Supported:**
 - Email/password authentication and OAuth (Google, etc.) with unified account linking.
+- Permanent Google OAuth Subject ID (`google_id`) for secure authentication and account linking across email changes.
 - Role-based authorization (`LISTENER`, `ARTIST`, `ADMIN`).
 - Instant token revocation: `token_version` allows invalidating all active refresh tokens on security events without in-memory blacklists.
 - Account suspension and soft deletion (`is_active`).
@@ -26,11 +27,13 @@ CREATE TABLE users (
     is_email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,       -- Account suspension or deactivation
     token_version INTEGER NOT NULL DEFAULT 0,      -- Incrementing revokes all existing refresh tokens
+    google_id VARCHAR(255) UNIQUE,                 -- Permanent Google Subject ID for OAuth & account linking
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_google_id ON users(google_id);
 ```
 
 ---

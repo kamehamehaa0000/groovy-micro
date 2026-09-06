@@ -4,8 +4,10 @@ import cookie from "@fastify/cookie";
 import jwt from "@fastify/jwt";
 import rateLimit from "@fastify/rate-limit";
 import dotenv from "dotenv";
+import sensible from "@fastify/sensible";
 import Redis from "ioredis";
 import { client as pgClient } from "./db";
+import { authRoutes } from "./modules/auth";
 
 dotenv.config();
 
@@ -37,7 +39,7 @@ export const redis = new Redis(
   }
 );
 
-async function bootstrap() {
+export async function bootstrap(options: { listen?: boolean } = { listen: true }) {
   // 1. Plugins
   await app.register(cors, {
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -64,7 +66,12 @@ async function bootstrap() {
     redis: redis,
   });
 
-  // 2. Health & Diagnostic Check
+  await app.register(sensible);
+
+  // 2. Register Modular Monolith API Domains
+  await app.register(authRoutes, { prefix: "/api/v1/auth" });
+
+  // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {
     let dbStatus = "unknown";
     let redisStatus = "unknown";
@@ -96,7 +103,7 @@ async function bootstrap() {
     });
   });
 
-  // 3. API Root
+  // 4. API Root
   app.get("/api/v1", async () => {
     return {
       name: "Groovy Modular Monolith API",
@@ -114,13 +121,17 @@ async function bootstrap() {
     app.log.warn(`⚠️ Redis connection deferred or failed: ${err.message}`);
   }
 
-  // 4. Start Server
-  try {
-    await app.listen({ port, host });
-    app.log.info(`🚀 Groovy Server running at http://${host}:${port}`);
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
+  // 5. Start Server (if listen enabled)
+  if (options.listen !== false) {
+    try {
+      await app.listen({ port, host });
+      app.log.info(`🚀 Groovy Server running at http://${host}:${port}`);
+    } catch (err) {
+      app.log.error(err);
+      process.exit(1);
+    }
+  } else {
+    await app.ready();
   }
 }
 
@@ -142,4 +153,13 @@ for (const signal of signals) {
   });
 }
 
-bootstrap();
+// Run bootstrap only if executed directly
+if (
+  import.meta.main ||
+  (process.argv[1] &&
+    (process.argv[1].endsWith("index.ts") ||
+      process.argv[1].endsWith("index.js")))
+) {
+  bootstrap();
+}
+

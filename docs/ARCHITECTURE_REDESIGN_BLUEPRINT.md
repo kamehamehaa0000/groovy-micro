@@ -127,6 +127,8 @@ erDiagram
         string password_hash
         string display_name
         string role "LISTENER | ARTIST | ADMIN"
+        string google_id UK
+        int token_version
         timestamp created_at
     }
 

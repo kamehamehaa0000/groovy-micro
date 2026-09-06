@@ -22,6 +22,7 @@ export const users = pgTable(
     isEmailVerified: boolean("is_email_verified").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
     tokenVersion: integer("token_version").notNull().default(0),
+    googleId: varchar("google_id", { length: 255 }).unique(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -31,6 +32,7 @@ export const users = pgTable(
   },
   (table) => [
     index("idx_users_email").on(table.email),
+    index("idx_users_google_id").on(table.googleId),
   ]
 );
 
