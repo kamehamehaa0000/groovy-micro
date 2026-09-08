@@ -42,9 +42,25 @@ export const googleTokenSchema = z.object({
     .min(1, "ID token cannot be empty"),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z
+    .string({ required_error: "Verification token is required" })
+    .min(1, "Verification token cannot be empty"),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .trim()
+    .toLowerCase()
+    .email("Invalid email address"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleTokenInput = z.infer<typeof googleTokenSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
 export interface AccessTokenPayload {
   sub: string;

@@ -16,7 +16,7 @@ async function runTests() {
   await db.delete(users).where(eq(users.email, testEmail));
 
   // --- TEST 1: Register ---
-  console.log("1️⃣ Testing User Registration & ACID Transaction...");
+  console.log("1️⃣ Testing User Registration & Verification Link Generation...");
   const registerRes = await app.inject({
     method: "POST",
     url: "/api/v1/auth/register",
@@ -34,17 +34,13 @@ async function runTests() {
   const registerData = JSON.parse(registerRes.body);
   console.log("   ✅ Status 201 Created");
   console.log("   ✅ User ID:", registerData.user.id);
-  console.log("   ✅ Access token issued:", !!registerData.accessToken);
+  console.log("   ✅ isEmailVerified initially false:", registerData.user.isEmailVerified === false);
+  console.log("   ✅ Notice message returned:", registerData.message);
 
-  // Extract refresh_token cookie
-  const setCookieHeader = registerRes.headers["set-cookie"];
-  const refreshCookieMatch = setCookieHeader?.toString().match(/refresh_token=([^;]+)/);
-  let refreshToken = refreshCookieMatch ? refreshCookieMatch[1] : null;
-
-  if (!refreshToken) {
-    throw new Error("Refresh token cookie not found in register response");
+  // Ensure tokens were NOT returned at registration stage
+  if (registerData.accessToken) {
+    throw new Error("Access token must NOT be returned before email verification!");
   }
-  console.log("   ✅ Refresh token cookie set (httpOnly, path=/api/v1/auth)");
 
   // Verify PostgreSQL ACID consistency
   const [createdUser] = await db
@@ -77,8 +73,73 @@ async function runTests() {
   }
   console.log("   ✅ Transactional Outbox event 'USER_REGISTERED' recorded in same tx\n");
 
-  // --- TEST 2: Login ---
-  console.log("2️⃣ Testing User Login & Password Verification...");
+  // --- TEST 2: Attempt Login with Unverified Email (Should be 403 Forbidden) ---
+  console.log("2️⃣ Testing Login Block for Unverified Account...");
+  const unverifiedLoginRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/login",
+    payload: {
+      email: testEmail,
+      password: testPassword,
+    },
+  });
+
+  if (unverifiedLoginRes.statusCode !== 403) {
+    throw new Error(`Expected 403 Forbidden for unverified email login, got ${unverifiedLoginRes.statusCode}`);
+  }
+  console.log("   ✅ Status 403 Forbidden: Unverified user prevented from signing in\n");
+
+  // --- TEST 3: Verify Email with Token ---
+  console.log("3️⃣ Testing Email Verification via POST /verify-email...");
+  // Simulate verification token generation in Redis for testing
+  const { createHash } = await import("crypto");
+  const rawTestToken = "test_raw_verification_token_1234567890abcdef";
+  const testTokenHash = createHash("sha256").update(rawTestToken).digest("hex");
+  await redis.set(`email_verify:${testTokenHash}`, createdUser.id, "EX", 3600);
+
+  const verifyRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/verify-email",
+    payload: {
+      token: rawTestToken,
+    },
+  });
+
+  if (verifyRes.statusCode !== 200) {
+    throw new Error(`Email verification failed (${verifyRes.statusCode}): ${verifyRes.body}`);
+  }
+
+  const verifyData = JSON.parse(verifyRes.body);
+  if (!verifyData.accessToken || !verifyData.user.isEmailVerified) {
+    throw new Error("Verify-email did not return access token or isEmailVerified flag!");
+  }
+  console.log("   ✅ Status 200 OK: Email verified successfully");
+  console.log("   ✅ Initial auth tokens issued upon successful verification");
+
+  // Check that token was consumed from Redis (single-use)
+  const remainingTokenInRedis = await redis.get(`email_verify:${testTokenHash}`);
+  if (remainingTokenInRedis) {
+    throw new Error("Verification token was not purged from Redis after consumption!");
+  }
+  console.log("   ✅ Verification token single-use enforced (purged from Redis)\n");
+
+  // --- TEST 4: Resend Verification for Already-Verified Email ---
+  console.log("4️⃣ Testing Resend Verification on Verified Account...");
+  const resendRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/resend-verification",
+    payload: {
+      email: testEmail,
+    },
+  });
+
+  if (resendRes.statusCode !== 400) {
+    throw new Error(`Expected 400 Bad Request for already verified resend, got ${resendRes.statusCode}`);
+  }
+  console.log("   ✅ Status 400 Bad Request: Correctly blocked resend for already verified account\n");
+
+  // --- TEST 5: Verified Login & Fresh Tokens ---
+  console.log("5️⃣ Testing User Login & Password Verification for Verified Account...");
   const loginRes = await app.inject({
     method: "POST",
     url: "/api/v1/auth/login",
@@ -93,11 +154,18 @@ async function runTests() {
   }
   const loginData = JSON.parse(loginRes.body);
   const accessToken = loginData.accessToken;
-  console.log("   ✅ Status 200 OK");
-  console.log("   ✅ Valid credentials verified, fresh access token issued\n");
+  const setCookieHeader = loginRes.headers["set-cookie"];
+  const refreshCookieMatch = setCookieHeader?.toString().match(/refresh_token=([^;]+)/);
+  let refreshToken = refreshCookieMatch ? refreshCookieMatch[1] : null;
 
-  // --- TEST 3: Invalid Login ---
-  console.log("3️⃣ Testing Invalid Password & Timing Attack Defense...");
+  if (!refreshToken) {
+    throw new Error("Refresh token cookie not found in login response");
+  }
+  console.log("   ✅ Status 200 OK");
+  console.log("   ✅ Valid credentials verified, fresh access token and refresh cookie issued\n");
+
+  // --- TEST 6: Invalid Login ---
+  console.log("6️⃣ Testing Invalid Password & Timing Attack Defense...");
   const invalidLoginRes = await app.inject({
     method: "POST",
     url: "/api/v1/auth/login",
@@ -112,8 +180,8 @@ async function runTests() {
   }
   console.log("   ✅ Status 401 Unauthorized for bad password\n");
 
-  // --- TEST 4: Protected /me Endpoint with requireAuth ---
-  console.log("4️⃣ Testing Protected Route (/api/v1/auth/me) with requireAuth Guard...");
+  // --- TEST 7: Protected /me Endpoint with requireAuth ---
+  console.log("7️⃣ Testing Protected Route (/api/v1/auth/me) with requireAuth Guard...");
   const meRes = await app.inject({
     method: "GET",
     url: "/api/v1/auth/me",
@@ -131,8 +199,8 @@ async function runTests() {
   console.log("   ✅ Active Subscription Plan:", meData.user.subscription.planId);
   console.log("   ✅ Plan Features:", JSON.stringify(meData.user.plan.features), "\n");
 
-  // --- TEST 5: Refresh Token Rotation (RTR) ---
-  console.log("5️⃣ Testing Refresh Token Rotation (RTR)...");
+  // --- TEST 8: Refresh Token Rotation (RTR) ---
+  console.log("8️⃣ Testing Refresh Token Rotation (RTR)...");
   const refreshRes = await app.inject({
     method: "POST",
     url: "/api/v1/auth/refresh",
@@ -157,21 +225,51 @@ async function runTests() {
   console.log("   ✅ Old refresh token consumed and rotated");
   console.log("   ✅ New access token and refresh token successfully generated\n");
 
-  // --- TEST 6: Token Theft / Reuse Detection ---
-  console.log("6️⃣ Testing Security Reuse Detection (Replaying Consumed Refresh Token)...");
+  // --- TEST 9a: Concurrency Grace Window Verification ---
+  console.log("9️⃣a Testing Concurrency Grace Window (Rapid Replay within 30s)...");
+  const graceRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/refresh",
+    cookies: {
+      refresh_token: refreshToken, // Replaying within 30s grace window
+    },
+  });
+
+  if (graceRes.statusCode !== 200) {
+    throw new Error(`Expected 200 within grace window, got ${graceRes.statusCode}`);
+  }
+  const graceBody = JSON.parse(graceRes.body);
+  if (graceBody.accessToken !== newAccessToken) {
+    throw new Error("Grace window did not return matching accessToken");
+  }
+  console.log("   ✅ Status 200 OK: Grace window successfully prevented false theft alert");
+  console.log("   ✅ Identical rotated token returned for concurrent request\n");
+
+  // --- TEST 9b: Token Theft / Reuse Detection (After Grace Window) ---
+  console.log("9️⃣b Testing Security Reuse Detection (Replaying Consumed Token Outside Grace Window)...");
+  // Simulate time passage by adjusting rotatedAt in Redis past 30s
+  const oldPayload = app.jwt.verify<RefreshTokenPayload>(refreshToken);
+  const sessionKey = `session:${oldPayload.familyId}:${oldPayload.jti}`;
+  const sessionData = await redis.get(sessionKey);
+  if (sessionData) {
+    const parsed = JSON.parse(sessionData);
+    parsed.rotatedAt = Date.now() - 35_000; // 35 seconds ago (past 30s grace window)
+    await redis.set(sessionKey, JSON.stringify(parsed), "EX", 120);
+  }
+
   const replayRes = await app.inject({
     method: "POST",
     url: "/api/v1/auth/refresh",
     cookies: {
-      refresh_token: refreshToken, // REPLAYING OLD TOKEN!
+      refresh_token: refreshToken, // REPLAYING OLD TOKEN OUTSIDE GRACE WINDOW!
     },
   });
 
   if (replayRes.statusCode !== 401) {
-    throw new Error(`Expected 401 for token replay attack, got ${replayRes.statusCode}`);
+    throw new Error(`Expected 401 for token replay attack after grace window, got ${replayRes.statusCode}`);
   }
   console.log("   ✅ Status 401 Unauthorized");
-  console.log("   ✅ Theft detected! Token reuse blocked.");
+  console.log("   ✅ Theft detected! Token reuse outside grace window blocked.");
 
   // Check that token_version was incremented in DB
   const [userAfterTheft] = await db
@@ -184,8 +282,8 @@ async function runTests() {
   }
   console.log(`   ✅ Global token_version automatically incremented from ${createdUser.tokenVersion} -> ${userAfterTheft.tokenVersion} (All sessions revoked)\n`);
 
-  // --- TEST 7: Revoked Token Rejected by requireAuth Guard ---
-  console.log("7️⃣ Testing requireAuth Rejection for Revoked Access Token...");
+  // --- TEST 10: Revoked Token Rejected by requireAuth Guard ---
+  console.log("🔟 Testing requireAuth Rejection for Revoked Access Token...");
   const revokedMeRes = await app.inject({
     method: "GET",
     url: "/api/v1/auth/me",
@@ -202,7 +300,7 @@ async function runTests() {
   // Clean up test user
   await db.delete(users).where(eq(users.id, createdUser.id));
   console.log("🧹 Test user and associated data cleaned up.");
-  console.log("\n🎉 ALL 7 AUTH INTEGRATION TESTS PASSED SUCCESSFULLY! 🚀");
+  console.log("\n🎉 ALL 10 AUTH INTEGRATION TESTS PASSED SUCCESSFULLY! 🚀");
 }
 
 runTests()

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { randomBytes, createHash } from "crypto";
 import type { FastifyInstance } from "fastify";
 import { db } from "../../db";
 import {
@@ -27,12 +28,43 @@ import type {
   RefreshTokenPayload,
   UserRole,
 } from "./auth.schemas";
+import { MailService } from "./mail.service";
+
+const VERIFICATION_TOKEN_TTL_SEC = 24 * 60 * 60; // 24 hours
+const VERIFICATION_COOLDOWN_SEC = 60; // 60 seconds
 
 export class AuthService {
   private fastify: FastifyInstance;
+  private mailService: MailService;
 
   constructor(fastify: FastifyInstance) {
     this.fastify = fastify;
+    this.mailService = new MailService(fastify.log);
+  }
+
+  /**
+   * Generates a cryptographically random 32-byte token,
+   * stores its SHA-256 hash in Redis, and sets a 60-second cooldown.
+   */
+  private async generateAndStoreVerificationToken(userId: string): Promise<string> {
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+
+    await redis.set(
+      `email_verify:${tokenHash}`,
+      userId,
+      "EX",
+      VERIFICATION_TOKEN_TTL_SEC
+    );
+
+    await redis.set(
+      `email_verify_cooldown:${userId}`,
+      "1",
+      "EX",
+      VERIFICATION_COOLDOWN_SEC
+    );
+
+    return rawToken;
   }
 
   /**
@@ -85,9 +117,10 @@ export class AuthService {
 
   /**
    * Register a new user with single ACID transaction:
-   * 1. users row
+   * 1. users row (isEmailVerified = false)
    * 2. user_subscriptions row (plan: 'free')
    * 3. outbox_events row (USER_REGISTERED)
+   * Dispatches email verification link asynchronously without issuing auth tokens.
    */
   async register(input: RegisterInput) {
     // 1. Check if email exists
@@ -140,13 +173,23 @@ export class AuthService {
       return user;
     });
 
-    // 4. Issue tokens
-    const tokens = await this.issueTokenPair({
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-      tokenVersion: newUser.tokenVersion,
-    });
+    // 4. Generate email verification token & dispatch asynchronously
+    const rawToken = await this.generateAndStoreVerificationToken(newUser.id);
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const verificationUrl = `${clientUrl}/verify-email?token=${rawToken}`;
+
+    this.mailService
+      .sendVerificationEmail({
+        to: newUser.email,
+        displayName: newUser.displayName,
+        verificationUrl,
+      })
+      .catch((err) => {
+        this.fastify.log.error(
+          { err: err.message, userId: newUser.id },
+          "Failed to dispatch initial verification email"
+        );
+      });
 
     return {
       user: {
@@ -155,14 +198,15 @@ export class AuthService {
         displayName: newUser.displayName,
         role: newUser.role,
         avatarUrl: newUser.avatarUrl,
-        isEmailVerified: newUser.isEmailVerified,
+        isEmailVerified: false,
       },
-      ...tokens,
+      message:
+        "Account created successfully. Please check your email to verify your account before logging in.",
     };
   }
 
   /**
-   * Login with email and password with timing attack mitigation.
+   * Login with email and password with timing attack mitigation and verification guard.
    */
   async login(input: LoginInput) {
     const [user] = await db
@@ -192,6 +236,13 @@ export class AuthService {
     const isValid = await verifyPassword(input.password, user.passwordHash);
     if (!isValid) {
       throw this.fastify.httpErrors.unauthorized("Invalid email or password");
+    }
+
+    // Require email verification before logging in
+    if (!user.isEmailVerified) {
+      throw this.fastify.httpErrors.forbidden(
+        "Please verify your email before logging in. Check your inbox for the verification link."
+      );
     }
 
     const tokens = await this.issueTokenPair({
@@ -249,10 +300,50 @@ export class AuthService {
     const sessionKey = `session:${familyId}:${jti}`;
     const sessionStatus = await redis.get(sessionKey);
 
-    // Case A: Reuse Detection / Theft Alert!
-    // If the session key is missing or marked "used", an attacker replayed an old token!
-    if (sessionStatus === "used" || !sessionStatus) {
-      // Global revocation: increment tokenVersion for user
+    // Case A: Missing session (expired naturally or evicted)
+    // Return 401 without incrementing tokenVersion (do NOT penalize legitimate expired sessions)
+    if (!sessionStatus) {
+      throw this.fastify.httpErrors.unauthorized(
+        "Refresh token expired or invalid. Please sign in again."
+      );
+    }
+
+    // Case B: Token was already rotated — check concurrency grace window (30s)
+    if (sessionStatus !== "active") {
+      let parsed: {
+        status?: string;
+        rotatedAt?: number;
+        accessToken?: string;
+        refreshToken?: string;
+      } | null = null;
+
+      try {
+        parsed = JSON.parse(sessionStatus);
+      } catch {
+        // legacy non-JSON value
+      }
+
+      const GRACE_PERIOD_MS = 30_000; // 30s leeway for network retries and React StrictMode
+      if (
+        parsed &&
+        parsed.status === "rotated" &&
+        parsed.rotatedAt &&
+        Date.now() - parsed.rotatedAt < GRACE_PERIOD_MS &&
+        parsed.accessToken &&
+        parsed.refreshToken
+      ) {
+        this.fastify.log.info(
+          { userId: user.id, familyId, jti },
+          "Refresh token presented within concurrency grace window. Returning rotated token pair."
+        );
+        return {
+          accessToken: parsed.accessToken,
+          refreshToken: parsed.refreshToken,
+        };
+      }
+
+      // Case C: Reuse Detection / Theft Alert!
+      // Old token replayed past the grace window — attacker has compromised this token family!
       const [updated] = await db
         .update(users)
         .set({
@@ -271,7 +362,7 @@ export class AuthService {
 
       this.fastify.log.warn(
         { userId: user.id, familyId, jti },
-        "🚨 SECURITY ALERT: Refresh token reuse detected! All user sessions revoked."
+        "🚨 SECURITY ALERT: Refresh token reuse detected outside grace window! All user sessions revoked."
       );
 
       throw this.fastify.httpErrors.unauthorized(
@@ -279,10 +370,7 @@ export class AuthService {
       );
     }
 
-    // Case B: Legitimate rotation
-    // Mark current token as consumed (keep for 120s to detect rapid replay attacks)
-    await redis.set(sessionKey, "used", "EX", 120);
-
+    // Case D: Legitimate rotation (sessionStatus === "active")
     // Issue brand-new pair within the same token family
     const { jti: newJti } = generateTokenIdentifiers();
 
@@ -308,6 +396,17 @@ export class AuthService {
       expiresIn: REFRESH_TOKEN_TTL_SEC,
     });
 
+    // Mark current token as rotated with 120s TTL (allows 30s grace window + theft detection)
+    const rotatedRecord = {
+      status: "rotated",
+      rotatedAt: Date.now(),
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
+
+    await redis.set(sessionKey, JSON.stringify(rotatedRecord), "EX", 120);
+
+    // Register new session as active
     await redis.set(
       `session:${familyId}:${newJti}`,
       "active",
@@ -332,6 +431,12 @@ export class AuthService {
         this.fastify.jwt.verify<RefreshTokenPayload>(rawRefreshToken);
       const sessionKey = `session:${payload.familyId}:${payload.jti}`;
       await redis.del(sessionKey);
+
+      // Purge any associated grace-window or older rotation keys for this token family
+      const familyKeys = await redis.keys(`session:${payload.familyId}:*`);
+      if (familyKeys.length > 0) {
+        await redis.del(...familyKeys);
+      }
     } catch {
       // If token is invalid or expired, no session cleanup needed
     }
@@ -363,6 +468,135 @@ export class AuthService {
       "EX",
       REFRESH_TOKEN_TTL_SEC
     );
+  }
+
+  /**
+   * Validates an email verification token, marks user verified, and issues auth tokens.
+   */
+  async verifyEmail(rawToken: string) {
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+    const redisKey = `email_verify:${tokenHash}`;
+    const userId = await redis.get(redisKey);
+
+    if (!userId) {
+      throw this.fastify.httpErrors.badRequest(
+        "Verification link has expired or is invalid. Please request a new verification email."
+      );
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      throw this.fastify.httpErrors.notFound("User not found");
+    }
+
+    if (!user.isActive) {
+      throw this.fastify.httpErrors.forbidden("Account has been suspended");
+    }
+
+    // Mark user as email-verified
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        isEmailVerified: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    // Consume verification token from Redis
+    await redis.del(redisKey);
+    await redis.del(`email_verify_cooldown:${userId}`);
+
+    // Issue initial token pair so user is automatically logged in upon verification
+    const tokens = await this.issueTokenPair({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      tokenVersion: updatedUser.tokenVersion,
+    });
+
+    return {
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        displayName: updatedUser.displayName,
+        role: updatedUser.role,
+        avatarUrl: updatedUser.avatarUrl,
+        isEmailVerified: true,
+      },
+      ...tokens,
+    };
+  }
+
+  /**
+   * Resends verification email for unverified user accounts (public endpoint).
+   * Defends against user enumeration and rate-limits via 60-second Redis cooldown.
+   */
+  async resendVerification(email: string) {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, normalizedEmail))
+      .limit(1);
+
+    // Email enumeration protection: return uniform response if user doesn't exist
+    if (!user) {
+      return {
+        success: true,
+        message:
+          "If an unverified account exists with that email, a verification link has been sent.",
+      };
+    }
+
+    if (user.isEmailVerified) {
+      throw this.fastify.httpErrors.badRequest(
+        "This account's email is already verified. You can sign in directly."
+      );
+    }
+
+    if (!user.isActive) {
+      throw this.fastify.httpErrors.forbidden("Account has been suspended");
+    }
+
+    // Check cooldown
+    const isCooldownActive = await redis.get(`email_verify_cooldown:${user.id}`);
+    if (isCooldownActive) {
+      throw this.fastify.httpErrors.tooManyRequests(
+        "Please wait 60 seconds before requesting another verification email."
+      );
+    }
+
+    const rawToken = await this.generateAndStoreVerificationToken(user.id);
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const verificationUrl = `${clientUrl}/verify-email?token=${rawToken}`;
+
+    try {
+      await this.mailService.sendVerificationEmail({
+        to: user.email,
+        displayName: user.displayName,
+        verificationUrl,
+      });
+    } catch (err: any) {
+      this.fastify.log.error(
+        { err: err.message, userId: user.id },
+        "MailService failed during resendVerification"
+      );
+      throw this.fastify.httpErrors.serviceUnavailable(
+        "Unable to send verification email right now. Please try again in a few moments."
+      );
+    }
+
+    return {
+      success: true,
+      message: "Verification email sent successfully. Please check your inbox.",
+    };
   }
 
   /**

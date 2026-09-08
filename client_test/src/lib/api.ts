@@ -32,7 +32,11 @@ export async function apiFetch<T = any>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
+  if (
+    options.body !== undefined &&
+    !headers.has("Content-Type") &&
+    !(options.body instanceof FormData)
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -119,13 +123,23 @@ export const api = {
     apiFetch<T>(url, {
       ...options,
       method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body:
+        body !== undefined
+          ? body instanceof FormData
+            ? body
+            : JSON.stringify(body)
+          : undefined,
     }),
   patch: <T = any>(url: string, body?: any, options?: RequestInit) =>
     apiFetch<T>(url, {
       ...options,
       method: "PATCH",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body:
+        body !== undefined
+          ? body instanceof FormData
+            ? body
+            : JSON.stringify(body)
+          : undefined,
     }),
   delete: <T = any>(url: string, options?: RequestInit) =>
     apiFetch<T>(url, { ...options, method: "DELETE" }),

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continue with Groovy</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#FAF8F3',
+            'canvas-deep': '#F1ECE1',
+            panel: '#FFFFFF',
+            ink: '#17160F',
+            'ink-soft': '#79766D',
+            stone: '#D8D2C2',
+            blue: '#1B5FA6',
+            'blue-deep': '#123D6B'
+          },
+          fontFamily: {
+            serif: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="min-h-screen bg-ink/40 font-sans text-ink antialiased">
+
+  <!-- Example page behind dialog -->
+  <div class="pointer-events-none fixed inset-0 bg-canvas opacity-95">
+    <div class="absolute left-8 top-8 font-serif text-3xl italic tracking-[-0.04em]">
+      Groovy
+    </div>
+  </div>
+
+  <!-- Dialog overlay -->
+  <div
+    class="fixed inset-0 z-10 flex items-center justify-center p-5 sm:p-8"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="auth-dialog-title"
+  >
+    <div class="absolute inset-0 bg-ink/45 backdrop-blur-[3px]"></div>
+
+    <section class="relative w-full max-w-[460px] border border-black/10 bg-canvas shadow-[0_24px_80px_rgba(23,22,15,0.20)]">
+
+      <!-- Top rule / close -->
+      <div class="flex items-center justify-between border-b border-black/10 px-6 py-4 sm:px-8">
+        <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+          Groovy / Account
+        </span>
+
+        <button
+          type="button"
+          aria-label="Close"
+          class="group flex h-7 w-7 items-center justify-center text-ink-soft transition hover:text-ink"
+        >
+          <svg class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" viewBox="0 0 16 16" fill="none">
+            <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.1"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-9 sm:px-10 sm:py-11">
+
+        <!-- Brand -->
+        <div class="mb-8">
+          <div class="font-serif text-[29px] italic leading-none tracking-[-0.04em]">
+            Groovy
+          </div>
+          <div class="mt-2 font-mono text-[8px] uppercase tracking-[0.26em] text-ink-soft">
+            Sound Atelier
+          </div>
+        </div>
+
+        <!-- Heading -->
+        <div class="mb-7">
+          <div class="mb-4 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.2em] text-blue">
+            <span class="h-px w-7 bg-blue"></span>
+            Member Access
+          </div>
+
+          <h1
+            id="auth-dialog-title"
+            class="font-serif text-[39px] font-normal leading-[0.98] tracking-[-0.035em] sm:text-[43px]"
+          >
+            Continue<br>with Groovy.
+          </h1>
+
+          <p class="mt-5 max-w-[350px] text-[13px] leading-6 text-ink-soft">
+            Sign in or create an account to continue listening,
+            save music, and make Groovy yours.
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+
+          <a
+            href="/login"
+            class="group flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-canvas transition hover:bg-blue hover:border-blue"
+          >
+            <span>Log in</span>
+            <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 16 16" fill="none">
+              <path d="M2 8H13M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </a>
+
+          <a
+            href="/signup"
+            class="group flex w-full items-center justify-between border border-ink/20 bg-transparent px-5 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-ink transition hover:border-blue hover:text-blue"
+          >
+            <span>Create account</span>
+            <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 16 16" fill="none">
+              <path d="M2 8H13M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </a>
+
+        </div>
+
+        <!-- Fine print -->
+        <div class="mt-7 border-t border-black/10 pt-5">
+          <p class="font-mono text-[8px] uppercase leading-5 tracking-[0.12em] text-ink-soft">
+            Free to join · High-fidelity streaming · Your library, everywhere
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Bottom metadata -->
+      <div class="border-t border-black/10 px-6 py-4 sm:px-8">
+        <div class="flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.16em] text-ink-soft">
+          <span>Authentication</span>
+          <span>Groovy Music</span>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+</body>
+</html>

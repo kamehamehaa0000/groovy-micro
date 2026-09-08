@@ -5,6 +5,8 @@ import {
   registerSchema,
   loginSchema,
   googleTokenSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
 } from "./auth.schemas";
 import {
   setRefreshTokenCookie,
@@ -21,6 +23,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /register
    * Registers a new user, assigns free subscription, and creates outbox event.
+   * Sends verification email without issuing auth tokens.
    */
   fastify.post("/register", async (request, reply) => {
     const parseResult = registerSchema.safeParse(request.body);
@@ -34,13 +37,81 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const result = await authService.register(parseResult.data);
-    setRefreshTokenCookie(reply, result.refreshToken);
 
     return reply.status(201).send({
       user: result.user,
-      accessToken: result.accessToken,
+      message: result.message,
     });
   });
+
+  /**
+   * POST /verify-email
+   * Validates verification token, marks email verified, and issues initial auth tokens.
+   * Rate limited: 10 attempts per minute per IP.
+   */
+  fastify.post(
+    "/verify-email",
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    async (request, reply) => {
+      const parseResult = verifyEmailSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await authService.verifyEmail(parseResult.data.token);
+      setRefreshTokenCookie(reply, result.refreshToken);
+
+      return reply.status(200).send({
+        user: result.user,
+        accessToken: result.accessToken,
+        message: "Email verified successfully",
+      });
+    }
+  );
+
+  /**
+   * POST /resend-verification
+   * Public endpoint to resend verification email for unverified accounts.
+   * Rate limited: 5 requests per minute per IP.
+   */
+  fastify.post(
+    "/resend-verification",
+    {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    async (request, reply) => {
+      const parseResult = resendVerificationSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await authService.resendVerification(parseResult.data.email);
+
+      return reply.status(200).send(result);
+    }
+  );
 
   /**
    * POST /login
