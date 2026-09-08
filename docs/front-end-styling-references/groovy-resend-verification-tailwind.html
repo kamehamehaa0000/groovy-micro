@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resend verification — Groovy</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#FAF8F3',
+            'canvas-deep': '#F1ECE1',
+            panel: '#FFFFFF',
+            ink: '#17160F',
+            'ink-soft': '#79766D',
+            stone: '#D8D2C2',
+            blue: '#1B5FA6',
+            'blue-deep': '#123D6B'
+          },
+          fontFamily: {
+            serif: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="min-h-screen bg-canvas text-ink antialiased">
+  <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16">
+
+    <!-- Editorial corner labels -->
+    <div class="absolute left-6 top-6 hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft sm:block">
+      Groovy / Account
+    </div>
+
+    <div class="absolute right-6 top-6 hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft sm:block">
+      02 / Verification
+    </div>
+
+    <div class="absolute bottom-6 left-6 hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft sm:block">
+      Correspondence
+    </div>
+
+    <div class="absolute bottom-6 right-6 hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft sm:block">
+      Groovy Music
+    </div>
+
+    <section class="w-full max-w-[440px]">
+
+      <!-- Brand -->
+      <header class="mb-12 text-center">
+        <div class="font-serif text-[34px] italic leading-none tracking-[-0.04em]">
+          Groovy
+        </div>
+        <div class="mt-3 font-mono text-[9px] uppercase tracking-[0.28em] text-ink-soft">
+          Sound Atelier
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <div class="border-y border-black/10 py-10">
+
+        <div class="mb-8">
+          <div class="mb-5 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.2em] text-blue">
+            <span class="h-px w-8 bg-blue"></span>
+            Account · Verification
+          </div>
+
+          <h1 class="font-serif text-[42px] font-normal leading-[0.98] tracking-[-0.035em] sm:text-[46px]">
+            Resend your<br>
+            verification link.
+          </h1>
+        </div>
+
+        <p class="mb-8 font-sans text-[14px] leading-7 text-ink-soft">
+          Enter the email address associated with your Groovy account and
+          we'll send you a fresh verification link.
+        </p>
+
+        <form action="#" method="post" class="space-y-7">
+
+          <div>
+            <label for="email" class="mb-2 block font-mono text-[9px] uppercase tracking-[0.18em] text-ink-soft">
+              Email address
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+              class="w-full border-0 border-b border-stone bg-transparent px-0 py-3 font-sans text-[15px] text-ink outline-none transition placeholder:text-ink-soft/50 focus:border-blue focus:ring-0"
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="group flex w-full items-center justify-between bg-ink px-5 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-canvas transition-colors duration-200 hover:bg-blue"
+          >
+            <span>Send verification link</span>
+
+            <svg
+              class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M2 8H13M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Note -->
+        <div class="mt-8 border-t border-black/10 pt-6">
+          <div class="flex gap-4">
+            <span class="mt-[3px] font-mono text-[9px] text-blue">01</span>
+
+            <p class="font-sans text-[12px] leading-6 text-ink-soft">
+              For your security, the verification link will expire after
+              <span class="text-ink">24 hours</span>.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Back to sign in -->
+      <div class="mt-7 flex items-center justify-between">
+        <span class="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+          Already verified?
+        </span>
+
+        <a
+          href="/login"
+          class="font-mono text-[9px] uppercase tracking-[0.16em] text-blue underline decoration-blue/30 underline-offset-4 transition hover:text-blue-deep hover:decoration-blue"
+        >
+          Return to sign in
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-14 text-center">
+        <p class="font-mono text-[8px] uppercase tracking-[0.2em] text-ink-soft">
+          Groovy Music · High-Fidelity Streaming
+        </p>
+        <p class="mt-2 font-mono text-[8px] uppercase tracking-[0.2em] text-ink-soft/60">
+          Monolith · Fastify
+        </p>
+      </footer>
+
+    </section>
+  </main>
+</body>
+</html>

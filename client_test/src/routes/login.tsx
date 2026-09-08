@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../stores/auth.store";
 
 export const Route = createFileRoute("/login")({
@@ -8,16 +8,34 @@ export const Route = createFileRoute("/login")({
 
 function LoginComponent() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, resendVerification } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Resend state for unverified accounts
+  const [isResending, setIsResending] = useState(false);
+  const [resendNotice, setResendNotice] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const interval = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setResendNotice(null);
     setIsSubmitting(true);
 
     try {
@@ -30,108 +48,226 @@ function LoginComponent() {
     }
   };
 
+  const handleResend = async () => {
+    if (!email || cooldown > 0) return;
+    setResendNotice(null);
+    setIsResending(true);
+
+    try {
+      const res = await resendVerification(email);
+      setResendNotice({
+        text: res.message || "Verification email sent! Please check your inbox.",
+        type: "success",
+      });
+      setCooldown(60);
+    } catch (err: any) {
+      setResendNotice({
+        text: err.message || "Failed to resend verification email.",
+        type: "error",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const isUnverifiedError =
+    error &&
+    (error.toLowerCase().includes("verify your email") ||
+      error.toLowerCase().includes("verify"));
+
   return (
-    <div className="max-w-md mx-auto py-12">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-xl">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-          <p className="text-sm text-neutral-400 mt-1">
-            Sign in to test auth & streaming features
+    <div className="w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[640px] overflow-hidden">
+      {/* ===================== BRAND PANEL ===================== */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
+        <div className="font-serif italic text-2xl text-ink">
+          Groov<span className="not-italic text-blue font-serif">y</span>
+        </div>
+
+        <div className="max-w-md my-auto relative z-10">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-blue-deep mb-4">
+            Maison Édition — Sound Atelier
+          </div>
+          <h1 className="font-serif italic text-4xl text-ink leading-[1.1] mb-4 font-normal">
+            The Maison keeps a seat for you.
+          </h1>
+          <p className="font-sans text-sm leading-[1.7] text-ink-soft max-w-sm">
+            A private catalog of unhurried recordings — kept, curated, and
+            reserved for members. Sign in to pick up where the record left off.
           </p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-3.5 rounded-lg bg-red-950/60 border border-red-800 text-red-300 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Google OAuth Button */}
-        <a
-          href="/api/v1/auth/google"
-          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-medium text-sm transition-colors border border-neutral-700 mb-6"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-            />
+        {/* Decorative Geometric Vinyl Record SVG Art */}
+        <div className="pointer-events-none absolute -right-16 -bottom-16 w-80 h-80 opacity-70">
+          <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+            <g stroke="currentColor" className="text-stone dark:text-stone/40" strokeWidth="0.5">
+              {[8, 15, 22, 29, 36, 43, 50].map((r) => (
+                <circle key={r} cx="50" cy="50" r={r} />
+              ))}
+            </g>
+            <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" className="text-stone dark:text-stone/40" strokeWidth="0.35" opacity="0.4" />
+            <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" className="text-stone dark:text-stone/40" strokeWidth="0.35" opacity="0.4" />
           </svg>
-          Sign in with Google
-        </a>
+        </div>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-neutral-800" />
+        <div className="flex justify-between items-center font-mono text-[10px] uppercase tracking-[0.12em] text-ink-soft relative z-10">
+          <span>Members Only</span>
+          <span>Est. MMXXVI</span>
+        </div>
+      </div>
+
+      {/* ===================== FORM PANEL ===================== */}
+      <div className="flex items-center justify-center p-8 sm:p-14">
+        <div className="w-full max-w-[360px]">
+          {/* Navigation Tabs */}
+          <div className="flex gap-7 mb-8 border-b border-line">
+            <span className="font-mono text-xs uppercase tracking-[0.08em] pb-3 border-b-2 border-blue text-ink font-medium">
+              Sign In
+            </span>
+            <Link
+              to="/register"
+              className="font-mono text-xs uppercase tracking-[0.08em] pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
+            >
+              Create Account
+            </Link>
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-neutral-900 px-3 text-neutral-500">
+
+          <h2 className="font-serif italic font-medium text-2xl text-ink mb-1.5">
+            Welcome back
+          </h2>
+          <p className="text-xs text-ink-soft leading-relaxed mb-7">
+            Enter the Maison with the account you keep on file.
+          </p>
+
+          {/* Error Notice */}
+          {error && (
+            <div className="mb-6 p-4 border border-red-800/30 bg-red-900/10 text-xs text-red-600 dark:text-red-400">
+              <p>{error}</p>
+              {isUnverifiedError && (
+                <div className="mt-3 pt-3 border-t border-red-800/20 flex items-center justify-between">
+                  <span className="text-[11px] text-ink-soft">
+                    Didn't receive the email?
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={isResending || cooldown > 0}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-blue hover:underline disabled:opacity-50 transition-colors"
+                  >
+                    {cooldown > 0
+                      ? `Resend in ${cooldown}s`
+                      : isResending
+                      ? "Sending..."
+                      : "Resend Link"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Resend Notice */}
+          {resendNotice && (
+            <div
+              className={`mb-6 p-3 border text-xs ${
+                resendNotice.type === "success"
+                  ? "border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400"
+              }`}
+            >
+              {resendNotice.text}
+            </div>
+          )}
+
+          {/* Google OAuth Button */}
+          <a
+            href="/api/v1/auth/google"
+            className="w-full flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+          >
+            <svg height="16" viewBox="0 0 18 18" width="16" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" fill="#4285F4" />
+              <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" fill="#34A853" />
+              <path d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.16.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" fill="#FBBC05" />
+              <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" fill="#EA4335" />
+            </svg>
+            Continue with Google
+          </a>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-line after:content-[''] after:flex-1 after:h-px after:bg-line">
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
               Or with email
             </span>
           </div>
+
+          {/* Credentials Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="si-email"
+                className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-soft"
+              >
+                Email Address
+              </label>
+              <input
+                id="si-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@domain.com"
+                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="si-password"
+                className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-soft"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="si-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 pr-12 focus:border-ink placeholder:text-stone transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-0 top-2.5 font-mono text-[9px] uppercase tracking-[0.08em] text-ink-soft hover:text-ink cursor-pointer"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+            >
+              {isSubmitting ? "Entering..." : "Enter the Maison"}
+            </button>
+          </form>
+
+          <div className="font-sans text-xs text-ink-soft text-center mt-7">
+            New here?{" "}
+            <Link
+              to="/register"
+              className="text-blue hover:underline transition-colors"
+            >
+              Create an account
+            </Link>
+          </div>
         </div>
-
-        {/* Email & Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-              Email Address
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium text-sm transition-colors mt-2"
-          >
-            {isSubmitting ? "Verifying..." : "Sign In"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-xs text-neutral-400">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-emerald-400 hover:underline font-medium"
-          >
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );
 }
+

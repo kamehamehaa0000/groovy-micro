@@ -26,6 +26,7 @@ function ProfileComponent() {
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
   const [revokeOthers, setRevokeOthers] = useState(true);
   const [passwordMsg, setPasswordMsg] = useState<{
     text: string;
@@ -47,8 +48,8 @@ function ProfileComponent() {
 
   if (isLoading || !user) {
     return (
-      <div className="py-20 text-center text-sm text-neutral-500">
-        Loading profile...
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+        Retrieving member records...
       </div>
     );
   }
@@ -63,7 +64,7 @@ function ProfileComponent() {
       await api.patch("/api/v1/users/profile", { displayName });
       await refreshProfile();
       setProfileMsg({
-        text: "Display name updated successfully!",
+        text: "Curator display name updated successfully.",
         type: "success",
       });
     } catch (err: any) {
@@ -121,7 +122,7 @@ function ProfileComponent() {
 
       await refreshProfile();
       setProfileMsg({
-        text: "Avatar uploaded directly to R2 and updated successfully!",
+        text: "Avatar uploaded directly to Cloudflare R2 storage archive.",
         type: "success",
       });
     } catch (err: any) {
@@ -167,28 +168,36 @@ function ProfileComponent() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Account & Profile</h1>
-        <p className="text-sm text-neutral-400 mt-1">
-          Manage your identity, security credentials, and storage uploads
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue-deep mb-2">
+          Maison Édition — Member Vault
+        </div>
+        <h1 className="font-serif italic text-3xl sm:text-4xl text-ink leading-tight font-normal">
+          Curator Profile & Credentials
+        </h1>
+        <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+          Manage member identity, high-fidelity storage uploads, and cryptographic credentials.
         </p>
       </div>
 
-      {/* User Card */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
-        <div className="relative group">
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.displayName}
-              className="w-24 h-24 rounded-full object-cover border-2 border-emerald-500/40"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-emerald-950 border-2 border-emerald-500/40 text-emerald-400 text-3xl font-bold flex items-center justify-center">
-              {user.displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
+      {/* User Identity Card */}
+      <div className="border border-line bg-panel p-8 shadow-xs flex flex-col sm:flex-row items-center gap-8">
+        <div className="flex flex-col items-center">
+          <div className="w-24 h-24 rounded-full overflow-hidden border border-line bg-canvas-deep flex items-center justify-center relative shadow-xs">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="font-serif italic text-3xl font-semibold text-ink">
+                {user.displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
 
           <input
             type="file"
@@ -201,160 +210,206 @@ function ProfileComponent() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingAvatar}
-            className="mt-2 block mx-auto text-[11px] px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors border border-neutral-700"
+            className="mt-3 font-mono text-[9.5px] uppercase tracking-[0.1em] px-3 py-1.5 border border-line bg-canvas hover:bg-canvas-deep text-ink transition-colors cursor-pointer disabled:opacity-50"
           >
-            {isUploadingAvatar ? "Uploading..." : "Upload to R2"}
+            {isUploadingAvatar ? "Transferring..." : "Upload to R2"}
           </button>
         </div>
 
-        <div className="flex-1 text-center sm:text-left space-y-1">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
-            <h2 className="text-xl font-bold text-white">{user.displayName}</h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+        <div className="flex-1 text-center sm:text-left space-y-2">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+            <h2 className="font-serif italic text-2xl font-medium text-ink">
+              {user.displayName}
+            </h2>
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
               {user.role}
             </span>
+            {user.isEmailVerified ? (
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400">
+                Verified ✓
+              </span>
+            ) : (
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-amber-800/30 bg-amber-900/10 text-amber-600 dark:text-amber-400">
+                Unverified
+              </span>
+            )}
           </div>
-          <p className="text-sm text-neutral-400">{user.email}</p>
-          <p className="text-xs text-neutral-500">
-            Subscription:{" "}
-            <span className="text-teal-400 font-semibold uppercase">
-              {user.plan?.name || "Free"}
+
+          <p className="font-sans text-xs text-ink-soft">{user.email}</p>
+
+          <div className="pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
+            Catalog Access Tier:{" "}
+            <span className="text-blue font-medium">
+              {user.plan?.name || "Standard Member"}
             </span>
-          </p>
+          </div>
         </div>
       </div>
 
-      {/* Profile Form */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-        <h3 className="text-base font-semibold text-white mb-4">
-          Profile Settings
+      {/* Display Name Form */}
+      <div className="border border-line bg-panel p-8 shadow-xs">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
+          Identity · Display
+        </div>
+        <h3 className="font-serif italic text-xl text-ink mb-4 font-normal">
+          Curator Name
         </h3>
 
         {profileMsg && (
           <div
-            className={`mb-4 p-3 rounded-lg text-sm ${
+            className={`mb-5 p-3.5 border text-xs ${
               profileMsg.type === "success"
-                ? "bg-emerald-950/60 border border-emerald-800 text-emerald-300"
-                : "bg-red-950/60 border border-red-800 text-red-300"
+                ? "border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400"
+                : "border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400"
             }`}
           >
             {profileMsg.text}
           </div>
         )}
 
-        <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-              Display Name
+        <form onSubmit={handleUpdateProfile} className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex-1 w-full flex flex-col gap-1.5">
+            <label
+              htmlFor="edit-display-name"
+              className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-soft"
+            >
+              Address As
             </label>
             <input
+              id="edit-display-name"
               type="text"
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-emerald-500"
+              className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={isUpdatingProfile}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+            className="w-full sm:w-auto bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
           >
-            {isUpdatingProfile ? "Saving..." : "Save Changes"}
+            {isUpdatingProfile ? "Recording..." : "Save Identity"}
           </button>
         </form>
       </div>
 
       {/* Password Update Form */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-        <h3 className="text-base font-semibold text-white mb-4">
-          Security & Password (Argon2id)
+      <div className="border border-line bg-panel p-8 shadow-xs">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
+          Security · Hash (Argon2id)
+        </div>
+        <h3 className="font-serif italic text-xl text-ink mb-4 font-normal">
+          Change Password
         </h3>
 
         {passwordMsg && (
           <div
-            className={`mb-4 p-3 rounded-lg text-sm ${
+            className={`mb-5 p-3.5 border text-xs ${
               passwordMsg.type === "success"
-                ? "bg-emerald-950/60 border border-emerald-800 text-emerald-300"
-                : "bg-red-950/60 border border-red-800 text-red-300"
+                ? "border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400"
+                : "border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400"
             }`}
           >
             {passwordMsg.text}
           </div>
         )}
 
-        <form onSubmit={handleUpdatePassword} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-              Current Password
-            </label>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-emerald-500"
-            />
+        <form onSubmit={handleUpdatePassword} className="flex flex-col gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="curr-pass"
+                className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-soft"
+              >
+                Current Password
+              </label>
+              <input
+                id="curr-pass"
+                type={showPasswords ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="new-pass"
+                className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-soft"
+              >
+                New Password
+              </label>
+              <input
+                id="new-pass"
+                type={showPasswords ? "text" : "password"}
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-              New Password
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={revokeOthers}
+                onChange={(e) => setRevokeOthers(e.target.checked)}
+                className="accent-ink w-3.5 h-3.5"
+              />
+              <span className="font-sans text-xs text-ink-soft">
+                Revoke all other active sessions across devices
+              </span>
             </label>
-            <input
-              type="password"
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-emerald-500"
-            />
-          </div>
 
-          <label className="flex items-center gap-2 cursor-pointer pt-1">
-            <input
-              type="checkbox"
-              checked={revokeOthers}
-              onChange={(e) => setRevokeOthers(e.target.checked)}
-              className="rounded bg-neutral-950 border-neutral-800 text-emerald-600 focus:ring-0"
-            />
-            <span className="text-xs text-neutral-300">
-              Revoke other sessions (log out all other devices immediately)
-            </span>
-          </label>
+            <button
+              type="button"
+              onClick={() => setShowPasswords(!showPasswords)}
+              className="font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-soft hover:text-ink cursor-pointer"
+            >
+              {showPasswords ? "Hide Passwords" : "Show Passwords"}
+            </button>
+          </div>
 
           <button
             type="submit"
             disabled={isUpdatingPassword}
-            className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-100 text-sm font-medium transition-colors border border-neutral-700"
+            className="w-full sm:w-auto self-start mt-2 border border-line bg-panel hover:bg-canvas-deep text-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] transition-all disabled:opacity-50 cursor-pointer"
           >
-            {isUpdatingPassword ? "Updating Password..." : "Update Password"}
+            {isUpdatingPassword ? "Updating..." : "Update Password"}
           </button>
         </form>
       </div>
 
-      {/* Session Management */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-        <h3 className="text-base font-semibold text-white mb-2">
+      {/* Session & Device Controls */}
+      <div className="border border-line bg-panel p-8 shadow-xs">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
+          Cryptographic Tokens · RTR
+        </div>
+        <h3 className="font-serif italic text-xl text-ink mb-1 font-normal">
           Session & Device Controls
         </h3>
-        <p className="text-xs text-neutral-400 mb-4">
-          Test instant session revocation and token rotation features.
+        <p className="font-sans text-xs text-ink-soft mb-6 leading-relaxed">
+          Manage Refresh Token Rotation (RTR) and instant cryptographic revocation.
         </p>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4">
           <button
             type="button"
             onClick={() => logout()}
-            className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors border border-neutral-700"
+            className="font-mono text-[10.5px] uppercase tracking-[0.1em] border border-line bg-canvas hover:bg-canvas-deep text-ink px-5 py-2.5 transition-colors cursor-pointer"
           >
-            Log Out This Device
+            Sign Out This Device
           </button>
           <button
             type="button"
             onClick={() => revokeAll()}
-            className="px-4 py-2 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 text-sm font-medium transition-colors border border-red-800"
+            className="font-mono text-[10.5px] uppercase tracking-[0.1em] border border-red-800/40 bg-red-900/10 hover:bg-red-900/20 text-red-600 dark:text-red-400 px-5 py-2.5 transition-colors cursor-pointer"
           >
             Revoke All Sessions Everywhere
           </button>
@@ -363,3 +418,4 @@ function ProfileComponent() {
     </div>
   );
 }
+

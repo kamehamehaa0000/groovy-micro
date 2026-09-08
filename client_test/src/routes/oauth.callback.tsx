@@ -16,11 +16,12 @@ export const Route = createFileRoute("/oauth/callback")({
 function OAuthCallbackComponent() {
   const { token, error } = Route.useSearch();
   const navigate = useNavigate();
-  const { setAccessToken, refreshProfile } = useAuthStore();
-  const [statusText, setStatusText] = useState("Finalizing Google Sign-In...");
+  const { setAccessToken, refreshProfile, clearAuth } = useAuthStore();
+  const [statusText, setStatusText] = useState("Finalizing Maison Google Authentication...");
 
   useEffect(() => {
     if (error) {
+      clearAuth();
       setStatusText(`Google Sign-In failed: ${error}`);
       setTimeout(() => navigate({ to: "/login" }), 3000);
       return;
@@ -33,19 +34,35 @@ function OAuthCallbackComponent() {
           navigate({ to: "/profile" });
         })
         .catch(() => {
-          setStatusText("Failed to load user profile. Redirecting to login...");
+          clearAuth();
+          setStatusText("Failed to retrieve curator profile. Returning to entrance...");
           setTimeout(() => navigate({ to: "/login" }), 2000);
         });
     } else {
-      setStatusText("No authentication token found. Redirecting to login...");
+      clearAuth();
+      setStatusText("No member credentials detected. Returning to entrance...");
       setTimeout(() => navigate({ to: "/login" }), 2000);
     }
-  }, [token, error, setAccessToken, refreshProfile, navigate]);
+  }, [token, error, setAccessToken, refreshProfile, clearAuth, navigate]);
 
   return (
-    <div className="py-20 text-center">
-      <div className="inline-block w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-sm text-neutral-300 font-medium">{statusText}</p>
+    <div className="py-24 text-center">
+      <div className="mx-auto w-10 h-10 mb-4 text-blue flex items-center justify-center">
+        <svg
+          className="animate-spin w-7 h-7"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
+          <path d="M12 2a10 10 0 0 1 10 10" />
+        </svg>
+      </div>
+      <p className="font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">
+        {statusText}
+      </p>
     </div>
   );
 }
+

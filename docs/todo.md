@@ -26,7 +26,10 @@
 
 ### Sprint 2: Core Monolith API Modules (`server/src/modules/`)
 
-- [x] **Auth Module**: Registration, login, Argon2id password hashing (portable Bun/Node abstraction), JWT signing, refresh token rotation with reuse detection via httpOnly cookies, Google OAuth with account linking, and `requireAuth` / `requireRole` preHandler guards.
+- [x] **Auth Module**: Registration, login, Argon2id password hashing (portable Bun/Node abstraction), JWT signing, refresh token rotation with reuse detection via httpOnly cookies, Google OAuth with account linking, `requireAuth` / `requireRole` preHandler guards, and **Email Verification subsystem** (Brevo REST API with exponential backoff & dev console fallback, SHA-256 tokens in Redis with 24h TTL, 60s cooldown, 403 unverified login guard, and public resend endpoint).
+- [x] **Storage & Pre-Signed Uploads Subsystem**: Upload preset registry (avatars, banners, covers, raw audio, lyrics, verification docs), S3/Cloudflare R2 client, and pre-signed PUT generator with domain authorization guards.
+- [x] **User Management Module**: Profile update (`displayName`, `avatarUrl`) and password update with Argon2id and session revocation (`tokenVersion++`).
+- [x] **Frontend Auth & Upload Test Harness (`client_test/`)**: React 19 + TanStack Router (file-based) + TanStack Query + Zustand store with silent 401 refresh queue.
 - [ ] **Catalog Module**: Artist profiles, albums, songs metadata CRUD, and S3/R2 Pre-Signed Upload URL generator.
 - [ ] **Subscription & Entitlement Guard**: Middleware to enforce feature gating (`max_bitrate`, `lossless`, `can_host_jam`) based on active user plan.
 - [ ] **Social Module**: Playlists CRUD, nested comments, and high-concurrency likes with Redis write-behind buffer.

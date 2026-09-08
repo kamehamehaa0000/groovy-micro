@@ -102,11 +102,14 @@ Instead of long-lived static tokens, we utilize a two-tier token model:
 2. **Refresh Token (Long-Lived - 7 Days)**:
    - **Payload**: Contains token family ID (`familyId`), unique token ID (`jti`), user ID (`sub`), and `tokenVersion`.
    - **Transport**: Stored strictly in an `httpOnly`, `Secure`, `SameSite=Lax` cookie scoped to `path: /api/v1/auth`.
-   - **Rotation Mechanism**:
-     - Every invocation of `/api/v1/auth/refresh` invalidates the presented `jti` in Redis and returns a fresh Access + Refresh token pair.
+   - **Rotation Mechanism with 30s Concurrency Grace Window (RFC 6819 / OAuth 2.0 BCP)**:
+     - Every invocation of `/api/v1/auth/refresh` rotates the presented `jti` in Redis and returns a fresh Access + Refresh token pair.
+     - The previous token record transitions to `{ status: "rotated", rotatedAt: timestamp, accessToken, refreshToken }` with a 120-second retention in Redis.
+     - **Concurrency Grace Window (30s)**: If concurrent requests (e.g. React 19 `<StrictMode>` double-mount, network retries, or multiple tabs) present the rotated token within 30 seconds, the server returns the *same* newly issued token pair without generating additional tokens or triggering false theft alerts.
    - **Automatic Reuse Detection (Theft Defense)**:
-     - If an already-rotated/consumed refresh token is presented again (indicating token interception or replay), the system triggers an automatic theft alert.
-     - The user's `token_version` is incremented in PostgreSQL, and all active Redis sessions for that user are purged, invalidating all sessions for both attacker and legitimate user.
+     - If an already-rotated refresh token is replayed *outside* the 30-second grace window (indicating token interception or replay attack), the system flags a verified theft attack.
+     - The user's `token_version` is incremented in PostgreSQL (`token_version = token_version + 1`), immediately invalidating all active sessions across all devices for both attacker and legitimate user.
+     - Natural session expirations (missing Redis keys) return standard `401 Unauthorized` without incrementing `token_version`.
 
 ---
 
@@ -336,5 +339,68 @@ server/src/
         ├── auth.schemas.ts     # Zod validation schemas & TypeScript types
         ├── auth.guards.ts      # requireAuth & requireRole preHandlers
         ├── auth.hasher.ts      # Isomorphic Argon2id wrapper (Bun native + Node fallback)
-        └── auth.utils.ts       # Token generation, cookie options, Google token verifier
+        ├── auth.utils.ts       # Token generation, cookie options, Google token verifier
+        └── mail.service.ts     # Email dispatch service (Brevo/SMTP with local console fallback)
 ```
+
+---
+
+## 10. Email Verification Architecture & Flows
+
+### A. Registration & Login Flow with Email Verification
+
+Since unverified users **cannot** log in:
+
+```
+[ User Registers ]
+       │
+       ▼
+1. Insert user into DB (isEmailVerified = false)
+2. Generate 32-byte cryptographic token (rawToken)
+3. Store SHA-256 hash in Redis: email_verify:<tokenHash> -> userId (TTL: 24 hours)
+4. Set cooldown in Redis: email_verify_cooldown:<userId> (TTL: 60s)
+5. Send email with link: ${CLIENT_URL}/verify-email?token=<rawToken>
+   (or print to terminal if no API key in development)
+6. Return 201 Created (WITHOUT auth tokens, informing user to check inbox)
+```
+
+```
+[ User Attempts Login ]
+       │
+       ▼
+Check credentials -> Verified?
+  ├─ If isEmailVerified === false:
+  │    Reject with 403 Forbidden:
+  │    "Please verify your email before logging in. Check your inbox for the link."
+  └─ If isEmailVerified === true:
+       Issue tokens & log in normally
+```
+
+*(Note: Google OAuth users are automatically marked `isEmailVerified: true` since Google has already verified their identity).*
+
+---
+
+### B. Server Endpoints to Implement
+
+#### 1. `POST /api/v1/auth/verify-email` (Public)
+- **Request Body**: `{ token: string }`
+- **Logic**:
+  1. Hash the incoming `token` with SHA-256.
+  2. Query Redis for `email_verify:${tokenHash}`.
+  3. If missing or expired: return `400 Bad Request: Verification link has expired or is invalid`.
+  4. If valid:
+     - Update PostgreSQL: `UPDATE users SET is_email_verified = true, updated_at = NOW() WHERE id = $userId`.
+     - Delete `email_verify:${tokenHash}` from Redis (single-use enforcement).
+     - Issue initial token pair (`accessToken` + `refresh_token` cookie) so the user is immediately logged in upon verification without having to type their password again.
+     - Return `200 OK` with user profile and access token.
+
+#### 2. `POST /api/v1/auth/resend-verification` (Public - Email Only)
+- **Request Body**: `{ email: string }`
+- **Logic**:
+  1. Query user by email.
+  2. If user doesn't exist: Return `200 OK: "If an account with that email exists, a verification link has been sent."` (prevents user email enumeration).
+  3. If user exists and is **already verified**: Return `400 Bad Request: "Account is already verified. Please sign in."`.
+  4. Check Redis cooldown: `email_verify_cooldown:${user.id}`. If active, return `429 Too Many Requests: "Please wait 60 seconds before requesting another email."`.
+  5. Generate fresh token, store in Redis (24h TTL), set cooldown (60s TTL).
+  6. Dispatch verification email (or log to terminal).
+  7. Return `200 OK: "Verification email sent successfully."`.

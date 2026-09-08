@@ -18,11 +18,15 @@ interface AuthState {
     email: string,
     password: string,
     displayName: string
-  ) => Promise<void>;
+  ) => Promise<{ message: string; email: string }>;
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   revokeAll: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
+
+let checkAuthPromise: Promise<void> | null = null;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -51,37 +55,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }),
 
   checkAuth: async () => {
-    try {
-      set({ isLoading: true });
-      // 1. Silent refresh via cookie
-      const refreshRes = await fetch("/api/v1/auth/refresh", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!refreshRes.ok) {
-        set({ user: null, accessToken: null, isAuthenticated: false });
-        return;
-      }
-
-      const data = await refreshRes.json();
-      const token = data.accessToken;
-      set({ accessToken: token, isAuthenticated: true });
-
-      // 2. Fetch user profile
-      const profileData = await api.get<{ user: UserProfile }>(
-        "/api/v1/auth/me",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      set({ user: profileData.user, isAuthenticated: true });
-    } catch {
-      set({ user: null, accessToken: null, isAuthenticated: false });
-    } finally {
-      set({ isLoading: false });
+    if (checkAuthPromise) {
+      return checkAuthPromise;
     }
+
+    checkAuthPromise = (async () => {
+      try {
+        set({ isLoading: true });
+        // 1. Silent refresh via cookie
+        const refreshRes = await fetch("/api/v1/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!refreshRes.ok) {
+          set({ user: null, accessToken: null, isAuthenticated: false });
+          return;
+        }
+
+        const data = await refreshRes.json();
+        const token = data.accessToken;
+        set({ accessToken: token, isAuthenticated: true });
+
+        // 2. Fetch user profile directly (avoiding circular 401 interceptors)
+        const meRes = await fetch("/api/v1/auth/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!meRes.ok) {
+          set({ user: null, accessToken: null, isAuthenticated: false });
+          return;
+        }
+
+        const profileData = await meRes.json();
+        set({ user: profileData.user, isAuthenticated: true });
+      } catch {
+        set({ user: null, accessToken: null, isAuthenticated: false });
+      } finally {
+        set({ isLoading: false });
+        checkAuthPromise = null;
+      }
+    })();
+
+    return checkAuthPromise;
   },
 
   login: async (email, password) => {
@@ -104,17 +125,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   register: async (email, password, displayName) => {
-    const data = await api.post<{ accessToken: string }>(
-      "/api/v1/auth/register",
-      {
-        email,
-        password,
-        displayName,
-      }
-    );
+    const data = await api.post<{
+      user: { id: string; email: string; displayName: string };
+      message: string;
+    }>("/api/v1/auth/register", {
+      email,
+      password,
+      displayName,
+    });
 
-    set({ accessToken: data.accessToken, isAuthenticated: true });
+    return { message: data.message, email: data.user.email };
+  },
 
+  verifyEmail: async (token: string) => {
+    const data = await api.post<{
+      user: UserProfile;
+      accessToken: string;
+      message: string;
+    }>("/api/v1/auth/verify-email", { token });
+
+    set({
+      accessToken: data.accessToken,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
+    // Fetch complete user profile with subscription details
     const profileData = await api.get<{ user: UserProfile }>(
       "/api/v1/auth/me",
       {
@@ -122,7 +158,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     );
 
-    set({ user: profileData.user });
+    set({ user: profileData.user, isAuthenticated: true });
+  },
+
+  resendVerification: async (email: string) => {
+    return await api.post<{ success: boolean; message: string }>(
+      "/api/v1/auth/resend-verification",
+      { email }
+    );
   },
 
   logout: async () => {
@@ -142,7 +185,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   refreshProfile: async () => {
-    const profileData = await api.get<{ user: UserProfile }>("/api/v1/auth/me");
-    set({ user: profileData.user });
+    try {
+      const profileData = await api.get<{ user: UserProfile }>("/api/v1/auth/me");
+      set({ user: profileData.user, isAuthenticated: true, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false });
+      throw err;
+    }
   },
 }));

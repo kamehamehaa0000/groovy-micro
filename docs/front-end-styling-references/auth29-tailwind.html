@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Spotify — Maison Édition · Sign In</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;family=Inter:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com"></script><script>tailwind.config = {
+  theme: { extend: {
+    colors: {
+      canvas: '#FAF8F3', 'canvas-deep': '#F1ECE1',
+      panel: '#FFFFFF', ink: '#17160F',
+      'ink-soft': '#79766D', stone: '#D8D2C2',
+      blue: '#1B5FA6', 'blue-deep': '#123D6B'
+    },
+    fontFamily: {
+      serif: ['Fraunces','Georgia','serif'],
+      sans: ['Inter','ui-sans-serif','system-ui','sans-serif'],
+      mono: ['IBM Plex Mono','ui-monospace','SFMono-Regular','monospace']
+    }
+  } }
+};</script></head>
+<body class="[background:#FAF8F3] [color:#17160F] [font-family:'Inter',sans-serif] [-webkit-font-smoothing:antialiased] [height:100vh] [overflow:hidden] min-h-screen font-sans antialiased">
+<div class="stage [display:grid] [grid-template-columns:1.05fr_1fr] [height:100vh] max-[860px]:[grid-template-columns:1fr]">
+<!-- ===================== BRAND PANEL ===================== -->
+<div class="brand [background:#F1ECE1] [border-right:1px_solid_rgba(23,22,15,0.12)] [position:relative] [display:flex] [flex-direction:column] [justify-content:space-between] [padding:44px_56px_40px] [overflow:hidden] max-[860px]:[display:none]">
+<div class="brand-mark [font-family:'Fraunces',serif] [font-style:italic] [font-size:20px]">spot<span class="[color:#1B5FA6] [font-style:normal]">i</span>fy</div>
+<div class="brand-mid [max-width:460px] [margin-top:auto] [margin-bottom:auto]">
+<div class="brand-eyebrow [font-family:'IBM_Plex_Mono',monospace] [font-size:10.5px] [letter-spacing:0.18em] [text-transform:uppercase] [color:#123D6B] [margin-bottom:18px]">Maison Édition — Sound Atelier</div>
+<h1 class="brand-title [font-family:'Fraunces',serif] [font-weight:400] [font-style:italic] [font-size:44px] [line-height:1.1] [margin:0_0_18px] [color:#17160F]">The Maison keeps a seat for you.</h1>
+<p class="brand-copy [font-size:14px] [line-height:1.7] [color:#79766D] [max-width:380px]">A private catalog of unhurried recordings — kept, curated, and reserved for members. Sign in to pick up where the record left off.</p>
+</div>
+<div class="brand-art [position:absolute] [right:-90px] [bottom:-90px] [width:360px] [height:360px] [opacity:0.9]" id="brandArt"></div>
+<div class="brand-foot [display:flex] [justify-content:space-between] [align-items:flex-end] [font-family:'IBM_Plex_Mono',monospace] [font-size:10px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D] [position:relative] [z-index:1]">
+<span>Members Only</span>
+<span>Est. MMXXIV</span>
+</div>
+</div>
+<!-- ===================== FORM PANEL ===================== -->
+<div class="formside [display:flex] [align-items:center] [justify-content:center] [padding:40px] [overflow-y:auto] max-[860px]:[padding:32px_24px]">
+<div class="auth-card [width:100%] [max-width:360px]">
+<div class="auth-tabs [display:flex] [gap:28px] [margin-bottom:36px] [border-bottom:1px_solid_rgba(23,22,15,0.12)]">
+<button class="auth-tab active [font-family:inherit] [background:none] [border:none] [cursor:pointer] [font-size:12px] [letter-spacing:0.06em] [text-transform:uppercase] [color:#79766D] [padding:0_2px_14px] [border-bottom:1.5px_solid_transparent] [transition:color_.15s_ease] [&amp;.auth-tab]:[color:#17160F] [&amp;.auth-tab]:[border-bottom-color:#1B5FA6] [&amp;.auth-tab]:[font-weight:500] hover:[color:#17160F] [&amp;.panel-view]:[display:flex]" data-tab="signin">Sign In</button>
+<button class="auth-tab [font-family:inherit] [background:none] [border:none] [cursor:pointer] [font-size:12px] [letter-spacing:0.06em] [text-transform:uppercase] [color:#79766D] [padding:0_2px_14px] [border-bottom:1.5px_solid_transparent] [transition:color_.15s_ease] hover:[color:#17160F]" data-tab="signup">Create Account</button>
+</div>
+<!-- SIGN IN -->
+<div class="panel-view active [&amp;.auth-tab]:[color:#17160F] [&amp;.auth-tab]:[border-bottom-color:#1B5FA6] [&amp;.auth-tab]:[font-weight:500] [display:none] [flex-direction:column] [&amp;.panel-view]:[display:flex]" id="view-signin">
+<h2 class="auth-heading [font-family:'Fraunces',serif] [font-style:italic] [font-weight:500] [font-size:24px] [margin:0_0_8px]">Welcome back</h2>
+<p class="auth-sub [font-size:12.5px] [color:#79766D] [line-height:1.6] [margin-bottom:32px]">Enter the Maison with the account you keep on file.</p>
+<button class="oauth-btn [font-family:inherit] [width:100%] [display:flex] [align-items:center] [justify-content:center] [gap:10px] [border:1px_solid_rgba(23,22,15,0.12)] [background:#FFFFFF] [padding:12px] [font-size:12.5px] [color:#17160F] [cursor:pointer] [transition:border-color_.15s_ease,_background_.15s_ease] [margin-bottom:26px] hover:[border-color:#17160F] hover:[background:#F1ECE1]" id="googleBtn" type="button">
+<svg height="16" viewbox="0 0 18 18" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" fill="#4285F4"></path>
+<path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" fill="#34A853"></path>
+<path d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.16.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" fill="#FBBC05"></path>
+<path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" fill="#EA4335"></path>
+</svg>
+          Continue with Google
+        </button>
+<div class="divider [display:flex] [align-items:center] [gap:14px] [margin-bottom:26px] before:[content:''] before:[flex:1] before:[height:1px] before:[background:rgba(23,22,15,0.12)] after:[content:''] after:[flex:1] after:[height:1px] after:[background:rgba(23,22,15,0.12)]"><span class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.14em] [text-transform:uppercase] [color:#79766D]">Or with email</span></div>
+<form class="auth-form [display:flex] [flex-direction:column] [gap:20px]">
+<div class="field [display:flex] [flex-direction:column] [gap:8px]">
+<label class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D]" for="si-email">Email</label>
+<input autocomplete="email" class="[font-family:inherit] [width:100%] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'Inter',sans-serif] [font-size:13.5px] [color:#17160F] [padding:7px_2px] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2]" id="si-email" placeholder="you@domain.com" required="" type="email"/>
+</div>
+<div class="field has-toggle [display:flex] [flex-direction:column] [gap:8px]">
+<label class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D]" for="si-password">Password</label>
+<div class="field-wrap [position:relative]">
+<input autocomplete="current-password" class="[font-family:inherit] [width:100%] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'Inter',sans-serif] [font-size:13.5px] [color:#17160F] [padding:7px_2px] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [padding-right:44px]" id="si-password" placeholder="••••••••" required="" type="password"/>
+<button class="field-toggle [font-family:inherit] [position:absolute] [right:2px] [top:8px] [background:none] [border:none] [cursor:pointer] [font-family:'IBM_Plex_Mono',monospace] [font-size:9px] [letter-spacing:0.08em] [text-transform:uppercase] [color:#79766D] hover:[color:#17160F]" data-toggle-for="si-password" type="button">Show</button>
+</div>
+</div>
+<div class="row-between [display:flex] [justify-content:space-between] [align-items:center] [margin-top:-6px]">
+<label class="remember [display:flex] [align-items:center] [gap:7px] [font-size:11.5px] [color:#79766D]"><input class="[font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [accent-color:#17160F] [width:12px] [height:12px]" type="checkbox"/> Remember me</label>
+<a class="forgot [color:inherit] [font-size:11.5px] [color:#123D6B] [text-decoration:none] hover:[text-decoration:underline]" href="#">Forgot password?</a>
+</div>
+<button class="auth-submit [font-family:inherit] [margin-top:6px] [background:#17160F] [color:#FAF8F3] [border:1.5px_solid_#17160F] [padding:14px] [font-size:12px] [letter-spacing:0.1em] [text-transform:uppercase] [cursor:pointer] [transition:all_.15s_ease] hover:[background:#FAF8F3] hover:[color:#17160F]" type="submit">Enter the Maison</button>
+</form>
+<div class="auth-foot [font-size:12px] [color:#79766D] [text-align:center] [margin-top:26px]">New here? <a class="[color:inherit] [color:#123D6B] [cursor:pointer] [text-decoration:none] hover:[text-decoration:underline]" data-tab-link="signup">Create an account</a></div>
+</div>
+<!-- CREATE ACCOUNT -->
+<div class="panel-view [display:none] [flex-direction:column]" id="view-signup">
+<h2 class="auth-heading [font-family:'Fraunces',serif] [font-style:italic] [font-weight:500] [font-size:24px] [margin:0_0_8px]">Join the Maison</h2>
+<p class="auth-sub [font-size:12.5px] [color:#79766D] [line-height:1.6] [margin-bottom:32px]">A quiet, curated corner of the catalog — reserved once you're in.</p>
+<form class="auth-form [display:flex] [flex-direction:column] [gap:20px]">
+<div class="field [display:flex] [flex-direction:column] [gap:8px]">
+<label class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D]" for="su-name">Display name</label>
+<input autocomplete="name" class="[font-family:inherit] [width:100%] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'Inter',sans-serif] [font-size:13.5px] [color:#17160F] [padding:7px_2px] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2]" id="su-name" placeholder="How should we address you" required="" type="text"/>
+</div>
+<div class="field [display:flex] [flex-direction:column] [gap:8px]">
+<label class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D]" for="su-email">Email</label>
+<input autocomplete="email" class="[font-family:inherit] [width:100%] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'Inter',sans-serif] [font-size:13.5px] [color:#17160F] [padding:7px_2px] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2]" id="su-email" placeholder="you@domain.com" required="" type="email"/>
+</div>
+<div class="field has-toggle [display:flex] [flex-direction:column] [gap:8px]">
+<label class="[font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D]" for="su-password">Password</label>
+<div class="field-wrap [position:relative]">
+<input autocomplete="new-password" class="[font-family:inherit] [width:100%] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'Inter',sans-serif] [font-size:13.5px] [color:#17160F] [padding:7px_2px] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [padding-right:44px]" id="su-password" minlength="8" placeholder="At least 8 characters" required="" type="password"/>
+<button class="field-toggle [font-family:inherit] [position:absolute] [right:2px] [top:8px] [background:none] [border:none] [cursor:pointer] [font-family:'IBM_Plex_Mono',monospace] [font-size:9px] [letter-spacing:0.08em] [text-transform:uppercase] [color:#79766D] hover:[color:#17160F]" data-toggle-for="su-password" type="button">Show</button>
+</div>
+</div>
+<button class="auth-submit [font-family:inherit] [margin-top:6px] [background:#17160F] [color:#FAF8F3] [border:1.5px_solid_#17160F] [padding:14px] [font-size:12px] [letter-spacing:0.1em] [text-transform:uppercase] [cursor:pointer] [transition:all_.15s_ease] hover:[background:#FAF8F3] hover:[color:#17160F]" type="submit">Create Account</button>
+</form>
+<div class="auth-foot [font-size:12px] [color:#79766D] [text-align:center] [margin-top:26px]">Already a member? <a class="[color:inherit] [color:#123D6B] [cursor:pointer] [text-decoration:none] hover:[text-decoration:underline]" data-tab-link="signin">Sign in</a></div>
+<p class="fine-print [font-size:10.5px] [color:#79766D] [line-height:1.6] [margin-top:22px] [text-align:center]">By creating an account, you agree to the <a class="[color:inherit] hover:[text-decoration:underline] [color:#79766D] [text-decoration:underline]" href="#">Terms</a> and <a class="[color:inherit] hover:[text-decoration:underline] [color:#79766D] [text-decoration:underline]" href="#">Privacy Policy</a>.</p>
+</div>
+<!-- VERIFY EMAIL -->
+<div class="panel-view [display:none] [flex-direction:column]" id="view-verify">
+<button class="verify-back [font-family:inherit] [background:none] [border:none] [cursor:pointer] [padding:0] [margin-bottom:28px] [font-family:'IBM_Plex_Mono',monospace] [font-size:10px] [letter-spacing:0.1em] [text-transform:uppercase] [color:#79766D] [align-self:flex-start] hover:[color:#17160F]" data-view-link="signup" type="button">← Back</button>
+<h2 class="auth-heading [font-family:'Fraunces',serif] [font-style:italic] [font-weight:500] [font-size:24px] [margin:0_0_8px]">Check your inbox</h2>
+<p class="auth-sub [font-size:12.5px] [color:#79766D] [line-height:1.6] [margin-bottom:32px]">We've sent a six-digit code to <strong id="verifyEmailTarget">you@domain.com</strong>. Enter it below to verify the account.</p>
+<div class="otp-row [display:flex] [gap:10px] [justify-content:space-between] [margin:6px_0_30px]" id="otpRow">
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+<input class="otp-box [font-family:inherit] focus:[border-bottom-color:#17160F] placeholder:[color:#D8D2C2] [width:15%] [text-align:center] [border:none] [border-bottom:1px_solid_rgba(23,22,15,0.12)] [background:none] [outline:none] [font-family:'IBM_Plex_Mono',monospace] [font-size:20px] [color:#17160F] [padding:8px_0]" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+</div>
+<button class="auth-submit [font-family:inherit] [margin-top:6px] [background:#17160F] [color:#FAF8F3] [border:1.5px_solid_#17160F] [padding:14px] [font-size:12px] [letter-spacing:0.1em] [text-transform:uppercase] [cursor:pointer] [transition:all_.15s_ease] hover:[background:#FAF8F3] hover:[color:#17160F]" id="verifySubmit" type="button">Verify email</button>
+<div class="auth-foot [font-size:12px] [color:#79766D] [text-align:center] [margin-top:26px]">Didn't get it? <a class="[color:inherit] [color:#123D6B] [cursor:pointer] [text-decoration:none] hover:[text-decoration:underline]" id="resendLink">Resend code</a></div>
+<p class="verify-note [font-family:'IBM_Plex_Mono',monospace] [font-size:9.5px] [letter-spacing:0.05em] [color:#79766D] [text-align:center] [margin-top:18px] [text-transform:uppercase]">Wrong address? <span data-view-link="signup" style="text-decoration:underline;cursor:pointer;">Edit and resend</span></p>
+<div class="verify-status [font-size:12px] [color:#123D6B] [text-align:center] [margin-top:14px] [min-height:16px]" id="verifyStatus"></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  const INK = "#17160F";
+  const BLUE = "#1B5FA6";
+
+  function swatchSVG(c1, c2){
+    return `<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="${c1}"/>
+      <g stroke="${c2}" stroke-width="0.5" fill="none" opacity="0.85">
+        ${Array.from({length:7}).map((_,i)=>`<circle cx="50" cy="50" r="${8+i*7}" />`).join('')}
+      </g>
+      <line x1="0" y1="0" x2="100" y2="100" stroke="${c2}" stroke-width="0.35" opacity="0.4"/>
+      <line x1="100" y1="0" x2="0" y2="100" stroke="${c2}" stroke-width="0.35" opacity="0.4"/>
+    </svg>`;
+  }
+  document.getElementById('brandArt').innerHTML = swatchSVG('#F4EFE5', BLUE);
+
+  /* ===================== VIEW SWITCH ===================== */
+  const tabs = document.querySelectorAll('.auth-tab');
+  const tabsRow = document.querySelector('.auth-tabs');
+  function showView(name){
+    tabs.forEach(t=> t.classList.toggle('active', t.dataset.tab===name));
+    document.querySelectorAll('.panel-view').forEach(p=>{
+      p.classList.toggle('active', p.id === 'view-' + name);
+    });
+    tabsRow.style.display = (name === 'verify') ? 'none' : 'flex';
+  }
+  tabs.forEach(t=> t.addEventListener('click', ()=> showView(t.dataset.tab)));
+  document.querySelectorAll('[data-tab-link]').forEach(a=>{
+    a.addEventListener('click', ()=> showView(a.dataset.tabLink));
+  });
+  document.querySelectorAll('[data-view-link]').forEach(a=>{
+    a.addEventListener('click', ()=> showView(a.dataset.viewLink));
+  });
+
+  /* ===================== SIGNUP → VERIFY ===================== */
+  document.querySelector('#view-signup .auth-form').addEventListener('submit', e=>{
+    e.preventDefault();
+    const email = document.getElementById('su-email').value || 'you@domain.com';
+    document.getElementById('verifyEmailTarget').textContent = email;
+    document.getElementById('verifyStatus').textContent = '';
+    showView('verify');
+    document.querySelector('#otpRow .otp-box').focus();
+  });
+
+  /* ===================== OTP INPUT ===================== */
+  const otpBoxes = Array.from(document.querySelectorAll('.otp-box'));
+  otpBoxes.forEach((box, i)=>{
+    box.addEventListener('input', ()=>{
+      box.value = box.value.replace(/[^0-9]/g,'').slice(0,1);
+      if(box.value && otpBoxes[i+1]) otpBoxes[i+1].focus();
+    });
+    box.addEventListener('keydown', e=>{
+      if(e.key === 'Backspace' && !box.value && otpBoxes[i-1]) otpBoxes[i-1].focus();
+    });
+  });
+  document.getElementById('verifySubmit').addEventListener('click', ()=>{
+    const code = otpBoxes.map(b=> b.value).join('');
+    const status = document.getElementById('verifyStatus');
+    if(code.length < 6){
+      status.textContent = 'Enter all six digits.';
+      status.style.color = '#B3453A';
+      return;
+    }
+    status.textContent = 'Verified — welcome to the Maison.';
+    status.style.color = 'var(--blue-deep)';
+  });
+  document.getElementById('resendLink').addEventListener('click', ()=>{
+    const status = document.getElementById('verifyStatus');
+    status.textContent = 'A new code is on its way.';
+    status.style.color = 'var(--ink-soft)';
+    otpBoxes.forEach(b=> b.value='');
+    otpBoxes[0].focus();
+  });
+
+  /* ===================== PASSWORD VISIBILITY ===================== */
+  document.querySelectorAll('.field-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = document.getElementById(btn.dataset.toggleFor);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? 'Hide' : 'Show';
+    });
+  });
+
+  /* ===================== GOOGLE OAUTH (stub) ===================== */
+  document.getElementById('googleBtn').addEventListener('click', ()=>{
+    console.log('Trigger Google OAuth flow here.');
+  });
+
+  /* ===================== FORM SUBMIT (stub) ===================== */
+  document.querySelectorAll('.auth-form').forEach(f=>{
+    f.addEventListener('submit', e=>{
+      e.preventDefault();
+      console.log('Submit', f.closest('.panel-view').id, Object.fromEntries(new FormData(f)));
+    });
+  });
+</script>
+</body>
+</html>
