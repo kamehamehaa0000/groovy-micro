@@ -10,6 +10,7 @@ import { client as pgClient } from "./db";
 import { authRoutes } from "./modules/auth";
 import { usersRoutes } from "./modules/users";
 import { storageRoutes } from "./modules/storage";
+import { artistsRoutes, adminArtistsRoutes } from "./modules/artists";
 
 dotenv.config();
 
@@ -74,6 +75,8 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   await app.register(authRoutes, { prefix: "/api/v1/auth" });
   await app.register(usersRoutes, { prefix: "/api/v1/users" });
   await app.register(storageRoutes, { prefix: "/api/v1/storage" });
+  await app.register(artistsRoutes, { prefix: "/api/v1/artists" });
+  await app.register(adminArtistsRoutes, { prefix: "/api/v1/admin/artists" });
 
   // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {

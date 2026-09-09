@@ -11,7 +11,8 @@
 - [x] **User Management Module**: Profile update (`displayName`, `avatarUrl`) and password update with Argon2id and session revocation (`tokenVersion++`).
 - [x] **Frontend Auth & Upload Test Harness (`client_test/`)**: React 19 + TanStack Router (file-based) + TanStack Query + Zustand store with silent 401 refresh queue.
 - [x] **Setting-up Cloudflare R2 along with cdn**: setup Cloudflare R2 bucket with CORS policy, public development URL (CDN), API credentials, and end-to-end upload/retrieval verification.
-- [ ] **Catalog Module**: Artist profiles, albums, songs metadata CRUD, and S3/R2 Pre-Signed Upload URL generator.
+- [x] **Artist Profile & Verification Module**: Instant upgrade from Listener to Artist, slug generation & dual-lookup (`:idOrSlug`), profile customization (bio, R2 banner, socials), follower system, and admin review desk (pitch, contact info, links verification).
+- [ ] **Catalog Module (Albums & Songs)**: Albums, songs metadata CRUD, multi-artist credits, and raw audio / cover pre-signed upload generator.
 - [ ] **Subscription & Entitlement Guard**: Middleware to enforce feature gating (`max_bitrate`, `lossless`, `can_host_jam`) based on active user plan.
 - [ ] **Social Module**: Playlists CRUD, nested comments, and high-concurrency likes with Redis write-behind buffer.
 - [ ] **Transactional Outbox Worker**: Background poller to publish pending `outbox_events` to Redis Streams.

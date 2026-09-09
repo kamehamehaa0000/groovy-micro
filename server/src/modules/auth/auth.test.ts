@@ -2,6 +2,7 @@ import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
 import { users, userSubscriptions, outboxEvents } from "../../db/schema";
 import { eq } from "drizzle-orm";
+import type { RefreshTokenPayload } from "./auth.schemas";
 
 async function runTests() {
   console.log("🧪 Starting Comprehensive Auth System Tests...\n");

@@ -9,6 +9,7 @@ import {
   jsonb,
   primaryKey,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
@@ -21,9 +22,15 @@ export const artistProfiles = pgTable(
       .unique()
       .references(() => users.id, { onDelete: "cascade" }),
     stageName: varchar("stage_name", { length: 150 }).notNull(),
+    slug: varchar("slug", { length: 160 }).notNull().unique(),
     bio: text("bio"),
     bannerUrl: text("banner_url"),
     verified: boolean("verified").notNull().default(false),
+    verificationStatus: varchar("verification_status", { length: 20 })
+      .notNull()
+      .default("NONE"), // 'NONE' | 'PENDING' | 'VERIFIED' | 'REJECTED'
+    verificationDetails: jsonb("verification_details").default({}),
+    rejectionReason: text("rejection_reason"),
     monthlyListeners: integer("monthly_listeners").notNull().default(0),
     socialLinks: jsonb("social_links").default({}),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -35,6 +42,8 @@ export const artistProfiles = pgTable(
   },
   (table) => [
     index("idx_artists_stage_name").on(table.stageName),
+    uniqueIndex("idx_artists_slug").on(table.slug),
+    index("idx_artists_verification_status").on(table.verificationStatus),
   ]
 );
 

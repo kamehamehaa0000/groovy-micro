@@ -30,7 +30,15 @@ async function runTests() {
 
   const registerData = JSON.parse(registerRes.body);
   const userId = registerData.user.id;
-  let accessToken = registerData.accessToken;
+  const { AuthService } = await import("../auth/auth.service");
+  const authService = new AuthService(app);
+  const tokenPair = await authService.issueTokenPair({
+    id: userId,
+    email: testEmail,
+    role: "LISTENER",
+    tokenVersion: 0,
+  });
+  let accessToken = tokenPair.accessToken;
   console.log("   ✅ User registered. ID:", userId);
 
   // 2. Test Presigned URL Generation for Avatar

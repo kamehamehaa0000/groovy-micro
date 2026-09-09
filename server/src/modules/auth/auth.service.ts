@@ -70,7 +70,7 @@ export class AuthService {
   /**
    * Generates Access Token and Refresh Token pair, persisting session in Redis.
    */
-  private async issueTokenPair(user: {
+  public async issueTokenPair(user: {
     id: string;
     email: string;
     role: UserRole;

@@ -129,12 +129,82 @@ export function requireRole(...allowedRoles: UserRole[]) {
       });
     }
 
-    if (!allowedRoles.includes(request.user.role)) {
-      return reply.status(403).send({
-        statusCode: 403,
-        error: "Forbidden",
-        message: "You do not have permission to access this resource",
-      });
+    if (allowedRoles.includes(request.user.role)) {
+      return;
     }
+
+    // Role might have been upgraded dynamically (e.g. LISTENER -> ARTIST)
+    const [freshUser] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, request.user.id))
+      .limit(1);
+
+    if (freshUser && allowedRoles.includes(freshUser.role)) {
+      request.user.role = freshUser.role;
+      return;
+    }
+
+    return reply.status(403).send({
+      statusCode: 403,
+      error: "Forbidden",
+      message: "You do not have permission to access this resource",
+    });
   };
+}
+
+/**
+ * PreHandler Guard: Optionally populates request.user if a valid JWT is supplied,
+ * but never fails or rejects the request if unauthenticated or anonymous.
+ */
+export async function optionalAuth(
+  request: FastifyRequest,
+  _reply: FastifyReply
+): Promise<void> {
+  let token: string | undefined;
+
+  const authHeader = request.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  } else if (request.cookies?.access_token) {
+    token = request.cookies.access_token;
+  }
+
+  if (!token) {
+    return;
+  }
+
+  try {
+    const payload = request.server.jwt.verify<AccessTokenPayload>(token);
+
+    const redisKey = `user:${payload.sub}:token_version`;
+    let activeVersionStr = await redis.get(redisKey);
+
+    let activeVersion: number;
+    if (activeVersionStr !== null) {
+      activeVersion = parseInt(activeVersionStr, 10);
+    } else {
+      const [user] = await db
+        .select({ tokenVersion: users.tokenVersion, isActive: users.isActive })
+        .from(users)
+        .where(eq(users.id, payload.sub))
+        .limit(1);
+
+      if (!user || !user.isActive) {
+        return;
+      }
+      activeVersion = user.tokenVersion;
+    }
+
+    if (payload.tokenVersion >= activeVersion) {
+      request.user = {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+        tokenVersion: payload.tokenVersion,
+      };
+    }
+  } catch {
+    // Unauthenticated/invalid token - silently continue as anonymous visitor
+  }
 }
