@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useAuthStore } from '../stores/auth.store'
+import { SpiralCoverArtBig, SvgArtworkSpiral } from '../Components/icons'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -80,16 +81,15 @@ function HomeComponent() {
       {/* Editorial Hero Section */}
       <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-deep mb-3">
-          Maison Édition — Private Catalog & Sound Atelier
+          Introduction · Meaning of groove
         </div>
         <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
-          A private catalog of unhurried sound.
+          A collection of sounds, Straight to your ears.
         </h1>
         <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-xl leading-relaxed mb-8">
-          Crafted for curated listening. Powered by a high-throughput Fastify
-          microservices architecture with Argon2id password security, silent
-          Refresh Token Rotation (RTR), theft reuse detection, and direct
-          Cloudflare R2 pre-signed uploads.
+          Crafted for uninterrupted listening. Powered by the community of
+          listeners, curators and creators. Explore and experience the sound
+          with never-before-felt experience.
         </p>
 
         <div className="flex flex-wrap items-center gap-4 relative z-10">
@@ -99,7 +99,7 @@ function HomeComponent() {
                 to="/login"
                 className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
               >
-                Enter the Maison
+                Enter the collective &rarr;
               </Link>
               <Link
                 to="/register"
@@ -119,15 +119,7 @@ function HomeComponent() {
         </div>
 
         {/* Vinyl Rings Watermark Background */}
-        <div className="pointer-events-none absolute -right-12 -bottom-12 w-64 h-64 opacity-25">
-          <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
-            <g stroke="currentColor" className="text-stone dark:text-stone/40" strokeWidth="0.5">
-              {[8, 16, 24, 32, 40, 48].map((r) => (
-                <circle key={r} cx="50" cy="50" r={r} />
-              ))}
-            </g>
-          </svg>
-        </div>
+        <SvgArtworkSpiral />
       </section>
 
       {/* Featured Atelier Catalog Audio Records Row */}
@@ -153,11 +145,7 @@ function HomeComponent() {
               className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group cursor-pointer"
             >
               <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
-                <svg viewBox="0 0 100 100" className="w-24 h-24 text-stone dark:text-stone/30" fill="none" stroke="currentColor" strokeWidth="0.5">
-                  {[10 + i * 2, 20 + i * 2, 30 + i * 2, 40 + i * 2].map((r) => (
-                    <circle key={r} cx="50" cy="50" r={r} />
-                  ))}
-                </svg>
+                <SpiralCoverArtBig i={i} />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
                   <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
                     Inspect Master
@@ -167,7 +155,7 @@ function HomeComponent() {
               <div className="font-serif font-medium text-sm text-ink mb-0.5">
                 {track.title}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-soft">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
                 {track.format} &bull; {track.tag}
               </div>
             </div>
@@ -237,27 +225,27 @@ function HomeComponent() {
           ) : isAuthenticated && user ? (
             <div className="divide-y divide-line text-xs font-sans">
               <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Identifier:
                 </span>
-                <span className="font-mono text-[11px] text-ink truncate max-w-[200px]">
+                <span className="font-mono text-[11px] text-ink truncate max-w-50">
                   {user.id}
                 </span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Email:
                 </span>
                 <span className="text-ink">{user.email}</span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Curator Name:
                 </span>
                 <span className="font-medium text-ink">{user.displayName}</span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Access Role:
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-blue font-medium">
@@ -265,10 +253,10 @@ function HomeComponent() {
                 </span>
               </div>
               <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Email Status:
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.1em]">
+                <span className="font-mono text-[10px] uppercase tracking-widest">
                   {user.isEmailVerified ? (
                     <span className="text-emerald-600 dark:text-emerald-400">
                       Verified ✓
@@ -288,7 +276,7 @@ function HomeComponent() {
               </p>
               <Link
                 to="/login"
-                className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-blue hover:underline"
+                className="font-mono text-[10.5px] uppercase tracking-widest text-blue hover:underline"
               >
                 Sign in to establish connection &rarr;
               </Link>
@@ -308,7 +296,7 @@ function HomeComponent() {
           {isAuthenticated && user?.plan ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-line">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-soft">
+                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
                   Current Tier:
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] px-2.5 py-1 border border-blue text-blue font-medium bg-blue/5">
@@ -328,11 +316,12 @@ function HomeComponent() {
           ) : (
             <div className="py-6 text-center">
               <p className="font-sans text-xs text-ink-soft mb-4">
-                Sign in to query database subscription entitlements and vault limits.
+                Sign in to query database subscription entitlements and vault
+                limits.
               </p>
               <Link
                 to="/register"
-                className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-blue hover:underline"
+                className="font-mono text-[10.5px] uppercase tracking-widest text-blue hover:underline"
               >
                 Join membership collective &rarr;
               </Link>

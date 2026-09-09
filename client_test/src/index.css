@@ -1,11 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-serif: "Fraunces", Georgia, serif;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 
   --color-canvas: var(--color-canvas);
   --color-canvas-deep: var(--color-canvas-deep);
@@ -20,32 +21,33 @@
 }
 
 :root {
-  --color-canvas: #FAF8F3;
-  --color-canvas-deep: #F1ECE1;
-  --color-panel: #FFFFFF;
-  --color-ink: #17160F;
-  --color-ink-soft: #79766D;
-  --color-stone: #D8D2C2;
-  --color-blue: #1B5FA6;
-  --color-blue-deep: #123D6B;
+  --color-canvas: #faf8f3;
+  --color-canvas-deep: #f1ece1;
+  --color-panel: #ffffff;
+  --color-ink: #17160f;
+  --color-ink-soft: #79766d;
+  --color-stone: #d8d2c2;
+  --color-blue: #1b5fa6;
+  --color-blue-deep: #123d6b;
   --color-line: rgba(23, 22, 15, 0.12);
   --color-line-soft: rgba(23, 22, 15, 0.07);
 }
 
 .dark {
-  --color-canvas: #1A1912;
+  --color-canvas: #1a1912;
   --color-canvas-deep: #141309;
-  --color-panel: #221F17;
-  --color-ink: #F3EFE3;
-  --color-ink-soft: #9C9788;
-  --color-stone: #3B372C;
-  --color-blue: #5B9BDB;
-  --color-blue-deep: #9CC3EA;
+  --color-panel: #221f17;
+  --color-ink: #f3efe3;
+  --color-ink-soft: #9c9788;
+  --color-stone: #3b372c;
+  --color-blue: #5b9bdb;
+  --color-blue-deep: #9cc3ea;
   --color-line: rgba(243, 239, 227, 0.14);
   --color-line-soft: rgba(243, 239, 227, 0.08);
 }
 
-html, body {
+html,
+body {
   background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);

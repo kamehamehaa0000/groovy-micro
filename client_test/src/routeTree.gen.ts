@@ -13,7 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as AdminVerificationRouteImport } from './routes/admin.verification'
+import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
+import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,9 +40,29 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVerificationRoute = AdminVerificationRouteImport.update({
+  id: '/admin/verification',
+  path: '/admin/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistsIndexRoute = ArtistsIndexRouteImport.update({
+  id: '/artists/',
+  path: '/artists/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistsIdOrSlugRoute = ArtistsIdOrSlugRouteImport.update({
+  id: '/artists/$idOrSlug',
+  path: '/artists/$idOrSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OauthCallbackRoute = OauthCallbackRouteImport.update({
@@ -52,16 +76,24 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/verification': typeof AdminVerificationRoute
+  '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/artists/': typeof ArtistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/verification': typeof AdminVerificationRoute
+  '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/artists': typeof ArtistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +101,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/verification': typeof AdminVerificationRoute
+  '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/artists/': typeof ArtistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +115,36 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/studio'
     | '/verify-email'
+    | '/admin/verification'
+    | '/artists/$idOrSlug'
     | '/oauth/callback'
+    | '/artists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/profile'
     | '/register'
+    | '/studio'
     | '/verify-email'
+    | '/admin/verification'
+    | '/artists/$idOrSlug'
     | '/oauth/callback'
+    | '/artists'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/profile'
     | '/register'
+    | '/studio'
     | '/verify-email'
+    | '/admin/verification'
+    | '/artists/$idOrSlug'
     | '/oauth/callback'
+    | '/artists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,8 +152,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  StudioRoute: typeof StudioRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  AdminVerificationRoute: typeof AdminVerificationRoute
+  ArtistsIdOrSlugRoute: typeof ArtistsIdOrSlugRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
+  ArtistsIndexRoute: typeof ArtistsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,11 +190,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-email': {
       id: '/verify-email'
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/verification': {
+      id: '/admin/verification'
+      path: '/admin/verification'
+      fullPath: '/admin/verification'
+      preLoaderRoute: typeof AdminVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artists/': {
+      id: '/artists/'
+      path: '/artists'
+      fullPath: '/artists/'
+      preLoaderRoute: typeof ArtistsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artists/$idOrSlug': {
+      id: '/artists/$idOrSlug'
+      path: '/artists/$idOrSlug'
+      fullPath: '/artists/$idOrSlug'
+      preLoaderRoute: typeof ArtistsIdOrSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/oauth/callback': {
@@ -160,8 +240,12 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  StudioRoute: StudioRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  AdminVerificationRoute: AdminVerificationRoute,
+  ArtistsIdOrSlugRoute: ArtistsIdOrSlugRoute,
   OauthCallbackRoute: OauthCallbackRoute,
+  ArtistsIndexRoute: ArtistsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

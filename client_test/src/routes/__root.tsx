@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
+import { DarkModeSVG, LightModeSVG } from '../Components/icons'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -46,14 +47,11 @@ function RootComponent() {
             to="/"
             className="flex items-center gap-2.5 text-inherit no-underline group"
           >
-            <div className="w-7 h-7 rounded-full border border-line bg-panel flex items-center justify-center font-serif italic text-sm text-ink group-hover:border-ink transition-colors shadow-2xs">
-              G<span className="not-italic text-blue font-sans text-xs -mt-0.5">·</span>
-            </div>
             <span className="font-serif italic text-lg tracking-tight text-ink">
-              groov<span className="not-italic text-blue font-sans">y</span>
+              Groovy
             </span>
             <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft border-l border-line pl-2 ml-0.5 hidden sm:inline-block">
-              Sound Atelier
+              Getting-the Groove
             </span>
           </Link>
 
@@ -71,18 +69,61 @@ function RootComponent() {
             >
               Catalog
             </Link>
+            <Link
+              to="/artists"
+              activeProps={{
+                className: 'text-ink font-semibold border-b border-blue pb-0.5',
+              }}
+              inactiveProps={{
+                className: 'text-ink-soft hover:text-ink pb-0.5',
+              }}
+              className="transition-colors"
+            >
+              Artists
+            </Link>
             {isAuthenticated && (
+              <>
+                <Link
+                  to="/profile"
+                  activeProps={{
+                    className:
+                      'text-ink font-semibold border-b border-blue pb-0.5',
+                  }}
+                  inactiveProps={{
+                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                  }}
+                  className="transition-colors"
+                >
+                  Profile
+                </Link>
+                <Link
+                  to="/studio"
+                  activeProps={{
+                    className:
+                      'text-ink font-semibold border-b border-blue pb-0.5',
+                  }}
+                  inactiveProps={{
+                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                  }}
+                  className="transition-colors"
+                >
+                  Studio
+                </Link>
+              </>
+            )}
+            {user?.role === 'ADMIN' && (
               <Link
-                to="/profile"
+                to="/admin/verification"
                 activeProps={{
-                  className: 'text-ink font-semibold border-b border-blue pb-0.5',
+                  className:
+                    'text-ink font-semibold border-b border-blue pb-0.5',
                 }}
                 inactiveProps={{
-                  className: 'text-ink-soft hover:text-ink pb-0.5',
+                  className: 'text-blue hover:underline pb-0.5',
                 }}
                 className="transition-colors"
               >
-                Curator Vault
+                Admin Desk
               </Link>
             )}
           </nav>
@@ -98,23 +139,7 @@ function RootComponent() {
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
             className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink flex items-center justify-center text-ink-soft hover:text-ink transition-colors cursor-pointer shadow-2xs"
           >
-            {theme === 'dark' ? (
-              <svg className="w-3.5 h-3.5 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              <svg className="w-3.5 h-3.5 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+            {theme === 'dark' ? <DarkModeSVG /> : <LightModeSVG />}
           </button>
 
           {/* User Auth Section */}
@@ -131,7 +156,11 @@ function RootComponent() {
               >
                 <div className="w-7 h-7 rounded-full overflow-hidden border border-line group-hover:border-ink transition-colors shadow-2xs">
                   {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.displayName} className="w-full h-full object-cover" />
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.displayName}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-panel text-ink flex items-center justify-center font-serif italic text-xs">
                       {user.displayName.charAt(0).toUpperCase()}
@@ -143,7 +172,7 @@ function RootComponent() {
                     {user.displayName}
                   </span>
                   <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink-soft">
-                    {user.role} {user.isEmailVerified ? '· Verified' : ''}
+                    {user.role}
                   </span>
                 </div>
               </Link>
@@ -180,11 +209,23 @@ function RootComponent() {
             className="md:hidden p-1.5 text-ink hover:text-ink-soft cursor-pointer"
           >
             {mobileMenuOpen ? (
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             ) : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             )}
@@ -219,13 +260,41 @@ function RootComponent() {
                 <span>Catalog Overview</span>
                 <span className="text-blue">&rarr;</span>
               </Link>
+              <Link
+                to="/artists"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+              >
+                <span>Artists Roster</span>
+                <span className="text-blue">&rarr;</span>
+              </Link>
               {isAuthenticated && (
+                <>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                  >
+                    <span>Curator Vault</span>
+                    <span className="text-blue">&rarr;</span>
+                  </Link>
+                  <Link
+                    to="/studio"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                  >
+                    <span>Artist Studio</span>
+                    <span className="text-blue">&rarr;</span>
+                  </Link>
+                </>
+              )}
+              {user?.role === 'ADMIN' && (
                 <Link
-                  to="/profile"
+                  to="/admin/verification"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-blue hover:bg-panel border border-transparent hover:border-line"
                 >
-                  <span>Curator Vault</span>
+                  <span>Admin Desk</span>
                   <span className="text-blue">&rarr;</span>
                 </Link>
               )}
@@ -236,8 +305,12 @@ function RootComponent() {
         <div className="border-t border-line pt-4 space-y-3">
           {isAuthenticated && user ? (
             <div className="space-y-2">
-              <div className="text-xs font-serif italic text-ink">{user.displayName}</div>
-              <div className="font-mono text-[9px] uppercase text-ink-soft">{user.email}</div>
+              <div className="text-xs font-serif italic text-ink">
+                {user.displayName}
+              </div>
+              <div className="font-mono text-[9px] uppercase text-ink-soft">
+                {user.email}
+              </div>
               <button
                 type="button"
                 onClick={() => {
@@ -279,10 +352,10 @@ function RootComponent() {
         {/* Editorial Maison Footnote */}
         <footer className="border-t border-line py-8 px-6 text-center">
           <div className="font-serif italic text-base text-ink mb-1">
-            Groov<span className="not-italic text-blue font-serif">y</span> · Sound Atelier
+            Grooooooove into it.
           </div>
           <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
-            Maison Édition — High-Fidelity Streaming &bull; Fastify &bull; PostgreSQL &bull; Redis &bull; Cloudflare R2
+            High-Fidelity Streaming
           </p>
         </footer>
       </div>
