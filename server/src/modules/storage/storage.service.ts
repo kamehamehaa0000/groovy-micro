@@ -8,8 +8,14 @@ import { s3Client } from "./storage.client";
 import { UPLOAD_PRESETS, type UploadCategory } from "./storage.presets";
 
 export class StorageService {
-  private bucketName = process.env.R2_BUCKET_NAME || "groovy-media";
-  private cdnBaseUrl = process.env.CDN_BASE_URL || "https://cdn.groovy.stream";
+  private get bucketName(): string {
+    return process.env.R2_BUCKET_NAME || "groovy-media";
+  }
+
+  private get cdnBaseUrl(): string {
+    const raw = process.env.CDN_BASE_URL || "https://cdn.groovy.stream";
+    return raw.replace(/\/+$/, "");
+  }
 
   /**
    * Generates a pre-signed PUT upload URL locked to MIME type and content length.

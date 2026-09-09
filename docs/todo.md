@@ -1,25 +1,5 @@
 # Groovy Rebuild - Implementation TODO & Roadmap
 
-# commands
-
-- ```bash
-   podman compose -f docker-compose.dev.yml up -d
-  ```
-- ```bash
-   cd server && bun run db:push
-  ```
-
-- ```bash
-   bun run src/db/seed.ts
-  ```
-- ```bash
-   bun run db:studio
-  ```
-
-- ```bash
-   bun run dev
-  ```
-
 ---
 
 ## 📋 Upcoming Sprints
@@ -30,6 +10,7 @@
 - [x] **Storage & Pre-Signed Uploads Subsystem**: Upload preset registry (avatars, banners, covers, raw audio, lyrics, verification docs), S3/Cloudflare R2 client, and pre-signed PUT generator with domain authorization guards.
 - [x] **User Management Module**: Profile update (`displayName`, `avatarUrl`) and password update with Argon2id and session revocation (`tokenVersion++`).
 - [x] **Frontend Auth & Upload Test Harness (`client_test/`)**: React 19 + TanStack Router (file-based) + TanStack Query + Zustand store with silent 401 refresh queue.
+- [x] **Setting-up Cloudflare R2 along with cdn**: setup Cloudflare R2 bucket with CORS policy, public development URL (CDN), API credentials, and end-to-end upload/retrieval verification.
 - [ ] **Catalog Module**: Artist profiles, albums, songs metadata CRUD, and S3/R2 Pre-Signed Upload URL generator.
 - [ ] **Subscription & Entitlement Guard**: Middleware to enforce feature gating (`max_bitrate`, `lossless`, `can_host_jam`) based on active user plan.
 - [ ] **Social Module**: Playlists CRUD, nested comments, and high-concurrency likes with Redis write-behind buffer.
