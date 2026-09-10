@@ -212,7 +212,7 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Album aggregates dynamically incremented: totalTracks = 3, duration = 1488s\n");
 
-    // 5. Detach / Remove a Song from an Album (Make it a Standalone Single)
+    // 5. Detach / Remove a Song from an Album (Spins off into standalone SINGLE release)
     console.log("5️⃣ Testing Detaching Song from Album (PATCH /api/v1/songs/:id with albumId = null)...");
     const detachRes = await app.inject({
       method: "PATCH",
@@ -229,10 +229,20 @@ async function runCatalogTests() {
     }
 
     const detachedSong = JSON.parse(detachRes.body);
-    if (detachedSong.albumId !== null) {
-      throw new Error("albumId was not set to null");
+    if (!detachedSong.albumId || detachedSong.albumId === albumId) {
+      throw new Error(`Song was not spun off into a new release: ${detachRes.body}`);
     }
-    console.log("   ✅ Song successfully detached from album (now a standalone track)");
+
+    // Verify spun-off release is SINGLE with totalTracks = 1
+    const spunOffReleaseRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/albums/${detachedSong.albumId}`,
+    });
+    const spunOffRelease = JSON.parse(spunOffReleaseRes.body);
+    if (spunOffRelease.albumType !== "SINGLE" || spunOffRelease.totalTracks !== 1) {
+      throw new Error(`Spun-off release invalid: ${spunOffReleaseRes.body}`);
+    }
+    console.log("   ✅ Song successfully detached from album and spun off into standalone SINGLE release:", spunOffRelease.id);
 
     // Verify album totals decremented
     const albumAfterDetachRes = await app.inject({

@@ -10,7 +10,6 @@ import {
   ExternalLinkSVG,
   UploadCloudSVG,
   DiscIconSVG,
-  MusicIconSVG,
   TrashIconSVG,
   UndoIconSVG,
   PlusIconSVG,
@@ -52,7 +51,6 @@ function StudioComponent() {
 
   // Catalog Releases State
   const [albums, setAlbums] = useState<Album[]>([])
-  const [standaloneSongs, setStandaloneSongs] = useState<Song[]>([])
   const [isLoadingReleases, setIsLoadingReleases] = useState(false)
 
   // Trash Releases State
@@ -69,36 +67,32 @@ function StudioComponent() {
   const [spotify, setSpotify] = useState('')
   const [isSubmittingUpgrade, setIsSubmittingUpgrade] = useState(false)
 
-  // Release Creation Modal State
+  // Release Creation Modal State (Unified Spotify-style Release Model)
   const [isCreateReleaseOpen, setIsCreateReleaseOpen] = useState(false)
   const [releaseTitle, setReleaseTitle] = useState('')
-  const [releaseType, setReleaseType] = useState<AlbumType>('ALBUM')
+  const [releaseType, setReleaseType] = useState<AlbumType>('SINGLE')
   const [releaseDate, setReleaseDate] = useState(() =>
     new Date().toISOString().split('T')[0],
   )
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
   const [isUploadingCover, setIsUploadingCover] = useState(false)
-  const [draftTracks, setDraftTracks] = useState<TrackDraft[]>([])
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
-  // Quick Standalone Track Modal State
-  const [isCreateTrackOpen, setIsCreateTrackOpen] = useState(false)
-  const [singleTrackTitle, setSingleTrackTitle] = useState('')
+  // Single-release specific fields (when releaseType === 'SINGLE')
   const [singleTrackGenre, setSingleTrackGenre] = useState('')
   const [singleTrackDuration, setSingleTrackDuration] = useState(0)
   const [singleTrackExplicit, setSingleTrackExplicit] = useState(false)
   const [singleTrackAudioUrl, setSingleTrackAudioUrl] = useState('')
   const [singleTrackAudioKey, setSingleTrackAudioKey] = useState('')
   const [singleTrackAudioFileName, setSingleTrackAudioFileName] = useState('')
-  const [singleTrackCoverUrl, setSingleTrackCoverUrl] = useState('')
-  const [isUploadingSingleCover, setIsUploadingSingleCover] = useState(false)
   const [isUploadingSingleAudio, setIsUploadingSingleAudio] = useState(false)
-  const [isSubmittingSingleTrack, setIsSubmittingSingleTrack] = useState(false)
   const [singleTrackCredits, setSingleTrackCredits] = useState<SelectedCredit[]>([])
   const singleAudioInputRef = useRef<HTMLInputElement>(null)
-  const singleCoverInputRef = useRef<HTMLInputElement>(null)
+
+  // Multi-track draft cuts (when releaseType !== 'SINGLE')
+  const [draftTracks, setDraftTracks] = useState<TrackDraft[]>([])
 
   // Banner Upload State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
@@ -166,8 +160,6 @@ function StudioComponent() {
     try {
       const res = await catalogApi.getStudioReleases(false)
       setAlbums(res.albums)
-      // Standalone songs are songs with no albumId
-      setStandaloneSongs(res.songs.filter((s) => !s.albumId))
     } catch (err: any) {
       console.warn('Could not load releases:', err)
     } finally {
@@ -396,87 +388,31 @@ function StudioComponent() {
     )
   }
 
-  // Create Release Form Submit
-  const handlePublishRelease = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!releaseTitle.trim()) {
-      setErrorNotice('Please provide a release title')
-      return
-    }
-    if (!releaseCoverUrl) {
-      setErrorNotice('Please upload a cover art image')
-      return
-    }
-
-    setIsSubmittingRelease(true)
-    setErrorNotice(null)
-
-    try {
-      const tracksPayload = draftTracks.map((t, idx) => ({
-        title: t.title.trim() || `Cut ${idx + 1}`,
-        genre: t.genre.trim() || undefined,
-        durationSeconds: t.durationSeconds,
-        trackNumber: idx + 1,
-        discNumber: 1,
-        isExplicit: t.isExplicit,
-        rawAudioKey: t.rawAudioKey,
-        audioUrl: t.audioUrl,
-        coverImageUrl: t.coverImageUrl,
-        credits:
-          t.credits && t.credits.length > 0
-            ? t.credits.map((c) => ({
-                artistId: c.artistId,
-                role: c.role,
-              }))
-            : undefined,
-      }))
-
-      await catalogApi.createAlbum({
-        title: releaseTitle.trim(),
-        albumType: releaseType,
-        coverImageUrl: releaseCoverUrl,
-        description: releaseDescription.trim() || undefined,
-        releaseDate,
-        tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
-      })
-
-      setSuccessNotice(
-        `🎉 Master release "${releaseTitle}" published successfully!`,
-      )
-      setIsCreateReleaseOpen(false)
-      // Reset form
-      setReleaseTitle('')
-      setReleaseType('ALBUM')
-      setReleaseDescription('')
-      setReleaseCoverUrl('')
-      setDraftTracks([])
-      loadReleases()
-    } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to create release')
-    } finally {
-      setIsSubmittingRelease(false)
-    }
-  }
-
-  // Cover image upload for standalone single
-  const handleSingleCoverSelect = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsUploadingSingleCover(true)
-    setErrorNotice(null)
-
-    try {
-      const publicUrl = await catalogApi.uploadAlbumCover(file)
-      setSingleTrackCoverUrl(publicUrl)
-      setSuccessNotice('Single cover art uploaded to Cloudflare R2.')
-    } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload single cover art')
-    } finally {
-      setIsUploadingSingleCover(false)
-    }
+  const resetReleaseForm = () => {
+    setReleaseTitle('')
+    setReleaseType('SINGLE')
+    setReleaseDate(new Date().toISOString().split('T')[0])
+    setReleaseDescription('')
+    setReleaseCoverUrl('')
+    setSingleTrackGenre('')
+    setSingleTrackDuration(0)
+    setSingleTrackExplicit(false)
+    setSingleTrackAudioUrl('')
+    setSingleTrackAudioKey('')
+    setSingleTrackAudioFileName('')
+    setSingleTrackCredits([])
+    setDraftTracks([
+      {
+        id: crypto.randomUUID(),
+        title: '',
+        genre: '',
+        durationSeconds: 0,
+        isExplicit: false,
+        credits: [],
+      },
+    ])
+    if (coverInputRef.current) coverInputRef.current.value = ''
+    if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
   }
 
   // Standalone Single Audio Upload
@@ -496,12 +432,12 @@ function StudioComponent() {
       setSingleTrackAudioUrl(publicUrl)
       setSingleTrackAudioFileName(file.name)
       setSingleTrackDuration(durationSeconds)
-      if (!singleTrackTitle.trim()) {
-        setSingleTrackTitle(file.name.replace(/\.[^/.]+$/, ''))
+      if (!releaseTitle.trim()) {
+        setReleaseTitle(file.name.replace(/\.[^/.]+$/, ''))
       }
       setSuccessNotice(`Audio master "${file.name}" added successfully.`)
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload track')
+      setErrorNotice(err.message || 'Failed to upload audio')
     } finally {
       setIsUploadingSingleAudio(false)
     }
@@ -517,55 +453,113 @@ function StudioComponent() {
     }
   }
 
-  // Create Standalone Song Submit
-  const handlePublishSingleTrack = async (e: React.FormEvent) => {
+  // Create Release Form Submit (handles both Single releases and Multi-track releases)
+  const handlePublishRelease = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!singleTrackTitle.trim()) {
-      setErrorNotice('Please provide a track title')
+    if (!releaseTitle.trim()) {
+      setErrorNotice(
+        releaseType === 'SINGLE'
+          ? 'Please provide a single title'
+          : 'Please provide a release title',
+      )
+      return
+    }
+    if (!releaseCoverUrl) {
+      setErrorNotice('Please upload cover artwork image (Cloudflare R2)')
       return
     }
 
-    setIsSubmittingSingleTrack(true)
+    setIsSubmittingRelease(true)
     setErrorNotice(null)
 
     try {
-      await catalogApi.createSong({
-        title: singleTrackTitle.trim(),
-        albumId: null, // Standalone single cut
-        genre: singleTrackGenre.trim() || undefined,
-        durationSeconds: singleTrackDuration,
-        isExplicit: singleTrackExplicit,
-        rawAudioKey: singleTrackAudioKey || undefined,
-        audioUrl: singleTrackAudioUrl || undefined,
-        coverImageUrl: singleTrackCoverUrl || undefined,
-        credits:
-          singleTrackCredits.length > 0
-            ? singleTrackCredits.map((c) => ({
-                artistId: c.artistId,
-                role: c.role,
-              }))
-            : undefined,
-      })
+      if (releaseType === 'SINGLE') {
+        if (!singleTrackAudioUrl && !singleTrackAudioKey) {
+          setErrorNotice('Please upload a master audio file for the single release')
+          setIsSubmittingRelease(false)
+          return
+        }
 
-      setSuccessNotice(
-        `Master cut "${singleTrackTitle}" created as standalone track.`,
-      )
-      setIsCreateTrackOpen(false)
-      setSingleTrackTitle('')
-      setSingleTrackGenre('')
-      setSingleTrackDuration(0)
-      setSingleTrackAudioUrl('')
-      setSingleTrackAudioKey('')
-      setSingleTrackAudioFileName('')
-      setSingleTrackCoverUrl('')
-      setSingleTrackCredits([])
-      if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
-      if (singleCoverInputRef.current) singleCoverInputRef.current.value = ''
+        const singleTrackPayload = [
+          {
+            title: releaseTitle.trim(),
+            genre: singleTrackGenre.trim() || undefined,
+            durationSeconds: singleTrackDuration,
+            trackNumber: 1,
+            discNumber: 1,
+            isExplicit: singleTrackExplicit,
+            rawAudioKey: singleTrackAudioKey || undefined,
+            audioUrl: singleTrackAudioUrl || undefined,
+            coverImageUrl: releaseCoverUrl,
+            credits:
+              singleTrackCredits.length > 0
+                ? singleTrackCredits.map((c) => ({
+                    artistId: c.artistId,
+                    role: c.role,
+                  }))
+                : undefined,
+          },
+        ]
+
+        await catalogApi.createAlbum({
+          title: releaseTitle.trim(),
+          albumType: 'SINGLE',
+          coverImageUrl: releaseCoverUrl,
+          description: releaseDescription.trim() || undefined,
+          releaseDate,
+          tracks: singleTrackPayload,
+        })
+
+        setSuccessNotice(
+          `🎉 Standalone single release "${releaseTitle}" published successfully!`,
+        )
+      } else {
+        if (draftTracks.length === 0) {
+          setErrorNotice('Please add at least one cut to the release')
+          setIsSubmittingRelease(false)
+          return
+        }
+
+        const tracksPayload = draftTracks.map((t, idx) => ({
+          title: t.title.trim() || `Cut ${idx + 1}`,
+          genre: t.genre.trim() || undefined,
+          durationSeconds: t.durationSeconds,
+          trackNumber: idx + 1,
+          discNumber: 1,
+          isExplicit: t.isExplicit,
+          rawAudioKey: t.rawAudioKey,
+          audioUrl: t.audioUrl,
+          coverImageUrl: t.coverImageUrl,
+          credits:
+            t.credits && t.credits.length > 0
+              ? t.credits.map((c) => ({
+                  artistId: c.artistId,
+                  role: c.role,
+                }))
+              : undefined,
+        }))
+
+        await catalogApi.createAlbum({
+          title: releaseTitle.trim(),
+          albumType: releaseType,
+          coverImageUrl: releaseCoverUrl,
+          description: releaseDescription.trim() || undefined,
+          releaseDate,
+          tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
+        })
+
+        setSuccessNotice(
+          `🎉 Master ${releaseType} release "${releaseTitle}" published successfully!`,
+        )
+      }
+
+      setIsCreateReleaseOpen(false)
+      resetReleaseForm()
       loadReleases()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to create standalone track')
+      setErrorNotice(err.message || 'Failed to create release')
     } finally {
-      setIsSubmittingSingleTrack(false)
+      setIsSubmittingRelease(false)
     }
   }
 
@@ -977,27 +971,7 @@ function StudioComponent() {
               <button
                 type="button"
                 onClick={() => {
-                  setIsCreateTrackOpen(true)
-                }}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-3.5 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer flex items-center gap-1.5"
-              >
-                <PlusIconSVG className="w-3.5 h-3.5" />
-                <span>New Cut (Single)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftTracks([
-                    {
-                      id: crypto.randomUUID(),
-                      title: '',
-                      genre: '',
-                      durationSeconds: 0,
-                      isExplicit: false,
-                      credits: [],
-                    },
-                  ])
+                  resetReleaseForm()
                   setIsCreateReleaseOpen(true)
                 }}
                 className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-2xs font-semibold"
@@ -1008,13 +982,22 @@ function StudioComponent() {
             </div>
           </div>
 
-          {/* Create Release Modal / Drawer */}
+          {/* Unified Master Release Modal */}
           {isCreateReleaseOpen && (
             <div className="p-6 border-2 border-line bg-panel shadow-md space-y-6">
               <div className="flex items-center justify-between border-b border-line pb-3">
-                <h3 className="font-serif italic text-xl text-ink">
-                  Publish New Master Release
-                </h3>
+                <div>
+                  <h3 className="font-serif italic text-xl text-ink">
+                    {releaseType === 'SINGLE'
+                      ? 'Publish Standalone Single Release'
+                      : `Publish New Master ${releaseType}`}
+                  </h3>
+                  <p className="font-mono text-[9.5px] text-ink-soft mt-0.5">
+                    {releaseType === 'SINGLE'
+                      ? 'Streamlined single release with dedicated master artwork, R2 lossless audio, and collaborator credits.'
+                      : 'Multi-cut studio release with sequential tracklist ordering, R2 master cuts, and contributor attribution.'}
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsCreateReleaseOpen(false)}
@@ -1024,43 +1007,51 @@ function StudioComponent() {
                 </button>
               </div>
 
+              {/* Release Format / Type Selector */}
+              <div>
+                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-2">
+                  Release Format / Type
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setReleaseType(type)}
+                      className={`font-mono text-xs uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
+                        releaseType === type
+                          ? 'border-ink bg-ink text-canvas font-semibold'
+                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      {type === 'SINGLE' ? '✦ Single (1 Cut)' : type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <form onSubmit={handlePublishRelease} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <div className="sm:col-span-2">
+                {/* Basic Release Metadata */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
                     <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Release Title <span className="text-red-500">*</span>
+                      {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={releaseTitle}
                       onChange={(e) => setReleaseTitle(e.target.value)}
-                      placeholder="e.g. Kind of Blue, Rue de Sèvres Sessions"
+                      placeholder={
+                        releaseType === 'SINGLE'
+                          ? 'e.g. Autumn in Saint-Germain'
+                          : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
+                      }
                       className="w-full font-serif italic text-base py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
                     />
                   </div>
 
-                  <div>
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Release Type
-                    </label>
-                    <select
-                      value={releaseType}
-                      onChange={(e) =>
-                        setReleaseType(e.target.value as AlbumType)
-                      }
-                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                    >
-                      <option value="ALBUM">Album</option>
-                      <option value="LP">LP (Long Play)</option>
-                      <option value="EP">EP (Extended Play)</option>
-                      <option value="SINGLE">Single</option>
-                      <option value="MIXTAPE">Mixtape</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
                       Release Date
@@ -1072,333 +1063,23 @@ function StudioComponent() {
                       className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
                     />
                   </div>
-
-                  <div>
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Cover Art (Cloudflare R2){' '}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {releaseCoverUrl ? (
-                        <div className="w-12 h-12 border border-line shrink-0 overflow-hidden">
-                          <img
-                            src={releaseCoverUrl}
-                            alt="Cover preview"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : null}
-                      <button
-                        type="button"
-                        disabled={isUploadingCover}
-                        onClick={() => coverInputRef.current?.click()}
-                        className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
-                      >
-                        {isUploadingCover
-                          ? 'Uploading...'
-                          : releaseCoverUrl
-                            ? 'Replace Cover'
-                            : 'Upload Cover Image'}
-                      </button>
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCoverSelect}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
                 </div>
 
-                <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                    Liner Notes & Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={releaseDescription}
-                    onChange={(e) => setReleaseDescription(e.target.value)}
-                    placeholder="Recording location, inspiration, gear, or credits..."
-                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
-                  />
-                </div>
-
-                {/* Tracks Builder */}
-                <div className="pt-4 border-t border-line-soft space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink">
-                      Master Cuts / Tracklist ({draftTracks.length})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDraftTracks([
-                          ...draftTracks,
-                          {
-                            id: crypto.randomUUID(),
-                            title: '',
-                            genre: '',
-                            durationSeconds: 0,
-                            isExplicit: false,
-                            credits: [],
-                          },
-                        ])
-                      }
-                      className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
-                    >
-                      + Add Cut
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {draftTracks.map((draft, idx) => (
-                      <div
-                        key={draft.id}
-                        className="p-3.5 border border-line bg-canvas space-y-3"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                          <span className="font-mono text-xs text-ink-soft w-6">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-
-                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                            <input
-                              type="text"
-                              required
-                              placeholder="Cut Title"
-                              value={draft.title}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setDraftTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === draft.id ? { ...t, title: val } : t,
-                                  ),
-                                )
-                              }}
-                              className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
-                            />
-
-                            <input
-                              type="text"
-                              placeholder="Genre (e.g. Jazz)"
-                              value={draft.genre}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setDraftTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === draft.id ? { ...t, genre: val } : t,
-                                  ),
-                                )
-                              }}
-                              className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
-                            />
-
-                            <div className="flex items-center gap-2">
-                              <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={draft.isExplicit}
-                                  onChange={(e) => {
-                                    const val = e.target.checked
-                                    setDraftTracks((prev) =>
-                                      prev.map((t) =>
-                                        t.id === draft.id
-                                          ? { ...t, isExplicit: val }
-                                          : t,
-                                      ),
-                                    )
-                                  }}
-                                />
-                                <span>Explicit</span>
-                              </label>
-
-                              {draft.durationSeconds > 0 && (
-                                <span className="font-mono text-[10px] text-ink-soft ml-auto">
-                                  {formatDuration(draft.durationSeconds)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Audio Upload Input for this track */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            {draft.audioUrl || draft.rawAudioKey ? (
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-1 border border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300 flex items-center gap-1">
-                                  <span>✓</span>
-                                  <span>{formatDuration(draft.durationSeconds)}</span>
-                                </span>
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
-                                  title="Master audio attached. Use reset to replace."
-                                >
-                                  Attached
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleResetDraftAudio(draft.id)}
-                                  className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
-                                  title="Reset audio file for this cut"
-                                >
-                                  ✕ Reset
-                                </button>
-                              </div>
-                            ) : (
-                              <label className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line bg-panel hover:border-ink text-ink cursor-pointer">
-                                <span>
-                                  {draft.isUploadingAudio
-                                    ? 'Uploading...'
-                                    : 'Select Audio (FLAC/MP3)'}
-                                </span>
-                                <input
-                                  type="file"
-                                  accept="audio/*"
-                                  disabled={draft.isUploadingAudio}
-                                  onChange={(e) =>
-                                    handleDraftAudioSelect(draft.id, e)
-                                  }
-                                  className="hidden"
-                                />
-                              </label>
-                            )}
-
-                            {draftTracks.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDraftTracks(
-                                    draftTracks.filter((t) => t.id !== draft.id),
-                                  )
-                                }
-                                className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
-                                title="Remove Cut"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Collaborator & Credit Attribution */}
-                        <div className="pt-2 border-t border-line-soft/60">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
-                              Collaborators & Credits (Featured / Producers / Composers)
-                            </span>
-                          </div>
-                          <ArtistCreditPicker
-                            credits={draft.credits || []}
-                            onChange={(newCredits) =>
-                              setDraftTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === draft.id ? { ...t, credits: newCredits } : t,
-                                ),
-                              )
-                            }
-                            currentArtistId={artistProfile.id}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-3">
-                  <button
-                    type="submit"
-                    disabled={isSubmittingRelease}
-                    className="font-mono text-xs uppercase tracking-[0.16em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
-                  >
-                    {isSubmittingRelease
-                      ? 'Publishing Master Release...'
-                      : 'Publish Master Release'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateReleaseOpen(false)}
-                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Create Standalone Track Modal */}
-          {isCreateTrackOpen && (
-            <div className="p-6 border-2 border-line bg-panel shadow-md space-y-5">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <h3 className="font-serif italic text-xl text-ink">
-                  Publish Standalone Master Cut
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateTrackOpen(false)}
-                  className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
-                >
-                  ✕ Close
-                </button>
-              </div>
-
-              <form onSubmit={handlePublishSingleTrack} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
-                      Cut Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={singleTrackTitle}
-                      onChange={(e) => setSingleTrackTitle(e.target.value)}
-                      placeholder="e.g. Autumn in Saint-Germain"
-                      className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
-                      Genre
-                    </label>
-                    <input
-                      type="text"
-                      value={singleTrackGenre}
-                      onChange={(e) => setSingleTrackGenre(e.target.value)}
-                      placeholder="e.g. Ambient, Classical"
-                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-line-soft">
-                  <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1.5">
-                    Collaborators & Credits (Featured / Producers / Composers)
-                  </span>
-                  <ArtistCreditPicker
-                    credits={singleTrackCredits}
-                    onChange={setSingleTrackCredits}
-                    currentArtistId={artistProfile.id}
-                  />
-                </div>
-
-                {/* Standalone Cut Cover Art */}
+                {/* Release Artwork Upload (Square 1:1) */}
                 <div>
                   <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
-                    Master Cover Art (Single Artwork)
+                    {releaseType === 'SINGLE' ? 'Single Cover Artwork (Cloudflare R2)' : 'Release Cover Artwork (Cloudflare R2)'}{' '}
+                    <span className="text-red-500">*</span>
                   </label>
                   <p className="font-sans text-xs text-ink-soft mb-2">
-                    Square artwork (1:1), minimum 1400x1400px recommended (JPEG, PNG, WebP).
+                    Square artwork (1:1 ratio), minimum 1400x1400px recommended (JPEG, PNG, or WebP). Stored on Cloudflare R2 edge CDN.
                   </p>
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
-                      {singleTrackCoverUrl ? (
+                      {releaseCoverUrl ? (
                         <img
-                          src={singleTrackCoverUrl}
-                          alt="Single Cover Preview"
+                          src={releaseCoverUrl}
+                          alt="Cover preview"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -1409,29 +1090,27 @@ function StudioComponent() {
                       <div className="flex items-center gap-2">
                         <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
                           <span>
-                            {isUploadingSingleCover
+                            {isUploadingCover
                               ? 'Uploading to R2...'
-                              : singleTrackCoverUrl
-                                ? 'Replace Cover Art'
-                                : 'Upload Cover Art'}
+                              : releaseCoverUrl
+                                ? 'Replace Artwork'
+                                : 'Upload Cover Artwork'}
                           </span>
                           <input
-                            ref={singleCoverInputRef}
+                            ref={coverInputRef}
                             type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            disabled={isUploadingSingleCover}
-                            onChange={handleSingleCoverSelect}
+                            accept="image/*"
+                            disabled={isUploadingCover}
+                            onChange={handleCoverSelect}
                             className="hidden"
                           />
                         </label>
-                        {singleTrackCoverUrl && (
+                        {releaseCoverUrl && (
                           <button
                             type="button"
                             onClick={() => {
-                              setSingleTrackCoverUrl('')
-                              if (singleCoverInputRef.current) {
-                                singleCoverInputRef.current.value = ''
-                              }
+                              setReleaseCoverUrl('')
+                              if (coverInputRef.current) coverInputRef.current.value = ''
                             }}
                             className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
                           >
@@ -1440,103 +1119,336 @@ function StudioComponent() {
                         )}
                       </div>
                       <span className="font-mono text-[9px] text-ink-soft">
-                        {singleTrackCoverUrl
-                          ? '✓ Artwork attached to master recording'
-                          : 'No artwork chosen (optional)'}
+                        {releaseCoverUrl
+                          ? '✓ Artwork attached to release'
+                          : 'Official release artwork required'}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Master Audio Section */}
-                <div className="p-3.5 border border-line bg-canvas-deep/40 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink font-semibold">
-                      Master Audio Recording
-                    </span>
-                    <label className="font-mono text-xs uppercase tracking-wider text-ink-soft flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={singleTrackExplicit}
-                        onChange={(e) => setSingleTrackExplicit(e.target.checked)}
-                      />
-                      <span>Explicit Content</span>
-                    </label>
-                  </div>
+                {/* Liner Notes & Description */}
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Liner Notes & Description (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={releaseDescription}
+                    onChange={(e) => setReleaseDescription(e.target.value)}
+                    placeholder="Recording location, inspiration, gear, or credits..."
+                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
+                  />
+                </div>
 
-                  {singleTrackAudioKey || singleTrackAudioUrl ? (
-                    <div className="p-3 border border-green-500/40 bg-green-500/10 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-green-600 text-canvas flex items-center justify-center font-mono text-xs font-bold shrink-0">
-                          ✓
+                {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
+                {releaseType === 'SINGLE' ? (
+                  <div className="pt-4 border-t border-line-soft space-y-4">
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink block">
+                      Single Master Recording
+                    </span>
+
+                    {/* Master Audio Section */}
+                    <div className="p-3.5 border border-line bg-canvas space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink font-semibold">
+                          Master Audio Recording
                         </span>
-                        <div className="min-w-0">
-                          <div className="font-serif italic text-sm text-ink truncate">
-                            {singleTrackAudioFileName || singleTrackTitle || 'Master Audio Track'}
+                        <label className="font-mono text-xs uppercase tracking-wider text-ink-soft flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={singleTrackExplicit}
+                            onChange={(e) => setSingleTrackExplicit(e.target.checked)}
+                          />
+                          <span>Explicit Content</span>
+                        </label>
+                      </div>
+
+                      {singleTrackAudioKey || singleTrackAudioUrl ? (
+                        <div className="p-3 border border-green-500/40 bg-green-500/10 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-5 h-5 rounded-full bg-green-600 text-canvas flex items-center justify-center font-mono text-xs font-bold shrink-0">
+                              ✓
+                            </span>
+                            <div className="min-w-0">
+                              <div className="font-serif italic text-sm text-ink truncate">
+                                {singleTrackAudioFileName || releaseTitle || 'Master Audio Track'}
+                              </div>
+                              <div className="font-mono text-[9.5px] text-ink-soft">
+                                Audio file added successfully &bull; Duration: {formatDuration(singleTrackDuration)}
+                              </div>
+                            </div>
                           </div>
-                          <div className="font-mono text-[9.5px] text-ink-soft">
-                            Audio file added successfully &bull; Duration: {formatDuration(singleTrackDuration)}
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              disabled
+                              className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                              title="An audio master is already uploaded. Reset audio to choose another."
+                            >
+                              ✓ Audio Attached
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleResetSingleAudio}
+                              className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
+                              title="Remove uploaded audio and select a new file"
+                            >
+                              ✕ Reset Audio
+                            </button>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          disabled
-                          className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
-                          title="An audio master is already uploaded. Reset audio to choose another."
-                        >
-                          Audio Attached
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleResetSingleAudio}
-                          className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas cursor-pointer transition-colors"
-                          title="Remove uploaded audio and select a new file"
-                        >
-                          ✕ Reset Audio
-                        </button>
-                      </div>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-dashed border-line bg-panel">
+                          <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-2 self-start">
+                            <span>
+                              {isUploadingSingleAudio
+                                ? 'Uploading Master Audio to R2...'
+                                : 'Select Audio Master (FLAC/WAV/MP3)'}
+                            </span>
+                            <input
+                              ref={singleAudioInputRef}
+                              type="file"
+                              accept="audio/*"
+                              disabled={isUploadingSingleAudio}
+                              onChange={handleSingleAudioSelect}
+                              className="hidden"
+                            />
+                          </label>
+                          <span className="font-mono text-[9.5px] text-ink-soft">
+                            Lossless FLAC, WAV, or 320kbps MP3
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-3">
-                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line bg-panel hover:border-ink text-ink cursor-pointer inline-flex items-center gap-2">
-                        <span>
-                          {isUploadingSingleAudio
-                            ? 'Uploading Master Audio to R2...'
-                            : 'Select Audio Master (FLAC/WAV/MP3)'}
-                        </span>
-                        <input
-                          ref={singleAudioInputRef}
-                          type="file"
-                          accept="audio/*"
-                          disabled={isUploadingSingleAudio}
-                          onChange={handleSingleAudioSelect}
-                          className="hidden"
-                        />
+
+                    {/* Genre Input */}
+                    <div>
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                        Genre
                       </label>
-                      <span className="font-mono text-[9.5px] text-ink-soft">
-                        Lossless FLAC or 320kbps MP3
-                      </span>
+                      <input
+                        type="text"
+                        value={singleTrackGenre}
+                        onChange={(e) => setSingleTrackGenre(e.target.value)}
+                        placeholder="e.g. Modern Jazz, Neo-Soul, Ambient Electronic"
+                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                      />
                     </div>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-3 pt-3">
+                    {/* Collaborator & Credit Attribution */}
+                    <div className="pt-2 border-t border-line-soft">
+                      <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1.5">
+                        Collaborators & Credits (Featured / Producers / Composers / Lyricists / Engineers)
+                      </span>
+                      <ArtistCreditPicker
+                        credits={singleTrackCredits}
+                        onChange={setSingleTrackCredits}
+                        currentArtistId={artistProfile.id}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */
+                  <div className="pt-4 border-t border-line-soft space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink">
+                        Master Cuts / Tracklist ({draftTracks.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraftTracks([
+                            ...draftTracks,
+                            {
+                              id: crypto.randomUUID(),
+                              title: '',
+                              genre: '',
+                              durationSeconds: 0,
+                              isExplicit: false,
+                              credits: [],
+                            },
+                          ])
+                        }
+                        className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
+                      >
+                        + Add Cut
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {draftTracks.map((draft, idx) => (
+                        <div
+                          key={draft.id}
+                          className="p-3.5 border border-line bg-canvas space-y-3"
+                        >
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <span className="font-mono text-xs text-ink-soft w-6">
+                              {String(idx + 1).padStart(2, '0')}
+                            </span>
+
+                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                              <input
+                                type="text"
+                                required
+                                placeholder="Cut Title"
+                                value={draft.title}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setDraftTracks((prev) =>
+                                    prev.map((t) =>
+                                      t.id === draft.id ? { ...t, title: val } : t,
+                                    ),
+                                  )
+                                }}
+                                className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                              />
+
+                              <input
+                                type="text"
+                                placeholder="Genre (e.g. Jazz)"
+                                value={draft.genre}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setDraftTracks((prev) =>
+                                    prev.map((t) =>
+                                      t.id === draft.id ? { ...t, genre: val } : t,
+                                    ),
+                                  )
+                                }}
+                                className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                              />
+
+                              <div className="flex items-center gap-2">
+                                <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={draft.isExplicit}
+                                    onChange={(e) => {
+                                      const val = e.target.checked
+                                      setDraftTracks((prev) =>
+                                        prev.map((t) =>
+                                          t.id === draft.id
+                                            ? { ...t, isExplicit: val }
+                                            : t,
+                                        ),
+                                      )
+                                    }}
+                                  />
+                                  <span>Explicit</span>
+                                </label>
+
+                                {draft.durationSeconds > 0 && (
+                                  <span className="font-mono text-[10px] text-ink-soft ml-auto">
+                                    {formatDuration(draft.durationSeconds)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Audio Upload Input for this track */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {draft.audioUrl || draft.rawAudioKey ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-1 border border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300 flex items-center gap-1">
+                                    <span>✓</span>
+                                    <span>{formatDuration(draft.durationSeconds)}</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                                    title="Master audio attached. Use reset to replace."
+                                  >
+                                    Attached
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleResetDraftAudio(draft.id)}
+                                    className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
+                                    title="Reset audio file for this cut"
+                                  >
+                                    ✕ Reset
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line bg-panel hover:border-ink text-ink cursor-pointer">
+                                  <span>
+                                    {draft.isUploadingAudio
+                                      ? 'Uploading...'
+                                      : 'Select Audio (FLAC/MP3)'}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    accept="audio/*"
+                                    disabled={draft.isUploadingAudio}
+                                    onChange={(e) =>
+                                      handleDraftAudioSelect(draft.id, e)
+                                    }
+                                    className="hidden"
+                                  />
+                                </label>
+                              )}
+
+                              {draftTracks.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDraftTracks(
+                                      draftTracks.filter((t) => t.id !== draft.id),
+                                    )
+                                  }
+                                  className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                                  title="Remove Cut"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Collaborator & Credit Attribution */}
+                          <div className="pt-2 border-t border-line-soft/60">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                                Collaborators & Credits (Featured / Producers / Composers)
+                              </span>
+                            </div>
+                            <ArtistCreditPicker
+                              credits={draft.credits || []}
+                              onChange={(newCredits) =>
+                                setDraftTracks((prev) =>
+                                  prev.map((t) =>
+                                    t.id === draft.id ? { ...t, credits: newCredits } : t,
+                                  ),
+                                )
+                              }
+                              currentArtistId={artistProfile.id}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 pt-3 border-t border-line">
                   <button
                     type="submit"
-                    disabled={isSubmittingSingleTrack}
-                    className="font-mono text-xs uppercase tracking-[0.16em] py-2 px-5 bg-ink text-canvas hover:opacity-90 cursor-pointer disabled:opacity-50"
+                    disabled={isSubmittingRelease}
+                    className="font-mono text-xs uppercase tracking-[0.16em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
                   >
-                    {isSubmittingSingleTrack
-                      ? 'Creating...'
-                      : 'Publish Standalone Cut'}
+                    {isSubmittingRelease
+                      ? 'Publishing Master Release...'
+                      : releaseType === 'SINGLE'
+                        ? '✦ Publish Single Release'
+                        : `Publish Master ${releaseType}`}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsCreateTrackOpen(false)}
-                    className="font-mono text-xs uppercase tracking-[0.14em] py-2 px-3 border border-line text-ink-soft"
+                    onClick={() => setIsCreateReleaseOpen(false)}
+                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1724,68 +1636,6 @@ function StudioComponent() {
               </div>
             )}
           </div>
-
-          {/* Standalone Tracks Section */}
-          {standaloneSongs.length > 0 && (
-            <div className="space-y-3 pt-6 border-t border-line-soft">
-              <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
-                Standalone Master Cuts & Singles ({standaloneSongs.length})
-              </h3>
-
-              <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
-                {standaloneSongs.map((track) => (
-                  <div
-                    key={track.id}
-                    className="p-3.5 flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {track.coverImageUrl ? (
-                        <img
-                          src={track.coverImageUrl}
-                          alt={track.title}
-                          className="w-9 h-9 object-cover border border-line shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 border border-line bg-canvas-deep flex items-center justify-center shrink-0">
-                          <MusicIconSVG className="w-4 h-4 text-ink-soft" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-serif italic text-sm text-ink truncate">
-                            {track.title}
-                          </span>
-                          {track.isExplicit && (
-                            <span className="font-mono text-[8px] px-1 border border-line text-ink-soft">
-                              E
-                            </span>
-                          )}
-                        </div>
-                        <span className="font-mono text-[9px] text-ink-soft">
-                          {track.genre || 'Single'} &bull;{' '}
-                          {track.playsCount} plays
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-mono text-[10.5px] text-ink-soft">
-                        {formatDuration(track.durationSeconds)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSong(track.id)}
-                        className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
-                        title="Move to 30-Day Trash"
-                      >
-                        <TrashIconSVG className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 

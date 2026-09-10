@@ -521,6 +521,32 @@ export class CatalogService {
       if (!input.trackNumber) {
         trackNumber = album.totalTracks + 1;
       }
+    } else {
+      // Auto-wrap into a first-class SINGLE release (Pure Release Model)
+      const coverUrl =
+        this.ensureFullUrl(input.coverImageUrl) ||
+        "https://pub-d2ff94b6e6924c22875a6799aa101a70.r2.dev/albums/default/single-cover.webp";
+      const singleSlug = await this.generateUniqueAlbumSlug(
+        `${input.slug || input.title}-single`
+      );
+
+      const [newSingleAlbum] = await db
+        .insert(albums)
+        .values({
+          artistId: artist.id,
+          title: input.title,
+          slug: singleSlug,
+          albumType: "SINGLE",
+          coverImageUrl: coverUrl,
+          releaseDate: new Date().toISOString().split("T")[0],
+          totalTracks: 1,
+          totalDurationSeconds: input.durationSeconds || 0,
+          likesCount: 0,
+        })
+        .returning();
+
+      targetAlbumId = newSingleAlbum.id;
+      trackNumber = 1;
     }
 
     const finalSlug = input.slug
@@ -689,8 +715,54 @@ export class CatalogService {
 
     return await db.transaction(async (tx) => {
       const oldAlbumId = existing.albumId;
-      const newAlbumId =
+      let finalAlbumId =
         input.albumId !== undefined ? input.albumId : existing.albumId;
+      let finalTrackNumber =
+        input.trackNumber !== undefined ? input.trackNumber : existing.trackNumber;
+      let isSpunOffSingle = false;
+
+      // If detaching from an album (albumId explicitly passed as null)
+      if (input.albumId === null && oldAlbumId) {
+        const [parentAlbum] = await tx
+          .select({
+            title: albums.title,
+            coverImageUrl: albums.coverImageUrl,
+            releaseDate: albums.releaseDate,
+          })
+          .from(albums)
+          .where(eq(albums.id, oldAlbumId))
+          .limit(1);
+
+        const singleCoverUrl =
+          existing.coverImageUrl ||
+          parentAlbum?.coverImageUrl ||
+          "https://pub-d2ff94b6e6924c22875a6799aa101a70.r2.dev/albums/default/single-cover.webp";
+        const singleSlug = await this.generateUniqueAlbumSlug(
+          `${existing.title}-single`
+        );
+
+        const [newSingleAlbum] = await tx
+          .insert(albums)
+          .values({
+            artistId: artist.id,
+            title: existing.title,
+            slug: singleSlug,
+            albumType: "SINGLE",
+            coverImageUrl: singleCoverUrl,
+            description: `Single release of "${existing.title}"`,
+            releaseDate:
+              parentAlbum?.releaseDate ||
+              new Date().toISOString().split("T")[0],
+            totalTracks: 1,
+            totalDurationSeconds: existing.durationSeconds,
+            likesCount: 0,
+          })
+          .returning();
+
+        finalAlbumId = newSingleAlbum.id;
+        finalTrackNumber = 1;
+        isSpunOffSingle = true;
+      }
 
       // Update song
       const [updated] = await tx
@@ -698,14 +770,12 @@ export class CatalogService {
         .set({
           ...(input.title ? { title: input.title } : {}),
           slug: finalSlug,
-          ...(input.albumId !== undefined ? { albumId: input.albumId } : {}),
+          albumId: finalAlbumId,
           ...(input.genre !== undefined ? { genre: input.genre } : {}),
           ...(input.durationSeconds !== undefined
             ? { durationSeconds: input.durationSeconds }
             : {}),
-          ...(input.trackNumber !== undefined
-            ? { trackNumber: input.trackNumber }
-            : {}),
+          trackNumber: finalTrackNumber,
           ...(input.discNumber !== undefined
             ? { discNumber: input.discNumber }
             : {}),
@@ -727,7 +797,7 @@ export class CatalogService {
         .returning();
 
       // Recalculate aggregates if album changed
-      if (oldAlbumId !== newAlbumId) {
+      if (oldAlbumId !== finalAlbumId) {
         if (oldAlbumId) {
           await tx
             .update(albums)
@@ -739,7 +809,7 @@ export class CatalogService {
             .where(eq(albums.id, oldAlbumId));
         }
 
-        if (newAlbumId) {
+        if (finalAlbumId && !isSpunOffSingle) {
           await tx
             .update(albums)
             .set({
@@ -747,7 +817,7 @@ export class CatalogService {
               totalDurationSeconds: sql`${albums.totalDurationSeconds} + ${updated.durationSeconds}`,
               updatedAt: new Date(),
             })
-            .where(eq(albums.id, newAlbumId));
+            .where(eq(albums.id, finalAlbumId));
         }
       }
 
