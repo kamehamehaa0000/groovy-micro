@@ -49,6 +49,7 @@ export interface CreateAlbumInput {
   scheduledReleaseAt?: string | null;
   coverImageUrl: string;
   description?: string;
+  genre?: string | null;
   releaseDate?: string;
   tracks?: InitialTrackInput[];
 }
@@ -61,6 +62,7 @@ export interface UpdateAlbumInput {
   scheduledReleaseAt?: string | null;
   coverImageUrl?: string;
   description?: string | null;
+  genre?: string | null;
   releaseDate?: string;
 }
 
@@ -136,6 +138,7 @@ export interface Album {
   albumType: AlbumType;
   coverImageUrl: string;
   description: string | null;
+  genre?: string | null;
   releaseDate: string;
   status?: ReleaseStatus;
   visibility?: ReleaseVisibility;

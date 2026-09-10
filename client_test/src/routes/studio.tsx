@@ -15,6 +15,7 @@ import {
   PlusIconSVG,
   LockIconSVG,
   CalendarIconSVG,
+  EditIconSVG,
 } from '../components/icons'
 import {
   ArtistCreditPicker,
@@ -39,6 +40,16 @@ interface TrackDraft {
   audioFileName?: string
   coverImageUrl?: string
   isUploadingAudio?: boolean
+  credits: SelectedCredit[]
+}
+
+interface EditTrackDraft {
+  id: string
+  title: string
+  genre: string
+  durationSeconds: number
+  isExplicit: boolean
+  coverImageUrl?: string
   credits: SelectedCredit[]
 }
 
@@ -85,6 +96,23 @@ function StudioComponent() {
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('')
   const [releaseVisibility, setReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+
+  // Edit Release Modal State
+  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
+  const [isLoadingEditData, setIsLoadingEditData] = useState(false)
+  const [editReleaseTitle, setEditReleaseTitle] = useState('')
+  const [editReleaseType, setEditReleaseType] = useState<AlbumType>('ALBUM')
+  const [editReleaseGenre, setEditReleaseGenre] = useState('')
+  const [editReleaseDescription, setEditReleaseDescription] = useState('')
+  const [editReleaseCoverUrl, setEditReleaseCoverUrl] = useState('')
+  const [isUploadingEditCover, setIsUploadingEditCover] = useState(false)
+  const [editReleaseVisibility, setEditReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+  const [editReleaseMode, setEditReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
+  const [editReleaseDate, setEditReleaseDate] = useState('')
+  const [editReleaseTime, setEditReleaseTime] = useState('')
+  const [editTracks, setEditTracks] = useState<EditTrackDraft[]>([])
+  const [isSavingRelease, setIsSavingRelease] = useState(false)
+  const editCoverInputRef = useRef<HTMLInputElement>(null)
 
 
   // Detach Cut Modal State
@@ -657,6 +685,209 @@ function StudioComponent() {
       setErrorNotice(err.message || 'Failed to create release')
     } finally {
       setIsSubmittingRelease(false)
+    }
+  }
+
+  // Quick Visibility Changer from Release Card
+  const handleQuickChangeVisibility = async (
+    album: Album,
+    newVisibility: ReleaseVisibility,
+  ) => {
+    if (album.visibility === newVisibility) return
+    setErrorNotice(null)
+    try {
+      const updated = await catalogApi.updateAlbum(album.id, {
+        visibility: newVisibility,
+      })
+      setAlbums((prev) =>
+        prev.map((a) =>
+          a.id === album.id
+            ? {
+                ...a,
+                visibility: updated.visibility,
+                shareToken: updated.shareToken ?? a.shareToken,
+              }
+            : a,
+        ),
+      )
+      setSuccessNotice(
+        `Visibility for "${album.title}" updated to ${newVisibility}${
+          newVisibility === 'UNLISTED'
+            ? ' (Secret share token generated)'
+            : ''
+        }.`,
+      )
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to update visibility')
+    }
+  }
+
+  // Open Full Edit Release Modal
+  const handleOpenEditModal = async (album: Album) => {
+    setEditingAlbum(album)
+    setIsLoadingEditData(true)
+    setErrorNotice(null)
+
+    setEditReleaseTitle(album.title)
+    setEditReleaseType(album.albumType)
+    setEditReleaseGenre(album.genre || '')
+    setEditReleaseDescription(album.description || '')
+    setEditReleaseCoverUrl(album.coverImageUrl)
+    setEditReleaseVisibility(album.visibility || 'PUBLIC')
+
+    if (album.status === 'SCHEDULED' && album.scheduledReleaseAt) {
+      setEditReleaseMode('SCHEDULED')
+      const dt = new Date(album.scheduledReleaseAt)
+      const yr = dt.getFullYear()
+      const mo = String(dt.getMonth() + 1).padStart(2, '0')
+      const day = String(dt.getDate()).padStart(2, '0')
+      const hr = String(dt.getHours()).padStart(2, '0')
+      const mn = String(dt.getMinutes()).padStart(2, '0')
+      setEditReleaseDate(`${yr}-${mo}-${day}`)
+      setEditReleaseTime(`${hr}:${mn}`)
+    } else {
+      setEditReleaseMode('IMMEDIATE')
+      setEditReleaseDate('')
+      setEditReleaseTime('')
+    }
+
+    try {
+      const detail = await catalogApi.getAlbum(
+        album.id,
+        album.shareToken || undefined,
+      )
+      if (detail && detail.tracks) {
+        setEditTracks(
+          detail.tracks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            genre: t.genre || '',
+            isExplicit: t.isExplicit,
+            coverImageUrl: t.coverImageUrl || undefined,
+            durationSeconds: t.durationSeconds,
+            credits: (t.credits || []).map((c) => ({
+              artistId: c.artistId,
+              stageName: c.stageName,
+              slug: c.slug,
+              verified: c.verified,
+              role: c.role,
+            })),
+          })),
+        )
+      } else {
+        setEditTracks([])
+      }
+    } catch (err: any) {
+      console.warn('Could not load album tracks for edit modal:', err)
+      setEditTracks([])
+    } finally {
+      setIsLoadingEditData(false)
+    }
+  }
+
+  const handleCloseEditModal = () => {
+    setEditingAlbum(null)
+    setEditTracks([])
+    if (editCoverInputRef.current) editCoverInputRef.current.value = ''
+  }
+
+  const handleEditCoverSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingEditCover(true)
+    setErrorNotice(null)
+
+    try {
+      const publicUrl = await catalogApi.uploadAlbumCover(file)
+      setEditReleaseCoverUrl(publicUrl)
+      setSuccessNotice('Replacement cover artwork uploaded to Cloudflare R2.')
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload cover artwork')
+    } finally {
+      setIsUploadingEditCover(false)
+    }
+  }
+
+  const handleSaveReleaseEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingAlbum) return
+    if (!editReleaseTitle.trim()) {
+      setErrorNotice('Release title cannot be blank')
+      return
+    }
+
+    setIsSavingRelease(true)
+    setErrorNotice(null)
+
+    try {
+      let scheduledReleaseAtIso: string | null | undefined = undefined
+      if (editReleaseMode === 'SCHEDULED') {
+        if (!editReleaseDate || !editReleaseTime) {
+          setErrorNotice(
+            'Please select both a date and time for the scheduled drop',
+          )
+          setIsSavingRelease(false)
+          return
+        }
+        const parsed = new Date(
+          `${editReleaseDate}T${editReleaseTime}`,
+        ).getTime()
+        if (isNaN(parsed)) {
+          setErrorNotice('Invalid scheduled drop timestamp')
+          setIsSavingRelease(false)
+          return
+        }
+        if (parsed <= Date.now()) {
+          setErrorNotice('Scheduled release time must be in the future')
+          setIsSavingRelease(false)
+          return
+        }
+        scheduledReleaseAtIso = new Date(parsed).toISOString()
+      } else if (
+        editingAlbum.status === 'SCHEDULED' &&
+        editReleaseMode === 'IMMEDIATE'
+      ) {
+        // Switching to immediate publishes the album and clears scheduled timestamp
+        scheduledReleaseAtIso = null
+      }
+
+      // 1. Update Album Level Metadata
+      await catalogApi.updateAlbum(editingAlbum.id, {
+        title: editReleaseTitle.trim(),
+        albumType: editReleaseType,
+        genre: editReleaseGenre.trim() || null,
+        description: editReleaseDescription.trim() || null,
+        coverImageUrl: editReleaseCoverUrl,
+        visibility: editReleaseVisibility,
+        scheduledReleaseAt: scheduledReleaseAtIso,
+      })
+
+      // 2. Update all tracks (title, genre, explicit, cover, credits)
+      if (editTracks.length > 0) {
+        for (const track of editTracks) {
+          await catalogApi.updateSong(track.id, {
+            title: track.title.trim() || undefined,
+            genre: track.genre.trim() || null,
+            isExplicit: track.isExplicit,
+            coverImageUrl: track.coverImageUrl || undefined,
+            credits: track.credits.map((c) => ({
+              artistId: c.artistId,
+              role: c.role,
+            })),
+          })
+        }
+      }
+
+      setSuccessNotice(`🎉 Master release "${editReleaseTitle}" updated successfully!`)
+      handleCloseEditModal()
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to update release')
+    } finally {
+      setIsSavingRelease(false)
     }
   }
 
@@ -1760,17 +1991,30 @@ function StudioComponent() {
                                 </span>
                               )}
 
-                              {/* Visibility Badge */}
-                              {album.visibility === 'UNLISTED' ? (
-                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold">
-                                  🔗 Unlisted
-                                </span>
-                              ) : album.visibility === 'PRIVATE' ? (
-                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 font-semibold flex items-center gap-1">
-                                  <LockIconSVG className="w-2.5 h-2.5" />
-                                  <span>Private</span>
-                                </span>
-                              ) : null}
+                              {/* Quick Visibility Selector */}
+                              <div className="flex items-center gap-1">
+                                <select
+                                  value={album.visibility || 'PUBLIC'}
+                                  onChange={(e) =>
+                                    handleQuickChangeVisibility(
+                                      album,
+                                      e.target.value as ReleaseVisibility,
+                                    )
+                                  }
+                                  className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 border cursor-pointer focus:outline-none font-semibold ${
+                                    album.visibility === 'UNLISTED'
+                                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300'
+                                      : album.visibility === 'PRIVATE'
+                                        ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
+                                        : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                                  }`}
+                                  title="Change release visibility tier"
+                                >
+                                  <option value="PUBLIC">🌍 Public</option>
+                                  <option value="UNLISTED">🔗 Unlisted</option>
+                                  <option value="PRIVATE">🔒 Private</option>
+                                </select>
+                              </div>
 
                               {/* Pre-saves Count for Scheduled Releases */}
                               {album.status === 'SCHEDULED' && (
@@ -1824,6 +2068,16 @@ function StudioComponent() {
                             <span>View</span>
                             <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
                           </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(album)}
+                            className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors flex items-center gap-1.5 cursor-pointer"
+                            title="Edit release metadata, artwork, genre, credits and visibility"
+                          >
+                            <EditIconSVG className="w-3 h-3 text-ink-soft" />
+                            <span>Edit</span>
+                          </button>
 
                           <button
                             type="button"
@@ -2571,6 +2825,435 @@ function StudioComponent() {
                   : '✦ Detach & Spin Off Single'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Master Release Modal */}
+      {editingAlbum && (
+        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="max-w-3xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft block">
+                  Studio Suite &bull; Master Release Editor
+                </span>
+                <h3 className="font-serif italic text-2xl text-ink">
+                  Edit Release: {editingAlbum.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                disabled={isSavingRelease}
+                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {isLoadingEditData ? (
+              <div className="py-16 text-center font-mono text-xs text-ink-soft animate-pulse">
+                Loading release details, master cuts &amp; collaborator credits...
+              </div>
+            ) : (
+              <form onSubmit={handleSaveReleaseEdit} className="space-y-6">
+                {/* Basic Metadata Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Release Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editReleaseTitle}
+                      onChange={(e) => setEditReleaseTitle(e.target.value)}
+                      placeholder="Release title"
+                      className="w-full font-serif italic text-base py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Release Format
+                    </label>
+                    <select
+                      value={editReleaseType}
+                      onChange={(e) => setEditReleaseType(e.target.value as AlbumType)}
+                      className="w-full font-mono text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    >
+                      {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Genre & Cover Art Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Primary Genre
+                    </label>
+                    <input
+                      type="text"
+                      value={editReleaseGenre}
+                      onChange={(e) => setEditReleaseGenre(e.target.value)}
+                      placeholder="e.g. Neo-Soul, Ambient Jazz, Synthwave"
+                      className="w-full font-mono text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    />
+                    <p className="font-mono text-[9px] text-ink-soft mt-1.5">
+                      Used for catalog indexing, genre discovery &amp; radio curation.
+                    </p>
+                  </div>
+
+                  {/* Cover Artwork */}
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Master Cover Artwork
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden flex items-center justify-center">
+                        {editReleaseCoverUrl ? (
+                          <img
+                            src={editReleaseCoverUrl}
+                            alt="Cover preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                          <span>
+                            {isUploadingEditCover
+                              ? 'Uploading to R2...'
+                              : 'Upload Replacement Artwork'}
+                          </span>
+                          <input
+                            ref={editCoverInputRef}
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploadingEditCover || isSavingRelease}
+                            onChange={handleEditCoverSelect}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="font-mono text-[9px] text-ink-soft">
+                          Direct Cloudflare R2 upload (PNG, JPG, WEBP).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Catalog Visibility Tier Selector */}
+                <div className="space-y-2 pt-2 border-t border-line-soft">
+                  <div className="flex items-center justify-between">
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink">
+                      Catalog Visibility Tier
+                    </label>
+                    <span className="font-mono text-[9.5px] text-ink-soft">
+                      Current: <strong className="text-ink">{editReleaseVisibility}</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditReleaseVisibility('PUBLIC')}
+                      className={`p-3 border text-left cursor-pointer transition-colors ${
+                        editReleaseVisibility === 'PUBLIC'
+                          ? 'border-emerald-500/60 bg-emerald-500/10 dark:bg-emerald-950/20'
+                          : 'border-line bg-canvas hover:border-ink/50'
+                      }`}
+                    >
+                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                        <span>🌍 Public</span>
+                      </div>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                        Discoverable on artist profile, search, and algorithmic radio.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditReleaseVisibility('UNLISTED')}
+                      className={`p-3 border text-left cursor-pointer transition-colors ${
+                        editReleaseVisibility === 'UNLISTED'
+                          ? 'border-purple-500/60 bg-purple-500/10 dark:bg-purple-950/20'
+                          : 'border-line bg-canvas hover:border-ink/50'
+                      }`}
+                    >
+                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                        <span>🔗 Unlisted</span>
+                      </div>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                        Hidden from search and profile. Accessible only via secret token URL.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditReleaseVisibility('PRIVATE')}
+                      className={`p-3 border text-left cursor-pointer transition-colors ${
+                        editReleaseVisibility === 'PRIVATE'
+                          ? 'border-red-500/60 bg-red-500/10 dark:bg-red-950/20'
+                          : 'border-line bg-canvas hover:border-ink/50'
+                      }`}
+                    >
+                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                        <LockIconSVG className="w-3 h-3 text-red-500" />
+                        <span>Private</span>
+                      </div>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                        Strictly confidential. Visible only in your Studio suite.
+                      </p>
+                    </button>
+                  </div>
+
+                  {editReleaseVisibility === 'UNLISTED' && editingAlbum.shareToken && (
+                    <div className="p-3 border border-purple-500/30 bg-purple-500/5 flex items-center justify-between gap-3 mt-2">
+                      <div className="min-w-0 font-mono text-[10px] text-ink truncate">
+                        <span className="text-ink-soft">Secret Link: </span>
+                        <span className="underline">
+                          {window.location.origin}/albums/{editingAlbum.slug}?shareToken={editingAlbum.shareToken}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = `${window.location.origin}/albums/${editingAlbum.slug}?shareToken=${editingAlbum.shareToken}`
+                          navigator.clipboard.writeText(url)
+                          setSuccessNotice('Copied secret share link to clipboard!')
+                        }}
+                        className="font-mono text-[9.5px] uppercase tracking-wider py-1 px-2.5 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 shrink-0 cursor-pointer"
+                      >
+                        Copy Link
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Release Timing & Scheduling */}
+                <div className="space-y-3 pt-2 border-t border-line-soft">
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block">
+                    Release Timing &amp; Drop Scheduling
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditReleaseMode('IMMEDIATE')}
+                      className={`font-mono text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
+                        editReleaseMode === 'IMMEDIATE'
+                          ? 'border-ink bg-ink text-canvas font-semibold'
+                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      Immediate / Published
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditReleaseMode('SCHEDULED')
+                        if (!editReleaseDate) {
+                          const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
+                          setEditReleaseDate(tomorrow.toISOString().split('T')[0])
+                          setEditReleaseTime('00:00')
+                        }
+                      }}
+                      className={`font-mono text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                        editReleaseMode === 'SCHEDULED'
+                          ? 'border-ink bg-ink text-canvas font-semibold'
+                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      <CalendarIconSVG className="w-3.5 h-3.5" />
+                      <span>Scheduled Drop</span>
+                    </button>
+                  </div>
+
+                  {editReleaseMode === 'SCHEDULED' && (
+                    <div className="p-3.5 border border-blue/30 bg-blue/5 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                            Drop Date
+                          </label>
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split('T')[0]}
+                            value={editReleaseDate}
+                            onChange={(e) => setEditReleaseDate(e.target.value)}
+                            className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                            Drop Time (Local)
+                          </label>
+                          <input
+                            type="time"
+                            value={editReleaseTime}
+                            onChange={(e) => setEditReleaseTime(e.target.value)}
+                            className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          />
+                        </div>
+                      </div>
+                      <p className="font-mono text-[9px] text-ink-soft">
+                        Fans can pre-save this release. The automated BullMQ scheduler will automatically release it to listeners at the specified time.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description & Liner Notes */}
+                <div className="pt-2 border-t border-line-soft">
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Release Description / Liner Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editReleaseDescription}
+                    onChange={(e) => setEditReleaseDescription(e.target.value)}
+                    placeholder="Liner notes, studio sessions, recording personnel, narrative..."
+                    className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                  />
+                </div>
+
+                {/* Master Cuts & Collaborator Credits */}
+                {editTracks.length > 0 && (
+                  <div className="space-y-4 pt-2 border-t border-line-soft">
+                    <div className="flex items-center justify-between">
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink">
+                        Master Cuts &amp; Collaborator Credits ({editTracks.length})
+                      </label>
+                      <span className="font-mono text-[9.5px] text-ink-soft">
+                        Edit titles, individual genres, explicit tags &amp; contributor credits
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {editTracks.map((track, idx) => (
+                        <div
+                          key={track.id}
+                          className="p-3.5 border border-line bg-canvas space-y-3"
+                        >
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <span className="font-mono text-xs text-ink-soft w-6">
+                              {String(idx + 1).padStart(2, '0')}
+                            </span>
+
+                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                              <input
+                                type="text"
+                                required
+                                value={track.title}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setEditTracks((prev) =>
+                                    prev.map((t) =>
+                                      t.id === track.id ? { ...t, title: val } : t,
+                                    ),
+                                  )
+                                }}
+                                placeholder="Cut Title"
+                                className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                              />
+
+                              <input
+                                type="text"
+                                value={track.genre}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setEditTracks((prev) =>
+                                    prev.map((t) =>
+                                      t.id === track.id ? { ...t, genre: val } : t,
+                                    ),
+                                  )
+                                }}
+                                placeholder="Genre (e.g. Ambient)"
+                                className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                              />
+
+                              <div className="flex items-center gap-2">
+                                <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={track.isExplicit}
+                                    onChange={(e) => {
+                                      const val = e.target.checked
+                                      setEditTracks((prev) =>
+                                        prev.map((t) =>
+                                          t.id === track.id ? { ...t, isExplicit: val } : t,
+                                        ),
+                                      )
+                                    }}
+                                  />
+                                  <span>Explicit</span>
+                                </label>
+
+                                {track.durationSeconds > 0 && (
+                                  <span className="font-mono text-[10px] text-ink-soft ml-auto">
+                                    {formatDuration(track.durationSeconds)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Collaborator & Credit Attribution */}
+                          <div className="pt-2 border-t border-line-soft/60">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1.5">
+                              Collaborator Credits (Featured / Producers / Composers / Lyricists)
+                            </span>
+                            <ArtistCreditPicker
+                              credits={track.credits || []}
+                              onChange={(newCredits) =>
+                                setEditTracks((prev) =>
+                                  prev.map((t) =>
+                                    t.id === track.id ? { ...t, credits: newCredits } : t,
+                                  ),
+                                )
+                              }
+                              currentArtistId={artistProfile.id}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit / Cancel Actions */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+                  <button
+                    type="button"
+                    onClick={handleCloseEditModal}
+                    disabled={isSavingRelease}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingRelease || isUploadingEditCover}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                  >
+                    {isSavingRelease ? (
+                      <span>Saving Changes...</span>
+                    ) : (
+                      <span>✦ Save Release Changes</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

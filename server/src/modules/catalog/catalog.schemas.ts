@@ -77,6 +77,7 @@ export const createAlbumSchema = z.object({
   scheduledReleaseAt: z.string().datetime({ offset: true }).nullable().optional(),
   coverImageUrl: z.string().min(1, "Cover image is required"),
   description: z.string().max(4000, "Description cannot exceed 4000 characters").optional(),
+  genre: z.string().max(60).optional(),
   releaseDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Release date must be in YYYY-MM-DD format")
@@ -103,6 +104,11 @@ export const updateAlbumSchema = z.object({
   scheduledReleaseAt: z.string().datetime({ offset: true }).nullable().optional(),
   coverImageUrl: z.string().min(1).optional(),
   description: z.string().max(4000, "Description cannot exceed 4000 characters").nullable().optional(),
+  genre: z.string().max(60).nullable().optional(),
+  releaseDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Release date must be in YYYY-MM-DD format")
+    .optional(),
 });
 
 export const createSongSchema = z.object({

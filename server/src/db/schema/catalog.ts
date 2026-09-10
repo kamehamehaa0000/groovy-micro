@@ -33,6 +33,7 @@ export const albums = pgTable(
     albumType: albumTypeEnum("album_type").notNull().default("ALBUM"),
     coverImageUrl: text("cover_image_url").notNull(),
     description: text("description"),
+    genre: varchar("genre", { length: 60 }),
     releaseDate: date("release_date").notNull(),
 
     // Scheduling & Status Lifecycle
