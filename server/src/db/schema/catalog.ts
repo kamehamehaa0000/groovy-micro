@@ -9,9 +9,10 @@ import {
   date,
   timestamp,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { artistProfiles } from "./artists";
-import { albumTypeEnum, songStatusEnum } from "./enums";
+import { albumTypeEnum, songStatusEnum, creditRoleEnum } from "./enums";
 
 export const albums = pgTable(
   "albums",
@@ -21,9 +22,15 @@ export const albums = pgTable(
       .notNull()
       .references(() => artistProfiles.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 160 }).notNull(),
     albumType: albumTypeEnum("album_type").notNull().default("ALBUM"),
     coverImageUrl: text("cover_image_url").notNull(),
+    description: text("description"),
     releaseDate: date("release_date").notNull(),
+    likesCount: integer("likes_count").notNull().default(0),
+    totalTracks: integer("total_tracks").notNull().default(0),
+    totalDurationSeconds: integer("total_duration_seconds").notNull().default(0),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -33,6 +40,8 @@ export const albums = pgTable(
   },
   (table) => [
     index("idx_albums_artist").on(table.artistId),
+    index("idx_albums_slug").on(table.slug),
+    index("idx_albums_deleted_at").on(table.deletedAt),
   ]
 );
 
@@ -47,6 +56,8 @@ export const songs = pgTable(
       onDelete: "set null",
     }),
     title: varchar("title", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    genre: varchar("genre", { length: 60 }),
     durationSeconds: integer("duration_seconds").notNull().default(0),
     trackNumber: integer("track_number").default(1),
     discNumber: integer("disc_number").default(1),
@@ -54,6 +65,8 @@ export const songs = pgTable(
 
     // Audio Processing Fields
     rawAudioKey: text("raw_audio_key"),
+    audioUrl: text("audio_url"),
+    coverImageUrl: text("cover_image_url"),
     hlsManifestUrl: text("hls_manifest_url"),
     processingStatus: songStatusEnum("processing_status")
       .notNull()
@@ -64,6 +77,7 @@ export const songs = pgTable(
     playsCount: bigint("plays_count", { mode: "number" }).notNull().default(0),
     likesCount: integer("likes_count").notNull().default(0),
 
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -76,6 +90,29 @@ export const songs = pgTable(
     index("idx_songs_album").on(table.albumId),
     index("idx_songs_status").on(table.processingStatus),
     index("idx_songs_title").on(table.title),
+    index("idx_songs_slug").on(table.slug),
+    index("idx_songs_deleted_at").on(table.deletedAt),
+  ]
+);
+
+export const songCredits = pgTable(
+  "song_credits",
+  {
+    songId: uuid("song_id")
+      .notNull()
+      .references(() => songs.id, { onDelete: "cascade" }),
+    artistId: uuid("artist_id")
+      .notNull()
+      .references(() => artistProfiles.id, { onDelete: "cascade" }),
+    role: creditRoleEnum("role").notNull().default("PRIMARY"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.songId, table.artistId, table.role] }),
+    index("idx_song_credits_artist").on(table.artistId),
+    index("idx_song_credits_song").on(table.songId),
   ]
 );
 
@@ -83,3 +120,5 @@ export type Album = typeof albums.$inferSelect;
 export type NewAlbum = typeof albums.$inferInsert;
 export type Song = typeof songs.$inferSelect;
 export type NewSong = typeof songs.$inferInsert;
+export type SongCredit = typeof songCredits.$inferSelect;
+export type NewSongCredit = typeof songCredits.$inferInsert;

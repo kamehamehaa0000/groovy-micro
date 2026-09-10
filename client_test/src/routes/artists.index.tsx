@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistProfile } from '../types/artist'
-import { VerifiedBadgeSVG } from '../Components/icons'
+import { VerifiedBadgeSVG } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 
 export const Route = createFileRoute('/artists/')({

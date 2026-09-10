@@ -1,12 +1,18 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { artistsApi } from '../lib/artists.api'
+import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
+import type { DiscographyResponse, EnrichedSong } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
   SvgArtworkSpiral,
-} from '../Components/icons'
+  PlayIconSVG,
+  PauseIconSVG,
+  HeartIconSVG,
+  DiscIconSVG,
+} from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
@@ -19,6 +25,7 @@ function ArtistPublicProfileComponent() {
   const { user, isAuthenticated } = useAuthStore()
 
   const [artist, setArtist] = useState<ArtistProfile | null>(null)
+  const [discography, setDiscography] = useState<DiscographyResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -30,18 +37,26 @@ function ArtistPublicProfileComponent() {
   // Copy link feedback
   const [copiedLink, setCopiedLink] = useState(false)
 
+  // Playback state
+  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
   useEffect(() => {
     let isMounted = true
     setIsLoading(true)
     setErrorMsg(null)
 
-    artistsApi
-      .getByIdOrSlug(idOrSlug)
-      .then((data) => {
+    Promise.all([
+      artistsApi.getByIdOrSlug(idOrSlug),
+      catalogApi.getArtistDiscography(idOrSlug).catch(() => null),
+    ])
+      .then(([artistData, discoData]) => {
         if (!isMounted) return
-        setArtist(data)
-        setIsFollowing(!!data.isFollowing)
-        setFollowersCount(data.followersCount ?? 0)
+        setArtist(artistData)
+        setDiscography(discoData)
+        setIsFollowing(!!artistData.isFollowing)
+        setFollowersCount(artistData.followersCount ?? 0)
       })
       .catch((err) => {
         if (!isMounted) return
@@ -55,6 +70,16 @@ function ArtistPublicProfileComponent() {
       isMounted = false
     }
   }, [idOrSlug])
+
+  // Stop audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.src = ''
+      }
+    }
+  }, [])
 
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
@@ -93,6 +118,104 @@ function ArtistPublicProfileComponent() {
     }
   }
 
+  const handleToggleTrackLike = async (track: EnrichedSong) => {
+    if (!isAuthenticated) {
+      navigate({ to: '/login' })
+      return
+    }
+
+    const prevLiked = !!track.isLiked
+    const prevCount = track.likesCount
+
+    // Optimistic track update in topTracks
+    setDiscography((prev) => {
+      if (!prev) return null
+      return {
+        ...prev,
+        topTracks: prev.topTracks.map((t) =>
+          t.id === track.id
+            ? {
+                ...t,
+                isLiked: !prevLiked,
+                likesCount: prevLiked
+                  ? Math.max(0, prevCount - 1)
+                  : prevCount + 1,
+              }
+            : t,
+        ),
+      }
+    })
+
+    try {
+      const res = await catalogApi.toggleSongLike(track.id)
+      setDiscography((prev) => {
+        if (!prev) return null
+        return {
+          ...prev,
+          topTracks: prev.topTracks.map((t) =>
+            t.id === track.id
+              ? { ...t, isLiked: res.liked, likesCount: res.likesCount }
+              : t,
+          ),
+        }
+      })
+    } catch {
+      // Rollback on failure
+      setDiscography((prev) => {
+        if (!prev) return null
+        return {
+          ...prev,
+          topTracks: prev.topTracks.map((t) =>
+            t.id === track.id
+              ? { ...t, isLiked: prevLiked, likesCount: prevCount }
+              : t,
+          ),
+        }
+      })
+    }
+  }
+
+  const handlePlaySong = (song: EnrichedSong) => {
+    if (!song.audioUrl) {
+      alert('Audio stream for this master track is currently processing.')
+      return
+    }
+
+    if (playingSongId === song.id) {
+      if (isPlaying) {
+        audioRef.current?.pause()
+        setIsPlaying(false)
+      } else {
+        audioRef.current?.play()
+        setIsPlaying(true)
+      }
+      return
+    }
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio()
+      audioRef.current.onended = () => {
+        setIsPlaying(false)
+      }
+      audioRef.current.onerror = () => {
+        setIsPlaying(false)
+        alert('Playback error. Cloudflare R2 audio may still be syncing.')
+      }
+    }
+
+    audioRef.current.src = song.audioUrl
+    audioRef.current
+      .play()
+      .then(() => {
+        setPlayingSongId(song.id)
+        setIsPlaying(true)
+      })
+      .catch((err) => {
+        console.error('Playback error:', err)
+        setIsPlaying(false)
+      })
+  }
+
   const handleCopyShareLink = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href)
@@ -104,7 +227,7 @@ function ArtistPublicProfileComponent() {
   if (isLoading) {
     return (
       <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
-        Retrieving artist catalog...
+        Retrieving artist catalog & recordings...
       </div>
     )
   }
@@ -134,6 +257,15 @@ function ArtistPublicProfileComponent() {
   }
 
   const isOwner = user?.id === artist.userId
+  const hasAlbums = discography?.albums && discography.albums.length > 0
+  const hasMixtapes = discography?.mixtapes && discography.mixtapes.length > 0
+  const hasEpsOrSingles =
+    (discography?.eps && discography.eps.length > 0) ||
+    (discography?.singles && discography.singles.length > 0)
+  const hasTopTracks =
+    discography?.topTracks && discography.topTracks.length > 0
+  const hasAppearsOn =
+    discography?.appearsOn && discography.appearsOn.length > 0
 
   return (
     <div className="w-full pb-20">
@@ -239,42 +371,319 @@ function ArtistPublicProfileComponent() {
 
         {/* ===================== BIOGRAPHY & SOCIALS ===================== */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
-          {/* Left Column: Biography */}
-          <div className="md:col-span-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-3">
-              About the Artist
-            </span>
-            {artist.bio ? (
-              <p className="font-sans text-sm text-ink leading-relaxed whitespace-pre-line">
-                {artist.bio}
-              </p>
-            ) : (
-              <p className="font-sans text-xs italic text-ink-soft/70">
-                No formal biography has been submitted for this artist.
-              </p>
+          {/* Left Column: Discography & Popular Tracks */}
+          <div className="md:col-span-2 space-y-10">
+            {/* About Blurb */}
+            {artist.bio && (
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-2">
+                  About
+                </span>
+                <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line">
+                  {artist.bio}
+                </p>
+              </div>
             )}
 
-            {/* Releases Placeholder */}
-            <div className="mt-12 pt-8 border-t border-line-soft">
-              <div className="flex items-center justify-between mb-6">
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                  Discography & Master Recordings
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-blue">
-                  Catalog Sprint 2.2
-                </span>
-              </div>
+            {/* Top Tracks Section */}
+            {hasTopTracks && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <h2 className="font-serif italic text-xl text-ink">
+                    Popular Master Tracks
+                  </h2>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    Ranked by Plays
+                  </span>
+                </div>
 
+                <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
+                  {discography!.topTracks.map((track, idx) => {
+                    const isCurrentPlaying =
+                      playingSongId === track.id && isPlaying
+
+                    return (
+                      <div
+                        key={track.id}
+                        className={`px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
+                          isCurrentPlaying ? 'bg-blue/5' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+                          <button
+                            type="button"
+                            onClick={() => handlePlaySong(track)}
+                            aria-label={
+                              isCurrentPlaying ? 'Pause' : 'Play track'
+                            }
+                            className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
+                          >
+                            {isCurrentPlaying ? (
+                              <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
+                            ) : (
+                              <span className="font-mono text-[10.5px] group-hover:hidden">
+                                {String(idx + 1).padStart(2, '0')}
+                              </span>
+                            )}
+                            {!isCurrentPlaying && (
+                              <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                            )}
+                          </button>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`font-serif text-sm truncate ${
+                                  isCurrentPlaying
+                                    ? 'text-blue font-medium'
+                                    : 'text-ink'
+                                }`}
+                              >
+                                {track.title}
+                              </span>
+                              {track.isExplicit && (
+                                <span className="font-mono text-[8.5px] px-1 py-0.2 border border-line text-ink-soft bg-canvas">
+                                  E
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-mono text-[9px] text-ink-soft">
+                              {track.playsCount.toLocaleString()} plays
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 shrink-0">
+                          <span className="font-mono text-[10.5px] text-ink-soft">
+                            {formatDuration(track.durationSeconds)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTrackLike(track)}
+                            className="p-1 cursor-pointer"
+                          >
+                            <HeartIconSVG
+                              filled={!!track.isLiked}
+                              className={`w-3.5 h-3.5 transition-colors ${
+                                track.isLiked
+                                  ? 'text-red-500'
+                                  : 'text-ink-soft/40 hover:text-ink'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Full Albums Grid */}
+            {hasAlbums && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <h2 className="font-serif italic text-xl text-ink">
+                    Albums
+                  </h2>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    {discography!.albums.length} Releases
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {discography!.albums.map((album) => (
+                    <Link
+                      key={album.id}
+                      to="/albums/$idOrSlug"
+                      params={{ idOrSlug: album.slug }}
+                      className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
+                    >
+                      <div className="aspect-square bg-canvas-deep border border-line mb-3 overflow-hidden relative">
+                        {album.coverImageUrl ? (
+                          <img
+                            src={album.coverImageUrl}
+                            alt={album.title}
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
+                        {album.title}
+                      </div>
+                      <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
+                        {album.releaseDate
+                          ? new Date(album.releaseDate).getFullYear()
+                          : 'Recent'}{' '}
+                        &bull; {album.totalTracks} cuts
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mixtapes Grid */}
+            {hasMixtapes && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <h2 className="font-serif italic text-xl text-ink">
+                    Mixtapes
+                  </h2>
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                    {discography!.mixtapes!.length}{' '}
+                    {discography!.mixtapes!.length === 1 ? 'Release' : 'Releases'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {discography!.mixtapes!.map((mix) => (
+                    <Link
+                      key={mix.id}
+                      to="/albums/$idOrSlug"
+                      params={{ idOrSlug: mix.slug }}
+                      className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
+                    >
+                      <div className="aspect-square bg-canvas-deep border border-line mb-3 overflow-hidden relative">
+                        {mix.coverImageUrl ? (
+                          <img
+                            src={mix.coverImageUrl}
+                            alt={mix.title}
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
+                        {mix.title}
+                      </div>
+                      <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
+                        <span className="uppercase">Mixtape</span> &bull;{' '}
+                        {mix.releaseDate
+                          ? new Date(mix.releaseDate).getFullYear()
+                          : 'Recent'}{' '}
+                        &bull; {mix.totalTracks} cuts
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* EPs & Singles Grid */}
+            {hasEpsOrSingles && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <h2 className="font-serif italic text-xl text-ink">
+                    Singles & EPs
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {[
+                    ...(discography?.eps || []),
+                    ...(discography?.singles || []),
+                  ].map((rel) => (
+                    <Link
+                      key={rel.id}
+                      to="/albums/$idOrSlug"
+                      params={{ idOrSlug: rel.slug }}
+                      className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
+                    >
+                      <div className="aspect-square bg-canvas-deep border border-line mb-3 overflow-hidden relative">
+                        {rel.coverImageUrl ? (
+                          <img
+                            src={rel.coverImageUrl}
+                            alt={rel.title}
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
+                        {rel.title}
+                      </div>
+                      <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
+                        <span className="uppercase">{rel.albumType}</span> &bull;{' '}
+                        {rel.releaseDate
+                          ? new Date(rel.releaseDate).getFullYear()
+                          : 'Recent'}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Appears On (Featured / Producer Collaborations) */}
+            {hasAppearsOn && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <h2 className="font-serif italic text-xl text-ink">
+                    Appears On & Collaborations
+                  </h2>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    Cross-Artist Credits
+                  </span>
+                </div>
+
+                <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
+                  {discography!.appearsOn.map((item) => (
+                    <div
+                      key={item.songId}
+                      className="px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-serif text-sm text-ink truncate">
+                          {item.songTitle}
+                        </div>
+                        <div className="font-mono text-[10px] text-ink-soft truncate">
+                          with{' '}
+                          <Link
+                            to="/artists/$idOrSlug"
+                            params={{ idOrSlug: item.primaryArtistSlug }}
+                            className="hover:text-ink underline decoration-line"
+                          >
+                            {item.primaryArtistName}
+                          </Link>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-blue font-semibold">
+                          {item.role}
+                        </span>
+                        <span className="font-mono text-[10.5px] text-ink-soft">
+                          {formatDuration(item.songDuration)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* If no discography yet */}
+            {!hasAlbums && !hasMixtapes && !hasEpsOrSingles && !hasTopTracks && !hasAppearsOn && (
               <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
                 <p className="font-serif italic text-base text-ink">
                   Master Tracks & Albums In Preparation
                 </p>
                 <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
-                  Audio streaming and lossless HLS playback will be enabled in
-                  the upcoming catalog sprint.
+                  No public releases have been published to this catalog yet.
                 </p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right Column: Social Channels & Telemetry */}
@@ -332,6 +741,17 @@ function ArtistPublicProfileComponent() {
                   {artist.verificationStatus}
                 </span>
               </div>
+              {discography && (
+                <div className="flex justify-between pt-1 border-t border-line-soft">
+                  <span>Releases:</span>
+                  <span className="text-ink">
+                    {(discography.albums?.length || 0) +
+                      (discography.mixtapes?.length || 0) +
+                      (discography.eps?.length || 0) +
+                      (discography.singles?.length || 0)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

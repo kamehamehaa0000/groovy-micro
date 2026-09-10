@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
-import { SpiralCoverArtBig, SvgArtworkSpiral } from '../Components/icons'
+import {
+  SpiralCoverArtBig,
+  SvgArtworkSpiral,
+  PlayIconSVG,
+  PauseIconSVG,
+  HeartIconSVG,
+  DiscIconSVG,
+} from '../components/icons'
+import { catalogApi, formatDuration } from '../lib/catalog.api'
+import type { Album, EnrichedSong } from '../types/catalog'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -76,6 +86,124 @@ const SAMPLE_TRACKS: TrackItem[] = [
 function HomeComponent() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
 
+  const [liveAlbums, setLiveAlbums] = useState<
+    (Album & { artistStageName?: string; artistSlug?: string })[]
+  >([])
+  const [liveSongs, setLiveSongs] = useState<EnrichedSong[]>([])
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(true)
+
+  // Audio Playback
+  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+    setIsLoadingCatalog(true)
+
+    Promise.all([
+      catalogApi.searchAlbums({ limit: 6 }).catch(() => null),
+      catalogApi.searchSongs({ orderBy: 'plays', limit: 8 }).catch(() => null),
+    ])
+      .then(([albumRes, songRes]) => {
+        if (!isMounted) return
+        if (albumRes?.data) setLiveAlbums(albumRes.data)
+        if (songRes?.data) setLiveSongs(songRes.data)
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingCatalog(false)
+      })
+
+    return () => {
+      isMounted = false
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.src = ''
+      }
+    }
+  }, [])
+
+  const handlePlaySong = (song: EnrichedSong) => {
+    if (!song.audioUrl) {
+      alert('Audio stream for this master track is currently processing.')
+      return
+    }
+
+    if (playingSongId === song.id) {
+      if (isPlaying) {
+        audioRef.current?.pause()
+        setIsPlaying(false)
+      } else {
+        audioRef.current?.play()
+        setIsPlaying(true)
+      }
+      return
+    }
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio()
+      audioRef.current.onended = () => {
+        setIsPlaying(false)
+      }
+      audioRef.current.onerror = () => {
+        setIsPlaying(false)
+        alert('Playback error. Cloudflare R2 audio may still be syncing.')
+      }
+    }
+
+    audioRef.current.src = song.audioUrl
+    audioRef.current
+      .play()
+      .then(() => {
+        setPlayingSongId(song.id)
+        setIsPlaying(true)
+      })
+      .catch((err) => {
+        console.error('Playback error:', err)
+        setIsPlaying(false)
+      })
+  }
+
+  const handleToggleTrackLike = async (track: EnrichedSong) => {
+    if (!isAuthenticated) return
+
+    const prevLiked = !!track.isLiked
+    const prevCount = track.likesCount
+
+    setLiveSongs((prev) =>
+      prev.map((t) =>
+        t.id === track.id
+          ? {
+              ...t,
+              isLiked: !prevLiked,
+              likesCount: prevLiked
+                ? Math.max(0, prevCount - 1)
+                : prevCount + 1,
+            }
+          : t,
+      ),
+    )
+
+    try {
+      const res = await catalogApi.toggleSongLike(track.id)
+      setLiveSongs((prev) =>
+        prev.map((t) =>
+          t.id === track.id
+            ? { ...t, isLiked: res.liked, likesCount: res.likesCount }
+            : t,
+        ),
+      )
+    } catch {
+      setLiveSongs((prev) =>
+        prev.map((t) =>
+          t.id === track.id
+            ? { ...t, isLiked: prevLiked, likesCount: prevCount }
+            : t,
+        ),
+      )
+    }
+  }
+
   return (
     <div className="space-y-10">
       {/* Editorial Hero Section */}
@@ -122,15 +250,15 @@ function HomeComponent() {
         <SvgArtworkSpiral />
       </section>
 
-      {/* Featured Atelier Catalog Audio Records Row */}
+      {/* Featured Master Releases Row */}
       <section className="space-y-4">
         <div className="flex justify-between items-baseline border-b border-line pb-3">
           <div className="flex items-center gap-3">
             <h2 className="font-serif italic font-medium text-xl text-ink">
-              Curated Master Tapes
+              Featured Master Releases
             </h2>
             <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              Lossless 48kHz / 24-Bit
+              Lossless Master Architecture
             </span>
           </div>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
@@ -138,29 +266,70 @@ function HomeComponent() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {SAMPLE_TRACKS.slice(0, 3).map((track, i) => (
-            <div
-              key={track.id}
-              className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group cursor-pointer"
-            >
-              <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
-                <SpiralCoverArtBig i={i} />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
-                    Inspect Master
-                  </span>
+        {isLoadingCatalog ? (
+          <div className="py-8 text-center font-mono text-xs text-ink-soft animate-pulse">
+            Loading master releases...
+          </div>
+        ) : liveAlbums.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {liveAlbums.slice(0, 3).map((album) => (
+              <Link
+                key={album.id}
+                to="/albums/$idOrSlug"
+                params={{ idOrSlug: album.slug }}
+                className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group text-inherit no-underline"
+              >
+                <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
+                  {album.coverImageUrl ? (
+                    <img
+                      src={album.coverImageUrl}
+                      alt={album.title}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                    />
+                  ) : (
+                    <DiscIconSVG className="w-12 h-12 text-ink-soft/40" />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
+                      Inspect Master
+                    </span>
+                  </div>
+                </div>
+                <div className="font-serif font-medium text-sm text-ink mb-0.5 truncate group-hover:text-blue transition-colors">
+                  {album.title}
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft truncate">
+                  {album.artistStageName || 'Groovy Artist'} &bull;{' '}
+                  {album.albumType}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {SAMPLE_TRACKS.slice(0, 3).map((track, i) => (
+              <div
+                key={track.id}
+                className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group cursor-pointer"
+              >
+                <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
+                  <SpiralCoverArtBig i={i} />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
+                      Inspect Master
+                    </span>
+                  </div>
+                </div>
+                <div className="font-serif font-medium text-sm text-ink mb-0.5">
+                  {track.title}
+                </div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
+                  {track.format} &bull; {track.tag}
                 </div>
               </div>
-              <div className="font-serif font-medium text-sm text-ink mb-0.5">
-                {track.title}
-              </div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
-                {track.format} &bull; {track.tag}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Master Tapes Correspondence Slip */}
@@ -170,41 +339,121 @@ function HomeComponent() {
             Correspondence Slip &bull; Master Recordings
           </h2>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
-            6 Master Works
+            {liveSongs.length > 0
+              ? `${liveSongs.length} Master Works`
+              : '6 Showcase Works'}
           </span>
         </div>
 
-        <div className="border border-line bg-panel divide-y divide-line/60">
-          {SAMPLE_TRACKS.map((t, idx) => (
-            <div
-              key={t.id}
-              className="px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group cursor-pointer"
-            >
-              <div className="flex items-center gap-4 min-w-0">
-                <span className="font-mono text-[10px] text-ink-soft/70 w-5">
-                  0{idx + 1}
-                </span>
-                <div className="truncate">
-                  <div className="font-serif font-medium text-sm text-ink group-hover:text-blue transition-colors truncate">
-                    {t.title}
+        {liveSongs.length > 0 ? (
+          <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
+            {liveSongs.map((t, idx) => {
+              const isCurrentPlaying = playingSongId === t.id && isPlaying
+
+              return (
+                <div
+                  key={t.id}
+                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
+                    isCurrentPlaying ? 'bg-blue/5' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                    <button
+                      type="button"
+                      onClick={() => handlePlaySong(t)}
+                      aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
+                      className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
+                    >
+                      {isCurrentPlaying ? (
+                        <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
+                      ) : (
+                        <span className="font-mono text-[10px] group-hover:hidden">
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                      )}
+                      {!isCurrentPlaying && (
+                        <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                      )}
+                    </button>
+
+                    <div className="truncate">
+                      <div
+                        className={`font-serif font-medium text-sm truncate ${
+                          isCurrentPlaying ? 'text-blue' : 'text-ink'
+                        }`}
+                      >
+                        {t.title}
+                      </div>
+                      <div className="font-mono text-[10px] text-ink-soft truncate">
+                        {t.artistStageName || 'Groovy Artist'} &bull;{' '}
+                        {t.genre || 'Master Cut'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="font-mono text-[10px] text-ink-soft truncate">
-                    {t.artist} &bull; {t.collection}
+
+                  <div className="flex items-center gap-5 shrink-0 pl-3">
+                    {t.isExplicit && (
+                      <span className="font-mono text-[8px] px-1 border border-line text-ink-soft bg-canvas">
+                        E
+                      </span>
+                    )}
+
+                    <span className="font-mono text-[10.5px] text-ink-soft">
+                      {formatDuration(t.durationSeconds)}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTrackLike(t)}
+                      className="p-1 cursor-pointer"
+                    >
+                      <HeartIconSVG
+                        filled={!!t.isLiked}
+                        className={`w-3.5 h-3.5 ${
+                          t.isLiked
+                            ? 'text-red-500'
+                            : 'text-ink-soft/40 hover:text-ink'
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
-              </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="border border-line bg-panel divide-y divide-line/60">
+            {SAMPLE_TRACKS.map((t, idx) => (
+              <div
+                key={t.id}
+                className="px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center gap-4 min-w-0">
+                  <span className="font-mono text-[10px] text-ink-soft/70 w-5">
+                    0{idx + 1}
+                  </span>
+                  <div className="truncate">
+                    <div className="font-serif font-medium text-sm text-ink group-hover:text-blue transition-colors truncate">
+                      {t.title}
+                    </div>
+                    <div className="font-mono text-[10px] text-ink-soft truncate">
+                      {t.artist} &bull; {t.collection}
+                    </div>
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-5 shrink-0 pl-3">
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-ink-soft hidden sm:inline-block">
-                  {t.tag}
-                </span>
-                <span className="font-mono text-[10.5px] text-ink-soft">
-                  {t.duration}
-                </span>
+                <div className="flex items-center gap-5 shrink-0 pl-3">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-ink-soft hidden sm:inline-block">
+                    {t.tag}
+                  </span>
+                  <span className="font-mono text-[10.5px] text-ink-soft">
+                    {t.duration}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Session State & Entitlements Split */}

@@ -2,16 +2,43 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi, slugifyText } from '../lib/artists.api'
+import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
+import type { Album, Song, AlbumType } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
   UploadCloudSVG,
-} from '../Components/icons'
+  DiscIconSVG,
+  MusicIconSVG,
+  TrashIconSVG,
+  UndoIconSVG,
+  PlusIconSVG,
+} from '../components/icons'
+import {
+  ArtistCreditPicker,
+  type SelectedCredit,
+} from '../components/ArtistCreditPicker'
 
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
 })
+
+type StudioTab = 'releases' | 'trash' | 'profile' | 'verification'
+
+interface TrackDraft {
+  id: string
+  title: string
+  genre: string
+  durationSeconds: number
+  isExplicit: boolean
+  rawAudioKey?: string
+  audioUrl?: string
+  audioFileName?: string
+  coverImageUrl?: string
+  isUploadingAudio?: boolean
+  credits: SelectedCredit[]
+}
 
 function StudioComponent() {
   const navigate = useNavigate()
@@ -19,8 +46,19 @@ function StudioComponent() {
 
   const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
+  const [activeTab, setActiveTab] = useState<StudioTab>('releases')
   const [errorNotice, setErrorNotice] = useState<string | null>(null)
   const [successNotice, setSuccessNotice] = useState<string | null>(null)
+
+  // Catalog Releases State
+  const [albums, setAlbums] = useState<Album[]>([])
+  const [standaloneSongs, setStandaloneSongs] = useState<Song[]>([])
+  const [isLoadingReleases, setIsLoadingReleases] = useState(false)
+
+  // Trash Releases State
+  const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
+  const [trashSongs, setTrashSongs] = useState<Song[]>([])
+  const [isLoadingTrash, setIsLoadingTrash] = useState(false)
 
   // Upgrade Form State (for Listeners)
   const [stageName, setStageName] = useState('')
@@ -30,6 +68,37 @@ function StudioComponent() {
   const [website, setWebsite] = useState('')
   const [spotify, setSpotify] = useState('')
   const [isSubmittingUpgrade, setIsSubmittingUpgrade] = useState(false)
+
+  // Release Creation Modal State
+  const [isCreateReleaseOpen, setIsCreateReleaseOpen] = useState(false)
+  const [releaseTitle, setReleaseTitle] = useState('')
+  const [releaseType, setReleaseType] = useState<AlbumType>('ALBUM')
+  const [releaseDate, setReleaseDate] = useState(() =>
+    new Date().toISOString().split('T')[0],
+  )
+  const [releaseDescription, setReleaseDescription] = useState('')
+  const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [draftTracks, setDraftTracks] = useState<TrackDraft[]>([])
+  const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
+  const coverInputRef = useRef<HTMLInputElement>(null)
+
+  // Quick Standalone Track Modal State
+  const [isCreateTrackOpen, setIsCreateTrackOpen] = useState(false)
+  const [singleTrackTitle, setSingleTrackTitle] = useState('')
+  const [singleTrackGenre, setSingleTrackGenre] = useState('')
+  const [singleTrackDuration, setSingleTrackDuration] = useState(0)
+  const [singleTrackExplicit, setSingleTrackExplicit] = useState(false)
+  const [singleTrackAudioUrl, setSingleTrackAudioUrl] = useState('')
+  const [singleTrackAudioKey, setSingleTrackAudioKey] = useState('')
+  const [singleTrackAudioFileName, setSingleTrackAudioFileName] = useState('')
+  const [singleTrackCoverUrl, setSingleTrackCoverUrl] = useState('')
+  const [isUploadingSingleCover, setIsUploadingSingleCover] = useState(false)
+  const [isUploadingSingleAudio, setIsUploadingSingleAudio] = useState(false)
+  const [isSubmittingSingleTrack, setIsSubmittingSingleTrack] = useState(false)
+  const [singleTrackCredits, setSingleTrackCredits] = useState<SelectedCredit[]>([])
+  const singleAudioInputRef = useRef<HTMLInputElement>(null)
+  const singleCoverInputRef = useRef<HTMLInputElement>(null)
 
   // Banner Upload State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
@@ -52,6 +121,11 @@ function StudioComponent() {
   const [editWebsite, setEditWebsite] = useState('')
   const [editSpotify, setEditSpotify] = useState('')
   const [isSavingEdit, setIsSavingEdit] = useState(false)
+
+  // Expanded album tracks view in Studio
+  const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
+  const [albumTrackMap, setAlbumTrackMap] = useState<Record<string, Song[]>>({})
+  const [isLoadingAlbumTracks, setIsLoadingAlbumTracks] = useState(false)
 
   // Authentication check
   useEffect(() => {
@@ -85,7 +159,48 @@ function StudioComponent() {
     }
   }, [user])
 
-  // Clear notice after 4 seconds
+  // Load Releases for the artist
+  const loadReleases = async () => {
+    if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
+    setIsLoadingReleases(true)
+    try {
+      const res = await catalogApi.getStudioReleases(false)
+      setAlbums(res.albums)
+      // Standalone songs are songs with no albumId
+      setStandaloneSongs(res.songs.filter((s) => !s.albumId))
+    } catch (err: any) {
+      console.warn('Could not load releases:', err)
+    } finally {
+      setIsLoadingReleases(false)
+    }
+  }
+
+  // Load Trash items
+  const loadTrash = async () => {
+    if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
+    setIsLoadingTrash(true)
+    try {
+      const res = await catalogApi.getStudioReleases(true)
+      setTrashAlbums(res.albums)
+      setTrashSongs(res.songs)
+    } catch (err: any) {
+      console.warn('Could not load trash releases:', err)
+    } finally {
+      setIsLoadingTrash(false)
+    }
+  }
+
+  useEffect(() => {
+    if (artistProfile) {
+      if (activeTab === 'releases') {
+        loadReleases()
+      } else if (activeTab === 'trash') {
+        loadTrash()
+      }
+    }
+  }, [artistProfile, activeTab])
+
+  // Clear notice after 5 seconds
   useEffect(() => {
     if (successNotice || errorNotice) {
       const t = setTimeout(() => {
@@ -95,6 +210,364 @@ function StudioComponent() {
       return () => clearTimeout(t)
     }
   }, [successNotice, errorNotice])
+
+  // Toggle expand album tracks
+  const handleToggleAlbumExpand = async (albumId: string) => {
+    if (expandedAlbumId === albumId) {
+      setExpandedAlbumId(null)
+      return
+    }
+
+    setExpandedAlbumId(albumId)
+    if (!albumTrackMap[albumId]) {
+      setIsLoadingAlbumTracks(true)
+      try {
+        const fullAlbum = await catalogApi.getAlbum(albumId)
+        setAlbumTrackMap((prev) => ({
+          ...prev,
+          [albumId]: fullAlbum.tracks,
+        }))
+      } catch (err: any) {
+        setErrorNotice(err.message || 'Failed to load album tracks')
+      } finally {
+        setIsLoadingAlbumTracks(false)
+      }
+    }
+  }
+
+  // Detach track from album
+  const handleDetachTrack = async (songId: string, albumId: string) => {
+    if (!confirm('Detach this track into an independent single/standalone cut?'))
+      return
+
+    try {
+      await catalogApi.updateSong(songId, { albumId: null })
+      setSuccessNotice('Track detached from album into standalone single.')
+      // Refresh album details and releases
+      const fullAlbum = await catalogApi.getAlbum(albumId)
+      setAlbumTrackMap((prev) => ({
+        ...prev,
+        [albumId]: fullAlbum.tracks,
+      }))
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to detach track')
+    }
+  }
+
+  // Soft delete album
+  const handleDeleteAlbum = async (albumId: string) => {
+    if (
+      !confirm(
+        'Move this release and all its cuts to trash? (Available for 30-day restore)',
+      )
+    )
+      return
+
+    try {
+      await catalogApi.deleteAlbum(albumId)
+      setSuccessNotice(
+        'Release moved to 30-day trash. You can restore it anytime within 30 days.',
+      )
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to archive release')
+    }
+  }
+
+  // Soft delete standalone song
+  const handleDeleteSong = async (songId: string) => {
+    if (
+      !confirm(
+        'Move this master track to trash? (Available for 30-day restore)',
+      )
+    )
+      return
+
+    try {
+      await catalogApi.deleteSong(songId)
+      setSuccessNotice('Track moved to 30-day trash.')
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to archive track')
+    }
+  }
+
+  // Restore album from trash
+  const handleRestoreAlbum = async (albumId: string) => {
+    try {
+      await catalogApi.restoreAlbum(albumId)
+      setSuccessNotice('Release restored to active catalog.')
+      loadTrash()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to restore release')
+    }
+  }
+
+  // Restore song from trash
+  const handleRestoreSong = async (songId: string) => {
+    try {
+      await catalogApi.restoreSong(songId)
+      setSuccessNotice('Master track restored to active catalog.')
+      loadTrash()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to restore track')
+    }
+  }
+
+  // Cover image upload for new release
+  const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingCover(true)
+    setErrorNotice(null)
+
+    try {
+      const publicUrl = await catalogApi.uploadAlbumCover(file)
+      setReleaseCoverUrl(publicUrl)
+      setSuccessNotice('Cover art uploaded to Cloudflare R2.')
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload cover art')
+    } finally {
+      setIsUploadingCover(false)
+    }
+  }
+
+  // Audio file select for track draft in new release
+  const handleDraftAudioSelect = async (
+    draftId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setDraftTracks((prev) =>
+      prev.map((t) => (t.id === draftId ? { ...t, isUploadingAudio: true } : t)),
+    )
+    setErrorNotice(null)
+
+    try {
+      const { storageKey, publicUrl, durationSeconds } =
+        await catalogApi.uploadAudioRaw(file)
+
+      // Auto-populate title if empty
+      const cleanName = file.name.replace(/\.[^/.]+$/, '')
+
+      setDraftTracks((prev) =>
+        prev.map((t) =>
+          t.id === draftId
+            ? {
+                ...t,
+                rawAudioKey: storageKey,
+                audioUrl: publicUrl,
+                audioFileName: file.name,
+                durationSeconds: durationSeconds || t.durationSeconds,
+                title: t.title.trim() ? t.title : cleanName,
+                isUploadingAudio: false,
+              }
+            : t,
+        ),
+      )
+      setSuccessNotice(`Master audio "${file.name}" uploaded to R2.`)
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload audio cut')
+      setDraftTracks((prev) =>
+        prev.map((t) =>
+          t.id === draftId ? { ...t, isUploadingAudio: false } : t,
+        ),
+      )
+    }
+  }
+
+  const handleResetDraftAudio = (draftId: string) => {
+    setDraftTracks((prev) =>
+      prev.map((t) =>
+        t.id === draftId
+          ? {
+              ...t,
+              rawAudioKey: undefined,
+              audioUrl: undefined,
+              audioFileName: undefined,
+              durationSeconds: 0,
+            }
+          : t,
+      ),
+    )
+  }
+
+  // Create Release Form Submit
+  const handlePublishRelease = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!releaseTitle.trim()) {
+      setErrorNotice('Please provide a release title')
+      return
+    }
+    if (!releaseCoverUrl) {
+      setErrorNotice('Please upload a cover art image')
+      return
+    }
+
+    setIsSubmittingRelease(true)
+    setErrorNotice(null)
+
+    try {
+      const tracksPayload = draftTracks.map((t, idx) => ({
+        title: t.title.trim() || `Cut ${idx + 1}`,
+        genre: t.genre.trim() || undefined,
+        durationSeconds: t.durationSeconds,
+        trackNumber: idx + 1,
+        discNumber: 1,
+        isExplicit: t.isExplicit,
+        rawAudioKey: t.rawAudioKey,
+        audioUrl: t.audioUrl,
+        coverImageUrl: t.coverImageUrl,
+        credits:
+          t.credits && t.credits.length > 0
+            ? t.credits.map((c) => ({
+                artistId: c.artistId,
+                role: c.role,
+              }))
+            : undefined,
+      }))
+
+      await catalogApi.createAlbum({
+        title: releaseTitle.trim(),
+        albumType: releaseType,
+        coverImageUrl: releaseCoverUrl,
+        description: releaseDescription.trim() || undefined,
+        releaseDate,
+        tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
+      })
+
+      setSuccessNotice(
+        `🎉 Master release "${releaseTitle}" published successfully!`,
+      )
+      setIsCreateReleaseOpen(false)
+      // Reset form
+      setReleaseTitle('')
+      setReleaseType('ALBUM')
+      setReleaseDescription('')
+      setReleaseCoverUrl('')
+      setDraftTracks([])
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to create release')
+    } finally {
+      setIsSubmittingRelease(false)
+    }
+  }
+
+  // Cover image upload for standalone single
+  const handleSingleCoverSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingSingleCover(true)
+    setErrorNotice(null)
+
+    try {
+      const publicUrl = await catalogApi.uploadAlbumCover(file)
+      setSingleTrackCoverUrl(publicUrl)
+      setSuccessNotice('Single cover art uploaded to Cloudflare R2.')
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload single cover art')
+    } finally {
+      setIsUploadingSingleCover(false)
+    }
+  }
+
+  // Standalone Single Audio Upload
+  const handleSingleAudioSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingSingleAudio(true)
+    setErrorNotice(null)
+
+    try {
+      const { storageKey, publicUrl, durationSeconds } =
+        await catalogApi.uploadAudioRaw(file)
+      setSingleTrackAudioKey(storageKey)
+      setSingleTrackAudioUrl(publicUrl)
+      setSingleTrackAudioFileName(file.name)
+      setSingleTrackDuration(durationSeconds)
+      if (!singleTrackTitle.trim()) {
+        setSingleTrackTitle(file.name.replace(/\.[^/.]+$/, ''))
+      }
+      setSuccessNotice(`Audio master "${file.name}" added successfully.`)
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload track')
+    } finally {
+      setIsUploadingSingleAudio(false)
+    }
+  }
+
+  const handleResetSingleAudio = () => {
+    setSingleTrackAudioKey('')
+    setSingleTrackAudioUrl('')
+    setSingleTrackAudioFileName('')
+    setSingleTrackDuration(0)
+    if (singleAudioInputRef.current) {
+      singleAudioInputRef.current.value = ''
+    }
+  }
+
+  // Create Standalone Song Submit
+  const handlePublishSingleTrack = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!singleTrackTitle.trim()) {
+      setErrorNotice('Please provide a track title')
+      return
+    }
+
+    setIsSubmittingSingleTrack(true)
+    setErrorNotice(null)
+
+    try {
+      await catalogApi.createSong({
+        title: singleTrackTitle.trim(),
+        albumId: null, // Standalone single cut
+        genre: singleTrackGenre.trim() || undefined,
+        durationSeconds: singleTrackDuration,
+        isExplicit: singleTrackExplicit,
+        rawAudioKey: singleTrackAudioKey || undefined,
+        audioUrl: singleTrackAudioUrl || undefined,
+        coverImageUrl: singleTrackCoverUrl || undefined,
+        credits:
+          singleTrackCredits.length > 0
+            ? singleTrackCredits.map((c) => ({
+                artistId: c.artistId,
+                role: c.role,
+              }))
+            : undefined,
+      })
+
+      setSuccessNotice(
+        `Master cut "${singleTrackTitle}" created as standalone track.`,
+      )
+      setIsCreateTrackOpen(false)
+      setSingleTrackTitle('')
+      setSingleTrackGenre('')
+      setSingleTrackDuration(0)
+      setSingleTrackAudioUrl('')
+      setSingleTrackAudioKey('')
+      setSingleTrackAudioFileName('')
+      setSingleTrackCoverUrl('')
+      setSingleTrackCredits([])
+      if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
+      if (singleCoverInputRef.current) singleCoverInputRef.current.value = ''
+      loadReleases()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to create standalone track')
+    } finally {
+      setIsSubmittingSingleTrack(false)
+    }
+  }
 
   if (isAuthLoading || (user?.role === 'ARTIST' && isLoadingProfile)) {
     return (
@@ -175,7 +648,6 @@ function StudioComponent() {
 
         <form onSubmit={handleInstantUpgrade} className="flex flex-col gap-6">
           <div className="p-6 border border-line bg-panel flex flex-col gap-5 shadow-2xs">
-            {/* Stage Name */}
             <div>
               <label className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink block mb-2">
                 Stage / Ensemble Name <span className="text-red-500">*</span>
@@ -190,7 +662,6 @@ function StudioComponent() {
               />
             </div>
 
-            {/* Vanity Slug & Live URL Preview */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink">
@@ -215,7 +686,6 @@ function StudioComponent() {
               </div>
             </div>
 
-            {/* Bio */}
             <div>
               <label className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink block mb-2">
                 Artist Biography
@@ -229,7 +699,6 @@ function StudioComponent() {
               />
             </div>
 
-            {/* Social Links */}
             <div className="pt-4 border-t border-line-soft">
               <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-soft block mb-3">
                 Official Channels (Optional)
@@ -275,7 +744,6 @@ function StudioComponent() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmittingUpgrade}
@@ -437,469 +905,1424 @@ function StudioComponent() {
         </div>
       </div>
 
-      {/* Studio Telemetry Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <div className="p-5 border border-line bg-panel">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block">
-            Monthly Listeners
-          </span>
-          <span className="font-serif italic text-2xl text-ink mt-1 block">
-            {artistProfile.monthlyListeners.toLocaleString()}
-          </span>
-        </div>
-        <div className="p-5 border border-line bg-panel">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block">
-            Total Followers
-          </span>
-          <span className="font-serif italic text-2xl text-ink mt-1 block">
-            {(artistProfile.followersCount ?? 0).toLocaleString()}
-          </span>
-        </div>
-        <div className="p-5 border border-line bg-panel">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block">
-            Verification Status
-          </span>
-          <div className="mt-1 flex items-center gap-2">
-            <span
-              className={`font-mono text-xs uppercase tracking-[0.12em] font-semibold ${
-                artistProfile.verificationStatus === 'VERIFIED'
-                  ? 'text-blue'
-                  : artistProfile.verificationStatus === 'PENDING'
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : artistProfile.verificationStatus === 'REJECTED'
-                      ? 'text-red-500'
-                      : 'text-ink-soft'
-              }`}
-            >
-              {artistProfile.verificationStatus}
-            </span>
-            {artistProfile.verified && (
-              <VerifiedBadgeSVG className="w-4 h-4 text-blue" />
-            )}
-          </div>
-        </div>
+      {/* Studio Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-line pb-px mb-8 font-mono text-xs uppercase tracking-[0.14em] overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('releases')}
+          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === 'releases'
+              ? 'border-blue text-ink font-semibold'
+              : 'border-transparent text-ink-soft hover:text-ink'
+          }`}
+        >
+          Catalog & Releases ({albums.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('trash')}
+          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === 'trash'
+              ? 'border-blue text-ink font-semibold'
+              : 'border-transparent text-ink-soft hover:text-ink'
+          }`}
+        >
+          30-Day Trash ({trashAlbums.length + trashSongs.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === 'profile'
+              ? 'border-blue text-ink font-semibold'
+              : 'border-transparent text-ink-soft hover:text-ink'
+          }`}
+        >
+          Profile & Branding
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('verification')}
+          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === 'verification'
+              ? 'border-blue text-ink font-semibold'
+              : 'border-transparent text-ink-soft hover:text-ink'
+          }`}
+        >
+          Verification Desk
+        </button>
       </div>
 
       {/* ========================================================================= */}
-      {/* BANNER CUSTOMIZER (CLOUDFLARE R2) */}
+      {/* TAB 1: CATALOG & RELEASES */}
       {/* ========================================================================= */}
-      <div className="mb-12 p-6 border border-line bg-panel shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-serif italic text-xl text-ink">
-              Artist Profile Banner
-            </h2>
-            <p className="font-sans text-xs text-ink-soft mt-0.5">
-              High-resolution cover displayed across your public artist page
-              (stored on Cloudflare R2).
-            </p>
-          </div>
-
-          <button
-            type="button"
-            disabled={isUploadingBanner}
-            onClick={() => bannerInputRef.current?.click()}
-            className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
-          >
-            <UploadCloudSVG className="w-4 h-4" />
-            <span>
-              {isUploadingBanner ? 'Uploading to R2...' : 'Upload Banner'}
-            </span>
-          </button>
-          <input
-            ref={bannerInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/avif"
-            onChange={handleBannerSelect}
-            className="hidden"
-          />
-        </div>
-
-        {/* Banner Preview Area */}
-        <div className="w-full h-44 sm:h-56 bg-canvas-deep border border-line overflow-hidden relative">
-          {artistProfile.bannerUrl ? (
-            <img
-              src={artistProfile.bannerUrl}
-              alt="Artist banner"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-ink-soft font-mono text-xs">
-              <UploadCloudSVG className="w-8 h-8 opacity-40 mb-2" />
-              <span>No banner uploaded yet</span>
-            </div>
-          )}
-          {isUploadingBanner && (
-            <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-xs text-ink animate-pulse">
-              Transferring asset to Cloudflare R2 storage...
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* IDENTITY & DETAILS EDITOR */}
-      {/* ========================================================================= */}
-      <div className="mb-12 p-6 border border-line bg-panel shadow-2xs">
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-line-soft">
-          <div>
-            <h2 className="font-serif italic text-xl text-ink">
-              Identity & Presentation
-            </h2>
-            <p className="font-sans text-xs text-ink-soft mt-0.5">
-              Customize your public stage name, biography, and external links.
-            </p>
-          </div>
-
-          {!isEditingProfile && (
-            <button
-              type="button"
-              onClick={() => setIsEditingProfile(true)}
-              className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer"
-            >
-              Edit Details
-            </button>
-          )}
-        </div>
-
-        {isEditingProfile ? (
-          <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                  Stage Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editStageName}
-                  onChange={(e) => setEditStageName(e.target.value)}
-                  className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-
-              <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                  Vanity Slug
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editSlug}
-                  onChange={(e) => setEditSlug(e.target.value)}
-                  className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-            </div>
-
+      {activeTab === 'releases' && (
+        <div className="space-y-10">
+          {/* Top Actions & Overview */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                Biography
-              </label>
-              <textarea
-                rows={4}
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-                className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
-                  Instagram
-                </label>
-                <input
-                  type="url"
-                  value={editInstagram}
-                  onChange={(e) => setEditInstagram(e.target.value)}
-                  placeholder="https://instagram.com/..."
-                  className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
-                />
-              </div>
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={editWebsite}
-                  onChange={(e) => setEditWebsite(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
-                />
-              </div>
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
-                  Spotify
-                </label>
-                <input
-                  type="url"
-                  value={editSpotify}
-                  onChange={(e) => setEditSpotify(e.target.value)}
-                  placeholder="https://open.spotify.com/..."
-                  className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={isSavingEdit}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
-              >
-                {isSavingEdit ? 'Saving...' : 'Save Profile Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditingProfile(false)}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex flex-col gap-4 text-xs font-sans text-ink">
-            <div>
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-1">
-                Biography
-              </span>
-              <p className="leading-relaxed whitespace-pre-line text-ink-soft">
-                {artistProfile.bio || 'No biography set yet.'}
+              <h2 className="font-serif italic text-2xl text-ink">
+                Master Releases & Recordings
+              </h2>
+              <p className="font-sans text-xs text-ink-soft mt-0.5">
+                Manage your studio master tapes, published albums, and
+                standalone singles.
               </p>
             </div>
 
-            {artistProfile.socialLinks &&
-              Object.keys(artistProfile.socialLinks).length > 0 && (
-                <div>
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-2">
-                    Social Channels
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(artistProfile.socialLinks).map(([k, v]) => (
-                      <a
-                        key={k}
-                        href={v}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-[10px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink capitalize inline-flex items-center gap-1"
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCreateTrackOpen(true)
+                }}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-3.5 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <PlusIconSVG className="w-3.5 h-3.5" />
+                <span>New Cut (Single)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftTracks([
+                    {
+                      id: crypto.randomUUID(),
+                      title: '',
+                      genre: '',
+                      durationSeconds: 0,
+                      isExplicit: false,
+                      credits: [],
+                    },
+                  ])
+                  setIsCreateReleaseOpen(true)
+                }}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-2xs font-semibold"
+              >
+                <PlusIconSVG className="w-3.5 h-3.5" />
+                <span>✦ New Release</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Create Release Modal / Drawer */}
+          {isCreateReleaseOpen && (
+            <div className="p-6 border-2 border-line bg-panel shadow-md space-y-6">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="font-serif italic text-xl text-ink">
+                  Publish New Master Release
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateReleaseOpen(false)}
+                  className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <form onSubmit={handlePublishRelease} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <div className="sm:col-span-2">
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Release Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={releaseTitle}
+                      onChange={(e) => setReleaseTitle(e.target.value)}
+                      placeholder="e.g. Kind of Blue, Rue de Sèvres Sessions"
+                      className="w-full font-serif italic text-base py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Release Type
+                    </label>
+                    <select
+                      value={releaseType}
+                      onChange={(e) =>
+                        setReleaseType(e.target.value as AlbumType)
+                      }
+                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    >
+                      <option value="ALBUM">Album</option>
+                      <option value="LP">LP (Long Play)</option>
+                      <option value="EP">EP (Extended Play)</option>
+                      <option value="SINGLE">Single</option>
+                      <option value="MIXTAPE">Mixtape</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Release Date
+                    </label>
+                    <input
+                      type="date"
+                      value={releaseDate}
+                      onChange={(e) => setReleaseDate(e.target.value)}
+                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Cover Art (Cloudflare R2){' '}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {releaseCoverUrl ? (
+                        <div className="w-12 h-12 border border-line shrink-0 overflow-hidden">
+                          <img
+                            src={releaseCoverUrl}
+                            alt="Cover preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={isUploadingCover}
+                        onClick={() => coverInputRef.current?.click()}
+                        className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
                       >
-                        <span>{k}</span>
-                        <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
-                      </a>
+                        {isUploadingCover
+                          ? 'Uploading...'
+                          : releaseCoverUrl
+                            ? 'Replace Cover'
+                            : 'Upload Cover Image'}
+                      </button>
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverSelect}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Liner Notes & Description
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={releaseDescription}
+                    onChange={(e) => setReleaseDescription(e.target.value)}
+                    placeholder="Recording location, inspiration, gear, or credits..."
+                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
+                  />
+                </div>
+
+                {/* Tracks Builder */}
+                <div className="pt-4 border-t border-line-soft space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink">
+                      Master Cuts / Tracklist ({draftTracks.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraftTracks([
+                          ...draftTracks,
+                          {
+                            id: crypto.randomUUID(),
+                            title: '',
+                            genre: '',
+                            durationSeconds: 0,
+                            isExplicit: false,
+                            credits: [],
+                          },
+                        ])
+                      }
+                      className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
+                    >
+                      + Add Cut
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {draftTracks.map((draft, idx) => (
+                      <div
+                        key={draft.id}
+                        className="p-3.5 border border-line bg-canvas space-y-3"
+                      >
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                          <span className="font-mono text-xs text-ink-soft w-6">
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                            <input
+                              type="text"
+                              required
+                              placeholder="Cut Title"
+                              value={draft.title}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                setDraftTracks((prev) =>
+                                  prev.map((t) =>
+                                    t.id === draft.id ? { ...t, title: val } : t,
+                                  ),
+                                )
+                              }}
+                              className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                            />
+
+                            <input
+                              type="text"
+                              placeholder="Genre (e.g. Jazz)"
+                              value={draft.genre}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                setDraftTracks((prev) =>
+                                  prev.map((t) =>
+                                    t.id === draft.id ? { ...t, genre: val } : t,
+                                  ),
+                                )
+                              }}
+                              className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                            />
+
+                            <div className="flex items-center gap-2">
+                              <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={draft.isExplicit}
+                                  onChange={(e) => {
+                                    const val = e.target.checked
+                                    setDraftTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === draft.id
+                                          ? { ...t, isExplicit: val }
+                                          : t,
+                                      ),
+                                    )
+                                  }}
+                                />
+                                <span>Explicit</span>
+                              </label>
+
+                              {draft.durationSeconds > 0 && (
+                                <span className="font-mono text-[10px] text-ink-soft ml-auto">
+                                  {formatDuration(draft.durationSeconds)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Audio Upload Input for this track */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {draft.audioUrl || draft.rawAudioKey ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-1 border border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300 flex items-center gap-1">
+                                  <span>✓</span>
+                                  <span>{formatDuration(draft.durationSeconds)}</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                                  title="Master audio attached. Use reset to replace."
+                                >
+                                  Attached
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleResetDraftAudio(draft.id)}
+                                  className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
+                                  title="Reset audio file for this cut"
+                                >
+                                  ✕ Reset
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line bg-panel hover:border-ink text-ink cursor-pointer">
+                                <span>
+                                  {draft.isUploadingAudio
+                                    ? 'Uploading...'
+                                    : 'Select Audio (FLAC/MP3)'}
+                                </span>
+                                <input
+                                  type="file"
+                                  accept="audio/*"
+                                  disabled={draft.isUploadingAudio}
+                                  onChange={(e) =>
+                                    handleDraftAudioSelect(draft.id, e)
+                                  }
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+
+                            {draftTracks.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDraftTracks(
+                                    draftTracks.filter((t) => t.id !== draft.id),
+                                  )
+                                }
+                                className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                                title="Remove Cut"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Collaborator & Credit Attribution */}
+                        <div className="pt-2 border-t border-line-soft/60">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                              Collaborators & Credits (Featured / Producers / Composers)
+                            </span>
+                          </div>
+                          <ArtistCreditPicker
+                            credits={draft.credits || []}
+                            onChange={(newCredits) =>
+                              setDraftTracks((prev) =>
+                                prev.map((t) =>
+                                  t.id === draft.id ? { ...t, credits: newCredits } : t,
+                                ),
+                              )
+                            }
+                            currentArtistId={artistProfile.id}
+                          />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-              )}
-          </div>
-        )}
-      </div>
 
-      {/* ========================================================================= */}
-      {/* VERIFICATION DESK APPLICATION */}
-      {/* ========================================================================= */}
-      <div className="p-6 border border-line bg-panel shadow-2xs">
-        <div className="mb-6 pb-4 border-b border-line-soft">
-          <h2 className="font-serif italic text-xl text-ink">
-            Creator Verification
-          </h2>
-          <p className="font-sans text-xs text-ink-soft mt-0.5">
-            Verified badges certify official recording artists and unlocks
-            prominent catalog placement.
-          </p>
-        </div>
+                <div className="flex items-center gap-3 pt-3">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingRelease}
+                    className="font-mono text-xs uppercase tracking-[0.16em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                  >
+                    {isSubmittingRelease
+                      ? 'Publishing Master Release...'
+                      : 'Publish Master Release'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateReleaseOpen(false)}
+                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
-        {artistProfile.verificationStatus === 'VERIFIED' ? (
-          <div className="p-6 border border-blue/20 bg-blue/5 flex items-center gap-4">
-            <VerifiedBadgeSVG className="w-8 h-8 text-blue shrink-0" />
-            <div>
-              <h3 className="font-serif italic text-base text-ink">
-                Officially Verified Artist
-              </h3>
-              <p className="font-sans text-xs text-ink-soft mt-0.5">
-                Your artist profile has been verified by the administration
-                desk. The verified emblem is active on your public profile and
-                catalog releases.
-              </p>
+          {/* Create Standalone Track Modal */}
+          {isCreateTrackOpen && (
+            <div className="p-6 border-2 border-line bg-panel shadow-md space-y-5">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="font-serif italic text-xl text-ink">
+                  Publish Standalone Master Cut
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateTrackOpen(false)}
+                  className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <form onSubmit={handlePublishSingleTrack} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                      Cut Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={singleTrackTitle}
+                      onChange={(e) => setSingleTrackTitle(e.target.value)}
+                      placeholder="e.g. Autumn in Saint-Germain"
+                      className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                      Genre
+                    </label>
+                    <input
+                      type="text"
+                      value={singleTrackGenre}
+                      onChange={(e) => setSingleTrackGenre(e.target.value)}
+                      placeholder="e.g. Ambient, Classical"
+                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-line-soft">
+                  <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1.5">
+                    Collaborators & Credits (Featured / Producers / Composers)
+                  </span>
+                  <ArtistCreditPicker
+                    credits={singleTrackCredits}
+                    onChange={setSingleTrackCredits}
+                    currentArtistId={artistProfile.id}
+                  />
+                </div>
+
+                {/* Standalone Cut Cover Art */}
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                    Master Cover Art (Single Artwork)
+                  </label>
+                  <p className="font-sans text-xs text-ink-soft mb-2">
+                    Square artwork (1:1), minimum 1400x1400px recommended (JPEG, PNG, WebP).
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
+                      {singleTrackCoverUrl ? (
+                        <img
+                          src={singleTrackCoverUrl}
+                          alt="Single Cover Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <DiscIconSVG className="w-8 h-8 text-ink-soft/40" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                          <span>
+                            {isUploadingSingleCover
+                              ? 'Uploading to R2...'
+                              : singleTrackCoverUrl
+                                ? 'Replace Cover Art'
+                                : 'Upload Cover Art'}
+                          </span>
+                          <input
+                            ref={singleCoverInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={isUploadingSingleCover}
+                            onChange={handleSingleCoverSelect}
+                            className="hidden"
+                          />
+                        </label>
+                        {singleTrackCoverUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSingleTrackCoverUrl('')
+                              if (singleCoverInputRef.current) {
+                                singleCoverInputRef.current.value = ''
+                              }
+                            }}
+                            className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <span className="font-mono text-[9px] text-ink-soft">
+                        {singleTrackCoverUrl
+                          ? '✓ Artwork attached to master recording'
+                          : 'No artwork chosen (optional)'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Master Audio Section */}
+                <div className="p-3.5 border border-line bg-canvas-deep/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink font-semibold">
+                      Master Audio Recording
+                    </span>
+                    <label className="font-mono text-xs uppercase tracking-wider text-ink-soft flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={singleTrackExplicit}
+                        onChange={(e) => setSingleTrackExplicit(e.target.checked)}
+                      />
+                      <span>Explicit Content</span>
+                    </label>
+                  </div>
+
+                  {singleTrackAudioKey || singleTrackAudioUrl ? (
+                    <div className="p-3 border border-green-500/40 bg-green-500/10 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-5 h-5 rounded-full bg-green-600 text-canvas flex items-center justify-center font-mono text-xs font-bold shrink-0">
+                          ✓
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-serif italic text-sm text-ink truncate">
+                            {singleTrackAudioFileName || singleTrackTitle || 'Master Audio Track'}
+                          </div>
+                          <div className="font-mono text-[9.5px] text-ink-soft">
+                            Audio file added successfully &bull; Duration: {formatDuration(singleTrackDuration)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled
+                          className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                          title="An audio master is already uploaded. Reset audio to choose another."
+                        >
+                          Audio Attached
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetSingleAudio}
+                          className="font-mono text-[9.5px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas cursor-pointer transition-colors"
+                          title="Remove uploaded audio and select a new file"
+                        >
+                          ✕ Reset Audio
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line bg-panel hover:border-ink text-ink cursor-pointer inline-flex items-center gap-2">
+                        <span>
+                          {isUploadingSingleAudio
+                            ? 'Uploading Master Audio to R2...'
+                            : 'Select Audio Master (FLAC/WAV/MP3)'}
+                        </span>
+                        <input
+                          ref={singleAudioInputRef}
+                          type="file"
+                          accept="audio/*"
+                          disabled={isUploadingSingleAudio}
+                          onChange={handleSingleAudioSelect}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="font-mono text-[9.5px] text-ink-soft">
+                        Lossless FLAC or 320kbps MP3
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-3">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingSingleTrack}
+                    className="font-mono text-xs uppercase tracking-[0.16em] py-2 px-5 bg-ink text-canvas hover:opacity-90 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingSingleTrack
+                      ? 'Creating...'
+                      : 'Publish Standalone Cut'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateTrackOpen(false)}
+                    className="font-mono text-xs uppercase tracking-[0.14em] py-2 px-3 border border-line text-ink-soft"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
-        ) : artistProfile.verificationStatus === 'PENDING' ? (
-          <div className="p-6 border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-              <h3 className="font-serif italic text-base text-ink">
-                Application Under Review
-              </h3>
-            </div>
-            <p className="font-sans text-xs text-ink-soft leading-relaxed">
-              Your verification application was received and is queued for
-              administrative audit. Proof links and official artist identities
-              are usually reviewed within 24-48 hours.
-            </p>
-            {artistProfile.verificationDetails?.message && (
-              <div className="mt-2 p-3 border border-line-soft bg-canvas/60 font-sans text-xs text-ink-soft italic">
-                "{artistProfile.verificationDetails.message}"
+          )}
+
+          {/* Releases List */}
+          <div className="space-y-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              Active Releases ({albums.length})
+            </h3>
+
+            {isLoadingReleases ? (
+              <div className="p-8 text-center font-mono text-xs text-ink-soft animate-pulse">
+                Querying studio releases...
+              </div>
+            ) : albums.length === 0 ? (
+              <div className="p-10 border border-dashed border-line bg-panel text-center">
+                <DiscIconSVG className="w-10 h-10 text-ink-soft/40 mx-auto mb-2" />
+                <p className="font-serif italic text-base text-ink">
+                  No active master releases yet
+                </p>
+                <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+                  Click "+ New Release" above to release your first album, EP or
+                  single.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {albums.map((album) => {
+                  const isExpanded = expandedAlbumId === album.id
+                  const tracks = albumTrackMap[album.id] || []
+
+                  return (
+                    <div
+                      key={album.id}
+                      className="border border-line bg-panel p-4 sm:p-5 shadow-2xs space-y-4"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden relative">
+                            {album.coverImageUrl ? (
+                              <img
+                                src={album.coverImageUrl}
+                                alt={album.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
+                                {album.albumType}
+                              </span>
+                              <span className="font-mono text-[10px] text-ink-soft">
+                                {album.releaseDate
+                                  ? new Date(
+                                      album.releaseDate,
+                                    ).toLocaleDateString()
+                                  : 'Recent'}
+                              </span>
+                            </div>
+                            <h4 className="font-serif italic text-lg text-ink truncate mt-0.5">
+                              {album.title}
+                            </h4>
+                            <div className="font-mono text-[10px] text-ink-soft">
+                              {album.totalTracks} cuts &bull;{' '}
+                              {formatDuration(album.totalDurationSeconds)}{' '}
+                              &bull; {album.likesCount} likes
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                          <Link
+                            to="/albums/$idOrSlug"
+                            params={{ idOrSlug: album.slug }}
+                            className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors flex items-center gap-1"
+                          >
+                            <span>View</span>
+                            <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAlbumExpand(album.id)}
+                            className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
+                          >
+                            {isExpanded ? 'Hide Cuts' : 'Inspect Cuts'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAlbum(album.id)}
+                            className="p-1.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                            title="Move to 30-Day Trash"
+                          >
+                            <TrashIconSVG className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Tracklist & Detach Feature */}
+                      {isExpanded && (
+                        <div className="pt-3 border-t border-line-soft space-y-2">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft block mb-2">
+                            Included Master Cuts ({tracks.length})
+                          </span>
+
+                          {isLoadingAlbumTracks && tracks.length === 0 ? (
+                            <div className="font-mono text-xs text-ink-soft animate-pulse">
+                              Loading tracks...
+                            </div>
+                          ) : tracks.length === 0 ? (
+                            <div className="font-sans text-xs text-ink-soft italic">
+                              No tracks in this album.
+                            </div>
+                          ) : (
+                            <div className="divide-y divide-line/40 border border-line-soft bg-canvas">
+                              {tracks.map((track, i) => (
+                                <div
+                                  key={track.id}
+                                  className="p-2.5 flex items-center justify-between text-xs gap-3"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className="font-mono text-[10px] text-ink-soft w-5">
+                                      {String(
+                                        track.trackNumber || i + 1,
+                                      ).padStart(2, '0')}
+                                    </span>
+                                    <span className="font-serif italic text-ink truncate">
+                                      {track.title}
+                                    </span>
+                                    {track.isExplicit && (
+                                      <span className="font-mono text-[8px] px-1 border border-line text-ink-soft">
+                                        E
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <span className="font-mono text-[10px] text-ink-soft">
+                                      {formatDuration(track.durationSeconds)}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDetachTrack(track.id, album.id)
+                                      }
+                                      className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-panel hover:border-ink text-ink-soft hover:text-ink cursor-pointer"
+                                      title="Detach from album and turn into standalone single"
+                                    >
+                                      Detach Cut
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDeleteSong(track.id)
+                                      }
+                                      className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                                      title="Trash track"
+                                    >
+                                      <TrashIconSVG className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
-        ) : artistProfile.verificationStatus === 'REJECTED' &&
-          !showResubmitForm ? (
-          <div className="p-6 border border-red-300/60 bg-red-50/40 dark:bg-red-950/10 flex flex-col gap-4">
-            <div>
-              <h3 className="font-serif italic text-base text-red-600 dark:text-red-400">
-                Application Needs Revision
+
+          {/* Standalone Tracks Section */}
+          {standaloneSongs.length > 0 && (
+            <div className="space-y-3 pt-6 border-t border-line-soft">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                Standalone Master Cuts & Singles ({standaloneSongs.length})
               </h3>
-              <p className="font-sans text-xs text-ink-soft mt-1">
-                The administrative review requested adjustments to your
-                verification materials:
-              </p>
-              <div className="mt-2 p-3 border border-red-200 dark:border-red-900/40 bg-canvas font-mono text-xs text-red-700 dark:text-red-300">
-                {artistProfile.rejectionReason ||
-                  'Please provide verifiable official links.'}
+
+              <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
+                {standaloneSongs.map((track) => (
+                  <div
+                    key={track.id}
+                    className="p-3.5 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {track.coverImageUrl ? (
+                        <img
+                          src={track.coverImageUrl}
+                          alt={track.title}
+                          className="w-9 h-9 object-cover border border-line shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 border border-line bg-canvas-deep flex items-center justify-center shrink-0">
+                          <MusicIconSVG className="w-4 h-4 text-ink-soft" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-serif italic text-sm text-ink truncate">
+                            {track.title}
+                          </span>
+                          {track.isExplicit && (
+                            <span className="font-mono text-[8px] px-1 border border-line text-ink-soft">
+                              E
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-mono text-[9px] text-ink-soft">
+                          {track.genre || 'Single'} &bull;{' '}
+                          {track.playsCount} plays
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-mono text-[10.5px] text-ink-soft">
+                        {formatDuration(track.durationSeconds)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSong(track.id)}
+                        className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                        title="Move to 30-Day Trash"
+                      >
+                        <TrashIconSVG className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
+        </div>
+      )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setShowResubmitForm(true)
-                setVerifyPitch(artistProfile.verificationDetails?.message || '')
-                if (artistProfile.verificationDetails?.links) {
-                  setVerifyLinks(artistProfile.verificationDetails.links)
-                }
-              }}
-              className="self-start font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              Update & Resubmit Application &rarr;
-            </button>
+      {/* ========================================================================= */}
+      {/* TAB 2: 30-DAY TRASH & ARCHIVE */}
+      {/* ========================================================================= */}
+      {activeTab === 'trash' && (
+        <div className="space-y-6">
+          <div className="p-4 border border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 font-sans text-xs flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] font-semibold">
+              30-Day Recovery Guarantee
+            </span>
+            <p className="leading-relaxed">
+              Archived releases and master recordings are retained in this safe
+              vault for 30 days before irreversible purging. You can restore
+              them to your active catalog at any time with a single click.
+            </p>
           </div>
-        ) : (
-          /* FORM: Apply or Resubmit */
-          <form
-            onSubmit={handleSubmitVerification}
-            className="flex flex-col gap-5"
-          >
-            <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                Verification Pitch / Artist Background{' '}
-                <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                required
-                rows={3}
-                value={verifyPitch}
-                onChange={(e) => setVerifyPitch(e.target.value)}
-                placeholder="Briefly describe your musical career, past releases, live performances, or label affiliations..."
-                className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+
+          <div className="space-y-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              Archived Releases ({trashAlbums.length})
+            </h3>
+
+            {isLoadingTrash ? (
+              <div className="p-6 text-center font-mono text-xs text-ink-soft animate-pulse">
+                Loading trash archive...
+              </div>
+            ) : trashAlbums.length === 0 ? (
+              <div className="p-6 border border-line bg-panel text-center font-mono text-xs text-ink-soft">
+                Trash is empty. No deleted albums found.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {trashAlbums.map((album) => (
+                  <div
+                    key={album.id}
+                    className="p-4 border border-line bg-panel flex items-center justify-between gap-4"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas border border-line text-ink-soft">
+                          {album.albumType}
+                        </span>
+                        <h4 className="font-serif italic text-base text-ink truncate">
+                          {album.title}
+                        </h4>
+                      </div>
+                      <span className="font-mono text-[9px] text-ink-soft mt-0.5 block">
+                        Deleted:{' '}
+                        {album.deletedAt
+                          ? new Date(album.deletedAt).toLocaleDateString()
+                          : 'Recently'}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreAlbum(album.id)}
+                      className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3.5 bg-ink text-canvas hover:opacity-90 cursor-pointer flex items-center gap-1.5 shrink-0"
+                    >
+                      <UndoIconSVG className="w-3 h-3" />
+                      <span>Restore Release</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Archived Songs */}
+          {trashSongs.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-line-soft">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                Archived Master Cuts ({trashSongs.length})
+              </h3>
+
+              <div className="space-y-2">
+                {trashSongs.map((song) => (
+                  <div
+                    key={song.id}
+                    className="p-3 border border-line bg-panel flex items-center justify-between gap-4"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-serif italic text-sm text-ink truncate block">
+                        {song.title}
+                      </span>
+                      <span className="font-mono text-[9px] text-ink-soft">
+                        Deleted:{' '}
+                        {song.deletedAt
+                          ? new Date(song.deletedAt).toLocaleDateString()
+                          : 'Recently'}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreSong(song.id)}
+                      className="font-mono text-[9.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer flex items-center gap-1 shrink-0"
+                    >
+                      <UndoIconSVG className="w-3 h-3" />
+                      <span>Restore</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 3: PROFILE & BRANDING */}
+      {/* ========================================================================= */}
+      {activeTab === 'profile' && (
+        <div className="space-y-10">
+          {/* Banner Customizer */}
+          <div className="p-6 border border-line bg-panel shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 className="font-serif italic text-xl text-ink">
+                  Artist Profile Banner
+                </h2>
+                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  High-resolution cover displayed across your public artist page
+                  (stored on Cloudflare R2).
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={isUploadingBanner}
+                onClick={() => bannerInputRef.current?.click()}
+                className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
+              >
+                <UploadCloudSVG className="w-4 h-4" />
+                <span>
+                  {isUploadingBanner ? 'Uploading to R2...' : 'Upload Banner'}
+                </span>
+              </button>
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/avif"
+                onChange={handleBannerSelect}
+                className="hidden"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  value={verifyContactEmail}
-                  onChange={(e) => setVerifyContactEmail(e.target.value)}
-                  placeholder="artist@example.com"
-                  className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+            <div className="w-full h-44 sm:h-56 bg-canvas-deep border border-line overflow-hidden relative">
+              {artistProfile.bannerUrl ? (
+                <img
+                  src={artistProfile.bannerUrl}
+                  alt="Artist banner"
+                  className="w-full h-full object-cover"
                 />
-              </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-ink-soft font-mono text-xs">
+                  <UploadCloudSVG className="w-8 h-8 opacity-40 mb-2" />
+                  <span>No banner uploaded yet</span>
+                </div>
+              )}
+              {isUploadingBanner && (
+                <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-xs text-ink animate-pulse">
+                  Transferring asset to Cloudflare R2 storage...
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Identity & Details Editor */}
+          <div className="p-6 border border-line bg-panel shadow-2xs">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-line-soft">
               <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                  Contact Phone (Optional)
-                </label>
-                <input
-                  type="tel"
-                  value={verifyContactPhone}
-                  onChange={(e) => setVerifyContactPhone(e.target.value)}
-                  placeholder="+1 555-0199"
-                  className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                />
+                <h2 className="font-serif italic text-xl text-ink">
+                  Identity & Presentation
+                </h2>
+                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  Customize your public stage name, biography, and external links.
+                </p>
               </div>
-            </div>
 
-            {/* Proof Links */}
-            <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                Official Proof & Portfolio Links{' '}
-                <span className="text-red-500">*</span>
-              </label>
-              <p className="font-sans text-xs text-ink-soft mb-3">
-                Include links to verified Spotify, Apple Music, Bandcamp,
-                official website, or press articles.
-              </p>
-
-              <div className="flex flex-col gap-2">
-                {verifyLinks.map((link, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <input
-                      type="url"
-                      required
-                      value={link}
-                      onChange={(e) => {
-                        const copy = [...verifyLinks]
-                        copy[idx] = e.target.value
-                        setVerifyLinks(copy)
-                      }}
-                      placeholder="https://open.spotify.com/artist/..."
-                      className="flex-1 font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                    />
-                    {verifyLinks.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setVerifyLinks(
-                            verifyLinks.filter((_, i) => i !== idx),
-                          )
-                        }}
-                        className="font-mono text-xs py-2 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {verifyLinks.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={() => setVerifyLinks([...verifyLinks, ''])}
-                    className="self-start font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer mt-1"
-                  >
-                    + Add Another Link
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={isSubmittingVerify}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
-              >
-                {isSubmittingVerify
-                  ? 'Submitting...'
-                  : 'Submit Verification Request'}
-              </button>
-              {showResubmitForm && (
+              {!isEditingProfile && (
                 <button
                   type="button"
-                  onClick={() => setShowResubmitForm(false)}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  onClick={() => setIsEditingProfile(true)}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer"
                 >
-                  Cancel
+                  Edit Details
                 </button>
               )}
             </div>
-          </form>
-        )}
-      </div>
+
+            {isEditingProfile ? (
+              <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Stage Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editStageName}
+                      onChange={(e) => setEditStageName(e.target.value)}
+                      className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Vanity Slug
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editSlug}
+                      onChange={(e) => setEditSlug(e.target.value)}
+                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Biography
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
+                      Instagram
+                    </label>
+                    <input
+                      type="url"
+                      value={editInstagram}
+                      onChange={(e) => setEditInstagram(e.target.value)}
+                      placeholder="https://instagram.com/..."
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      value={editWebsite}
+                      onChange={(e) => setEditWebsite(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft block mb-1">
+                      Spotify
+                    </label>
+                    <input
+                      type="url"
+                      value={editSpotify}
+                      onChange={(e) => setEditSpotify(e.target.value)}
+                      placeholder="https://open.spotify.com/..."
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSavingEdit}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingEdit ? 'Saving...' : 'Save Profile Changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="flex flex-col gap-4 text-xs font-sans text-ink">
+                <div>
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-1">
+                    Biography
+                  </span>
+                  <p className="leading-relaxed whitespace-pre-line text-ink-soft">
+                    {artistProfile.bio || 'No biography set yet.'}
+                  </p>
+                </div>
+
+                {artistProfile.socialLinks &&
+                  Object.keys(artistProfile.socialLinks).length > 0 && (
+                    <div>
+                      <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-2">
+                        Social Channels
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(artistProfile.socialLinks).map(
+                          ([k, v]) => (
+                            <a
+                              key={k}
+                              href={v}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-mono text-[10px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink capitalize inline-flex items-center gap-1"
+                            >
+                              <span>{k}</span>
+                              <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
+                            </a>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: VERIFICATION DESK */}
+      {/* ========================================================================= */}
+      {activeTab === 'verification' && (
+        <div className="p-6 border border-line bg-panel shadow-2xs">
+          <div className="mb-6 pb-4 border-b border-line-soft">
+            <h2 className="font-serif italic text-xl text-ink">
+              Creator Verification
+            </h2>
+            <p className="font-sans text-xs text-ink-soft mt-0.5">
+              Verified badges certify official recording artists and unlock
+              prominent catalog placement.
+            </p>
+          </div>
+
+          {artistProfile.verificationStatus === 'VERIFIED' ? (
+            <div className="p-6 border border-blue/20 bg-blue/5 flex items-center gap-4">
+              <VerifiedBadgeSVG className="w-8 h-8 text-blue shrink-0" />
+              <div>
+                <h3 className="font-serif italic text-base text-ink">
+                  Officially Verified Artist
+                </h3>
+                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  Your artist profile has been verified by the administration desk.
+                  The verified emblem is active on your public profile and catalog
+                  releases.
+                </p>
+              </div>
+            </div>
+          ) : artistProfile.verificationStatus === 'PENDING' ? (
+            <div className="p-6 border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+                <h3 className="font-serif italic text-base text-ink">
+                  Application Under Review
+                </h3>
+              </div>
+              <p className="font-sans text-xs text-ink-soft leading-relaxed">
+                Your verification application was received and is queued for
+                administrative audit. Proof links and official artist identities
+                are usually reviewed within 24-48 hours.
+              </p>
+              {artistProfile.verificationDetails?.message && (
+                <div className="mt-2 p-3 border border-line-soft bg-canvas/60 font-sans text-xs text-ink-soft italic">
+                  "{artistProfile.verificationDetails.message}"
+                </div>
+              )}
+            </div>
+          ) : artistProfile.verificationStatus === 'REJECTED' &&
+            !showResubmitForm ? (
+            <div className="p-6 border border-red-300/60 bg-red-50/40 dark:bg-red-950/10 flex flex-col gap-4">
+              <div>
+                <h3 className="font-serif italic text-base text-red-600 dark:text-red-400">
+                  Application Needs Revision
+                </h3>
+                <p className="font-sans text-xs text-ink-soft mt-1">
+                  The administrative review requested adjustments to your
+                  verification materials:
+                </p>
+                <div className="mt-2 p-3 border border-red-200 dark:border-red-900/40 bg-canvas font-mono text-xs text-red-700 dark:text-red-300">
+                  {artistProfile.rejectionReason ||
+                    'Please provide verifiable official links.'}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResubmitForm(true)
+                  setVerifyPitch(
+                    artistProfile.verificationDetails?.message || '',
+                  )
+                  if (artistProfile.verificationDetails?.links) {
+                    setVerifyLinks(artistProfile.verificationDetails.links)
+                  }
+                }}
+                className="self-start font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                Update & Resubmit Application &rarr;
+              </button>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmitVerification}
+              className="flex flex-col gap-5"
+            >
+              <div>
+                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                  Verification Pitch / Artist Background{' '}
+                  <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={verifyPitch}
+                  onChange={(e) => setVerifyPitch(e.target.value)}
+                  placeholder="Briefly describe your musical career, past releases, live performances, or label affiliations..."
+                  className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Contact Email
+                  </label>
+                  <input
+                    type="email"
+                    value={verifyContactEmail}
+                    onChange={(e) => setVerifyContactEmail(e.target.value)}
+                    placeholder="artist@example.com"
+                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                  />
+                </div>
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Contact Phone (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={verifyContactPhone}
+                    onChange={(e) => setVerifyContactPhone(e.target.value)}
+                    placeholder="+1 555-0199"
+                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                  Official Proof & Portfolio Links{' '}
+                  <span className="text-red-500">*</span>
+                </label>
+                <p className="font-sans text-xs text-ink-soft mb-3">
+                  Include links to verified Spotify, Apple Music, Bandcamp,
+                  official website, or press articles.
+                </p>
+
+                <div className="flex flex-col gap-2">
+                  {verifyLinks.map((link, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        required
+                        value={link}
+                        onChange={(e) => {
+                          const copy = [...verifyLinks]
+                          copy[idx] = e.target.value
+                          setVerifyLinks(copy)
+                        }}
+                        placeholder="https://open.spotify.com/artist/..."
+                        className="flex-1 font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                      />
+                      {verifyLinks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVerifyLinks(
+                              verifyLinks.filter((_, i) => i !== idx),
+                            )
+                          }}
+                          className="font-mono text-xs py-2 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {verifyLinks.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setVerifyLinks([...verifyLinks, ''])}
+                      className="self-start font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer mt-1"
+                    >
+                      + Add Another Link
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmittingVerify}
+                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                >
+                  {isSubmittingVerify
+                    ? 'Submitting...'
+                    : 'Submit Verification Request'}
+                </button>
+                {showResubmitForm && (
+                  <button
+                    type="button"
+                    onClick={() => setShowResubmitForm(false)}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { ArtistsService } from "./artists.service";
+import { CatalogService } from "../catalog/catalog.service";
 import { AuthService } from "../auth/auth.service";
 import {
   requireAuth,
@@ -18,6 +19,7 @@ import {
 
 export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
   const artistsService = new ArtistsService();
+  const catalogService = new CatalogService();
   const authService = new AuthService(fastify);
 
   /**
@@ -203,6 +205,32 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return reply.status(200).send(profile);
+    }
+  );
+
+  /**
+   * GET /:idOrSlug/discography
+   * Retrieves artist's complete discography (Albums, EPs, Singles, Top Tracks, Appears On).
+   */
+  fastify.get(
+    "/:idOrSlug/discography",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const { idOrSlug } = request.params as { idOrSlug: string };
+      const discography = await catalogService.getArtistDiscography(
+        idOrSlug,
+        request.user?.id
+      );
+
+      if (!discography) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Artist not found",
+        });
+      }
+
+      return reply.status(200).send(discography);
     }
   );
 

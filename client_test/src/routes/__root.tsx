@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
-import { DarkModeSVG, LightModeSVG } from '../Components/icons'
+import { DarkModeSVG, LightModeSVG } from '../components/icons'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>

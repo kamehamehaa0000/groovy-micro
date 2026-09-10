@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
 import type { AdminArtistListItem } from '../types/artist'
-import { VerifiedBadgeSVG, ExternalLinkSVG } from '../Components/icons'
+import { VerifiedBadgeSVG, ExternalLinkSVG } from '../components/icons'
 
 export const Route = createFileRoute('/admin/verification')({
   component: AdminVerificationDeskComponent,

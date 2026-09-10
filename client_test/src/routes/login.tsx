@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
-import { GoogleIcon, SvgArtworkSpiral } from '../Components/icons'
+import { GoogleIcon, SvgArtworkSpiral } from '../components/icons'
 
 export const Route = createFileRoute('/login')({
   component: LoginComponent,

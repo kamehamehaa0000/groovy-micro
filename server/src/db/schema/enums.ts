@@ -18,6 +18,8 @@ export const albumTypeEnum = pgEnum("album_type", [
   "ALBUM",
   "SINGLE",
   "EP",
+  "MIXTAPE",
+  "LP",
 ]);
 
 export const songStatusEnum = pgEnum("song_status", [
@@ -25,4 +27,15 @@ export const songStatusEnum = pgEnum("song_status", [
   "PROCESSING",
   "READY",
   "FAILED",
+]);
+
+export const creditRoleEnum = pgEnum("credit_role", [
+  "PRIMARY",
+  "FEATURED",
+  "PRODUCER",
+  "COMPOSER",
+  "LYRICIST",
+  "ENGINEER",
+  "MIX_AND_MASTER",
+  "OTHER",
 ]);

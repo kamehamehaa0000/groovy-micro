@@ -62,7 +62,7 @@ export const UPLOAD_PRESETS: Record<UploadCategory, UploadPresetConfig> = {
       "audio/ogg",
     ],
     ttlSeconds: 1800, // 30 minutes
-    isPublic: false, // Strictly private for transcoder worker
+    isPublic: true, // Public CDN URL streamable for browser audio
     generateKey: (_, songId, ext) =>
       `audio/raw/${songId}/original.${ext}`,
   },

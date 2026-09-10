@@ -16,6 +16,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminVerificationRouteImport } from './routes/admin.verification'
+import { Route as AlbumsIdOrSlugRouteImport } from './routes/albums.$idOrSlug'
 import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
 import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
@@ -55,6 +56,11 @@ const AdminVerificationRoute = AdminVerificationRouteImport.update({
   path: '/admin/verification',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlbumsIdOrSlugRoute = AlbumsIdOrSlugRouteImport.update({
+  id: '/albums/$idOrSlug',
+  path: '/albums/$idOrSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArtistsIndexRoute = ArtistsIndexRouteImport.update({
   id: '/artists/',
   path: '/artists/',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/verification': typeof AdminVerificationRoute
+  '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/artists/': typeof ArtistsIndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/verification': typeof AdminVerificationRoute
+  '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/artists': typeof ArtistsIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/verification': typeof AdminVerificationRoute
+  '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/artists/': typeof ArtistsIndexRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify-email'
     | '/admin/verification'
+    | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/artists/'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify-email'
     | '/admin/verification'
+    | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/artists'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify-email'
     | '/admin/verification'
+    | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/artists/'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AdminVerificationRoute: typeof AdminVerificationRoute
+  AlbumsIdOrSlugRoute: typeof AlbumsIdOrSlugRoute
   ArtistsIdOrSlugRoute: typeof ArtistsIdOrSlugRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVerificationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/albums/$idOrSlug': {
+      id: '/albums/$idOrSlug'
+      path: '/albums/$idOrSlug'
+      fullPath: '/albums/$idOrSlug'
+      preLoaderRoute: typeof AlbumsIdOrSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/artists/': {
       id: '/artists/'
       path: '/artists'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AdminVerificationRoute: AdminVerificationRoute,
+  AlbumsIdOrSlugRoute: AlbumsIdOrSlugRoute,
   ArtistsIdOrSlugRoute: ArtistsIdOrSlugRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
