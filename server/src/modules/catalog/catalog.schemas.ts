@@ -65,6 +65,7 @@ export const createAlbumSchema = z.object({
   releaseDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Release date must be in YYYY-MM-DD format")
+    .optional()
     .default(() => new Date().toISOString().split("T")[0]),
   tracks: z.array(initialTrackInputSchema).optional(),
 });
@@ -85,10 +86,6 @@ export const updateAlbumSchema = z.object({
   albumType: albumTypeEnumSchema.optional(),
   coverImageUrl: z.string().min(1).optional(),
   description: z.string().max(4000, "Description cannot exceed 4000 characters").nullable().optional(),
-  releaseDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Release date must be in YYYY-MM-DD format")
-    .optional(),
 });
 
 export const createSongSchema = z.object({

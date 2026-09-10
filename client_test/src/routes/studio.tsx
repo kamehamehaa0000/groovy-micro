@@ -71,14 +71,21 @@ function StudioComponent() {
   const [isCreateReleaseOpen, setIsCreateReleaseOpen] = useState(false)
   const [releaseTitle, setReleaseTitle] = useState('')
   const [releaseType, setReleaseType] = useState<AlbumType>('SINGLE')
-  const [releaseDate, setReleaseDate] = useState(() =>
-    new Date().toISOString().split('T')[0],
-  )
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
+
+  // Detach Cut Modal State
+  const [detachModalData, setDetachModalData] = useState<{
+    song: Song
+    parentAlbum: Album
+  } | null>(null)
+  const [detachCoverUrl, setDetachCoverUrl] = useState('')
+  const [isUploadingDetachCover, setIsUploadingDetachCover] = useState(false)
+  const [isSubmittingDetach, setIsSubmittingDetach] = useState(false)
+  const detachCoverInputRef = useRef<HTMLInputElement>(null)
 
   // Single-release specific fields (when releaseType === 'SINGLE')
   const [singleTrackGenre, setSingleTrackGenre] = useState('')
@@ -227,23 +234,69 @@ function StudioComponent() {
     }
   }
 
-  // Detach track from album
-  const handleDetachTrack = async (songId: string, albumId: string) => {
-    if (!confirm('Detach this track into an independent single/standalone cut?'))
+  // Open Detach Modal (only allowed on non-single releases)
+  const handleOpenDetachModal = (song: Song, parentAlbum: Album) => {
+    if (parentAlbum.albumType === 'SINGLE') {
+      setErrorNotice('Cannot detach a track from a single release.')
       return
+    }
+    setDetachModalData({ song, parentAlbum })
+    setDetachCoverUrl('')
+    setErrorNotice(null)
+  }
+
+  const handleCloseDetachModal = () => {
+    setDetachModalData(null)
+    setDetachCoverUrl('')
+    if (detachCoverInputRef.current) detachCoverInputRef.current.value = ''
+  }
+
+  const handleDetachCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingDetachCover(true)
+    setErrorNotice(null)
 
     try {
-      await catalogApi.updateSong(songId, { albumId: null })
-      setSuccessNotice('Track detached from album into standalone single.')
+      const publicUrl = await catalogApi.uploadAlbumCover(file)
+      setDetachCoverUrl(publicUrl)
+      setSuccessNotice('Custom single artwork uploaded to Cloudflare R2.')
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload single artwork')
+    } finally {
+      setIsUploadingDetachCover(false)
+    }
+  }
+
+  const handleConfirmDetach = async () => {
+    if (!detachModalData) return
+
+    setIsSubmittingDetach(true)
+    setErrorNotice(null)
+
+    try {
+      await catalogApi.updateSong(detachModalData.song.id, {
+        albumId: null,
+        coverImageUrl: detachCoverUrl || undefined,
+      })
+
+      setSuccessNotice(
+        `🎉 Master cut "${detachModalData.song.title}" detached and spun off into standalone SINGLE release!`,
+      )
+
       // Refresh album details and releases
-      const fullAlbum = await catalogApi.getAlbum(albumId)
+      const fullAlbum = await catalogApi.getAlbum(detachModalData.parentAlbum.id)
       setAlbumTrackMap((prev) => ({
         ...prev,
-        [albumId]: fullAlbum.tracks,
+        [detachModalData.parentAlbum.id]: fullAlbum.tracks,
       }))
+      handleCloseDetachModal()
       loadReleases()
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to detach track')
+    } finally {
+      setIsSubmittingDetach(false)
     }
   }
 
@@ -391,7 +444,6 @@ function StudioComponent() {
   const resetReleaseForm = () => {
     setReleaseTitle('')
     setReleaseType('SINGLE')
-    setReleaseDate(new Date().toISOString().split('T')[0])
     setReleaseDescription('')
     setReleaseCoverUrl('')
     setSingleTrackGenre('')
@@ -472,6 +524,8 @@ function StudioComponent() {
     setIsSubmittingRelease(true)
     setErrorNotice(null)
 
+    const todayDate = new Date().toISOString().split('T')[0]
+
     try {
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
@@ -506,7 +560,7 @@ function StudioComponent() {
           albumType: 'SINGLE',
           coverImageUrl: releaseCoverUrl,
           description: releaseDescription.trim() || undefined,
-          releaseDate,
+          releaseDate: todayDate,
           tracks: singleTrackPayload,
         })
 
@@ -544,7 +598,7 @@ function StudioComponent() {
           albumType: releaseType,
           coverImageUrl: releaseCoverUrl,
           description: releaseDescription.trim() || undefined,
-          releaseDate,
+          releaseDate: todayDate,
           tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
         })
 
@@ -1056,12 +1110,18 @@ function StudioComponent() {
                     <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
                       Release Date
                     </label>
-                    <input
-                      type="date"
-                      value={releaseDate}
-                      onChange={(e) => setReleaseDate(e.target.value)}
-                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                    />
+                    <div className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas-deep text-ink flex items-center justify-between">
+                      <span>
+                        {new Date().toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider text-ink-soft bg-panel px-1.5 py-0.5 border border-line/60">
+                        Today &bull; Immediate
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1602,16 +1662,18 @@ function StudioComponent() {
                                       {formatDuration(track.durationSeconds)}
                                     </span>
 
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleDetachTrack(track.id, album.id)
-                                      }
-                                      className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-panel hover:border-ink text-ink-soft hover:text-ink cursor-pointer"
-                                      title="Detach from album and turn into standalone single"
-                                    >
-                                      Detach Cut
-                                    </button>
+                                    {album.albumType !== 'SINGLE' && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleOpenDetachModal(track, album)
+                                        }
+                                        className="font-mono text-[9px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-panel hover:border-ink text-ink-soft hover:text-ink cursor-pointer"
+                                        title="Detach cut and spin off into standalone single with optional custom artwork"
+                                      >
+                                        Detach Cut
+                                      </button>
+                                    )}
 
                                     <button
                                       type="button"
@@ -2171,6 +2233,120 @@ function StudioComponent() {
               </div>
             </form>
           )}
+        </div>
+      )}
+
+      {/* Detach Cut Modal */}
+      {detachModalData && (
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-panel border-2 border-line shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft block">
+                  Catalog Action &bull; Spin-off Single
+                </span>
+                <h3 className="font-serif italic text-xl text-ink">
+                  Detach Cut
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseDetachModal}
+                disabled={isSubmittingDetach}
+                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <p className="font-sans text-xs text-ink-soft leading-relaxed">
+              Detaching <strong className="text-ink font-medium font-serif italic">"{detachModalData.song.title}"</strong> from <strong className="text-ink font-medium font-serif italic">{detachModalData.parentAlbum.title}</strong> will turn it into an independent standalone <span className="font-mono text-[11px] font-semibold text-ink">SINGLE</span> release.
+            </p>
+
+            {/* Artwork Selection */}
+            <div className="space-y-3 pt-1 border-t border-line-soft">
+              <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block">
+                Cover Artwork for New Single
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
+                  {detachCoverUrl || detachModalData.parentAlbum.coverImageUrl ? (
+                    <img
+                      src={
+                        detachCoverUrl ||
+                        detachModalData.parentAlbum.coverImageUrl ||
+                        ''
+                      }
+                      alt="Single Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <DiscIconSVG className="w-8 h-8 text-ink-soft/40" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                      <span>
+                        {isUploadingDetachCover
+                          ? 'Uploading to R2...'
+                          : detachCoverUrl
+                            ? 'Replace Custom Artwork'
+                            : 'Upload Custom Single Artwork'}
+                      </span>
+                      <input
+                        ref={detachCoverInputRef}
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingDetachCover || isSubmittingDetach}
+                        onChange={handleDetachCoverSelect}
+                        className="hidden"
+                      />
+                    </label>
+                    {detachCoverUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDetachCoverUrl('')
+                          if (detachCoverInputRef.current)
+                            detachCoverInputRef.current.value = ''
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                      >
+                        Revert to Album Art
+                      </button>
+                    )}
+                  </div>
+                  <p className="font-mono text-[9px] text-ink-soft">
+                    {detachCoverUrl
+                      ? 'Custom cover uploaded (Cloudflare R2 edge).'
+                      : 'Will inherit parent album cover if no custom image is uploaded.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+              <button
+                type="button"
+                onClick={handleCloseDetachModal}
+                disabled={isSubmittingDetach}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDetach}
+                disabled={isSubmittingDetach || isUploadingDetachCover}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+              >
+                {isSubmittingDetach
+                  ? 'Detaching Cut...'
+                  : '✦ Detach & Spin Off Single'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

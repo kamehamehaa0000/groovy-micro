@@ -212,8 +212,9 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Album aggregates dynamically incremented: totalTracks = 3, duration = 1488s\n");
 
-    // 5. Detach / Remove a Song from an Album (Spins off into standalone SINGLE release)
-    console.log("5️⃣ Testing Detaching Song from Album (PATCH /api/v1/songs/:id with albumId = null)...");
+    // 5. Detach / Remove a Song from an Album (Spins off into standalone SINGLE release with custom artwork)
+    console.log("5️⃣ Testing Detaching Song from Album (PATCH /api/v1/songs/:id with albumId = null & custom cover)...");
+    const customSingleCover = "https://pub-d2ff94b6e6924c22875a6799aa101a70.r2.dev/albums/custom-single.webp";
     const detachRes = await app.inject({
       method: "PATCH",
       url: `/api/v1/songs/${track3.id}`,
@@ -221,6 +222,7 @@ async function runCatalogTests() {
       payload: {
         albumId: null,
         trackNumber: null,
+        coverImageUrl: customSingleCover,
       },
     });
 
@@ -233,7 +235,7 @@ async function runCatalogTests() {
       throw new Error(`Song was not spun off into a new release: ${detachRes.body}`);
     }
 
-    // Verify spun-off release is SINGLE with totalTracks = 1
+    // Verify spun-off release is SINGLE with totalTracks = 1 and custom cover art
     const spunOffReleaseRes = await app.inject({
       method: "GET",
       url: `/api/v1/albums/${detachedSong.albumId}`,
@@ -242,7 +244,24 @@ async function runCatalogTests() {
     if (spunOffRelease.albumType !== "SINGLE" || spunOffRelease.totalTracks !== 1) {
       throw new Error(`Spun-off release invalid: ${spunOffReleaseRes.body}`);
     }
-    console.log("   ✅ Song successfully detached from album and spun off into standalone SINGLE release:", spunOffRelease.id);
+    if (spunOffRelease.coverImageUrl !== customSingleCover) {
+      throw new Error(`Expected spun-off single to have custom cover art ${customSingleCover}, got: ${spunOffRelease.coverImageUrl}`);
+    }
+    console.log("   ✅ Song successfully detached with custom artwork and spun off into standalone SINGLE release:", spunOffRelease.id);
+
+    // Verify single release cannot be detached again (single should not be detachable)
+    const invalidDetachRes = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/songs/${detachedSong.id}`,
+      headers: { authorization: `Bearer ${artistA.tokens.accessToken}` },
+      payload: {
+        albumId: null,
+      },
+    });
+    if (invalidDetachRes.statusCode !== 400) {
+      throw new Error(`Expected 400 when detaching from a SINGLE release, got: ${invalidDetachRes.statusCode}`);
+    }
+    console.log("   ✅ Server strictly blocks detaching a track from a SINGLE release");
 
     // Verify album totals decremented
     const albumAfterDetachRes = await app.inject({

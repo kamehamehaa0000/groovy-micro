@@ -149,6 +149,7 @@ export class CatalogService {
       const albumCoverUrl = this.ensureFullUrl(input.coverImageUrl)!;
 
       // 1. Insert album
+      const today = new Date().toISOString().split("T")[0];
       const [newAlbum] = await tx
         .insert(albums)
         .values({
@@ -158,7 +159,7 @@ export class CatalogService {
           albumType: input.albumType,
           coverImageUrl: albumCoverUrl,
           description: input.description ?? null,
-          releaseDate: input.releaseDate,
+          releaseDate: today,
           likesCount: 0,
           totalTracks: input.tracks?.length ?? 0,
           totalDurationSeconds: 0,
@@ -409,7 +410,6 @@ export class CatalogService {
         ...(input.albumType ? { albumType: input.albumType } : {}),
         ...(input.coverImageUrl ? { coverImageUrl: this.ensureFullUrl(input.coverImageUrl)! } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.releaseDate ? { releaseDate: input.releaseDate } : {}),
         updatedAt: new Date(),
       })
       .where(eq(albums.id, albumId))
@@ -720,12 +720,14 @@ export class CatalogService {
       let finalTrackNumber =
         input.trackNumber !== undefined ? input.trackNumber : existing.trackNumber;
       let isSpunOffSingle = false;
+      let detachedSingleCoverUrl: string | null = null;
 
       // If detaching from an album (albumId explicitly passed as null)
       if (input.albumId === null && oldAlbumId) {
         const [parentAlbum] = await tx
           .select({
             title: albums.title,
+            albumType: albums.albumType,
             coverImageUrl: albums.coverImageUrl,
             releaseDate: albums.releaseDate,
           })
@@ -733,7 +735,12 @@ export class CatalogService {
           .where(eq(albums.id, oldAlbumId))
           .limit(1);
 
+        if (parentAlbum?.albumType === "SINGLE") {
+          throw new Error("Cannot detach a track from a single release.");
+        }
+
         const singleCoverUrl =
+          (input.coverImageUrl ? this.ensureFullUrl(input.coverImageUrl) : null) ||
           existing.coverImageUrl ||
           parentAlbum?.coverImageUrl ||
           "https://pub-d2ff94b6e6924c22875a6799aa101a70.r2.dev/albums/default/single-cover.webp";
@@ -750,9 +757,7 @@ export class CatalogService {
             albumType: "SINGLE",
             coverImageUrl: singleCoverUrl,
             description: `Single release of "${existing.title}"`,
-            releaseDate:
-              parentAlbum?.releaseDate ||
-              new Date().toISOString().split("T")[0],
+            releaseDate: new Date().toISOString().split("T")[0],
             totalTracks: 1,
             totalDurationSeconds: existing.durationSeconds,
             likesCount: 0,
@@ -762,6 +767,7 @@ export class CatalogService {
         finalAlbumId = newSingleAlbum.id;
         finalTrackNumber = 1;
         isSpunOffSingle = true;
+        detachedSingleCoverUrl = singleCoverUrl;
       }
 
       // Update song
@@ -790,7 +796,9 @@ export class CatalogService {
             : {}),
           ...(input.coverImageUrl !== undefined
             ? { coverImageUrl: this.ensureFullUrl(input.coverImageUrl) }
-            : {}),
+            : detachedSingleCoverUrl
+              ? { coverImageUrl: detachedSingleCoverUrl }
+              : {}),
           updatedAt: new Date(),
         })
         .where(eq(songs.id, songId))
