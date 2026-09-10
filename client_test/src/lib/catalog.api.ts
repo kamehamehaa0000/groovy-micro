@@ -12,6 +12,7 @@ import type {
   StudioReleasesResponse,
   SearchAlbumsResponse,
   SearchSongsResponse,
+  PreSavedRelease,
 } from "../types/catalog";
 
 /**
@@ -87,9 +88,11 @@ export const catalogApi = {
 
   /**
    * Retrieve an album by UUID or slug, including enriched tracklist and like status.
+   * Supports optional shareToken for unlisted releases.
    */
-  async getAlbum(idOrSlug: string): Promise<AlbumDetail> {
-    return await api.get<AlbumDetail>(`/api/v1/albums/${encodeURIComponent(idOrSlug)}`);
+  async getAlbum(idOrSlug: string, shareToken?: string): Promise<AlbumDetail> {
+    const qs = shareToken ? `?shareToken=${encodeURIComponent(shareToken)}` : "";
+    return await api.get<AlbumDetail>(`/api/v1/albums/${encodeURIComponent(idOrSlug)}${qs}`);
   },
 
   /**
@@ -97,6 +100,27 @@ export const catalogApi = {
    */
   async createAlbum(input: CreateAlbumInput): Promise<AlbumDetail> {
     return await api.post<AlbumDetail>("/api/v1/albums", input);
+  },
+
+  /**
+   * Pre-save an upcoming release for the user.
+   */
+  async preSaveAlbum(id: string): Promise<{ preSaved: boolean; preSavesCount: number }> {
+    return await api.post<{ preSaved: boolean; preSavesCount: number }>(`/api/v1/albums/${id}/pre-save`);
+  },
+
+  /**
+   * Remove pre-save on an upcoming release.
+   */
+  async removePreSave(id: string): Promise<{ preSaved: boolean; preSavesCount: number }> {
+    return await api.delete<{ preSaved: boolean; preSavesCount: number }>(`/api/v1/albums/${id}/pre-save`);
+  },
+
+  /**
+   * List all upcoming releases pre-saved by the current user.
+   */
+  async getMyPreSaves(): Promise<{ presaves: PreSavedRelease[] }> {
+    return await api.get<{ presaves: PreSavedRelease[] }>("/api/v1/albums/presaves/mine");
   },
 
   /**

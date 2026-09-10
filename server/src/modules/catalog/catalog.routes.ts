@@ -74,6 +74,20 @@ export const albumsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /presaves/mine
+   * List all upcoming releases pre-saved by the current user.
+   * Defined before /:idOrSlug to avoid route collisions.
+   */
+  fastify.get(
+    "/presaves/mine",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const presaves = await catalogService.getUserPreSaves(request.user.id);
+      return reply.status(200).send({ presaves });
+    }
+  );
+
+  /**
    * GET /:idOrSlug
    * Dual lookup by album UUID or vanity slug, includes tracklist and like state.
    */
@@ -82,9 +96,11 @@ export const albumsRoutes: FastifyPluginAsync = async (fastify) => {
     { preHandler: [optionalAuth] },
     async (request, reply) => {
       const { idOrSlug } = request.params as { idOrSlug: string };
+      const { shareToken } = (request.query as { shareToken?: string }) || {};
       const album = await catalogService.getAlbumByIdOrSlug(
         idOrSlug,
-        request.user?.id
+        request.user?.id,
+        shareToken
       );
 
       if (!album) {
@@ -200,6 +216,50 @@ export const albumsRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   );
+
+  /**
+   * POST /:id/pre-save
+   * Pre-saves an upcoming release for the user.
+   */
+  fastify.post(
+    "/:id/pre-save",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.preSaveAlbum(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to pre-save release",
+        });
+      }
+    }
+  );
+
+  /**
+   * DELETE /:id/pre-save
+   * Removes a pre-save on an upcoming release.
+   */
+  fastify.delete(
+    "/:id/pre-save",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.removePreSave(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to remove pre-save",
+        });
+      }
+    }
+  );
 };
 
 /**
@@ -286,6 +346,39 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
           message: err.message || "Failed to create song",
         });
       }
+    }
+  );
+
+  /**
+   * GET /:id/stream
+   * Stream security gate: returns playable URL if released or requester is the creator, else 403 Forbidden.
+   */
+  fastify.get(
+    "/:id/stream",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const song = await catalogService.getSongById(id, request.user?.id);
+
+      if (!song) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Song not found",
+        });
+      }
+
+      if (!song.isStreamable) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: "Forbidden",
+          message: "This cut is scheduled and has not been released yet.",
+        });
+      }
+
+      return reply.status(200).send({
+        streamUrl: song.audioUrl || song.hlsManifestUrl || song.rawAudioKey,
+      });
     }
   );
 

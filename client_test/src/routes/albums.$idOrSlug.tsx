@@ -9,15 +9,21 @@ import {
   HeartIconSVG,
   DiscIconSVG,
   SvgArtworkSpiral,
+  LockIconSVG,
+  CalendarIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
+  validateSearch: (search: Record<string, unknown>): { shareToken?: string } => ({
+    shareToken: (search.shareToken as string) || undefined,
+  }),
   component: AlbumDetailComponent,
 })
 
 function AlbumDetailComponent() {
   const { idOrSlug } = Route.useParams()
+  const { shareToken } = Route.useSearch()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
 
@@ -29,6 +35,11 @@ function AlbumDetailComponent() {
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
   const [isLikeLoading, setIsLikeLoading] = useState(false)
+
+  // Pre-save state
+  const [isPreSaved, setIsPreSaved] = useState(false)
+  const [preSavesCount, setPreSavesCount] = useState(0)
+  const [isPreSaveLoading, setIsPreSaveLoading] = useState(false)
 
   // Track playback state
   const [playingSongId, setPlayingSongId] = useState<string | null>(null)
@@ -44,12 +55,14 @@ function AlbumDetailComponent() {
     setErrorMsg(null)
 
     catalogApi
-      .getAlbum(idOrSlug)
+      .getAlbum(idOrSlug, shareToken)
       .then((data) => {
         if (!isMounted) return
         setAlbum(data)
         setIsLiked(!!data.isLiked)
         setLikesCount(data.likesCount ?? 0)
+        setIsPreSaved(!!data.isPreSaved)
+        setPreSavesCount(data.preSavesCount ?? 0)
       })
       .catch((err) => {
         if (!isMounted) return
@@ -62,7 +75,7 @@ function AlbumDetailComponent() {
     return () => {
       isMounted = false
     }
-  }, [idOrSlug])
+  }, [idOrSlug, shareToken])
 
   // Stop audio on unmount
   useEffect(() => {
@@ -160,9 +173,44 @@ function AlbumDetailComponent() {
     }
   }
 
+  const handleTogglePreSave = async () => {
+    if (!isAuthenticated) {
+      navigate({ to: '/login' })
+      return
+    }
+    if (!album || isPreSaveLoading) return
+
+    setIsPreSaveLoading(true)
+    const prevPreSaved = isPreSaved
+    const prevCount = preSavesCount
+
+    // Optimistic toggle
+    setIsPreSaved(!prevPreSaved)
+    setPreSavesCount(prevPreSaved ? Math.max(0, prevCount - 1) : prevCount + 1)
+
+    try {
+      if (prevPreSaved) {
+        const res = await catalogApi.removePreSave(album.id)
+        setIsPreSaved(false)
+        setPreSavesCount(res.preSavesCount)
+      } else {
+        const res = await catalogApi.preSaveAlbum(album.id)
+        setIsPreSaved(true)
+        setPreSavesCount(res.preSavesCount)
+      }
+    } catch (err: any) {
+      // Rollback
+      setIsPreSaved(prevPreSaved)
+      setPreSavesCount(prevCount)
+      alert(err.message || 'Could not update pre-save status')
+    } finally {
+      setIsPreSaveLoading(false)
+    }
+  }
+
   const handlePlaySong = (song: EnrichedSong) => {
-    if (!song.audioUrl) {
-      alert('Audio stream for this master track is currently processing.')
+    if (album?.isUpcoming || song.isStreamable === false || !song.audioUrl) {
+      alert('This master cut is locked until the scheduled release date.')
       return
     }
 
@@ -202,8 +250,14 @@ function AlbumDetailComponent() {
   }
 
   const handlePlayAlbumFromStart = () => {
+    if (album?.isUpcoming) {
+      handleTogglePreSave()
+      return
+    }
     if (!album || !album.tracks || album.tracks.length === 0) return
-    const firstPlayable = album.tracks.find((t) => !!t.audioUrl)
+    const firstPlayable = album.tracks.find(
+      (t) => !!t.audioUrl && t.isStreamable !== false,
+    )
     if (firstPlayable) {
       handlePlaySong(firstPlayable)
     } else {
@@ -213,7 +267,15 @@ function AlbumDetailComponent() {
 
   const handleCopyShareLink = () => {
     if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(window.location.href)
+      let shareUrl = window.location.href
+      if (
+        album?.visibility === 'UNLISTED' &&
+        album.shareToken &&
+        !window.location.search.includes('shareToken')
+      ) {
+        shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+      }
+      navigator.clipboard.writeText(shareUrl)
       setCopiedLink(true)
       setTimeout(() => setCopiedLink(false), 2000)
     }
@@ -257,6 +319,51 @@ function AlbumDetailComponent() {
 
   return (
     <div className="w-full pb-20 space-y-10">
+      {/* ===================== UPCOMING RELEASE BANNER ===================== */}
+      {album.isUpcoming && (
+        <div className="border-2 border-blue bg-blue/5 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue font-semibold">
+              <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
+              <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
+            </div>
+            <h2 className="font-serif italic text-xl sm:text-2xl text-ink">
+              Official Drop:{' '}
+              {album.scheduledReleaseAt
+                ? new Date(album.scheduledReleaseAt).toLocaleString(undefined, {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZoneName: 'short',
+                  })
+                : 'Coming Soon'}
+            </h2>
+            <p className="font-mono text-[10px] text-ink-soft">
+              Lossless master audio streams unlock automatically on release date. Pre-save now to add this {album.albumType.toLowerCase()} to your library immediately upon drop.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              disabled={isPreSaveLoading}
+              onClick={handleTogglePreSave}
+              className={`font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center gap-2 ${
+                isPreSaved
+                  ? 'border-blue bg-blue text-canvas hover:opacity-90'
+                  : 'border-ink bg-ink text-canvas hover:opacity-90'
+              }`}
+            >
+              <span>{isPreSaved ? '✓ Pre-Saved to Library' : '✦ Pre-Save Release'}</span>
+              <span className="opacity-75 font-mono text-[10px]">({preSavesCount})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ===================== ALBUM HERO HEADER ===================== */}
       <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
@@ -286,10 +393,21 @@ function AlbumDetailComponent() {
 
           {/* Release Metadata */}
           <div className="flex-1 flex flex-col justify-end gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
                 {album.albumType}
               </span>
+              {album.isUpcoming && (
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
+                  <CalendarIconSVG className="w-2.5 h-2.5" />
+                  <span>Upcoming Drop</span>
+                </span>
+              )}
+              {album.visibility === 'UNLISTED' && (
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold">
+                  🔗 Unlisted Link
+                </span>
+              )}
               <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
                 Master Recording &bull; {releaseYear}
               </span>
@@ -330,14 +448,30 @@ function AlbumDetailComponent() {
 
             {/* Action Bar */}
             <div className="flex items-center gap-3 pt-3 flex-wrap">
-              <button
-                type="button"
-                onClick={handlePlayAlbumFromStart}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
-              >
-                <PlayIconSVG className="w-3.5 h-3.5" />
-                <span>Play Release</span>
-              </button>
+              {album.isUpcoming ? (
+                <button
+                  type="button"
+                  disabled={isPreSaveLoading}
+                  onClick={handleTogglePreSave}
+                  className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold ${
+                    isPreSaved
+                      ? 'border-blue bg-blue text-canvas hover:opacity-90'
+                      : 'border-ink bg-ink text-canvas hover:opacity-90'
+                  }`}
+                >
+                  <span>{isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save Release'}</span>
+                  <span className="opacity-80 font-mono text-[9.5px]">({preSavesCount})</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePlayAlbumFromStart}
+                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
+                >
+                  <PlayIconSVG className="w-3.5 h-3.5" />
+                  <span>Play Release</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -414,22 +548,30 @@ function AlbumDetailComponent() {
                 >
                   {/* Left: Number, Play Button, Title & Credits */}
                   <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                    {/* Play Button or Track Index */}
+                    {/* Play Button or Track Index / Lock */}
                     <button
                       type="button"
                       onClick={() => handlePlaySong(track)}
-                      aria-label={isCurrentPlaying ? 'Pause track' : 'Play track'}
+                      aria-label={
+                        album.isUpcoming || track.isStreamable === false
+                          ? 'Track is locked until scheduled release'
+                          : isCurrentPlaying
+                            ? 'Pause track'
+                            : 'Play track'
+                      }
                       className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
                     >
-                      {isCurrentPlaying ? (
+                      {album.isUpcoming || track.isStreamable === false ? (
+                        <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/70" />
+                      ) : isCurrentPlaying ? (
                         <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
                       ) : (
-                        <span className="font-mono text-[10.5px] group-hover:hidden">
-                          {String(track.trackNumber || idx + 1).padStart(2, '0')}
-                        </span>
-                      )}
-                      {!isCurrentPlaying && (
-                        <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                        <>
+                          <span className="font-mono text-[10.5px] group-hover:hidden">
+                            {String(track.trackNumber || idx + 1).padStart(2, '0')}
+                          </span>
+                          <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                        </>
                       )}
                     </button>
 
@@ -445,6 +587,16 @@ function AlbumDetailComponent() {
                         >
                           {track.title}
                         </span>
+
+                        {(album.isUpcoming || track.isStreamable === false) && (
+                          <span
+                            title="Locked until scheduled drop"
+                            className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.2 border border-line text-ink-soft bg-canvas-deep flex items-center gap-1"
+                          >
+                            <LockIconSVG className="w-2.5 h-2.5" />
+                            <span>Locked</span>
+                          </span>
+                        )}
 
                         {track.isExplicit && (
                           <span

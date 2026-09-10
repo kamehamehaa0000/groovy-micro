@@ -14,6 +14,7 @@ import {
   songLikes,
   comments,
   listeningHistory,
+  releasePresaves,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -32,6 +33,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   comments: many(comments),
   history: many(listeningHistory),
   followingArtists: many(artistFollowers),
+  preSaves: many(releasePresaves),
 }));
 
 export const artistProfilesRelations = relations(
@@ -89,6 +91,7 @@ export const albumsRelations = relations(albums, ({ one, many }) => ({
   }),
   songs: many(songs),
   savedByUsers: many(userLibraryAlbums),
+  preSaves: many(releasePresaves),
 }));
 
 export const songsRelations = relations(songs, ({ one, many }) => ({
@@ -197,6 +200,20 @@ export const listeningHistoryRelations = relations(
     song: one(songs, {
       fields: [listeningHistory.songId],
       references: [songs.id],
+    }),
+  })
+);
+
+export const releasePresavesRelations = relations(
+  releasePresaves,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [releasePresaves.userId],
+      references: [users.id],
+    }),
+    album: one(albums, {
+      fields: [releasePresaves.albumId],
+      references: [albums.id],
     }),
   })
 );

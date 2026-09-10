@@ -1,5 +1,8 @@
 export type AlbumType = "ALBUM" | "SINGLE" | "EP" | "MIXTAPE" | "LP";
 
+export type ReleaseStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
+export type ReleaseVisibility = "PUBLIC" | "UNLISTED" | "PRIVATE";
+
 export type CreditRole =
   | "PRIMARY"
   | "FEATURED"
@@ -42,6 +45,8 @@ export interface CreateAlbumInput {
   title: string;
   slug?: string;
   albumType?: AlbumType;
+  visibility?: ReleaseVisibility;
+  scheduledReleaseAt?: string | null;
   coverImageUrl: string;
   description?: string;
   releaseDate?: string;
@@ -52,6 +57,8 @@ export interface UpdateAlbumInput {
   title?: string;
   slug?: string;
   albumType?: AlbumType;
+  visibility?: ReleaseVisibility;
+  scheduledReleaseAt?: string | null;
   coverImageUrl?: string;
   description?: string | null;
   releaseDate?: string;
@@ -105,6 +112,7 @@ export interface Song {
   processingStatus: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   playsCount: number;
   likesCount: number;
+  isStreamable?: boolean;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt?: string;
@@ -129,6 +137,12 @@ export interface Album {
   coverImageUrl: string;
   description: string | null;
   releaseDate: string;
+  status?: ReleaseStatus;
+  visibility?: ReleaseVisibility;
+  scheduledReleaseAt?: string | null;
+  publishedAt?: string | null;
+  shareToken?: string | null;
+  preSavesCount?: number;
   likesCount: number;
   totalTracks: number;
   totalDurationSeconds: number;
@@ -143,7 +157,25 @@ export interface AlbumDetail extends Album {
   artistVerified: boolean;
   artistBannerUrl?: string | null;
   isLiked?: boolean;
+  isUpcoming?: boolean;
+  isPreSaved?: boolean;
   tracks: EnrichedSong[];
+}
+
+export interface PreSavedRelease {
+  albumId: string;
+  title: string;
+  slug: string;
+  albumType: AlbumType;
+  coverImageUrl: string;
+  scheduledReleaseAt: string | null;
+  releaseDate: string;
+  totalTracks: number;
+  totalDurationSeconds: number;
+  preSavedAt: string;
+  artistStageName: string;
+  artistSlug: string;
+  artistVerified: boolean;
 }
 
 export interface AppearsOnCredit {

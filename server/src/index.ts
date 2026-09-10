@@ -12,6 +12,7 @@ import { usersRoutes } from "./modules/users";
 import { storageRoutes } from "./modules/storage";
 import { artistsRoutes, adminArtistsRoutes } from "./modules/artists";
 import { albumsRoutes, songsRoutes, studioCatalogRoutes } from "./modules/catalog";
+import { initReleaseWorker, closeReleaseQueue } from "./modules/catalog/catalog.queue";
 
 dotenv.config();
 
@@ -128,6 +129,8 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   try {
     await redis.connect();
     app.log.info("✅ Redis connected successfully");
+    initReleaseWorker();
+    app.log.info("✅ BullMQ Release Worker initialized");
   } catch (err: any) {
     app.log.warn(`⚠️ Redis connection deferred or failed: ${err.message}`);
   }
@@ -153,6 +156,7 @@ for (const signal of signals) {
     app.log.info(`🔄 ${signal} received. Shutting down gracefully...`);
     try {
       await app.close();
+      await closeReleaseQueue();
       await redis.quit();
       await pgClient.end();
       app.log.info("👋 Server shut down completed.");

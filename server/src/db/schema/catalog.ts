@@ -12,7 +12,14 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { artistProfiles } from "./artists";
-import { albumTypeEnum, songStatusEnum, creditRoleEnum } from "./enums";
+import { users } from "./users";
+import {
+  albumTypeEnum,
+  songStatusEnum,
+  creditRoleEnum,
+  releaseStatusEnum,
+  releaseVisibilityEnum,
+} from "./enums";
 
 export const albums = pgTable(
   "albums",
@@ -27,6 +34,16 @@ export const albums = pgTable(
     coverImageUrl: text("cover_image_url").notNull(),
     description: text("description"),
     releaseDate: date("release_date").notNull(),
+
+    // Scheduling & Status Lifecycle
+    status: releaseStatusEnum("status").notNull().default("PUBLISHED"),
+    visibility: releaseVisibilityEnum("visibility").notNull().default("PUBLIC"),
+    scheduledReleaseAt: timestamp("scheduled_release_at", { withTimezone: true }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    shareToken: varchar("share_token", { length: 64 }),
+
+    // Aggregates & Counts
+    preSavesCount: integer("pre_saves_count").notNull().default(0),
     likesCount: integer("likes_count").notNull().default(0),
     totalTracks: integer("total_tracks").notNull().default(0),
     totalDurationSeconds: integer("total_duration_seconds").notNull().default(0),
@@ -41,6 +58,9 @@ export const albums = pgTable(
   (table) => [
     index("idx_albums_artist").on(table.artistId),
     index("idx_albums_slug").on(table.slug),
+    index("idx_albums_status").on(table.status),
+    index("idx_albums_scheduled_at").on(table.scheduledReleaseAt),
+    index("idx_albums_visibility").on(table.visibility),
     index("idx_albums_deleted_at").on(table.deletedAt),
   ]
 );
@@ -122,3 +142,26 @@ export type Song = typeof songs.$inferSelect;
 export type NewSong = typeof songs.$inferInsert;
 export type SongCredit = typeof songCredits.$inferSelect;
 export type NewSongCredit = typeof songCredits.$inferInsert;
+
+export const releasePresaves = pgTable(
+  "release_presaves",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    albumId: uuid("album_id")
+      .notNull()
+      .references(() => albums.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.albumId] }),
+    index("idx_presaves_album").on(table.albumId),
+    index("idx_presaves_user").on(table.userId),
+  ]
+);
+
+export type ReleasePresave = typeof releasePresaves.$inferSelect;
+export type NewReleasePresave = typeof releasePresaves.$inferInsert;

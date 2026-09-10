@@ -2,6 +2,9 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { api } from '../lib/api'
+import { catalogApi } from '../lib/catalog.api'
+import type { PreSavedRelease } from '../types/catalog'
+import { DiscIconSVG, CalendarIconSVG } from '../components/icons'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
@@ -24,6 +27,11 @@ function ProfileComponent() {
     type: 'success' | 'error'
   } | null>(null)
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
+
+  // Pre-Saved Releases State
+  const [preSaves, setPreSaves] = useState<PreSavedRelease[]>([])
+  const [isLoadingPreSaves, setIsLoadingPreSaves] = useState(false)
+
 
   // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
@@ -51,6 +59,17 @@ function ProfileComponent() {
       setDisplayName(user.displayName)
     }
   }, [user])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsLoadingPreSaves(true)
+      catalogApi
+        .getMyPreSaves()
+        .then((res) => setPreSaves(res.presaves))
+        .catch((err) => console.warn('Could not load pre-saves:', err))
+        .finally(() => setIsLoadingPreSaves(false))
+    }
+  }, [isAuthenticated])
 
   if (isLoading || !user) {
     return (
@@ -277,6 +296,93 @@ function ProfileComponent() {
         >
           {user.role === 'ARTIST' ? 'Open Artist Studio →' : '✦ Become an Artist'}
         </Link>
+      </div>
+
+      {/* Pre-Saved Releases Card */}
+      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <div>
+            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+              Library · Upcoming Vault
+            </div>
+            <h3 className="font-serif italic text-xl text-ink font-normal">
+              Pre-Saved Releases ({preSaves.length})
+            </h3>
+          </div>
+          <span className="font-mono text-[10px] text-ink-soft uppercase tracking-wider">
+            Auto-Library Add On Drop
+          </span>
+        </div>
+
+        {isLoadingPreSaves ? (
+          <div className="font-mono text-xs text-ink-soft animate-pulse py-4 text-center">
+            Checking upcoming releases...
+          </div>
+        ) : preSaves.length === 0 ? (
+          <div className="p-8 border border-dashed border-line bg-canvas text-center space-y-2">
+            <DiscIconSVG className="w-8 h-8 text-ink-soft/40 mx-auto" />
+            <p className="font-serif italic text-sm text-ink">
+              No pre-saved releases yet
+            </p>
+            <p className="font-sans text-xs text-ink-soft">
+              When artists schedule upcoming drops, click "Pre-Save" on their release page to have them appear here and unlock automatically in your library.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {preSaves.map((item) => (
+              <div
+                key={item.albumId}
+                className="border border-line bg-canvas p-4 flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-14 h-14 bg-canvas-deep border border-line shrink-0 overflow-hidden">
+                    {item.coverImageUrl ? (
+                      <img
+                        src={item.coverImageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-panel text-blue font-semibold">
+                        {item.albumType}
+                      </span>
+                      {item.scheduledReleaseAt && (
+                        <span className="font-mono text-[9px] text-ink-soft flex items-center gap-1">
+                          <CalendarIconSVG className="w-2.5 h-2.5" />
+                          <span>
+                            {new Date(item.scheduledReleaseAt).toLocaleDateString()}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-serif italic text-base text-ink truncate mt-0.5">
+                      {item.title}
+                    </h4>
+                    <p className="font-sans text-xs text-ink-soft truncate">
+                      {item.artistStageName}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  to="/albums/$idOrSlug"
+                  params={{ idOrSlug: item.slug }}
+                  className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink shrink-0 transition-colors"
+                >
+                  View Drop
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Display Name Form */}

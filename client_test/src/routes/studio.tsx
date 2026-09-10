@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { artistsApi, slugifyText } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
-import type { Album, Song, AlbumType } from '../types/catalog'
+import type { Album, Song, AlbumType, ReleaseVisibility } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
@@ -13,6 +13,8 @@ import {
   TrashIconSVG,
   UndoIconSVG,
   PlusIconSVG,
+  LockIconSVG,
+  CalendarIconSVG,
 } from '../components/icons'
 import {
   ArtistCreditPicker,
@@ -22,6 +24,7 @@ import {
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
 })
+
 
 type StudioTab = 'releases' | 'trash' | 'profile' | 'verification'
 
@@ -76,6 +79,13 @@ function StudioComponent() {
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
+
+  // Scheduled Release & Visibility State
+  const [releaseMode, setReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
+  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('')
+  const [releaseVisibility, setReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+
 
   // Detach Cut Modal State
   const [detachModalData, setDetachModalData] = useState<{
@@ -446,6 +456,10 @@ function StudioComponent() {
     setReleaseType('SINGLE')
     setReleaseDescription('')
     setReleaseCoverUrl('')
+    setReleaseMode('IMMEDIATE')
+    setScheduledDate('')
+    setScheduledTime('')
+    setReleaseVisibility('PUBLIC')
     setSingleTrackGenre('')
     setSingleTrackDuration(0)
     setSingleTrackExplicit(false)
@@ -526,6 +540,27 @@ function StudioComponent() {
 
     const todayDate = new Date().toISOString().split('T')[0]
 
+    let scheduledReleaseAtIso: string | undefined = undefined
+    if (releaseMode === 'SCHEDULED') {
+      if (!scheduledDate || !scheduledTime) {
+        setErrorNotice('Please choose both a date and time for the scheduled release')
+        setIsSubmittingRelease(false)
+        return
+      }
+      const parsedTimestamp = new Date(`${scheduledDate}T${scheduledTime}`).getTime()
+      if (isNaN(parsedTimestamp)) {
+        setErrorNotice('Invalid scheduled release date/time')
+        setIsSubmittingRelease(false)
+        return
+      }
+      if (parsedTimestamp <= Date.now()) {
+        setErrorNotice('Scheduled release time must be in the future')
+        setIsSubmittingRelease(false)
+        return
+      }
+      scheduledReleaseAtIso = new Date(parsedTimestamp).toISOString()
+    }
+
     try {
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
@@ -561,11 +596,15 @@ function StudioComponent() {
           coverImageUrl: releaseCoverUrl,
           description: releaseDescription.trim() || undefined,
           releaseDate: todayDate,
+          scheduledReleaseAt: scheduledReleaseAtIso,
+          visibility: releaseVisibility,
           tracks: singleTrackPayload,
         })
 
         setSuccessNotice(
-          `🎉 Standalone single release "${releaseTitle}" published successfully!`,
+          releaseMode === 'SCHEDULED'
+            ? `🗓️ Standalone single release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
+            : `🎉 Standalone single release "${releaseTitle}" published successfully (${releaseVisibility})!`,
         )
       } else {
         if (draftTracks.length === 0) {
@@ -599,11 +638,15 @@ function StudioComponent() {
           coverImageUrl: releaseCoverUrl,
           description: releaseDescription.trim() || undefined,
           releaseDate: todayDate,
+          scheduledReleaseAt: scheduledReleaseAtIso,
+          visibility: releaseVisibility,
           tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
         })
 
         setSuccessNotice(
-          `🎉 Master ${releaseType} release "${releaseTitle}" published successfully!`,
+          releaseMode === 'SCHEDULED'
+            ? `🗓️ Master ${releaseType} release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
+            : `🎉 Master ${releaseType} release "${releaseTitle}" published successfully (${releaseVisibility})!`,
         )
       }
 
@@ -1108,20 +1151,129 @@ function StudioComponent() {
 
                   <div>
                     <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Release Date
+                      Release Timing
                     </label>
-                    <div className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas-deep text-ink flex items-center justify-between">
-                      <span>
-                        {new Date().toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-wider text-ink-soft bg-panel px-1.5 py-0.5 border border-line/60">
-                        Today &bull; Immediate
-                      </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setReleaseMode('IMMEDIATE')}
+                        className={`font-mono text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
+                          releaseMode === 'IMMEDIATE'
+                            ? 'border-ink bg-ink text-canvas font-semibold'
+                            : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                        }`}
+                      >
+                        Immediate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReleaseMode('SCHEDULED')
+                          if (!scheduledDate) {
+                            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
+                            setScheduledDate(tomorrow.toISOString().split('T')[0])
+                            setScheduledTime('00:00')
+                          }
+                        }}
+                        className={`font-mono text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                          releaseMode === 'SCHEDULED'
+                            ? 'border-ink bg-ink text-canvas font-semibold'
+                            : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                        }`}
+                      >
+                        <CalendarIconSVG className="w-3.5 h-3.5" />
+                        <span>Scheduled Drop</span>
+                      </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Scheduled Release Date & Time Settings */}
+                {releaseMode === 'SCHEDULED' && (
+                  <div className="p-4 border border-blue/40 bg-blue/5 space-y-3">
+                    <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-blue font-semibold">
+                      <CalendarIconSVG className="w-3.5 h-3.5" />
+                      <span>Scheduled Drop & Pre-Save Configuration</span>
+                    </div>
+                    <p className="font-sans text-xs text-ink-soft">
+                      Specify when your {releaseType.toLowerCase()} officially drops. Listeners can pre-save the release to their library immediately. Full audio playback remains locked until this exact timestamp.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                          Release Date (Local) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          min={new Date().toISOString().split('T')[0]}
+                          value={scheduledDate}
+                          onChange={(e) => setScheduledDate(e.target.value)}
+                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                          Release Time (Local) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="time"
+                          required
+                          value={scheduledTime}
+                          onChange={(e) => setScheduledTime(e.target.value)}
+                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Catalog Visibility Tier Selector */}
+                <div>
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Catalog Visibility Tier
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {[
+                      {
+                        key: 'PUBLIC',
+                        label: 'Public',
+                        desc: 'Discoverable in search, artist profile, and pre-save feeds.',
+                      },
+                      {
+                        key: 'UNLISTED',
+                        label: 'Unlisted',
+                        desc: 'Hidden from search; accessible only via private secret share token link.',
+                      },
+                      {
+                        key: 'PRIVATE',
+                        label: 'Private',
+                        desc: 'Strictly restricted to you and collaborators in Studio.',
+                      },
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => setReleaseVisibility(opt.key as ReleaseVisibility)}
+                        className={`text-left p-3 border transition-colors cursor-pointer ${
+                          releaseVisibility === opt.key
+                            ? 'border-ink bg-canvas shadow-2xs ring-1 ring-ink'
+                            : 'border-line bg-panel hover:bg-canvas'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink">
+                            {opt.label}
+                          </span>
+                          {releaseVisibility === opt.key && (
+                            <span className="font-mono text-xs text-blue">●</span>
+                          )}
+                        </div>
+                        <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                          {opt.desc}
+                        </p>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -1497,13 +1649,24 @@ function StudioComponent() {
                   <button
                     type="submit"
                     disabled={isSubmittingRelease}
-                    className="font-mono text-xs uppercase tracking-[0.16em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                    className="font-mono text-xs uppercase tracking-[0.16em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
                   >
-                    {isSubmittingRelease
-                      ? 'Publishing Master Release...'
-                      : releaseType === 'SINGLE'
-                        ? '✦ Publish Single Release'
-                        : `Publish Master ${releaseType}`}
+                    {isSubmittingRelease ? (
+                      <span>
+                        {releaseMode === 'SCHEDULED'
+                          ? 'Scheduling Master Release...'
+                          : 'Publishing Master Release...'}
+                      </span>
+                    ) : releaseMode === 'SCHEDULED' ? (
+                      <>
+                        <CalendarIconSVG className="w-3.5 h-3.5" />
+                        <span>Schedule {releaseType === 'SINGLE' ? 'Single' : releaseType}</span>
+                      </>
+                    ) : releaseType === 'SINGLE' ? (
+                      <span>✦ Publish Single Release</span>
+                    ) : (
+                      <span>Publish Master {releaseType}</span>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -1566,10 +1729,56 @@ function StudioComponent() {
                           </div>
 
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
                                 {album.albumType}
                               </span>
+
+                              {/* Status Badge */}
+                              {album.status === 'SCHEDULED' ? (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
+                                  <CalendarIconSVG className="w-2.5 h-2.5" />
+                                  <span>
+                                    Scheduled &bull;{' '}
+                                    {album.scheduledReleaseAt
+                                      ? new Date(album.scheduledReleaseAt).toLocaleDateString(undefined, {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
+                                      : 'Upcoming'}
+                                  </span>
+                                </span>
+                              ) : album.status === 'DRAFT' ? (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold">
+                                  Draft
+                                </span>
+                              ) : (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
+                                  Published
+                                </span>
+                              )}
+
+                              {/* Visibility Badge */}
+                              {album.visibility === 'UNLISTED' ? (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold">
+                                  🔗 Unlisted
+                                </span>
+                              ) : album.visibility === 'PRIVATE' ? (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 font-semibold flex items-center gap-1">
+                                  <LockIconSVG className="w-2.5 h-2.5" />
+                                  <span>Private</span>
+                                </span>
+                              ) : null}
+
+                              {/* Pre-saves Count for Scheduled Releases */}
+                              {album.status === 'SCHEDULED' && (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-ink-soft">
+                                  ✦ {album.preSavesCount ?? 0} Pre-saves
+                                </span>
+                              )}
+
                               <span className="font-mono text-[10px] text-ink-soft">
                                 {album.releaseDate
                                   ? new Date(
@@ -1590,10 +1799,26 @@ function StudioComponent() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+                          {album.visibility === 'UNLISTED' && album.shareToken && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+                                navigator.clipboard.writeText(shareUrl)
+                                setSuccessNotice(`Copied secret share link for "${album.title}"!`)
+                              }}
+                              className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 cursor-pointer transition-colors"
+                              title="Copy secret link with share token"
+                            >
+                              Copy Secret Link
+                            </button>
+                          )}
+
                           <Link
                             to="/albums/$idOrSlug"
                             params={{ idOrSlug: album.slug }}
+                            search={album.shareToken ? { shareToken: album.shareToken } : {}}
                             className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors flex items-center gap-1"
                           >
                             <span>View</span>

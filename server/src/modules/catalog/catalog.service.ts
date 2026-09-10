@@ -10,7 +10,10 @@ import {
   isNull,
   isNotNull,
   inArray,
+  lte,
+  gt,
 } from "drizzle-orm";
+import { randomBytes } from "crypto";
 import { db } from "../../db";
 import {
   albums,
@@ -19,7 +22,12 @@ import {
   albumLikes,
   songLikes,
   artistProfiles,
+  releasePresaves,
 } from "../../db/schema";
+import {
+  scheduleReleaseJob,
+  cancelScheduledReleaseJob,
+} from "./catalog.queue";
 import type {
   CreateAlbumInput,
   UpdateAlbumInput,
@@ -145,11 +153,24 @@ export class CatalogService {
       ? slugify(input.slug)
       : await this.generateUniqueAlbumSlug(input.title);
 
-    return await db.transaction(async (tx) => {
+    const isScheduled = input.scheduledReleaseAt
+      ? new Date(input.scheduledReleaseAt).getTime() > Date.now()
+      : false;
+
+    const scheduledDate = isScheduled ? new Date(input.scheduledReleaseAt!) : null;
+    const publishedDate = isScheduled ? null : new Date();
+    const releaseDateDay = scheduledDate
+      ? scheduledDate.toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0];
+
+    const visibility = input.visibility ?? "PUBLIC";
+    const shareToken =
+      visibility === "UNLISTED" ? randomBytes(16).toString("hex") : null;
+
+    const result = await db.transaction(async (tx) => {
       const albumCoverUrl = this.ensureFullUrl(input.coverImageUrl)!;
 
       // 1. Insert album
-      const today = new Date().toISOString().split("T")[0];
       const [newAlbum] = await tx
         .insert(albums)
         .values({
@@ -159,7 +180,13 @@ export class CatalogService {
           albumType: input.albumType,
           coverImageUrl: albumCoverUrl,
           description: input.description ?? null,
-          releaseDate: today,
+          releaseDate: releaseDateDay,
+          status: isScheduled ? "SCHEDULED" : "PUBLISHED",
+          visibility,
+          scheduledReleaseAt: scheduledDate,
+          publishedAt: publishedDate,
+          shareToken,
+          preSavesCount: 0,
           likesCount: 0,
           totalTracks: input.tracks?.length ?? 0,
           totalDurationSeconds: 0,
@@ -244,12 +271,22 @@ export class CatalogService {
         tracks: createdTracks,
       };
     });
+
+    if (isScheduled) {
+      await scheduleReleaseJob(result);
+    }
+
+    return result;
   }
 
   /**
    * Retrieves an album by UUID or slug, with tracklist and credit details.
    */
-  async getAlbumByIdOrSlug(idOrSlug: string, currentUserId?: string) {
+  async getAlbumByIdOrSlug(
+    idOrSlug: string,
+    currentUserId?: string,
+    shareToken?: string
+  ) {
     const isUUID = UUID_REGEX.test(idOrSlug);
 
     const [album] = await db
@@ -262,11 +299,18 @@ export class CatalogService {
         coverImageUrl: albums.coverImageUrl,
         description: albums.description,
         releaseDate: albums.releaseDate,
+        status: albums.status,
+        visibility: albums.visibility,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        publishedAt: albums.publishedAt,
+        shareToken: albums.shareToken,
+        preSavesCount: albums.preSavesCount,
         likesCount: albums.likesCount,
         totalTracks: albums.totalTracks,
         totalDurationSeconds: albums.totalDurationSeconds,
         createdAt: albums.createdAt,
         updatedAt: albums.updatedAt,
+        artistUserId: artistProfiles.userId,
         artistStageName: artistProfiles.stageName,
         artistSlug: artistProfiles.slug,
         artistVerified: artistProfiles.verified,
@@ -286,8 +330,31 @@ export class CatalogService {
       return null;
     }
 
-    // Check if current user liked the album
+    const isArtistOwner = !!(currentUserId && album.artistUserId === currentUserId);
+    const isLive =
+      album.status === "PUBLISHED" ||
+      (album.status === "SCHEDULED" &&
+        album.scheduledReleaseAt &&
+        new Date(album.scheduledReleaseAt).getTime() <= Date.now());
+
+    // Check visibility permissions
+    if (!isArtistOwner) {
+      if (album.visibility === "PRIVATE") {
+        return null;
+      }
+      if (
+        album.visibility === "UNLISTED" &&
+        (!shareToken || shareToken !== album.shareToken)
+      ) {
+        return null;
+      }
+    }
+
+    const isUpcoming = !isLive && !isArtistOwner;
+
+    // Check if current user liked or pre-saved the album
     let isLiked = false;
+    let isPreSaved = false;
     if (currentUserId) {
       const [like] = await db
         .select({ albumId: albumLikes.albumId })
@@ -300,6 +367,18 @@ export class CatalogService {
         )
         .limit(1);
       isLiked = !!like;
+
+      const [presave] = await db
+        .select({ albumId: releasePresaves.albumId })
+        .from(releasePresaves)
+        .where(
+          and(
+            eq(releasePresaves.albumId, album.id),
+            eq(releasePresaves.userId, currentUserId)
+          )
+        )
+        .limit(1);
+      isPreSaved = !!presave;
     }
 
     // Fetch tracks for the album
@@ -335,7 +414,7 @@ export class CatalogService {
       stageName: string;
       slug: string;
       verified: boolean;
-      role: "PRIMARY" | "FEATURED" | "PRODUCER" | "COMPOSER";
+      role: typeof songCredits.$inferSelect["role"];
     }> = [];
 
     let userLikedSongIds = new Set<string>();
@@ -368,15 +447,32 @@ export class CatalogService {
       }
     }
 
-    const enrichedTracks = albumSongs.map((song) => ({
-      ...song,
-      isLiked: userLikedSongIds.has(song.id),
-      credits: allCredits.filter((c) => c.songId === song.id),
-    }));
+    const enrichedTracks = albumSongs.map((song) => {
+      if (isUpcoming) {
+        return {
+          ...song,
+          rawAudioKey: null,
+          audioUrl: null,
+          hlsManifestUrl: null,
+          isStreamable: false,
+          isLiked: userLikedSongIds.has(song.id),
+          credits: allCredits.filter((c) => c.songId === song.id),
+        };
+      }
+
+      return {
+        ...song,
+        isStreamable: true,
+        isLiked: userLikedSongIds.has(song.id),
+        credits: allCredits.filter((c) => c.songId === song.id),
+      };
+    });
 
     return {
       ...album,
+      isUpcoming,
       isLiked,
+      isPreSaved,
       tracks: enrichedTracks,
     };
   }
@@ -402,6 +498,34 @@ export class CatalogService {
       finalSlug = await this.generateUniqueAlbumSlug(input.slug, albumId);
     }
 
+    let isScheduled = existing.status === "SCHEDULED";
+    let scheduledDate = existing.scheduledReleaseAt;
+    let publishedDate = existing.publishedAt;
+    let visibility = existing.visibility;
+    let shareToken = existing.shareToken;
+
+    if (input.visibility !== undefined) {
+      visibility = input.visibility;
+      if (visibility === "UNLISTED" && !shareToken) {
+        shareToken = randomBytes(16).toString("hex");
+      }
+    }
+
+    if (input.scheduledReleaseAt !== undefined) {
+      if (
+        input.scheduledReleaseAt &&
+        new Date(input.scheduledReleaseAt).getTime() > Date.now()
+      ) {
+        isScheduled = true;
+        scheduledDate = new Date(input.scheduledReleaseAt);
+        publishedDate = null;
+      } else {
+        isScheduled = false;
+        scheduledDate = null;
+        publishedDate = new Date();
+      }
+    }
+
     const [updated] = await db
       .update(albums)
       .set({
@@ -410,10 +534,21 @@ export class CatalogService {
         ...(input.albumType ? { albumType: input.albumType } : {}),
         ...(input.coverImageUrl ? { coverImageUrl: this.ensureFullUrl(input.coverImageUrl)! } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
+        status: isScheduled ? "SCHEDULED" : "PUBLISHED",
+        visibility,
+        scheduledReleaseAt: scheduledDate,
+        publishedAt: publishedDate,
+        shareToken,
         updatedAt: new Date(),
       })
       .where(eq(albums.id, albumId))
       .returning();
+
+    if (isScheduled) {
+      await scheduleReleaseJob(updated);
+    } else {
+      await cancelScheduledReleaseJob(albumId);
+    }
 
     return updated;
   }
@@ -641,10 +776,15 @@ export class CatalogService {
         likesCount: songs.likesCount,
         coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
         createdAt: songs.createdAt,
+        artistUserId: artistProfiles.userId,
         artistStageName: artistProfiles.stageName,
         artistSlug: artistProfiles.slug,
         artistVerified: artistProfiles.verified,
         albumTitle: albums.title,
+        albumStatus: albums.status,
+        albumVisibility: albums.visibility,
+        albumScheduledReleaseAt: albums.scheduledReleaseAt,
+        albumShareToken: albums.shareToken,
       })
       .from(songs)
       .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
@@ -655,6 +795,16 @@ export class CatalogService {
     if (!song) {
       return null;
     }
+
+    const isArtistOwner = !!(currentUserId && song.artistUserId === currentUserId);
+    const isLive =
+      !song.albumId ||
+      song.albumStatus === "PUBLISHED" ||
+      (song.albumStatus === "SCHEDULED" &&
+        song.albumScheduledReleaseAt &&
+        new Date(song.albumScheduledReleaseAt).getTime() <= Date.now());
+
+    const isStreamable = isLive || isArtistOwner;
 
     // Credits
     const credits = await db
@@ -687,6 +837,10 @@ export class CatalogService {
 
     return {
       ...song,
+      rawAudioKey: isStreamable ? song.rawAudioKey : null,
+      audioUrl: isStreamable ? song.audioUrl : null,
+      hlsManifestUrl: isStreamable ? song.hlsManifestUrl : null,
+      isStreamable,
       isLiked,
       credits,
     };
@@ -948,7 +1102,17 @@ export class CatalogService {
     const limit = query.limit;
     const offset = (page - 1) * limit;
 
-    const conditions = [isNull(albums.deletedAt)];
+    const conditions = [
+      isNull(albums.deletedAt),
+      eq(albums.visibility, "PUBLIC"),
+      or(
+        eq(albums.status, "PUBLISHED"),
+        and(
+          eq(albums.status, "SCHEDULED"),
+          lte(albums.scheduledReleaseAt, sql`NOW()`)
+        )
+      )!,
+    ];
 
     if (query.albumType) {
       conditions.push(eq(albums.albumType, query.albumType));
@@ -985,6 +1149,9 @@ export class CatalogService {
         albumType: albums.albumType,
         coverImageUrl: albums.coverImageUrl,
         releaseDate: albums.releaseDate,
+        status: albums.status,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        preSavesCount: albums.preSavesCount,
         likesCount: albums.likesCount,
         totalTracks: albums.totalTracks,
         totalDurationSeconds: albums.totalDurationSeconds,
@@ -1142,10 +1309,36 @@ export class CatalogService {
     }
 
     // 1. Released Albums, EPs, Singles
+    // Only published public releases appear in public discography, unless user is the artist themselves
+    let isSelf = false;
+    if (currentUserId) {
+      const [requestingArtist] = await db
+        .select({ id: artistProfiles.id })
+        .from(artistProfiles)
+        .where(eq(artistProfiles.userId, currentUserId))
+        .limit(1);
+      isSelf = requestingArtist?.id === artist.id;
+    }
+
+    const discographyCondition = isSelf
+      ? and(eq(albums.artistId, artist.id), isNull(albums.deletedAt))
+      : and(
+          eq(albums.artistId, artist.id),
+          isNull(albums.deletedAt),
+          eq(albums.visibility, "PUBLIC"),
+          or(
+            eq(albums.status, "PUBLISHED"),
+            and(
+              eq(albums.status, "SCHEDULED"),
+              lte(albums.scheduledReleaseAt, sql`NOW()`)
+            )
+          )
+        );
+
     const artistAlbums = await db
       .select()
       .from(albums)
-      .where(and(eq(albums.artistId, artist.id), isNull(albums.deletedAt)))
+      .where(discographyCondition)
       .orderBy(desc(albums.releaseDate), desc(albums.createdAt));
 
     const albumsList = artistAlbums.filter(
@@ -1419,5 +1612,132 @@ export class CatalogService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  // =========================================================================
+  // PRE-SAVE OPERATIONS (ALL RELEASE TYPES)
+  // =========================================================================
+
+  /**
+   * Pre-saves an upcoming scheduled release for a user.
+   */
+  async preSaveAlbum(userId: string, albumId: string) {
+    const [album] = await db
+      .select()
+      .from(albums)
+      .where(and(eq(albums.id, albumId), isNull(albums.deletedAt)))
+      .limit(1);
+
+    if (!album) {
+      throw new Error("Release not found");
+    }
+
+    const isLive =
+      album.status === "PUBLISHED" ||
+      (album.status === "SCHEDULED" &&
+        album.scheduledReleaseAt &&
+        new Date(album.scheduledReleaseAt).getTime() <= Date.now());
+
+    if (isLive) {
+      throw new Error("This release is already published and can be added directly to your library");
+    }
+
+    // Insert pre-save record
+    const [inserted] = await db
+      .insert(releasePresaves)
+      .values({
+        userId,
+        albumId,
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    // If newly inserted, increment pre_saves_count
+    if (inserted) {
+      await db
+        .update(albums)
+        .set({
+          preSavesCount: sql`${albums.preSavesCount} + 1`,
+        })
+        .where(eq(albums.id, albumId));
+    }
+
+    const [updated] = await db
+      .select({ preSavesCount: albums.preSavesCount })
+      .from(albums)
+      .where(eq(albums.id, albumId))
+      .limit(1);
+
+    return {
+      preSaved: true,
+      preSavesCount: updated?.preSavesCount ?? 0,
+    };
+  }
+
+  /**
+   * Removes a pre-save for a user.
+   */
+  async removePreSave(userId: string, albumId: string) {
+    const deleted = await db
+      .delete(releasePresaves)
+      .where(
+        and(
+          eq(releasePresaves.userId, userId),
+          eq(releasePresaves.albumId, albumId)
+        )
+      )
+      .returning();
+
+    if (deleted.length > 0) {
+      await db
+        .update(albums)
+        .set({
+          preSavesCount: sql`GREATEST(0, ${albums.preSavesCount} - 1)`,
+        })
+        .where(eq(albums.id, albumId));
+    }
+
+    const [updated] = await db
+      .select({ preSavesCount: albums.preSavesCount })
+      .from(albums)
+      .where(eq(albums.id, albumId))
+      .limit(1);
+
+    return {
+      preSaved: false,
+      preSavesCount: updated?.preSavesCount ?? 0,
+    };
+  }
+
+  /**
+   * Lists all releases pre-saved by the current user.
+   */
+  async getUserPreSaves(userId: string) {
+    return await db
+      .select({
+        albumId: albums.id,
+        title: albums.title,
+        slug: albums.slug,
+        albumType: albums.albumType,
+        coverImageUrl: albums.coverImageUrl,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        releaseDate: albums.releaseDate,
+        totalTracks: albums.totalTracks,
+        totalDurationSeconds: albums.totalDurationSeconds,
+        preSavedAt: releasePresaves.createdAt,
+        artistStageName: artistProfiles.stageName,
+        artistSlug: artistProfiles.slug,
+        artistVerified: artistProfiles.verified,
+      })
+      .from(releasePresaves)
+      .innerJoin(albums, eq(releasePresaves.albumId, albums.id))
+      .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+      .where(
+        and(
+          eq(releasePresaves.userId, userId),
+          isNull(albums.deletedAt)
+        )
+      )
+      .orderBy(asc(albums.scheduledReleaseAt), desc(releasePresaves.createdAt));
   }
 }

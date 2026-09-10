@@ -4,6 +4,7 @@ import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLike
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
 import { ArtistsService } from "../artists/artists.service";
+import { executePublishRelease, closeReleaseQueue } from "./catalog.queue";
 
 async function createTestArtistUser(name: string, stageName: string) {
   const email = `cat_test_${Date.now()}_${Math.random().toString(36).slice(2, 7)}@groovy.test`;
@@ -424,19 +425,159 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Public catalog instantly reflects restored album and tracks!\n");
 
-    console.log("🎉 ALL CATALOG (ALBUMS, SONGS, CREDITS, SOFT-DELETE & LIKES) TESTS PASSED! 🚀\n");
+    // =========================================================================
+    // STAGE 9: Scheduled Releases, Pre-Save & Stream Security Gate
+    // =========================================================================
+    console.log("9️⃣ Testing Scheduled Release, Pre-Save & Stream Security Gate...");
+
+    const futureDate = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString();
+    const createScheduledRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/albums",
+      headers: { authorization: `Bearer ${artistA.tokens.accessToken}` },
+      payload: {
+        title: "Upcoming Masterpiece",
+        albumType: "ALBUM",
+        coverImageUrl: "https://r2.groovy.sound/covers/upcoming.jpg",
+        scheduledReleaseAt: futureDate,
+        tracks: [
+          {
+            title: "Secret Overture",
+            genre: "Jazz",
+            durationSeconds: 240,
+            audioUrl: "https://r2.groovy.sound/audio/secret_ov.flac",
+          },
+        ],
+      },
+    });
+
+    if (createScheduledRes.statusCode !== 201) {
+      throw new Error(`Failed to create scheduled album: ${createScheduledRes.body}`);
+    }
+    const scheduledAlbum = JSON.parse(createScheduledRes.body);
+    if (scheduledAlbum.status !== "SCHEDULED") {
+      throw new Error(`Expected status 'SCHEDULED', got ${scheduledAlbum.status}`);
+    }
+    const scheduledTrackId = scheduledAlbum.tracks[0].id;
+    console.log(`   ✅ Album created with status 'SCHEDULED', drops: ${futureDate}`);
+
+    // Verify excluded from public search
+    const publicSearchRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/albums",
+    });
+    const searchResults = JSON.parse(publicSearchRes.body);
+    const foundInSearch = searchResults.data.some((a: any) => a.id === scheduledAlbum.id);
+    if (foundInSearch) {
+      throw new Error("Scheduled album leaked in public search before release date!");
+    }
+    console.log("   ✅ Public search strictly excludes scheduled albums");
+
+    // Public direct lookup marks it as isUpcoming and scrubs stream URL
+    const publicUpcomingRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/albums/${scheduledAlbum.id}`,
+    });
+    const publicUpcomingData = JSON.parse(publicUpcomingRes.body);
+    if (!publicUpcomingData.isUpcoming) {
+      throw new Error("Expected public lookup to return isUpcoming: true");
+    }
+    if (publicUpcomingData.tracks[0].audioUrl !== null || publicUpcomingData.tracks[0].isStreamable !== false) {
+      throw new Error("Audio URL / streamable flag not sanitized for upcoming release!");
+    }
+    console.log("   ✅ Public lookup shows upcoming preview with locked track audio");
+
+    // Stream security gate
+    const unauthorizedStreamRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/songs/${scheduledTrackId}/stream`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    if (unauthorizedStreamRes.statusCode !== 403) {
+      throw new Error(`Expected 403 Forbidden for streaming unreleased track, got ${unauthorizedStreamRes.statusCode}`);
+    }
+    console.log("   ✅ Stream Security Gate: Non-owner gets 403 Forbidden for scheduled track");
+
+    const artistStreamRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/songs/${scheduledTrackId}/stream`,
+      headers: { authorization: `Bearer ${artistA.tokens.accessToken}` },
+    });
+    if (artistStreamRes.statusCode !== 200) {
+      throw new Error(`Expected 200 OK for artist auditioning own track, got ${artistStreamRes.statusCode}`);
+    }
+    console.log("   ✅ Artist owner can audition their own scheduled track");
+
+    // Listener pre-saves the release
+    const presaveRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/albums/${scheduledAlbum.id}/pre-save`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    if (presaveRes.statusCode !== 200) {
+      throw new Error(`Failed to pre-save: ${presaveRes.body}`);
+    }
+    const presaveData = JSON.parse(presaveRes.body);
+    if (!presaveData.preSaved || presaveData.preSavesCount !== 1) {
+      throw new Error(`Invalid presave response: ${presaveRes.body}`);
+    }
+    console.log("   ✅ Release pre-saved: preSavesCount = 1");
+
+    // Check listener's pre-saves list
+    const myPresavesRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/albums/presaves/mine",
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    const myPresavesData = JSON.parse(myPresavesRes.body);
+    const hasPresave = myPresavesData.presaves.some((p: any) => p.albumId === scheduledAlbum.id);
+    if (!hasPresave) {
+      throw new Error("Pre-saved album missing from /presaves/mine");
+    }
+    console.log("   ✅ GET /api/v1/albums/presaves/mine returns user pre-saves");
+
+    // Listener removes pre-save
+    const removePresaveRes = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/albums/${scheduledAlbum.id}/pre-save`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    if (removePresaveRes.statusCode !== 200) {
+      throw new Error(`Failed to remove presave: ${removePresaveRes.body}`);
+    }
+    const removePresaveData = JSON.parse(removePresaveRes.body);
+    if (removePresaveData.preSaved !== false || removePresaveData.preSavesCount !== 0) {
+      throw new Error(`Invalid remove presave response: ${removePresaveRes.body}`);
+    }
+    console.log("   ✅ Pre-save removed: preSavesCount = 0");
+
+    // Test transition to PUBLISHED
+    await executePublishRelease(scheduledAlbum.id);
+    const afterPublishRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/albums/${scheduledAlbum.id}`,
+    });
+    const afterPublishData = JSON.parse(afterPublishRes.body);
+    if (afterPublishData.status !== "PUBLISHED" || afterPublishData.isUpcoming) {
+      throw new Error("Album not properly live after publishing execution!");
+    }
+    console.log("   ✅ Published transition: status = 'PUBLISHED', isUpcoming = false, audio unlocked!\n");
+
+    console.log("🎉 ALL CATALOG (ALBUMS, SONGS, CREDITS, SOFT-DELETE, LIKES, SCHEDULED RELEASES & PRE-SAVES) TESTS PASSED! 🚀\n");
   } finally {
     // Cleanup created users and cascaded profiles / catalog
     if (createdUserIds.length > 0) {
       await db.delete(users).where(inArray(users.id, createdUserIds));
       console.log(`🧹 Cleaned up ${createdUserIds.length} test users & associated catalog data.`);
     }
+    await closeReleaseQueue();
   }
 }
 
 runCatalogTests()
   .then(async () => {
     await app.close();
+    await closeReleaseQueue();
     await redis.quit();
     await pgClient.end();
     process.exit(0);
@@ -445,6 +586,7 @@ runCatalogTests()
     console.error("\n❌ Test failed with error:", err);
     try {
       await app.close();
+      await closeReleaseQueue();
       await redis.quit();
       await pgClient.end();
     } catch {}

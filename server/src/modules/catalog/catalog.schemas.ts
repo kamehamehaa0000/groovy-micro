@@ -8,6 +8,19 @@ export const albumTypeEnumSchema = z.enum([
   "LP",
 ]);
 
+export const releaseStatusEnumSchema = z.enum([
+  "DRAFT",
+  "SCHEDULED",
+  "PUBLISHED",
+  "ARCHIVED",
+]);
+
+export const releaseVisibilityEnumSchema = z.enum([
+  "PUBLIC",
+  "UNLISTED",
+  "PRIVATE",
+]);
+
 export const creditRoleEnumSchema = z.enum([
   "PRIMARY",
   "FEATURED",
@@ -60,6 +73,8 @@ export const createAlbumSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters, numbers, and hyphens")
     .optional(),
   albumType: albumTypeEnumSchema.default("ALBUM"),
+  visibility: releaseVisibilityEnumSchema.default("PUBLIC"),
+  scheduledReleaseAt: z.string().datetime({ offset: true }).nullable().optional(),
   coverImageUrl: z.string().min(1, "Cover image is required"),
   description: z.string().max(4000, "Description cannot exceed 4000 characters").optional(),
   releaseDate: z
@@ -84,6 +99,8 @@ export const updateAlbumSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters, numbers, and hyphens")
     .optional(),
   albumType: albumTypeEnumSchema.optional(),
+  visibility: releaseVisibilityEnumSchema.optional(),
+  scheduledReleaseAt: z.string().datetime({ offset: true }).nullable().optional(),
   coverImageUrl: z.string().min(1).optional(),
   description: z.string().max(4000, "Description cannot exceed 4000 characters").nullable().optional(),
 });
@@ -155,6 +172,18 @@ export const searchSongsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+export const preSaveAlbumParamsSchema = z.object({
+  id: z.string().uuid("Invalid release/album ID"),
+});
+
+export const getAlbumParamsSchema = z.object({
+  idOrSlug: z.string().min(1, "Identifier is required"),
+});
+
+export const getAlbumQuerySchema = z.object({
+  shareToken: z.string().optional(),
+});
+
 export type CreditRole = z.infer<typeof creditRoleEnumSchema>;
 export type SongCreditInput = z.infer<typeof songCreditInputSchema>;
 export type InitialTrackInput = z.infer<typeof initialTrackInputSchema>;
@@ -164,3 +193,7 @@ export type CreateSongInput = z.infer<typeof createSongSchema>;
 export type UpdateSongInput = z.infer<typeof updateSongSchema>;
 export type SearchAlbumsQuery = z.infer<typeof searchAlbumsQuerySchema>;
 export type SearchSongsQuery = z.infer<typeof searchSongsQuerySchema>;
+export type ReleaseStatus = z.infer<typeof releaseStatusEnumSchema>;
+export type ReleaseVisibility = z.infer<typeof releaseVisibilityEnumSchema>;
+export type PreSaveAlbumParams = z.infer<typeof preSaveAlbumParamsSchema>;
+export type GetAlbumQuery = z.infer<typeof getAlbumQuerySchema>;

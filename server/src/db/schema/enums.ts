@@ -39,3 +39,16 @@ export const creditRoleEnum = pgEnum("credit_role", [
   "MIX_AND_MASTER",
   "OTHER",
 ]);
+
+export const releaseStatusEnum = pgEnum("release_status", [
+  "DRAFT",
+  "SCHEDULED",
+  "PUBLISHED",
+  "ARCHIVED",
+]);
+
+export const releaseVisibilityEnum = pgEnum("release_visibility", [
+  "PUBLIC",
+  "UNLISTED",
+  "PRIVATE",
+]);
