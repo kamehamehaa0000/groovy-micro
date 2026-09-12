@@ -1,3 +1,4 @@
+process.env.NODE_ENV = "test";
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
 import { users, userSubscriptions, outboxEvents } from "../../db/schema";
@@ -6,6 +7,12 @@ import type { RefreshTokenPayload } from "./auth.schemas";
 
 async function runTests() {
   console.log("🧪 Starting Comprehensive Auth System Tests...\n");
+
+  // Clear any existing rate limit keys to guarantee a clean test slate
+  const rateLimitKeys = await redis.keys("*rate-limit*");
+  if (rateLimitKeys.length > 0) {
+    await redis.del(...rateLimitKeys);
+  }
 
   await bootstrap({ listen: false });
 

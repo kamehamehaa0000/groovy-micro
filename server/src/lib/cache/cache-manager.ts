@@ -69,7 +69,7 @@ export class CacheManager {
     let lockAcquired = false;
 
     try {
-      const lockRes = await redis.set(lockKey, "1", "NX", "EX", 5);
+      const lockRes = await redis.set(lockKey, "1", "EX", 5, "NX");
       lockAcquired = lockRes === "OK";
     } catch {
       // If redis lock fails, continue and execute fetcher directly

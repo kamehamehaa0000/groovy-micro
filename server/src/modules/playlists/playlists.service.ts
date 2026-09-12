@@ -13,7 +13,7 @@ import {
   artistProfiles,
   type Playlist,
 } from "../../db/schema";
-import { playlistsCacheService, likesCacheService, cacheKeys } from "../../lib/cache";
+import { playlistsCacheService, likesCacheService, cacheKeys, cacheManager } from "../../lib/cache";
 import type {
   CreatePlaylistInput,
   UpdatePlaylistInput,
@@ -203,49 +203,108 @@ export class PlaylistsService {
     shareToken?: string,
     collabToken?: string
   ): Promise<PlaylistDetail> {
-    const [playlist] = await db
-      .select({
-        id: playlists.id,
-        ownerId: playlists.ownerId,
-        ownerDisplayName: users.displayName,
-        ownerAvatarUrl: users.avatarUrl,
-        title: playlists.title,
-        description: playlists.description,
-        coverImageUrl: playlists.coverImageUrl,
-        visibility: playlists.visibility,
-        isPublic: playlists.isPublic,
-        isCollaborative: playlists.isCollaborative,
-        shareToken: playlists.shareToken,
-        collaborationToken: playlists.collaborationToken,
-        allowDuplicates: playlists.allowDuplicates,
-        savesCount: playlists.savesCount,
-        createdAt: playlists.createdAt,
-        updatedAt: playlists.updatedAt,
-      })
-      .from(playlists)
-      .innerJoin(users, eq(playlists.ownerId, users.id))
-      .where(eq(playlists.id, playlistId))
-      .limit(1);
+    const cachedData = await cacheManager.getOrSet(
+      cacheKeys.social.playlist(playlistId),
+      async () => {
+        const [playlist] = await db
+          .select({
+            id: playlists.id,
+            ownerId: playlists.ownerId,
+            ownerDisplayName: users.displayName,
+            ownerAvatarUrl: users.avatarUrl,
+            title: playlists.title,
+            description: playlists.description,
+            coverImageUrl: playlists.coverImageUrl,
+            visibility: playlists.visibility,
+            isPublic: playlists.isPublic,
+            isCollaborative: playlists.isCollaborative,
+            shareToken: playlists.shareToken,
+            collaborationToken: playlists.collaborationToken,
+            allowDuplicates: playlists.allowDuplicates,
+            savesCount: playlists.savesCount,
+            createdAt: playlists.createdAt,
+            updatedAt: playlists.updatedAt,
+          })
+          .from(playlists)
+          .innerJoin(users, eq(playlists.ownerId, users.id))
+          .where(eq(playlists.id, playlistId))
+          .limit(1);
 
-    if (!playlist) {
+        if (!playlist) return null;
+
+        const trackRows = await db
+          .select({
+            entryId: playlistSongs.id,
+            position: playlistSongs.position,
+            addedAt: playlistSongs.addedAt,
+            addedByUserId: playlistSongs.addedByUserId,
+            addedByDisplayName: users.displayName,
+            addedByAvatarUrl: users.avatarUrl,
+            songId: songs.id,
+            title: songs.title,
+            slug: songs.slug,
+            durationSeconds: songs.durationSeconds,
+            audioUrl: songs.audioUrl,
+            hlsManifestUrl: songs.hlsManifestUrl,
+            isExplicit: songs.isExplicit,
+            songCoverUrl: songs.coverImageUrl,
+            albumId: albums.id,
+            albumTitle: albums.title,
+            albumCoverUrl: albums.coverImageUrl,
+            albumStatus: albums.status,
+            albumScheduledReleaseAt: albums.scheduledReleaseAt,
+            artistId: artistProfiles.id,
+            artistUserId: artistProfiles.userId,
+            artistStageName: artistProfiles.stageName,
+            artistSlug: artistProfiles.slug,
+            artistVerified: artistProfiles.verified,
+          })
+          .from(playlistSongs)
+          .innerJoin(songs, eq(playlistSongs.songId, songs.id))
+          .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+          .leftJoin(albums, eq(songs.albumId, albums.id))
+          .innerJoin(users, eq(playlistSongs.addedByUserId, users.id))
+          .where(and(eq(playlistSongs.playlistId, playlistId), isNull(songs.deletedAt)))
+          .orderBy(asc(playlistSongs.position));
+
+        let collaborators: any[] = [];
+        if (playlist.isCollaborative) {
+          try {
+            collaborators = await this.listCollaboratorsInternal(playlistId);
+          } catch (err) {
+            collaborators = [];
+          }
+        }
+
+        return { playlist, trackRows, collaborators };
+      },
+      3600
+    );
+
+    if (!cachedData || !cachedData.playlist) {
       throw new Error("Playlist not found");
     }
+
+    const { playlist, trackRows, collaborators } = cachedData;
 
     const isOwner = currentUserId === playlist.ownerId;
     let isCollaborator = false;
 
     if (currentUserId && !isOwner) {
-      const [collab] = await db
-        .select()
-        .from(playlistCollaborators)
-        .where(
-          and(
-            eq(playlistCollaborators.playlistId, playlistId),
-            eq(playlistCollaborators.userId, currentUserId)
+      isCollaborator = (collaborators ?? []).some((c: any) => c.userId === currentUserId);
+      if (!isCollaborator) {
+        const [collab] = await db
+          .select()
+          .from(playlistCollaborators)
+          .where(
+            and(
+              eq(playlistCollaborators.playlistId, playlistId),
+              eq(playlistCollaborators.userId, currentUserId)
+            )
           )
-        )
-        .limit(1);
-      isCollaborator = !!collab;
+          .limit(1);
+        isCollaborator = !!collab;
+      }
     }
 
     const hasValidCollabToken = !!(
@@ -266,45 +325,9 @@ export class PlaylistsService {
       }
     }
 
-    // Fetch ordered tracklist
-    const trackRows = await db
-      .select({
-        entryId: playlistSongs.id,
-        position: playlistSongs.position,
-        addedAt: playlistSongs.addedAt,
-        addedByUserId: playlistSongs.addedByUserId,
-        addedByDisplayName: users.displayName,
-        addedByAvatarUrl: users.avatarUrl,
-        songId: songs.id,
-        title: songs.title,
-        slug: songs.slug,
-        durationSeconds: songs.durationSeconds,
-        audioUrl: songs.audioUrl,
-        hlsManifestUrl: songs.hlsManifestUrl,
-        isExplicit: songs.isExplicit,
-        songCoverUrl: songs.coverImageUrl,
-        albumId: albums.id,
-        albumTitle: albums.title,
-        albumCoverUrl: albums.coverImageUrl,
-        albumStatus: albums.status,
-        albumScheduledReleaseAt: albums.scheduledReleaseAt,
-        artistId: artistProfiles.id,
-        artistUserId: artistProfiles.userId,
-        artistStageName: artistProfiles.stageName,
-        artistSlug: artistProfiles.slug,
-        artistVerified: artistProfiles.verified,
-      })
-      .from(playlistSongs)
-      .innerJoin(songs, eq(playlistSongs.songId, songs.id))
-      .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
-      .leftJoin(albums, eq(songs.albumId, albums.id))
-      .innerJoin(users, eq(playlistSongs.addedByUserId, users.id))
-      .where(and(eq(playlistSongs.playlistId, playlistId), isNull(songs.deletedAt)))
-      .orderBy(asc(playlistSongs.position));
-
     // Construct enriched tracklist with release status gating
     const now = Date.now();
-    const tracks: EnrichedPlaylistTrack[] = trackRows.map((row) => {
+    const tracks: EnrichedPlaylistTrack[] = trackRows.map((row: any) => {
       const isArtistOwner = !!(currentUserId && row.artistUserId === currentUserId);
       const isLive =
         !row.albumId ||
@@ -396,16 +419,6 @@ export class PlaylistsService {
 
     const isSaved = await playlistsCacheService.isPlaylistSaved(currentUserId, playlistId);
     const totalDurationSeconds = tracks.reduce((acc, t) => acc + t.durationSeconds, 0);
-
-    // Fetch collaborators if collaborative
-    let collaborators: any[] = [];
-    if (playlist.isCollaborative) {
-      try {
-        collaborators = await this.listCollaboratorsInternal(playlistId);
-      } catch (err) {
-        collaborators = [];
-      }
-    }
 
     return {
       id: playlist.id,
@@ -1077,7 +1090,7 @@ export class PlaylistsService {
     userId: string,
     playlistId: string,
     token: string
-  ): Promise<{ joined: boolean; playlistTitle: string }> {
+  ): Promise<{ success: boolean; joined: boolean; message: string; playlistTitle: string; playlistId: string }> {
     const [playlist] = await db
       .select()
       .from(playlists)
@@ -1195,5 +1208,7 @@ export class PlaylistsService {
           eq(playlistCollaborators.userId, targetUserId)
         )
       );
+
+    await playlistsCacheService.invalidatePlaylistCache(playlistId);
   }
 }

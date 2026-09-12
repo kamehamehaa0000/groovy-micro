@@ -63,7 +63,7 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   });
 
   await app.register(rateLimit, {
-    max: 1000,
+    max: process.env.NODE_ENV === "test" ? 10000 : 1000,
     timeWindow: "1 minute",
     redis: redis,
   });

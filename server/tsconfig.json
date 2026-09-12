@@ -9,7 +9,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "types": ["@types/bun"]
+    "types": ["@types/bun", "@types/node"]
   },
-  "include": ["src/**/*", "drizzle.config.ts"]
+  "include": ["src/**/*", "scripts/**/*", "drizzle.config.ts"]
 }

@@ -94,8 +94,8 @@ async function runCacheTests() {
       releaseDate: "2026-09-12",
       visibility: "PUBLIC",
       tracks: [
-        { title: "Cache Miss Blues", durationSeconds: 180 },
-        { title: "Redis Hit Hop", durationSeconds: 210 },
+        { title: "Cache Miss Blues", durationSeconds: 180, discNumber: 1, isExplicit: false },
+        { title: "Redis Hit Hop", durationSeconds: 210, discNumber: 1, isExplicit: false },
       ],
     });
 
@@ -313,6 +313,8 @@ async function runCacheTests() {
       title: `Upcoming Album ${testSuffix}`,
       albumType: "ALBUM",
       coverImageUrl: "https://r2.groovy.sound/covers/upcoming.jpg",
+      releaseDate: "2026-10-01",
+      visibility: "PUBLIC",
       scheduledReleaseAt: new Date(Date.now() + 7 * 86400000).toISOString(),
     });
 
