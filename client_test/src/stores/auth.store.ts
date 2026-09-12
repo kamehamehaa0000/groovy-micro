@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { api } from "../lib/api";
 import type { UserProfile } from "../types/auth";
+import { usePlayerStore } from "./player.store";
 
 interface AuthState {
   user: UserProfile | null;
@@ -46,13 +47,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: !!user,
     }),
 
-  clearAuth: () =>
+  clearAuth: () => {
     set({
       user: null,
       accessToken: null,
       isAuthenticated: false,
       isLoading: false,
-    }),
+    });
+  },
 
   checkAuth: async () => {
     if (checkAuthPromise) {
@@ -173,6 +175,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await api.post("/api/v1/auth/logout");
     } finally {
       get().clearAuth();
+      usePlayerStore.getState().stopPlayback();
     }
   },
 
@@ -181,6 +184,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await api.post("/api/v1/auth/revoke-all");
     } finally {
       get().clearAuth();
+      usePlayerStore.getState().stopPlayback();
     }
   },
 

@@ -96,6 +96,7 @@ function StudioComponent() {
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('')
   const [releaseVisibility, setReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+  const [releaseAllowComments, setReleaseAllowComments] = useState(true)
 
   // Edit Release Modal State
   const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
@@ -107,6 +108,7 @@ function StudioComponent() {
   const [editReleaseCoverUrl, setEditReleaseCoverUrl] = useState('')
   const [isUploadingEditCover, setIsUploadingEditCover] = useState(false)
   const [editReleaseVisibility, setEditReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+  const [editReleaseAllowComments, setEditReleaseAllowComments] = useState(true)
   const [editReleaseMode, setEditReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
   const [editReleaseDate, setEditReleaseDate] = useState('')
   const [editReleaseTime, setEditReleaseTime] = useState('')
@@ -488,6 +490,7 @@ function StudioComponent() {
     setScheduledDate('')
     setScheduledTime('')
     setReleaseVisibility('PUBLIC')
+    setReleaseAllowComments(true)
     setSingleTrackGenre('')
     setSingleTrackDuration(0)
     setSingleTrackExplicit(false)
@@ -626,6 +629,7 @@ function StudioComponent() {
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
           visibility: releaseVisibility,
+          allowComments: releaseAllowComments,
           tracks: singleTrackPayload,
         })
 
@@ -668,6 +672,7 @@ function StudioComponent() {
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
           visibility: releaseVisibility,
+          allowComments: releaseAllowComments,
           tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
         })
 
@@ -734,6 +739,7 @@ function StudioComponent() {
     setEditReleaseDescription(album.description || '')
     setEditReleaseCoverUrl(album.coverImageUrl)
     setEditReleaseVisibility(album.visibility || 'PUBLIC')
+    setEditReleaseAllowComments(album.allowComments ?? true)
 
     if (album.status === 'SCHEDULED' && album.scheduledReleaseAt) {
       setEditReleaseMode('SCHEDULED')
@@ -863,6 +869,7 @@ function StudioComponent() {
         coverImageUrl: editReleaseCoverUrl,
         visibility: editReleaseVisibility,
         scheduledReleaseAt: scheduledReleaseAtIso,
+        allowComments: editReleaseAllowComments,
       })
 
       // 2. Update all tracks (title, genre, explicit, cover, credits)
@@ -1582,6 +1589,29 @@ function StudioComponent() {
                     placeholder="Recording location, inspiration, gear, or credits..."
                     className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
                   />
+                </div>
+
+                {/* Creator Governance: Comments & Discussions */}
+                <div className="p-3.5 border border-line bg-panel flex items-center justify-between">
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block font-semibold">
+                      Discussion &amp; Comments
+                    </span>
+                    <p className="font-sans text-xs text-ink-soft">
+                      Allow listeners and curators to post comments and replies on this release.
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={releaseAllowComments}
+                      onChange={(e) => setReleaseAllowComments(e.target.checked)}
+                      className="accent-blue w-4 h-4"
+                    />
+                    <span className="font-mono text-xs text-ink font-medium">
+                      {releaseAllowComments ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </label>
                 </div>
 
                 {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
@@ -3124,6 +3154,29 @@ function StudioComponent() {
                     placeholder="Liner notes, studio sessions, recording personnel, narrative..."
                     className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
                   />
+                </div>
+
+                {/* Creator Governance: Comments & Discussions */}
+                <div className="p-3.5 border border-line bg-canvas flex items-center justify-between">
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block font-semibold">
+                      Discussion &amp; Comments
+                    </span>
+                    <p className="font-sans text-xs text-ink-soft">
+                      Allow listeners and curators to post comments and replies on this release.
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={editReleaseAllowComments}
+                      onChange={(e) => setEditReleaseAllowComments(e.target.checked)}
+                      className="accent-blue w-4 h-4"
+                    />
+                    <span className="font-mono text-xs text-ink font-medium">
+                      {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </label>
                 </div>
 
                 {/* Master Cuts & Collaborator Credits */}

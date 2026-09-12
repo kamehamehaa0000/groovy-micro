@@ -15,6 +15,8 @@ import { albumsRoutes, songsRoutes, studioCatalogRoutes } from "./modules/catalo
 import { initReleaseWorker, closeReleaseQueue } from "./modules/catalog/catalog.queue";
 import { subscriptionsRoutes, adminSubscriptionsRoutes } from "./modules/subscriptions";
 import { playlistsRoutes } from "./modules/playlists";
+import { commentsRoutes } from "./modules/comments";
+import { playerRoutes } from "./modules/player";
 
 dotenv.config();
 
@@ -82,6 +84,8 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   await app.register(subscriptionsRoutes, { prefix: "/api/v1/subscriptions" });
   await app.register(adminSubscriptionsRoutes, { prefix: "/api/v1/admin/subscriptions" });
   await app.register(playlistsRoutes, { prefix: "/api/v1/playlists" });
+  await app.register(commentsRoutes, { prefix: "/api/v1/comments" });
+  await app.register(playerRoutes, { prefix: "/api/v1/player" });
 
   // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {

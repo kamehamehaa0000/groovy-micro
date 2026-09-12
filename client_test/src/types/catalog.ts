@@ -51,6 +51,7 @@ export interface CreateAlbumInput {
   description?: string;
   genre?: string | null;
   releaseDate?: string;
+  allowComments?: boolean;
   tracks?: InitialTrackInput[];
 }
 
@@ -64,6 +65,7 @@ export interface UpdateAlbumInput {
   description?: string | null;
   genre?: string | null;
   releaseDate?: string;
+  allowComments?: boolean;
 }
 
 export interface CreateSongInput {
@@ -78,6 +80,7 @@ export interface CreateSongInput {
   rawAudioKey?: string;
   audioUrl?: string;
   coverImageUrl?: string | null;
+  allowComments?: boolean;
   credits?: SongCreditInput[];
 }
 
@@ -90,6 +93,7 @@ export interface UpdateSongInput {
   trackNumber?: number | null;
   discNumber?: number;
   isExplicit?: boolean;
+  allowComments?: boolean;
   rawAudioKey?: string | null;
   audioUrl?: string | null;
   coverImageUrl?: string | null;
@@ -114,6 +118,7 @@ export interface Song {
   processingStatus: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   playsCount: number;
   likesCount: number;
+  allowComments?: boolean;
   isStreamable?: boolean;
   deletedAt?: string | null;
   createdAt: string;
@@ -127,6 +132,7 @@ export interface EnrichedSong extends Song {
   artistSlug?: string;
   artistVerified?: boolean;
   albumTitle?: string | null;
+  albumSlug?: string | null;
   albumCoverImageUrl?: string | null;
   scheduledReleaseAt?: string | null;
 }
@@ -143,6 +149,7 @@ export interface Album {
   releaseDate: string;
   status?: ReleaseStatus;
   visibility?: ReleaseVisibility;
+  allowComments?: boolean;
   scheduledReleaseAt?: string | null;
   publishedAt?: string | null;
   shareToken?: string | null;

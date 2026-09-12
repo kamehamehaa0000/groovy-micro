@@ -10,6 +10,7 @@ export const createPlaylistSchema = z.object({
   coverImageUrl: z.string().url("Must be a valid URL").optional(),
   visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]).default("PUBLIC"),
   allowDuplicates: z.boolean().default(false),
+  allowComments: z.boolean().default(true),
   initialSongIds: z.array(z.string().uuid("Invalid song UUID")).max(100).optional(),
 });
 
@@ -26,6 +27,7 @@ export const updatePlaylistSchema = z.object({
   coverImageUrl: z.string().url("Must be a valid URL").nullish(),
   visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]).optional(),
   allowDuplicates: z.boolean().optional(),
+  allowComments: z.boolean().optional(),
 });
 
 export type UpdatePlaylistInput = z.infer<typeof updatePlaylistSchema>;

@@ -7,7 +7,9 @@ This document details the complete production PostgreSQL schema design for the r
 ## Domain 1: Identity & Artist Management
 
 ### 1. `users`
+
 **Features Supported:**
+
 - Email/password authentication and OAuth (Google, etc.) with unified account linking.
 - Permanent Google OAuth Subject ID (`google_id`) for secure authentication and account linking across email changes.
 - Role-based authorization (`LISTENER`, `ARTIST`, `ADMIN`).
@@ -39,7 +41,9 @@ CREATE INDEX idx_users_google_id ON users(google_id);
 ---
 
 ### 2. `artist_profiles`
+
 **Features Supported:**
+
 - 1:1 Profile for users with the `ARTIST` role (a user can claim an artist profile without creating a separate login).
 - Verification badge ("blue tick" verification).
 - Public artist page customization (bio, banner image, social links).
@@ -65,7 +69,9 @@ CREATE INDEX idx_artists_stage_name ON artist_profiles(stage_name);
 ---
 
 ### 3. `artist_followers`
+
 **Features Supported:**
+
 - "Follow Artist" button.
 - Feeds user "New Releases from Artists You Follow" notifications.
 - Composite primary key prevents duplicate follows.
@@ -86,7 +92,9 @@ CREATE INDEX idx_artist_followers_artist ON artist_followers(artist_id);
 ## Domain 2: Subscriptions & Entitlements
 
 ### 4. `subscription_plans`
+
 **Features Supported:**
+
 - Tiered subscriptions (e.g. `free`, `premium_individual`, `premium_student`).
 - Dynamic feature flags (`features` JSONB): Controls maximum bitrate (128k vs 320k), ad-free listening, lossless audio, and maximum participants in Live Jam rooms without requiring code deploys.
 
@@ -111,7 +119,9 @@ CREATE TABLE subscription_plans (
 ---
 
 ### 5. `user_subscriptions`
+
 **Features Supported:**
+
 - Tracks the active plan of each user. Every user is given the `'free'` plan by default.
 - Payment gateway readiness: Stores external customer & subscription IDs (Stripe/Razorpay/LemonSqueezy) for zero-schema-change payment integration later.
 - Grace periods & cancellation scheduling (`cancel_at_period_end`).
@@ -143,7 +153,9 @@ CREATE INDEX idx_user_subscriptions_user ON user_subscriptions(user_id);
 ## Domain 3: Music Catalog & Audio Pipeline
 
 ### 6. `albums`
+
 **Features Supported:**
+
 - Album, EP, and Single releases.
 - Release date tracking for release radar algorithms.
 - Explicit content flag at the album level.
@@ -168,7 +180,9 @@ CREATE INDEX idx_albums_artist ON albums(artist_id);
 ---
 
 ### 7. `songs`
+
 **Features Supported:**
+
 - Complete audio lifecycle: Tracks raw upload to Cloudflare R2 (`raw_audio_key`), transcode progress (`processing_status`), and final multi-bitrate HLS manifest (`hls_manifest_url`).
 - Album track numbering and disc numbers.
 - Global play count and like count caching (for fast sorting on "Top Tracks" without slow table joins).
@@ -186,17 +200,17 @@ CREATE TABLE songs (
     track_number INTEGER DEFAULT 1,
     disc_number INTEGER DEFAULT 1,
     is_explicit BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- Audio Processing Fields
     raw_audio_key TEXT,                            -- Temporary original uploaded file path in R2
     hls_manifest_url TEXT,                         -- Cloudflare CDN URL to master.m3u8
     processing_status song_status NOT NULL DEFAULT 'PENDING',
     processing_error TEXT,                         -- Debugging info if FFmpeg fails
-    
+
     -- Cached Aggregates for Instant Reads
     plays_count BIGINT NOT NULL DEFAULT 0,
     likes_count INTEGER NOT NULL DEFAULT 0,
-    
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -213,7 +227,9 @@ CREATE INDEX idx_songs_title_trgm ON songs USING gin (title gin_trgm_ops);
 ## Domain 4: Playlists & User Library
 
 ### 8. `playlists`
+
 **Features Supported:**
+
 - User-created custom playlists.
 - Public vs Private playlists.
 - Collaborative playlists (allowing multiple friends to add tracks).
@@ -237,7 +253,9 @@ CREATE INDEX idx_playlists_owner ON playlists(owner_id);
 ---
 
 ### 9. `playlist_songs`
+
 **Features Supported:**
+
 - Custom drag-and-drop track ordering (`position` column).
 - Collaborative attribution: Tracks who added which song to the playlist (`added_by_user_id`).
 
@@ -258,7 +276,9 @@ CREATE INDEX idx_playlist_songs_order ON playlist_songs(playlist_id, position);
 ---
 
 ### 10. `user_library_albums`
+
 **Features Supported:**
+
 - "Save Album to Library" feature.
 - Instant user library page rendering.
 
@@ -274,9 +294,11 @@ CREATE TABLE user_library_albums (
 ---
 
 ### 11. `user_library_playlists` (Saving 3rd-Party Playlists)
+
 **Features Supported:**
+
 - "Save Playlist to Library" / "Follow Playlist" feature.
-- Allows users to bookmark public playlists created by *other* users, artists, or editorial curators into their own library without duplicating playlist records.
+- Allows users to bookmark public playlists created by _other_ users, artists, or editorial curators into their own library without duplicating playlist records.
 - Enables computing playlist popularity / followers (`COUNT(*)`).
 
 ```sql
@@ -295,7 +317,9 @@ CREATE INDEX idx_user_library_playlists_user ON user_library_playlists(user_id);
 ## Domain 5: Social Interactions (Likes & Nested Comments)
 
 ### 12. `song_likes`
+
 **Features Supported:**
+
 - "Heart" button on songs.
 - Powers the user's automated "Liked Songs" collection.
 - Composite primary key prevents duplicate likes.
@@ -313,26 +337,63 @@ CREATE INDEX idx_song_likes_user ON song_likes(user_id);
 
 ---
 
-### 13. `comments`
+### 13. `comments` & `comment_votes` (Full Details: `docs/NESTED_COMMENTS_SUBSYSTEM_DESIGN.md`)
+
 **Features Supported:**
-- Song discussion threads.
-- Threaded replies: Handled via self-referential `parent_comment_id` (enables Reddit/YouTube-style reply trees).
-- Timestamped song comments: `timestamp_seconds` allows users to comment on specific moments in a track (SoundCloud-style).
+
+- 2-level discussion threads across songs, albums, and playlists.
+- Mutual target check constraint (`chk_comments_single_target`).
+- Flat 2-level replies: `parent_id` points to root comment, while `reply_to_user_id` supports direct `@username` context without layout collapse.
+- Reddit-style two-way voting (Likes & Dislikes) with Redis Hash caching (`comment_votes`).
+- Audio timestamp seeking (`timestamp_seconds`).
+- Creator comment pinning (`is_pinned`) and soft-delete thread preservation (`deleted_at`).
 
 ```sql
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    song_id UUID NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    parent_comment_id UUID REFERENCES comments(id) ON DELETE CASCADE, -- NULL = Top-level comment
-    content TEXT NOT NULL,
-    timestamp_seconds INTEGER,                     -- Optional: comment linked to a specific playback second
+
+    -- Target entity (mutually exclusive)
+    song_id UUID REFERENCES songs(id) ON DELETE CASCADE,
+    album_id UUID REFERENCES albums(id) ON DELETE CASCADE,
+    playlist_id UUID REFERENCES playlists(id) ON DELETE CASCADE,
+    CONSTRAINT chk_comments_single_target CHECK (num_nonnulls(song_id, album_id, playlist_id) = 1),
+
+    -- Hierarchy & Mentions
+    parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
+    reply_to_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Audio Context (Optional)
+    timestamp_seconds INTEGER,
+
+    content VARCHAR(2000) NOT NULL,
+    likes_count INTEGER NOT NULL DEFAULT 0,
+    dislikes_count INTEGER NOT NULL DEFAULT 0,
+    replies_count INTEGER NOT NULL DEFAULT 0,
+    is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+    is_edited BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMPTZ,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_comments_song ON comments(song_id);
-CREATE INDEX idx_comments_parent ON comments(parent_comment_id);
+CREATE INDEX idx_comments_song_parent ON comments(song_id, parent_id, created_at);
+CREATE INDEX idx_comments_album_parent ON comments(album_id, parent_id, created_at);
+CREATE INDEX idx_comments_playlist_parent ON comments(playlist_id, parent_id, created_at);
+CREATE INDEX idx_comments_parent_id ON comments(parent_id);
+
+CREATE TABLE comment_votes (
+    comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vote SMALLINT NOT NULL,                        -- +1 (Upvote) or -1 (Downvote)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (comment_id, user_id),
+    CONSTRAINT chk_comment_vote_val CHECK (vote IN (1, -1))
+);
+
+CREATE INDEX idx_comment_votes_user ON comment_votes(user_id);
 ```
 
 ---
@@ -340,7 +401,9 @@ CREATE INDEX idx_comments_parent ON comments(parent_comment_id);
 ## Domain 6: Analytics & Listening History
 
 ### 14. `listening_history`
+
 **Features Supported:**
+
 - "Recently Played" screen on the client.
 - Song recommendation algorithms and Spotify Wrapped-style metrics.
 - Fraud prevention: `completed` flag ensures play counts are only incremented when users listen past a threshold (e.g. >30 seconds).
@@ -363,7 +426,9 @@ CREATE INDEX idx_history_user_recent ON listening_history(user_id, played_at DES
 ## Domain 7: Reliability & Event Consistency (Outbox)
 
 ### 15. `outbox_events`
+
 **Features Supported:**
+
 - Implements the **Transactional Outbox Pattern**.
 - Solves dual-write inconsistencies permanently: Database mutations and event emissions occur within the **same ACID transaction**.
 - A background worker reads unprocessed records, publishes them to Redis Streams, and marks `published_at = NOW()`.

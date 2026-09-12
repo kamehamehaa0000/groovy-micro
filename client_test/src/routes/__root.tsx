@@ -11,8 +11,13 @@ import { useFollowsStore } from '../stores/follows.store'
 import { usePreSavesStore } from '../stores/presaves.store'
 import { useEntitlementsStore } from '../stores/entitlements.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
+import { usePlayerStore } from '../stores/player.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG } from '../components/icons'
+import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
+import { PlayerBar } from '../components/player/PlayerBar'
+import { QueueDrawer } from '../components/player/QueueDrawer'
+import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -26,6 +31,7 @@ function RootComponent() {
   const { user, isAuthenticated, isLoading, checkAuth, logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
 
   // Native Browser FedCM for Google Single-Tap (Zero script tags, pure Web API)
   useGoogleFedCM()
@@ -386,7 +392,7 @@ function RootComponent() {
       </div>
 
       {/* ===================== MAIN CONTENT AREA ===================== */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-24' : ''}`}>
         <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
           <Outlet />
         </main>
@@ -401,6 +407,12 @@ function RootComponent() {
           </p>
         </footer>
       </div>
+
+      {/* ===================== GLOBAL AUDIO ENGINE & CONTROLS ===================== */}
+      <GlobalAudioEngine />
+      <PlayerBar />
+      <QueueDrawer />
+      <AuthPromptModal />
     </div>
   )
 }

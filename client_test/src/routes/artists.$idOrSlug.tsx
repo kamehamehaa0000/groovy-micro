@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
 import type { DiscographyResponse, EnrichedSong } from '../types/catalog'
+import type { PlayerTrack } from '../types/player'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
@@ -16,6 +17,9 @@ import {
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { useFollowsStore } from '../stores/follows.store'
+import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import { SongActionMenu } from '../components/player/SongActionMenu'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
   component: ArtistPublicProfileComponent,
@@ -23,8 +27,15 @@ export const Route = createFileRoute('/artists/$idOrSlug')({
 
 function ArtistPublicProfileComponent() {
   const { idOrSlug } = Route.useParams()
-  const navigate = useNavigate()
   const { user, isAuthenticated } = useAuthStore()
+
+  // Player integration
+  const {
+    currentTrack,
+    playbackStatus,
+    playTrack,
+    togglePlay,
+  } = usePlayerStore()
 
   // Likes & Follows store integration
   const likedSongIds = useLikesStore((s) => s.likedSongIds)
@@ -47,11 +58,6 @@ function ArtistPublicProfileComponent() {
 
   // Copy link feedback
   const [copiedLink, setCopiedLink] = useState(false)
-
-  // Playback state
-  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -91,19 +97,15 @@ function ArtistPublicProfileComponent() {
     }
   }, [idOrSlug, hydrateSongs, hydrateArtists])
 
-  // Stop audio on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-      }
-    }
-  }, [])
-
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Artist Community',
+        subtitle: 'Artists',
+        title: 'Follow this artist.',
+        description:
+          'Sign in or create an account to follow your favorite artists and get updates when they drop new music.',
+      })
       return
     }
     if (!artist || isFollowLoading) return
@@ -131,7 +133,13 @@ function ArtistPublicProfileComponent() {
 
   const handleToggleTrackLike = async (track: EnrichedSong) => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Favorites & Library',
+        subtitle: 'Library',
+        title: 'Save to your library.',
+        description:
+          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
+      })
       return
     }
 
@@ -185,45 +193,61 @@ function ArtistPublicProfileComponent() {
     }
   }
 
-  const handlePlaySong = (song: EnrichedSong) => {
-    if (!song.audioUrl) {
-      alert('Audio stream for this master track is currently processing.')
+  const toPlayerTrack = (song: EnrichedSong): PlayerTrack => ({
+    id: song.id,
+    title: song.title,
+    artistId: artist?.id || song.artistId || '',
+    artistName: artist?.stageName || song.artistStageName || 'Unknown Artist',
+    artistSlug: artist?.slug || song.artistSlug,
+    albumId: song.albumId || undefined,
+    albumTitle: song.albumTitle || undefined,
+    albumSlug: song.albumSlug || undefined,
+    coverImageUrl: song.coverImageUrl || song.albumCoverImageUrl || artist?.bannerUrl,
+    durationSeconds: song.durationSeconds,
+    audioUrl: song.audioUrl,
+    hlsManifestUrl: song.hlsManifestUrl,
+    rawAudioKey: song.rawAudioKey,
+    isExplicit: song.isExplicit,
+  })
+
+  const handlePlaySong = (song: EnrichedSong, index?: number) => {
+    if (song.isStreamable === false) {
+      alert('This cut is scheduled and locked until release.')
       return
     }
 
-    if (playingSongId === song.id) {
-      if (isPlaying) {
-        audioRef.current?.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current?.play()
-        setIsPlaying(true)
-      }
+    if (currentTrack?.id === song.id) {
+      togglePlay()
       return
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio()
-      audioRef.current.onended = () => {
-        setIsPlaying(false)
-      }
-      audioRef.current.onerror = () => {
-        setIsPlaying(false)
-        alert('Playback error. Cloudflare R2 audio may still be syncing.')
-      }
-    }
+    if (!discography?.topTracks) return
+    const validTracks = discography.topTracks.filter(
+      (t) => t.isStreamable !== false,
+    )
+    const contextTracks = validTracks.map(toPlayerTrack)
+    const targetTrack = toPlayerTrack(song)
+    const targetIdx = contextTracks.findIndex((t) => t.id === targetTrack.id)
 
-    audioRef.current.src = song.audioUrl
-    audioRef.current
-      .play()
-      .then(() => {
-        setPlayingSongId(song.id)
-        setIsPlaying(true)
-      })
-      .catch((err) => {
-        console.error('Playback error:', err)
-        setIsPlaying(false)
-      })
+    playTrack(
+      targetTrack,
+      contextTracks,
+      targetIdx >= 0 ? targetIdx : (index ?? 0),
+      `artist:${artist?.id || idOrSlug}:top-tracks`,
+      `${artist?.stageName || 'Artist'} — Top Tracks`,
+    )
+  }
+
+  const handlePlayArtistFromStart = () => {
+    if (!discography?.topTracks || discography.topTracks.length === 0) return
+    const firstPlayableIdx = discography.topTracks.findIndex(
+      (t) => t.isStreamable !== false,
+    )
+    if (firstPlayableIdx >= 0) {
+      handlePlaySong(discography.topTracks[firstPlayableIdx], firstPlayableIdx)
+    } else {
+      alert('No streamable tracks available for this artist.')
+    }
   }
 
   const handleCopyShareLink = () => {
@@ -351,6 +375,17 @@ function ArtistPublicProfileComponent() {
 
           {/* Action Button */}
           <div className="flex items-center gap-3">
+            {hasTopTracks && (
+              <button
+                type="button"
+                onClick={handlePlayArtistFromStart}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+              >
+                <PlayIconSVG className="w-3.5 h-3.5" />
+                <span>Play</span>
+              </button>
+            )}
+
             {isOwner ? (
               <Link
                 to="/studio"
@@ -410,19 +445,21 @@ function ArtistPublicProfileComponent() {
                 <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
                   {discography!.topTracks.map((track, idx) => {
                     const isCurrentPlaying =
-                      playingSongId === track.id && isPlaying
+                      currentTrack?.id === track.id && playbackStatus === 'playing'
+                    const isCurrentLoaded = currentTrack?.id === track.id
+                    const isLocked = track.isStreamable === false
 
                     return (
                       <div
                         key={track.id}
                         className={`px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
                           isCurrentPlaying ? 'bg-blue/5' : ''
-                        }`}
+                        } ${isLocked ? 'opacity-65 bg-line/10' : ''}`}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                           <button
                             type="button"
-                            onClick={() => handlePlaySong(track)}
+                            onClick={() => handlePlaySong(track, idx)}
                             aria-label={
                               isCurrentPlaying ? 'Pause' : 'Play track'
                             }
@@ -431,12 +468,16 @@ function ArtistPublicProfileComponent() {
                             {isCurrentPlaying ? (
                               <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
                             ) : (
-                              <span className="font-mono text-[10.5px] group-hover:hidden">
-                                {String(idx + 1).padStart(2, '0')}
-                              </span>
-                            )}
-                            {!isCurrentPlaying && (
-                              <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                              <>
+                                <span
+                                  className={`font-mono text-[10.5px] ${
+                                    isCurrentLoaded ? 'text-blue font-bold' : ''
+                                  } group-hover:hidden`}
+                                >
+                                  {String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
+                              </>
                             )}
                           </button>
 
@@ -446,7 +487,9 @@ function ArtistPublicProfileComponent() {
                                 className={`font-serif text-sm truncate ${
                                   isCurrentPlaying
                                     ? 'text-blue font-medium'
-                                    : 'text-ink'
+                                    : isCurrentLoaded
+                                      ? 'text-blue'
+                                      : 'text-ink'
                                 }`}
                               >
                                 {track.title}
@@ -463,7 +506,11 @@ function ArtistPublicProfileComponent() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4 shrink-0">
+                        <div className="flex items-center gap-3 shrink-0">
+                          {!isLocked && (
+                            <SongActionMenu track={toPlayerTrack(track)} />
+                          )}
+
                           <span className="font-mono text-[10.5px] text-ink-soft">
                             {formatDuration(track.durationSeconds)}
                           </span>

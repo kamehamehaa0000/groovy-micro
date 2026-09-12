@@ -1,0 +1,534 @@
+import { create } from "zustand";
+import type {
+  PlayerTrack,
+  PlaybackStatus,
+  RepeatMode,
+  PlayerStateSnapshot,
+} from "../types/player";
+import { playerApi } from "../lib/player.api";
+
+// Helper: Fisher-Yates array shuffle
+function shuffleArray<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const STORAGE_KEY = "groovy:player:snapshot";
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+interface PlayerState {
+  // Current playback
+  currentTrack: PlayerTrack | null;
+  playbackStatus: PlaybackStatus;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  isShuffle: boolean;
+  repeatMode: RepeatMode;
+  streamQuality: "lossless" | "standard";
+  errorMessage: string | null;
+
+  // Two-tier Queue
+  userQueue: PlayerTrack[]; // Priority: Explicit "Play Next" and "Add to Queue"
+  contextQueue: PlayerTrack[]; // Background: Album / Playlist context tracks
+  originalContextQueue: PlayerTrack[]; // Retained for un-shuffling
+  contextIndex: number; // Pointer in contextQueue
+  contextUri: string | null; // e.g. "album:uuid" or "playlist:uuid"
+  contextTitle: string | null; // e.g. "Kind of Blue"
+
+  // UI state
+  isQueueOpen: boolean;
+  isInitialized: boolean;
+
+  // Actions
+  playTrack: (
+    track: PlayerTrack,
+    contextQueue?: PlayerTrack[],
+    contextIndex?: number,
+    contextUri?: string,
+    contextTitle?: string
+  ) => void;
+  togglePlay: () => void;
+  pause: () => void;
+  resume: () => void;
+  seek: (timeSeconds: number) => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
+  next: () => void;
+  previous: () => void;
+
+  // Queue actions
+  playNext: (track: PlayerTrack) => void;
+  addToQueue: (track: PlayerTrack) => void;
+  playUserQueueTrack: (index: number) => void;
+  reorderUserQueue: (fromIndex: number, toIndex: number) => void;
+  removeFromUserQueue: (index: number) => void;
+  clearUserQueue: () => void;
+  jumpToContextTrack: (index: number) => void;
+  stopPlayback: () => void;
+
+  // UI actions
+  setQueueOpen: (isOpen: boolean) => void;
+  toggleQueueDrawer: () => void;
+
+  // Internal engine setters
+  _setStatus: (status: PlaybackStatus) => void;
+  _setCurrentTime: (time: number) => void;
+  _setDuration: (duration: number) => void;
+  _setError: (err: string | null) => void;
+  _setStreamQuality: (quality: "lossless" | "standard") => void;
+
+  // Persistence & Sync
+  initializeSync: () => Promise<void>;
+  saveSnapshot: () => void;
+}
+
+export const usePlayerStore = create<PlayerState>((set, get) => ({
+  currentTrack: null,
+  playbackStatus: "idle",
+  currentTime: 0,
+  duration: 0,
+  volume: 0.8,
+  isMuted: false,
+  isShuffle: false,
+  repeatMode: "off",
+  streamQuality: "standard",
+  errorMessage: null,
+
+  userQueue: [],
+  contextQueue: [],
+  originalContextQueue: [],
+  contextIndex: 0,
+  contextUri: null,
+  contextTitle: null,
+
+  isQueueOpen: false,
+  isInitialized: false,
+
+  playTrack: (track, contextQueue, contextIndex = 0, contextUri, contextTitle) => {
+    const isShuffle = get().isShuffle;
+
+    let nextContext = contextQueue ? [...contextQueue] : get().contextQueue;
+    const originalContext = contextQueue ? [...contextQueue] : get().originalContextQueue;
+    let nextIndex = contextIndex;
+
+    if (contextQueue && isShuffle) {
+      // Shuffle upcoming context, keeping the selected track first
+      const otherTracks = contextQueue.filter((t) => t.id !== track.id);
+      nextContext = [track, ...shuffleArray(otherTracks)];
+      nextIndex = 0;
+    }
+
+    set({
+      currentTrack: track,
+      playbackStatus: "loading",
+      currentTime: 0,
+      duration: track.durationSeconds || 0,
+      contextQueue: nextContext,
+      originalContextQueue: originalContext,
+      contextIndex: nextIndex,
+      contextUri: contextUri ?? get().contextUri,
+      contextTitle: contextTitle ?? get().contextTitle,
+      errorMessage: null,
+    });
+
+    get().saveSnapshot();
+  },
+
+  togglePlay: () => {
+    const { playbackStatus, currentTrack } = get();
+    if (!currentTrack) return;
+
+    if (playbackStatus === "playing") {
+      set({ playbackStatus: "paused" });
+    } else {
+      set({ playbackStatus: "playing" });
+    }
+    get().saveSnapshot();
+  },
+
+  pause: () => {
+    set({ playbackStatus: "paused" });
+    get().saveSnapshot();
+  },
+
+  resume: () => {
+    if (get().currentTrack) {
+      set({ playbackStatus: "playing" });
+      get().saveSnapshot();
+    }
+  },
+
+  seek: (timeSeconds) => {
+    set({ currentTime: Math.max(0, timeSeconds) });
+    get().saveSnapshot();
+  },
+
+  setVolume: (volume) => {
+    const clamped = Math.max(0, Math.min(1, volume));
+    set({ volume: clamped, isMuted: clamped === 0 });
+    get().saveSnapshot();
+  },
+
+  toggleMute: () => {
+    set((state) => ({ isMuted: !state.isMuted }));
+    get().saveSnapshot();
+  },
+
+  toggleShuffle: () => {
+    const { isShuffle, contextQueue, originalContextQueue, currentTrack } = get();
+    const nextShuffle = !isShuffle;
+
+    if (nextShuffle) {
+      // Shuffling: Keep current track first, shuffle the rest
+      if (currentTrack && contextQueue.length > 0) {
+        const others = contextQueue.filter((t) => t.id !== currentTrack.id);
+        const shuffled = [currentTrack, ...shuffleArray(others)];
+        set({
+          isShuffle: true,
+          contextQueue: shuffled,
+          contextIndex: 0,
+        });
+      } else {
+        set({ isShuffle: true });
+      }
+    } else {
+      // Un-shuffling: Restore original order, find current track index
+      if (currentTrack && originalContextQueue.length > 0) {
+        const idx = originalContextQueue.findIndex((t) => t.id === currentTrack.id);
+        set({
+          isShuffle: false,
+          contextQueue: [...originalContextQueue],
+          contextIndex: idx >= 0 ? idx : 0,
+        });
+      } else {
+        set({ isShuffle: false });
+      }
+    }
+    get().saveSnapshot();
+  },
+
+  toggleRepeat: () => {
+    const modes: RepeatMode[] = ["off", "all", "one"];
+    const current = get().repeatMode;
+    const nextIndex = (modes.indexOf(current) + 1) % modes.length;
+    set({ repeatMode: modes[nextIndex] });
+    get().saveSnapshot();
+  },
+
+  next: () => {
+    const { repeatMode, userQueue, contextQueue, contextIndex, currentTrack } = get();
+
+    // 1. Repeat One: replay current track
+    if (repeatMode === "one" && currentTrack) {
+      set({ currentTime: 0, playbackStatus: "playing" });
+      return;
+    }
+
+    // 2. User Priority Queue has tracks
+    if (userQueue.length > 0) {
+      const [nextUserTrack, ...remainingUserQueue] = userQueue;
+      set({
+        currentTrack: nextUserTrack,
+        userQueue: remainingUserQueue,
+        currentTime: 0,
+        duration: nextUserTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+      return;
+    }
+
+    // 3. Fall back to Context Queue
+    if (contextIndex + 1 < contextQueue.length) {
+      const nextTrack = contextQueue[contextIndex + 1];
+      set({
+        currentTrack: nextTrack,
+        contextIndex: contextIndex + 1,
+        currentTime: 0,
+        duration: nextTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+      return;
+    }
+
+    // 4. End of context reached: Check Repeat All
+    if (repeatMode === "all" && contextQueue.length > 0) {
+      const firstTrack = contextQueue[0];
+      set({
+        currentTrack: firstTrack,
+        contextIndex: 0,
+        currentTime: 0,
+        duration: firstTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+      return;
+    }
+
+    // 5. Playlist finished
+    set({ playbackStatus: "paused", currentTime: 0 });
+    get().saveSnapshot();
+  },
+
+  previous: () => {
+    const { currentTime, contextQueue, contextIndex, repeatMode } = get();
+
+    // If more than 3 seconds in, restart the song
+    if (currentTime > 3) {
+      set({ currentTime: 0 });
+      return;
+    }
+
+    // Step back in context queue
+    if (contextIndex > 0) {
+      const prevTrack = contextQueue[contextIndex - 1];
+      set({
+        currentTrack: prevTrack,
+        contextIndex: contextIndex - 1,
+        currentTime: 0,
+        duration: prevTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+      return;
+    }
+
+    // If at start and Repeat All is on, go to last song
+    if (repeatMode === "all" && contextQueue.length > 0) {
+      const lastIdx = contextQueue.length - 1;
+      const lastTrack = contextQueue[lastIdx];
+      set({
+        currentTrack: lastTrack,
+        contextIndex: lastIdx,
+        currentTime: 0,
+        duration: lastTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+      return;
+    }
+
+    // Otherwise restart first song
+    set({ currentTime: 0 });
+  },
+
+  playNext: (track) => {
+    set((state) => ({
+      userQueue: [track, ...state.userQueue],
+    }));
+    get().saveSnapshot();
+  },
+
+  addToQueue: (track) => {
+    set((state) => ({
+      userQueue: [...state.userQueue, track],
+    }));
+    get().saveSnapshot();
+  },
+
+  reorderUserQueue: (fromIndex, toIndex) => {
+    set((state) => {
+      const updated = [...state.userQueue];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return { userQueue: updated };
+    });
+    get().saveSnapshot();
+  },
+
+  removeFromUserQueue: (index) => {
+    set((state) => ({
+      userQueue: state.userQueue.filter((_, i) => i !== index),
+    }));
+    get().saveSnapshot();
+  },
+
+  clearUserQueue: () => {
+    set({ userQueue: [] });
+    get().saveSnapshot();
+  },
+
+  playUserQueueTrack: (index: number) => {
+    const { userQueue } = get();
+    if (index >= 0 && index < userQueue.length) {
+      const selectedTrack = userQueue[index];
+      const remainingUserQueue = userQueue.filter((_, i) => i !== index);
+      set({
+        currentTrack: selectedTrack,
+        userQueue: remainingUserQueue,
+        currentTime: 0,
+        duration: selectedTrack.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+    }
+  },
+
+  jumpToContextTrack: (index) => {
+    const { contextQueue } = get();
+    if (index >= 0 && index < contextQueue.length) {
+      const track = contextQueue[index];
+      set({
+        currentTrack: track,
+        contextIndex: index,
+        currentTime: 0,
+        duration: track.durationSeconds || 0,
+        playbackStatus: "loading",
+        errorMessage: null,
+      });
+      get().saveSnapshot();
+    }
+  },
+
+  stopPlayback: () => {
+    set({
+      currentTrack: null,
+      playbackStatus: "idle",
+      currentTime: 0,
+      duration: 0,
+      userQueue: [],
+      contextQueue: [],
+      originalContextQueue: [],
+      contextIndex: 0,
+      contextUri: null,
+      contextTitle: null,
+      errorMessage: null,
+      isQueueOpen: false,
+    });
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  },
+
+  setQueueOpen: (isOpen) => set({ isQueueOpen: isOpen }),
+  toggleQueueDrawer: () => set((s) => ({ isQueueOpen: !s.isQueueOpen })),
+
+  _setStatus: (status) => set({ playbackStatus: status }),
+  _setCurrentTime: (time) => set({ currentTime: time }),
+  _setDuration: (duration) => set({ duration }),
+  _setError: (err) => set({ errorMessage: err, playbackStatus: err ? "error" : "paused" }),
+  _setStreamQuality: (quality) => set({ streamQuality: quality }),
+
+  // 0ms localStorage + Debounced Redis Server Sync
+  saveSnapshot: () => {
+    const state = get();
+    const snapshot: PlayerStateSnapshot = {
+      currentTrack: state.currentTrack,
+      playbackPosition: state.currentTime,
+      volume: state.volume,
+      isMuted: state.isMuted,
+      isShuffle: state.isShuffle,
+      repeatMode: state.repeatMode,
+      userQueue: state.userQueue,
+      contextQueue: state.contextQueue,
+      contextIndex: state.contextIndex,
+      contextUri: state.contextUri,
+      contextTitle: state.contextTitle,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 1. Instant local persistence
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // Ignore quota exceeded or private mode
+    }
+
+    // 2. Debounced server sync (1.5s)
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+      try {
+        await playerApi.savePlayerState({
+          currentTrack: snapshot.currentTrack,
+          playbackPosition: snapshot.playbackPosition,
+          volume: snapshot.volume,
+          isMuted: snapshot.isMuted,
+          isShuffle: snapshot.isShuffle,
+          repeatMode: snapshot.repeatMode,
+          userQueue: snapshot.userQueue,
+          contextQueue: snapshot.contextQueue,
+          contextIndex: snapshot.contextIndex,
+          contextUri: snapshot.contextUri,
+          contextTitle: snapshot.contextTitle,
+        });
+      } catch {
+        // Silently fail if offline or unauthorized
+      }
+    }, 1500);
+  },
+
+  initializeSync: async () => {
+    if (get().isInitialized) return;
+
+    // 1. Instant 0ms hydration from localStorage
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const local = JSON.parse(raw) as PlayerStateSnapshot;
+        set({
+          currentTrack: local.currentTrack,
+          currentTime: local.playbackPosition || 0,
+          duration: local.currentTrack?.durationSeconds || 0,
+          volume: local.volume ?? 0.8,
+          isMuted: local.isMuted ?? false,
+          isShuffle: local.isShuffle ?? false,
+          repeatMode: local.repeatMode ?? "off",
+          userQueue: local.userQueue || [],
+          contextQueue: local.contextQueue || [],
+          originalContextQueue: local.contextQueue || [],
+          contextIndex: local.contextIndex || 0,
+          contextUri: local.contextUri || null,
+          contextTitle: local.contextTitle || null,
+          playbackStatus: "paused", // Always start paused on page load
+          isInitialized: true,
+        });
+      }
+    } catch {
+      // Ignore local storage parse error
+    }
+
+    // 2. Query server for newer cross-device snapshot (<1ms)
+    try {
+      const res = await playerApi.getPlayerState();
+      if (res && res.state) {
+        const serverState = res.state;
+        set({
+          currentTrack: serverState.currentTrack,
+          currentTime: serverState.playbackPosition || 0,
+          duration: serverState.currentTrack?.durationSeconds || 0,
+          volume: serverState.volume ?? 0.8,
+          isMuted: serverState.isMuted ?? false,
+          isShuffle: serverState.isShuffle ?? false,
+          repeatMode: serverState.repeatMode ?? "off",
+          userQueue: serverState.userQueue || [],
+          contextQueue: serverState.contextQueue || [],
+          originalContextQueue: serverState.contextQueue || [],
+          contextIndex: serverState.contextIndex || 0,
+          contextUri: serverState.contextUri || null,
+          contextTitle: serverState.contextTitle || null,
+          playbackStatus: "paused",
+          isInitialized: true,
+        });
+      }
+    } catch {
+      // Not authenticated or network down
+    }
+
+    set({ isInitialized: true });
+  },
+}));

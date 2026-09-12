@@ -447,6 +447,9 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
 
       return reply.status(200).send({
         streamUrl: song.audioUrl || song.hlsManifestUrl || song.rawAudioKey,
+        audioUrl: song.audioUrl,
+        hlsManifestUrl: song.hlsManifestUrl,
+        quality: wantsLossless ? "lossless" : "standard",
       });
     }
   );

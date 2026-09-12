@@ -32,6 +32,7 @@ export interface PlaylistTrack {
   coverImageUrl?: string | null;
   albumId?: string | null;
   albumTitle?: string | null;
+  albumSlug?: string | null;
   albumCoverUrl?: string | null;
   artistId?: string;
   artistStageName?: string;
@@ -55,6 +56,7 @@ export interface Playlist {
   shareToken: string | null;
   collaborationToken: string | null;
   allowDuplicates: boolean;
+  allowComments?: boolean;
   savesCount: number;
   createdAt: string;
   updatedAt: string;
@@ -82,6 +84,7 @@ export interface CreatePlaylistInput {
   coverImageUrl?: string;
   visibility?: ReleaseVisibility;
   allowDuplicates?: boolean;
+  allowComments?: boolean;
   initialSongIds?: string[];
 }
 
@@ -91,6 +94,7 @@ export interface UpdatePlaylistInput {
   coverImageUrl?: string | null;
   visibility?: ReleaseVisibility;
   allowDuplicates?: boolean;
+  allowComments?: boolean;
 }
 
 export interface AddTracksInput {

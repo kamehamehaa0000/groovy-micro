@@ -34,25 +34,62 @@
   - [x] **Phase 3: Dynamic Entitlements Caching & 0ms UI Gating**:
     - Backend Redis Set `groovy:sub:user:{id}:entitlements:set` and JSON caching with sub-millisecond Fastify streaming authorization gate (`SISMEMBER`) on `/songs/:id/stream?quality=flac`.
     - Client `useEntitlementsStore` (`client_test/src/stores/entitlements.store.ts`) for 0ms client-side feature checks, optimistic plan upgrades, and profile gating.
-  - [ ] *(Deferred to Later Sprint)* **High-Frequency Play Counter Buffering**: Redis hash `groovy:telemetry:song_plays` with BullMQ batch write-behind to avoid PostgreSQL row-lock contention.
-- [ ] **Social Module**:
+- [ ] **Social & Playback Modules** (Detailed Spec: `docs/AUDIO_PLAYER_QUEUE_AND_SOCIAL_ROADMAP.md`):
   - [x] **Playlists Subsystem**:
     - Complete CRUD, metadata editing, and owner display enrichment.
     - Dynamic auto-generated 2×2 mosaic covers (client-side CSS grid `<PlaylistCover />` based on top 4 constituent track album arts) with distinct artwork fallback.
     - Configurable duplicate songs setting per playlist (`allowDuplicates: boolean`).
     - Release visibility control (`PUBLIC`, `UNLISTED` with secure `shareToken`, `PRIVATE`).
     - Token-based collaboration lifecycle (invite tokens, join endpoint, token regeneration invalidating stale links, member kicking, and collaboration disable) backed by `playlist_collaborators` table.
-    - Playlist cloning with security rules (Public & Unlisted cloneable with token; Private playlists strictly restricted to owner).
+    - Playlist cloning with security rules (Public & Unlisted cloneable with token; Private playlists strictly restricted to owner). 
     - Sequential Integers Track Reordering (Atomic batch reorder via SQL `CASE` statement).
     - 4-Tier Hybrid In-Memory + Redis Set library saves architecture (`groovy:social:user:{id}:saved_playlists`, atomic `savesCount` counter, fast sync endpoint `GET /api/v1/playlists/saved/ids`, zero-join `SMISMEMBER` search enrichment).
     - Frontend client API client (`client_test/src/lib/playlists.api.ts`), TypeScript types (`client_test/src/types/playlist.ts`), `<PlaylistCover />` component, and `usePlaylistsStore` (`client_test/src/stores/playlists.store.ts`) wired into root auth sync.
-  - [ ] **Nested Comments**: Multi-level threaded discussions on tracks and releases.
-  - [ ] **Social Feeds**: Activity feeds for followed artists and friend activity.
+  - [x] **Phase 1: Core Audio Player & Queue Subsystem**:
+    - Global Zustand `usePlayerStore` (current track, user priority queue, context queue, history, playbackStatus, volume, seeking, shuffle, repeat modes, dynamic raw/HLS streaming with HLS.js fallback).
+    - Global persistent `<PlayerBar />` UI (responsive mobile mini-player `h-16` with top 2px scrubber bar + desktop `h-20` 3-column deck; interactive links to album/artist; reactive like button; 3-dots action menu).
+    - Interactive `<QueueDrawer />` UI (Now Playing card, user priority queue with native HTML5 drag-and-drop reordering, click-to-play any queue item, context queue, clear queue).
+    - Universal `<SongActionMenu />` (Play Now, Play Next, Add to Queue, Add to Playlist modal picker, Go to Artist, Go to Album).
+    - Full Catalog, Album, Artist, Playlist, and Home page integration with single audio engine.
+    - Clean teardown on logout (pauses `<audio>`, destroys HLS.js, wipes `src`, clears queues and `localStorage`) with guest streaming access permitted (Option A).
+    - Creator comment permission controls (`allowComments: boolean`) with toggle switches in Create/Edit Release (Studio), Create/Edit Playlist modals, and 1-click artist album page toggle.
+    - Unauthenticated/Guest Auth Prompt Modal: Non-intrusive modal prompt ("Save your favorites", "Build your playlists") on Like or Add to Playlist actions with uninterrupted background playback and decoupled guest 401 handling in auth store.
+    - `localStorage` persistence for queue, active song, volume, and playback preferences across reloads.
+  - [ ] **Phase 2: Playback Telemetry, History & Live Presence ("What Friends Are Listening To")**:
+    - [ ] **Alignment Questions & Architectural Decisions (To Discuss When Resuming)**:
+      1. **Presence Heartbeat & Concurrency Policy**:
+         - Frequency: Client ping every 15–20s while playing to `POST /api/v1/player/heartbeat`.
+         - Redis Key: `groovy:presence:user:{id}` with 30–45s TTL.
+         - Device Conflict Options:
+           - *Option A (Soft Pause / Takeover)*: Starting playback on Device B sends a takeover event/signal to Device A, gracefully pausing it (Spotify Connect style).
+           - *Option B (Permissive)*: Allow concurrent listening across multiple devices without forced pauses.
+      2. **Cross-Device Playback State Persistence (Snapshots)**:
+         - Save playback snapshot (`trackId`, `positionSeconds`, `playbackStatus`, `volume`, `contextUri`, `userQueue`) in Redis key `groovy:player:state:{userId}` on heartbeat, pause, or track change.
+         - When user opens app on any device, `GET /api/v1/player/state` restores exact playback session.
+      3. **Playback Telemetry & 30-Second Rule**:
+         - Count a qualified stream only after 30 seconds of continuous playback (or 50% for short cuts) via `POST /api/v1/telemetry/play` with `{ songId, durationListened, completed }`.
+         - High-frequency play buffer in Redis hash `groovy:telemetry:song_plays` with BullMQ batch write-behind to PostgreSQL `songs.plays_count` and insert into `listening_history`.
+      4. **Friend Activity & Privacy Gating**:
+         - User privacy setting `shareListeningActivity: boolean` in user settings/profile.
+         - Fast sync endpoint `GET /api/v1/social/friends/activity` via Redis $O(1)$ `MGET`.
+         - Client `<FriendActivitySidebar />` showing live friend tracks and playback pulses.
+  - [x] **Phase 3: Nested Comments Subsystem** (`docs/NESTED_COMMENTS_SUBSYSTEM_DESIGN.md`):
+    - [x] Complete 2-level nested data model (`comments`, `comment_votes` with check constraint `chk_comments_single_target` across songs, albums, and playlists).
+    - [x] Creator controls: configurable comment permissions (`allowComments: boolean`) per song, album, and playlist with 403 enforcement.
+    - [x] Reddit-style two-way voting (Likes & Dislikes) with hybrid PostgreSQL durability + Redis Hash caching (`groovy:social:user:{id}:comment_votes`) and fast sync endpoint `GET /api/v1/comments/votes/mine`.
+    - [x] Multi-mode sorting algorithms: `top`, `newest`, `oldest`, `disliked`, and `controversial`.
+    - [x] Soft-delete thread preservation (`[Comment deleted]` placeholder with generic User avatar preserving child replies; hard-delete for leaf comments).
+    - [x] Artist / Curator comment pinning mechanics (`isPinned: boolean` hoisted to top of discussions).
+    - [x] Full Fastify REST API (`GET /`, `GET /:id/replies`, `POST /`, `PATCH /:id`, `DELETE /:id`, `POST /:id/vote`, `PATCH /:id/pin`, `GET /votes/mine`) with 100% test coverage (10-step integration suite).
+    - [x] Client integration: TypeScript interfaces, `commentsApi`, 0ms synchronous optimistic `useCommentVotesStore`, `<CommentSection />`, `<CommentItem />`, and `<CommentForm />` embedded into Album and Playlist detail routes.
+  - [ ] **Phase 4: Aggregated Social Feed**:
+    - Chronological activity stream endpoint `GET /api/v1/social/feed` (new releases from followed artists, friend playlists, engagement milestones).
+    - Cursor-based pagination with Redis caching.
+    - Frontend `/feed` route with embedded playback shortcuts.
 
 ### Sprint 3: Real-Time Live Jam Service (`jam-service/`)
-
 - [ ] Fastify + WebSocket / Socket.IO server.
-- [ ] In-memory Redis session state (room metadata, queue, participants).
+- [ ] In-memory Redis session state (room metadata, queue, participants) - directly extending Phase 1's Queue.
 - [ ] Server-anchored audio clock-sync algorithm for synchronized playback.
 
 ### Sprint 4: Media Transcoder Worker (`worker/`)
@@ -66,7 +103,3 @@
 - [ ] Cloudflare Worker proxy for HLS edge caching with $0 egress.
 - [ ] Push metrics to Grafana Cloud Free Tier (P95 latency, RPS, active WebSocket rooms).
 - [ ] Root `docker-compose.prod.yml` with Caddy automatic SSL for single-VM Oracle Cloud deployment.
-
-```
-
-```

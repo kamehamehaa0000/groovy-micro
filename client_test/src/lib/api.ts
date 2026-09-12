@@ -88,12 +88,16 @@ export async function apiFetch<T = any>(
         return await apiFetch<T>(endpoint, { ...options, headers });
       } else {
         // Refresh failed -> session expired or revoked
-        useAuthStore.getState().clearAuth();
+        if (useAuthStore.getState().isAuthenticated) {
+          useAuthStore.getState().clearAuth();
+        }
         processQueue(new Error("Session expired"), null);
         throw new Error("Session expired. Please log in again.");
       }
     } catch (refreshErr) {
-      useAuthStore.getState().clearAuth();
+      if (useAuthStore.getState().isAuthenticated) {
+        useAuthStore.getState().clearAuth();
+      }
       processQueue(refreshErr, null);
       throw refreshErr;
     } finally {

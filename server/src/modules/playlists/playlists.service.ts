@@ -65,6 +65,7 @@ export interface PlaylistDetail {
   isCollaborative: boolean;
   collaborationToken: string | null;
   allowDuplicates: boolean;
+  allowComments: boolean;
   savesCount: number;
   isSaved: boolean;
   isOwner: boolean;
@@ -124,6 +125,7 @@ export class PlaylistsService {
           shareToken,
           collaborationToken: null,
           allowDuplicates: input.allowDuplicates ?? false,
+          allowComments: input.allowComments ?? true,
           savesCount: 1,
         })
         .returning();
@@ -221,6 +223,7 @@ export class PlaylistsService {
             shareToken: playlists.shareToken,
             collaborationToken: playlists.collaborationToken,
             allowDuplicates: playlists.allowDuplicates,
+            allowComments: playlists.allowComments,
             savesCount: playlists.savesCount,
             createdAt: playlists.createdAt,
             updatedAt: playlists.updatedAt,
@@ -435,6 +438,7 @@ export class PlaylistsService {
       isCollaborative: playlist.isCollaborative,
       collaborationToken: isOwner || isCollaborator ? playlist.collaborationToken : null,
       allowDuplicates: playlist.allowDuplicates,
+      allowComments: playlist.allowComments,
       savesCount: playlist.savesCount,
       isSaved,
       isOwner,
@@ -668,6 +672,7 @@ export class PlaylistsService {
             }
           : {}),
         ...(input.allowDuplicates !== undefined ? { allowDuplicates: input.allowDuplicates } : {}),
+        ...(input.allowComments !== undefined ? { allowComments: input.allowComments } : {}),
         updatedAt: new Date(),
       })
       .where(eq(playlists.id, playlistId))

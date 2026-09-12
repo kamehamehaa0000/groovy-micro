@@ -1,6 +1,7 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
+import { artistsApi } from '../lib/artists.api'
 import type { AlbumDetail, EnrichedSong } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
@@ -15,6 +16,11 @@ import {
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePreSavesStore } from '../stores/presaves.store'
+import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import type { PlayerTrack } from '../types/player'
+import { CommentSection } from '../components/comments/CommentSection'
+import { SongActionMenu } from '../components/player/SongActionMenu'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
   validateSearch: (search: Record<string, unknown>): { shareToken?: string } => ({
@@ -26,8 +32,7 @@ export const Route = createFileRoute('/albums/$idOrSlug')({
 function AlbumDetailComponent() {
   const { idOrSlug } = Route.useParams()
   const { shareToken } = Route.useSearch()
-  const navigate = useNavigate()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
 
   // High-performance client-side likes store
   const likedAlbumIds = useLikesStore((s) => s.likedAlbumIds)
@@ -45,6 +50,7 @@ function AlbumDetailComponent() {
   const [album, setAlbum] = useState<AlbumDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [isCreator, setIsCreator] = useState(false)
 
   // Likes state
   const isLiked = album ? likedAlbumIds.has(album.id) : false
@@ -56,13 +62,49 @@ function AlbumDetailComponent() {
   const [preSavesCount, setPreSavesCount] = useState(0)
   const [isPreSaveLoading, setIsPreSaveLoading] = useState(false)
 
-  // Track playback state
-  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  // Player store state & actions
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
 
   // Share feedback
   const [copiedLink, setCopiedLink] = useState(false)
+
+  // Check creator / artist privileges for governance
+  useEffect(() => {
+    if (!isAuthenticated || !user || !album) {
+      setIsCreator(false)
+      return
+    }
+    if (user.role === 'ADMIN') {
+      setIsCreator(true)
+      return
+    }
+    if (user.role === 'ARTIST') {
+      artistsApi
+        .getMyProfile()
+        .then((p) => {
+          if (p && p.id === album.artistId) {
+            setIsCreator(true)
+          }
+        })
+        .catch(() => setIsCreator(false))
+    }
+  }, [user, album, isAuthenticated])
+
+  const handleToggleComments = async () => {
+    if (!album || !isCreator) return
+    const nextVal = !(album.allowComments ?? true)
+    try {
+      await catalogApi.updateAlbum(album.id, {
+        allowComments: nextVal,
+      })
+      setAlbum((prev) => (prev ? { ...prev, allowComments: nextVal } : null))
+    } catch (err: any) {
+      alert(err.message || 'Failed to update comment settings')
+    }
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -101,19 +143,15 @@ function AlbumDetailComponent() {
     }
   }, [idOrSlug, shareToken, hydrateAlbums, hydrateSongs])
 
-  // Stop audio on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-      }
-    }
-  }, [])
-
   const handleToggleAlbumLike = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Release Library',
+        subtitle: 'Album',
+        title: 'Save to your library.',
+        description:
+          'Sign in or create an account to like albums, save releases, and keep your library organized.',
+      })
       return
     }
     if (!album || isLikeLoading) return
@@ -139,7 +177,13 @@ function AlbumDetailComponent() {
 
   const handleToggleTrackLike = async (track: EnrichedSong) => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Favorites & Library',
+        subtitle: 'Library',
+        title: 'Save to your library.',
+        description:
+          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
+      })
       return
     }
 
@@ -195,7 +239,13 @@ function AlbumDetailComponent() {
 
   const handleTogglePreSave = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Upcoming Release',
+        subtitle: 'Pre-Save',
+        title: 'Pre-save this album.',
+        description:
+          'Sign in or create an account to pre-save this upcoming release and have it automatically added to your library on drop day.',
+      })
       return
     }
     if (!album || isPreSaveLoading) return
@@ -219,45 +269,43 @@ function AlbumDetailComponent() {
     }
   }
 
-  const handlePlaySong = (song: EnrichedSong) => {
-    if (album?.isUpcoming || song.isStreamable === false || !song.audioUrl) {
+  const toPlayerTrack = (song: EnrichedSong): PlayerTrack => ({
+    id: song.id,
+    title: song.title,
+    artistId: album?.artistId || '',
+    artistName: album?.artistStageName || '',
+    artistSlug: album?.artistSlug,
+    albumId: album?.id,
+    albumTitle: album?.title,
+    albumSlug: album?.slug,
+    coverImageUrl: song.coverImageUrl || album?.coverImageUrl,
+    durationSeconds: song.durationSeconds,
+    audioUrl: song.audioUrl,
+    hlsManifestUrl: song.hlsManifestUrl,
+    rawAudioKey: song.rawAudioKey,
+    isExplicit: song.isExplicit,
+  })
+
+  const handlePlaySong = (song: EnrichedSong, index: number) => {
+    if (album?.isUpcoming || song.isStreamable === false) {
       alert('This master cut is locked until the scheduled release date.')
       return
     }
 
-    if (playingSongId === song.id) {
-      if (isPlaying) {
-        audioRef.current?.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current?.play()
-        setIsPlaying(true)
-      }
+    if (currentTrack?.id === song.id) {
+      togglePlay()
       return
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio()
-      audioRef.current.onended = () => {
-        setIsPlaying(false)
-      }
-      audioRef.current.onerror = () => {
-        setIsPlaying(false)
-        alert('Playback error. Cloudflare R2 audio may still be syncing.')
-      }
-    }
-
-    audioRef.current.src = song.audioUrl
-    audioRef.current
-      .play()
-      .then(() => {
-        setPlayingSongId(song.id)
-        setIsPlaying(true)
-      })
-      .catch((err) => {
-        console.error('Playback error:', err)
-        setIsPlaying(false)
-      })
+    if (!album) return
+    const contextTracks = (album.tracks || []).map(toPlayerTrack)
+    playTrack(
+      toPlayerTrack(song),
+      contextTracks,
+      index,
+      `album:${album.id}`,
+      album.title
+    )
   }
 
   const handlePlayAlbumFromStart = () => {
@@ -266,11 +314,11 @@ function AlbumDetailComponent() {
       return
     }
     if (!album || !album.tracks || album.tracks.length === 0) return
-    const firstPlayable = album.tracks.find(
-      (t) => !!t.audioUrl && t.isStreamable !== false,
+    const firstPlayableIdx = album.tracks.findIndex(
+      (t) => t.isStreamable !== false,
     )
-    if (firstPlayable) {
-      handlePlaySong(firstPlayable)
+    if (firstPlayableIdx >= 0) {
+      handlePlaySong(album.tracks[firstPlayableIdx], firstPlayableIdx)
     } else {
       alert('No streamable audio files found for this release yet.')
     }
@@ -508,6 +556,21 @@ function AlbumDetailComponent() {
               >
                 {copiedLink ? '✓ Copied' : 'Share'}
               </button>
+
+              {isCreator && (
+                <button
+                  type="button"
+                  onClick={handleToggleComments}
+                  className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-4 border transition-colors cursor-pointer ${
+                    album.allowComments === false
+                      ? 'border-red-400 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-500'
+                      : 'border-line bg-canvas hover:border-ink text-ink-soft hover:text-ink'
+                  }`}
+                  title="Toggle comment section for this release"
+                >
+                  {album.allowComments === false ? '💬 Comments: Off' : '💬 Comments: On'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -528,11 +591,11 @@ function AlbumDetailComponent() {
             </span>
           </div>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
-            {album.tracks.length} {album.tracks.length === 1 ? 'Cut' : 'Cuts'}
+            {(album.tracks ?? []).length} {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
           </span>
         </div>
 
-        {album.tracks.length === 0 ? (
+        {(album.tracks ?? []).length === 0 ? (
           <div className="p-12 border border-dashed border-line bg-panel text-center">
             <p className="font-serif italic text-base text-ink">
               No tracks uploaded to this release yet.
@@ -543,9 +606,9 @@ function AlbumDetailComponent() {
           </div>
         ) : (
           <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
-            {album.tracks.map((track, idx) => {
+            {(album.tracks ?? []).map((track, idx) => {
               const isCurrentPlaying =
-                playingSongId === track.id && isPlaying
+                currentTrack?.id === track.id && playbackStatus === 'playing'
               const hasFeatured =
                 track.credits &&
                 track.credits.some((c) => c.role !== 'PRIMARY')
@@ -562,7 +625,7 @@ function AlbumDetailComponent() {
                     {/* Play Button or Track Index / Lock */}
                     <button
                       type="button"
-                      onClick={() => handlePlaySong(track)}
+                      onClick={() => handlePlaySong(track, idx)}
                       aria-label={
                         album.isUpcoming || track.isStreamable === false
                           ? 'Track is locked until scheduled release'
@@ -654,6 +717,9 @@ function AlbumDetailComponent() {
                       {formatDuration(track.durationSeconds)}
                     </span>
 
+                    {/* Action Menu (Play Next, Add to Queue, Add to Playlist...) */}
+                    <SongActionMenu track={toPlayerTrack(track)} />
+
                     {/* Like Heart */}
                     <button
                       type="button"
@@ -676,6 +742,14 @@ function AlbumDetailComponent() {
             })}
           </div>
         )}
+
+        {/* Nested Comments Subsystem */}
+        <CommentSection
+          targetType="album"
+          targetId={album.id}
+          allowComments={album.allowComments ?? true}
+          isCreatorOrOwner={isCreator}
+        />
       </div>
     </div>
   )

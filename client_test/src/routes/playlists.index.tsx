@@ -4,6 +4,7 @@ import { playlistsApi } from '../lib/playlists.api'
 import type { Playlist, CreatePlaylistInput } from '../types/playlist'
 import { useAuthStore } from '../stores/auth.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
 import { PlusIconSVG, HeartIconSVG } from '../components/icons'
 
@@ -28,6 +29,7 @@ function PlaylistsIndexComponent() {
   const [newDescription, setNewDescription] = useState('')
   const [newVisibility, setNewVisibility] = useState<'PUBLIC' | 'UNLISTED' | 'PRIVATE'>('PUBLIC')
   const [newAllowDuplicates, setNewAllowDuplicates] = useState(false)
+  const [newAllowComments, setNewAllowComments] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
 
@@ -103,6 +105,7 @@ function PlaylistsIndexComponent() {
         description: newDescription.trim() || undefined,
         visibility: newVisibility,
         allowDuplicates: newAllowDuplicates,
+        allowComments: newAllowComments,
       }
 
       const created = await playlistsApi.createPlaylist(input)
@@ -112,6 +115,7 @@ function PlaylistsIndexComponent() {
       setNewDescription('')
       setNewVisibility('PUBLIC')
       setNewAllowDuplicates(false)
+      setNewAllowComments(true)
 
       navigate({ to: '/playlists/$id', params: { id: created.id } })
     } catch (err: any) {
@@ -126,7 +130,13 @@ function PlaylistsIndexComponent() {
     e.stopPropagation()
 
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Playlist Library',
+        subtitle: 'Playlists',
+        title: 'Save this playlist.',
+        description:
+          'Sign in or create an account to save playlists to your library and keep them synced across devices.',
+      })
       return
     }
 
@@ -396,27 +406,27 @@ function PlaylistsIndexComponent() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Visibility
-                  </label>
-                  <select
-                    value={newVisibility}
-                    onChange={(e: any) => setNewVisibility(e.target.value)}
-                    className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
-                  >
-                    <option value="PUBLIC">Public</option>
-                    <option value="UNLISTED">Unlisted</option>
-                    <option value="PRIVATE">Private</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                  Visibility
+                </label>
+                <select
+                  value={newVisibility}
+                  onChange={(e: any) => setNewVisibility(e.target.value)}
+                  className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                >
+                  <option value="PUBLIC">Public</option>
+                  <option value="UNLISTED">Unlisted</option>
+                  <option value="PRIVATE">Private</option>
+                </select>
+              </div>
 
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Duplicates
+                    Duplicate Songs
                   </label>
-                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer">
+                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
                     <input
                       type="checkbox"
                       checked={newAllowDuplicates}
@@ -424,6 +434,21 @@ function PlaylistsIndexComponent() {
                       className="accent-blue"
                     />
                     <span className="font-mono text-[10.5px] text-ink">Allow Dups</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                    Discussion & Comments
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={newAllowComments}
+                      onChange={(e) => setNewAllowComments(e.target.checked)}
+                      className="accent-blue"
+                    />
+                    <span className="font-mono text-[10.5px] text-ink">Allow Comments</span>
                   </label>
                 </div>
               </div>

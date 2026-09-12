@@ -185,6 +185,7 @@ export class CatalogService {
           releaseDate: releaseDateDay,
           status: isScheduled ? "SCHEDULED" : "PUBLISHED",
           visibility,
+          allowComments: input.allowComments ?? true,
           scheduledReleaseAt: scheduledDate,
           publishedAt: publishedDate,
           shareToken,
@@ -225,6 +226,7 @@ export class CatalogService {
               trackNumber,
               discNumber: trackInput.discNumber ?? 1,
               isExplicit: trackInput.isExplicit ?? false,
+              allowComments: trackInput.allowComments ?? true,
               rawAudioKey: trackInput.rawAudioKey ?? null,
               audioUrl: trackAudioUrl,
               coverImageUrl: trackCoverUrl,
@@ -316,6 +318,7 @@ export class CatalogService {
             scheduledReleaseAt: albums.scheduledReleaseAt,
             publishedAt: albums.publishedAt,
             shareToken: albums.shareToken,
+            allowComments: albums.allowComments,
             preSavesCount: albums.preSavesCount,
             likesCount: albums.likesCount,
             totalTracks: albums.totalTracks,
@@ -353,6 +356,7 @@ export class CatalogService {
             trackNumber: songs.trackNumber,
             discNumber: songs.discNumber,
             isExplicit: songs.isExplicit,
+            allowComments: songs.allowComments,
             rawAudioKey: songs.rawAudioKey,
             audioUrl: songs.audioUrl,
             hlsManifestUrl: songs.hlsManifestUrl,
@@ -549,6 +553,7 @@ export class CatalogService {
         ...(input.releaseDate ? { releaseDate: input.releaseDate } : {}),
         status: isScheduled ? "SCHEDULED" : "PUBLISHED",
         visibility,
+        ...(input.allowComments !== undefined ? { allowComments: input.allowComments } : {}),
         scheduledReleaseAt: scheduledDate,
         publishedAt: publishedDate,
         shareToken,
@@ -747,6 +752,7 @@ export class CatalogService {
           trackNumber,
           discNumber: input.discNumber ?? 1,
           isExplicit: input.isExplicit ?? false,
+          allowComments: input.allowComments ?? true,
           rawAudioKey: input.rawAudioKey ?? null,
           audioUrl: finalAudioUrl,
           coverImageUrl: finalCoverUrl,
@@ -822,6 +828,7 @@ export class CatalogService {
             trackNumber: songs.trackNumber,
             discNumber: songs.discNumber,
             isExplicit: songs.isExplicit,
+            allowComments: songs.allowComments,
             rawAudioKey: songs.rawAudioKey,
             audioUrl: songs.audioUrl,
             hlsManifestUrl: songs.hlsManifestUrl,
@@ -985,6 +992,9 @@ export class CatalogService {
             : {}),
           ...(input.isExplicit !== undefined
             ? { isExplicit: input.isExplicit }
+            : {}),
+          ...(input.allowComments !== undefined
+            ? { allowComments: input.allowComments }
             : {}),
           ...(input.rawAudioKey !== undefined
             ? { rawAudioKey: input.rawAudioKey }

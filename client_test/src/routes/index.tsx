@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import {
@@ -12,6 +12,10 @@ import {
 } from '../components/icons'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { Album, EnrichedSong } from '../types/catalog'
+import type { PlayerTrack } from '../types/player'
+import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import { SongActionMenu } from '../components/player/SongActionMenu'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -98,10 +102,8 @@ function HomeComponent() {
   const [liveSongs, setLiveSongs] = useState<EnrichedSong[]>([])
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true)
 
-  // Audio Playback
-  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  // Player integration
+  const { currentTrack, playbackStatus, playTrack, togglePlay } = usePlayerStore()
 
   useEffect(() => {
     let isMounted = true
@@ -125,56 +127,62 @@ function HomeComponent() {
 
     return () => {
       isMounted = false
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-      }
     }
   }, [hydrateSongs])
 
-  const handlePlaySong = (song: EnrichedSong) => {
-    if (!song.audioUrl) {
-      alert('Audio stream for this master track is currently processing.')
+  const toPlayerTrack = (song: EnrichedSong): PlayerTrack => ({
+    id: song.id,
+    title: song.title,
+    artistId: song.artistId || '',
+    artistName: song.artistStageName || 'Unknown Artist',
+    artistSlug: song.artistSlug,
+    albumId: song.albumId || undefined,
+    albumTitle: song.albumTitle || undefined,
+    albumSlug: song.albumSlug || undefined,
+    coverImageUrl: song.coverImageUrl || song.albumCoverImageUrl,
+    durationSeconds: song.durationSeconds,
+    audioUrl: song.audioUrl,
+    hlsManifestUrl: song.hlsManifestUrl,
+    rawAudioKey: song.rawAudioKey,
+    isExplicit: song.isExplicit,
+  })
+
+  const handlePlaySong = (song: EnrichedSong, index?: number) => {
+    if (song.isStreamable === false) {
+      alert('This cut is scheduled and locked until release.')
       return
     }
 
-    if (playingSongId === song.id) {
-      if (isPlaying) {
-        audioRef.current?.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current?.play()
-        setIsPlaying(true)
-      }
+    if (currentTrack?.id === song.id) {
+      togglePlay()
       return
     }
 
-    if (!audioRef.current) {
-      audioRef.current = new Audio()
-      audioRef.current.onended = () => {
-        setIsPlaying(false)
-      }
-      audioRef.current.onerror = () => {
-        setIsPlaying(false)
-        alert('Playback error. Cloudflare R2 audio may still be syncing.')
-      }
-    }
+    const validTracks = liveSongs.filter((t) => t.isStreamable !== false)
+    const contextTracks = validTracks.map(toPlayerTrack)
+    const targetTrack = toPlayerTrack(song)
+    const targetIdx = contextTracks.findIndex((t) => t.id === targetTrack.id)
 
-    audioRef.current.src = song.audioUrl
-    audioRef.current
-      .play()
-      .then(() => {
-        setPlayingSongId(song.id)
-        setIsPlaying(true)
-      })
-      .catch((err) => {
-        console.error('Playback error:', err)
-        setIsPlaying(false)
-      })
+    playTrack(
+      targetTrack,
+      contextTracks,
+      targetIdx >= 0 ? targetIdx : (index ?? 0),
+      'home:curated',
+      'Curated Master Cuts'
+    )
   }
 
   const handleToggleTrackLike = async (track: EnrichedSong) => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated) {
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Favorites & Library',
+        subtitle: 'Library',
+        title: 'Save to your library.',
+        description:
+          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
+      })
+      return
+    }
 
     const wasLiked = likedSongIds.has(track.id)
     const prevCount = track.likesCount
@@ -356,7 +364,9 @@ function HomeComponent() {
         {liveSongs.length > 0 ? (
           <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
             {liveSongs.map((t, idx) => {
-              const isCurrentPlaying = playingSongId === t.id && isPlaying
+              const isCurrentPlaying =
+                currentTrack?.id === t.id && playbackStatus === 'playing'
+              const isCurrentLoaded = currentTrack?.id === t.id
 
               return (
                 <div
@@ -368,14 +378,18 @@ function HomeComponent() {
                   <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
                     <button
                       type="button"
-                      onClick={() => handlePlaySong(t)}
+                      onClick={() => handlePlaySong(t, idx)}
                       aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                       className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
                     >
                       {isCurrentPlaying ? (
                         <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
                       ) : (
-                        <span className="font-mono text-[10px] group-hover:hidden">
+                        <span
+                          className={`font-mono text-[10px] ${
+                            isCurrentLoaded ? 'text-blue font-bold' : ''
+                          } group-hover:hidden`}
+                        >
                           {String(idx + 1).padStart(2, '0')}
                         </span>
                       )}
@@ -387,7 +401,11 @@ function HomeComponent() {
                     <div className="truncate">
                       <div
                         className={`font-serif font-medium text-sm truncate ${
-                          isCurrentPlaying ? 'text-blue' : 'text-ink'
+                          isCurrentPlaying
+                            ? 'text-blue font-medium'
+                            : isCurrentLoaded
+                              ? 'text-blue'
+                              : 'text-ink'
                         }`}
                       >
                         {t.title}
@@ -399,7 +417,7 @@ function HomeComponent() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-5 shrink-0 pl-3">
+                  <div className="flex items-center gap-3 shrink-0 pl-3">
                     {t.isExplicit && (
                       <span className="font-mono text-[8px] px-1 border border-line text-ink-soft bg-canvas">
                         E
@@ -409,6 +427,8 @@ function HomeComponent() {
                     <span className="font-mono text-[10.5px] text-ink-soft">
                       {formatDuration(t.durationSeconds)}
                     </span>
+
+                    <SongActionMenu track={toPlayerTrack(t)} />
 
                     <button
                       type="button"

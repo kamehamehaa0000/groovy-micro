@@ -44,6 +44,7 @@ export const albums = pgTable(
     shareToken: varchar("share_token", { length: 64 }),
 
     // Aggregates & Counts
+    allowComments: boolean("allow_comments").notNull().default(true),
     preSavesCount: integer("pre_saves_count").notNull().default(0),
     likesCount: integer("likes_count").notNull().default(0),
     totalTracks: integer("total_tracks").notNull().default(0),
@@ -95,6 +96,7 @@ export const songs = pgTable(
     processingError: text("processing_error"),
 
     // Cached Counter Aggregates
+    allowComments: boolean("allow_comments").notNull().default(true),
     playsCount: bigint("plays_count", { mode: "number" }).notNull().default(0),
     likesCount: integer("likes_count").notNull().default(0),
 

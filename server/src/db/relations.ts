@@ -14,6 +14,7 @@ import {
   userLibraryPlaylists,
   songLikes,
   comments,
+  commentVotes,
   listeningHistory,
   releasePresaves,
 } from "./schema";
@@ -196,13 +197,37 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     fields: [comments.songId],
     references: [songs.id],
   }),
+  album: one(albums, {
+    fields: [comments.albumId],
+    references: [albums.id],
+  }),
+  playlist: one(playlists, {
+    fields: [comments.playlistId],
+    references: [playlists.id],
+  }),
   parentComment: one(comments, {
-    fields: [comments.parentCommentId],
+    fields: [comments.parentId],
     references: [comments.id],
     relationName: "commentReplies",
   }),
+  replyToUser: one(users, {
+    fields: [comments.replyToUserId],
+    references: [users.id],
+  }),
   replies: many(comments, {
     relationName: "commentReplies",
+  }),
+  votes: many(commentVotes),
+}));
+
+export const commentVotesRelations = relations(commentVotes, ({ one }) => ({
+  user: one(users, {
+    fields: [commentVotes.userId],
+    references: [users.id],
+  }),
+  comment: one(comments, {
+    fields: [commentVotes.commentId],
+    references: [comments.id],
   }),
 }));
 

@@ -1,12 +1,17 @@
 import { createFileRoute, Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { playlistsApi } from '../lib/playlists.api'
 import { catalogApi } from '../lib/catalog.api'
 import type { PlaylistDetail, PlaylistTrack } from '../types/playlist'
 import type { Song } from '../types/catalog'
+import type { PlayerTrack } from '../types/player'
 import { useAuthStore } from '../stores/auth.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
+import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
+import { CommentSection } from '../components/comments/CommentSection'
+import { SongActionMenu } from '../components/player/SongActionMenu'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -45,21 +50,24 @@ function PlaylistDetailComponent() {
 
   const { isAuthenticated, user } = useAuthStore()
   const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } = usePlaylistsStore()
+  const {
+    currentTrack,
+    playbackStatus,
+    playTrack,
+    togglePlay,
+  } = usePlayerStore()
 
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-  // Audio Playback state
-  const [playingEntryId, setPlayingEntryId] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Interaction feedback states
   const [copiedLink, setCopiedLink] = useState(false)
   const [isCloning, setIsCloning] = useState(false)
   const [isJoiningCollab, setIsJoiningCollab] = useState(false)
   const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(null)
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
+  const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null)
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -71,6 +79,7 @@ function PlaylistDetailComponent() {
   const [editDescription, setEditDescription] = useState('')
   const [editVisibility, setEditVisibility] = useState<'PUBLIC' | 'UNLISTED' | 'PRIVATE'>('PUBLIC')
   const [editAllowDuplicates, setEditAllowDuplicates] = useState(false)
+  const [editAllowComments, setEditAllowComments] = useState(true)
 
   // Add tracks search state
   const [songSearchQuery, setSongSearchQuery] = useState('')
@@ -94,6 +103,7 @@ function PlaylistDetailComponent() {
       setEditDescription(data.description || '')
       setEditVisibility(data.visibility)
       setEditAllowDuplicates(data.allowDuplicates)
+      setEditAllowComments(data.allowComments ?? true)
       hydratePlaylists([data])
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to load playlist')
@@ -106,48 +116,83 @@ function PlaylistDetailComponent() {
     fetchPlaylist()
   }, [id, shareToken, collabToken])
 
-  // Stop audio on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-      }
+  const toPlayerTrack = (track: PlaylistTrack): PlayerTrack => {
+    const song = track.song || (track as any)
+    return {
+      id: track.songId || song.id || track.id,
+      title: song.title || track.title || 'Untitled',
+      artistId: song.artistId || track.artistId || '',
+      artistName: song.artistStageName || track.artistStageName || 'Unknown Artist',
+      artistSlug: song.artistSlug || track.artistSlug,
+      albumId: song.albumId || track.albumId || undefined,
+      albumTitle: song.albumTitle || track.albumTitle || undefined,
+      albumSlug: song.albumSlug || track.albumSlug || undefined,
+      coverImageUrl:
+        song.coverImageUrl ||
+        track.coverImageUrl ||
+        song.albumCoverUrl ||
+        track.albumCoverUrl ||
+        playlist?.coverImageUrl,
+      durationSeconds: song.durationSeconds ?? track.durationSeconds ?? 0,
+      audioUrl: song.audioUrl || track.audioUrl || undefined,
+      hlsManifestUrl: song.hlsManifestUrl || track.hlsManifestUrl || undefined,
+      rawAudioKey: song.rawAudioKey || (track as any).rawAudioKey || undefined,
+      isExplicit: song.isExplicit ?? track.isExplicit ?? false,
     }
-  }, [])
+  }
 
-  // Audio playback handler
-  const handlePlayTrack = (track: PlaylistTrack) => {
+  const handlePlayTrack = (track: PlaylistTrack, index?: number) => {
     const song = track.song || track
     if (song.isStreamable === false) {
-      return // Locked unreleased track
-    }
-
-    const entryId = track.id || (track as any).entryId
-    if (playingEntryId === entryId) {
-      if (isPlaying) {
-        audioRef.current?.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current?.play().catch(console.error)
-        setIsPlaying(true)
-      }
+      alert('This cut is scheduled and locked until release.')
       return
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.src = song.audioUrl || ''
-      audioRef.current.play().catch(console.error)
-      setPlayingEntryId(entryId)
-      setIsPlaying(true)
+    const songId = track.songId || song.id || track.id
+    if (currentTrack?.id === songId) {
+      togglePlay()
+      return
+    }
+
+    if (!playlist) return
+    const validTracks = (playlist.tracks || []).filter(
+      (t) => (t.song || t).isStreamable !== false
+    )
+    const contextTracks = validTracks.map(toPlayerTrack)
+    const targetTrack = toPlayerTrack(track)
+    const targetIdx = contextTracks.findIndex((t) => t.id === targetTrack.id)
+
+    playTrack(
+      targetTrack,
+      contextTracks,
+      targetIdx >= 0 ? targetIdx : (index ?? 0),
+      `playlist:${playlist.id}`,
+      playlist.title
+    )
+  }
+
+  const handlePlayPlaylistFromStart = () => {
+    if (!playlist || !playlist.tracks || playlist.tracks.length === 0) return
+    const firstPlayableIdx = playlist.tracks.findIndex(
+      (t) => (t.song || t).isStreamable !== false
+    )
+    if (firstPlayableIdx >= 0) {
+      handlePlayTrack(playlist.tracks[firstPlayableIdx], firstPlayableIdx)
+    } else {
+      alert('No streamable tracks found in this playlist.')
     }
   }
 
   // 0ms Save toggle
   const handleToggleSave = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Playlist Library',
+        subtitle: 'Playlists',
+        title: 'Save this playlist.',
+        description:
+          'Sign in or create an account to save playlists to your library and keep them synced across devices.',
+      })
       return
     }
     if (!playlist) return
@@ -163,7 +208,13 @@ function PlaylistDetailComponent() {
   // Clone playlist
   const handleClonePlaylist = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Playlist Curation',
+        subtitle: 'Playlists',
+        title: 'Clone this playlist.',
+        description:
+          'Sign in or create an account to clone this playlist into your own private or public collection.',
+      })
       return
     }
     if (!playlist || isCloning) return
@@ -183,7 +234,13 @@ function PlaylistDetailComponent() {
   // Join collaboration via token
   const handleJoinCollaboration = async () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Collaborative Music',
+        subtitle: 'Collaboration',
+        title: 'Join collaboration.',
+        description:
+          'Sign in or create an account to join this playlist as an active collaborator and add tracks.',
+      })
       return
     }
     if (!collabToken || isJoiningCollab) return
@@ -259,16 +316,15 @@ function PlaylistDetailComponent() {
     }
   }
 
-  // Atomic reorder: move track up or down
-  const handleMoveTrack = async (index: number, direction: 'up' | 'down') => {
-    if (!playlist) return
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (targetIndex < 0 || targetIndex >= playlist.tracks.length) return
+  // Atomic reorder: drag-and-drop or move track
+  const handleReorderTracks = async (fromIndex: number, toIndex: number) => {
+    if (!playlist || fromIndex === toIndex) return
+    if (fromIndex < 0 || fromIndex >= playlist.tracks.length) return
+    if (toIndex < 0 || toIndex >= playlist.tracks.length) return
 
     const newTracks = [...playlist.tracks]
-    const temp = newTracks[index]
-    newTracks[index] = newTracks[targetIndex]
-    newTracks[targetIndex] = temp
+    const [moved] = newTracks.splice(fromIndex, 1)
+    newTracks.splice(toIndex, 0, moved)
 
     // Optimistic reorder
     setPlaylist((prev) => (prev ? { ...prev, tracks: newTracks } : null))
@@ -280,6 +336,11 @@ function PlaylistDetailComponent() {
       alert(err.message || 'Failed to reorder tracks')
       await fetchPlaylist()
     }
+  }
+
+  const handleMoveTrack = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    handleReorderTracks(index, targetIndex)
   }
 
   // Search catalog songs to add
@@ -334,6 +395,7 @@ function PlaylistDetailComponent() {
         description: editDescription.trim() || null,
         visibility: editVisibility,
         allowDuplicates: editAllowDuplicates,
+        allowComments: editAllowComments,
       })
       setPlaylist((prev) => (prev ? { ...prev, ...updated } : null))
       setIsEditModalOpen(false)
@@ -391,15 +453,6 @@ function PlaylistDetailComponent() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full space-y-10">
-      {/* Hidden HTML5 Audio Element for Preview */}
-      <audio
-        ref={audioRef}
-        onEnded={() => {
-          setIsPlaying(false)
-          setPlayingEntryId(null)
-        }}
-      />
-
       {/* ===================== COLLABORATION INVITE / STATUS BANNER ===================== */}
       {collabToken && !isOwner && isCollaborator && (
         <div className="p-4 border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-between gap-4 flex-wrap shadow-xs">
@@ -497,7 +550,7 @@ function PlaylistDetailComponent() {
                 Curated by {playlist.ownerDisplayName || 'Anonymous Curator'}
               </span>
               <span>&bull;</span>
-              <span>{playlist.tracksCount ?? playlist.tracks.length} Cuts</span>
+              <span>{playlist.tracksCount ?? (playlist.tracks ?? []).length} Cuts</span>
               <span>&bull;</span>
               <span>{formatDuration(playlist.totalDurationSeconds ?? 0)}</span>
               <span>&bull;</span>
@@ -507,11 +560,11 @@ function PlaylistDetailComponent() {
             {/* Action Bar */}
             <div className="flex items-center gap-3 pt-3 flex-wrap">
               {/* Play First Track */}
-              {playlist.tracks.length > 0 &&
+              {(playlist.tracks ?? []).length > 0 &&
                 ((playlist.tracks[0].song || playlist.tracks[0]).isStreamable !== false) && (
                 <button
                   type="button"
-                  onClick={() => handlePlayTrack(playlist.tracks[0])}
+                  onClick={handlePlayPlaylistFromStart}
                   className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
@@ -606,7 +659,7 @@ function PlaylistDetailComponent() {
               Tracklist
             </h2>
             <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              {playlist.tracks.length} {playlist.tracks.length === 1 ? 'Cut' : 'Cuts'}
+              {(playlist.tracks ?? []).length} {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
           </div>
 
@@ -623,7 +676,7 @@ function PlaylistDetailComponent() {
           )}
         </div>
 
-        {playlist.tracks.length === 0 ? (
+        {(playlist.tracks ?? []).length === 0 ? (
           <div className="p-16 border border-dashed border-line bg-panel text-center">
             <p className="font-serif italic text-base text-ink">
               This playlist is currently empty.
@@ -636,24 +689,68 @@ function PlaylistDetailComponent() {
           </div>
         ) : (
           <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
-            {playlist.tracks.map((track, idx) => {
+            {(playlist.tracks ?? []).map((track, idx) => {
               const entryId = track.id || (track as any).entryId
-              const isCurrentPlaying = playingEntryId === entryId && isPlaying
               const song = track.song || (track as any)
+              const songId = track.songId || song.id || track.id
+              const isCurrentPlaying =
+                currentTrack?.id === songId && playbackStatus === 'playing'
+              const isCurrentLoaded = currentTrack?.id === songId
               const isLocked = song.isStreamable === false
 
               return (
                 <div
                   key={entryId || idx}
-                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
+                  draggable={canEdit && !isLocked}
+                  onDragStart={(e) => {
+                    if (!canEdit || isLocked) return
+                    e.dataTransfer.setData('text/plain', String(idx))
+                    e.dataTransfer.dropEffect = 'move'
+                    setDraggedIdx(idx)
+                  }}
+                  onDragOver={(e) => {
+                    if (!canEdit) return
+                    e.preventDefault()
+                    if (draggedIdx !== null && draggedIdx !== idx) {
+                      setDropTargetIdx(idx)
+                    }
+                  }}
+                  onDragLeave={() => {
+                    if (dropTargetIdx === idx) setDropTargetIdx(null)
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const from = Number(e.dataTransfer.getData('text/plain'))
+                    if (!isNaN(from) && from !== idx) {
+                      handleReorderTracks(from, idx)
+                    }
+                    setDraggedIdx(null)
+                    setDropTargetIdx(null)
+                  }}
+                  onDragEnd={() => {
+                    setDraggedIdx(null)
+                    setDropTargetIdx(null)
+                  }}
+                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-all group ${
                     isCurrentPlaying ? 'bg-blue/5' : ''
-                  } ${isLocked ? 'opacity-65 bg-line/10' : ''}`}
+                  } ${isLocked ? 'opacity-65 bg-line/10' : ''} ${
+                    draggedIdx === idx ? 'opacity-40 bg-line/20' : ''
+                  } ${dropTargetIdx === idx ? 'border-t-2 border-blue bg-blue/5' : ''}`}
                 >
-                  {/* Left: Index / Play, Title, Artist, Scheduled Badge */}
-                  <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                  {/* Left: Drag Handle, Index / Play, Title, Artist, Scheduled Badge */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                    {canEdit && (
+                      <span
+                        className="cursor-grab active:cursor-grabbing text-ink-soft/40 hover:text-ink select-none font-mono text-xs opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                        title="Drag to reorder"
+                      >
+                        ⋮⋮
+                      </span>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => handlePlayTrack(track)}
+                      onClick={() => handlePlayTrack(track, idx)}
                       aria-label={
                         isLocked
                           ? 'Track is locked until scheduled release'
@@ -669,7 +766,11 @@ function PlaylistDetailComponent() {
                         <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
                       ) : (
                         <>
-                          <span className="font-mono text-[10.5px] group-hover:hidden">
+                          <span
+                            className={`font-mono text-[10.5px] ${
+                              isCurrentLoaded ? 'text-blue font-bold' : ''
+                            } group-hover:hidden`}
+                          >
                             {String(track.position + 1).padStart(2, '0')}
                           </span>
                           <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
@@ -691,7 +792,7 @@ function PlaylistDetailComponent() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={`font-serif text-sm truncate ${
-                            isCurrentPlaying ? 'text-blue font-medium' : 'text-ink'
+                            isCurrentPlaying ? 'text-blue font-medium' : isCurrentLoaded ? 'text-blue' : 'text-ink'
                           }`}
                         >
                           {song.title}
@@ -724,13 +825,17 @@ function PlaylistDetailComponent() {
                     </div>
                   </div>
 
-                  {/* Right: Duration, Added By, Move & Remove Buttons */}
-                  <div className="flex items-center gap-4 shrink-0 font-mono text-[10.5px] text-ink-soft">
+                  {/* Right: Duration, Added By, SongActionMenu, Move & Remove Buttons */}
+                  <div className="flex items-center gap-3 shrink-0 font-mono text-[10.5px] text-ink-soft">
                     <span className="hidden md:inline text-ink-soft/70">
                       Added by {track.addedByDisplayName || 'Member'}
                     </span>
 
                     <span>{formatDuration(song.durationSeconds ?? 0)}</span>
+
+                    {!isLocked && (
+                      <SongActionMenu track={toPlayerTrack(track)} />
+                    )}
 
                     {/* Edit controls: Up / Down / Remove */}
                     {canEdit && (
@@ -770,6 +875,14 @@ function PlaylistDetailComponent() {
           </div>
         )}
       </div>
+
+      {/* Nested Comments Subsystem */}
+      <CommentSection
+        targetType="playlist"
+        targetId={playlist.id}
+        allowComments={playlist.allowComments ?? true}
+        isCreatorOrOwner={isOwner}
+      />
 
       {/* ===================== ADD SONGS MODAL ===================== */}
       {isAddTracksModalOpen && (
@@ -910,27 +1023,27 @@ function PlaylistDetailComponent() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Visibility
-                  </label>
-                  <select
-                    value={editVisibility}
-                    onChange={(e: any) => setEditVisibility(e.target.value)}
-                    className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink"
-                  >
-                    <option value="PUBLIC">Public</option>
-                    <option value="UNLISTED">Unlisted</option>
-                    <option value="PRIVATE">Private</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                  Visibility
+                </label>
+                <select
+                  value={editVisibility}
+                  onChange={(e: any) => setEditVisibility(e.target.value)}
+                  className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink"
+                >
+                  <option value="PUBLIC">Public</option>
+                  <option value="UNLISTED">Unlisted</option>
+                  <option value="PRIVATE">Private</option>
+                </select>
+              </div>
 
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Duplicates
+                    Duplicate Songs
                   </label>
-                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer">
+                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
                     <input
                       type="checkbox"
                       checked={editAllowDuplicates}
@@ -938,6 +1051,21 @@ function PlaylistDetailComponent() {
                       className="accent-blue"
                     />
                     <span className="font-mono text-[10.5px] text-ink">Allow Dups</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                    Discussion & Comments
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editAllowComments}
+                      onChange={(e) => setEditAllowComments(e.target.checked)}
+                      className="accent-blue"
+                    />
+                    <span className="font-mono text-[10.5px] text-ink">Allow Comments</span>
                   </label>
                 </div>
               </div>

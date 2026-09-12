@@ -7,3 +7,4 @@ export * from "./playlists";
 export * from "./social";
 export * from "./history";
 export * from "./outbox";
+export * from "./comments";

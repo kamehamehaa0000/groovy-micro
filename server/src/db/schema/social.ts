@@ -49,36 +49,5 @@ export const albumLikes = pgTable(
   ]
 );
 
-export const comments = pgTable(
-  "comments",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    songId: uuid("song_id")
-      .notNull()
-      .references(() => songs.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    parentCommentId: uuid("parent_comment_id").references(
-      (): AnyPgColumn => comments.id,
-      { onDelete: "cascade" }
-    ),
-    content: text("content").notNull(),
-    timestampSeconds: integer("timestamp_seconds"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    index("idx_comments_song").on(table.songId),
-    index("idx_comments_parent").on(table.parentCommentId),
-  ]
-);
-
 export type SongLike = typeof songLikes.$inferSelect;
 export type AlbumLike = typeof albumLikes.$inferSelect;
-export type Comment = typeof comments.$inferSelect;
-export type NewComment = typeof comments.$inferInsert;

@@ -48,6 +48,11 @@ const ALL_SUITES: TestSuite[] = [
     name: 'Users & Cloud Storage',
     file: 'src/modules/users/users.test.ts',
   },
+  {
+    id: 'comments',
+    name: 'Nested Comments & Two-Way Voting',
+    file: 'src/modules/comments/comments.test.ts',
+  },
 ]
 
 // ANSI Escape Codes

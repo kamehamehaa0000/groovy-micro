@@ -29,6 +29,7 @@ export const playlists = pgTable(
     shareToken: varchar("share_token", { length: 64 }),
     collaborationToken: varchar("collaboration_token", { length: 64 }),
     allowDuplicates: boolean("allow_duplicates").notNull().default(false),
+    allowComments: boolean("allow_comments").notNull().default(true),
     savesCount: integer("saves_count").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
