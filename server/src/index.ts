@@ -13,6 +13,8 @@ import { storageRoutes } from "./modules/storage";
 import { artistsRoutes, adminArtistsRoutes } from "./modules/artists";
 import { albumsRoutes, songsRoutes, studioCatalogRoutes } from "./modules/catalog";
 import { initReleaseWorker, closeReleaseQueue } from "./modules/catalog/catalog.queue";
+import { subscriptionsRoutes, adminSubscriptionsRoutes } from "./modules/subscriptions";
+import { playlistsRoutes } from "./modules/playlists";
 
 dotenv.config();
 
@@ -36,13 +38,8 @@ export const app = Fastify({
 });
 
 // Initialize Redis client
-export const redis = new Redis(
-  process.env.REDIS_URL || "redis://localhost:6379",
-  {
-    lazyConnect: true,
-    maxRetriesPerRequest: 3,
-  }
-);
+import { redis } from "./db/redis";
+export { redis };
 
 export async function bootstrap(options: { listen?: boolean } = { listen: true }) {
   // 1. Plugins
@@ -82,6 +79,9 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   await app.register(albumsRoutes, { prefix: "/api/v1/albums" });
   await app.register(songsRoutes, { prefix: "/api/v1/songs" });
   await app.register(studioCatalogRoutes, { prefix: "/api/v1/studio" });
+  await app.register(subscriptionsRoutes, { prefix: "/api/v1/subscriptions" });
+  await app.register(adminSubscriptionsRoutes, { prefix: "/api/v1/admin/subscriptions" });
+  await app.register(playlistsRoutes, { prefix: "/api/v1/playlists" });
 
   // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {

@@ -7,9 +7,26 @@ import {
   timestamp,
   jsonb,
   index,
+  text,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { subscriptionStatusEnum } from "./enums";
+
+export const planFeatureDefinitions = pgTable("plan_feature_definitions", {
+  key: varchar("key", { length: 60 }).primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  valueType: varchar("value_type", { length: 20 }).notNull().default("BOOLEAN"),
+  defaultValue: jsonb("default_value").notNull().default(false),
+  category: varchar("category", { length: 50 }).notNull().default("general"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: varchar("id", { length: 50 }).primaryKey(),
@@ -64,6 +81,8 @@ export const userSubscriptions = pgTable(
   ]
 );
 
+export type PlanFeatureDefinition = typeof planFeatureDefinitions.$inferSelect;
+export type NewPlanFeatureDefinition = typeof planFeatureDefinitions.$inferInsert;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type NewUserSubscription = typeof userSubscriptions.$inferInsert;

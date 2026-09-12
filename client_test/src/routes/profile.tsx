@@ -1,9 +1,15 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
+import { useEntitlementsStore } from '../stores/entitlements.store'
 import { api } from '../lib/api'
 import { catalogApi } from '../lib/catalog.api'
+import { subscriptionsApi } from '../lib/subscriptions.api'
 import type { PreSavedRelease } from '../types/catalog'
+import type {
+  SubscriptionPlan,
+  PlanFeatureDefinition,
+} from '../types/subscriptions'
 import { DiscIconSVG, CalendarIconSVG } from '../components/icons'
 
 export const Route = createFileRoute('/profile')({
@@ -21,6 +27,11 @@ function ProfileComponent() {
     revokeAll,
   } = useAuthStore()
 
+  const entitlements = useEntitlementsStore((s) => s.entitlements)
+  const upgradePlanStore = useEntitlementsStore((s) => s.upgradePlan)
+  const cancelSubscriptionStore = useEntitlementsStore((s) => s.cancelSubscription)
+  const isLoadingEntitlements = useEntitlementsStore((s) => s.isLoading)
+
   const [displayName, setDisplayName] = useState('')
   const [profileMsg, setProfileMsg] = useState<{
     text: string
@@ -32,6 +43,16 @@ function ProfileComponent() {
   const [preSaves, setPreSaves] = useState<PreSavedRelease[]>([])
   const [isLoadingPreSaves, setIsLoadingPreSaves] = useState(false)
 
+  // Subscriptions & Plans Selection Modal State
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
+  const [featureCatalog, setFeatureCatalog] = useState<PlanFeatureDefinition[]>([])
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false)
+  const [isUpgradingPlan, setIsUpgradingPlan] = useState(false)
+  const [subNotice, setSubNotice] = useState<{
+    text: string
+    type: 'success' | 'error'
+  } | null>(null)
 
   // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
@@ -68,6 +89,8 @@ function ProfileComponent() {
         .then((res) => setPreSaves(res.presaves))
         .catch((err) => console.warn('Could not load pre-saves:', err))
         .finally(() => setIsLoadingPreSaves(false))
+
+      useEntitlementsStore.getState().initializeEntitlements()
     }
   }, [isAuthenticated])
 
@@ -110,42 +133,31 @@ function ProfileComponent() {
     setIsUploadingAvatar(true)
 
     try {
-      const ext = file.name.split('.').pop() || 'webp'
-
-      // 1. Request Pre-Signed URL from Backend
-      const presignedRes = await api.post<{
+      const { uploadUrl, publicUrl } = await api.post<{
         uploadUrl: string
-        storageKey: string
         publicUrl: string
-      }>('/api/v1/storage/presigned-url', {
-        category: 'USER_AVATAR',
-        resourceId: user.id,
-        mimeType: file.type || 'image/webp',
-        fileExtension: ext,
-        fileSizeBytes: file.size,
+      }>('/api/v1/storage/presign', {
+        preset: 'AVATAR',
+        contentType: file.type,
       })
 
-      // 2. Direct binary PUT upload to Cloudflare R2
-      const uploadRes = await fetch(presignedRes.uploadUrl, {
+      const uploadRes = await fetch(uploadUrl, {
         method: 'PUT',
-        headers: {
-          'Content-Type': file.type || 'image/webp',
-        },
         body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
       })
 
       if (!uploadRes.ok) {
         throw new Error(
-          `Direct R2 upload failed with status ${uploadRes.status}`,
+          `Direct S3/R2 storage rejected upload (${uploadRes.status})`,
         )
       }
 
-      // 3. Commit avatar URL to PostgreSQL profile
-      await api.patch('/api/v1/users/profile', {
-        avatarUrl: presignedRes.publicUrl,
-      })
-
+      await api.patch('/api/v1/users/profile', { avatarUrl: publicUrl })
       await refreshProfile()
+
       setProfileMsg({
         text: 'Avatar uploaded directly to Cloudflare R2 storage archive.',
         type: 'success',
@@ -177,7 +189,6 @@ function ProfileComponent() {
         },
       )
 
-      // If other sessions were revoked, backend returned fresh access token
       if (res.accessToken) {
         useAuthStore.getState().setAccessToken(res.accessToken)
       }
@@ -192,15 +203,78 @@ function ProfileComponent() {
     }
   }
 
+  // --- Subscription Handlers ---
+  const handleOpenUpgradeModal = async () => {
+    setIsUpgradeModalOpen(true)
+    setIsLoadingPlans(true)
+    setSubNotice(null)
+    try {
+      const [plansRes, featRes] = await Promise.all([
+        subscriptionsApi.getPlans(),
+        subscriptionsApi.getFeatures(),
+      ])
+      setAvailablePlans(plansRes.plans)
+      setFeatureCatalog(featRes.features)
+    } catch (err: any) {
+      setSubNotice({
+        text: err.message || 'Failed to retrieve plans',
+        type: 'error',
+      })
+    } finally {
+      setIsLoadingPlans(false)
+    }
+  }
+
+  const handleSwitchPlan = async (planId: string) => {
+    setIsUpgradingPlan(true)
+    setSubNotice(null)
+    try {
+      const res = await upgradePlanStore(planId)
+      await refreshProfile()
+      setSubNotice({
+        text: `🎉 Switched plan to ${res.planName}!`,
+        type: 'success',
+      })
+      setIsUpgradeModalOpen(false)
+    } catch (err: any) {
+      setSubNotice({
+        text: err.message || 'Failed to switch plan',
+        type: 'error',
+      })
+    } finally {
+      setIsUpgradingPlan(false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (
+      !confirm(
+        'Are you sure you want to cancel your plan at the end of the current billing cycle?',
+      )
+    )
+      return
+    setSubNotice(null)
+    try {
+      await cancelSubscriptionStore()
+      await refreshProfile()
+      setSubNotice({ text: 'Subscription scheduled for cancellation at the end of current period', type: 'success' })
+    } catch (err: any) {
+      setSubNotice({
+        text: err.message || 'Failed to cancel subscription',
+        type: 'error',
+      })
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div>
         <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue-deep mb-2">
-          Curator Identity & Account
+          Curator Identity &amp; Account
         </div>
         <h1 className="font-serif italic text-3xl sm:text-4xl text-ink leading-tight font-normal">
-          User Profile & Account
+          User Profile &amp; Account
         </h1>
         <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
           Manage member identity, high-fidelity storage uploads, and
@@ -264,11 +338,217 @@ function ProfileComponent() {
           <p className="font-sans text-xs text-ink-soft">{user.email}</p>
 
           <div className="pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
-            Catalog Access Tier:{' '}
+            Active Tier:{' '}
             <span className="text-blue font-medium">
-              {user.plan?.name || 'Standard Member'}
+              {entitlements?.planName || user.plan?.name || 'Groovy Free'}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Membership & Subscription Tier Card */}
+      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4">
+          <div>
+            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+              Membership &bull; Entitlements Engine
+            </div>
+            <div className="flex items-center gap-3">
+              <h3 className="font-serif italic text-2xl text-ink font-normal">
+                {entitlements?.planName || user.plan?.name || 'Groovy Free'}
+              </h3>
+              <span
+                className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 border ${
+                  isLoadingEntitlements
+                    ? 'border-line bg-canvas text-ink-soft animate-pulse'
+                    : entitlements?.status === 'active'
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                      : entitlements?.cancelAtPeriodEnd
+                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                        : 'border-line bg-canvas text-ink-soft'
+                }`}
+              >
+                {isLoadingEntitlements
+                  ? 'Verifying...'
+                  : entitlements?.cancelAtPeriodEnd
+                    ? 'Cancels at Period End'
+                    : entitlements?.status?.toUpperCase() || 'ACTIVE'}
+              </span>
+            </div>
+            {entitlements?.currentPeriodEnd && (
+              <p className="font-mono text-[10px] text-ink-soft mt-1">
+                Current billing period ends:{' '}
+                {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleOpenUpgradeModal}
+              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+            >
+              ✦ Change Plan / Upgrade
+            </button>
+            {entitlements &&
+              entitlements.planId !== 'free' &&
+              !entitlements.cancelAtPeriodEnd && (
+                <button
+                  type="button"
+                  onClick={handleCancelSubscription}
+                  className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
+                >
+                  Cancel Plan
+                </button>
+              )}
+          </div>
+        </div>
+
+        {subNotice && (
+          <div
+            className={`p-3 border font-mono text-xs ${
+              subNotice.type === 'success'
+                ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200'
+                : 'border-red-300 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300'
+            }`}
+          >
+            {subNotice.text}
+          </div>
+        )}
+
+        {/* Resolved Capabilities Matrix */}
+        <div className="space-y-3">
+          <div className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
+            Active Capability Matrix (Enforced by Entitlement Guard)
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Audio Bitrate */}
+            <div className="border border-line bg-canvas p-3.5 space-y-1">
+              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
+                Audio Bitrate
+              </span>
+              <div className="font-mono text-base font-semibold text-ink">
+                {entitlements?.features.max_bitrate_kbps ?? 128} kbps
+              </div>
+              <p className="font-sans text-[11px] text-ink-soft">
+                {Number(entitlements?.features.max_bitrate_kbps ?? 128) >= 320
+                  ? 'High-Fidelity 320kbps MP3/AAC stream'
+                  : 'Standard 128kbps AAC stream'}
+              </p>
+            </div>
+
+            {/* Lossless Audio */}
+            <div className="border border-line bg-canvas p-3.5 space-y-1">
+              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
+                Lossless Audio
+              </span>
+              <div
+                className={`font-mono text-base font-semibold ${
+                  entitlements?.features.lossless
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-ink-soft'
+                }`}
+              >
+                {entitlements?.features.lossless ? '✓ FLAC Unlocked' : '✕ Standard Only'}
+              </div>
+              <p className="font-sans text-[11px] text-ink-soft">
+                {entitlements?.features.lossless
+                  ? 'Studio Master 1411kbps uncompressed'
+                  : 'Upgrade to stream lossless FLAC'}
+              </p>
+            </div>
+
+            {/* Live Jam Hosting */}
+            <div className="border border-line bg-canvas p-3.5 space-y-1">
+              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
+                Live Jam Hosting
+              </span>
+              <div
+                className={`font-mono text-base font-semibold ${
+                  entitlements?.features.can_host_jam
+                    ? 'text-blue'
+                    : 'text-ink-soft'
+                }`}
+              >
+                {entitlements?.features.can_host_jam ? '✓ Jam Host' : '✕ Listener Only'}
+              </div>
+              <p className="font-sans text-[11px] text-ink-soft">
+                {entitlements?.features.can_host_jam
+                  ? `Host rooms up to ${entitlements.features.max_jam_participants} listeners`
+                  : `Can join jams up to ${entitlements?.features.max_jam_participants ?? 3} listeners`}
+              </p>
+            </div>
+
+            {/* Ad Experience */}
+            <div className="border border-line bg-canvas p-3.5 space-y-1">
+              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
+                Ad Experience
+              </span>
+              <div
+                className={`font-mono text-base font-semibold ${
+                  entitlements?.features.ad_free
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-ink-soft'
+                }`}
+              >
+                {entitlements?.features.ad_free ? '✓ Ad-Free' : 'Sponsored Audio'}
+              </div>
+              <p className="font-sans text-[11px] text-ink-soft">
+                {entitlements?.features.ad_free
+                  ? 'Zero interruptions or audio spots'
+                  : 'Occasional promotional inserts'}
+              </p>
+            </div>
+          </div>
+
+          {/* Dynamic Extra Features from Catalog */}
+          {entitlements &&
+            Object.keys(entitlements.features).some(
+              (k) =>
+                ![
+                  'max_bitrate_kbps',
+                  'lossless',
+                  'can_host_jam',
+                  'max_jam_participants',
+                  'ad_free',
+                ].includes(k),
+            ) && (
+              <div className="pt-2 border-t border-line-soft">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-2">
+                  Additional Entitled Perks
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(entitlements.features)
+                    .filter(
+                      ([k]) =>
+                        ![
+                          'max_bitrate_kbps',
+                          'lossless',
+                          'can_host_jam',
+                          'max_jam_participants',
+                          'ad_free',
+                        ].includes(k),
+                    )
+                    .map(([k, v]) => (
+                      <span
+                        key={k}
+                        className="font-mono text-[9.5px] px-2.5 py-1 border border-line bg-canvas flex items-center gap-1.5"
+                      >
+                        <span className="text-ink-soft">{k}:</span>
+                        <span className="font-semibold text-ink">
+                          {typeof v === 'boolean'
+                            ? v
+                              ? '✓ Enabled'
+                              : '✕ Disabled'
+                            : String(v)}
+                        </span>
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -534,7 +814,7 @@ function ProfileComponent() {
           Session Management
         </div>
         <h3 className="font-serif italic text-xl text-ink mb-1 font-normal">
-          Session & Device Controls
+          Session &amp; Device Controls
         </h3>
         <p className="font-sans text-xs text-ink-soft mb-6 leading-relaxed">
           Manage active sessions and revoke access for all other devices.
@@ -557,6 +837,207 @@ function ProfileComponent() {
           </button>
         </div>
       </div>
+
+      {/* Upgrade / Change Plan Modal (Dev Mock Checkout) */}
+      {isUpgradeModalOpen && (
+        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="max-w-4xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue block mb-1">
+                  Maison Sound Tiers &bull; Dev Mock Checkout
+                </span>
+                <h3 className="font-serif italic text-2xl sm:text-3xl text-ink">
+                  Select Your Audio Experience
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsUpgradeModalOpen(false)}
+                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {isLoadingPlans ? (
+              <div className="py-20 text-center font-mono text-xs text-ink-soft animate-pulse">
+                Querying active subscription tiers and feature catalog...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {availablePlans.map((plan) => {
+                  const isCurrent = entitlements?.planId === plan.id
+                  return (
+                    <div
+                      key={plan.id}
+                      className={`p-5 border flex flex-col justify-between space-y-5 transition-all ${
+                        isCurrent
+                          ? 'border-ink bg-canvas shadow-xs'
+                          : 'border-line bg-panel hover:border-ink/50'
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line bg-panel font-semibold text-blue">
+                            {plan.id}
+                          </span>
+                          {isCurrent && (
+                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
+                              Current Plan
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="font-serif italic text-2xl text-ink font-medium">
+                            {plan.name}
+                          </h4>
+                          <div className="font-mono text-xs text-ink-soft mt-1">
+                            <span className="text-xl font-bold text-ink">
+                              {(plan.priceCents / 100).toLocaleString(undefined, {
+                                style: 'currency',
+                                currency: plan.currency || 'USD',
+                              })}
+                            </span>
+                            <span> / {plan.interval}</span>
+                          </div>
+                        </div>
+
+                        {/* Feature comparison checklist */}
+                        <div className="pt-3 border-t border-line-soft space-y-2 font-sans text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-emerald-600 font-bold">✓</span>
+                            <span>
+                              Audio:{' '}
+                              <strong className="font-mono text-xs">
+                                {plan.features.max_bitrate_kbps ?? 128} kbps
+                              </strong>
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-mono font-bold ${
+                                plan.features.lossless
+                                  ? 'text-emerald-600'
+                                  : 'text-ink-soft/40'
+                              }`}
+                            >
+                              {plan.features.lossless ? '✓' : '✕'}
+                            </span>
+                            <span
+                              className={
+                                plan.features.lossless
+                                  ? 'text-ink'
+                                  : 'text-ink-soft line-through'
+                              }
+                            >
+                              FLAC Lossless Audio
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-mono font-bold ${
+                                plan.features.can_host_jam
+                                  ? 'text-emerald-600'
+                                  : 'text-ink-soft/40'
+                              }`}
+                            >
+                              {plan.features.can_host_jam ? '✓' : '✕'}
+                            </span>
+                            <span
+                              className={
+                                plan.features.can_host_jam
+                                  ? 'text-ink'
+                                  : 'text-ink-soft line-through'
+                              }
+                            >
+                              Host Live Jams ({plan.features.max_jam_participants ?? 3}{' '}
+                              listeners)
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-mono font-bold ${
+                                plan.features.ad_free
+                                  ? 'text-emerald-600'
+                                  : 'text-ink-soft/40'
+                              }`}
+                            >
+                              {plan.features.ad_free ? '✓' : '✕'}
+                            </span>
+                            <span
+                              className={
+                                plan.features.ad_free
+                                  ? 'text-ink'
+                                  : 'text-ink-soft'
+                              }
+                            >
+                              {plan.features.ad_free ? 'Ad-Free Playback' : 'Sponsored Audio'}
+                            </span>
+                          </div>
+
+                          {/* Dynamic Extra Perks */}
+                          {Object.entries(plan.features)
+                            .filter(
+                              ([k]) =>
+                                ![
+                                  'max_bitrate_kbps',
+                                  'lossless',
+                                  'can_host_jam',
+                                  'max_jam_participants',
+                                  'ad_free',
+                                ].includes(k),
+                            )
+                            .map(([k, v]) => {
+                              const featDef = featureCatalog.find(
+                                (f) => f.key === k,
+                              )
+                              return (
+                                <div key={k} className="flex items-center gap-2">
+                                  <span className="font-mono text-emerald-600 font-bold">✓</span>
+                                  <span className="font-mono text-[11px] text-ink">
+                                    {featDef?.name || k}:{' '}
+                                    {typeof v === 'boolean'
+                                      ? v
+                                        ? 'Enabled'
+                                        : 'Disabled'
+                                      : String(v)}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-line">
+                        <button
+                          type="button"
+                          disabled={isCurrent || isUpgradingPlan}
+                          onClick={() => handleSwitchPlan(plan.id)}
+                          className={`w-full font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 transition-all cursor-pointer font-semibold ${
+                            isCurrent
+                              ? 'bg-line/40 text-ink-soft cursor-not-allowed border border-line'
+                              : 'bg-ink text-canvas hover:opacity-90'
+                          }`}
+                        >
+                          {isCurrent
+                            ? 'Active Tier'
+                            : isUpgradingPlan
+                              ? 'Switching...'
+                              : plan.priceCents === 0
+                                ? 'Switch to Free Tier'
+                                : `Upgrade to ${plan.name}`}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

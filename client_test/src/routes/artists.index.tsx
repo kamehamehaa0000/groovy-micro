@@ -4,6 +4,7 @@ import { artistsApi } from '../lib/artists.api'
 import type { ArtistProfile } from '../types/artist'
 import { VerifiedBadgeSVG } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
+import { useFollowsStore } from '../stores/follows.store'
 
 export const Route = createFileRoute('/artists/')({
   component: ArtistsDirectoryComponent,
@@ -11,6 +12,9 @@ export const Route = createFileRoute('/artists/')({
 
 function ArtistsDirectoryComponent() {
   const { user } = useAuthStore()
+  const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
+  const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
+
   const [artists, setArtists] = useState<ArtistProfile[]>([])
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -28,6 +32,7 @@ function ArtistsDirectoryComponent() {
         if (isMounted) {
           setArtists(res.data)
           setTotalCount(res.pagination.total)
+          hydrateArtists(res.data)
         }
       } catch (err) {
         console.error('Failed to load artists roster:', err)
@@ -40,7 +45,7 @@ function ArtistsDirectoryComponent() {
       isMounted = false
       clearTimeout(timer)
     }
-  }, [search])
+  }, [search, hydrateArtists])
 
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">
@@ -146,12 +151,19 @@ function ArtistsDirectoryComponent() {
 
               {/* Card Meta Content */}
               <div className="p-5">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h3 className="font-serif italic text-lg text-ink group-hover:text-blue transition-colors">
-                    {artist.stageName}
-                  </h3>
-                  {artist.verified && (
-                    <VerifiedBadgeSVG className="w-4 h-4 text-blue shrink-0 inline-block" />
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-serif italic text-lg text-ink group-hover:text-blue transition-colors">
+                      {artist.stageName}
+                    </h3>
+                    {artist.verified && (
+                      <VerifiedBadgeSVG className="w-4 h-4 text-blue shrink-0 inline-block" />
+                    )}
+                  </div>
+                  {followedArtistIds.has(artist.id) && (
+                    <span className="font-mono text-[8.5px] uppercase tracking-widest px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold">
+                      ✓ Following
+                    </span>
                   )}
                 </div>
 

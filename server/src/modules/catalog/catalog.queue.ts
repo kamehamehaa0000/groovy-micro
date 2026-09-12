@@ -3,7 +3,7 @@ import { db } from "../../db";
 import { albums } from "../../db/schema/catalog";
 import { outboxEvents } from "../../db/schema/outbox";
 import { eq } from "drizzle-orm";
-import { redis } from "../../index";
+import { cacheManager } from "../../lib/cache";
 
 const redisUrl = new URL(process.env.REDIS_URL || "redis://localhost:6379");
 export const bullmqConnection = {
@@ -39,6 +39,8 @@ export const releaseQueue = new Queue<ScheduledReleaseJobPayload>(
  */
 export async function executePublishRelease(albumId: string): Promise<void> {
   const publishedDate = new Date();
+  let updatedArtistId: string | null = null;
+  let updatedSlug: string | null = null;
 
   await db.transaction(async (tx) => {
     const [updated] = await tx
@@ -52,6 +54,8 @@ export async function executePublishRelease(albumId: string): Promise<void> {
       .returning();
 
     if (!updated) return;
+    updatedArtistId = updated.artistId;
+    updatedSlug = updated.slug;
 
     // Transactional outbox event for downstream consumers (e.g. notifications)
     await tx.insert(outboxEvents).values({
@@ -70,8 +74,14 @@ export async function executePublishRelease(albumId: string): Promise<void> {
 
   // Invalidate Redis caches
   try {
-    await redis.del(`cache:album:${albumId}`);
-  } catch {}
+    await cacheManager.invalidateAlbum({
+      id: albumId,
+      slug: updatedSlug,
+      artistId: updatedArtistId,
+    });
+  } catch (err) {
+    console.warn(`[executePublishRelease] Cache invalidation failed:`, err);
+  }
 }
 
 /**

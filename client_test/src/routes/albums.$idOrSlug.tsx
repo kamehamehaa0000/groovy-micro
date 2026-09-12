@@ -13,6 +13,8 @@ import {
   CalendarIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
+import { useLikesStore } from '../stores/likes.store'
+import { usePreSavesStore } from '../stores/presaves.store'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
   validateSearch: (search: Record<string, unknown>): { shareToken?: string } => ({
@@ -27,17 +29,30 @@ function AlbumDetailComponent() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
 
+  // High-performance client-side likes store
+  const likedAlbumIds = useLikesStore((s) => s.likedAlbumIds)
+  const likedSongIds = useLikesStore((s) => s.likedSongIds)
+  const toggleAlbumLike = useLikesStore((s) => s.toggleAlbumLike)
+  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
+  const hydrateAlbums = useLikesStore((s) => s.hydrateAlbums)
+  const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
+
+  // High-performance client-side pre-saves store
+  const preSavedAlbumIds = usePreSavesStore((s) => s.preSavedAlbumIds)
+  const togglePreSaveStore = usePreSavesStore((s) => s.togglePreSave)
+  const hydratePreSavedAlbums = usePreSavesStore((s) => s.hydrateAlbums)
+
   const [album, setAlbum] = useState<AlbumDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Likes state
-  const [isLiked, setIsLiked] = useState(false)
+  const isLiked = album ? likedAlbumIds.has(album.id) : false
   const [likesCount, setLikesCount] = useState(0)
   const [isLikeLoading, setIsLikeLoading] = useState(false)
 
   // Pre-save state
-  const [isPreSaved, setIsPreSaved] = useState(false)
+  const isPreSaved = album ? preSavedAlbumIds.has(album.id) : false
   const [preSavesCount, setPreSavesCount] = useState(0)
   const [isPreSaveLoading, setIsPreSaveLoading] = useState(false)
 
@@ -59,10 +74,19 @@ function AlbumDetailComponent() {
       .then((data) => {
         if (!isMounted) return
         setAlbum(data)
-        setIsLiked(!!data.isLiked)
         setLikesCount(data.likesCount ?? 0)
-        setIsPreSaved(!!data.isPreSaved)
         setPreSavesCount(data.preSavesCount ?? 0)
+
+        // Hydrate global likes store
+        if (data.isLiked) {
+          hydrateAlbums([{ id: data.id, isLiked: true }])
+        }
+        if (data.isPreSaved) {
+          hydratePreSavedAlbums([{ id: data.id, isPreSaved: true }])
+        }
+        if (data.tracks?.length) {
+          hydrateSongs(data.tracks)
+        }
       })
       .catch((err) => {
         if (!isMounted) return
@@ -75,7 +99,7 @@ function AlbumDetailComponent() {
     return () => {
       isMounted = false
     }
-  }, [idOrSlug, shareToken])
+  }, [idOrSlug, shareToken, hydrateAlbums, hydrateSongs])
 
   // Stop audio on unmount
   useEffect(() => {
@@ -98,17 +122,14 @@ function AlbumDetailComponent() {
     const prevLiked = isLiked
     const prevCount = likesCount
 
-    // Optimistic toggle
-    setIsLiked(!prevLiked)
+    // Optimistically update count
     setLikesCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1)
 
     try {
-      const res = await catalogApi.toggleAlbumLike(album.id)
-      setIsLiked(res.liked)
+      const res = await toggleAlbumLike(album.id)
       setLikesCount(res.likesCount)
     } catch (err: any) {
-      // Rollback
-      setIsLiked(prevLiked)
+      // Revert count on error
       setLikesCount(prevCount)
       alert(err.message || 'Could not update like status')
     } finally {
@@ -122,10 +143,10 @@ function AlbumDetailComponent() {
       return
     }
 
-    const prevLiked = !!track.isLiked
+    const wasLiked = likedSongIds.has(track.id)
     const prevCount = track.likesCount
 
-    // Optimistic track update
+    // Optimistic track count update
     setAlbum((prev) => {
       if (!prev) return null
       return {
@@ -134,8 +155,7 @@ function AlbumDetailComponent() {
           t.id === track.id
             ? {
                 ...t,
-                isLiked: !prevLiked,
-                likesCount: prevLiked
+                likesCount: wasLiked
                   ? Math.max(0, prevCount - 1)
                   : prevCount + 1,
               }
@@ -145,27 +165,27 @@ function AlbumDetailComponent() {
     })
 
     try {
-      const res = await catalogApi.toggleSongLike(track.id)
+      const res = await toggleSongLike(track.id)
       setAlbum((prev) => {
         if (!prev) return null
         return {
           ...prev,
           tracks: prev.tracks.map((t) =>
             t.id === track.id
-              ? { ...t, isLiked: res.liked, likesCount: res.likesCount }
+              ? { ...t, likesCount: res.likesCount }
               : t,
           ),
         }
       })
     } catch {
-      // Rollback on error
+      // Rollback count on error
       setAlbum((prev) => {
         if (!prev) return null
         return {
           ...prev,
           tracks: prev.tracks.map((t) =>
             t.id === track.id
-              ? { ...t, isLiked: prevLiked, likesCount: prevCount }
+              ? { ...t, likesCount: prevCount }
               : t,
           ),
         }
@@ -181,26 +201,17 @@ function AlbumDetailComponent() {
     if (!album || isPreSaveLoading) return
 
     setIsPreSaveLoading(true)
-    const prevPreSaved = isPreSaved
     const prevCount = preSavesCount
+    const willBePreSaved = !isPreSaved
 
-    // Optimistic toggle
-    setIsPreSaved(!prevPreSaved)
-    setPreSavesCount(prevPreSaved ? Math.max(0, prevCount - 1) : prevCount + 1)
+    // Optimistic count update (Zustand store instantly updates preSavedAlbumIds Set)
+    setPreSavesCount(willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1))
 
     try {
-      if (prevPreSaved) {
-        const res = await catalogApi.removePreSave(album.id)
-        setIsPreSaved(false)
-        setPreSavesCount(res.preSavesCount)
-      } else {
-        const res = await catalogApi.preSaveAlbum(album.id)
-        setIsPreSaved(true)
-        setPreSavesCount(res.preSavesCount)
-      }
+      const res = await togglePreSaveStore(album.id)
+      setPreSavesCount(res.preSavesCount)
     } catch (err: any) {
-      // Rollback
-      setIsPreSaved(prevPreSaved)
+      // Rollback count (store handles preSavedAlbumIds rollback)
       setPreSavesCount(prevCount)
       alert(err.message || 'Could not update pre-save status')
     } finally {
@@ -651,9 +662,9 @@ function AlbumDetailComponent() {
                       className="p-1 cursor-pointer"
                     >
                       <HeartIconSVG
-                        filled={!!track.isLiked}
+                        filled={likedSongIds.has(track.id)}
                         className={`w-3.5 h-3.5 transition-colors ${
-                          track.isLiked
+                          likedSongIds.has(track.id)
                             ? 'text-red-500'
                             : 'text-ink-soft/40 hover:text-ink'
                         }`}

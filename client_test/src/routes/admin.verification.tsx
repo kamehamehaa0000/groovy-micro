@@ -160,6 +160,22 @@ function AdminVerificationDeskComponent() {
           </Link>
         </div>
 
+        {/* Admin Desk Navigation Tabs */}
+        <div className="mt-6 flex items-center gap-6 border-b border-line pb-0 font-mono text-xs">
+          <Link
+            to="/admin/verification"
+            className="pb-3 border-b-2 border-ink text-ink font-semibold tracking-wider uppercase transition-colors"
+          >
+            Artist Verifications
+          </Link>
+          <Link
+            to="/admin/subscriptions"
+            className="pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink tracking-wider uppercase transition-colors"
+          >
+            Subscription Plans &amp; Feature Catalog
+          </Link>
+        </div>
+
         {/* Action Alerts */}
         {actionSuccess && (
           <div className="mt-4 p-3 border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200 font-mono text-xs">

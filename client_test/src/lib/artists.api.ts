@@ -128,6 +128,13 @@ export const artistsApi = {
   },
 
   /**
+   * Fast sync: Fetch all artist IDs followed by current user.
+   */
+  async getFollowingArtistIds(): Promise<{ artistIds: string[] }> {
+    return await api.get<{ artistIds: string[] }>("/api/v1/artists/following/ids");
+  },
+
+  /**
    * Upload an artist banner image to Cloudflare R2 via presigned PUT.
    */
   async uploadBanner(artistId: string, file: File): Promise<string> {

@@ -128,6 +128,7 @@ export interface EnrichedSong extends Song {
   artistVerified?: boolean;
   albumTitle?: string | null;
   albumCoverImageUrl?: string | null;
+  scheduledReleaseAt?: string | null;
 }
 
 export interface Album {

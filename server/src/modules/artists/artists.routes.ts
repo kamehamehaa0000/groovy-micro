@@ -166,20 +166,42 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /
    * Searches and lists artists with pagination.
    */
-  fastify.get("/", async (request, reply) => {
-    const parseResult = searchArtistsQuerySchema.safeParse(request.query);
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        statusCode: 400,
-        error: "Bad Request",
-        message: "Invalid query parameters",
-        errors: parseResult.error.flatten().fieldErrors,
-      });
-    }
+  fastify.get(
+    "/",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const parseResult = searchArtistsQuerySchema.safeParse(request.query);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Invalid query parameters",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
 
-    const result = await artistsService.searchArtists(parseResult.data);
-    return reply.status(200).send(result);
-  });
+      const result = await artistsService.searchArtists(
+        parseResult.data,
+        request.user?.id
+      );
+      return reply.status(200).send(result);
+    }
+  );
+
+  /**
+   * GET /following/ids
+   * Fast sync endpoint returning all artist IDs followed by current user.
+   */
+  fastify.get(
+    "/following/ids",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const artistIds = await artistsService.getUserFollowingArtistIds(
+        request.user.id
+      );
+      return reply.status(200).send({ artistIds });
+    }
+  );
 
   /**
    * GET /:idOrSlug

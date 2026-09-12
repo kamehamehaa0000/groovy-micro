@@ -9,6 +9,7 @@ import {
   songs,
   playlists,
   playlistSongs,
+  playlistCollaborators,
   userLibraryAlbums,
   userLibraryPlaylists,
   songLikes,
@@ -115,7 +116,22 @@ export const playlistsRelations = relations(playlists, ({ one, many }) => ({
   }),
   songs: many(playlistSongs),
   savedByUsers: many(userLibraryPlaylists),
+  collaborators: many(playlistCollaborators),
 }));
+
+export const playlistCollaboratorsRelations = relations(
+  playlistCollaborators,
+  ({ one }) => ({
+    playlist: one(playlists, {
+      fields: [playlistCollaborators.playlistId],
+      references: [playlists.id],
+    }),
+    user: one(users, {
+      fields: [playlistCollaborators.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const playlistSongsRelations = relations(playlistSongs, ({ one }) => ({
   playlist: one(playlists, {

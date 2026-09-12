@@ -65,6 +65,13 @@ async function runCatalogTests() {
   console.log("🎵 Starting Comprehensive Catalog (Albums, Songs, Credits, Soft-Delete & Likes) Integration Tests...\n");
 
   await bootstrap({ listen: false });
+  if (redis.status !== "ready") {
+    await redis.connect();
+  }
+  await redis.del(
+    "groovy:catalog:album:slug:kind-of-blue",
+    "cache:album:kind-of-blue"
+  );
 
   const createdUserIds: string[] = [];
 

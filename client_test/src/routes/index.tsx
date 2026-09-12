@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
+import { useLikesStore } from '../stores/likes.store'
 import {
   SpiralCoverArtBig,
   SvgArtworkSpiral,
@@ -48,29 +49,29 @@ const SAMPLE_TRACKS: TrackItem[] = [
   {
     id: '3',
     title: 'Acoustics & Ambient Waves',
-    artist: 'Karel Berg',
-    collection: 'Analog Hiss & Reverie',
+    artist: 'The Left Bank Quartet',
+    collection: 'Left Bank Sessions',
     duration: '3:55',
-    tag: 'Tape Saturation',
-    format: 'Lossless Master',
+    tag: 'Direct-to-Disk',
+    format: 'Master FLAC',
   },
   {
     id: '4',
-    title: 'Clair de Lune (Re-mastered)',
-    artist: 'Debussy / Atelier Soloist',
-    collection: 'Classical Vaults',
-    duration: '5:04',
-    tag: 'Grand Piano',
-    format: 'DSD 2.8MHz',
+    title: 'Variations in Blue No. 4',
+    artist: 'Maison Ensemble',
+    collection: 'Blue Series MMXXV',
+    duration: '6:10',
+    tag: 'Audiophile',
+    format: '192kHz / 24-Bit',
   },
   {
     id: '5',
-    title: 'Rain on Copper Roofs',
-    artist: 'Soren & Camille',
-    collection: 'Minimalist Field Works',
-    duration: '6:12',
-    tag: 'Field Recording',
-    format: 'Lossless 48kHz',
+    title: 'Prelude to the Evening',
+    artist: 'Hélène Vane',
+    collection: 'Evening Echoes',
+    duration: '4:02',
+    tag: 'Studio Master',
+    format: 'Lossless ALAC',
   },
   {
     id: '6',
@@ -85,6 +86,11 @@ const SAMPLE_TRACKS: TrackItem[] = [
 
 function HomeComponent() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
+
+  // High-performance client-side likes store
+  const likedSongIds = useLikesStore((s) => s.likedSongIds)
+  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
+  const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
 
   const [liveAlbums, setLiveAlbums] = useState<
     (Album & { artistStageName?: string; artistSlug?: string })[]
@@ -108,7 +114,10 @@ function HomeComponent() {
       .then(([albumRes, songRes]) => {
         if (!isMounted) return
         if (albumRes?.data) setLiveAlbums(albumRes.data)
-        if (songRes?.data) setLiveSongs(songRes.data)
+        if (songRes?.data) {
+          setLiveSongs(songRes.data)
+          hydrateSongs(songRes.data)
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoadingCatalog(false)
@@ -121,7 +130,7 @@ function HomeComponent() {
         audioRef.current.src = ''
       }
     }
-  }, [])
+  }, [hydrateSongs])
 
   const handlePlaySong = (song: EnrichedSong) => {
     if (!song.audioUrl) {
@@ -167,7 +176,7 @@ function HomeComponent() {
   const handleToggleTrackLike = async (track: EnrichedSong) => {
     if (!isAuthenticated) return
 
-    const prevLiked = !!track.isLiked
+    const wasLiked = likedSongIds.has(track.id)
     const prevCount = track.likesCount
 
     setLiveSongs((prev) =>
@@ -175,8 +184,7 @@ function HomeComponent() {
         t.id === track.id
           ? {
               ...t,
-              isLiked: !prevLiked,
-              likesCount: prevLiked
+              likesCount: wasLiked
                 ? Math.max(0, prevCount - 1)
                 : prevCount + 1,
             }
@@ -185,11 +193,11 @@ function HomeComponent() {
     )
 
     try {
-      const res = await catalogApi.toggleSongLike(track.id)
+      const res = await toggleSongLike(track.id)
       setLiveSongs((prev) =>
         prev.map((t) =>
           t.id === track.id
-            ? { ...t, isLiked: res.liked, likesCount: res.likesCount }
+            ? { ...t, likesCount: res.likesCount }
             : t,
         ),
       )
@@ -197,7 +205,7 @@ function HomeComponent() {
       setLiveSongs((prev) =>
         prev.map((t) =>
           t.id === track.id
-            ? { ...t, isLiked: prevLiked, likesCount: prevCount }
+            ? { ...t, likesCount: prevCount }
             : t,
         ),
       )
@@ -408,9 +416,9 @@ function HomeComponent() {
                       className="p-1 cursor-pointer"
                     >
                       <HeartIconSVG
-                        filled={!!t.isLiked}
+                        filled={likedSongIds.has(t.id)}
                         className={`w-3.5 h-3.5 ${
-                          t.isLiked
+                          likedSongIds.has(t.id)
                             ? 'text-red-500'
                             : 'text-ink-soft/40 hover:text-ink'
                         }`}

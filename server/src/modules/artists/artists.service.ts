@@ -9,6 +9,7 @@ import type {
   SearchArtistsQuery,
   AdminListArtistsQuery,
 } from "./artists.schemas";
+import { cacheManager, cacheKeys, followsCacheService } from "../../lib/cache";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -132,64 +133,75 @@ export class ArtistsService {
 
   /**
    * Retrieves an artist profile by either UUID or human-readable slug.
+   * Public artist metadata and follower count are cached for 10 minutes.
    */
   async getArtistByIdOrSlug(idOrSlug: string, currentUserId?: string) {
     const isUUID = UUID_REGEX.test(idOrSlug);
+    const cacheKey = isUUID
+      ? cacheKeys.catalog.artist(idOrSlug)
+      : cacheKeys.catalog.artistSlug(idOrSlug);
 
-    const [artist] = await db
-      .select({
-        id: artistProfiles.id,
-        userId: artistProfiles.userId,
-        stageName: artistProfiles.stageName,
-        slug: artistProfiles.slug,
-        bio: artistProfiles.bio,
-        bannerUrl: artistProfiles.bannerUrl,
-        verified: artistProfiles.verified,
-        monthlyListeners: artistProfiles.monthlyListeners,
-        socialLinks: artistProfiles.socialLinks,
-        createdAt: artistProfiles.createdAt,
-        updatedAt: artistProfiles.updatedAt,
-      })
-      .from(artistProfiles)
-      .where(
-        isUUID
-          ? eq(artistProfiles.id, idOrSlug)
-          : eq(artistProfiles.slug, idOrSlug)
-      )
-      .limit(1);
+    const publicArtist = await cacheManager.getOrSet(
+      cacheKey,
+      async () => {
+        const [artist] = await db
+          .select({
+            id: artistProfiles.id,
+            userId: artistProfiles.userId,
+            stageName: artistProfiles.stageName,
+            slug: artistProfiles.slug,
+            bio: artistProfiles.bio,
+            bannerUrl: artistProfiles.bannerUrl,
+            verified: artistProfiles.verified,
+            monthlyListeners: artistProfiles.monthlyListeners,
+            socialLinks: artistProfiles.socialLinks,
+            createdAt: artistProfiles.createdAt,
+            updatedAt: artistProfiles.updatedAt,
+          })
+          .from(artistProfiles)
+          .where(
+            isUUID
+              ? eq(artistProfiles.id, idOrSlug)
+              : eq(artistProfiles.slug, idOrSlug)
+          )
+          .limit(1);
 
-    if (!artist) {
+        if (!artist) {
+          return null;
+        }
+
+        const [followerCountRes] = await db
+          .select({ total: count() })
+          .from(artistFollowers)
+          .where(eq(artistFollowers.artistId, artist.id));
+
+        const result = {
+          ...artist,
+          followersCount: followerCountRes?.total ?? 0,
+        };
+
+        if (isUUID && artist.slug) {
+          await cacheManager.set(cacheKeys.catalog.artistSlug(artist.slug), result, 600);
+        } else if (!isUUID && artist.id) {
+          await cacheManager.set(cacheKeys.catalog.artist(artist.id), result, 600);
+        }
+
+        return result;
+      },
+      600
+    );
+
+    if (!publicArtist) {
       return null;
     }
 
-    // Get total follower count
-    const [followerCountRes] = await db
-      .select({ total: count() })
-      .from(artistFollowers)
-      .where(eq(artistFollowers.artistId, artist.id));
-
-    const followersCount = followerCountRes?.total ?? 0;
-
-    // Check if current user is following
-    let isFollowing = false;
-    if (currentUserId) {
-      const [follow] = await db
-        .select({ userId: artistFollowers.userId })
-        .from(artistFollowers)
-        .where(
-          and(
-            eq(artistFollowers.artistId, artist.id),
-            eq(artistFollowers.userId, currentUserId)
-          )
-        )
-        .limit(1);
-
-      isFollowing = !!follow;
-    }
+    // Check if current user is following using 0.2ms Redis Set
+    const isFollowing = currentUserId
+      ? await followsCacheService.isFollowingArtist(currentUserId, publicArtist.id)
+      : false;
 
     return {
-      ...artist,
-      followersCount,
+      ...publicArtist,
       isFollowing,
     };
   }
@@ -267,6 +279,14 @@ export class ArtistsService {
       .where(eq(artistProfiles.id, profile.id))
       .returning();
 
+    await cacheManager.invalidateArtist({
+      id: updated.id,
+      slug: updated.slug,
+    });
+    if (profile.slug && profile.slug !== updated.slug) {
+      await cacheManager.invalidate(cacheKeys.catalog.artistSlug(profile.slug));
+    }
+
     return updated;
   }
 
@@ -324,86 +344,35 @@ export class ArtistsService {
    * Follow an artist.
    */
   async followArtist(userId: string, artistId: string) {
-    const [artist] = await db
-      .select({ id: artistProfiles.id, userId: artistProfiles.userId })
-      .from(artistProfiles)
-      .where(eq(artistProfiles.id, artistId))
-      .limit(1);
-
-    if (!artist) {
-      throw new Error("Artist not found");
-    }
-
-    if (artist.userId === userId) {
-      throw new Error("You cannot follow your own artist profile");
-    }
-
-    // Insert follow record (idempotent)
-    await db
-      .insert(artistFollowers)
-      .values({
-        userId,
-        artistId,
-      })
-      .onConflictDoNothing();
-
-    const [followerCountRes] = await db
-      .select({ total: count() })
-      .from(artistFollowers)
-      .where(eq(artistFollowers.artistId, artistId));
-
-    return {
-      following: true,
-      followersCount: followerCountRes?.total ?? 0,
-    };
+    return await followsCacheService.followArtist(userId, artistId);
   }
 
   /**
    * Unfollow an artist.
    */
   async unfollowArtist(userId: string, artistId: string) {
-    await db
-      .delete(artistFollowers)
-      .where(
-        and(
-          eq(artistFollowers.userId, userId),
-          eq(artistFollowers.artistId, artistId)
-        )
-      );
-
-    const [followerCountRes] = await db
-      .select({ total: count() })
-      .from(artistFollowers)
-      .where(eq(artistFollowers.artistId, artistId));
-
-    return {
-      following: false,
-      followersCount: followerCountRes?.total ?? 0,
-    };
+    return await followsCacheService.unfollowArtist(userId, artistId);
   }
 
   /**
    * Check if a listener follows an artist.
    */
   async checkIsFollowing(userId: string, artistId: string): Promise<boolean> {
-    const [follow] = await db
-      .select({ userId: artistFollowers.userId })
-      .from(artistFollowers)
-      .where(
-        and(
-          eq(artistFollowers.userId, userId),
-          eq(artistFollowers.artistId, artistId)
-        )
-      )
-      .limit(1);
-
-    return !!follow;
+    return await followsCacheService.isFollowingArtist(userId, artistId);
   }
 
   /**
-   * Search and list artists with pagination.
+   * Fast sync: returns list of artist IDs followed by user.
    */
-  async searchArtists(query: SearchArtistsQuery) {
+  async getUserFollowingArtistIds(userId: string): Promise<string[]> {
+    const set = await followsCacheService.getUserFollowingArtistIds(userId);
+    return Array.from(set);
+  }
+
+  /**
+   * Search and list artists with pagination and follow enrichment.
+   */
+  async searchArtists(query: SearchArtistsQuery, currentUserId?: string) {
     const page = query.page;
     const limit = query.limit;
     const offset = (page - 1) * limit;
@@ -422,7 +391,7 @@ export class ArtistsService {
 
     const total = totalRes?.total ?? 0;
 
-    const data = await db
+    const rows = await db
       .select({
         id: artistProfiles.id,
         stageName: artistProfiles.stageName,
@@ -438,6 +407,11 @@ export class ArtistsService {
       .orderBy(desc(artistProfiles.monthlyListeners), desc(artistProfiles.createdAt))
       .limit(limit)
       .offset(offset);
+
+    const data = await followsCacheService.enrichArtistsWithFollowing(
+      currentUserId,
+      rows
+    );
 
     return {
       data,
@@ -550,6 +524,11 @@ export class ArtistsService {
       })
       .where(eq(artistProfiles.id, artistId))
       .returning();
+
+    await cacheManager.invalidateArtist({
+      id: updated.id,
+      slug: updated.slug,
+    });
 
     return updated;
   }

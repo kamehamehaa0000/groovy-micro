@@ -13,6 +13,7 @@ import {
   searchAlbumsQuerySchema,
   searchSongsQuerySchema,
 } from "./catalog.schemas";
+import { subscriptionsService } from "../subscriptions/subscriptions.guards";
 
 const catalogService = new CatalogService();
 
@@ -84,6 +85,32 @@ export const albumsRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const presaves = await catalogService.getUserPreSaves(request.user.id);
       return reply.status(200).send({ presaves });
+    }
+  );
+
+  /**
+   * GET /presaves/ids
+   * Fast sync endpoint returning all album IDs pre-saved by current user.
+   */
+  fastify.get(
+    "/presaves/ids",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const albumIds = await catalogService.getUserPreSavedAlbumIds(request.user.id);
+      return reply.status(200).send({ albumIds });
+    }
+  );
+
+  /**
+   * GET /liked/ids
+   * Fast sync endpoint returning all album IDs liked by current user.
+   */
+  fastify.get(
+    "/liked/ids",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const albumIds = await catalogService.getUserLikedAlbumIds(request.user.id);
+      return reply.status(200).send({ albumIds });
     }
   );
 
@@ -290,6 +317,19 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /liked/ids
+   * Fast sync endpoint returning all song IDs liked by current user.
+   */
+  fastify.get(
+    "/liked/ids",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const songIds = await catalogService.getUserLikedSongIds(request.user.id);
+      return reply.status(200).send({ songIds });
+    }
+  );
+
+  /**
    * GET /
    * Searches and discovers songs (by title, genre, artist, popularity).
    */
@@ -374,6 +414,35 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
           error: "Forbidden",
           message: "This cut is scheduled and has not been released yet.",
         });
+      }
+
+      // Dynamic Entitlements Quality Gate (sub-0.5ms Redis SISMEMBER check)
+      const query = request.query as { quality?: string } | undefined;
+      const wantsLossless = query?.quality === "lossless" || query?.quality === "flac";
+
+      if (wantsLossless) {
+        if (!request.user) {
+          return reply.status(401).send({
+            statusCode: 401,
+            error: "Unauthorized",
+            message: "Authentication required to stream in lossless quality",
+          });
+        }
+
+        const isEntitled = await subscriptionsService.hasEntitlement(
+          request.user.id,
+          "lossless"
+        );
+
+        if (!isEntitled) {
+          return reply.status(403).send({
+            statusCode: 403,
+            error: "Forbidden",
+            message: "Your current plan does not include lossless audio streaming. Upgrade to Premium for Hi-Fi playback.",
+            code: "ENTITLEMENT_REQUIRED",
+            requiredFeature: "lossless",
+          });
+        }
       }
 
       return reply.status(200).send({

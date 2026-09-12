@@ -14,6 +14,8 @@ import {
   DiscIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
+import { useLikesStore } from '../stores/likes.store'
+import { useFollowsStore } from '../stores/follows.store'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
   component: ArtistPublicProfileComponent,
@@ -24,13 +26,22 @@ function ArtistPublicProfileComponent() {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuthStore()
 
+  // Likes & Follows store integration
+  const likedSongIds = useLikesStore((s) => s.likedSongIds)
+  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
+  const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
+
+  const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
+  const toggleFollow = useFollowsStore((s) => s.toggleFollow)
+  const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
+
   const [artist, setArtist] = useState<ArtistProfile | null>(null)
   const [discography, setDiscography] = useState<DiscographyResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Follow state
-  const [isFollowing, setIsFollowing] = useState(false)
+  const isFollowing = artist ? followedArtistIds.has(artist.id) : false
   const [followersCount, setFollowersCount] = useState(0)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
 
@@ -55,8 +66,17 @@ function ArtistPublicProfileComponent() {
         if (!isMounted) return
         setArtist(artistData)
         setDiscography(discoData)
-        setIsFollowing(!!artistData.isFollowing)
         setFollowersCount(artistData.followersCount ?? 0)
+
+        // Hydrate follows store
+        if (artistData.isFollowing) {
+          hydrateArtists([{ id: artistData.id, isFollowing: true }])
+        }
+
+        // Hydrate likes store from popular tracks
+        if (discoData?.topTracks?.length) {
+          hydrateSongs(discoData.topTracks)
+        }
       })
       .catch((err) => {
         if (!isMounted) return
@@ -69,7 +89,7 @@ function ArtistPublicProfileComponent() {
     return () => {
       isMounted = false
     }
-  }, [idOrSlug])
+  }, [idOrSlug, hydrateSongs, hydrateArtists])
 
   // Stop audio on unmount
   useEffect(() => {
@@ -92,25 +112,16 @@ function ArtistPublicProfileComponent() {
     const prevFollowing = isFollowing
     const prevCount = followersCount
 
-    // Optimistic update
-    setIsFollowing(!prevFollowing)
+    // Optimistically update count
     setFollowersCount(
       prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1,
     )
 
     try {
-      if (prevFollowing) {
-        const res = await artistsApi.unfollow(artist.id)
-        setFollowersCount(res.followersCount)
-        setIsFollowing(false)
-      } else {
-        const res = await artistsApi.follow(artist.id)
-        setFollowersCount(res.followersCount)
-        setIsFollowing(true)
-      }
+      const res = await toggleFollow(artist.id)
+      setFollowersCount(res.followersCount)
     } catch (err: any) {
-      // Rollback on failure
-      setIsFollowing(prevFollowing)
+      // Rollback count on failure
       setFollowersCount(prevCount)
       alert(err.message || 'Could not update follow status')
     } finally {
@@ -124,10 +135,10 @@ function ArtistPublicProfileComponent() {
       return
     }
 
-    const prevLiked = !!track.isLiked
+    const wasLiked = likedSongIds.has(track.id)
     const prevCount = track.likesCount
 
-    // Optimistic track update in topTracks
+    // Optimistic track count update in topTracks
     setDiscography((prev) => {
       if (!prev) return null
       return {
@@ -136,8 +147,7 @@ function ArtistPublicProfileComponent() {
           t.id === track.id
             ? {
                 ...t,
-                isLiked: !prevLiked,
-                likesCount: prevLiked
+                likesCount: wasLiked
                   ? Math.max(0, prevCount - 1)
                   : prevCount + 1,
               }
@@ -147,14 +157,14 @@ function ArtistPublicProfileComponent() {
     })
 
     try {
-      const res = await catalogApi.toggleSongLike(track.id)
+      const res = await toggleSongLike(track.id)
       setDiscography((prev) => {
         if (!prev) return null
         return {
           ...prev,
           topTracks: prev.topTracks.map((t) =>
             t.id === track.id
-              ? { ...t, isLiked: res.liked, likesCount: res.likesCount }
+              ? { ...t, likesCount: res.likesCount }
               : t,
           ),
         }
@@ -167,7 +177,7 @@ function ArtistPublicProfileComponent() {
           ...prev,
           topTracks: prev.topTracks.map((t) =>
             t.id === track.id
-              ? { ...t, isLiked: prevLiked, likesCount: prevCount }
+              ? { ...t, likesCount: prevCount }
               : t,
           ),
         }
@@ -463,9 +473,9 @@ function ArtistPublicProfileComponent() {
                             className="p-1 cursor-pointer"
                           >
                             <HeartIconSVG
-                              filled={!!track.isLiked}
+                              filled={likedSongIds.has(track.id)}
                               className={`w-3.5 h-3.5 transition-colors ${
-                                track.isLiked
+                                likedSongIds.has(track.id)
                                   ? 'text-red-500'
                                   : 'text-ink-soft/40 hover:text-ink'
                               }`}

@@ -124,6 +124,13 @@ export const catalogApi = {
   },
 
   /**
+   * Fast sync endpoint returning all album IDs pre-saved by current user.
+   */
+  async getPreSavedAlbumIds(): Promise<{ albumIds: string[] }> {
+    return await api.get<{ albumIds: string[] }>("/api/v1/albums/presaves/ids");
+  },
+
+  /**
    * Update album metadata.
    */
   async updateAlbum(id: string, input: UpdateAlbumInput): Promise<AlbumDetail> {
@@ -149,6 +156,13 @@ export const catalogApi = {
    */
   async toggleAlbumLike(id: string): Promise<{ liked: boolean; likesCount: number }> {
     return await api.post<{ liked: boolean; likesCount: number }>(`/api/v1/albums/${id}/like`);
+  },
+
+  /**
+   * Fast sync: Fetch all liked album IDs for the authenticated user.
+   */
+  async getLikedAlbumIds(): Promise<{ albumIds: string[] }> {
+    return await api.get<{ albumIds: string[] }>("/api/v1/albums/liked/ids");
   },
 
   // =========================================================================
@@ -220,6 +234,13 @@ export const catalogApi = {
    */
   async toggleSongLike(id: string): Promise<{ liked: boolean; likesCount: number }> {
     return await api.post<{ liked: boolean; likesCount: number }>(`/api/v1/songs/${id}/like`);
+  },
+
+  /**
+   * Fast sync: Fetch all liked song IDs for the authenticated user.
+   */
+  async getLikedSongIds(): Promise<{ songIds: string[] }> {
+    return await api.get<{ songIds: string[] }>("/api/v1/songs/liked/ids");
   },
 
   /**

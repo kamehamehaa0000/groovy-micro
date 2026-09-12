@@ -6,6 +6,11 @@ import {
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
+import { useLikesStore } from '../stores/likes.store'
+import { useFollowsStore } from '../stores/follows.store'
+import { usePreSavesStore } from '../stores/presaves.store'
+import { useEntitlementsStore } from '../stores/entitlements.store'
+import { usePlaylistsStore } from '../stores/playlists.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG } from '../components/icons'
 
@@ -36,6 +41,23 @@ function RootComponent() {
     }
     checkAuth()
   }, [checkAuth])
+
+  // Synchronize user likes, follows, pre-saves, entitlements & playlist saves into high-speed client Sets on authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      useLikesStore.getState().initializeLikes()
+      useFollowsStore.getState().initializeFollows()
+      usePreSavesStore.getState().initializePreSaves()
+      useEntitlementsStore.getState().initializeEntitlements()
+      usePlaylistsStore.getState().initializePlaylists()
+    } else {
+      useLikesStore.getState().clearLikes()
+      useFollowsStore.getState().clearFollows()
+      usePreSavesStore.getState().clearPreSaves()
+      useEntitlementsStore.getState().clearEntitlements()
+      usePlaylistsStore.getState().clearPlaylists()
+    }
+  }, [isAuthenticated])
 
   return (
     <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
@@ -80,6 +102,18 @@ function RootComponent() {
               className="transition-colors"
             >
               Artists
+            </Link>
+            <Link
+              to="/playlists"
+              activeProps={{
+                className: 'text-ink font-semibold border-b border-blue pb-0.5',
+              }}
+              inactiveProps={{
+                className: 'text-ink-soft hover:text-ink pb-0.5',
+              }}
+              className="transition-colors"
+            >
+              Playlists
             </Link>
             {isAuthenticated && (
               <>
@@ -266,6 +300,14 @@ function RootComponent() {
                 className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
               >
                 <span>Artists Roster</span>
+                <span className="text-blue">&rarr;</span>
+              </Link>
+              <Link
+                to="/playlists"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+              >
+                <span>Playlists</span>
                 <span className="text-blue">&rarr;</span>
               </Link>
               {isAuthenticated && (
