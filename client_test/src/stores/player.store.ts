@@ -6,6 +6,7 @@ import type {
   PlayerStateSnapshot,
 } from "../types/player";
 import { playerApi } from "../lib/player.api";
+import { useAuthStore } from "./auth.store";
 
 // Helper: Fisher-Yates array shuffle
 function shuffleArray<T>(items: T[]): T[] {
@@ -449,8 +450,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // Ignore quota exceeded or private mode
     }
 
-    // 2. Debounced server sync (1.5s)
+    // 2. Debounced server sync (1.5s) - only for authenticated members
     if (saveTimeout) clearTimeout(saveTimeout);
+    if (!useAuthStore.getState().isAuthenticated) return;
     saveTimeout = setTimeout(async () => {
       try {
         await playerApi.savePlayerState({
@@ -502,7 +504,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // Ignore local storage parse error
     }
 
-    // 2. Query server for newer cross-device snapshot (<1ms)
+    // 2. Query server for newer cross-device snapshot (<1ms) - only for authenticated members
+    if (!useAuthStore.getState().isAuthenticated) {
+      set({ isInitialized: true });
+      return;
+    }
+
     try {
       const res = await playerApi.getPlayerState();
       if (res && res.state) {

@@ -192,7 +192,13 @@ export function GlobalAudioEngine() {
         }
       }}
       onWaiting={() => _setStatus("loading")}
+      onPlay={() => _setStatus("playing")}
       onPlaying={() => _setStatus("playing")}
+      onCanPlay={() => {
+        if (audioRef.current && !audioRef.current.paused) {
+          _setStatus("playing");
+        }
+      }}
       onPause={() => _setStatus("paused")}
       onEnded={() => next()}
       onError={(e) => {

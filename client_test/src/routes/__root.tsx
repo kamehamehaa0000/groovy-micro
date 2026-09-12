@@ -2,6 +2,7 @@ import {
   createRootRouteWithContext,
   Link,
   Outlet,
+  useLocation,
 } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../stores/auth.store'
@@ -65,12 +66,50 @@ function RootComponent() {
     }
   }, [isAuthenticated])
 
+  const { pathname } = useLocation()
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/signup' ||
+    pathname === '/verify-email'
+
   return (
     <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
-      {/* ===================== TOP NAVIGATION HEADER ===================== */}
-      <header className="sticky top-0 z-40 w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
-        {/* Left: Brand Monogram Crest & Title */}
-        <div className="flex items-center gap-6">
+      {/* ===================== TOP HEADER ===================== */}
+      {isAuthPage ? (
+        /* Dedicated Auth Header with Back to Home & Theme Toggle */
+        <header className="w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition-colors group"
+          >
+            <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+            <span>Back to home</span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <Link
+              to="/"
+              className="font-serif italic text-lg tracking-tight text-ink hover:opacity-80 transition-opacity"
+            >
+              Groovy
+            </Link>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:border-ink transition-colors cursor-pointer"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <LightModeSVG /> : <DarkModeSVG />}
+            </button>
+          </div>
+        </header>
+      ) : (
+        /* ===================== TOP NAVIGATION HEADER ===================== */
+        <header className="sticky top-0 z-40 w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
+          {/* Left: Brand Monogram Crest & Title */}
+          <div className="flex items-center gap-6">
           <Link
             to="/"
             className="flex items-center gap-2.5 text-inherit no-underline group"
@@ -272,147 +311,157 @@ function RootComponent() {
           </button>
         </div>
       </header>
+      )}
 
       {/* ===================== MOBILE SLIDEOUT DRAWER (< md) ===================== */}
-      {mobileMenuOpen && (
+      {!isAuthPage && mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
           className="md:hidden fixed inset-0 bg-ink/30 backdrop-blur-xs z-40 transition-opacity"
         />
       )}
 
-      <div
-        className={`md:hidden fixed top-14 left-0 bottom-0 z-50 w-64 bg-canvas-deep border-r border-line p-6 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="space-y-6">
-          <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep mb-3">
-              Navigation
-            </div>
-            <nav className="flex flex-col gap-1.5">
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
-              >
-                <span>Catalog Overview</span>
-                <span className="text-blue">&rarr;</span>
-              </Link>
-              <Link
-                to="/artists"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
-              >
-                <span>Artists Roster</span>
-                <span className="text-blue">&rarr;</span>
-              </Link>
-              <Link
-                to="/playlists"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
-              >
-                <span>Playlists</span>
-                <span className="text-blue">&rarr;</span>
-              </Link>
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
-                  >
-                    <span>Curator Vault</span>
-                    <span className="text-blue">&rarr;</span>
-                  </Link>
-                  <Link
-                    to="/studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
-                  >
-                    <span>Artist Studio</span>
-                    <span className="text-blue">&rarr;</span>
-                  </Link>
-                </>
-              )}
-              {user?.role === 'ADMIN' && (
+      {!isAuthPage && (
+        <div
+          className={`md:hidden fixed top-14 left-0 bottom-0 z-50 w-64 bg-canvas-deep border-r border-line p-6 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="space-y-6">
+            <div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep mb-3">
+                Navigation
+              </div>
+              <nav className="flex flex-col gap-1.5">
                 <Link
-                  to="/admin/verification"
+                  to="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-blue hover:bg-panel border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
                 >
-                  <span>Admin Desk</span>
+                  <span>Catalog Overview</span>
                   <span className="text-blue">&rarr;</span>
                 </Link>
-              )}
-            </nav>
+                <Link
+                  to="/artists"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                >
+                  <span>Artists Roster</span>
+                  <span className="text-blue">&rarr;</span>
+                </Link>
+                <Link
+                  to="/playlists"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                >
+                  <span>Playlists</span>
+                  <span className="text-blue">&rarr;</span>
+                </Link>
+                {isAuthenticated && (
+                  <>
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                    >
+                      <span>Curator Vault</span>
+                      <span className="text-blue">&rarr;</span>
+                    </Link>
+                    <Link
+                      to="/studio"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                    >
+                      <span>Artist Studio</span>
+                      <span className="text-blue">&rarr;</span>
+                    </Link>
+                  </>
+                )}
+                {user?.role === 'ADMIN' && (
+                  <Link
+                    to="/admin/verification"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-blue hover:bg-panel border border-transparent hover:border-line"
+                  >
+                    <span>Admin Desk</span>
+                    <span className="text-blue">&rarr;</span>
+                  </Link>
+                )}
+              </nav>
+            </div>
+          </div>
+
+          <div className="border-t border-line pt-4 space-y-3">
+            {isAuthenticated && user ? (
+              <div className="space-y-2">
+                <div className="text-xs font-serif italic text-ink">
+                  {user.displayName}
+                </div>
+                <div className="font-mono text-[9px] uppercase text-ink-soft">
+                  {user.email}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full text-center font-mono text-[10px] uppercase py-1.5 border border-line bg-canvas text-ink cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center font-mono text-[10px] uppercase py-2 border border-line bg-panel text-ink"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center font-mono text-[10px] uppercase py-2 bg-ink text-canvas border border-ink"
+                >
+                  Join
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="border-t border-line pt-4 space-y-3">
-          {isAuthenticated && user ? (
-            <div className="space-y-2">
-              <div className="text-xs font-serif italic text-ink">
-                {user.displayName}
-              </div>
-              <div className="font-mono text-[9px] uppercase text-ink-soft">
-                {user.email}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  logout()
-                  setMobileMenuOpen(false)
-                }}
-                className="w-full text-center font-mono text-[10px] uppercase py-1.5 border border-line bg-canvas text-ink cursor-pointer"
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 text-center font-mono text-[10px] uppercase py-2 border border-line bg-panel text-ink"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 text-center font-mono text-[10px] uppercase py-2 bg-ink text-canvas border border-ink"
-              >
-                Join
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* ===================== MAIN CONTENT AREA ===================== */}
-      <div className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-24' : ''}`}>
-        <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
+      {isAuthPage ? (
+        /* Dedicated Auth Content Outside Main Layout Outlet */
+        <div className={`flex-1 flex items-center justify-center p-4 sm:p-8 ${currentTrack ? 'pb-24' : ''}`}>
           <Outlet />
-        </main>
+        </div>
+      ) : (
+        <div className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-24' : ''}`}>
+          <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
+            <Outlet />
+          </main>
 
-        {/* Editorial Maison Footnote */}
-        <footer className="border-t border-line py-8 px-6 text-center">
-          <div className="font-serif italic text-base text-ink mb-1">
-            Grooooooove into it.
-          </div>
-          <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
-            High-Fidelity Streaming
-          </p>
-        </footer>
-      </div>
+          {/* Editorial Maison Footnote */}
+          <footer className="border-t border-line py-8 px-6 text-center">
+            <div className="font-serif italic text-base text-ink mb-1">
+              Grooooooove into it.
+            </div>
+            <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
+              High-Fidelity Streaming
+            </p>
+          </footer>
+        </div>
+      )}
 
       {/* ===================== GLOBAL AUDIO ENGINE & CONTROLS ===================== */}
-      <GlobalAudioEngine />
-      <PlayerBar />
-      <QueueDrawer />
-      <AuthPromptModal />
+      <GlobalAudioEngine key="permanent-audio-engine" />
+      <PlayerBar key="permanent-player-bar" />
+      <QueueDrawer key="permanent-queue-drawer" />
+      <AuthPromptModal key="permanent-auth-modal" />
     </div>
   )
 }

@@ -81,7 +81,18 @@ function LoginComponent() {
     <div className="w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[640px] overflow-hidden">
       {/* ===================== BRAND PANEL ===================== */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
-        <div className="font-serif italic text-2xl text-ink">Groovy</div>
+        <div className="flex items-center justify-between z-10">
+          <Link to="/" className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity">
+            Groovy
+          </Link>
+          <Link
+            to="/"
+            className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group"
+          >
+            <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+            <span>Back to home</span>
+          </Link>
+        </div>
 
         <div className="max-w-md my-auto relative z-10">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-blue-deep mb-4">
@@ -108,6 +119,17 @@ function LoginComponent() {
       {/* ===================== FORM PANEL ===================== */}
       <div className="flex items-center justify-center p-8 sm:p-14">
         <div className="w-full max-w-90">
+          {/* Mobile Back to Home Navigation */}
+          <div className="lg:hidden mb-6">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors group"
+            >
+              <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+              <span>Back to home</span>
+            </Link>
+          </div>
+
           {/* Navigation Tabs */}
           <div className="flex gap-7 mb-8 border-b border-line">
             <span className="font-mono text-xs uppercase tracking-[0.08em] pb-3 border-b-2 border-blue text-ink font-medium">

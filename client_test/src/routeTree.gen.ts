@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
@@ -42,6 +43,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioRoute = StudioRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/signup'
     | '/studio'
     | '/verify-email'
     | '/admin/subscriptions'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/signup'
     | '/studio'
     | '/verify-email'
     | '/admin/subscriptions'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/signup'
     | '/studio'
     | '/verify-email'
     | '/admin/subscriptions'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  SignupRoute: typeof SignupRoute
   StudioRoute: typeof StudioRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  SignupRoute: SignupRoute,
   StudioRoute: StudioRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
