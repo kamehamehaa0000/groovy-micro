@@ -228,12 +228,20 @@ function LoginComponent() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="si-password"
-                className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="si-password"
+                  className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+                >
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="font-mono text-[9.5px] uppercase tracking-widest text-blue hover:underline"
+                >
+                  Forgot?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   id="si-password"

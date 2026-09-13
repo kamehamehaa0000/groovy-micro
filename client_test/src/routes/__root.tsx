@@ -38,11 +38,12 @@ function RootComponent() {
   useGoogleFedCM()
 
   useEffect(() => {
-    // Skip silent refresh if on OAuth callback or email verification route
+    // Skip silent refresh if on OAuth callback, email verification, or password reset route
     if (
       typeof window !== 'undefined' &&
       (window.location.pathname.startsWith('/oauth/callback') ||
-        window.location.pathname.startsWith('/verify-email'))
+        window.location.pathname.startsWith('/verify-email') ||
+        window.location.pathname.startsWith('/reset-password'))
     ) {
       return
     }
@@ -72,7 +73,9 @@ function RootComponent() {
     pathname === '/login' ||
     pathname === '/register' ||
     pathname === '/signup' ||
-    pathname === '/verify-email'
+    pathname === '/verify-email' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
 
   return (
     <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">

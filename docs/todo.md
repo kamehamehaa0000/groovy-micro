@@ -83,10 +83,22 @@
     - [x] Artist / Curator comment pinning mechanics (`isPinned: boolean` hoisted to top of discussions).
     - [x] Full Fastify REST API (`GET /`, `GET /:id/replies`, `POST /`, `PATCH /:id`, `DELETE /:id`, `POST /:id/vote`, `PATCH /:id/pin`, `GET /votes/mine`) with 100% test coverage (10-step integration suite).
     - [x] Client integration: TypeScript interfaces, `commentsApi`, 0ms synchronous optimistic `useCommentVotesStore`, `<CommentSection />`, `<CommentItem />`, and `<CommentForm />` embedded into Album and Playlist detail routes.
-  - [ ] **Phase 4: Aggregated Social Feed**:
+  - [ ] **Phase 4: Aggregated Social Feed (2A)**:
     - Chronological activity stream endpoint `GET /api/v1/social/feed` (new releases from followed artists, friend playlists, engagement milestones).
     - Cursor-based pagination with Redis caching.
     - Frontend `/feed` route with embedded playback shortcuts.
+  - [ ] **Public User Profile & Shared Library (2B)**:
+    - Dedicated public library endpoint `GET /api/v1/users/:id/library` respecting `library_privacy` (`PUBLIC`, `FOLLOWERS_ONLY`, `PRIVATE`) with follower authorization checks.
+    - Public profile / user library view in client (`client_test/`).
+  - [ ] **Unified Global Search Subsystem (2C)**:
+    - Consolidated search endpoint `GET /api/v1/search?q=...` querying across songs, albums, artists, playlists, and user profiles.
+    - Top bar / drawer search UX in client (`client_test/`).
+- [x] **Forgot & Reset Password Subsystem**:
+  - Secure unauthenticated password recovery endpoint `POST /api/v1/auth/forgot-password` with user-enumeration defense and 60s cooldown.
+  - Cryptographic 32-byte tokens with SHA-256 Redis storage (1h TTL).
+  - Brevo transactional email & dev console clickable fallback.
+  - Password reset endpoint `POST /api/v1/auth/reset-password` with Argon2id hashing and global session revocation (`token_version++`).
+  - Frontend `/forgot-password` and `/reset-password` pages and link on `/login`.
 
 ### Sprint 3: Real-Time Live Jam Service (`jam-service/`)
 
@@ -105,3 +117,15 @@
 - [ ] Cloudflare Worker proxy for HLS edge caching with $0 egress.
 - [ ] Push metrics to Grafana Cloud Free Tier (P95 latency, RPS, active WebSocket rooms).
 - [ ] Root `docker-compose.prod.yml` with Caddy automatic SSL for single-VM Oracle Cloud deployment.
+
+### Sprint 6: In-App Notifications & Lyrics Subsystem
+
+- [ ] **In-App Notifications Bell & Drawer**:
+  - Notification data model (`notifications` table: sender, recipient, type, entityId, isRead, createdAt).
+  - REST endpoints (`GET /api/v1/notifications`, `PATCH /api/v1/notifications/:id/read`, `PATCH /api/v1/notifications/read-all`).
+  - Event triggers on follow requests, request acceptances, comment replies/mentions, and scheduled release drops.
+  - Header notification bell with live unread badge and flyout drawer.
+- [ ] **Lyrics Subsystem**:
+  - Synced (timestamped `.lrc` format) and unsynced plain-text lyrics metadata storage and R2 file uploads.
+  - CRUD endpoints on songs (`PUT /api/v1/songs/:id/lyrics`).
+  - Player drawer synchronized lyrics sheet with live line highlighting following playback position.

@@ -56,11 +56,35 @@ export const resendVerificationSchema = z.object({
     .email("Invalid email address"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .trim()
+    .toLowerCase()
+    .email("Invalid email address"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z
+    .string({ required_error: "Reset token is required" })
+    .min(1, "Reset token cannot be empty"),
+  newPassword: z
+    .string({ required_error: "New password is required" })
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must not exceed 72 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleTokenInput = z.infer<typeof googleTokenSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export interface AccessTokenPayload {
   sub: string;

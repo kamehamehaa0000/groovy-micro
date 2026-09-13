@@ -32,6 +32,8 @@ import { MailService } from "./mail.service";
 
 const VERIFICATION_TOKEN_TTL_SEC = 24 * 60 * 60; // 24 hours
 const VERIFICATION_COOLDOWN_SEC = 60; // 60 seconds
+const PASSWORD_RESET_TOKEN_TTL_SEC = 60 * 60; // 1 hour
+const PASSWORD_RESET_COOLDOWN_SEC = 60; // 60 seconds
 
 export class AuthService {
   private fastify: FastifyInstance;
@@ -62,6 +64,34 @@ export class AuthService {
       "1",
       "EX",
       VERIFICATION_COOLDOWN_SEC
+    );
+
+    return rawToken;
+  }
+
+  /**
+   * Generates a cryptographically random 32-byte password reset token,
+   * stores its SHA-256 hash in Redis, and sets a 60-second cooldown on the email.
+   */
+  private async generateAndStorePasswordResetToken(
+    userId: string,
+    email: string
+  ): Promise<string> {
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+
+    await redis.set(
+      `pwd_reset:${tokenHash}`,
+      userId,
+      "EX",
+      PASSWORD_RESET_TOKEN_TTL_SEC
+    );
+
+    await redis.set(
+      `pwd_reset_cooldown:${email}`,
+      "1",
+      "EX",
+      PASSWORD_RESET_COOLDOWN_SEC
     );
 
     return rawToken;
@@ -596,6 +626,147 @@ export class AuthService {
     return {
       success: true,
       message: "Verification email sent successfully. Please check your inbox.",
+    };
+  }
+
+  /**
+   * Dispatches a password reset link to the user's email.
+   * Defends against email enumeration by returning a uniform success message,
+   * and rate-limits via a 60-second Redis cooldown on the email address.
+   */
+  async forgotPassword(email: string) {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check cooldown on email
+    const isCooldownActive = await redis.get(`pwd_reset_cooldown:${normalizedEmail}`);
+    if (isCooldownActive) {
+      throw this.fastify.httpErrors.tooManyRequests(
+        "Please wait 60 seconds before requesting another password reset email."
+      );
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, normalizedEmail))
+      .limit(1);
+
+    // Uniform response if user doesn't exist or is suspended (prevents user enumeration)
+    if (!user || !user.isActive) {
+      // Set cooldown anyway to prevent spam / timing enumeration
+      await redis.set(
+        `pwd_reset_cooldown:${normalizedEmail}`,
+        "1",
+        "EX",
+        PASSWORD_RESET_COOLDOWN_SEC
+      );
+      // Run dummy password check for timing attack equalization
+      await runDummyPasswordCheck();
+
+      return {
+        success: true,
+        message:
+          "If an account with that email exists, password reset instructions have been sent.",
+      };
+    }
+
+    const rawToken = await this.generateAndStorePasswordResetToken(
+      user.id,
+      normalizedEmail
+    );
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
+
+    try {
+      await this.mailService.sendPasswordResetEmail({
+        to: user.email,
+        displayName: user.displayName,
+        resetUrl,
+      });
+    } catch (err: any) {
+      this.fastify.log.error(
+        { err: err.message, userId: user.id },
+        "MailService failed during forgotPassword"
+      );
+    }
+
+    return {
+      success: true,
+      message:
+        "If an account with that email exists, password reset instructions have been sent.",
+    };
+  }
+
+  /**
+   * Resets password using a validated cryptographic token.
+   * Updates password hash with Argon2id, revokes all active sessions via tokenVersion++,
+   * invalidates the token in Redis, and emits a transactional outbox event.
+   */
+  async resetPassword(rawToken: string, newPassword: string) {
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+    const redisKey = `pwd_reset:${tokenHash}`;
+    const userId = await redis.get(redisKey);
+
+    if (!userId) {
+      throw this.fastify.httpErrors.badRequest(
+        "Password reset link has expired or is invalid. Please request a new one."
+      );
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      throw this.fastify.httpErrors.notFound("User not found");
+    }
+
+    if (!user.isActive) {
+      throw this.fastify.httpErrors.forbidden("Account has been suspended");
+    }
+
+    const newPasswordHash = await hashPassword(newPassword);
+    const nextTokenVersion = user.tokenVersion + 1;
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          passwordHash: newPasswordHash,
+          tokenVersion: nextTokenVersion,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      await tx.insert(outboxEvents).values({
+        aggregateType: "USER",
+        aggregateId: user.id,
+        eventType: "USER_PASSWORD_RESET",
+        payload: {
+          userId: user.id,
+          email: user.email,
+        },
+      });
+    });
+
+    // Revoke cached session / update tokenVersion in Redis
+    await redis.set(
+      `user:${userId}:token_version`,
+      nextTokenVersion,
+      "EX",
+      REFRESH_TOKEN_TTL_SEC
+    );
+
+    // Consume the token from Redis
+    await redis.del(redisKey);
+    await redis.del(`pwd_reset_cooldown:${user.email}`);
+
+    return {
+      success: true,
+      message:
+        "Your password has been successfully reset. You can now log in with your new password.",
     };
   }
 

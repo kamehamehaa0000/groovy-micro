@@ -7,6 +7,8 @@ import {
   googleTokenSchema,
   verifyEmailSchema,
   resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "./auth.schemas";
 import {
   setRefreshTokenCookie,
@@ -109,6 +111,71 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       const result = await authService.resendVerification(parseResult.data.email);
 
+      return reply.status(200).send(result);
+    }
+  );
+
+  /**
+   * POST /forgot-password
+   * Dispatches a password reset link to user email.
+   * Rate limited: 5 requests per minute per IP.
+   */
+  fastify.post(
+    "/forgot-password",
+    {
+      config: {
+        rateLimit: {
+          max: process.env.NODE_ENV === "test" ? 1000 : 5,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    async (request, reply) => {
+      const parseResult = forgotPasswordSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await authService.forgotPassword(parseResult.data.email);
+      return reply.status(200).send(result);
+    }
+  );
+
+  /**
+   * POST /reset-password
+   * Resets password using validated token and revokes all active sessions.
+   * Rate limited: 10 requests per minute per IP.
+   */
+  fastify.post(
+    "/reset-password",
+    {
+      config: {
+        rateLimit: {
+          max: process.env.NODE_ENV === "test" ? 1000 : 10,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    async (request, reply) => {
+      const parseResult = resetPasswordSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await authService.resetPassword(
+        parseResult.data.token,
+        parseResult.data.newPassword
+      );
       return reply.status(200).send(result);
     }
   );

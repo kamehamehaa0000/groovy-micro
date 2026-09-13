@@ -308,13 +308,125 @@ async function runTests() {
   }
   console.log("   ✅ Status 401 Unauthorized: Stale tokenVersion immediately blocked by guard\n");
 
-  console.log("\n🎉 ALL 10 AUTH INTEGRATION TESTS PASSED SUCCESSFULLY! 🚀");
+  // --- TEST 11: Forgot Password (Enumeration Defense & Cooldown) ---
+  console.log("1️⃣1️⃣ Testing Forgot Password Enumeration Defense & Cooldown...");
+  const fakeEmail = `nonexistent_${Date.now()}@groovy.test`;
+  const fakeForgotRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/forgot-password",
+    payload: { email: fakeEmail },
+  });
+
+  if (fakeForgotRes.statusCode !== 200) {
+    throw new Error(`Expected 200 for nonexistent email forgot-password, got ${fakeForgotRes.statusCode}`);
+  }
+  const fakeForgotData = JSON.parse(fakeForgotRes.body);
+  if (!fakeForgotData.success || !fakeForgotData.message.includes("If an account with that email exists")) {
+    throw new Error("Forgot password leaked user non-existence!");
+  }
+  console.log("   ✅ Status 200 OK: Uniform response for non-existent email (enumeration defense)");
+
+  // Forgot password for real user
+  const realForgotRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/forgot-password",
+    payload: { email: testEmail },
+  });
+  if (realForgotRes.statusCode !== 200) {
+    throw new Error(`Expected 200 for real user forgot-password, got ${realForgotRes.statusCode}`);
+  }
+  console.log("   ✅ Status 200 OK: Reset instructions dispatched for existing user");
+
+  // Immediate second request triggers 60s cooldown
+  const cooldownForgotRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/forgot-password",
+    payload: { email: testEmail },
+  });
+  if (cooldownForgotRes.statusCode !== 429) {
+    throw new Error(`Expected 429 Too Many Requests for cooldown, got ${cooldownForgotRes.statusCode}`);
+  }
+  console.log("   ✅ Status 429 Too Many Requests: Rate-limiting cooldown strictly enforced\n");
+
+  // --- TEST 12: Reset Password with Invalid Token ---
+  console.log("1️⃣2️⃣ Testing Reset Password with Invalid/Expired Token...");
+  const invalidResetRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/reset-password",
+    payload: {
+      token: "completely_invalid_or_expired_token",
+      newPassword: "BrandNewPassword123!",
+    },
+  });
+  if (invalidResetRes.statusCode !== 400) {
+    throw new Error(`Expected 400 Bad Request for invalid reset token, got ${invalidResetRes.statusCode}`);
+  }
+  console.log("   ✅ Status 400 Bad Request: Invalid/expired reset token rejected\n");
+
+  // --- TEST 13: Reset Password with Valid Token & Verify Authentication ---
+  console.log("1️⃣3️⃣ Testing Reset Password with Valid Token & Auth Verification...");
+  const rawResetToken = "test_raw_reset_token_abcdef1234567890";
+  const resetTokenHash = createHash("sha256").update(rawResetToken).digest("hex");
+  await redis.set(`pwd_reset:${resetTokenHash}`, createdUser.id, "EX", 3600);
+
+  const newTestPassword = "BrandNewPassword123!";
+  const validResetRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/reset-password",
+    payload: {
+      token: rawResetToken,
+      newPassword: newTestPassword,
+    },
+  });
+
+  if (validResetRes.statusCode !== 200) {
+    throw new Error(`Expected 200 for valid reset password, got ${validResetRes.statusCode}: ${validResetRes.body}`);
+  }
+  console.log("   ✅ Status 200 OK: Password successfully reset");
+
+  // Verify single-use: token deleted from Redis
+  const remainingResetToken = await redis.get(`pwd_reset:${resetTokenHash}`);
+  if (remainingResetToken) {
+    throw new Error("Reset token was not consumed from Redis!");
+  }
+  console.log("   ✅ Reset token single-use confirmed (purged from Redis)");
+
+  // Verify old password fails login
+  const oldLoginRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/login",
+    payload: {
+      email: testEmail,
+      password: testPassword,
+    },
+  });
+  if (oldLoginRes.statusCode !== 401) {
+    throw new Error(`Expected 401 for old password, got ${oldLoginRes.statusCode}`);
+  }
+  console.log("   ✅ Old password invalidated (401 Unauthorized)");
+
+  // Verify new password succeeds login
+  const newLoginRes = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/login",
+    payload: {
+      email: testEmail,
+      password: newTestPassword,
+    },
+  });
+  if (newLoginRes.statusCode !== 200) {
+    throw new Error(`Expected 200 for new password, got ${newLoginRes.statusCode}`);
+  }
+  console.log("   ✅ New password successfully authenticates user (200 OK)\n");
+
+  console.log("\n🎉 ALL 13 AUTH & PASSWORD RESET INTEGRATION TESTS PASSED SUCCESSFULLY! 🚀");
   } finally {
     console.log("🧹 Cleaning up auth test records...");
     if (createdUserId) {
       await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, createdUserId));
       await db.delete(users).where(eq(users.id, createdUserId));
     }
+    await redis.del(`pwd_reset_cooldown:${testEmail}`);
     await app.close();
     await redis.quit();
     await pgClient.end();

@@ -22,6 +22,11 @@ interface AuthState {
   ) => Promise<{ message: string; email: string }>;
   verifyEmail: (token: string) => Promise<void>;
   resendVerification: (email: string) => Promise<{ success: boolean; message: string }>;
+  forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (
+    token: string,
+    newPassword: string
+  ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   revokeAll: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -169,6 +174,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return await api.post<{ success: boolean; message: string }>(
       "/api/v1/auth/resend-verification",
       { email }
+    );
+  },
+
+  forgotPassword: async (email: string) => {
+    return await api.post<{ success: boolean; message: string }>(
+      "/api/v1/auth/forgot-password",
+      { email }
+    );
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    return await api.post<{ success: boolean; message: string }>(
+      "/api/v1/auth/reset-password",
+      { token, newPassword }
     );
   },
 
