@@ -1,9 +1,24 @@
-import { and, eq, or, ilike, ne, desc } from "drizzle-orm";
+import { and, eq, or, ilike, ne, desc, inArray, lt } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
-import { users, userFollows } from "../../db/schema";
+import {
+  users,
+  userFollows,
+  artistProfiles,
+  artistFollowers,
+  albums,
+  songs,
+  playlists,
+  userLibraryPlaylists,
+  songLikes,
+} from "../../db/schema";
 import { cacheKeys } from "../../lib/cache/keys";
-import type { RelationshipStatus } from "./social.schemas";
+import type {
+  RelationshipStatus,
+  SocialFeedQuery,
+  SocialFeedResponse,
+  FeedItem,
+} from "./social.schemas";
 
 export class SocialService {
   /**
@@ -378,5 +393,298 @@ export class SocialService {
     );
 
     return enriched;
+  }
+
+  /**
+   * Aggregates a chronological social activity feed for the current user.
+   * Combines:
+   * 1. New published releases from followed artists
+   * 2. Public playlists created by followed users / friends
+   * 3. Public playlists saved by friends
+   * 4. Tracks liked by friends
+   * If the user follows nobody or has no activity, smoothly falls back to Groovy platform highlights!
+   */
+  async getFeed(
+    currentUserId: string,
+    query: SocialFeedQuery
+  ): Promise<SocialFeedResponse> {
+    const { cursor, limit = 20, filter = "all" } = query;
+    const cacheTag = `${cursor || "initial"}:${filter}:${limit}`;
+    const cacheKey = cacheKeys.social.feed(currentUserId, cacheTag);
+
+    // 1. Check Redis cache
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      try {
+        return JSON.parse(cached) as SocialFeedResponse;
+      } catch {
+        // invalid JSON cache, proceed to live query
+      }
+    }
+
+    // 2. Fetch followed artist IDs & followed user IDs
+    const [followedArtists, followedUsers] = await Promise.all([
+      db
+        .select({ artistId: artistFollowers.artistId })
+        .from(artistFollowers)
+        .where(eq(artistFollowers.userId, currentUserId)),
+      db
+        .select({ followingId: userFollows.followingId })
+        .from(userFollows)
+        .where(
+          and(
+            eq(userFollows.followerId, currentUserId),
+            eq(userFollows.status, "ACCEPTED")
+          )
+        ),
+    ]);
+
+    const followedArtistIds = followedArtists.map((r) => r.artistId);
+    const followedUserIds = followedUsers.map((r) => r.followingId);
+
+    const cursorDate = cursor ? new Date(cursor) : null;
+    const fetchLimit = limit + 10; // Fetch slightly more to ensure good variety when merging
+
+    const items: FeedItem[] = [];
+
+    // --- RELEASES ---
+    if (filter === "all" || filter === "releases") {
+      const releaseConditions = [
+        eq(albums.status, "PUBLISHED"),
+        eq(albums.visibility, "PUBLIC"),
+      ];
+
+      if (followedArtistIds.length > 0) {
+        releaseConditions.push(inArray(albums.artistId, followedArtistIds));
+      }
+      if (cursorDate) {
+        releaseConditions.push(lt(albums.publishedAt, cursorDate));
+      }
+
+      const releaseRows = await db
+        .select({
+          id: albums.id,
+          title: albums.title,
+          slug: albums.slug,
+          albumType: albums.albumType,
+          coverImageUrl: albums.coverImageUrl,
+          publishedAt: albums.publishedAt,
+          createdAt: albums.createdAt,
+          artistId: artistProfiles.id,
+          stageName: artistProfiles.stageName,
+          artistSlug: artistProfiles.slug,
+          bannerUrl: artistProfiles.bannerUrl,
+        })
+        .from(albums)
+        .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+        .where(and(...releaseConditions))
+        .orderBy(desc(albums.publishedAt))
+        .limit(fetchLimit);
+
+      for (const rel of releaseRows) {
+        const itemDate = rel.publishedAt || rel.createdAt;
+        items.push({
+          id: `release:${rel.id}`,
+          type: "NEW_RELEASE",
+          timestamp: itemDate.toISOString(),
+          actor: {
+            id: rel.artistId,
+            name: rel.stageName,
+            avatarUrl: rel.bannerUrl,
+            slug: rel.artistSlug,
+            isArtist: true,
+          },
+          target: {
+            id: rel.id,
+            title: rel.title,
+            subtitle: `${rel.albumType || "Album"} · ${rel.stageName}`,
+            coverImageUrl: rel.coverImageUrl,
+            slug: rel.slug,
+            type: "album",
+          },
+        });
+      }
+    }
+
+    // --- PLAYLISTS CREATED ---
+    if (filter === "all" || filter === "playlists") {
+      const playlistConditions = [eq(playlists.visibility, "PUBLIC")];
+
+      if (followedUserIds.length > 0) {
+        playlistConditions.push(inArray(playlists.ownerId, followedUserIds));
+      }
+      if (cursorDate) {
+        playlistConditions.push(lt(playlists.createdAt, cursorDate));
+      }
+
+      const playlistRows = await db
+        .select({
+          id: playlists.id,
+          title: playlists.title,
+          coverImageUrl: playlists.coverImageUrl,
+          savesCount: playlists.savesCount,
+          createdAt: playlists.createdAt,
+          ownerId: users.id,
+          ownerName: users.displayName,
+          ownerAvatar: users.avatarUrl,
+        })
+        .from(playlists)
+        .innerJoin(users, eq(playlists.ownerId, users.id))
+        .where(and(...playlistConditions))
+        .orderBy(desc(playlists.createdAt))
+        .limit(fetchLimit);
+
+      for (const pl of playlistRows) {
+        items.push({
+          id: `playlist:${pl.id}`,
+          type: "PLAYLIST_CREATED",
+          timestamp: pl.createdAt.toISOString(),
+          actor: {
+            id: pl.ownerId,
+            name: pl.ownerName,
+            avatarUrl: pl.ownerAvatar,
+            isArtist: false,
+          },
+          target: {
+            id: pl.id,
+            title: pl.title,
+            subtitle: `Playlist · ${pl.savesCount || 0} saves`,
+            coverImageUrl: pl.coverImageUrl,
+            type: "playlist",
+          },
+        });
+      }
+    }
+
+    // --- FRIEND ENGAGEMENTS (Saves & Likes) ---
+    if ((filter === "all" || filter === "friends") && followedUserIds.length > 0) {
+      // 1. Playlists saved by followed users
+      const saveConditions = [
+        inArray(userLibraryPlaylists.userId, followedUserIds),
+        eq(playlists.visibility, "PUBLIC"),
+      ];
+      if (cursorDate) {
+        saveConditions.push(lt(userLibraryPlaylists.savedAt, cursorDate));
+      }
+
+      const savedPlaylistRows = await db
+        .select({
+          userId: userLibraryPlaylists.userId,
+          savedAt: userLibraryPlaylists.savedAt,
+          playlistId: playlists.id,
+          playlistTitle: playlists.title,
+          coverImageUrl: playlists.coverImageUrl,
+          userName: users.displayName,
+          userAvatar: users.avatarUrl,
+        })
+        .from(userLibraryPlaylists)
+        .innerJoin(playlists, eq(userLibraryPlaylists.playlistId, playlists.id))
+        .innerJoin(users, eq(userLibraryPlaylists.userId, users.id))
+        .where(and(...saveConditions))
+        .orderBy(desc(userLibraryPlaylists.savedAt))
+        .limit(fetchLimit);
+
+      for (const sp of savedPlaylistRows) {
+        items.push({
+          id: `save:${sp.userId}:${sp.playlistId}`,
+          type: "PLAYLIST_SAVED",
+          timestamp: sp.savedAt.toISOString(),
+          actor: {
+            id: sp.userId,
+            name: sp.userName,
+            avatarUrl: sp.userAvatar,
+            isArtist: false,
+          },
+          target: {
+            id: sp.playlistId,
+            title: sp.playlistTitle,
+            subtitle: "Saved to library",
+            coverImageUrl: sp.coverImageUrl,
+            type: "playlist",
+          },
+        });
+      }
+
+      // 2. Songs liked by followed users
+      const likeConditions = [
+        inArray(songLikes.userId, followedUserIds),
+      ];
+      if (cursorDate) {
+        likeConditions.push(lt(songLikes.createdAt, cursorDate));
+      }
+
+      const songLikeRows = await db
+        .select({
+          userId: songLikes.userId,
+          createdAt: songLikes.createdAt,
+          songId: songs.id,
+          songTitle: songs.title,
+          coverImageUrl: songs.coverImageUrl,
+          audioUrl: songs.audioUrl,
+          durationSeconds: songs.durationSeconds,
+          isExplicit: songs.isExplicit,
+          artistName: artistProfiles.stageName,
+          userName: users.displayName,
+          userAvatar: users.avatarUrl,
+        })
+        .from(songLikes)
+        .innerJoin(songs, eq(songLikes.songId, songs.id))
+        .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+        .innerJoin(users, eq(songLikes.userId, users.id))
+        .where(and(...likeConditions))
+        .orderBy(desc(songLikes.createdAt))
+        .limit(fetchLimit);
+
+      for (const sl of songLikeRows) {
+        items.push({
+          id: `like:${sl.userId}:${sl.songId}`,
+          type: "SONG_LIKED",
+          timestamp: sl.createdAt.toISOString(),
+          actor: {
+            id: sl.userId,
+            name: sl.userName,
+            avatarUrl: sl.userAvatar,
+            isArtist: false,
+          },
+          target: {
+            id: sl.songId,
+            title: sl.songTitle,
+            subtitle: `Track · ${sl.artistName}`,
+            coverImageUrl: sl.coverImageUrl,
+            type: "song",
+            audioUrl: sl.audioUrl,
+            durationSeconds: sl.durationSeconds,
+            isExplicit: sl.isExplicit,
+          },
+        });
+      }
+    }
+
+    // Deduplicate items by ID
+    const uniqueMap = new Map<string, FeedItem>();
+    for (const item of items) {
+      uniqueMap.set(item.id, item);
+    }
+
+    // Sort chronologically descending
+    const sorted = Array.from(uniqueMap.values()).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    // Apply limit & pagination
+    const pageItems = sorted.slice(0, limit);
+    const hasMore = sorted.length > limit;
+    const nextCursor = hasMore ? pageItems[pageItems.length - 1].timestamp : null;
+
+    const response: SocialFeedResponse = {
+      items: pageItems,
+      nextCursor,
+      hasMore,
+    };
+
+    // Cache in Redis for 45 seconds
+    await redis.set(cacheKey, JSON.stringify(response), "EX", 45);
+
+    return response;
   }
 }

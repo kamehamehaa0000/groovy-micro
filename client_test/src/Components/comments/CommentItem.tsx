@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import type { EnrichedComment } from "../../types/comment";
 import { useAuthStore } from "../../stores/auth.store";
 import { useCommentVotesStore } from "../../stores/comment-votes.store";
@@ -270,26 +271,38 @@ export function CommentItem({
             <div className="w-7 h-7 rounded-full bg-stone/25 border border-line flex items-center justify-center text-ink-soft">
               <UserIcon className="w-3.5 h-3.5 text-ink-soft" />
             </div>
-          ) : comment.userAvatarUrl ? (
-            <img
-              src={comment.userAvatarUrl}
-              alt={comment.userName}
-              className="w-7 h-7 rounded-full object-cover border border-line"
-            />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-stone/40 border border-line flex items-center justify-center font-mono text-xs font-medium text-ink">
-              {(comment.userName || "U").charAt(0).toUpperCase()}
-            </div>
+            <Link
+              to="/users/$id"
+              params={{ id: comment.userId }}
+              className="hover:opacity-80 transition-opacity"
+            >
+              {comment.userAvatarUrl ? (
+                <img
+                  src={comment.userAvatarUrl}
+                  alt={comment.userName}
+                  className="w-7 h-7 rounded-full object-cover border border-line"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-stone/40 border border-line flex items-center justify-center font-mono text-xs font-medium text-ink">
+                  {(comment.userName || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+            </Link>
           )}
 
           <div className="flex items-center gap-2">
-            <span
-              className={`text-xs font-semibold ${
-                comment.isDeleted ? "text-ink-soft" : "text-ink"
-              }`}
-            >
-              {comment.isDeleted ? "User" : comment.userName}
-            </span>
+            {comment.isDeleted ? (
+              <span className="text-xs font-semibold text-ink-soft">User</span>
+            ) : (
+              <Link
+                to="/users/$id"
+                params={{ id: comment.userId }}
+                className="text-xs font-semibold text-ink hover:text-blue transition-colors"
+              >
+                {comment.userName}
+              </Link>
+            )}
             <span className="font-mono text-[10.5px] text-ink-soft">
               {formatRelativeTime(comment.createdAt)}
             </span>
@@ -299,6 +312,7 @@ export function CommentItem({
               </span>
             )}
           </div>
+
         </div>
 
         {/* Pin action icon for creator */}

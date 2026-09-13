@@ -41,6 +41,7 @@ export const cacheKeys = {
     userFollowers: (userId: string) => `groovy:social:user:${userId}:followers`,
     userFollowing: (userId: string) => `groovy:social:user:${userId}:following`,
     incomingRequests: (userId: string) => `groovy:social:user:${userId}:requests:incoming`,
+    feed: (userId: string, tag: string) => `groovy:social:feed:${userId}:${tag}`,
   },
   player: {
     state: (userId: string) => `groovy:player:state:${userId}`,

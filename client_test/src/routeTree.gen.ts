@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -27,6 +28,7 @@ import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
+import { Route as UsersIdRouteImport } from './routes/users.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const ActivityRoute = ActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -118,10 +125,16 @@ const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
   path: '/playlists/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersIdRoute = UsersIdRouteImport.update({
+  id: '/users/$id',
+  path: '/users/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -136,12 +149,14 @@ export interface FileRoutesByFullPath {
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -156,6 +171,7 @@ export interface FileRoutesByTo {
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/users/$id': typeof UsersIdRoute
   '/artists': typeof ArtistsIndexRoute
   '/playlists': typeof PlaylistsIndexRoute
 }
@@ -163,6 +179,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -177,6 +194,7 @@ export interface FileRoutesById {
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
 }
@@ -185,6 +203,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/feed'
     | '/forgot-password'
     | '/login'
     | '/profile'
@@ -199,12 +218,14 @@ export interface FileRouteTypes {
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/users/$id'
     | '/artists/'
     | '/playlists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activity'
+    | '/feed'
     | '/forgot-password'
     | '/login'
     | '/profile'
@@ -219,12 +240,14 @@ export interface FileRouteTypes {
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/users/$id'
     | '/artists'
     | '/playlists'
   id:
     | '__root__'
     | '/'
     | '/activity'
+    | '/feed'
     | '/forgot-password'
     | '/login'
     | '/profile'
@@ -239,6 +262,7 @@ export interface FileRouteTypes {
     | '/artists/$idOrSlug'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/users/$id'
     | '/artists/'
     | '/playlists/'
   fileRoutesById: FileRoutesById
@@ -246,6 +270,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
@@ -260,6 +285,7 @@ export interface RootRouteChildren {
   ArtistsIdOrSlugRoute: typeof ArtistsIdOrSlugRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   PlaylistsIdRoute: typeof PlaylistsIdRoute
+  UsersIdRoute: typeof UsersIdRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
   PlaylistsIndexRoute: typeof PlaylistsIndexRoute
 }
@@ -278,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -392,12 +425,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaylistsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users/$id': {
+      id: '/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof UsersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
@@ -412,6 +453,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArtistsIdOrSlugRoute: ArtistsIdOrSlugRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   PlaylistsIdRoute: PlaylistsIdRoute,
+  UsersIdRoute: UsersIdRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
   PlaylistsIndexRoute: PlaylistsIndexRoute,
 }

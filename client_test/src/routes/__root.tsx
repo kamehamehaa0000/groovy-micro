@@ -19,6 +19,7 @@ import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
 import { QueueDrawer } from '../components/player/QueueDrawer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
+import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -32,7 +33,20 @@ function RootComponent() {
   const { user, isAuthenticated, isLoading, checkAuth, logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const currentTrack = usePlayerStore((s) => s.currentTrack)
+
+  // Global keyboard shortcut: Ctrl+K / Cmd+K opens search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setSearchOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [])
 
   // Native Browser FedCM for Google Single-Tap (Zero script tags, pure Web API)
   useGoogleFedCM()
@@ -167,6 +181,19 @@ function RootComponent() {
             {isAuthenticated && (
               <>
                 <Link
+                  to="/feed"
+                  activeProps={{
+                    className:
+                      'text-ink font-semibold border-b border-blue pb-0.5',
+                  }}
+                  inactiveProps={{
+                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                  }}
+                  className="transition-colors"
+                >
+                  Feed
+                </Link>
+                <Link
                   to="/activity"
                   activeProps={{
                     className:
@@ -225,8 +252,49 @@ function RootComponent() {
           </nav>
         </div>
 
-        {/* Right: Theme Toggle & User Auth Controls */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* Right: Search, Theme Toggle & User Auth Controls */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Global Search Trigger (Desktop & Tablet) */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="hidden sm:flex items-center gap-2.5 bg-panel border border-line hover:border-ink/60 px-3 py-1.5 rounded-full text-xs text-ink-soft transition-all cursor-pointer shadow-2xs hover:text-ink w-36 md:w-52"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-ink-soft shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span className="truncate text-[11px] font-sans">Search...</span>
+            <kbd className="ml-auto font-mono text-[9px] border border-line bg-canvas px-1.5 py-0.5 rounded text-ink-soft/80">
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Search Icon Button for Mobile */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search"
+            className="sm:hidden w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink flex items-center justify-center text-ink-soft hover:text-ink transition-colors cursor-pointer shadow-2xs"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-ink-soft"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+
           {/* Theme Switcher Toggle */}
           <button
             type="button"
@@ -237,6 +305,7 @@ function RootComponent() {
           >
             {theme === 'dark' ? <DarkModeSVG /> : <LightModeSVG />}
           </button>
+
 
           {/* User Auth Section */}
           {isLoading ? (
@@ -350,11 +419,35 @@ function RootComponent() {
                 Navigation
               </div>
               <nav className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    setSearchOpen(true)
+                  }}
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line text-left cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-3.5 h-3.5 text-blue"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <span>Search</span>
+                  </span>
+                  <span className="text-blue font-mono text-[9px] border border-line px-1.5 py-0.5 rounded">⌘K</span>
+                </button>
                 <Link
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
                 >
+
                   <span>Catalog Overview</span>
                   <span className="text-blue">&rarr;</span>
                 </Link>
@@ -376,6 +469,14 @@ function RootComponent() {
                 </Link>
                 {isAuthenticated && (
                   <>
+                    <Link
+                      to="/feed"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                    >
+                      <span>Social Feed</span>
+                      <span className="text-blue">&rarr;</span>
+                    </Link>
                     <Link
                       to="/activity"
                       onClick={() => setMobileMenuOpen(false)}
@@ -487,6 +588,11 @@ function RootComponent() {
       <PlayerBar key="permanent-player-bar" />
       <QueueDrawer key="permanent-queue-drawer" />
       <AuthPromptModal key="permanent-auth-modal" />
+      <GlobalSearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
     </div>
   )
 }
+

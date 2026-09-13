@@ -1,7 +1,19 @@
-import { eq } from "drizzle-orm";
+import { eq, and, count, desc, isNull, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { db } from "../../db";
-import { users } from "../../db/schema";
+import {
+  users,
+  playlists,
+  playlistSongs,
+  userLibraryPlaylists,
+  userLibraryAlbums,
+  releasePresaves,
+  songLikes,
+  songs,
+  albums,
+  artistProfiles,
+  userFollows,
+} from "../../db/schema";
 import { redis } from "../../index";
 import {
   hashPassword,
@@ -18,14 +30,21 @@ import type {
   UserRole,
 } from "../auth/auth.schemas";
 import { cacheKeys } from "../../lib/cache/keys";
+import { SocialService } from "../social/social.service";
+import type { RelationshipStatus } from "../social/social.schemas";
 import type {
   UpdateProfileInput,
   UpdatePasswordInput,
   UpdatePrivacySettingsInput,
+  UserProfileResponse,
+  UserLibraryResponse,
+  SharedPlaylistItem,
+  SharedAlbumItem,
 } from "./users.schemas";
 
 export class UsersService {
   private fastify: FastifyInstance;
+  private socialService = new SocialService();
 
   constructor(fastify: FastifyInstance) {
     this.fastify = fastify;
@@ -211,4 +230,367 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  /**
+   * Retrieves public user profile details, social stats, and viewer relationship.
+   */
+  async getUserProfile(
+    targetUserId: string,
+    requesterId?: string
+  ): Promise<UserProfileResponse> {
+    const [user] = await db
+      .select({
+        id: users.id,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        role: users.role,
+        isPrivateAccount: users.isPrivateAccount,
+        libraryPrivacy: users.libraryPrivacy,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, targetUserId))
+      .limit(1);
+
+    if (!user || !user.isActive) {
+      throw this.fastify.httpErrors.notFound("User not found");
+    }
+
+    // Followers count (ACCEPTED follows only)
+    const [followersRes] = await db
+      .select({ count: count() })
+      .from(userFollows)
+      .where(
+        and(
+          eq(userFollows.followingId, targetUserId),
+          eq(userFollows.status, "ACCEPTED")
+        )
+      );
+    const followersCount = Number(followersRes?.count || 0);
+
+    // Following count (ACCEPTED follows only)
+    const [followingRes] = await db
+      .select({ count: count() })
+      .from(userFollows)
+      .where(
+        and(
+          eq(userFollows.followerId, targetUserId),
+          eq(userFollows.status, "ACCEPTED")
+        )
+      );
+    const followingCount = Number(followingRes?.count || 0);
+
+    // Public playlists count
+    const [playlistsRes] = await db
+      .select({ count: count() })
+      .from(playlists)
+      .where(
+        and(
+          eq(playlists.ownerId, targetUserId),
+          eq(playlists.visibility, "PUBLIC")
+        )
+      );
+    const publicPlaylistsCount = Number(playlistsRes?.count || 0);
+
+    // Relationship status
+    let relationship: RelationshipStatus = "NONE";
+    if (requesterId) {
+      if (requesterId === targetUserId) {
+        relationship = "SELF";
+      } else {
+        relationship = await this.socialService.getRelationshipStatus(
+          requesterId,
+          targetUserId
+        );
+      }
+    }
+
+    return {
+      user: {
+        id: user.id,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        isPrivateAccount: user.isPrivateAccount,
+        libraryPrivacy: user.libraryPrivacy,
+        followersCount,
+        followingCount,
+        publicPlaylistsCount,
+        createdAt: user.createdAt,
+      },
+      relationship,
+    };
+  }
+
+  /**
+   * Retrieves user's public or shared library respecting libraryPrivacy:
+   * - PUBLIC: accessible to anyone (including anonymous)
+   * - FOLLOWERS_ONLY: accessible to accepted followers & owner
+   * - PRIVATE: accessible only to owner
+   */
+  async getUserLibrary(
+    targetUserId: string,
+    requesterId?: string
+  ): Promise<UserLibraryResponse> {
+    const [user] = await db
+      .select({
+        id: users.id,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        libraryPrivacy: users.libraryPrivacy,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(eq(users.id, targetUserId))
+      .limit(1);
+
+    if (!user || !user.isActive) {
+      throw this.fastify.httpErrors.notFound("User not found");
+    }
+
+    const isOwner = requesterId === targetUserId;
+
+    // Enforce privacy gating if requester is not owner
+    if (!isOwner) {
+      if (user.libraryPrivacy === "PRIVATE") {
+        const err: any = this.fastify.httpErrors.forbidden(
+          "This user's library is private."
+        );
+        err.libraryPrivacy = "PRIVATE";
+        throw err;
+      }
+
+      if (user.libraryPrivacy === "FOLLOWERS_ONLY") {
+        if (!requesterId) {
+          const err: any = this.fastify.httpErrors.forbidden(
+            "This user's library is visible to followers only."
+          );
+          err.libraryPrivacy = "FOLLOWERS_ONLY";
+          throw err;
+        }
+
+        const [followRecord] = await db
+          .select()
+          .from(userFollows)
+          .where(
+            and(
+              eq(userFollows.followerId, requesterId),
+              eq(userFollows.followingId, targetUserId),
+              eq(userFollows.status, "ACCEPTED")
+            )
+          )
+          .limit(1);
+
+        if (!followRecord) {
+          const err: any = this.fastify.httpErrors.forbidden(
+            "This user's library is visible to followers only."
+          );
+          err.libraryPrivacy = "FOLLOWERS_ONLY";
+          throw err;
+        }
+      }
+    }
+
+    // Access granted -> Query library collections in parallel
+    const [
+      createdPlaylistsRows,
+      savedPlaylistsRows,
+      savedAlbumsRows,
+      presavedReleasesRows,
+      likedSongsCountRes,
+      likedSongsRows,
+    ] = await Promise.all([
+      // 1. Created Playlists (PUBLIC)
+      db
+        .select({
+          id: playlists.id,
+          title: playlists.title,
+          description: playlists.description,
+          coverImageUrl: playlists.coverImageUrl,
+          visibility: playlists.visibility,
+          isCollaborative: playlists.isCollaborative,
+          savesCount: playlists.savesCount,
+          createdAt: playlists.createdAt,
+          updatedAt: playlists.updatedAt,
+          tracksCount: count(playlistSongs.id),
+        })
+        .from(playlists)
+        .leftJoin(playlistSongs, eq(playlists.id, playlistSongs.playlistId))
+        .where(
+          and(
+            eq(playlists.ownerId, targetUserId),
+            eq(playlists.visibility, "PUBLIC")
+          )
+        )
+        .groupBy(playlists.id)
+        .orderBy(desc(playlists.createdAt)),
+
+      // 2. Saved Playlists (PUBLIC)
+      db
+        .select({
+          id: playlists.id,
+          title: playlists.title,
+          description: playlists.description,
+          coverImageUrl: playlists.coverImageUrl,
+          visibility: playlists.visibility,
+          isCollaborative: playlists.isCollaborative,
+          savesCount: playlists.savesCount,
+          ownerId: playlists.ownerId,
+          ownerName: users.displayName,
+          ownerAvatarUrl: users.avatarUrl,
+          savedAt: userLibraryPlaylists.savedAt,
+          createdAt: playlists.createdAt,
+          tracksCount: count(playlistSongs.id),
+        })
+        .from(userLibraryPlaylists)
+        .innerJoin(playlists, eq(userLibraryPlaylists.playlistId, playlists.id))
+        .innerJoin(users, eq(playlists.ownerId, users.id))
+        .leftJoin(playlistSongs, eq(playlists.id, playlistSongs.playlistId))
+        .where(
+          and(
+            eq(userLibraryPlaylists.userId, targetUserId),
+            eq(playlists.visibility, "PUBLIC")
+          )
+        )
+        .groupBy(
+          playlists.id,
+          users.displayName,
+          users.avatarUrl,
+          userLibraryPlaylists.savedAt
+        )
+        .orderBy(desc(userLibraryPlaylists.savedAt)),
+
+      // 3. Saved Albums (PUBLIC)
+      db
+        .select({
+          id: albums.id,
+          title: albums.title,
+          slug: albums.slug,
+          coverImageUrl: albums.coverImageUrl,
+          type: albums.albumType,
+          releaseDate: albums.releaseDate,
+          artistId: albums.artistId,
+          artistName: artistProfiles.stageName,
+          artistSlug: artistProfiles.slug,
+          savedAt: userLibraryAlbums.savedAt,
+        })
+        .from(userLibraryAlbums)
+        .innerJoin(albums, eq(userLibraryAlbums.albumId, albums.id))
+        .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+        .where(
+          and(
+            eq(userLibraryAlbums.userId, targetUserId),
+            eq(albums.visibility, "PUBLIC"),
+            isNull(albums.deletedAt)
+          )
+        )
+        .orderBy(desc(userLibraryAlbums.savedAt)),
+
+      // 4. Pre-saved Releases
+      db
+        .select({
+          id: albums.id,
+          title: albums.title,
+          slug: albums.slug,
+          coverImageUrl: albums.coverImageUrl,
+          type: albums.albumType,
+          releaseDate: albums.releaseDate,
+          artistId: albums.artistId,
+          artistName: artistProfiles.stageName,
+          artistSlug: artistProfiles.slug,
+          savedAt: releasePresaves.createdAt,
+        })
+        .from(releasePresaves)
+        .innerJoin(albums, eq(releasePresaves.albumId, albums.id))
+        .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+        .where(
+          and(
+            eq(releasePresaves.userId, targetUserId),
+            isNull(albums.deletedAt)
+          )
+        )
+        .orderBy(desc(releasePresaves.createdAt)),
+
+      // 5. Liked songs total count
+      db
+        .select({ count: count() })
+        .from(songLikes)
+        .innerJoin(songs, eq(songLikes.songId, songs.id))
+        .where(
+          and(
+            eq(songLikes.userId, targetUserId),
+            isNull(songs.deletedAt)
+          )
+        ),
+
+      // 6. Recent Liked Songs (top 30)
+      db
+        .select({
+          id: songs.id,
+          title: songs.title,
+          slug: songs.slug,
+          coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
+          durationSeconds: songs.durationSeconds,
+          audioUrl: songs.audioUrl,
+          isExplicit: songs.isExplicit,
+          artistId: songs.artistId,
+          artistName: artistProfiles.stageName,
+          artistSlug: artistProfiles.slug,
+          likedAt: songLikes.createdAt,
+        })
+        .from(songLikes)
+        .innerJoin(songs, eq(songLikes.songId, songs.id))
+        .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+        .leftJoin(albums, eq(songs.albumId, albums.id))
+        .where(
+          and(
+            eq(songLikes.userId, targetUserId),
+            isNull(songs.deletedAt)
+          )
+        )
+        .orderBy(desc(songLikes.createdAt))
+        .limit(30),
+    ]);
+
+    const createdPlaylists: SharedPlaylistItem[] = createdPlaylistsRows.map((p) => ({
+      ...p,
+      tracksCount: Number(p.tracksCount || 0),
+    }));
+
+    const savedPlaylists: SharedPlaylistItem[] = savedPlaylistsRows.map((p) => ({
+      ...p,
+      tracksCount: Number(p.tracksCount || 0),
+    }));
+
+    const savedAlbums: SharedAlbumItem[] = savedAlbumsRows.map((a) => ({
+      ...a,
+      isReleased: true,
+    }));
+
+    const presavedReleases: SharedAlbumItem[] = presavedReleasesRows.map((a) => ({
+      ...a,
+      isReleased: false,
+    }));
+
+    const likedSongs = {
+      totalCount: Number(likedSongsCountRes[0]?.count || 0),
+      items: likedSongsRows,
+    };
+
+    return {
+      user: {
+        id: user.id,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        libraryPrivacy: user.libraryPrivacy,
+      },
+      createdPlaylists,
+      savedPlaylists,
+      savedAlbums,
+      presavedReleases,
+      likedSongs,
+    };
+  }
 }
+

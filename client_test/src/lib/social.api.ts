@@ -30,6 +30,47 @@ export interface PrivacySettings {
   libraryPrivacy: "PUBLIC" | "FOLLOWERS_ONLY" | "PRIVATE";
 }
 
+export type FeedItemType =
+  | "NEW_RELEASE"
+  | "PLAYLIST_CREATED"
+  | "PLAYLIST_SAVED"
+  | "SONG_LIKED";
+
+export interface FeedActor {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  slug?: string | null;
+  isArtist: boolean;
+}
+
+export interface FeedTarget {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  coverImageUrl?: string | null;
+  slug?: string | null;
+  type: "album" | "playlist" | "song";
+  durationSeconds?: number;
+  tracksCount?: number;
+  audioUrl?: string | null;
+  isExplicit?: boolean;
+}
+
+export interface FeedItem {
+  id: string;
+  type: FeedItemType;
+  timestamp: string;
+  actor: FeedActor;
+  target: FeedTarget;
+}
+
+export interface SocialFeedResponse {
+  items: FeedItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export const socialApi = {
   /**
    * Follows a user or submits a pending follow request if target is private.
@@ -119,5 +160,22 @@ export const socialApi = {
       method: "PATCH",
       body: JSON.stringify(settings),
     });
+  },
+
+  /**
+   * Retrieves aggregated chronological social activity feed.
+   */
+  async getFeed(params?: {
+    cursor?: string;
+    limit?: number;
+    filter?: "all" | "releases" | "playlists" | "friends";
+  }): Promise<SocialFeedResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.cursor) searchParams.set("cursor", params.cursor);
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
+    if (params?.filter) searchParams.set("filter", params.filter);
+
+    const query = searchParams.toString();
+    return apiFetch(`/api/v1/social/feed${query ? `?${query}` : ""}`);
   },
 };

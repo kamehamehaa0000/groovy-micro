@@ -4,8 +4,9 @@ import {
   updateProfileSchema,
   updatePasswordSchema,
   updatePrivacySettingsSchema,
+  userParamSchema,
 } from "./users.schemas";
-import { requireAuth } from "../auth/auth.guards";
+import { requireAuth, optionalAuth } from "../auth/auth.guards";
 import { setRefreshTokenCookie } from "../auth/auth.utils";
 
 export const usersRoutes: FastifyPluginAsync = async (fastify) => {
@@ -105,4 +106,110 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
   );
+
+  /**
+   * GET /:id
+   * Public user profile details with follower/following stats and relationship.
+   */
+  fastify.get(
+    "/:id",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const parseParams = userParamSchema.safeParse(request.params);
+      if (!parseParams.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Invalid user ID format",
+        });
+      }
+
+      try {
+        const result = await usersService.getUserProfile(
+          parseParams.data.id,
+          request.user?.id
+        );
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        const statusCode = err.statusCode || 400;
+        return reply.status(statusCode).send({
+          statusCode,
+          error: err.name || "Error",
+          message: err.message,
+        });
+      }
+    }
+  );
+
+  /**
+   * GET /:id/profile
+   * Alias for GET /:id
+   */
+  fastify.get(
+    "/:id/profile",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const parseParams = userParamSchema.safeParse(request.params);
+      if (!parseParams.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Invalid user ID format",
+        });
+      }
+
+      try {
+        const result = await usersService.getUserProfile(
+          parseParams.data.id,
+          request.user?.id
+        );
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        const statusCode = err.statusCode || 400;
+        return reply.status(statusCode).send({
+          statusCode,
+          error: err.name || "Error",
+          message: err.message,
+        });
+      }
+    }
+  );
+
+  /**
+   * GET /:id/library
+   * User's public/shared library collections (created playlists, saved playlists,
+   * saved albums, presaved releases, liked songs).
+   * Enforces target user's libraryPrivacy: PUBLIC, FOLLOWERS_ONLY, or PRIVATE.
+   */
+  fastify.get(
+    "/:id/library",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const parseParams = userParamSchema.safeParse(request.params);
+      if (!parseParams.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Invalid user ID format",
+        });
+      }
+
+      try {
+        const result = await usersService.getUserLibrary(
+          parseParams.data.id,
+          request.user?.id
+        );
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        const statusCode = err.statusCode || 400;
+        return reply.status(statusCode).send({
+          statusCode,
+          error: err.name || "Error",
+          message: err.message,
+          libraryPrivacy: err.libraryPrivacy,
+        });
+      }
+    }
+  );
 };
+

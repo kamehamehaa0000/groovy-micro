@@ -18,6 +18,7 @@ import { playlistsRoutes } from "./modules/playlists";
 import { commentsRoutes } from "./modules/comments";
 import { playerRoutes } from "./modules/player";
 import { socialRoutes } from "./modules/social";
+import { searchRoutes } from "./modules/search";
 
 dotenv.config();
 
@@ -88,6 +89,7 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   await app.register(commentsRoutes, { prefix: "/api/v1/comments" });
   await app.register(playerRoutes, { prefix: "/api/v1/player" });
   await app.register(socialRoutes, { prefix: "/api/v1/social" });
+  await app.register(searchRoutes, { prefix: "/api/v1/search" });
 
   // 3. Health & Diagnostic Check
   app.get("/healthz", async (req, reply) => {

@@ -4,6 +4,7 @@ import {
   userFollowParamSchema,
   respondFollowRequestSchema,
   searchUsersQuerySchema,
+  socialFeedQuerySchema,
 } from "./social.schemas";
 import { requireAuth } from "../auth/auth.guards";
 
@@ -236,6 +237,33 @@ export const socialRoutes: FastifyPluginAsync = async (fastify) => {
         limit
       );
       return reply.status(200).send({ users });
+    }
+  );
+
+  /**
+   * GET /feed
+   * Aggregated social activity feed (new releases from followed artists, friend playlists & likes).
+   * Supports cursor pagination: ?cursor=...&limit=20&filter=all|releases|playlists|friends
+   */
+  fastify.get(
+    "/feed",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const parseQuery = socialFeedQuerySchema.safeParse(request.query);
+      if (!parseQuery.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Invalid feed query parameters",
+          errors: parseQuery.error.flatten().fieldErrors,
+        });
+      }
+
+      const feed = await socialService.getFeed(
+        request.user.id,
+        parseQuery.data
+      );
+      return reply.status(200).send(feed);
     }
   );
 };

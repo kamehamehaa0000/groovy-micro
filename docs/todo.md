@@ -83,16 +83,17 @@
     - [x] Artist / Curator comment pinning mechanics (`isPinned: boolean` hoisted to top of discussions).
     - [x] Full Fastify REST API (`GET /`, `GET /:id/replies`, `POST /`, `PATCH /:id`, `DELETE /:id`, `POST /:id/vote`, `PATCH /:id/pin`, `GET /votes/mine`) with 100% test coverage (10-step integration suite).
     - [x] Client integration: TypeScript interfaces, `commentsApi`, 0ms synchronous optimistic `useCommentVotesStore`, `<CommentSection />`, `<CommentItem />`, and `<CommentForm />` embedded into Album and Playlist detail routes.
-  - [ ] **Phase 4: Aggregated Social Feed (2A)**:
+  - [x] **Phase 4: Aggregated Social Feed (2A)**:
     - Chronological activity stream endpoint `GET /api/v1/social/feed` (new releases from followed artists, friend playlists, engagement milestones).
     - Cursor-based pagination with Redis caching.
     - Frontend `/feed` route with embedded playback shortcuts.
-  - [ ] **Public User Profile & Shared Library (2B)**:
-    - Dedicated public library endpoint `GET /api/v1/users/:id/library` respecting `library_privacy` (`PUBLIC`, `FOLLOWERS_ONLY`, `PRIVATE`) with follower authorization checks.
-    - Public profile / user library view in client (`client_test/`).
-  - [ ] **Unified Global Search Subsystem (2C)**:
-    - Consolidated search endpoint `GET /api/v1/search?q=...` querying across songs, albums, artists, playlists, and user profiles.
-    - Top bar / drawer search UX in client (`client_test/`).
+  - [x] **Public User Profile & Shared Library (2B)**:
+    - Dedicated public profile endpoint `GET /api/v1/users/:id` and public library endpoint `GET /api/v1/users/:id/library` respecting `library_privacy` (`PUBLIC`, `FOLLOWERS_ONLY`, `PRIVATE`) with follower authorization checks.
+    - Public profile / user library view in client (`client_test/src/routes/users.$id.tsx`) with cross-linking from feed, activity, and comments.
+  - [x] **Unified Global Search Subsystem (2C)**:
+    - Consolidated search endpoint `GET /api/v1/search?q=...` querying across songs, albums, artists, playlists, and user profiles with top result ranking.
+    - Top bar / drawer search UX with keyboard shortcut (`⌘K` / `Ctrl+K`) in client (`client_test/src/components/search/GlobalSearchModal.tsx`).
+
 - [x] **Forgot & Reset Password Subsystem**:
   - Secure unauthenticated password recovery endpoint `POST /api/v1/auth/forgot-password` with user-enumeration defense and 60s cooldown.
   - Cryptographic 32-byte tokens with SHA-256 Redis storage (1h TTL).

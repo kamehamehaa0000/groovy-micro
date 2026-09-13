@@ -180,9 +180,39 @@ async function runSocialTests() {
   if (hiddenData.activities.some((a: any) => a.user.id === userB.id)) {
     throw new Error(`Expected User B to be hidden when privacy is OFF, got: ${hiddenRes.body}`);
   }
-  console.log("   ✅ User B successfully hidden from friend activity when privacy is OFF");
+  console.log("   ✅ User B successfully hidden from friend activity when privacy is OFF\n");
 
-  console.log("\n🎉 ALL SOCIAL FOLLOW, FRIEND REQUEST & ACTIVITY TESTS PASSED!\n");
+  // 11. Query Social Activity Feed
+  console.log("1️⃣1️⃣ Testing Aggregated Social Feed via GET /api/v1/social/feed...");
+  const feedRes = await app.inject({
+    method: "GET",
+    url: "/api/v1/social/feed?limit=10",
+    headers: { Authorization: `Bearer ${tokenA}` },
+  });
+
+  if (feedRes.statusCode !== 200) {
+    throw new Error(`Feed query failed (${feedRes.statusCode}): ${feedRes.body}`);
+  }
+  const feedData = JSON.parse(feedRes.body);
+  if (!Array.isArray(feedData.items)) {
+    throw new Error("Feed response did not include items array!");
+  }
+  console.log(`   ✅ Social feed successfully returned ${feedData.items.length} aggregated items`);
+  console.log(`   ✅ nextCursor pagination supported: ${feedData.nextCursor ?? "none"}`);
+
+  // Test filter
+  const releasesFeedRes = await app.inject({
+    method: "GET",
+    url: "/api/v1/social/feed?filter=releases&limit=5",
+    headers: { Authorization: `Bearer ${tokenA}` },
+  });
+  if (releasesFeedRes.statusCode !== 200) {
+    throw new Error(`Releases feed failed (${releasesFeedRes.statusCode})`);
+  }
+  const releasesFeedData = JSON.parse(releasesFeedRes.body);
+  console.log(`   ✅ Filtered releases feed returned ${releasesFeedData.items.length} release items`);
+
+  console.log("\n🎉 ALL SOCIAL FOLLOW, FRIEND REQUEST, ACTIVITY & FEED TESTS PASSED!\n");
   } finally {
     console.log("🧹 Cleaning up social test users and Redis keys...");
     if (userA?.id) {
@@ -193,6 +223,8 @@ async function runSocialTests() {
         `groovy:player:active_device:${userA.id}`,
         `groovy:player:state:${userA.id}`
       );
+      const feedKeysA = await redis.keys(`groovy:social:feed:${userA.id}:*`);
+      if (feedKeysA.length > 0) await redis.del(...feedKeysA);
     }
     if (userB?.id) {
       await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, userB.id));
@@ -202,6 +234,8 @@ async function runSocialTests() {
         `groovy:player:active_device:${userB.id}`,
         `groovy:player:state:${userB.id}`
       );
+      const feedKeysB = await redis.keys(`groovy:social:feed:${userB.id}:*`);
+      if (feedKeysB.length > 0) await redis.del(...feedKeysB);
     }
     await app.close();
     await redis.quit();

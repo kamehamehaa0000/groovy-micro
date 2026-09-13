@@ -367,7 +367,11 @@ function ActivityComponent() {
                   >
                     {/* User Header */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <Link
+                        to="/users/$id"
+                        params={{ id: item.user.id }}
+                        className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                      >
                         <div className="w-8 h-8 rounded-full bg-stone/30 border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink overflow-hidden uppercase">
                           {item.user.avatarUrl ? (
                             <img
@@ -380,14 +384,14 @@ function ActivityComponent() {
                           )}
                         </div>
                         <div>
-                          <span className="font-semibold text-xs text-ink block">
+                          <span className="font-semibold text-xs text-ink block hover:text-blue transition-colors">
                             {item.user.displayName}
                           </span>
                           <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
                             {item.user.isMutualFriend ? "Mutual Friend" : "Followed Member"}
                           </span>
                         </div>
-                      </div>
+                      </Link>
 
                       <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono text-[9px] uppercase tracking-wider">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -589,7 +593,11 @@ function ActivityComponent() {
                     key={member.id}
                     className="border border-line bg-panel p-4 shadow-xs flex items-center justify-between gap-3 hover:border-ink transition-colors"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <Link
+                      to="/users/$id"
+                      params={{ id: member.id }}
+                      className="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity"
+                    >
                       <div className="w-10 h-10 rounded-full bg-stone/20 border border-line flex items-center justify-center font-mono text-sm font-semibold uppercase text-ink overflow-hidden shrink-0">
                         {member.avatarUrl ? (
                           <img
@@ -603,7 +611,7 @@ function ActivityComponent() {
                       </div>
 
                       <div className="min-w-0">
-                        <span className="font-semibold text-xs text-ink block truncate">
+                        <span className="font-semibold text-xs text-ink block truncate hover:text-blue transition-colors">
                           {member.displayName}
                         </span>
                         <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
@@ -614,11 +622,11 @@ function ActivityComponent() {
                               : member.relationship === "PENDING_SENT"
                                 ? "Request Sent"
                                 : member.isPrivateAccount
-                                  ? "Private Account"
-                                  : "Public Profile"}
+                                  ? "Private Member"
+                                  : "Groovy Member"}
                         </span>
                       </div>
-                    </div>
+                    </Link>
 
                     {/* Follow / Relationship Button */}
                     <button
