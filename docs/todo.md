@@ -2,9 +2,9 @@
 
 ---
 
-## 📋 Upcoming Sprints
+## ✅ Completed Sprints
 
-### Sprint 2: Core Monolith API Modules (`server/src/modules/`)
+### Sprint 2: Core Monolith API Modules (`server/src/modules/`) - [COMPLETED]
 
 - [x] **Auth Module**: Registration, login, Argon2id password hashing (portable Bun/Node abstraction), JWT signing, refresh token rotation with reuse detection via httpOnly cookies, Google OAuth with account linking, `requireAuth` / `requireRole` preHandler guards, and **Email Verification subsystem** (Brevo REST API with exponential backoff & dev console fallback, SHA-256 tokens in Redis with 24h TTL, 60s cooldown, 403 unverified login guard, and public resend endpoint).
 - [x] **Storage & Pre-Signed Uploads Subsystem**: Upload preset registry (avatars, banners, covers, raw audio, lyrics, verification docs), S3/Cloudflare R2 client, and pre-signed PUT generator with domain authorization guards.
@@ -34,7 +34,8 @@
   - [x] **Phase 3: Dynamic Entitlements Caching & 0ms UI Gating**:
     - Backend Redis Set `groovy:sub:user:{id}:entitlements:set` and JSON caching with sub-millisecond Fastify streaming authorization gate (`SISMEMBER`) on `/songs/:id/stream?quality=flac`.
     - Client `useEntitlementsStore` (`client_test/src/stores/entitlements.store.ts`) for 0ms client-side feature checks, optimistic plan upgrades, and profile gating.
-- [ ] **Social & Playback Modules** (Detailed Spec: `docs/AUDIO_PLAYER_QUEUE_AND_SOCIAL_ROADMAP.md`):
+- [x] **Social & Playback Modules** (Detailed Spec: `docs/AUDIO_PLAYER_QUEUE_AND_SOCIAL_ROADMAP.md`):
+
   - [x] **Playlists Subsystem**:
     - Complete CRUD, metadata editing, and owner display enrichment.
     - Dynamic auto-generated 2×2 mosaic covers (client-side CSS grid `<PlaylistCover />` based on top 4 constituent track album arts) with distinct artwork fallback.
@@ -101,7 +102,12 @@
   - Password reset endpoint `POST /api/v1/auth/reset-password` with Argon2id hashing and global session revocation (`token_version++`).
   - Frontend `/forgot-password` and `/reset-password` pages and link on `/login`.
 
+---
+
+## 📋 Upcoming Sprints
+
 ### Sprint 3: Real-Time Live Jam Service (`jam-service/`)
+
 
 - [ ] Fastify + WebSocket / Socket.IO server.
 - [ ] In-memory Redis session state (room metadata, queue, participants) - directly extending Phase 1's Queue.
@@ -130,3 +136,8 @@
   - Synced (timestamped `.lrc` format) and unsynced plain-text lyrics metadata storage and R2 file uploads.
   - CRUD endpoints on songs (`PUT /api/v1/songs/:id/lyrics`).
   - Player drawer synchronized lyrics sheet with live line highlighting following playback position.
+- [ ] **Server-Based Edge Caching & Cloudflare Tunnel Switchover**:
+  - Fastify / Nginx stream caching proxy service for persistent VM deployment (Oracle Cloud Always Free / VPS) as an alternative to serverless Workers.
+  - Cloudflare Tunnel (`cloudflared`) Docker service with zero open inbound ports and encrypted edge routing.
+  - Dual-mode switchover configuration (`STREAM_ROUTING_MODE: 'worker' | 'tunnel'`) enabling instant switch from `*.workers.dev` to custom domain edge caching whenever a domain becomes available.
+
