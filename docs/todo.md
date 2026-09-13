@@ -41,7 +41,7 @@
     - Configurable duplicate songs setting per playlist (`allowDuplicates: boolean`).
     - Release visibility control (`PUBLIC`, `UNLISTED` with secure `shareToken`, `PRIVATE`).
     - Token-based collaboration lifecycle (invite tokens, join endpoint, token regeneration invalidating stale links, member kicking, and collaboration disable) backed by `playlist_collaborators` table.
-    - Playlist cloning with security rules (Public & Unlisted cloneable with token; Private playlists strictly restricted to owner). 
+    - Playlist cloning with security rules (Public & Unlisted cloneable with token; Private playlists strictly restricted to owner).
     - Sequential Integers Track Reordering (Atomic batch reorder via SQL `CASE` statement).
     - 4-Tier Hybrid In-Memory + Redis Set library saves architecture (`groovy:social:user:{id}:saved_playlists`, atomic `savesCount` counter, fast sync endpoint `GET /api/v1/playlists/saved/ids`, zero-join `SMISMEMBER` search enrichment).
     - Frontend client API client (`client_test/src/lib/playlists.api.ts`), TypeScript types (`client_test/src/types/playlist.ts`), `<PlaylistCover />` component, and `usePlaylistsStore` (`client_test/src/stores/playlists.store.ts`) wired into root auth sync.
@@ -61,8 +61,8 @@
          - Frequency: Client ping every 15–20s while playing to `POST /api/v1/player/heartbeat`.
          - Redis Key: `groovy:presence:user:{id}` with 30–45s TTL.
          - Device Conflict Options:
-           - *Option A (Soft Pause / Takeover)*: Starting playback on Device B sends a takeover event/signal to Device A, gracefully pausing it (Spotify Connect style).
-           - *Option B (Permissive)*: Allow concurrent listening across multiple devices without forced pauses.
+           - _Option A (Soft Pause / Takeover)_: Starting playback on Device B sends a takeover event/signal to Device A, gracefully pausing it (Spotify Connect style).
+           - _Option B (Permissive)_: Allow concurrent listening across multiple devices without forced pauses.
       2. **Cross-Device Playback State Persistence (Snapshots)**:
          - Save playback snapshot (`trackId`, `positionSeconds`, `playbackStatus`, `volume`, `contextUri`, `userQueue`) in Redis key `groovy:player:state:{userId}` on heartbeat, pause, or track change.
          - When user opens app on any device, `GET /api/v1/player/state` restores exact playback session.
@@ -88,6 +88,7 @@
     - Frontend `/feed` route with embedded playback shortcuts.
 
 ### Sprint 3: Real-Time Live Jam Service (`jam-service/`)
+
 - [ ] Fastify + WebSocket / Socket.IO server.
 - [ ] In-memory Redis session state (room metadata, queue, participants) - directly extending Phase 1's Queue.
 - [ ] Server-anchored audio clock-sync algorithm for synchronized playback.

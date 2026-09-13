@@ -1,6 +1,57 @@
 import { apiFetch } from "./api";
 import type { PlayerStateSnapshot, StreamResolution } from "../types/player";
 
+export interface HeartbeatPayload {
+  deviceId: string;
+  deviceName: string;
+  songId?: string | null;
+  trackTitle?: string | null;
+  artistName?: string | null;
+  coverImageUrl?: string | null;
+  progressMs: number;
+  durationMs?: number;
+  isPaused: boolean;
+  takeover?: boolean;
+}
+
+export interface HeartbeatResponse {
+  status: "active" | "superseded";
+  activeDevice?: {
+    deviceId: string;
+    deviceName: string;
+  };
+}
+
+export interface TelemetryPayload {
+  songId: string;
+  durationListenedSeconds: number;
+  completed?: boolean;
+}
+
+export interface RecentHistoryItem {
+  historyId: string;
+  playedAt: string;
+  durationListenedSeconds: number;
+  completed: boolean;
+  song: {
+    id: string;
+    title: string;
+    slug: string;
+    genre: string | null;
+    durationSeconds: number;
+    isExplicit: boolean;
+    coverImageUrl: string | null;
+    audioUrl: string | null;
+    hlsManifestUrl: string | null;
+    rawAudioKey: string | null;
+    artistId: string;
+    artistName: string;
+    artistSlug: string;
+    albumId: string | null;
+    albumTitle: string | null;
+  };
+}
+
 export const playerApi = {
   /**
    * Retrieves user's cross-device playback state snapshot from Redis (<1ms).
@@ -22,6 +73,44 @@ export const playerApi = {
         body: JSON.stringify(state),
       }
     );
+  },
+
+  /**
+   * Sends active playback heartbeat to coordinate multi-device takeover & live presence.
+   */
+  async sendHeartbeat(payload: HeartbeatPayload): Promise<HeartbeatResponse> {
+    return apiFetch<HeartbeatResponse>("/api/v1/player/heartbeat", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Retrieves current active device lease.
+   */
+  async getActiveDevice(): Promise<{
+    activeDevice: { deviceId: string; deviceName: string } | null;
+  }> {
+    return apiFetch<{
+      activeDevice: { deviceId: string; deviceName: string } | null;
+    }>("/api/v1/player/active-device");
+  },
+
+  /**
+   * Reports qualified play count (30s milestone) to Redis buffer and user history.
+   */
+  async sendTelemetry(payload: TelemetryPayload): Promise<{ success: boolean }> {
+    return apiFetch<{ success: boolean }>("/api/v1/player/telemetry/play", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Retrieves the user's recent listening history for profile / home shelves.
+   */
+  async getRecentHistory(): Promise<{ history: RecentHistoryItem[] }> {
+    return apiFetch<{ history: RecentHistoryItem[] }>("/api/v1/player/history/recent");
   },
 
   /**

@@ -39,3 +39,47 @@ export interface PlayerStateSnapshot extends SavePlayerStateInput {
   userId: string;
   updatedAt: string;
 }
+
+export const playerHeartbeatSchema = z.object({
+  deviceId: z.string().min(1, "Device ID is required"),
+  deviceName: z.string().min(1, "Device Name is required"),
+  songId: z.string().uuid().nullish(),
+  trackTitle: z.string().nullish(),
+  artistName: z.string().nullish(),
+  coverImageUrl: z.string().nullish(),
+  progressMs: z.coerce.number().nonnegative().default(0),
+  durationMs: z.coerce.number().nonnegative().optional(),
+  isPaused: z.boolean().default(false),
+  takeover: z.boolean().default(false),
+});
+
+export type PlayerHeartbeatInput = z.infer<typeof playerHeartbeatSchema>;
+
+export interface ActiveDeviceSession {
+  deviceId: string;
+  deviceName: string;
+  songId?: string | null;
+  trackTitle?: string | null;
+  artistName?: string | null;
+  coverImageUrl?: string | null;
+  progressMs: number;
+  durationMs?: number;
+  isPaused: boolean;
+  updatedAt: number;
+}
+
+export interface PlayerHeartbeatResponse {
+  status: "active" | "superseded";
+  activeDevice?: {
+    deviceId: string;
+    deviceName: string;
+  };
+}
+
+export const telemetryPlaySchema = z.object({
+  songId: z.string().uuid("Invalid song UUID"),
+  durationListenedSeconds: z.coerce.number().int().nonnegative().default(30),
+  completed: z.boolean().default(false),
+});
+
+export type TelemetryPlayInput = z.infer<typeof telemetryPlaySchema>;

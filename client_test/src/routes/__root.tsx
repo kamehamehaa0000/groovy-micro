@@ -57,6 +57,7 @@ function RootComponent() {
       usePreSavesStore.getState().initializePreSaves()
       useEntitlementsStore.getState().initializeEntitlements()
       usePlaylistsStore.getState().initializePlaylists()
+      usePlayerStore.getState().initializeSync(true)
     } else {
       useLikesStore.getState().clearLikes()
       useFollowsStore.getState().clearFollows()

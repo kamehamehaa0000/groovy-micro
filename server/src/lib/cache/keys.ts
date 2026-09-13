@@ -38,9 +38,16 @@ export const cacheKeys = {
     songLikesCount: (songId: string) => `groovy:social:song:${songId}:likes_count`,
     albumLikesCount: (albumId: string) => `groovy:social:album:${albumId}:likes_count`,
     likesBuffer: () => `groovy:social:buffer:likes`,
+    userFollowers: (userId: string) => `groovy:social:user:${userId}:followers`,
+    userFollowing: (userId: string) => `groovy:social:user:${userId}:following`,
   },
   player: {
     state: (userId: string) => `groovy:player:state:${userId}`,
+    activeDevice: (userId: string) => `groovy:player:active_device:${userId}`,
+    presence: (userId: string) => `groovy:presence:user:${userId}`,
+  },
+  telemetry: {
+    songPlaysBuffer: () => `groovy:telemetry:song_plays`,
   },
   jam: {
     playback: (roomId: string) => `groovy:jam:room:${roomId}:playback`,

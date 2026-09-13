@@ -46,6 +46,11 @@ interface PlayerState {
   isQueueOpen: boolean;
   isInitialized: boolean;
 
+  // Multi-Device Takeover (Option A)
+  supersededByDevice: { deviceId: string; deviceName: string } | null;
+  takeoverPlayback: () => Promise<void>;
+  dismissSuperseded: () => void;
+
   // Actions
   playTrack: (
     track: PlayerTrack,
@@ -87,7 +92,7 @@ interface PlayerState {
   _setStreamQuality: (quality: "lossless" | "standard") => void;
 
   // Persistence & Sync
-  initializeSync: () => Promise<void>;
+  initializeSync: (force?: boolean) => Promise<void>;
   saveSnapshot: () => void;
 }
 
@@ -112,6 +117,35 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   isQueueOpen: false,
   isInitialized: false,
+  supersededByDevice: null,
+
+  takeoverPlayback: async () => {
+    const { currentTrack, currentTime } = get();
+    const { getDeviceInfo } = await import("../lib/device");
+    const { deviceId, deviceName } = getDeviceInfo();
+
+    try {
+      await playerApi.sendHeartbeat({
+        deviceId,
+        deviceName,
+        songId: currentTrack?.id || null,
+        trackTitle: currentTrack?.title || null,
+        artistName: currentTrack?.artistName || null,
+        coverImageUrl: currentTrack?.coverImageUrl || null,
+        progressMs: Math.floor(currentTime * 1000),
+        durationMs: currentTrack?.durationSeconds ? currentTrack.durationSeconds * 1000 : undefined,
+        isPaused: false,
+        takeover: true,
+      });
+    } catch {
+      // Ignore network errors
+    }
+
+    set({ supersededByDevice: null, playbackStatus: "playing" });
+    get().saveSnapshot();
+  },
+
+  dismissSuperseded: () => set({ supersededByDevice: null }),
 
   playTrack: (track, contextQueue, contextIndex = 0, contextUri, contextTitle) => {
     const isShuffle = get().isShuffle;
@@ -138,6 +172,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       contextUri: contextUri ?? get().contextUri,
       contextTitle: contextTitle ?? get().contextTitle,
       errorMessage: null,
+      supersededByDevice: null,
     });
 
     get().saveSnapshot();
@@ -150,7 +185,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (playbackStatus === "playing") {
       set({ playbackStatus: "paused" });
     } else {
-      set({ playbackStatus: "playing" });
+      set({ playbackStatus: "playing", supersededByDevice: null });
     }
     get().saveSnapshot();
   },
@@ -162,7 +197,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   resume: () => {
     if (get().currentTrack) {
-      set({ playbackStatus: "playing" });
+      set({ playbackStatus: "playing", supersededByDevice: null });
       get().saveSnapshot();
     }
   },
@@ -397,6 +432,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   stopPlayback: () => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+    }
     set({
       currentTrack: null,
       playbackStatus: "idle",
@@ -410,6 +449,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       contextTitle: null,
       errorMessage: null,
       isQueueOpen: false,
+      isInitialized: false,
+      supersededByDevice: null,
     });
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);
@@ -474,37 +515,39 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }, 1500);
   },
 
-  initializeSync: async () => {
-    if (get().isInitialized) return;
+  initializeSync: async (force = false) => {
+    if (get().isInitialized && !force) return;
 
-    // 1. Instant 0ms hydration from localStorage
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const local = JSON.parse(raw) as PlayerStateSnapshot;
-        set({
-          currentTrack: local.currentTrack,
-          currentTime: local.playbackPosition || 0,
-          duration: local.currentTrack?.durationSeconds || 0,
-          volume: local.volume ?? 0.8,
-          isMuted: local.isMuted ?? false,
-          isShuffle: local.isShuffle ?? false,
-          repeatMode: local.repeatMode ?? "off",
-          userQueue: local.userQueue || [],
-          contextQueue: local.contextQueue || [],
-          originalContextQueue: local.contextQueue || [],
-          contextIndex: local.contextIndex || 0,
-          contextUri: local.contextUri || null,
-          contextTitle: local.contextTitle || null,
-          playbackStatus: "paused", // Always start paused on page load
-          isInitialized: true,
-        });
+    // 1. Instant 0ms hydration from localStorage (skip if force refreshing after auth transition)
+    if (!force) {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const local = JSON.parse(raw) as PlayerStateSnapshot;
+          set({
+            currentTrack: local.currentTrack,
+            currentTime: local.playbackPosition || 0,
+            duration: local.currentTrack?.durationSeconds || 0,
+            volume: local.volume ?? 0.8,
+            isMuted: local.isMuted ?? false,
+            isShuffle: local.isShuffle ?? false,
+            repeatMode: local.repeatMode ?? "off",
+            userQueue: local.userQueue || [],
+            contextQueue: local.contextQueue || [],
+            originalContextQueue: local.contextQueue || [],
+            contextIndex: local.contextIndex || 0,
+            contextUri: local.contextUri || null,
+            contextTitle: local.contextTitle || null,
+            playbackStatus: "paused", // Always start paused on page load
+            isInitialized: true,
+          });
+        }
+      } catch {
+        // Ignore local storage parse error
       }
-    } catch {
-      // Ignore local storage parse error
     }
 
-    // 2. Query server for newer cross-device snapshot (<1ms) - only for authenticated members
+    // 2. Query server for cross-device snapshot (<1ms) - only for authenticated members
     if (!useAuthStore.getState().isAuthenticated) {
       set({ isInitialized: true });
       return;
@@ -512,7 +555,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       const res = await playerApi.getPlayerState();
-      if (res && res.state) {
+      if (res && res.state && res.state.currentTrack) {
         const serverState = res.state;
         set({
           currentTrack: serverState.currentTrack,

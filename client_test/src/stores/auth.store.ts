@@ -124,6 +124,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
 
     set({ user: profileData.user });
+    usePlayerStore.getState().initializeSync(true);
   },
 
   register: async (email, password, displayName) => {
@@ -161,6 +162,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
 
     set({ user: profileData.user, isAuthenticated: true });
+    usePlayerStore.getState().initializeSync(true);
   },
 
   resendVerification: async (email: string) => {

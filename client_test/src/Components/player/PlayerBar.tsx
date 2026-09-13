@@ -155,6 +155,9 @@ export function PlayerBar() {
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat);
   const toggleQueueDrawer = usePlayerStore((s) => s.toggleQueueDrawer);
+  const supersededByDevice = usePlayerStore((s) => s.supersededByDevice);
+  const takeoverPlayback = usePlayerStore((s) => s.takeoverPlayback);
+  const dismissSuperseded = usePlayerStore((s) => s.dismissSuperseded);
 
   const likedSongIds = useLikesStore((s) => s.likedSongIds);
   const toggleSongLike = useLikesStore((s) => s.toggleSongLike);
@@ -189,15 +192,54 @@ export function PlayerBar() {
   };
 
   return (
-    <footer
-      aria-label="Audio Player"
-      className="fixed bottom-0 left-0 right-0 z-40 h-16 sm:h-20 bg-panel/95 backdrop-blur-md border-t border-line px-3 sm:px-8 flex items-center justify-between shadow-2xl transition-all duration-200 select-none"
-    >
-      {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
-      <div
-        className="absolute top-0 left-0 right-0 h-1 bg-stone/20 cursor-pointer group z-20"
-        onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
+    <>
+      {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION BANNER ===================== */}
+      {supersededByDevice && (
+        <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-40 bg-canvas-deep/95 backdrop-blur-md border-t border-line px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+          <div className="flex items-center gap-2.5 text-xs text-ink max-w-[70%] truncate">
+            <span className="flex h-2 w-2 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue"></span>
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
+              Listening on
+            </span>
+            <strong className="font-semibold text-ink truncate">
+              {supersededByDevice.deviceName}
+            </strong>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => takeoverPlayback()}
+              className="bg-ink text-canvas hover:bg-blue hover:text-white px-3 py-1 font-mono text-[9.5px] uppercase tracking-[0.12em] transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+            >
+              Play here instead
+            </button>
+            <button
+              type="button"
+              onClick={() => dismissSuperseded()}
+              className="text-ink-soft hover:text-ink p-1 cursor-pointer"
+              aria-label="Dismiss"
+            >
+              <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+                <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <footer
+        aria-label="Audio Player"
+        className="fixed bottom-0 left-0 right-0 z-40 h-16 sm:h-20 bg-panel/95 backdrop-blur-md border-t border-line px-3 sm:px-8 flex items-center justify-between shadow-2xl transition-all duration-200 select-none"
+      >
+        {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1 bg-stone/20 cursor-pointer group z-20"
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
           const clickX = e.clientX - rect.left;
           const ratio = Math.max(0, Math.min(1, clickX / rect.width));
           seek(ratio * duration);
@@ -494,5 +536,6 @@ export function PlayerBar() {
         </button>
       </div>
     </footer>
+    </>
   );
 }
