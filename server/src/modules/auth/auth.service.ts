@@ -749,6 +749,9 @@ export class AuthService {
         avatarUrl: users.avatarUrl,
         role: users.role,
         isEmailVerified: users.isEmailVerified,
+        isPrivateAccount: users.isPrivateAccount,
+        listeningActivityPrivacy: users.listeningActivityPrivacy,
+        libraryPrivacy: users.libraryPrivacy,
         createdAt: users.createdAt,
         subscription: {
           planId: userSubscriptions.planId,

@@ -19,30 +19,33 @@ async function runTests() {
   const testEmail = `test_${Date.now()}@groovy.test`;
   const testPassword = "Password123!";
   const testDisplayName = "Test Engineer";
+  let createdUserId = "";
 
-  // Clean up any existing test user
-  await db.delete(users).where(eq(users.email, testEmail));
+  try {
+    // Clean up any existing test user
+    await db.delete(users).where(eq(users.email, testEmail));
 
-  // --- TEST 1: Register ---
-  console.log("1️⃣ Testing User Registration & Verification Link Generation...");
-  const registerRes = await app.inject({
-    method: "POST",
-    url: "/api/v1/auth/register",
-    payload: {
-      email: testEmail,
-      password: testPassword,
-      displayName: testDisplayName,
-    },
-  });
+    // --- TEST 1: Register ---
+    console.log("1️⃣ Testing User Registration & Verification Link Generation...");
+    const registerRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/register",
+      payload: {
+        email: testEmail,
+        password: testPassword,
+        displayName: testDisplayName,
+      },
+    });
 
-  if (registerRes.statusCode !== 201) {
-    throw new Error(`Register failed (${registerRes.statusCode}): ${registerRes.body}`);
-  }
+    if (registerRes.statusCode !== 201) {
+      throw new Error(`Register failed (${registerRes.statusCode}): ${registerRes.body}`);
+    }
 
-  const registerData = JSON.parse(registerRes.body);
-  console.log("   ✅ Status 201 Created");
-  console.log("   ✅ User ID:", registerData.user.id);
-  console.log("   ✅ isEmailVerified initially false:", registerData.user.isEmailVerified === false);
+    const registerData = JSON.parse(registerRes.body);
+    createdUserId = registerData.user.id;
+    console.log("   ✅ Status 201 Created");
+    console.log("   ✅ User ID:", registerData.user.id);
+    console.log("   ✅ isEmailVerified initially false:", registerData.user.isEmailVerified === false);
   console.log("   ✅ Notice message returned:", registerData.message);
 
   // Ensure tokens were NOT returned at registration stage
@@ -305,25 +308,22 @@ async function runTests() {
   }
   console.log("   ✅ Status 401 Unauthorized: Stale tokenVersion immediately blocked by guard\n");
 
-  // Clean up test user
-  await db.delete(users).where(eq(users.id, createdUser.id));
-  console.log("🧹 Test user and associated data cleaned up.");
   console.log("\n🎉 ALL 10 AUTH INTEGRATION TESTS PASSED SUCCESSFULLY! 🚀");
-}
-
-runTests()
-  .then(async () => {
+  } finally {
+    console.log("🧹 Cleaning up auth test records...");
+    if (createdUserId) {
+      await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, createdUserId));
+      await db.delete(users).where(eq(users.id, createdUserId));
+    }
     await app.close();
     await redis.quit();
     await pgClient.end();
-    process.exit(0);
-  })
-  .catch(async (err) => {
+  }
+}
+
+runTests()
+  .then(() => process.exit(0))
+  .catch((err) => {
     console.error("\n❌ Test failed with error:", err);
-    try {
-      await app.close();
-      await redis.quit();
-      await pgClient.end();
-    } catch {}
     process.exit(1);
   });

@@ -23,6 +23,9 @@ export interface UserProfile {
   avatarUrl: string | null;
   role: UserRole;
   isEmailVerified: boolean;
+  isPrivateAccount?: boolean;
+  listeningActivityPrivacy?: "FRIENDS_ONLY" | "FOLLOWERS" | "OFF";
+  libraryPrivacy?: "PUBLIC" | "FOLLOWERS_ONLY" | "PRIVATE";
   createdAt: string;
   subscription: UserSubscription;
   plan: {

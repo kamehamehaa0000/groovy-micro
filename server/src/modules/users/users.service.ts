@@ -17,9 +17,11 @@ import type {
   RefreshTokenPayload,
   UserRole,
 } from "../auth/auth.schemas";
+import { cacheKeys } from "../../lib/cache/keys";
 import type {
   UpdateProfileInput,
   UpdatePasswordInput,
+  UpdatePrivacySettingsInput,
 } from "./users.schemas";
 
 export class UsersService {
@@ -169,5 +171,44 @@ export class UsersService {
         : "Password changed successfully.",
       tokens,
     };
+  }
+
+  /**
+   * Updates user privacy preferences (private account, listening activity privacy, library privacy).
+   */
+  async updatePrivacySettings(
+    userId: string,
+    input: UpdatePrivacySettingsInput
+  ) {
+    const updateData: Partial<typeof users.$inferInsert> = {
+      updatedAt: new Date(),
+    };
+
+    if (input.isPrivateAccount !== undefined) {
+      updateData.isPrivateAccount = input.isPrivateAccount;
+    }
+    if (input.listeningActivityPrivacy !== undefined) {
+      updateData.listeningActivityPrivacy = input.listeningActivityPrivacy;
+      if (input.listeningActivityPrivacy === "OFF") {
+        await redis.del(cacheKeys.player.presence(userId));
+      }
+    }
+    if (input.libraryPrivacy !== undefined) {
+      updateData.libraryPrivacy = input.libraryPrivacy;
+    }
+
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning({
+        id: users.id,
+        isPrivateAccount: users.isPrivateAccount,
+        listeningActivityPrivacy: users.listeningActivityPrivacy,
+        libraryPrivacy: users.libraryPrivacy,
+        updatedAt: users.updatedAt,
+      });
+
+    return updatedUser;
   }
 }

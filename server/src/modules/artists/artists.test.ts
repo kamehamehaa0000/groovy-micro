@@ -1,6 +1,6 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users, artistProfiles, artistFollowers } from "../../db/schema";
+import { users, artistProfiles, artistFollowers, outboxEvents } from "../../db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
 
@@ -502,8 +502,9 @@ async function runArtistTests() {
 
     console.log("🎉 ALL ARTIST PROFILE & VERIFICATION DESK TESTS PASSED! 🚀\n");
   } finally {
-    // Cleanup created users and cascaded profiles / followers
+    // Cleanup created users and cascaded profiles / followers / outbox
     if (createdUserIds.length > 0) {
+      await db.delete(outboxEvents).where(inArray(outboxEvents.aggregateId, createdUserIds));
       await db.delete(users).where(inArray(users.id, createdUserIds));
       console.log(`🧹 Cleaned up ${createdUserIds.length} test users & associated artist data.`);
     }

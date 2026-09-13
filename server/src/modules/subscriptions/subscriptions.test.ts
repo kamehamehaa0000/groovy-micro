@@ -88,16 +88,20 @@ async function runTests() {
 
   await bootstrap({ listen: false });
 
-  // 1. Setup Admin User & Listener User
-  const admin = await createTestUser("Entitlement Admin", "ADMIN");
-  const adminToken = admin.tokens.accessToken;
-  const adminUserId = admin.user.id;
-
-  const listener = await createTestUser("Free Listener", "LISTENER");
-  const listenerToken = listener.tokens.accessToken;
-  const listenerUserId = listener.user.id;
+  let adminUserId = "";
+  let listenerUserId = "";
+  let newFeatureKey = "";
+  let customPlanId = "";
 
   try {
+    // 1. Setup Admin User & Listener User
+    const admin = await createTestUser("Entitlement Admin", "ADMIN");
+    const adminToken = admin.tokens.accessToken;
+    adminUserId = admin.user.id;
+
+    const listener = await createTestUser("Free Listener", "LISTENER");
+    const listenerToken = listener.tokens.accessToken;
+    listenerUserId = listener.user.id;
     // =========================================================================
     // 1. DYNAMIC FEATURE CATALOG (ADMIN)
     // =========================================================================
@@ -125,7 +129,7 @@ async function runTests() {
     }
 
     console.log("\n2️⃣ Testing Dynamic Feature Creation by Admin...");
-    const newFeatureKey = `early_access_${Date.now()}`;
+    newFeatureKey = `early_access_${Date.now()}`;
     const createFeatRes = await app.inject({
       method: "POST",
       url: "/api/v1/admin/subscriptions/features",
@@ -200,7 +204,7 @@ async function runTests() {
     console.log("   ✅ Public Feature Catalog returned successfully");
 
     console.log("\n4️⃣ Testing Admin Plan Creation with Dynamic Features...");
-    const customPlanId = `hifi_family_${Date.now()}`;
+    customPlanId = `hifi_family_${Date.now()}`;
     const createPlanRes = await app.inject({
       method: "POST",
       url: "/api/v1/admin/subscriptions/plans",
@@ -412,9 +416,22 @@ async function runTests() {
 
     console.log("\n🎉 ALL SUBSCRIPTION & DYNAMIC ENTITLEMENTS TESTS PASSED! 🚀\n");
   } finally {
-    // Cleanup
-    await db.delete(users).where(eq(users.id, listenerUserId));
-    await db.delete(users).where(eq(users.id, adminUserId));
+    console.log("🧹 Cleaning up subscription test records...");
+    if (customPlanId) {
+      await db.delete(subscriptionPlans).where(eq(subscriptionPlans.id, customPlanId));
+    }
+    if (newFeatureKey) {
+      await db.delete(planFeatureDefinitions).where(eq(planFeatureDefinitions.key, newFeatureKey));
+    }
+    if (listenerUserId) {
+      await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, listenerUserId));
+      await db.delete(users).where(eq(users.id, listenerUserId));
+    }
+    if (adminUserId) {
+      await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, adminUserId));
+      await db.delete(users).where(eq(users.id, adminUserId));
+    }
+    await app.close();
     await redis.quit();
     await pgClient.end();
   }

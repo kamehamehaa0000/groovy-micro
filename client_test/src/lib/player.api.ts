@@ -114,6 +114,13 @@ export const playerApi = {
   },
 
   /**
+   * Retrieves active playback presence for mutual friends and followed listeners.
+   */
+  async getFriendsActivity(): Promise<{ activities: FriendActivityItem[] }> {
+    return apiFetch<{ activities: FriendActivityItem[] }>("/api/v1/player/friends-activity");
+  },
+
+  /**
    * Resolves audio stream URL with dynamic entitlement check (FLAC / Hi-Fi vs. standard).
    */
   async getStreamUrl(
@@ -124,3 +131,22 @@ export const playerApi = {
     return apiFetch<StreamResolution>(`/api/v1/songs/${songId}/stream${query}`);
   },
 };
+
+export interface FriendActivityItem {
+  user: {
+    id: string;
+    displayName: string;
+    avatarUrl: string | null;
+    isMutualFriend: boolean;
+  };
+  activity: {
+    songId: string;
+    trackTitle: string;
+    artistName: string;
+    coverImageUrl: string | null;
+    progressMs: number;
+    durationMs?: number;
+    deviceName?: string;
+    updatedAt: number;
+  };
+}

@@ -134,4 +134,17 @@ export const playerRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(200).send({ history });
     }
   );
+
+  /**
+   * GET /friends-activity
+   * Retrieves live playback presence for mutual friends and followed users.
+   */
+  fastify.get(
+    "/friends-activity",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const activities = await playerService.getFriendsActivity(request.user.id);
+      return reply.status(200).send({ activities });
+    }
+  );
 };

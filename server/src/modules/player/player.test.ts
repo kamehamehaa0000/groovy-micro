@@ -1,6 +1,6 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users, songs, artistProfiles } from "../../db/schema";
+import { users, songs, artistProfiles, outboxEvents, listeningHistory } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { PlayerService } from "./player.service";
 
@@ -11,38 +11,42 @@ async function runTests() {
 
   const testEmail = `player_test_${Date.now()}@groovy.test`;
   const password = "TestPassword123!";
+  let userId = "";
+  let testSongId = "";
+  let originalPlaysCount = 0;
 
-  // 1. Register test user
-  console.log("1️⃣ Registering test user...");
-  const registerRes = await app.inject({
-    method: "POST",
-    url: "/api/v1/auth/register",
-    payload: {
+  try {
+    // 1. Register test user
+    console.log("1️⃣ Registering test user...");
+    const registerRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/register",
+      payload: {
+        email: testEmail,
+        password,
+        displayName: "Playback Tester",
+      },
+    });
+
+    if (registerRes.statusCode !== 201) {
+      throw new Error(`Registration failed: ${registerRes.body}`);
+    }
+
+    const registerData = JSON.parse(registerRes.body);
+    userId = registerData.user.id;
+    const { AuthService } = await import("../auth/auth.service");
+    const authService = new AuthService(app);
+    const tokenPair = await authService.issueTokenPair({
+      id: userId,
       email: testEmail,
-      password,
-      displayName: "Playback Tester",
-    },
-  });
+      role: "LISTENER",
+      tokenVersion: 0,
+    });
+    const accessToken = tokenPair.accessToken;
+    console.log("   ✅ User registered. ID:", userId);
 
-  if (registerRes.statusCode !== 201) {
-    throw new Error(`Registration failed: ${registerRes.body}`);
-  }
-
-  const registerData = JSON.parse(registerRes.body);
-  const userId = registerData.user.id;
-  const { AuthService } = await import("../auth/auth.service");
-  const authService = new AuthService(app);
-  const tokenPair = await authService.issueTokenPair({
-    id: userId,
-    email: testEmail,
-    role: "LISTENER",
-    tokenVersion: 0,
-  });
-  const accessToken = tokenPair.accessToken;
-  console.log("   ✅ User registered. ID:", userId);
-
-  // Find or create a test song
-  let [testSong] = await db.select().from(songs).limit(1);
+    // Find or create a test song
+    let [testSong] = await db.select().from(songs).limit(1);
   if (!testSong) {
     // Create an artist and song for testing
     const [artist] = await db
@@ -64,6 +68,8 @@ async function runTests() {
       })
       .returning();
   }
+  testSongId = testSong.id;
+  originalPlaysCount = Number(testSong.playsCount || 0);
   console.log("   ✅ Using test song:", testSong.id, testSong.title);
 
   // 2. Test Device A Heartbeat (Start Playback)
@@ -231,20 +237,32 @@ async function runTests() {
   console.log(`   ✅ playsCount in DB updated from ${initialPlays} -> ${updatedPlays}`);
 
   console.log("\n🎉 ALL PLAYER HEARTBEAT, TAKEOVER & TELEMETRY TESTS PASSED!\n");
-
-  // Clean up
-  await app.close();
-  await redis.quit();
-  await pgClient.end();
-  process.exit(0);
-}
-
-runTests().catch(async (err) => {
-  console.error("❌ Test failed:", err);
-  try {
+  } finally {
+    console.log("🧹 Cleaning up player test records...");
+    if (userId) {
+      await db.delete(listeningHistory).where(eq(listeningHistory.userId, userId));
+      await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, userId));
+      await db.delete(users).where(eq(users.id, userId));
+      await redis.del(
+        `groovy:presence:user:${userId}`,
+        `groovy:player:active_device:${userId}`,
+        `groovy:player:state:${userId}`,
+        `groovy:player:history:${userId}`
+      );
+    }
+    if (testSongId) {
+      await db.update(songs).set({ playsCount: originalPlaysCount }).where(eq(songs.id, testSongId));
+      await redis.del(`groovy:telemetry:song_plays:${testSongId}`);
+    }
     await app.close();
     await redis.quit();
     await pgClient.end();
-  } catch {}
-  process.exit(1);
-});
+  }
+}
+
+runTests()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("❌ Player test suite failed:", err);
+    process.exit(1);
+  });

@@ -9,6 +9,7 @@ import {
   playlists,
   comments,
   commentVotes,
+  outboxEvents,
 } from "../../db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { cacheKeys } from "../../lib/cache/keys";
@@ -518,8 +519,13 @@ async function runTests() {
     // -----------------------------------------------------------------------
     const userIds = testUsers.map((u) => u.id);
     if (userIds.length > 0) {
+      await db.delete(outboxEvents).where(inArray(outboxEvents.aggregateId, userIds));
       await db.delete(users).where(inArray(users.id, userIds));
+      for (const uid of userIds) {
+        await redis.del(cacheKeys.social.userCommentVotes(uid));
+      }
     }
+    await app.close();
     await redis.quit();
     await pgClient.end();
   }

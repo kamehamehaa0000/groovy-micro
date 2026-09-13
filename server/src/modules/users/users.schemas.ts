@@ -34,5 +34,16 @@ export const updatePasswordSchema = z.object({
   revokeOtherSessions: z.boolean().default(true),
 });
 
+export const updatePrivacySettingsSchema = z.object({
+  isPrivateAccount: z.boolean().optional(),
+  listeningActivityPrivacy: z
+    .enum(["FRIENDS_ONLY", "FOLLOWERS", "OFF"])
+    .optional(),
+  libraryPrivacy: z.enum(["PUBLIC", "FOLLOWERS_ONLY", "PRIVATE"]).optional(),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+export type UpdatePrivacySettingsInput = z.infer<
+  typeof updatePrivacySettingsSchema
+>;

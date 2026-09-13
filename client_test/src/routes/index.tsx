@@ -16,6 +16,7 @@ import type { PlayerTrack } from '../types/player'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { SongActionMenu } from '../components/player/SongActionMenu'
+import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -265,6 +266,9 @@ function HomeComponent() {
         {/* Vinyl Rings Watermark Background */}
         <SvgArtworkSpiral />
       </section>
+
+      {/* Recently Played History Shelf (Authenticated) */}
+      <RecentlyPlayedShelf />
 
       {/* Featured Master Releases Row */}
       <section className="space-y-4">

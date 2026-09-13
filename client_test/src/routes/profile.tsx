@@ -5,12 +5,14 @@ import { useEntitlementsStore } from '../stores/entitlements.store'
 import { api } from '../lib/api'
 import { catalogApi } from '../lib/catalog.api'
 import { subscriptionsApi } from '../lib/subscriptions.api'
+import { socialApi } from '../lib/social.api'
 import type { PreSavedRelease } from '../types/catalog'
 import type {
   SubscriptionPlan,
   PlanFeatureDefinition,
 } from '../types/subscriptions'
 import { DiscIconSVG, CalendarIconSVG } from '../components/icons'
+import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
@@ -69,6 +71,20 @@ function ProfileComponent() {
   } | null>(null)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
 
+  // Privacy & Social Circles State
+  const [isPrivateAccount, setIsPrivateAccount] = useState(false)
+  const [listeningActivityPrivacy, setListeningActivityPrivacy] = useState<
+    'FRIENDS_ONLY' | 'FOLLOWERS' | 'OFF'
+  >('FRIENDS_ONLY')
+  const [libraryPrivacy, setLibraryPrivacy] = useState<
+    'PUBLIC' | 'FOLLOWERS_ONLY' | 'PRIVATE'
+  >('PUBLIC')
+  const [isSavingPrivacy, setIsSavingPrivacy] = useState(false)
+  const [privacyMsg, setPrivacyMsg] = useState<{
+    text: string
+    type: 'success' | 'error'
+  } | null>(null)
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate({ to: '/login' })
@@ -78,6 +94,9 @@ function ProfileComponent() {
   useEffect(() => {
     if (user) {
       setDisplayName(user.displayName)
+      setIsPrivateAccount(!!user.isPrivateAccount)
+      setListeningActivityPrivacy(user.listeningActivityPrivacy || 'FRIENDS_ONLY')
+      setLibraryPrivacy(user.libraryPrivacy || 'PUBLIC')
     }
   }, [user])
 
@@ -200,6 +219,33 @@ function ProfileComponent() {
       setPasswordMsg({ text: err.message, type: 'error' })
     } finally {
       setIsUpdatingPassword(false)
+    }
+  }
+
+  // --- Privacy Settings Update ---
+  const handleUpdatePrivacy = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPrivacyMsg(null)
+    setIsSavingPrivacy(true)
+
+    try {
+      await socialApi.updatePrivacySettings({
+        isPrivateAccount,
+        listeningActivityPrivacy,
+        libraryPrivacy,
+      })
+      await refreshProfile()
+      setPrivacyMsg({
+        text: 'Privacy and social circle permissions updated successfully.',
+        type: 'success',
+      })
+    } catch (err: any) {
+      setPrivacyMsg({
+        text: err.message || 'Failed to update privacy settings',
+        type: 'error',
+      })
+    } finally {
+      setIsSavingPrivacy(false)
     }
   }
 
@@ -663,6 +709,233 @@ function ProfileComponent() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Listening History Shelf */}
+      <RecentlyPlayedShelf
+        title="Listening History"
+        subtitle="Your Past Qualified Plays"
+        limit={12}
+      />
+
+      {/* Privacy & Social Circles Card */}
+      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
+        <div>
+          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+            Audience &bull; Privacy &bull; Social Circles
+          </div>
+          <h3 className="font-serif italic text-2xl text-ink font-normal">
+            Privacy &amp; Community Visibility
+          </h3>
+          <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+            Control how other curators interact with your library, follow your profile, and see your live listening activity.
+          </p>
+        </div>
+
+        {privacyMsg && (
+          <div
+            className={`p-3.5 border text-xs font-mono ${
+              privacyMsg.type === 'success'
+                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
+                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+            }`}
+          >
+            {privacyMsg.text}
+          </div>
+        )}
+
+        <form onSubmit={handleUpdatePrivacy} className="space-y-6">
+          {/* Account Privacy Toggle */}
+          <div className="border border-line bg-canvas p-4 sm:p-5 flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
+                  Private Account
+                </span>
+                <span
+                  className={`font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border ${
+                    isPrivateAccount
+                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                      : 'border-line bg-panel text-ink-soft'
+                  }`}
+                >
+                  {isPrivateAccount ? 'Gated Approval' : 'Open / Public'}
+                </span>
+              </div>
+              <p className="font-sans text-xs text-ink-soft max-w-xl leading-relaxed">
+                When your account is private, curators must request to follow you. You review each follow request in your Activity desk before they gain access to your follower-only library.
+              </p>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+              <input
+                type="checkbox"
+                checked={isPrivateAccount}
+                onChange={(e) => setIsPrivateAccount(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+            </label>
+          </div>
+
+          {/* Live Listening Presence Tier */}
+          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-3">
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
+                Live Turntable &bull; Listening Activity
+              </div>
+              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                Choose who can see your real-time playback in the "What Friends Are Listening To" live vinyl deck.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setListeningActivityPrivacy('FRIENDS_ONLY')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  listeningActivityPrivacy === 'FRIENDS_ONLY'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>Mutual Friends</span>
+                  {listeningActivityPrivacy === 'FRIENDS_ONLY' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Only curators you both follow back can see your live vinyl turntable. (Recommended)
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setListeningActivityPrivacy('FOLLOWERS')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  listeningActivityPrivacy === 'FOLLOWERS'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>All Followers</span>
+                  {listeningActivityPrivacy === 'FOLLOWERS' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Any member following your profile can see your live listening session.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setListeningActivityPrivacy('OFF')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  listeningActivityPrivacy === 'OFF'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>Incognito / Off</span>
+                  {listeningActivityPrivacy === 'OFF' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Never broadcast live playback. Your personal listening history is preserved privately.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Library Privacy Tier */}
+          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-3">
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
+                Library &amp; Presaves Visibility
+              </div>
+              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                Choose who can browse your public playlists, liked songs, and pre-saved releases.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setLibraryPrivacy('PUBLIC')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  libraryPrivacy === 'PUBLIC'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>Public</span>
+                  {libraryPrivacy === 'PUBLIC' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Anyone in the Groovy community can discover your public playlists and library drops.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLibraryPrivacy('FOLLOWERS_ONLY')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  libraryPrivacy === 'FOLLOWERS_ONLY'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>Followers &amp; Friends</span>
+                  {libraryPrivacy === 'FOLLOWERS_ONLY' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Only approved followers can view your saved playlists and collections.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLibraryPrivacy('PRIVATE')}
+                className={`p-3 text-left border transition-all cursor-pointer ${
+                  libraryPrivacy === 'PRIVATE'
+                    ? 'border-ink bg-panel shadow-xs'
+                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
+                }`}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                  <span>Private / Only Me</span>
+                  {libraryPrivacy === 'PRIVATE' && (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  )}
+                </div>
+                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                  Hidden from all outside visitors. Only accessible to your authenticated session.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingPrivacy}
+              className="bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+            >
+              {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Display Name Form */}

@@ -1,6 +1,6 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users } from "../../db/schema";
+import { users, outboxEvents } from "../../db/schema";
 import { eq } from "drizzle-orm";
 
 async function runTests() {
@@ -11,25 +11,27 @@ async function runTests() {
   const testEmail = `user_test_${Date.now()}@groovy.test`;
   const initialPassword = "OldPassword123!";
   const newPassword = "NewSecurePassword456!";
+  let userId = "";
 
-  // 1. Register a test user
-  console.log("1️⃣ Registering test user...");
-  const registerRes = await app.inject({
-    method: "POST",
-    url: "/api/v1/auth/register",
-    payload: {
-      email: testEmail,
-      password: initialPassword,
-      displayName: "Initial Name",
-    },
-  });
+  try {
+    // 1. Register a test user
+    console.log("1️⃣ Registering test user...");
+    const registerRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/register",
+      payload: {
+        email: testEmail,
+        password: initialPassword,
+        displayName: "Initial Name",
+      },
+    });
 
-  if (registerRes.statusCode !== 201) {
-    throw new Error(`Registration failed: ${registerRes.body}`);
-  }
+    if (registerRes.statusCode !== 201) {
+      throw new Error(`Registration failed: ${registerRes.body}`);
+    }
 
-  const registerData = JSON.parse(registerRes.body);
-  const userId = registerData.user.id;
+    const registerData = JSON.parse(registerRes.body);
+    userId = registerData.user.id;
   const { AuthService } = await import("../auth/auth.service");
   const authService = new AuthService(app);
   const tokenPair = await authService.issueTokenPair({
@@ -195,25 +197,22 @@ async function runTests() {
   }
   console.log("   ✅ Status 200 OK: Fresh access token authenticated successfully\n");
 
-  // Clean up
-  await db.delete(users).where(eq(users.id, userId));
-  console.log("🧹 Test user cleaned up.");
   console.log("\n🎉 ALL USERS & STORAGE INTEGRATION TESTS PASSED! 🚀");
-}
-
-runTests()
-  .then(async () => {
+  } finally {
+    console.log("🧹 Cleaning up user test records...");
+    if (userId) {
+      await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, userId));
+      await db.delete(users).where(eq(users.id, userId));
+    }
     await app.close();
     await redis.quit();
     await pgClient.end();
-    process.exit(0);
-  })
-  .catch(async (err) => {
+  }
+}
+
+runTests()
+  .then(() => process.exit(0))
+  .catch((err) => {
     console.error("\n❌ Test failed with error:", err);
-    try {
-      await app.close();
-      await redis.quit();
-      await pgClient.end();
-    } catch {}
     process.exit(1);
   });

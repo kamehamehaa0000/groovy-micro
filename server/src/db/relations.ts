@@ -17,6 +17,7 @@ import {
   commentVotes,
   listeningHistory,
   releasePresaves,
+  userFollows,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -36,6 +37,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   history: many(listeningHistory),
   followingArtists: many(artistFollowers),
   preSaves: many(releasePresaves),
+  followers: many(userFollows, { relationName: "userFollowers" }),
+  following: many(userFollows, { relationName: "userFollowing" }),
 }));
 
 export const artistProfilesRelations = relations(
@@ -258,3 +261,16 @@ export const releasePresavesRelations = relations(
     }),
   })
 );
+
+export const userFollowsRelations = relations(userFollows, ({ one }) => ({
+  follower: one(users, {
+    fields: [userFollows.followerId],
+    references: [users.id],
+    relationName: "userFollowing",
+  }),
+  following: one(users, {
+    fields: [userFollows.followingId],
+    references: [users.id],
+    relationName: "userFollowers",
+  }),
+}));

@@ -9,6 +9,7 @@ import {
   playlistSongs,
   playlistCollaborators,
   userLibraryPlaylists,
+  outboxEvents,
 } from "../../db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
@@ -647,8 +648,13 @@ async function runTests() {
 
     console.log("\n🎉 ALL PLAYLISTS & SOCIAL TESTS PASSED SUCCESSFULLY! 🚀\n");
   } finally {
-    // Cleanup test users and cascade
+    // Cleanup test users, outbox events, redis sets, and cascade
+    await db.delete(outboxEvents).where(inArray(outboxEvents.aggregateId, testUserIds));
     await db.delete(users).where(inArray(users.id, testUserIds));
+    for (const uid of testUserIds) {
+      await redis.del(cacheKeys.social.userSavedPlaylists(uid));
+    }
+    await app.close();
     await redis.quit();
     await pgClient.end();
   }

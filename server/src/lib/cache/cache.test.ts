@@ -1,7 +1,7 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLikes } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLikes, outboxEvents } from "../../db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../../modules/auth/auth.service";
 import { ArtistsService } from "../../modules/artists/artists.service";
 import { CatalogService } from "../../modules/catalog/catalog.service";
@@ -444,9 +444,22 @@ async function runCacheTests() {
 
     console.log("\n🎉 ALL CACHING, HYBRID LIKES, FOLLOWS, PRE-SAVES & ENTITLEMENTS TESTS PASSED SUCCESSFULLY! 🚀\n");
   } finally {
-    // Cleanup test users
-    if (artistUserId) await db.delete(users).where(eq(users.id, artistUserId));
-    if (listenerUserId) await db.delete(users).where(eq(users.id, listenerUserId));
+    // Cleanup test users, outbox events, and redis keys
+    const uids = [artistUserId, listenerUserId].filter(Boolean);
+    if (uids.length > 0) {
+      await db.delete(outboxEvents).where(inArray(outboxEvents.aggregateId, uids));
+      await db.delete(users).where(inArray(users.id, uids));
+      for (const uid of uids) {
+        await redis.del(
+          cacheKeys.social.userLikedSongs(uid),
+          cacheKeys.social.userFollowingArtists(uid),
+          cacheKeys.social.userPreSavedAlbums(uid),
+          cacheKeys.subscriptions.userEntitlements(uid),
+          cacheKeys.subscriptions.userEntitlementsSet(uid)
+        );
+      }
+    }
+    await app.close();
     await redis.quit();
     await pgClient.end();
   }

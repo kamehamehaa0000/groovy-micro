@@ -52,3 +52,20 @@ export const releaseVisibilityEnum = pgEnum("release_visibility", [
   "UNLISTED",
   "PRIVATE",
 ]);
+
+export const followStatusEnum = pgEnum("follow_status", [
+  "PENDING",
+  "ACCEPTED",
+]);
+
+export const listeningActivityPrivacyEnum = pgEnum("listening_activity_privacy", [
+  "FRIENDS_ONLY",
+  "FOLLOWERS",
+  "OFF",
+]);
+
+export const libraryPrivacyEnum = pgEnum("library_privacy", [
+  "PUBLIC",
+  "FOLLOWERS_ONLY",
+  "PRIVATE",
+]);

@@ -55,24 +55,25 @@
     - Creator comment permission controls (`allowComments: boolean`) with toggle switches in Create/Edit Release (Studio), Create/Edit Playlist modals, and 1-click artist album page toggle.
     - Unauthenticated/Guest Auth Prompt Modal: Non-intrusive modal prompt ("Save your favorites", "Build your playlists") on Like or Add to Playlist actions with uninterrupted background playback and decoupled guest 401 handling in auth store.
     - `localStorage` persistence for queue, active song, volume, and playback preferences across reloads.
-  - [ ] **Phase 2: Playback Telemetry, History & Live Presence ("What Friends Are Listening To")**:
-    - [ ] **Alignment Questions & Architectural Decisions (To Discuss When Resuming)**:
-      1. **Presence Heartbeat & Concurrency Policy**:
-         - Frequency: Client ping every 15–20s while playing to `POST /api/v1/player/heartbeat`.
-         - Redis Key: `groovy:presence:user:{id}` with 30–45s TTL.
-         - Device Conflict Options:
-           - _Option A (Soft Pause / Takeover)_: Starting playback on Device B sends a takeover event/signal to Device A, gracefully pausing it (Spotify Connect style).
-           - _Option B (Permissive)_: Allow concurrent listening across multiple devices without forced pauses.
-      2. **Cross-Device Playback State Persistence (Snapshots)**:
-         - Save playback snapshot (`trackId`, `positionSeconds`, `playbackStatus`, `volume`, `contextUri`, `userQueue`) in Redis key `groovy:player:state:{userId}` on heartbeat, pause, or track change.
-         - When user opens app on any device, `GET /api/v1/player/state` restores exact playback session.
-      3. **Playback Telemetry & 30-Second Rule**:
-         - Count a qualified stream only after 30 seconds of continuous playback (or 50% for short cuts) via `POST /api/v1/telemetry/play` with `{ songId, durationListened, completed }`.
-         - High-frequency play buffer in Redis hash `groovy:telemetry:song_plays` with BullMQ batch write-behind to PostgreSQL `songs.plays_count` and insert into `listening_history`.
-      4. **Friend Activity & Privacy Gating**:
-         - User privacy setting `shareListeningActivity: boolean` in user settings/profile.
-         - Fast sync endpoint `GET /api/v1/social/friends/activity` via Redis $O(1)$ `MGET`.
-         - Client `<FriendActivitySidebar />` showing live friend tracks and playback pulses.
+  - [x] **Phase 2: Playback Telemetry, History & Live Presence ("What Friends Are Listening To")**:
+    - [x] **Presence Heartbeat & Multi-Device Takeover (Option A)**:
+      - Client ping every 15s during playback to `POST /api/v1/player/heartbeat` tracking active device (`deviceId`, `deviceName`).
+      - Redis presence key `groovy:presence:user:{id}` with 45s TTL and active lease key `groovy:player:active_device:{userId}`.
+      - Option A soft pause / takeover semantics: Device B can take over playback lease (`takeover: true`); superseded device receives status `superseded` and gracefully pauses playback with user banner.
+    - [x] **Cross-Device Playback State Persistence (Snapshots)**:
+      - Snapshots stored in Redis `groovy:player:state:{userId}` on heartbeat, track change, or pause.
+      - Seamless rehydration on login/app mount via `GET /api/v1/player/state` with zero audio glitches.
+    - [x] **Playback Telemetry & 30-Second Rule**:
+      - Client telemetric tracker recording qualified stream after 30 seconds of continuous playback via `POST /api/v1/player/telemetry/play`.
+      - High-frequency buffer in Redis hash `groovy:telemetry:song_plays` with scheduled/batch write-behind flushing to PostgreSQL `songs.plays_count` and persistent logging to `listening_history`.
+      - Fast recent history endpoint `GET /api/v1/player/history/recent` rendering the high-fidelity `<RecentlyPlayedShelf />` on the Catalog (`/`) and Profile (`/profile`) pages.
+    - [x] **Social Follow, Friend Requests & Privacy Architecture**:
+      - PostgreSQL schema: `follow_status` (`PENDING`, `ACCEPTED`), `listening_activity_privacy` (`FRIENDS_ONLY`, `FOLLOWERS`, `OFF`), `library_privacy` (`PUBLIC`, `FOLLOWERS_ONLY`, `PRIVATE`), and `user_follows` table.
+      - Private account gating (`isPrivateAccount`): target user approval required (`PENDING`) or direct follow (`ACCEPTED`). Mutual accepted follow constitutes "Friends".
+      - REST API (`/api/v1/social/`): follow, unfollow, accept/reject requests, incoming desk, mutual friends list, user directory search with live relationship status.
+      - Real-time friends activity endpoint `GET /api/v1/player/friends-activity` with privacy filtering and sub-millisecond batch `redis.mget()`.
+      - Complete UI integration: Dedicated `/activity` route (Live Sessions with spinning vinyl, Incoming Requests desk, Member Search directory), Profile Privacy Settings card, and desktop/mobile navigation links.
+      - 100% backend test coverage across `player.test.ts` and `social.test.ts`.
   - [x] **Phase 3: Nested Comments Subsystem** (`docs/NESTED_COMMENTS_SUBSYSTEM_DESIGN.md`):
     - [x] Complete 2-level nested data model (`comments`, `comment_votes` with check constraint `chk_comments_single_target` across songs, albums, and playlists).
     - [x] Creator controls: configurable comment permissions (`allowComments: boolean`) per song, album, and playlist with 403 enforcement.

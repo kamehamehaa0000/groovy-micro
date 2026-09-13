@@ -3,6 +3,7 @@ import { UsersService } from "./users.service";
 import {
   updateProfileSchema,
   updatePasswordSchema,
+  updatePrivacySettingsSchema,
 } from "./users.schemas";
 import { requireAuth } from "../auth/auth.guards";
 import { setRefreshTokenCookie } from "../auth/auth.utils";
@@ -72,6 +73,35 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
 
       return reply.status(200).send({
         message: result.message,
+      });
+    }
+  );
+
+  /**
+   * PATCH /privacy-settings
+   * Updates user privacy preferences (private account, listening activity, library privacy).
+   */
+  fastify.patch(
+    "/privacy-settings",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const parseResult = updatePrivacySettingsSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const updated = await usersService.updatePrivacySettings(
+        request.user.id,
+        parseResult.data
+      );
+
+      return reply.status(200).send({
+        settings: updated,
       });
     }
   );

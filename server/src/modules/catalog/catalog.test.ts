@@ -1,6 +1,6 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLikes } from "../../db/schema";
+import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLikes, outboxEvents } from "../../db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
 import { ArtistsService } from "../artists/artists.service";
@@ -74,6 +74,7 @@ async function runCatalogTests() {
   );
 
   const createdUserIds: string[] = [];
+  let scheduledAlbumId = "";
 
   try {
     // 1. Provision Test Artists & Listener
@@ -462,6 +463,7 @@ async function runCatalogTests() {
       throw new Error(`Failed to create scheduled album: ${createScheduledRes.body}`);
     }
     const scheduledAlbum = JSON.parse(createScheduledRes.body);
+    scheduledAlbumId = scheduledAlbum.id;
     if (scheduledAlbum.status !== "SCHEDULED") {
       throw new Error(`Expected status 'SCHEDULED', got ${scheduledAlbum.status}`);
     }
@@ -572,10 +574,14 @@ async function runCatalogTests() {
 
     console.log("🎉 ALL CATALOG (ALBUMS, SONGS, CREDITS, SOFT-DELETE, LIKES, SCHEDULED RELEASES & PRE-SAVES) TESTS PASSED! 🚀\n");
   } finally {
-    // Cleanup created users and cascaded profiles / catalog
+    // Cleanup created users, outbox events, and cascaded profiles / catalog
     if (createdUserIds.length > 0) {
+      await db.delete(outboxEvents).where(inArray(outboxEvents.aggregateId, createdUserIds));
+      if (scheduledAlbumId) {
+        await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, scheduledAlbumId));
+      }
       await db.delete(users).where(inArray(users.id, createdUserIds));
-      console.log(`🧹 Cleaned up ${createdUserIds.length} test users & associated catalog data.`);
+      console.log(`🧹 Cleaned up ${createdUserIds.length} test users, outbox events & associated catalog data.`);
     }
     await closeReleaseQueue();
   }

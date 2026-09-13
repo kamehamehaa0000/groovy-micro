@@ -53,6 +53,16 @@ const ALL_SUITES: TestSuite[] = [
     name: 'Nested Comments & Two-Way Voting',
     file: 'src/modules/comments/comments.test.ts',
   },
+  {
+    id: 'social',
+    name: 'Social Network & Activity Feed',
+    file: 'src/modules/social/social.test.ts',
+  },
+  {
+    id: 'player',
+    name: 'Player & Real-Time Sync',
+    file: 'src/modules/player/player.test.ts',
+  },
 ]
 
 // ANSI Escape Codes

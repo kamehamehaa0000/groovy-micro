@@ -1,7 +1,7 @@
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, or } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
-import { listeningHistory, songs, albums, artistProfiles } from "../../db/schema";
+import { listeningHistory, songs, albums, artistProfiles, users, userFollows } from "../../db/schema";
 import { cacheKeys } from "../../lib/cache/keys";
 import type {
   SavePlayerStateInput,
@@ -105,27 +105,37 @@ export class PlayerService {
       this.DEVICE_SESSION_TTL_SECONDS
     );
 
-    // 3. Update public listening presence (evicted automatically if paused or after 45s)
+    // 3. Update public listening presence (evicted automatically if paused, after 45s, or if privacy is OFF)
     const presenceKey = cacheKeys.player.presence(userId);
     if (!input.isPaused && input.songId) {
-      const presencePayload = {
-        userId,
-        songId: input.songId,
-        trackTitle: input.trackTitle,
-        artistName: input.artistName,
-        coverImageUrl: input.coverImageUrl,
-        progressMs: input.progressMs,
-        durationMs: input.durationMs,
-        isPaused: false,
-        deviceName: input.deviceName,
-        updatedAt: now,
-      };
-      await redis.set(
-        presenceKey,
-        JSON.stringify(presencePayload),
-        "EX",
-        this.PRESENCE_TTL_SECONDS
-      );
+      // Check user privacy setting
+      const [userRecord] = await db
+        .select({ listeningActivityPrivacy: users.listeningActivityPrivacy })
+        .from(users)
+        .where(eq(users.id, userId));
+
+      if (userRecord && userRecord.listeningActivityPrivacy === "OFF") {
+        await redis.del(presenceKey);
+      } else {
+        const presencePayload = {
+          userId,
+          songId: input.songId,
+          trackTitle: input.trackTitle,
+          artistName: input.artistName,
+          coverImageUrl: input.coverImageUrl,
+          progressMs: input.progressMs,
+          durationMs: input.durationMs,
+          isPaused: false,
+          deviceName: input.deviceName,
+          updatedAt: now,
+        };
+        await redis.set(
+          presenceKey,
+          JSON.stringify(presencePayload),
+          "EX",
+          this.PRESENCE_TTL_SECONDS
+        );
+      }
     } else {
       await redis.del(presenceKey);
     }
@@ -248,5 +258,99 @@ export class PlayerService {
     }
 
     return totalFlushed;
+  }
+
+  /**
+   * Retrieves live listening presence for friends & followed users based on privacy permissions.
+   */
+  async getFriendsActivity(userId: string) {
+    // 1. Find all users that the current user follows with ACCEPTED status
+    const following = await db
+      .select({
+        targetId: userFollows.followingId,
+      })
+      .from(userFollows)
+      .where(
+        and(
+          eq(userFollows.followerId, userId),
+          eq(userFollows.status, "ACCEPTED")
+        )
+      );
+
+    if (following.length === 0) return [];
+    const followingIds = following.map((f) => f.targetId);
+
+    // 2. Query their profiles and check if they also follow current user back (mutual)
+    const candidates = await db
+      .select({
+        id: users.id,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        listeningActivityPrivacy: users.listeningActivityPrivacy,
+        followsBackStatus: userFollows.status,
+      })
+      .from(users)
+      .leftJoin(
+        userFollows,
+        and(
+          eq(userFollows.followerId, users.id),
+          eq(userFollows.followingId, userId),
+          eq(userFollows.status, "ACCEPTED")
+        )
+      )
+      .where(or(...followingIds.map((id) => eq(users.id, id))));
+
+    // 3. Filter by privacy settings:
+    // - OFF: never visible
+    // - FOLLOWERS: visible because current user is an accepted follower!
+    // - FRIENDS_ONLY: visible only if mutual accepted follow (followsBackStatus is ACCEPTED)
+    const visibleUsers = candidates.filter((u) => {
+      if (u.listeningActivityPrivacy === "OFF") return false;
+      if (u.listeningActivityPrivacy === "FOLLOWERS") return true;
+      if (u.listeningActivityPrivacy === "FRIENDS_ONLY" && u.followsBackStatus === "ACCEPTED") return true;
+      return false;
+    });
+
+    if (visibleUsers.length === 0) return [];
+
+    // 4. Batch query their presence keys from Redis (MGET)
+    const presenceKeys = visibleUsers.map((u) => cacheKeys.player.presence(u.id));
+    const presenceStrings = await redis.mget(...presenceKeys);
+
+    // 5. Build active activity results
+    const activities = [];
+    for (let i = 0; i < visibleUsers.length; i++) {
+      const u = visibleUsers[i];
+      const raw = presenceStrings[i];
+      if (!raw) continue;
+
+      try {
+        const presence = JSON.parse(raw);
+        if (!presence.isPaused && presence.songId) {
+          activities.push({
+            user: {
+              id: u.id,
+              displayName: u.displayName,
+              avatarUrl: u.avatarUrl,
+              isMutualFriend: u.followsBackStatus === "ACCEPTED",
+            },
+            activity: {
+              songId: presence.songId,
+              trackTitle: presence.trackTitle,
+              artistName: presence.artistName,
+              coverImageUrl: presence.coverImageUrl,
+              progressMs: presence.progressMs,
+              durationMs: presence.durationMs,
+              deviceName: presence.deviceName,
+              updatedAt: presence.updatedAt,
+            },
+          });
+        }
+      } catch {
+        // Skip corrupt entry
+      }
+    }
+
+    return activities;
   }
 }

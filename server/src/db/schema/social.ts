@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { songs, albums } from "./catalog";
+import { followStatusEnum } from "./enums";
 
 export const songLikes = pgTable(
   "song_likes",
@@ -49,5 +50,32 @@ export const albumLikes = pgTable(
   ]
 );
 
+export const userFollows = pgTable(
+  "user_follows",
+  {
+    followerId: uuid("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followingId: uuid("following_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: followStatusEnum("status").notNull().default("ACCEPTED"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.followerId, table.followingId] }),
+    index("idx_user_follows_follower").on(table.followerId),
+    index("idx_user_follows_following").on(table.followingId),
+    index("idx_user_follows_status").on(table.status),
+  ]
+);
+
 export type SongLike = typeof songLikes.$inferSelect;
 export type AlbumLike = typeof albumLikes.$inferSelect;
+export type UserFollow = typeof userFollows.$inferSelect;
+export type NewUserFollow = typeof userFollows.$inferInsert;
