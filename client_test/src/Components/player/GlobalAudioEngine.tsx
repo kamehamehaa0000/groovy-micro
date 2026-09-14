@@ -26,8 +26,15 @@ export function GlobalAudioEngine() {
   const _setDuration = usePlayerStore((s) => s._setDuration);
   const _setError = usePlayerStore((s) => s._setError);
   const _setStreamQuality = usePlayerStore((s) => s._setStreamQuality);
+  const _setStreamFormat = usePlayerStore((s) => s._setStreamFormat);
   const next = usePlayerStore((s) => s.next);
   const initializeSync = usePlayerStore((s) => s.initializeSync);
+
+  // Fallback and recovery tracking refs
+  const isFallingBackRef = useRef<boolean>(false);
+  const hlsRecoveryAttemptsRef = useRef<number>(0);
+  const activeSourceTypeRef = useRef<"hls" | "native-hls" | "direct" | null>(null);
+  const fallbackUrlRef = useRef<string | null>(null);
 
   // Initialize playback snapshot from localStorage / server on mount
   useEffect(() => {
@@ -59,6 +66,12 @@ export function GlobalAudioEngine() {
     lastTrackIdRef.current = currentTrack.id;
     qualifiedReportedTrackIdRef.current = null;
 
+    // Reset fallback state for the new track
+    isFallingBackRef.current = false;
+    hlsRecoveryAttemptsRef.current = 0;
+    activeSourceTypeRef.current = null;
+    fallbackUrlRef.current = null;
+
     // Record any initial saved position to seek safely once metadata is ready
     const initialTime = usePlayerStore.getState().currentTime;
     if (initialTime > 0) {
@@ -77,15 +90,15 @@ export function GlobalAudioEngine() {
     const loadAudioSource = async () => {
       try {
         const wantsLossless = useEntitlementsStore.getState().hasEntitlement("lossless");
-        let streamUrl = currentTrack.audioUrl || currentTrack.rawAudioKey || "";
-        let hlsUrl = currentTrack.hlsManifestUrl;
+        let fallbackAudioUrl = currentTrack.audioUrl || currentTrack.rawAudioKey || "";
+        let hlsUrl = currentTrack.hlsManifestUrl || null;
         let quality: "lossless" | "standard" = "standard";
 
         // Resolve authenticated stream gate from server
         try {
           const res = await playerApi.getStreamUrl(currentTrack.id, wantsLossless);
           if (res) {
-            streamUrl = res.streamUrl || res.audioUrl || streamUrl;
+            fallbackAudioUrl = res.audioUrl || fallbackAudioUrl;
             hlsUrl = res.hlsManifestUrl || hlsUrl;
             quality = res.quality || "standard";
           }
@@ -95,6 +108,7 @@ export function GlobalAudioEngine() {
 
         if (isCancelled) return;
         _setStreamQuality(quality);
+        fallbackUrlRef.current = fallbackAudioUrl;
 
         const playOrHold = () => {
           if (isCancelled) return;
@@ -127,16 +141,48 @@ export function GlobalAudioEngine() {
           }
         };
 
+        const fallbackToDirectAudio = (reason?: string) => {
+          if (isCancelled) return;
+          if (isFallingBackRef.current) return;
+          isFallingBackRef.current = true;
+          activeSourceTypeRef.current = "direct";
+          destroyHls();
+          _setStreamFormat("progressive");
+
+          const targetUrl = fallbackUrlRef.current;
+          if (targetUrl) {
+            console.info(
+              `[AudioEngine] 🔄 Falling back from HLS to original direct audio (${reason || "HLS error"}):`,
+              targetUrl
+            );
+            const currentPos = audio.currentTime || pendingSeekTimeRef.current || 0;
+            if (currentPos > 0) {
+              pendingSeekTimeRef.current = currentPos;
+            }
+            audio.src = targetUrl;
+            playOrHold();
+          } else {
+            console.warn("[AudioEngine] ❌ No fallback direct audio URL available for this track");
+            _setError("Audio stream unavailable");
+          }
+        };
+
         // A. Adaptive HLS Streaming via Hls.js
         if (hlsUrl && Hls.isSupported()) {
+          activeSourceTypeRef.current = "hls";
+          _setStreamFormat("hls");
+
           const startPos =
             pendingSeekTimeRef.current && pendingSeekTimeRef.current > 0
               ? pendingSeekTimeRef.current
               : -1;
+
           const hls = new Hls({
             enableWorker: true,
-            lowLatencyMode: true,
+            lowLatencyMode: false,
             backBufferLength: 60,
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
             startPosition: startPos,
           });
           hlsRef.current = hls;
@@ -144,32 +190,72 @@ export function GlobalAudioEngine() {
           hls.loadSource(hlsUrl);
           hls.attachMedia(audio);
 
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
+            console.info(`[AudioEngine] 🎧 HLS Manifest parsed successfully (${data.levels.length} quality levels)`);
             playOrHold();
           });
 
+          hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+            const level = hls.levels[data.level];
+            if (level) {
+              console.info(`[AudioEngine] 📶 HLS Level switched: ${data.level} (${Math.round(level.bitrate / 1000)} kbps)`);
+            }
+          });
+
           hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (isCancelled) return;
+
             if (data.fatal) {
-              console.warn("[AudioEngine] HLS fatal error, falling back to direct audio stream:", data);
-              destroyHls();
-              // Graceful fallback to direct audio URL
-              if (streamUrl) {
-                audio.src = streamUrl;
-                playOrHold();
-              } else {
-                _setError("Audio stream unavailable");
+              console.warn("[AudioEngine] ⚠️ HLS fatal error encountered:", data.type, data.details);
+
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  if (
+                    data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
+                    data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
+                    data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR ||
+                    data.details === Hls.ErrorDetails.LEVEL_LOAD_ERROR ||
+                    hlsRecoveryAttemptsRef.current >= 2
+                  ) {
+                    console.warn("[AudioEngine] HLS manifest/network load failed. Falling back to original direct MP3.");
+                    fallbackToDirectAudio(data.details);
+                  } else {
+                    hlsRecoveryAttemptsRef.current++;
+                    console.info(`[AudioEngine] Retrying HLS network load (attempt ${hlsRecoveryAttemptsRef.current})...`);
+                    hls.startLoad();
+                  }
+                  break;
+
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  if (hlsRecoveryAttemptsRef.current < 2) {
+                    hlsRecoveryAttemptsRef.current++;
+                    console.info(`[AudioEngine] Recovering HLS media error (attempt ${hlsRecoveryAttemptsRef.current})...`);
+                    hls.recoverMediaError();
+                  } else {
+                    console.warn("[AudioEngine] HLS media error recovery exhausted. Falling back to original direct MP3.");
+                    fallbackToDirectAudio("Media error recovery exhausted");
+                  }
+                  break;
+
+                default:
+                  fallbackToDirectAudio(data.details || "Fatal HLS error");
+                  break;
               }
             }
           });
         }
         // B. Native HLS (e.g. Safari / iOS)
         else if (hlsUrl && audio.canPlayType("application/vnd.apple.mpegurl")) {
+          activeSourceTypeRef.current = "native-hls";
+          _setStreamFormat("hls");
           audio.src = hlsUrl;
           playOrHold();
         }
         // C. Standard Progressive Streaming (MP3 / AAC / FLAC / Direct CDN)
-        else if (streamUrl) {
-          audio.src = streamUrl;
+        else if (fallbackAudioUrl) {
+          activeSourceTypeRef.current = "direct";
+          _setStreamFormat("progressive");
+          audio.src = fallbackAudioUrl;
           playOrHold();
         } else {
           _setError("No playable audio URL found for this track");
@@ -186,7 +272,7 @@ export function GlobalAudioEngine() {
     return () => {
       isCancelled = true;
     };
-  }, [currentTrack, _setStatus, _setStreamQuality, _setError]);
+  }, [currentTrack, _setStatus, _setStreamQuality, _setStreamFormat, _setError]);
 
   // 2. Sync Play/Pause status or Stop
   useEffect(() => {
@@ -493,11 +579,51 @@ export function GlobalAudioEngine() {
         }
       }}
       onError={(e) => {
+        const audio = audioRef.current;
         const error = (e.target as HTMLAudioElement)?.error;
-        console.warn("[AudioEngine] Native HTML5 Audio error:", error);
+        console.warn(
+          "[AudioEngine] Native HTML5 Audio error:",
+          error?.code,
+          error?.message,
+          "Active source:",
+          activeSourceTypeRef.current
+        );
+
+        // If HLS was being attempted (native HLS in Safari or HLS.js) and we haven't fallen back yet
+        if (
+          !isFallingBackRef.current &&
+          fallbackUrlRef.current &&
+          audio &&
+          audio.src !== fallbackUrlRef.current &&
+          (activeSourceTypeRef.current === "native-hls" || activeSourceTypeRef.current === "hls")
+        ) {
+          console.info(
+            "[AudioEngine] 🔄 Native HTML5 audio error on HLS, falling back to direct MP3 audio:",
+            fallbackUrlRef.current
+          );
+          if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+          }
+          isFallingBackRef.current = true;
+          activeSourceTypeRef.current = "direct";
+          _setStreamFormat("progressive");
+
+          const currentPos = audio.currentTime || pendingSeekTimeRef.current || 0;
+          if (currentPos > 0) {
+            pendingSeekTimeRef.current = currentPos;
+          }
+          audio.src = fallbackUrlRef.current;
+          const targetStatus = usePlayerStore.getState().playbackStatus;
+          if (targetStatus === "playing" || targetStatus === "loading") {
+            audio.play().catch(() => _setStatus("paused"));
+          }
+          return;
+        }
+
         // Do not block UI if initial empty or unmounted
         if (currentTrack) {
-          _setError("Playback error");
+          _setError("Playback error: Audio stream unavailable");
         }
       }}
     />

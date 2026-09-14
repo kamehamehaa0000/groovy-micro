@@ -32,6 +32,7 @@ interface PlayerState {
   isShuffle: boolean;
   repeatMode: RepeatMode;
   streamQuality: "lossless" | "standard";
+  streamFormat: "hls" | "progressive";
   errorMessage: string | null;
 
   // Two-tier Queue
@@ -90,6 +91,7 @@ interface PlayerState {
   _setDuration: (duration: number) => void;
   _setError: (err: string | null) => void;
   _setStreamQuality: (quality: "lossless" | "standard") => void;
+  _setStreamFormat: (format: "hls" | "progressive") => void;
   syncJamPlayback: (track: PlayerTrack, positionSeconds: number, status: PlaybackStatus) => void;
 
   // Persistence & Sync
@@ -107,6 +109,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isShuffle: false,
   repeatMode: "off",
   streamQuality: "standard",
+  streamFormat: "hls",
   errorMessage: null,
 
   userQueue: [],
@@ -531,6 +534,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   _setDuration: (duration) => set({ duration }),
   _setError: (err) => set({ errorMessage: err, playbackStatus: err ? "error" : "paused" }),
   _setStreamQuality: (quality) => set({ streamQuality: quality }),
+  _setStreamFormat: (format) => set({ streamFormat: format }),
 
   // Jam-controlled internal sync (no outbound WebSocket broadcasts)
   syncJamPlayback: (track, positionSeconds, status) => {

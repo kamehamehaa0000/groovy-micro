@@ -417,7 +417,7 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Dynamic Entitlements Quality Gate (sub-0.5ms Redis SISMEMBER check)
-      const query = request.query as { quality?: string } | undefined;
+      const query = request.query as { quality?: string; redirect?: string } | undefined;
       const wantsLossless = query?.quality === "lossless" || query?.quality === "flac";
 
       if (wantsLossless) {
@@ -445,10 +445,26 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
         }
       }
 
+      const primaryStream = song.hlsManifestUrl || song.audioUrl || song.rawAudioKey;
+      const fallbackAudio = song.audioUrl || song.rawAudioKey;
+
+      // Direct stream redirect support for simple audio tags (?redirect=true)
+      if (query?.redirect === "true" || query?.redirect === "1") {
+        if (!primaryStream) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: "Not Found",
+            message: "Audio stream unavailable",
+          });
+        }
+        return reply.redirect(primaryStream, 302);
+      }
+
       return reply.status(200).send({
-        streamUrl: song.audioUrl || song.hlsManifestUrl || song.rawAudioKey,
-        audioUrl: song.audioUrl,
+        streamUrl: primaryStream,
+        audioUrl: fallbackAudio,
         hlsManifestUrl: song.hlsManifestUrl,
+        processingStatus: song.processingStatus,
         quality: wantsLossless ? "lossless" : "standard",
       });
     }

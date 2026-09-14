@@ -38,5 +38,6 @@ export interface StreamResolution {
   streamUrl: string;
   audioUrl?: string | null;
   hlsManifestUrl?: string | null;
+  processingStatus?: string | null;
   quality?: "lossless" | "standard";
 }

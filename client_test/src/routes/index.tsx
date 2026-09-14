@@ -22,7 +22,7 @@ export const Route = createFileRoute('/')({
 })
 
 function HomeComponent() {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuthStore()
 
   // High-performance client-side likes store
   const likedSongIds = useLikesStore((s) => s.likedSongIds)

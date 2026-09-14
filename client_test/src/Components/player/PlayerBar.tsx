@@ -145,6 +145,7 @@ export function PlayerBar() {
   const isShuffle = usePlayerStore((s) => s.isShuffle);
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const streamQuality = usePlayerStore((s) => s.streamQuality);
+  const streamFormat = usePlayerStore((s) => s.streamFormat);
   const userQueue = usePlayerStore((s) => s.userQueue);
   const isQueueOpen = usePlayerStore((s) => s.isQueueOpen);
 
@@ -505,12 +506,19 @@ export function PlayerBar() {
           >
             Hi-Fi FLAC
           </span>
+        ) : streamFormat === "hls" ? (
+          <span
+            title="Adaptive Bitrate HLS Stream (up to 320 kbps AAC)"
+            className="hidden lg:inline-flex items-center gap-1 font-mono text-[9px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
+          >
+            HLS ABR
+          </span>
         ) : (
           <span
-            title="Standard Bitrate Stream"
+            title="Direct Progressive Audio Stream (MP3 320k)"
             className="hidden lg:inline-flex items-center gap-1 font-mono text-[9px] uppercase text-ink-soft/70 px-1.5 py-0.5 rounded border border-line"
           >
-            320 KBPS
+            MP3 320K
           </span>
         )}
 
