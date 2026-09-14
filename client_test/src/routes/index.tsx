@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import {
-  SpiralCoverArtBig,
   SvgArtworkSpiral,
   PlayIconSVG,
   PauseIconSVG,
@@ -22,73 +21,6 @@ export const Route = createFileRoute('/')({
   component: HomeComponent,
 })
 
-interface TrackItem {
-  id: string
-  title: string
-  artist: string
-  collection: string
-  duration: string
-  tag: string
-  format: string
-}
-
-const SAMPLE_TRACKS: TrackItem[] = [
-  {
-    id: '1',
-    title: 'Atelier Session No. 1',
-    artist: 'Maison Ensemble',
-    collection: 'Late Summer MMXXVI',
-    duration: '4:18',
-    tag: 'Master Tape',
-    format: '48kHz / 24-Bit FLAC',
-  },
-  {
-    id: '2',
-    title: 'Nocturne in Rue de Sèvres',
-    artist: 'Hélène Vane',
-    collection: 'Rue de Sèvres Session',
-    duration: '5:42',
-    tag: 'Binaural',
-    format: '96kHz High-Res',
-  },
-  {
-    id: '3',
-    title: 'Acoustics & Ambient Waves',
-    artist: 'The Left Bank Quartet',
-    collection: 'Left Bank Sessions',
-    duration: '3:55',
-    tag: 'Direct-to-Disk',
-    format: 'Master FLAC',
-  },
-  {
-    id: '4',
-    title: 'Variations in Blue No. 4',
-    artist: 'Maison Ensemble',
-    collection: 'Blue Series MMXXV',
-    duration: '6:10',
-    tag: 'Audiophile',
-    format: '192kHz / 24-Bit',
-  },
-  {
-    id: '5',
-    title: 'Prelude to the Evening',
-    artist: 'Hélène Vane',
-    collection: 'Evening Echoes',
-    duration: '4:02',
-    tag: 'Studio Master',
-    format: 'Lossless ALAC',
-  },
-  {
-    id: '6',
-    title: 'Autumn in Saint-Germain',
-    artist: 'The Left Bank Quartet',
-    collection: 'Parisian Jazz Archive',
-    duration: '4:39',
-    tag: 'Direct-to-Disk',
-    format: 'Vinyl Pressing',
-  },
-]
-
 function HomeComponent() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
 
@@ -104,7 +36,8 @@ function HomeComponent() {
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true)
 
   // Player integration
-  const { currentTrack, playbackStatus, playTrack, togglePlay } = usePlayerStore()
+  const { currentTrack, playbackStatus, playTrack, togglePlay } =
+    usePlayerStore()
 
   useEffect(() => {
     let isMounted = true
@@ -169,7 +102,7 @@ function HomeComponent() {
       contextTracks,
       targetIdx >= 0 ? targetIdx : (index ?? 0),
       'home:curated',
-      'Curated Master Cuts'
+      'Curated Master Cuts',
     )
   }
 
@@ -193,9 +126,7 @@ function HomeComponent() {
         t.id === track.id
           ? {
               ...t,
-              likesCount: wasLiked
-                ? Math.max(0, prevCount - 1)
-                : prevCount + 1,
+              likesCount: wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1,
             }
           : t,
       ),
@@ -205,17 +136,13 @@ function HomeComponent() {
       const res = await toggleSongLike(track.id)
       setLiveSongs((prev) =>
         prev.map((t) =>
-          t.id === track.id
-            ? { ...t, likesCount: res.likesCount }
-            : t,
+          t.id === track.id ? { ...t, likesCount: res.likesCount } : t,
         ),
       )
     } catch {
       setLiveSongs((prev) =>
         prev.map((t) =>
-          t.id === track.id
-            ? { ...t, likesCount: prevCount }
-            : t,
+          t.id === track.id ? { ...t, likesCount: prevCount } : t,
         ),
       )
     }
@@ -326,28 +253,10 @@ function HomeComponent() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {SAMPLE_TRACKS.slice(0, 3).map((track, i) => (
-              <div
-                key={track.id}
-                className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group cursor-pointer"
-              >
-                <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
-                  <SpiralCoverArtBig i={i} />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
-                      Inspect Master
-                    </span>
-                  </div>
-                </div>
-                <div className="font-serif font-medium text-sm text-ink mb-0.5">
-                  {track.title}
-                </div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
-                  {track.format} &bull; {track.tag}
-                </div>
-              </div>
-            ))}
+          <div className="border border-line bg-panel divide-y divide-line/60">
+            <h3 className="font-serif font-medium text-sm text-ink p-5">
+              No tracks found
+            </h3>
           </div>
         )}
       </section>
@@ -455,160 +364,11 @@ function HomeComponent() {
           </div>
         ) : (
           <div className="border border-line bg-panel divide-y divide-line/60">
-            {SAMPLE_TRACKS.map((t, idx) => (
-              <div
-                key={t.id}
-                className="px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <span className="font-mono text-[10px] text-ink-soft/70 w-5">
-                    0{idx + 1}
-                  </span>
-                  <div className="truncate">
-                    <div className="font-serif font-medium text-sm text-ink group-hover:text-blue transition-colors truncate">
-                      {t.title}
-                    </div>
-                    <div className="font-mono text-[10px] text-ink-soft truncate">
-                      {t.artist} &bull; {t.collection}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-5 shrink-0 pl-3">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-ink-soft hidden sm:inline-block">
-                    {t.tag}
-                  </span>
-                  <span className="font-mono text-[10.5px] text-ink-soft">
-                    {t.duration}
-                  </span>
-                </div>
-              </div>
-            ))}
+            <h3 className="font-serif font-medium text-sm text-ink p-5">
+              No tracks found
+            </h3>
           </div>
         )}
-      </section>
-
-      {/* Session State & Entitlements Split */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Session State Card */}
-        <div className="border border-line bg-panel p-8 shadow-xs">
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
-            Telemetry · Authentication
-          </div>
-          <h2 className="font-serif italic font-normal text-2xl text-ink mb-6">
-            Session Diagnostics
-          </h2>
-
-          {isLoading ? (
-            <p className="font-mono text-xs uppercase tracking-[0.12em] text-ink-soft animate-pulse">
-              Validating cryptographic token...
-            </p>
-          ) : isAuthenticated && user ? (
-            <div className="divide-y divide-line text-xs font-sans">
-              <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Identifier:
-                </span>
-                <span className="font-mono text-[11px] text-ink truncate max-w-50">
-                  {user.id}
-                </span>
-              </div>
-              <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Email:
-                </span>
-                <span className="text-ink">{user.email}</span>
-              </div>
-              <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Curator Name:
-                </span>
-                <span className="font-medium text-ink">{user.displayName}</span>
-              </div>
-              <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Access Role:
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-blue font-medium">
-                  {user.role}
-                </span>
-              </div>
-              <div className="flex justify-between py-2.5">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Email Status:
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-widest">
-                  {user.isEmailVerified ? (
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      Verified ✓
-                    </span>
-                  ) : (
-                    <span className="text-amber-600 dark:text-amber-400">
-                      Unverified
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="py-6 text-center">
-              <p className="font-sans text-xs text-ink-soft mb-4">
-                No active session token detected in local atelier memory.
-              </p>
-              <Link
-                to="/login"
-                className="font-mono text-[10.5px] uppercase tracking-widest text-blue hover:underline"
-              >
-                Sign in to establish connection &rarr;
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Subscription Features Card */}
-        <div className="border border-line bg-panel p-8 shadow-xs">
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
-            Entitlements · Vault
-          </div>
-          <h2 className="font-serif italic font-normal text-2xl text-ink mb-6">
-            Membership Privileges
-          </h2>
-
-          {isAuthenticated && user?.plan ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-line">
-                <span className="font-mono text-[10.5px] uppercase tracking-widest text-ink-soft">
-                  Current Tier:
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.14em] px-2.5 py-1 border border-blue text-blue font-medium bg-blue/5">
-                  {user.plan.name}
-                </span>
-              </div>
-
-              <div className="bg-canvas p-4 border border-line">
-                <p className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft mb-2">
-                  Cryptographic Entitlement Schema:
-                </p>
-                <pre className="font-mono text-[11px] text-ink-soft overflow-x-auto">
-                  {JSON.stringify(user.plan.features, null, 2)}
-                </pre>
-              </div>
-            </div>
-          ) : (
-            <div className="py-6 text-center">
-              <p className="font-sans text-xs text-ink-soft mb-4">
-                Sign in to query database subscription entitlements and vault
-                limits.
-              </p>
-              <Link
-                to="/register"
-                className="font-mono text-[10.5px] uppercase tracking-widest text-blue hover:underline"
-              >
-                Join membership collective &rarr;
-              </Link>
-            </div>
-          )}
-        </div>
       </section>
     </div>
   )

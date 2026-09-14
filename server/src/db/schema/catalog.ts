@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -9,6 +10,7 @@ import {
   date,
   timestamp,
   index,
+  uniqueIndex,
   primaryKey,
   jsonb,
 } from "drizzle-orm/pg-core";
@@ -81,7 +83,12 @@ export const albums = pgTable(
   },
   (table) => [
     index("idx_albums_artist").on(table.artistId),
-    index("idx_albums_slug").on(table.slug),
+    uniqueIndex("idx_albums_slug_unique")
+      .on(table.slug)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_albums_artist_published")
+      .on(table.artistId, table.status, table.releaseDate)
+      .where(sql`${table.deletedAt} IS NULL`),
     index("idx_albums_status").on(table.status),
     index("idx_albums_scheduled_at").on(table.scheduledReleaseAt),
     index("idx_albums_visibility").on(table.visibility),
@@ -134,9 +141,14 @@ export const songs = pgTable(
   (table) => [
     index("idx_songs_artist").on(table.artistId),
     index("idx_songs_album").on(table.albumId),
+    uniqueIndex("idx_songs_artist_slug_unique")
+      .on(table.artistId, table.slug)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_songs_album_tracklist")
+      .on(table.albumId, table.discNumber, table.trackNumber)
+      .where(sql`${table.deletedAt} IS NULL`),
     index("idx_songs_status").on(table.processingStatus),
     index("idx_songs_title").on(table.title),
-    index("idx_songs_slug").on(table.slug),
     index("idx_songs_deleted_at").on(table.deletedAt),
   ]
 );

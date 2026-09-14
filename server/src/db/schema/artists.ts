@@ -9,7 +9,6 @@ import {
   jsonb,
   primaryKey,
   index,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
@@ -42,7 +41,6 @@ export const artistProfiles = pgTable(
   },
   (table) => [
     index("idx_artists_stage_name").on(table.stageName),
-    uniqueIndex("idx_artists_slug").on(table.slug),
     index("idx_artists_verification_status").on(table.verificationStatus),
   ]
 );

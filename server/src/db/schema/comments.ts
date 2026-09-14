@@ -73,6 +73,15 @@ export const comments = pgTable(
     index("idx_comments_user").on(table.userId),
     index("idx_comments_created").on(table.createdAt),
     index("idx_comments_likes").on(table.likesCount),
+    index("idx_comments_song_root")
+      .on(table.songId, table.isPinned, table.likesCount)
+      .where(sql`${table.parentId} IS NULL AND ${table.deletedAt} IS NULL`),
+    index("idx_comments_album_root")
+      .on(table.albumId, table.isPinned, table.likesCount)
+      .where(sql`${table.parentId} IS NULL AND ${table.deletedAt} IS NULL`),
+    index("idx_comments_playlist_root")
+      .on(table.playlistId, table.isPinned, table.likesCount)
+      .where(sql`${table.parentId} IS NULL AND ${table.deletedAt} IS NULL`),
     check(
       "chk_comments_single_target",
       sql`num_nonnulls(${table.songId}, ${table.albumId}, ${table.playlistId}) = 1`

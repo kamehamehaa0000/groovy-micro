@@ -102,6 +102,7 @@ export const userLibraryAlbums = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.albumId] }),
+    index("idx_user_library_albums_album").on(table.albumId),
   ]
 );
 
@@ -120,7 +121,7 @@ export const userLibraryPlaylists = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.playlistId] }),
-    index("idx_user_library_playlists_user").on(table.userId),
+    index("idx_user_library_playlists_playlist").on(table.playlistId),
   ]
 );
 

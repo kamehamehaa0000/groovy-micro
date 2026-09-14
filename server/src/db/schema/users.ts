@@ -6,7 +6,6 @@ import {
   boolean,
   integer,
   timestamp,
-  index,
 } from "drizzle-orm/pg-core";
 import {
   userRoleEnum,
@@ -42,11 +41,7 @@ export const users = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-  },
-  (table) => [
-    index("idx_users_email").on(table.email),
-    index("idx_users_google_id").on(table.googleId),
-  ]
+  }
 );
 
 export type User = typeof users.$inferSelect;

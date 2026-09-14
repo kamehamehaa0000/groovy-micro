@@ -69,9 +69,7 @@ export const userFollows = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.followerId, table.followingId] }),
-    index("idx_user_follows_follower").on(table.followerId),
-    index("idx_user_follows_following").on(table.followingId),
-    index("idx_user_follows_status").on(table.status),
+    index("idx_user_follows_incoming_status").on(table.followingId, table.status),
   ]
 );
 

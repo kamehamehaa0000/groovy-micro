@@ -27,6 +27,7 @@ export const listeningHistory = pgTable(
   },
   (table) => [
     index("idx_history_user_recent").on(table.userId, table.playedAt),
+    index("idx_history_song_recent").on(table.songId, table.playedAt),
   ]
 );
 
