@@ -37,3 +37,8 @@ Thumbs.db
 
 # Database local volume
 pgdata/
+
+# Temporary directories
+tmp/
+*.tmp
+

@@ -13,6 +13,8 @@ import { storageRoutes } from "./modules/storage";
 import { artistsRoutes, adminArtistsRoutes } from "./modules/artists";
 import { albumsRoutes, songsRoutes, studioCatalogRoutes } from "./modules/catalog";
 import { initReleaseWorker, closeReleaseQueue } from "./modules/catalog/catalog.queue";
+import { startOutboxRelay, stopOutboxRelay } from "./lib/queue/outbox.relay";
+import { transcodeQueue } from "./lib/queue/transcode.queue";
 import { subscriptionsRoutes, adminSubscriptionsRoutes } from "./modules/subscriptions";
 import { playlistsRoutes } from "./modules/playlists";
 import { commentsRoutes } from "./modules/comments";
@@ -139,6 +141,8 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
     app.log.info("✅ Redis connected successfully");
     initReleaseWorker();
     app.log.info("✅ BullMQ Release Worker initialized");
+    startOutboxRelay(10000);
+    app.log.info("✅ Outbox Relay background poller initialized");
   } catch (err: any) {
     app.log.warn(`⚠️ Redis connection deferred or failed: ${err.message}`);
   }
@@ -163,8 +167,10 @@ for (const signal of signals) {
   process.on(signal, async () => {
     app.log.info(`🔄 ${signal} received. Shutting down gracefully...`);
     try {
+      stopOutboxRelay();
       await app.close();
       await closeReleaseQueue();
+      await transcodeQueue.close();
       await redis.quit();
       await pgClient.end();
       app.log.info("👋 Server shut down completed.");

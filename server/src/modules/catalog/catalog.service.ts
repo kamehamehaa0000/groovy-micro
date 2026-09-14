@@ -23,11 +23,13 @@ import {
   songLikes,
   artistProfiles,
   releasePresaves,
+  outboxEvents,
 } from "../../db/schema";
 import {
   scheduleReleaseJob,
   cancelScheduledReleaseJob,
 } from "./catalog.queue";
+import { enqueueTranscodeJob } from "../../lib/queue/transcode.queue";
 import type {
   CreateAlbumInput,
   UpdateAlbumInput,
@@ -168,6 +170,13 @@ export class CatalogService {
     const shareToken =
       visibility === "UNLISTED" ? randomBytes(16).toString("hex") : null;
 
+    const pendingTranscodeJobs: Array<{
+      songId: string;
+      rawAudioKey: string;
+      title: string;
+      artistId: string;
+    }> = [];
+
     const result = await db.transaction(async (tx) => {
       const albumCoverUrl = this.ensureFullUrl(input.coverImageUrl)!;
 
@@ -230,9 +239,29 @@ export class CatalogService {
               rawAudioKey: trackInput.rawAudioKey ?? null,
               audioUrl: trackAudioUrl,
               coverImageUrl: trackCoverUrl,
-              processingStatus: trackAudioUrl ? "READY" : "PENDING",
+              processingStatus: trackInput.rawAudioKey ? "PENDING" : trackAudioUrl ? "READY" : "PENDING",
             })
             .returning();
+
+          if (trackInput.rawAudioKey) {
+            await tx.insert(outboxEvents).values({
+              aggregateType: "SONG",
+              aggregateId: newSong.id,
+              eventType: "SONG_UPLOADED",
+              payload: {
+                songId: newSong.id,
+                rawAudioKey: trackInput.rawAudioKey,
+                title: newSong.title,
+                artistId: artist.id,
+              },
+            });
+            pendingTranscodeJobs.push({
+              songId: newSong.id,
+              rawAudioKey: trackInput.rawAudioKey,
+              title: newSong.title,
+              artistId: artist.id,
+            });
+          }
 
           totalDuration += trackInput.durationSeconds;
 
@@ -275,6 +304,28 @@ export class CatalogService {
         tracks: createdTracks,
       };
     });
+
+    // Dispatch optimistic fast-path transcode jobs
+    for (const job of pendingTranscodeJobs) {
+      enqueueTranscodeJob(job)
+        .then(async () => {
+          await db
+            .update(outboxEvents)
+            .set({ publishedAt: new Date() })
+            .where(
+              and(
+                eq(outboxEvents.aggregateId, job.songId),
+                eq(outboxEvents.eventType, "SONG_UPLOADED")
+              )
+            );
+        })
+        .catch((err) => {
+          console.warn(
+            `[Catalog] Fast-path enqueue failed for song ${job.songId}:`,
+            err.message
+          );
+        });
+    }
 
     if (isScheduled) {
       await scheduleReleaseJob(result);
@@ -756,9 +807,27 @@ export class CatalogService {
           rawAudioKey: input.rawAudioKey ?? null,
           audioUrl: finalAudioUrl,
           coverImageUrl: finalCoverUrl,
-          processingStatus: finalAudioUrl ? "READY" : "PENDING",
+          processingStatus: input.rawAudioKey
+            ? "PENDING"
+            : finalAudioUrl
+              ? "READY"
+              : "PENDING",
         })
         .returning();
+
+      if (input.rawAudioKey) {
+        await tx.insert(outboxEvents).values({
+          aggregateType: "SONG",
+          aggregateId: newSong.id,
+          eventType: "SONG_UPLOADED",
+          payload: {
+            songId: newSong.id,
+            rawAudioKey: input.rawAudioKey,
+            title: newSong.title,
+            artistId: artist.id,
+          },
+        });
+      }
 
       // Add primary artist credit
       await tx.insert(songCredits).values({
@@ -797,6 +866,33 @@ export class CatalogService {
 
       return newSong;
     });
+
+    if (input.rawAudioKey) {
+      const transcodePayload = {
+        songId: createdSong.id,
+        rawAudioKey: input.rawAudioKey,
+        title: createdSong.title,
+        artistId: artist.id,
+      };
+      enqueueTranscodeJob(transcodePayload)
+        .then(async () => {
+          await db
+            .update(outboxEvents)
+            .set({ publishedAt: new Date() })
+            .where(
+              and(
+                eq(outboxEvents.aggregateId, createdSong.id),
+                eq(outboxEvents.eventType, "SONG_UPLOADED")
+              )
+            );
+        })
+        .catch((err) => {
+          console.warn(
+            `[Catalog] Fast-path enqueue failed for song ${createdSong.id}:`,
+            err.message
+          );
+        });
+    }
 
     if (targetAlbumId) {
       await cacheManager.invalidateAlbum({
@@ -976,6 +1072,11 @@ export class CatalogService {
       }
 
       // Update song
+      const rawAudioChanged =
+        input.rawAudioKey !== undefined &&
+        input.rawAudioKey &&
+        input.rawAudioKey !== existing.rawAudioKey;
+
       const [updated] = await tx
         .update(songs)
         .set({
@@ -997,7 +1098,16 @@ export class CatalogService {
             ? { allowComments: input.allowComments }
             : {}),
           ...(input.rawAudioKey !== undefined
-            ? { rawAudioKey: input.rawAudioKey }
+            ? {
+                rawAudioKey: input.rawAudioKey,
+                ...(rawAudioChanged
+                  ? {
+                      processingStatus: "PENDING" as const,
+                      hlsManifestUrl: null,
+                      processingError: null,
+                    }
+                  : {}),
+              }
             : {}),
           ...(input.audioUrl !== undefined
             ? { audioUrl: this.ensureFullUrl(input.audioUrl) }
@@ -1011,6 +1121,20 @@ export class CatalogService {
         })
         .where(eq(songs.id, songId))
         .returning();
+
+      if (rawAudioChanged && input.rawAudioKey) {
+        await tx.insert(outboxEvents).values({
+          aggregateType: "SONG",
+          aggregateId: songId,
+          eventType: "SONG_UPLOADED",
+          payload: {
+            songId,
+            rawAudioKey: input.rawAudioKey,
+            title: updated.title,
+            artistId: artist.id,
+          },
+        });
+      }
 
       // Recalculate aggregates if album changed
       if (oldAlbumId !== finalAlbumId) {
@@ -1065,6 +1189,33 @@ export class CatalogService {
       return updated;
     });
 
+    if (input.rawAudioKey && input.rawAudioKey !== existing.rawAudioKey) {
+      const transcodePayload = {
+        songId: updatedSong.id,
+        rawAudioKey: input.rawAudioKey,
+        title: updatedSong.title,
+        artistId: artist.id,
+      };
+      enqueueTranscodeJob(transcodePayload)
+        .then(async () => {
+          await db
+            .update(outboxEvents)
+            .set({ publishedAt: new Date() })
+            .where(
+              and(
+                eq(outboxEvents.aggregateId, updatedSong.id),
+                eq(outboxEvents.eventType, "SONG_UPLOADED")
+              )
+            );
+        })
+        .catch((err) => {
+          console.warn(
+            `[Catalog] Fast-path enqueue failed for song ${updatedSong.id}:`,
+            err.message
+          );
+        });
+    }
+
     await cacheManager.invalidateSong({
       id: songId,
       albumId: updatedSong.albumId,
@@ -1075,6 +1226,66 @@ export class CatalogService {
     }
 
     return updatedSong;
+  }
+
+  /**
+   * Triggers on-demand re-transcoding for a song.
+   * Can be invoked by the song's artist or an admin.
+   */
+  async retranscodeSong(userId: string, songId: string) {
+    const artist = await this.getArtistByUserId(userId);
+
+    const [song] = await db
+      .select()
+      .from(songs)
+      .where(and(eq(songs.id, songId), eq(songs.artistId, artist.id)))
+      .limit(1);
+
+    if (!song) {
+      throw new Error("Song not found or you do not have permission");
+    }
+
+    if (!song.rawAudioKey) {
+      throw new Error("Cannot transcode song without rawAudioKey");
+    }
+
+    // Reset status to PENDING
+    await db
+      .update(songs)
+      .set({
+        processingStatus: "PENDING",
+        processingError: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(songs.id, songId));
+
+    // Record outbox event
+    await db.insert(outboxEvents).values({
+      aggregateType: "SONG",
+      aggregateId: song.id,
+      eventType: "SONG_UPLOADED",
+      payload: {
+        songId: song.id,
+        rawAudioKey: song.rawAudioKey,
+        title: song.title,
+        artistId: artist.id,
+      },
+    });
+
+    // Push to queue
+    const jobId = await enqueueTranscodeJob({
+      songId: song.id,
+      rawAudioKey: song.rawAudioKey,
+      title: song.title,
+      artistId: artist.id,
+    });
+
+    return {
+      success: true,
+      message: "Song transcode job enqueued successfully",
+      jobId,
+      songId: song.id,
+    };
   }
 
   /**

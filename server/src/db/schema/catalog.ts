@@ -10,6 +10,7 @@ import {
   timestamp,
   index,
   primaryKey,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { artistProfiles } from "./artists";
 import { users } from "./users";
@@ -20,6 +21,27 @@ import {
   releaseStatusEnum,
   releaseVisibilityEnum,
 } from "./enums";
+
+export interface SongAudioAnalysis {
+  durationSeconds: number;
+  specs: {
+    format: string;
+    sampleRate: number;
+    channels: number;
+    bitDepth?: number;
+    bitrateKbps?: number;
+  };
+  loudness?: {
+    integratedLufs: number;
+    truePeakDbfs: number;
+    loudnessRangeLu: number;
+  };
+  waveform?: number[];
+  musical?: {
+    bpm?: number;
+    key?: string;
+  };
+}
 
 export const albums = pgTable(
   "albums",
@@ -94,6 +116,7 @@ export const songs = pgTable(
       .notNull()
       .default("PENDING"),
     processingError: text("processing_error"),
+    audioAnalysis: jsonb("audio_analysis").$type<SongAudioAnalysis>(),
 
     // Cached Counter Aggregates
     allowComments: boolean("allow_comments").notNull().default(true),

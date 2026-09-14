@@ -536,6 +536,28 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * POST /:id/transcode
+   * Triggers on-demand audio re-transcoding for a song.
+   */
+  fastify.post(
+    "/:id/transcode",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.retranscodeSong(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to trigger transcoding",
+        });
+      }
+    }
+  );
+
+  /**
    * POST /:id/restore
    * Restores a soft-deleted song.
    */
