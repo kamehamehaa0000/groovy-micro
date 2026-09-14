@@ -26,6 +26,7 @@ export interface TelemetryPayload {
   songId: string;
   durationListenedSeconds: number;
   completed?: boolean;
+  countPlay?: boolean;
 }
 
 export interface RecentHistoryItem {

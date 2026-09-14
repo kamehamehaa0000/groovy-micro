@@ -3,6 +3,7 @@ import { db } from "../../db";
 import { redis } from "../../db/redis";
 import { listeningHistory, songs, albums, artistProfiles, users, userFollows } from "../../db/schema";
 import { cacheKeys } from "../../lib/cache/keys";
+import { cacheManager } from "../../lib/cache";
 import type {
   SavePlayerStateInput,
   PlayerStateSnapshot,
@@ -166,8 +167,10 @@ export class PlayerService {
     userId: string | null,
     input: TelemetryPlayInput
   ): Promise<{ success: boolean }> {
-    // 1. Atomic in-memory Redis increment
-    await redis.hincrby(cacheKeys.telemetry.songPlaysBuffer(), input.songId, 1);
+    // 1. Atomic in-memory Redis increment (only if play qualifies)
+    if (input.countPlay !== false) {
+      await redis.hincrby(cacheKeys.telemetry.songPlaysBuffer(), input.songId, 1);
+    }
 
     // 2. Durable user history record
     if (userId) {
@@ -246,13 +249,19 @@ export class PlayerService {
     for (const [songId, countStr] of Object.entries(allCounts)) {
       const increment = parseInt(countStr, 10);
       if (Number.isFinite(increment) && increment > 0) {
-        await redis.hincrby(key, songId, -increment);
+        const remaining = await redis.hincrby(key, songId, -increment);
+        if (remaining <= 0) {
+          await redis.hdel(key, songId);
+        }
         await db
           .update(songs)
           .set({
             playsCount: sql`${songs.playsCount} + ${increment}`,
           })
           .where(eq(songs.id, songId));
+
+        // Invalidate song cache so UI updates immediately with fresh playsCount
+        await cacheManager.invalidate(cacheKeys.catalog.song(songId));
         totalFlushed += increment;
       }
     }
@@ -352,5 +361,41 @@ export class PlayerService {
     }
 
     return activities;
+  }
+}
+
+export const playerService = new PlayerService();
+
+let flushTimer: ReturnType<typeof setInterval> | null = null;
+let isFlushing = false;
+
+/**
+ * Starts the background recurring timer to flush buffered play counts from Redis to PostgreSQL.
+ */
+export function startPlayCountFlushTimer(intervalMs: number = 30000): void {
+  if (flushTimer) return;
+  flushTimer = setInterval(async () => {
+    if (isFlushing) return;
+    isFlushing = true;
+    try {
+      const count = await playerService.flushPlayCountsToDatabase();
+      if (count > 0) {
+        console.log(`[PlayerService] Flushed ${count} play increment(s) to database.`);
+      }
+    } catch (err) {
+      console.error("[PlayerService] Failed to flush play counts to database:", err);
+    } finally {
+      isFlushing = false;
+    }
+  }, intervalMs);
+}
+
+/**
+ * Stops the background play count flush timer.
+ */
+export function stopPlayCountFlushTimer(): void {
+  if (flushTimer) {
+    clearInterval(flushTimer);
+    flushTimer = null;
   }
 }

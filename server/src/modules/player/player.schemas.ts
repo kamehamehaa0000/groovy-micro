@@ -80,6 +80,7 @@ export const telemetryPlaySchema = z.object({
   songId: z.string().uuid("Invalid song UUID"),
   durationListenedSeconds: z.coerce.number().int().nonnegative().default(30),
   completed: z.boolean().default(false),
+  countPlay: z.boolean().default(true),
 });
 
 export type TelemetryPlayInput = z.infer<typeof telemetryPlaySchema>;

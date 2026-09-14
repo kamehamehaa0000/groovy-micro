@@ -18,7 +18,12 @@ import { transcodeQueue } from "./lib/queue/transcode.queue";
 import { subscriptionsRoutes, adminSubscriptionsRoutes } from "./modules/subscriptions";
 import { playlistsRoutes } from "./modules/playlists";
 import { commentsRoutes } from "./modules/comments";
-import { playerRoutes } from "./modules/player";
+import {
+  playerRoutes,
+  playerService,
+  startPlayCountFlushTimer,
+  stopPlayCountFlushTimer,
+} from "./modules/player";
 import { socialRoutes } from "./modules/social";
 import { searchRoutes } from "./modules/search";
 
@@ -143,9 +148,16 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
     app.log.info("✅ BullMQ Release Worker initialized");
     startOutboxRelay(10000);
     app.log.info("✅ Outbox Relay background poller initialized");
+    startPlayCountFlushTimer(30000);
+    app.log.info("✅ Player Play Count Flush background timer initialized (30s interval)");
   } catch (err: any) {
     app.log.warn(`⚠️ Redis connection deferred or failed: ${err.message}`);
   }
+
+  app.addHook("onClose", async () => {
+    stopOutboxRelay();
+    stopPlayCountFlushTimer();
+  });
 
   // 5. Start Server (if listen enabled)
   if (options.listen !== false) {
@@ -168,6 +180,10 @@ for (const signal of signals) {
     app.log.info(`🔄 ${signal} received. Shutting down gracefully...`);
     try {
       stopOutboxRelay();
+      stopPlayCountFlushTimer();
+      await playerService.flushPlayCountsToDatabase().catch((err) => {
+        app.log.warn(err, "Failed to flush play counts during graceful shutdown");
+      });
       await app.close();
       await closeReleaseQueue();
       await transcodeQueue.close();

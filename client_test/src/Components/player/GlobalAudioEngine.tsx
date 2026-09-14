@@ -432,6 +432,7 @@ export function GlobalAudioEngine() {
           songId: currentTrack.id,
           durationListenedSeconds: Math.floor(currentTime),
           completed: false,
+          countPlay: true,
         })
         .catch(() => {});
     }
@@ -548,11 +549,13 @@ export function GlobalAudioEngine() {
       onPause={() => _setStatus("paused")}
       onEnded={() => {
         if (currentTrack) {
+          const alreadyCounted = qualifiedReportedTrackIdRef.current === currentTrack.id;
           playerApi
             .sendTelemetry({
               songId: currentTrack.id,
               durationListenedSeconds: Math.floor(audioRef.current?.currentTime || 0),
               completed: true,
+              countPlay: !alreadyCounted,
             })
             .catch(() => {});
         }
