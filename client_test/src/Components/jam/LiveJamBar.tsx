@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useJamStore } from "../../stores/jam.store";
 import { useAuthStore } from "../../stores/auth.store";
+import { usePlayerStore } from "../../stores/player.store";
 
 export function LiveJamBar() {
   const activeRoom = useJamStore((s) => s.activeRoom);
   const isHost = useJamStore((s) => s.isHost);
   const members = useJamStore((s) => s.members);
   const syncStatus = useJamStore((s) => s.syncStatus);
+  const needsGesture = useJamStore((s) => s.needsGesture);
   const leaveRoom = useJamStore((s) => s.leaveRoom);
   const transferHost = useJamStore((s) => s.transferHost);
   const openModal = useJamStore((s) => s.openModal);
@@ -85,6 +87,24 @@ export function LiveJamBar() {
               </span>
             )}
           </div>
+        )}
+
+        {/* Browser Autoplay Gesture Prompt */}
+        {needsGesture && (
+          <button
+            type="button"
+            onClick={() => {
+              usePlayerStore.getState().resume();
+              useJamStore.getState().setNeedsGesture(false);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-[11px] shadow-lg animate-bounce transition cursor-pointer"
+            title="Browser blocked autoplay on reload. Tap to synchronize live audio playback."
+          >
+            <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <span>Tap to Sync Audio</span>
+          </button>
         )}
       </div>
 

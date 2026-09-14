@@ -197,6 +197,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       get().clearAuth();
       usePlayerStore.getState().stopPlayback();
+      import("./jam.store").then(({ useJamStore }) => {
+        useJamStore.getState().leaveRoom();
+      }).catch(() => {});
     }
   },
 
@@ -206,6 +209,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       get().clearAuth();
       usePlayerStore.getState().stopPlayback();
+      import("./jam.store").then(({ useJamStore }) => {
+        useJamStore.getState().leaveRoom();
+      }).catch(() => {});
     }
   },
 

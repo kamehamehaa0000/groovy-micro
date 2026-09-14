@@ -90,6 +90,7 @@ interface PlayerState {
   _setDuration: (duration: number) => void;
   _setError: (err: string | null) => void;
   _setStreamQuality: (quality: "lossless" | "standard") => void;
+  syncJamPlayback: (track: PlayerTrack, positionSeconds: number, status: PlaybackStatus) => void;
 
   // Persistence & Sync
   initializeSync: (force?: boolean) => Promise<void>;
@@ -531,6 +532,30 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   _setError: (err) => set({ errorMessage: err, playbackStatus: err ? "error" : "paused" }),
   _setStreamQuality: (quality) => set({ streamQuality: quality }),
 
+  // Jam-controlled internal sync (no outbound WebSocket broadcasts)
+  syncJamPlayback: (track, positionSeconds, status) => {
+    const current = get().currentTrack;
+    const isDifferentTrack = !current || current.id !== track.id;
+
+    if (isDifferentTrack) {
+      set({
+        currentTrack: track,
+        duration: track.durationSeconds || 0,
+        currentTime: positionSeconds,
+        playbackStatus: status === "playing" ? "loading" : "paused",
+        errorMessage: null,
+        supersededByDevice: null,
+      });
+    } else {
+      set({
+        currentTime: positionSeconds,
+        playbackStatus: status,
+        errorMessage: null,
+        supersededByDevice: null,
+      });
+    }
+  },
+
   // 0ms localStorage + Debounced Redis Server Sync
   saveSnapshot: () => {
     const state = get();
@@ -583,6 +608,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   initializeSync: async (force = false) => {
     if (get().isInitialized && !force) return;
 
+    // Check if an active Jam session is active or saved in storage
+    const activeJamRoomCode = localStorage.getItem("groovy:jam:active_room_code");
+
     // 1. Instant 0ms hydration from localStorage (skip if force refreshing after auth transition)
     if (!force) {
       try {
@@ -590,9 +618,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         if (raw) {
           const local = JSON.parse(raw) as PlayerStateSnapshot;
           set({
-            currentTrack: local.currentTrack,
-            currentTime: local.playbackPosition || 0,
-            duration: local.currentTrack?.durationSeconds || 0,
+            currentTrack: activeJamRoomCode ? get().currentTrack : local.currentTrack,
+            currentTime: activeJamRoomCode ? get().currentTime : (local.playbackPosition || 0),
+            duration: activeJamRoomCode ? get().duration : (local.currentTrack?.durationSeconds || 0),
             volume: local.volume ?? 0.8,
             isMuted: local.isMuted ?? false,
             isShuffle: local.isShuffle ?? false,
@@ -603,7 +631,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             contextIndex: local.contextIndex || 0,
             contextUri: local.contextUri || null,
             contextTitle: local.contextTitle || null,
-            playbackStatus: "paused", // Always start paused on page load
+            playbackStatus: activeJamRoomCode ? get().playbackStatus : "paused", // Always start paused on solo page load
             isInitialized: true,
           });
         }
@@ -622,23 +650,37 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const res = await playerApi.getPlayerState();
       if (res && res.state && res.state.currentTrack) {
         const serverState = res.state;
-        set({
-          currentTrack: serverState.currentTrack,
-          currentTime: serverState.playbackPosition || 0,
-          duration: serverState.currentTrack?.durationSeconds || 0,
-          volume: serverState.volume ?? 0.8,
-          isMuted: serverState.isMuted ?? false,
-          isShuffle: serverState.isShuffle ?? false,
-          repeatMode: serverState.repeatMode ?? "off",
-          userQueue: serverState.userQueue || [],
-          contextQueue: serverState.contextQueue || [],
-          originalContextQueue: serverState.contextQueue || [],
-          contextIndex: serverState.contextIndex || 0,
-          contextUri: serverState.contextUri || null,
-          contextTitle: serverState.contextTitle || null,
-          playbackStatus: "paused",
-          isInitialized: true,
-        });
+        const currentJamCode = localStorage.getItem("groovy:jam:active_room_code");
+
+        if (currentJamCode) {
+          // If Jam is active, DO NOT overwrite track, position, or playbackStatus with stale solo snapshot!
+          set({
+            volume: serverState.volume ?? 0.8,
+            isMuted: serverState.isMuted ?? false,
+            isShuffle: serverState.isShuffle ?? false,
+            repeatMode: serverState.repeatMode ?? "off",
+            userQueue: serverState.userQueue || [],
+            isInitialized: true,
+          });
+        } else {
+          set({
+            currentTrack: serverState.currentTrack,
+            currentTime: serverState.playbackPosition || 0,
+            duration: serverState.currentTrack?.durationSeconds || 0,
+            volume: serverState.volume ?? 0.8,
+            isMuted: serverState.isMuted ?? false,
+            isShuffle: serverState.isShuffle ?? false,
+            repeatMode: serverState.repeatMode ?? "off",
+            userQueue: serverState.userQueue || [],
+            contextQueue: serverState.contextQueue || [],
+            originalContextQueue: serverState.contextQueue || [],
+            contextIndex: serverState.contextIndex || 0,
+            contextUri: serverState.contextUri || null,
+            contextTitle: serverState.contextTitle || null,
+            playbackStatus: "paused",
+            isInitialized: true,
+          });
+        }
       }
     } catch {
       // Not authenticated or network down

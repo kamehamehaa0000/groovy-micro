@@ -58,6 +58,7 @@ export type ClientMessage =
       privacy?: RoomPrivacy;
       allowGuestQueue?: boolean;
       initialTrack?: PlayerTrack;
+      initialPositionMs?: number;
     }
   | { type: "ROOM_JOIN"; roomCode: string }
   | { type: "ROOM_LEAVE" }

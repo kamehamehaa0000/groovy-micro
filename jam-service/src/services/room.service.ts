@@ -45,6 +45,7 @@ export class RoomService {
       privacy?: RoomPrivacy;
       allowGuestQueue?: boolean;
       initialTrack?: PlayerTrack;
+      initialPositionMs?: number;
       friendIds?: string[];
     }
   ): Promise<{ room: JamRoomMeta; hostMember: RoomMember }> {
@@ -59,7 +60,7 @@ export class RoomService {
       allowGuestQueue: options?.allowGuestQueue ?? true,
       playbackState: options?.initialTrack ? "PLAYING" : "PAUSED",
       currentTrack: options?.initialTrack || null,
-      anchorPositionMs: 0,
+      anchorPositionMs: Math.max(0, options?.initialPositionMs ?? 0),
       anchorServerTime: now,
       createdAt: now,
       lastActivity: now,

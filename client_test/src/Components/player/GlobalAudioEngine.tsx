@@ -111,9 +111,17 @@ export function GlobalAudioEngine() {
           }
 
           if (targetStatus === "playing" || targetStatus === "loading") {
-            audio.play().catch(() => {
-              _setStatus("paused");
-            });
+            audio
+              .play()
+              .then(() => {
+                useJamStore.getState().setNeedsGesture(false);
+              })
+              .catch((err) => {
+                if (err?.name === "NotAllowedError" && useJamStore.getState().activeRoom) {
+                  useJamStore.getState().setNeedsGesture(true);
+                }
+                _setStatus("paused");
+              });
           } else {
             _setStatus("paused");
           }
@@ -206,7 +214,17 @@ export function GlobalAudioEngine() {
         return;
       }
       if (audio.paused) {
-        audio.play().catch(() => _setStatus("paused"));
+        audio
+          .play()
+          .then(() => {
+            useJamStore.getState().setNeedsGesture(false);
+          })
+          .catch((err) => {
+            if (err?.name === "NotAllowedError" && useJamStore.getState().activeRoom) {
+              useJamStore.getState().setNeedsGesture(true);
+            }
+            _setStatus("paused");
+          });
       }
     } else if (playbackStatus === "paused" && !audio.paused) {
       audio.pause();
@@ -415,8 +433,14 @@ export function GlobalAudioEngine() {
         }
       }}
       onWaiting={() => _setStatus("loading")}
-      onPlay={() => _setStatus("playing")}
-      onPlaying={() => _setStatus("playing")}
+      onPlay={() => {
+        useJamStore.getState().setNeedsGesture(false);
+        _setStatus("playing");
+      }}
+      onPlaying={() => {
+        useJamStore.getState().setNeedsGesture(false);
+        _setStatus("playing");
+      }}
       onCanPlay={() => {
         if (audioRef.current) {
           const audio = audioRef.current;

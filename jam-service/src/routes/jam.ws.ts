@@ -170,6 +170,7 @@ export async function jamWebSocketRoutes(fastify: FastifyInstance): Promise<void
               privacy: message.privacy,
               allowGuestQueue: message.allowGuestQueue,
               initialTrack: message.initialTrack,
+              initialPositionMs: message.initialPositionMs,
             });
 
             currentRoomCode = created.room.roomCode;

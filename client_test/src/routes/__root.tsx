@@ -75,6 +75,7 @@ function RootComponent() {
       useEntitlementsStore.getState().initializeEntitlements()
       usePlaylistsStore.getState().initializePlaylists()
       usePlayerStore.getState().initializeSync(true)
+      useJamStore.getState().reconnectActiveRoom()
     } else {
       useLikesStore.getState().clearLikes()
       useFollowsStore.getState().clearFollows()

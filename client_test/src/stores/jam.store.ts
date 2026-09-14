@@ -33,6 +33,7 @@ interface JamStoreState {
   rttMs: number;
   errorMessage: string | null;
   isModalOpen: boolean;
+  needsGesture: boolean;
 
   // Actions
   openModal: () => void;
@@ -40,6 +41,7 @@ interface JamStoreState {
   connect: () => Promise<WebSocket>;
   disconnect: () => void;
   syncClock: () => Promise<void>;
+  reconnectActiveRoom: () => Promise<void>;
 
   createRoom: (privacy?: RoomPrivacy, allowGuestQueue?: boolean) => Promise<string>;
   joinRoom: (roomCode: string) => Promise<void>;
@@ -59,6 +61,7 @@ interface JamStoreState {
 
   // Internal setters
   setSyncStatus: (status: JamSyncStatus) => void;
+  setNeedsGesture: (needsGesture: boolean) => void;
   _handleServerMessage: (msg: ServerMessage) => void;
 }
 
@@ -76,11 +79,13 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
   rttMs: 0,
   errorMessage: null,
   isModalOpen: false,
+  needsGesture: false,
 
   openModal: () => set({ isModalOpen: true }),
   closeModal: () => set({ isModalOpen: false, errorMessage: null }),
 
   setSyncStatus: (syncStatus) => set({ syncStatus }),
+  setNeedsGesture: (needsGesture) => set({ needsGesture }),
 
   connect: async () => {
     const existingWs = get().ws;
@@ -202,9 +207,29 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     }
   },
 
+  reconnectActiveRoom: async () => {
+    try {
+      const savedCode = localStorage.getItem("groovy:jam:active_room_code");
+      if (!savedCode) return;
+
+      const current = get().activeRoom;
+      if (current && current.roomCode.toUpperCase() === savedCode.toUpperCase()) {
+        return;
+      }
+
+      await get().joinRoom(savedCode);
+    } catch (err) {
+      console.warn("[JamStore] Failed to reconnect active room, clearing saved session:", err);
+      try {
+        localStorage.removeItem("groovy:jam:active_room_code");
+      } catch {}
+    }
+  },
+
   createRoom: async (privacy = "FRIENDS_ONLY", allowGuestQueue = true) => {
     const ws = await get().connect();
     const currentTrack = usePlayerStore.getState().currentTrack;
+    const currentTime = usePlayerStore.getState().currentTime;
 
     let initialTrack: JamTrack | undefined;
     if (currentTrack) {
@@ -231,6 +256,9 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           const msg = JSON.parse(event.data.toString());
           if (msg.type === "ROOM_STATE") {
             ws.removeEventListener("message", handler);
+            try {
+              localStorage.setItem("groovy:jam:active_room_code", msg.room.roomCode);
+            } catch {}
             resolve(msg.room.roomCode);
           } else if (msg.type === "ERROR") {
             ws.removeEventListener("message", handler);
@@ -248,14 +276,21 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           privacy,
           allowGuestQueue,
           initialTrack,
+          initialPositionMs: Math.floor(currentTime * 1000),
         })
       );
     });
   },
 
   joinRoom: async (roomCode: string) => {
-    const ws = await get().connect();
     const code = roomCode.toUpperCase().trim();
+    const { activeRoom, ws: currentWs } = get();
+
+    if (activeRoom && activeRoom.roomCode.toUpperCase() === code && currentWs?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    const ws = await get().connect();
 
     return new Promise<void>((resolve, reject) => {
       const handler = (event: MessageEvent) => {
@@ -263,9 +298,15 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           const msg = JSON.parse(event.data.toString());
           if (msg.type === "ROOM_STATE") {
             ws.removeEventListener("message", handler);
+            try {
+              localStorage.setItem("groovy:jam:active_room_code", code);
+            } catch {}
             resolve();
           } else if (msg.type === "ERROR") {
             ws.removeEventListener("message", handler);
+            try {
+              localStorage.removeItem("groovy:jam:active_room_code");
+            } catch {}
             reject(new Error(msg.message));
           }
         } catch {
@@ -283,12 +324,16 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "ROOM_LEAVE" }));
     }
+    try {
+      localStorage.removeItem("groovy:jam:active_room_code");
+    } catch {}
     set({
       activeRoom: null,
       isHost: false,
       members: [],
       jamQueue: [],
       syncStatus: "disconnected",
+      needsGesture: false,
     });
   },
 
@@ -354,8 +399,13 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           syncStatus: "synced",
         });
 
-        // If user is a Listener joining an active room with track:
-        if (!isHost && msg.room.currentTrack) {
+        // Persist active room code for seamless reload recovery
+        try {
+          localStorage.setItem("groovy:jam:active_room_code", msg.room.roomCode);
+        } catch {}
+
+        // Both Host and Listener authoritatively adopt the room's track and position
+        if (msg.room.currentTrack) {
           const track = msg.room.currentTrack;
           const playerTrack: PlayerTrack = {
             id: track.id,
@@ -373,17 +423,19 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
             rawAudioKey: track.rawAudioKey,
           };
 
-          // If track isn't loaded, load it
-          const current = usePlayerStore.getState().currentTrack;
-          if (!current || current.id !== track.id) {
-            usePlayerStore.getState().playTrack(playerTrack);
-          }
+          const clockOffset = get().clockOffsetMs;
+          const nowServer = Date.now() + clockOffset;
+          const isPlaying = msg.room.playbackState === "PLAYING";
+          const targetSeconds = isPlaying
+            ? Math.max(0, (msg.room.anchorPositionMs + (nowServer - msg.room.anchorServerTime)) / 1000)
+            : Math.max(0, msg.room.anchorPositionMs / 1000);
 
-          if (msg.room.playbackState === "PAUSED") {
-            usePlayerStore.getState().pause();
-          } else if (msg.room.playbackState === "PLAYING") {
-            usePlayerStore.getState().resume();
-          }
+          // Authoritatively synchronize player store without triggering outbound broadcast
+          usePlayerStore.getState().syncJamPlayback(
+            playerTrack,
+            targetSeconds,
+            isPlaying ? "playing" : "paused"
+          );
         }
         break;
       }
@@ -443,33 +495,36 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
 
         // If user is a Listener, react to host's playback action:
         if (!isHost) {
-          if (msg.currentTrack) {
-            const track = msg.currentTrack;
-            const current = usePlayerStore.getState().currentTrack;
-            if (!current || current.id !== track.id) {
-              usePlayerStore.getState().playTrack({
-                id: track.id,
-                title: track.title,
-                artistId: track.artistId || "",
-                artistName: track.artistName || "Unknown Artist",
-                artistSlug: track.artistSlug,
-                albumId: track.albumId,
-                albumTitle: track.albumTitle,
-                albumSlug: track.albumSlug,
-                durationSeconds: track.duration,
-                coverImageUrl: track.artworkUrl ?? undefined,
-                audioUrl: track.audioUrl,
-                hlsManifestUrl: track.hlsManifestUrl,
-                rawAudioKey: track.rawAudioKey,
-              });
-            }
-          }
+          const activeTrack = msg.currentTrack || get().activeRoom?.currentTrack;
+          const isPlaying = msg.playbackState === "PLAYING";
+          const clockOffset = get().clockOffsetMs;
+          const nowServer = Date.now() + clockOffset;
+          const targetSeconds = isPlaying
+            ? Math.max(0, (msg.anchorPositionMs + (nowServer - msg.anchorServerTime)) / 1000)
+            : Math.max(0, msg.anchorPositionMs / 1000);
 
-          if (msg.playbackState === "PAUSED") {
-            usePlayerStore.getState().pause();
-            usePlayerStore.getState().seek(msg.anchorPositionMs / 1000);
-          } else if (msg.playbackState === "PLAYING") {
-            usePlayerStore.getState().resume();
+          if (activeTrack) {
+            const playerTrack: PlayerTrack = {
+              id: activeTrack.id,
+              title: activeTrack.title,
+              artistId: activeTrack.artistId || "",
+              artistName: activeTrack.artistName || "Unknown Artist",
+              artistSlug: activeTrack.artistSlug,
+              albumId: activeTrack.albumId,
+              albumTitle: activeTrack.albumTitle,
+              albumSlug: activeTrack.albumSlug,
+              durationSeconds: activeTrack.duration,
+              coverImageUrl: activeTrack.artworkUrl ?? undefined,
+              audioUrl: activeTrack.audioUrl,
+              hlsManifestUrl: activeTrack.hlsManifestUrl,
+              rawAudioKey: activeTrack.rawAudioKey,
+            };
+
+            usePlayerStore.getState().syncJamPlayback(
+              playerTrack,
+              targetSeconds,
+              isPlaying ? "playing" : "paused"
+            );
           }
         }
         break;
@@ -481,6 +536,9 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
       }
 
       case "ROOM_CLOSED": {
+        try {
+          localStorage.removeItem("groovy:jam:active_room_code");
+        } catch {}
         set({
           activeRoom: null,
           isHost: false,
@@ -488,6 +546,7 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           jamQueue: [],
           syncStatus: "disconnected",
           errorMessage: msg.reason || "Room has closed",
+          needsGesture: false,
         });
         break;
       }
