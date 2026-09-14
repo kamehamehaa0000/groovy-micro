@@ -176,35 +176,100 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
 
     get().saveSnapshot();
+
+    // Live Jam: Broadcast track change if active host
+    import("./jam.store").then(({ useJamStore }) => {
+      const { isHost, activeRoom, broadcastTrackChange } = useJamStore.getState();
+      if (isHost && activeRoom) {
+        broadcastTrackChange(
+          {
+            id: track.id,
+            title: track.title,
+            artistId: track.artistId,
+            artistName: track.artistName,
+            artistSlug: track.artistSlug,
+            albumId: track.albumId,
+            albumTitle: track.albumTitle,
+            albumSlug: track.albumSlug,
+            duration: track.durationSeconds || 0,
+            artworkUrl: track.coverImageUrl,
+            audioUrl: track.audioUrl,
+            hlsManifestUrl: track.hlsManifestUrl,
+            rawAudioKey: track.rawAudioKey,
+          },
+          0
+        );
+      }
+    }).catch(() => {});
   },
 
   togglePlay: () => {
-    const { playbackStatus, currentTrack } = get();
+    const { playbackStatus, currentTrack, currentTime } = get();
     if (!currentTrack) return;
 
-    if (playbackStatus === "playing") {
+    const nextStatus = playbackStatus === "playing" ? "paused" : "playing";
+    if (nextStatus === "paused") {
       set({ playbackStatus: "paused" });
     } else {
       set({ playbackStatus: "playing", supersededByDevice: null });
     }
     get().saveSnapshot();
+
+    // Live Jam: Broadcast play/pause if active host
+    import("./jam.store").then(({ useJamStore }) => {
+      const { isHost, activeRoom, broadcastPlay, broadcastPause } = useJamStore.getState();
+      if (isHost && activeRoom) {
+        if (nextStatus === "paused") {
+          broadcastPause(Math.floor(currentTime * 1000));
+        } else {
+          broadcastPlay(Math.floor(currentTime * 1000));
+        }
+      }
+    }).catch(() => {});
   },
 
   pause: () => {
+    const { currentTime } = get();
     set({ playbackStatus: "paused" });
     get().saveSnapshot();
+
+    // Live Jam: Broadcast pause if active host
+    import("./jam.store").then(({ useJamStore }) => {
+      const { isHost, activeRoom, broadcastPause } = useJamStore.getState();
+      if (isHost && activeRoom) {
+        broadcastPause(Math.floor(currentTime * 1000));
+      }
+    }).catch(() => {});
   },
 
   resume: () => {
-    if (get().currentTrack) {
+    const { currentTrack, currentTime } = get();
+    if (currentTrack) {
       set({ playbackStatus: "playing", supersededByDevice: null });
       get().saveSnapshot();
+
+      // Live Jam: Broadcast play if active host
+      import("./jam.store").then(({ useJamStore }) => {
+        const { isHost, activeRoom, broadcastPlay } = useJamStore.getState();
+        if (isHost && activeRoom) {
+          broadcastPlay(Math.floor(currentTime * 1000));
+        }
+      }).catch(() => {});
     }
   },
 
   seek: (timeSeconds) => {
-    set({ currentTime: Math.max(0, timeSeconds) });
+    const targetSeconds = Math.max(0, timeSeconds);
+    set({ currentTime: targetSeconds });
     get().saveSnapshot();
+
+    // Live Jam: Broadcast seek if active host
+    import("./jam.store").then(({ useJamStore }) => {
+      const { isHost, activeRoom, broadcastSeek } = useJamStore.getState();
+      if (isHost && activeRoom) {
+        broadcastSeek(Math.floor(targetSeconds * 1000));
+      }
+    }).catch(() => {});
   },
 
   setVolume: (volume) => {

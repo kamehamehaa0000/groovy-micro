@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { usePlayerStore } from "../../stores/player.store";
+import { useJamStore } from "../../stores/jam.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { useAuthModalStore } from "../../stores/auth-modal.store";
 import { playlistsApi } from "../../lib/playlists.api";
@@ -31,6 +32,8 @@ export function SongActionMenu({
   const playNext = usePlayerStore((s) => s.playNext);
   const addToQueue = usePlayerStore((s) => s.addToQueue);
   const playTrack = usePlayerStore((s) => s.playTrack);
+  const activeJamRoom = useJamStore((s) => s.activeRoom);
+  const addToJamQueue = useJamStore((s) => s.addToJamQueue);
   const { isAuthenticated } = useAuthStore();
 
   // Close dropdown on outside click
@@ -190,6 +193,35 @@ export function SongActionMenu({
               <span>➕</span>
               <span>Add to Queue</span>
             </button>
+            {activeJamRoom && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  addToJamQueue({
+                    id: track.id,
+                    title: track.title,
+                    artistId: track.artistId,
+                    artistName: track.artistName,
+                    artistSlug: track.artistSlug,
+                    albumId: track.albumId,
+                    albumTitle: track.albumTitle,
+                    albumSlug: track.albumSlug,
+                    duration: track.durationSeconds || 0,
+                    artworkUrl: track.coverImageUrl,
+                    audioUrl: track.audioUrl,
+                    hlsManifestUrl: track.hlsManifestUrl,
+                    rawAudioKey: track.rawAudioKey,
+                  });
+                  showToast("Added to Live Jam queue!");
+                }}
+                className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-400 font-medium cursor-pointer"
+              >
+                <span>🎧</span>
+                <span>Add to Jam Queue</span>
+              </button>
+            )}
           </div>
 
           <div className="py-1">

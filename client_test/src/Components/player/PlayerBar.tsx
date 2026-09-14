@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { usePlayerStore } from "../../stores/player.store";
+import { useJamStore } from "../../stores/jam.store";
 import { useLikesStore } from "../../stores/likes.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { useAuthModalStore } from "../../stores/auth-modal.store";
 import { SongActionMenu } from "./SongActionMenu";
+import { LiveJamBar } from "../jam/LiveJamBar";
 
 function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
@@ -163,6 +165,10 @@ export function PlayerBar() {
   const toggleSongLike = useLikesStore((s) => s.toggleSongLike);
   const { isAuthenticated } = useAuthStore();
 
+  const activeRoom = useJamStore((s) => s.activeRoom);
+  const isJamHost = useJamStore((s) => s.isHost);
+  const openJamModal = useJamStore((s) => s.openModal);
+
   // If no track is queued or loaded, don't show player bar
   if (!currentTrack) return null;
 
@@ -230,6 +236,11 @@ export function PlayerBar() {
           </div>
         </div>
       )}
+
+      {/* Live Jam Floating Bar */}
+      <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-40">
+        <LiveJamBar />
+      </div>
 
       <footer
         aria-label="Audio Player"
@@ -420,6 +431,13 @@ export function PlayerBar() {
             type="button"
             onClick={togglePlay}
             disabled={isLoading}
+            title={
+              activeRoom && !isJamHost
+                ? `Playback controlled by DJ (${activeRoom.hostName})`
+                : isPlaying
+                ? "Pause"
+                : "Play"
+            }
             aria-label={isPlaying ? "Pause" : "Play"}
             className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-md transition-all duration-150"
           >
@@ -517,6 +535,23 @@ export function PlayerBar() {
             className="w-16 md:w-24 h-1 bg-stone/40 rounded-lg appearance-none cursor-pointer accent-blue"
           />
         </div>
+
+        {/* Live Jam Button */}
+        <button
+          type="button"
+          onClick={openJamModal}
+          title={activeRoom ? `Live Jam: ${activeRoom.roomCode}` : "Start or Join Live Jam"}
+          className={`relative p-2 rounded-md transition-colors cursor-pointer ${
+            activeRoom
+              ? "bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30"
+              : "text-ink-soft hover:text-ink hover:bg-stone/20"
+          }`}
+        >
+          <span className="text-sm">🎧</span>
+          {activeRoom && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+          )}
+        </button>
 
         {/* Queue Drawer Toggle */}
         <button

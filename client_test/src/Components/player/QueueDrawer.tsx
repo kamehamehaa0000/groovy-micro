@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePlayerStore } from "../../stores/player.store";
+import { useJamStore } from "../../stores/jam.store";
 import { SongActionMenu } from "./SongActionMenu";
 
 function formatSeconds(secs: number): string {
@@ -25,6 +26,10 @@ export function QueueDrawer() {
   const clearUserQueue = usePlayerStore((s) => s.clearUserQueue);
   const reorderUserQueue = usePlayerStore((s) => s.reorderUserQueue);
   const jumpToContextTrack = usePlayerStore((s) => s.jumpToContextTrack);
+
+  const activeJamRoom = useJamStore((s) => s.activeRoom);
+  const jamQueue = useJamStore((s) => s.jamQueue);
+  const removeFromJamQueue = useJamStore((s) => s.removeFromJamQueue);
 
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
@@ -113,6 +118,53 @@ export function QueueDrawer() {
             </div>
           ) : (
             <div className="py-6 text-center text-ink-soft italic font-serif">No track playing</div>
+          )}
+
+          {/* SECTION: LIVE JAM COLLABORATIVE QUEUE */}
+          {activeJamRoom && (
+            <div className="flex flex-col gap-2 pt-4 border-b border-emerald-500/20 pb-4">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Jam Queue ({jamQueue.length})
+                </span>
+                <span className="text-[10px] text-zinc-500 font-mono">{activeJamRoom.roomCode}</span>
+              </div>
+
+              {jamQueue.length === 0 ? (
+                <p className="text-xs text-zinc-500 italic py-2">
+                  No tracks in Jam queue yet. Use "Add to Jam Queue" on any song to contribute!
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {jamQueue.map((track, idx) => (
+                    <div
+                      key={`jam-q-${track.id}-${idx}`}
+                      className="group flex items-center gap-2.5 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 text-xs transition"
+                    >
+                      <span className="font-mono text-[10px] text-zinc-500 w-4">{idx + 1}</span>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-semibold text-zinc-200 truncate">{track.title}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 truncate">
+                          <span>{track.artistName}</span>
+                          {track.addedByDisplayName && (
+                            <span className="text-emerald-400/80">• by {track.addedByDisplayName}</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFromJamQueue(idx)}
+                        className="text-zinc-500 hover:text-red-400 transition p-1 cursor-pointer"
+                        title="Remove from Jam queue"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* SECTION 2: NEXT IN QUEUE (User Priority Queue) */}

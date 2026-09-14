@@ -20,6 +20,8 @@ import { PlayerBar } from '../components/player/PlayerBar'
 import { QueueDrawer } from '../components/player/QueueDrawer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
+import { LiveJamModal } from '../components/jam/LiveJamModal'
+import { useJamStore } from '../stores/jam.store'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -206,6 +208,15 @@ function RootComponent() {
                 >
                   Activity
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => useJamStore.getState().openModal()}
+                  className="flex items-center gap-1.5 text-ink-soft hover:text-emerald-400 pb-0.5 transition-colors cursor-pointer"
+                  title="Start or Join Live Jam"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Live Jam</span>
+                </button>
                 <Link
                   to="/profile"
                   activeProps={{
@@ -588,6 +599,7 @@ function RootComponent() {
       <PlayerBar key="permanent-player-bar" />
       <QueueDrawer key="permanent-queue-drawer" />
       <AuthPromptModal key="permanent-auth-modal" />
+      <LiveJamModal key="permanent-live-jam-modal" />
       <GlobalSearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}

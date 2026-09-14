@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
 import { usePlayerStore } from "../../stores/player.store";
+import { useJamStore } from "../../stores/jam.store";
 import { useEntitlementsStore } from "../../stores/entitlements.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { playerApi } from "../../lib/player.api";
@@ -332,6 +333,47 @@ export function GlobalAudioEngine() {
     }
   }, [currentTime, currentTrack, playbackStatus]);
 
+  // 7. Live Jam 3-Tier Adaptive Drift Corrector Loop for Listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const interval = setInterval(() => {
+      const { activeRoom, isHost, clockOffsetMs, setSyncStatus } = useJamStore.getState();
+      if (!activeRoom || isHost || activeRoom.playbackState !== "PLAYING") {
+        if (audio.playbackRate !== 1.0) {
+          audio.playbackRate = 1.0;
+        }
+        return;
+      }
+
+      if (audio.readyState < 2) return; // Wait until current media frame is available
+
+      const nowServer = Date.now() + clockOffsetMs;
+      const targetMs = activeRoom.anchorPositionMs + (nowServer - activeRoom.anchorServerTime);
+      const currentMs = audio.currentTime * 1000;
+      const driftMs = currentMs - targetMs;
+      const absDrift = Math.abs(driftMs);
+
+      if (absDrift < 50) {
+        // Tier 1: In-Sync (< 50ms)
+        if (audio.playbackRate !== 1.0) audio.playbackRate = 1.0;
+        setSyncStatus("synced");
+      } else if (absDrift <= 250) {
+        // Tier 2: Micro-Slew Pitch-Preserved Rate (50ms - 250ms)
+        audio.playbackRate = driftMs < 0 ? 1.03 : 0.97;
+        setSyncStatus("drift_correcting");
+      } else {
+        // Tier 3: Hard Resync Seek (> 250ms)
+        audio.currentTime = Math.max(0, targetMs / 1000);
+        audio.playbackRate = 1.0;
+        setSyncStatus("synced");
+      }
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -404,7 +446,27 @@ export function GlobalAudioEngine() {
             })
             .catch(() => {});
         }
-        next();
+
+        const { activeRoom, isHost, jamQueue, removeFromJamQueue } = useJamStore.getState();
+        if (activeRoom && isHost && jamQueue.length > 0) {
+          // Advance Jam Queue
+          const nextJamTrack = jamQueue[0];
+          removeFromJamQueue(0);
+          usePlayerStore.getState().playTrack({
+            id: nextJamTrack.id,
+            title: nextJamTrack.title,
+            artistId: nextJamTrack.artistId || "",
+            durationSeconds: nextJamTrack.duration,
+            coverImageUrl: nextJamTrack.artworkUrl ?? undefined,
+            artistName: nextJamTrack.artistName || "Unknown Artist",
+            albumTitle: nextJamTrack.albumTitle ?? undefined,
+            audioUrl: nextJamTrack.audioUrl ?? undefined,
+            hlsManifestUrl: nextJamTrack.hlsManifestUrl ?? undefined,
+            rawAudioKey: nextJamTrack.rawAudioKey ?? undefined,
+          });
+        } else {
+          next();
+        }
       }}
       onError={(e) => {
         const error = (e.target as HTMLAudioElement)?.error;

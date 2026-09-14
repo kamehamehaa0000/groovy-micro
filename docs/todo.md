@@ -6,7 +6,7 @@
 
 ### Sprint 2: Core Monolith API Modules (`server/src/modules/`) - [COMPLETED]
 
-- [x] **Auth Module**: Registration, login, Argon2id password hashing (portable Bun/Node abstraction), JWT signing, refresh token rotation with reuse detection via httpOnly cookies, Google OAuth with account linking, `requireAuth` / `requireRole` preHandler guards, and **Email Verification subsystem** (Brevo REST API with exponential backoff & dev console fallback, SHA-256 tokens in Redis with 24h TTL, 60s cooldown, 403 unverified login guard, and public resend endpoint).
+- [x] **Auth Module**: Registration, login, Argon2id password hashing (portable Bun/Node abstraction), JWT signing, refresh token rotation with reuse detection via httpOnly cookies, Google OAuth with account linking, `requireAuth` / `requireRole` preHandler guards, and **Email Verification subsystem** (Brevo REST API with exponential backoff & dev console fallback, SHA-256 tokens in Redis with 24h TTL, 60s cooldown, 403 unverified login guard, and public resend endpoint),**forgot-password**- password reset feature.
 - [x] **Storage & Pre-Signed Uploads Subsystem**: Upload preset registry (avatars, banners, covers, raw audio, lyrics, verification docs), S3/Cloudflare R2 client, and pre-signed PUT generator with domain authorization guards.
 - [x] **User Management Module**: Profile update (`displayName`, `avatarUrl`) and password update with Argon2id and session revocation (`tokenVersion++`).
 - [x] **Frontend Auth & Upload Test Harness (`client_test/`)**: React 19 + TanStack Router (file-based) + TanStack Query + Zustand store with silent 401 refresh queue.
@@ -35,7 +35,6 @@
     - Backend Redis Set `groovy:sub:user:{id}:entitlements:set` and JSON caching with sub-millisecond Fastify streaming authorization gate (`SISMEMBER`) on `/songs/:id/stream?quality=flac`.
     - Client `useEntitlementsStore` (`client_test/src/stores/entitlements.store.ts`) for 0ms client-side feature checks, optimistic plan upgrades, and profile gating.
 - [x] **Social & Playback Modules** (Detailed Spec: `docs/AUDIO_PLAYER_QUEUE_AND_SOCIAL_ROADMAP.md`):
-
   - [x] **Playlists Subsystem**:
     - Complete CRUD, metadata editing, and owner display enrichment.
     - Dynamic auto-generated 2×2 mosaic covers (client-side CSS grid `<PlaylistCover />` based on top 4 constituent track album arts) with distinct artwork fallback.
@@ -95,25 +94,23 @@
     - Consolidated search endpoint `GET /api/v1/search?q=...` querying across songs, albums, artists, playlists, and user profiles with top result ranking.
     - Top bar / drawer search UX with keyboard shortcut (`⌘K` / `Ctrl+K`) in client (`client_test/src/components/search/GlobalSearchModal.tsx`).
 
-- [x] **Forgot & Reset Password Subsystem**:
-  - Secure unauthenticated password recovery endpoint `POST /api/v1/auth/forgot-password` with user-enumeration defense and 60s cooldown.
-  - Cryptographic 32-byte tokens with SHA-256 Redis storage (1h TTL).
-  - Brevo transactional email & dev console clickable fallback.
-  - Password reset endpoint `POST /api/v1/auth/reset-password` with Argon2id hashing and global session revocation (`token_version++`).
-  - Frontend `/forgot-password` and `/reset-password` pages and link on `/login`.
+### Sprint 3: Real-Time Live Jam Service (`jam-service/`) - [COMPLETED]
+
+- [x] Fastify + `@fastify/websocket` standalone microservice running on port `4001` with shared JWT verification and session revocation checks against Redis `token_version`.
+- [x] In-memory Redis session state (room metadata hash, active member presence set, and collaborative queue with 6-hour sliding TTL).
+- [x] Room privacy gating (`PUBLIC`, `FRIENDS_ONLY` with mutual follow verification, and `INVITE_ONLY`).
+- [x] "Pass the Aux" DJ role transfer functionality with zero-interruption playback handover.
+- [x] Server-anchored NTP 4-timestamp clock-sync algorithm ($\text{RTT}$ and $\theta$ calculation).
+- [x] 3-Tier Adaptive Drift Corrector in client audio engine ($<50\text{ms}$ smooth, $50\text{ms}-250\text{ms}$ pitch-preserved rate micro-adjustment at $0.97\times/1.03\times$, $>250\text{ms}$ hard seek).
+- [x] 45-second host disconnect grace period with automatic senior member promotion.
+- [x] Full UI integration: `<LiveJamBar />` floating dock, `<LiveJamModal />` (1-click create, code join, invite links), dedicated `/jam/$code` URL route, and collaborative queue integration in `<QueueDrawer />` and `<SongActionMenu />`.
+- [x] 100% test pass rate across multi-client WebSocket test suite (`jam-service/test/jam.test.ts`).
 
 ---
 
 ## 📋 Upcoming Sprints
 
-### Sprint 3: Real-Time Live Jam Service (`jam-service/`)
-
-
-- [ ] Fastify + WebSocket / Socket.IO server.
-- [ ] In-memory Redis session state (room metadata, queue, participants) - directly extending Phase 1's Queue.
-- [ ] Server-anchored audio clock-sync algorithm for synchronized playback.
-
-### Sprint 4: Media Transcoder Worker (`worker/`)
+### Sprint 4: Media Transcoder Worker (`media-convertion-worker/`)
 
 - [ ] BullMQ worker consuming `SONG_UPLOADED` jobs from Redis.
 - [ ] FFmpeg multi-bitrate HLS segmentation (128k, 192k, 320k) and master playlist generation.
@@ -140,4 +137,3 @@
   - Fastify / Nginx stream caching proxy service for persistent VM deployment (Oracle Cloud Always Free / VPS) as an alternative to serverless Workers.
   - Cloudflare Tunnel (`cloudflared`) Docker service with zero open inbound ports and encrypted edge routing.
   - Dual-mode switchover configuration (`STREAM_ROUTING_MODE: 'worker' | 'tunnel'`) enabling instant switch from `*.workers.dev` to custom domain edge caching whenever a domain becomes available.
-
