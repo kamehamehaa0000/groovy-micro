@@ -216,7 +216,7 @@ export function SongActionMenu({
                   });
                   showToast("Added to Live Jam queue!");
                 }}
-                className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-400 font-medium cursor-pointer"
+                className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-700 dark:text-emerald-400 font-medium cursor-pointer"
               >
                 <span>🎧</span>
                 <span>Add to Jam Queue</span>

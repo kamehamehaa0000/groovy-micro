@@ -122,17 +122,17 @@ export function QueueDrawer() {
 
           {/* SECTION: LIVE JAM COLLABORATIVE QUEUE */}
           {activeJamRoom && (
-            <div className="flex flex-col gap-2 pt-4 border-b border-emerald-500/20 pb-4">
+            <div className="flex flex-col gap-2 pt-4 border-b border-line pb-4">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Jam Queue ({jamQueue.length})
                 </span>
-                <span className="text-[10px] text-zinc-500 font-mono">{activeJamRoom.roomCode}</span>
+                <span className="text-[10px] text-ink-soft font-mono">{activeJamRoom.roomCode}</span>
               </div>
 
               {jamQueue.length === 0 ? (
-                <p className="text-xs text-zinc-500 italic py-2">
+                <p className="text-xs text-ink-soft italic py-2">
                   No tracks in Jam queue yet. Use "Add to Jam Queue" on any song to contribute!
                 </p>
               ) : (
@@ -140,22 +140,22 @@ export function QueueDrawer() {
                   {jamQueue.map((track, idx) => (
                     <div
                       key={`jam-q-${track.id}-${idx}`}
-                      className="group flex items-center gap-2.5 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 text-xs transition"
+                      className="group flex items-center gap-2.5 p-2 rounded-xs bg-canvas border border-line hover:border-ink/30 text-xs transition shadow-2xs"
                     >
-                      <span className="font-mono text-[10px] text-zinc-500 w-4">{idx + 1}</span>
+                      <span className="font-mono text-[10px] text-ink-soft w-4">{idx + 1}</span>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-semibold text-zinc-200 truncate">{track.title}</span>
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 truncate">
+                        <span className="font-semibold text-ink truncate">{track.title}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-ink-soft truncate">
                           <span>{track.artistName}</span>
                           {track.addedByDisplayName && (
-                            <span className="text-emerald-400/80">• by {track.addedByDisplayName}</span>
+                            <span className="text-emerald-700 dark:text-emerald-400">• by {track.addedByDisplayName}</span>
                           )}
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFromJamQueue(idx)}
-                        className="text-zinc-500 hover:text-red-400 transition p-1 cursor-pointer"
+                        className="text-ink-soft hover:text-red-500 transition p-1 cursor-pointer"
                         title="Remove from Jam queue"
                       >
                         ✕

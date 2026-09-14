@@ -497,6 +497,22 @@ function RootComponent() {
                       <span>Social &amp; Activity</span>
                       <span className="text-blue">&rarr;</span>
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        useJamStore.getState().openModal();
+                      }}
+                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Live Jam</span>
+                      </span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-mono text-[9px] border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                        {useJamStore.getState().activeRoom ? "Active" : "Join/Start"}
+                      </span>
+                    </button>
                     <Link
                       to="/profile"
                       onClick={() => setMobileMenuOpen(false)}
