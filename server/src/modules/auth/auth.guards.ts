@@ -1,27 +1,28 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
-import { eq } from "drizzle-orm";
-import { db } from "../../db";
-import { users } from "../../db/schema";
-import { redis } from "../../index";
+import type { FastifyRequest, FastifyReply } from 'fastify'
+import { eq } from 'drizzle-orm'
+import { db } from '../../db'
+import { users } from '../../db/schema'
+import { redis } from '../../index'
 import type {
   AccessTokenPayload,
   RefreshTokenPayload,
   AuthenticatedUser,
   UserRole,
-} from "./auth.schemas";
-import { REFRESH_TOKEN_TTL_SEC } from "./auth.utils";
+} from './auth.schemas'
+import { REFRESH_TOKEN_TTL_SEC } from './auth.utils'
+import { cacheKeys } from '../../lib/cache'
 
 // Module augmentation for Fastify Request and JWT
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyRequest {
-    user: AuthenticatedUser;
+    user: AuthenticatedUser
   }
 }
 
-declare module "@fastify/jwt" {
+declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: AccessTokenPayload | RefreshTokenPayload;
-    user: AuthenticatedUser;
+    payload: AccessTokenPayload | RefreshTokenPayload
+    user: AuthenticatedUser
   }
 }
 
@@ -31,77 +32,77 @@ declare module "@fastify/jwt" {
  */
 export async function requireAuth(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<void> {
-  let token: string | undefined;
+  let token: string | undefined
 
-  const authHeader = request.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.substring(7);
+  const authHeader = request.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7)
   } else if (request.cookies?.access_token) {
-    token = request.cookies.access_token;
+    token = request.cookies.access_token
   }
 
   if (!token) {
     return reply.status(401).send({
       statusCode: 401,
-      error: "Unauthorized",
-      message: "Authentication required",
-    });
+      error: 'Unauthorized',
+      message: 'Authentication required',
+    })
   }
 
-  let payload: AccessTokenPayload;
+  let payload: AccessTokenPayload
   try {
-    payload = request.server.jwt.verify<AccessTokenPayload>(token);
+    payload = request.server.jwt.verify<AccessTokenPayload>(token)
   } catch (err: any) {
     return reply.status(401).send({
       statusCode: 401,
-      error: "Unauthorized",
+      error: 'Unauthorized',
       message:
-        err.name === "TokenExpiredError"
-          ? "Access token has expired"
-          : "Invalid access token",
-    });
+        err.name === 'TokenExpiredError'
+          ? 'Access token has expired'
+          : 'Invalid access token',
+    })
   }
 
   // Check token_version for instant revocation
-  const redisKey = `user:${payload.sub}:token_version`;
-  let activeVersionStr = await redis.get(redisKey);
+  const redisKey = cacheKeys.auth.tokenVersion(payload.sub)
+  let activeVersionStr = await redis.get(redisKey)
 
-  let activeVersion: number;
+  let activeVersion: number
   if (activeVersionStr !== null) {
-    activeVersion = parseInt(activeVersionStr, 10);
+    activeVersion = parseInt(activeVersionStr, 10)
   } else {
     // Cache miss: query PostgreSQL
     const [user] = await db
       .select({ tokenVersion: users.tokenVersion, isActive: users.isActive })
       .from(users)
       .where(eq(users.id, payload.sub))
-      .limit(1);
+      .limit(1)
 
     if (!user || !user.isActive) {
       return reply.status(401).send({
         statusCode: 401,
-        error: "Unauthorized",
-        message: "Account is inactive or does not exist",
-      });
+        error: 'Unauthorized',
+        message: 'Account is inactive or does not exist',
+      })
     }
 
-    activeVersion = user.tokenVersion;
+    activeVersion = user.tokenVersion
     await redis.set(
       redisKey,
       activeVersion.toString(),
-      "EX",
-      REFRESH_TOKEN_TTL_SEC
-    );
+      'EX',
+      REFRESH_TOKEN_TTL_SEC,
+    )
   }
 
   if (payload.tokenVersion < activeVersion) {
     return reply.status(401).send({
       statusCode: 401,
-      error: "Unauthorized",
-      message: "Session has been revoked. Please sign in again.",
-    });
+      error: 'Unauthorized',
+      message: 'Session has been revoked. Please sign in again.',
+    })
   }
 
   // Attach authenticated identity to Fastify request
@@ -110,7 +111,7 @@ export async function requireAuth(
     email: payload.email,
     role: payload.role,
     tokenVersion: payload.tokenVersion,
-  };
+  }
 }
 
 /**
@@ -120,17 +121,20 @@ export async function requireAuth(
  * Example: preHandler: [requireAuth, requireRole('ARTIST', 'ADMIN')]
  */
 export function requireRole(...allowedRoles: UserRole[]) {
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  return async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<void> => {
     if (!request.user) {
       return reply.status(401).send({
         statusCode: 401,
-        error: "Unauthorized",
-        message: "Authentication required",
-      });
+        error: 'Unauthorized',
+        message: 'Authentication required',
+      })
     }
 
     if (allowedRoles.includes(request.user.role)) {
-      return;
+      return
     }
 
     // Role might have been upgraded dynamically (e.g. LISTENER -> ARTIST)
@@ -138,19 +142,19 @@ export function requireRole(...allowedRoles: UserRole[]) {
       .select({ role: users.role })
       .from(users)
       .where(eq(users.id, request.user.id))
-      .limit(1);
+      .limit(1)
 
     if (freshUser && allowedRoles.includes(freshUser.role)) {
-      request.user.role = freshUser.role;
-      return;
+      request.user.role = freshUser.role
+      return
     }
 
     return reply.status(403).send({
       statusCode: 403,
-      error: "Forbidden",
-      message: "You do not have permission to access this resource",
-    });
-  };
+      error: 'Forbidden',
+      message: 'You do not have permission to access this resource',
+    })
+  }
 }
 
 /**
@@ -159,41 +163,41 @@ export function requireRole(...allowedRoles: UserRole[]) {
  */
 export async function optionalAuth(
   request: FastifyRequest,
-  _reply: FastifyReply
+  _reply: FastifyReply,
 ): Promise<void> {
-  let token: string | undefined;
+  let token: string | undefined
 
-  const authHeader = request.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.substring(7);
+  const authHeader = request.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7)
   } else if (request.cookies?.access_token) {
-    token = request.cookies.access_token;
+    token = request.cookies.access_token
   }
 
   if (!token) {
-    return;
+    return
   }
 
   try {
-    const payload = request.server.jwt.verify<AccessTokenPayload>(token);
+    const payload = request.server.jwt.verify<AccessTokenPayload>(token)
 
-    const redisKey = `user:${payload.sub}:token_version`;
-    let activeVersionStr = await redis.get(redisKey);
+    const redisKey = cacheKeys.auth.tokenVersion(payload.sub)
+    let activeVersionStr = await redis.get(redisKey)
 
-    let activeVersion: number;
+    let activeVersion: number
     if (activeVersionStr !== null) {
-      activeVersion = parseInt(activeVersionStr, 10);
+      activeVersion = parseInt(activeVersionStr, 10)
     } else {
       const [user] = await db
         .select({ tokenVersion: users.tokenVersion, isActive: users.isActive })
         .from(users)
         .where(eq(users.id, payload.sub))
-        .limit(1);
+        .limit(1)
 
       if (!user || !user.isActive) {
-        return;
+        return
       }
-      activeVersion = user.tokenVersion;
+      activeVersion = user.tokenVersion
     }
 
     if (payload.tokenVersion >= activeVersion) {
@@ -202,7 +206,7 @@ export async function optionalAuth(
         email: payload.email,
         role: payload.role,
         tokenVersion: payload.tokenVersion,
-      };
+      }
     }
   } catch {
     // Unauthenticated/invalid token - silently continue as anonymous visitor

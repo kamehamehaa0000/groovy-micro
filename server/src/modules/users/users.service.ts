@@ -1,6 +1,6 @@
-import { eq, and, count, desc, isNull, sql } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
-import { db } from "../../db";
+import { eq, and, count, desc, isNull, sql } from 'drizzle-orm'
+import type { FastifyInstance } from 'fastify'
+import { db } from '../../db'
 import {
   users,
   playlists,
@@ -13,25 +13,22 @@ import {
   albums,
   artistProfiles,
   userFollows,
-} from "../../db/schema";
-import { redis } from "../../index";
-import {
-  hashPassword,
-  verifyPassword,
-} from "../auth/auth.hasher";
+} from '../../db/schema'
+import { redis } from '../../index'
+import { hashPassword, verifyPassword } from '../auth/auth.hasher'
 import {
   ACCESS_TOKEN_TTL_SEC,
   REFRESH_TOKEN_TTL_SEC,
   generateTokenIdentifiers,
-} from "../auth/auth.utils";
+} from '../auth/auth.utils'
 import type {
   AccessTokenPayload,
   RefreshTokenPayload,
   UserRole,
-} from "../auth/auth.schemas";
-import { cacheKeys } from "../../lib/cache/keys";
-import { SocialService } from "../social/social.service";
-import type { RelationshipStatus } from "../social/social.schemas";
+} from '../auth/auth.schemas'
+import { cacheKeys } from '../../lib/cache/keys'
+import { SocialService } from '../social/social.service'
+import type { RelationshipStatus } from '../social/social.schemas'
 import type {
   UpdateProfileInput,
   UpdatePasswordInput,
@@ -40,14 +37,14 @@ import type {
   UserLibraryResponse,
   SharedPlaylistItem,
   SharedAlbumItem,
-} from "./users.schemas";
+} from './users.schemas'
 
 export class UsersService {
-  private fastify: FastifyInstance;
-  private socialService = new SocialService();
+  private fastify: FastifyInstance
+  private socialService = new SocialService()
 
   constructor(fastify: FastifyInstance) {
-    this.fastify = fastify;
+    this.fastify = fastify
   }
 
   /**
@@ -56,14 +53,14 @@ export class UsersService {
   async updateProfile(userId: string, input: UpdateProfileInput) {
     const updateData: Partial<typeof users.$inferInsert> = {
       updatedAt: new Date(),
-    };
+    }
 
     if (input.displayName !== undefined) {
-      updateData.displayName = input.displayName;
+      updateData.displayName = input.displayName
     }
 
     if (input.avatarUrl !== undefined) {
-      updateData.avatarUrl = input.avatarUrl;
+      updateData.avatarUrl = input.avatarUrl
     }
 
     const [updatedUser] = await db
@@ -78,13 +75,13 @@ export class UsersService {
         role: users.role,
         isEmailVerified: users.isEmailVerified,
         updatedAt: users.updatedAt,
-      });
+      })
 
     if (!updatedUser) {
-      throw this.fastify.httpErrors.notFound("User not found");
+      throw this.fastify.httpErrors.notFound('User not found')
     }
 
-    return updatedUser;
+    return updatedUser
   }
 
   /**
@@ -95,39 +92,39 @@ export class UsersService {
       .select()
       .from(users)
       .where(eq(users.id, userId))
-      .limit(1);
+      .limit(1)
 
     if (!user) {
-      throw this.fastify.httpErrors.notFound("User not found");
+      throw this.fastify.httpErrors.notFound('User not found')
     }
 
     // 1. If account has existing password, verify current password
     if (user.passwordHash) {
       if (!input.currentPassword) {
         throw this.fastify.httpErrors.badRequest(
-          "Current password is required to change password"
-        );
+          'Current password is required to change password',
+        )
       }
 
       const isCurrentValid = await verifyPassword(
         input.currentPassword,
-        user.passwordHash
-      );
+        user.passwordHash,
+      )
 
       if (!isCurrentValid) {
         throw this.fastify.httpErrors.unauthorized(
-          "Current password does not match"
-        );
+          'Current password does not match',
+        )
       }
     }
 
     // 2. Hash new password with Argon2id
-    const newHash = await hashPassword(input.newPassword);
+    const newHash = await hashPassword(input.newPassword)
 
     // 3. Increment token_version if revoking other sessions (security default)
     const newTokenVersion = input.revokeOtherSessions
       ? user.tokenVersion + 1
-      : user.tokenVersion;
+      : user.tokenVersion
 
     await db
       .update(users)
@@ -136,60 +133,60 @@ export class UsersService {
         tokenVersion: newTokenVersion,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId))
 
-    let tokens: { accessToken: string; refreshToken: string } | null = null;
+    let tokens: { accessToken: string; refreshToken: string } | null = null
 
     if (input.revokeOtherSessions) {
       // Sync to Redis fast-lookup cache
       await redis.set(
-        `user:${userId}:token_version`,
+        cacheKeys.auth.tokenVersion(userId),
         newTokenVersion.toString(),
-        "EX",
-        REFRESH_TOKEN_TTL_SEC
-      );
+        'EX',
+        REFRESH_TOKEN_TTL_SEC,
+      )
 
       // Issue fresh tokens for the current device
-      const { familyId, jti } = generateTokenIdentifiers();
+      const { familyId, jti } = generateTokenIdentifiers()
 
       const accessPayload: AccessTokenPayload = {
         sub: user.id,
         email: user.email,
         role: user.role as UserRole,
         tokenVersion: newTokenVersion,
-      };
+      }
 
       const refreshPayload: RefreshTokenPayload = {
         sub: user.id,
         familyId,
         jti,
         tokenVersion: newTokenVersion,
-      };
+      }
 
       const accessToken = this.fastify.jwt.sign(accessPayload, {
         expiresIn: ACCESS_TOKEN_TTL_SEC,
-      });
+      })
 
       const refreshToken = this.fastify.jwt.sign(refreshPayload, {
         expiresIn: REFRESH_TOKEN_TTL_SEC,
-      });
+      })
 
       await redis.set(
         `session:${familyId}:${jti}`,
-        "active",
-        "EX",
-        REFRESH_TOKEN_TTL_SEC
-      );
+        'active',
+        'EX',
+        REFRESH_TOKEN_TTL_SEC,
+      )
 
-      tokens = { accessToken, refreshToken };
+      tokens = { accessToken, refreshToken }
     }
 
     return {
       message: input.revokeOtherSessions
-        ? "Password changed successfully. All other devices have been logged out."
-        : "Password changed successfully.",
+        ? 'Password changed successfully. All other devices have been logged out.'
+        : 'Password changed successfully.',
       tokens,
-    };
+    }
   }
 
   /**
@@ -197,23 +194,23 @@ export class UsersService {
    */
   async updatePrivacySettings(
     userId: string,
-    input: UpdatePrivacySettingsInput
+    input: UpdatePrivacySettingsInput,
   ) {
     const updateData: Partial<typeof users.$inferInsert> = {
       updatedAt: new Date(),
-    };
+    }
 
     if (input.isPrivateAccount !== undefined) {
-      updateData.isPrivateAccount = input.isPrivateAccount;
+      updateData.isPrivateAccount = input.isPrivateAccount
     }
     if (input.listeningActivityPrivacy !== undefined) {
-      updateData.listeningActivityPrivacy = input.listeningActivityPrivacy;
-      if (input.listeningActivityPrivacy === "OFF") {
-        await redis.del(cacheKeys.player.presence(userId));
+      updateData.listeningActivityPrivacy = input.listeningActivityPrivacy
+      if (input.listeningActivityPrivacy === 'OFF') {
+        await redis.del(cacheKeys.player.presence(userId))
       }
     }
     if (input.libraryPrivacy !== undefined) {
-      updateData.libraryPrivacy = input.libraryPrivacy;
+      updateData.libraryPrivacy = input.libraryPrivacy
     }
 
     const [updatedUser] = await db
@@ -226,9 +223,9 @@ export class UsersService {
         listeningActivityPrivacy: users.listeningActivityPrivacy,
         libraryPrivacy: users.libraryPrivacy,
         updatedAt: users.updatedAt,
-      });
+      })
 
-    return updatedUser;
+    return updatedUser
   }
 
   /**
@@ -236,7 +233,7 @@ export class UsersService {
    */
   async getUserProfile(
     targetUserId: string,
-    requesterId?: string
+    requesterId?: string,
   ): Promise<UserProfileResponse> {
     const [user] = await db
       .select({
@@ -251,10 +248,10 @@ export class UsersService {
       })
       .from(users)
       .where(eq(users.id, targetUserId))
-      .limit(1);
+      .limit(1)
 
     if (!user || !user.isActive) {
-      throw this.fastify.httpErrors.notFound("User not found");
+      throw this.fastify.httpErrors.notFound('User not found')
     }
 
     // Followers count (ACCEPTED follows only)
@@ -264,10 +261,10 @@ export class UsersService {
       .where(
         and(
           eq(userFollows.followingId, targetUserId),
-          eq(userFollows.status, "ACCEPTED")
-        )
-      );
-    const followersCount = Number(followersRes?.count || 0);
+          eq(userFollows.status, 'ACCEPTED'),
+        ),
+      )
+    const followersCount = Number(followersRes?.count || 0)
 
     // Following count (ACCEPTED follows only)
     const [followingRes] = await db
@@ -276,10 +273,10 @@ export class UsersService {
       .where(
         and(
           eq(userFollows.followerId, targetUserId),
-          eq(userFollows.status, "ACCEPTED")
-        )
-      );
-    const followingCount = Number(followingRes?.count || 0);
+          eq(userFollows.status, 'ACCEPTED'),
+        ),
+      )
+    const followingCount = Number(followingRes?.count || 0)
 
     // Public playlists count
     const [playlistsRes] = await db
@@ -288,21 +285,21 @@ export class UsersService {
       .where(
         and(
           eq(playlists.ownerId, targetUserId),
-          eq(playlists.visibility, "PUBLIC")
-        )
-      );
-    const publicPlaylistsCount = Number(playlistsRes?.count || 0);
+          eq(playlists.visibility, 'PUBLIC'),
+        ),
+      )
+    const publicPlaylistsCount = Number(playlistsRes?.count || 0)
 
     // Relationship status
-    let relationship: RelationshipStatus = "NONE";
+    let relationship: RelationshipStatus = 'NONE'
     if (requesterId) {
       if (requesterId === targetUserId) {
-        relationship = "SELF";
+        relationship = 'SELF'
       } else {
         relationship = await this.socialService.getRelationshipStatus(
           requesterId,
-          targetUserId
-        );
+          targetUserId,
+        )
       }
     }
 
@@ -320,7 +317,7 @@ export class UsersService {
         createdAt: user.createdAt,
       },
       relationship,
-    };
+    }
   }
 
   /**
@@ -331,7 +328,7 @@ export class UsersService {
    */
   async getUserLibrary(
     targetUserId: string,
-    requesterId?: string
+    requesterId?: string,
   ): Promise<UserLibraryResponse> {
     const [user] = await db
       .select({
@@ -343,31 +340,31 @@ export class UsersService {
       })
       .from(users)
       .where(eq(users.id, targetUserId))
-      .limit(1);
+      .limit(1)
 
     if (!user || !user.isActive) {
-      throw this.fastify.httpErrors.notFound("User not found");
+      throw this.fastify.httpErrors.notFound('User not found')
     }
 
-    const isOwner = requesterId === targetUserId;
+    const isOwner = requesterId === targetUserId
 
     // Enforce privacy gating if requester is not owner
     if (!isOwner) {
-      if (user.libraryPrivacy === "PRIVATE") {
+      if (user.libraryPrivacy === 'PRIVATE') {
         const err: any = this.fastify.httpErrors.forbidden(
-          "This user's library is private."
-        );
-        err.libraryPrivacy = "PRIVATE";
-        throw err;
+          "This user's library is private.",
+        )
+        err.libraryPrivacy = 'PRIVATE'
+        throw err
       }
 
-      if (user.libraryPrivacy === "FOLLOWERS_ONLY") {
+      if (user.libraryPrivacy === 'FOLLOWERS_ONLY') {
         if (!requesterId) {
           const err: any = this.fastify.httpErrors.forbidden(
-            "This user's library is visible to followers only."
-          );
-          err.libraryPrivacy = "FOLLOWERS_ONLY";
-          throw err;
+            "This user's library is visible to followers only.",
+          )
+          err.libraryPrivacy = 'FOLLOWERS_ONLY'
+          throw err
         }
 
         const [followRecord] = await db
@@ -377,17 +374,17 @@ export class UsersService {
             and(
               eq(userFollows.followerId, requesterId),
               eq(userFollows.followingId, targetUserId),
-              eq(userFollows.status, "ACCEPTED")
-            )
+              eq(userFollows.status, 'ACCEPTED'),
+            ),
           )
-          .limit(1);
+          .limit(1)
 
         if (!followRecord) {
           const err: any = this.fastify.httpErrors.forbidden(
-            "This user's library is visible to followers only."
-          );
-          err.libraryPrivacy = "FOLLOWERS_ONLY";
-          throw err;
+            "This user's library is visible to followers only.",
+          )
+          err.libraryPrivacy = 'FOLLOWERS_ONLY'
+          throw err
         }
       }
     }
@@ -420,8 +417,8 @@ export class UsersService {
         .where(
           and(
             eq(playlists.ownerId, targetUserId),
-            eq(playlists.visibility, "PUBLIC")
-          )
+            eq(playlists.visibility, 'PUBLIC'),
+          ),
         )
         .groupBy(playlists.id)
         .orderBy(desc(playlists.createdAt)),
@@ -450,14 +447,14 @@ export class UsersService {
         .where(
           and(
             eq(userLibraryPlaylists.userId, targetUserId),
-            eq(playlists.visibility, "PUBLIC")
-          )
+            eq(playlists.visibility, 'PUBLIC'),
+          ),
         )
         .groupBy(
           playlists.id,
           users.displayName,
           users.avatarUrl,
-          userLibraryPlaylists.savedAt
+          userLibraryPlaylists.savedAt,
         )
         .orderBy(desc(userLibraryPlaylists.savedAt)),
 
@@ -481,9 +478,9 @@ export class UsersService {
         .where(
           and(
             eq(userLibraryAlbums.userId, targetUserId),
-            eq(albums.visibility, "PUBLIC"),
-            isNull(albums.deletedAt)
-          )
+            eq(albums.visibility, 'PUBLIC'),
+            isNull(albums.deletedAt),
+          ),
         )
         .orderBy(desc(userLibraryAlbums.savedAt)),
 
@@ -507,8 +504,8 @@ export class UsersService {
         .where(
           and(
             eq(releasePresaves.userId, targetUserId),
-            isNull(albums.deletedAt)
-          )
+            isNull(albums.deletedAt),
+          ),
         )
         .orderBy(desc(releasePresaves.createdAt)),
 
@@ -518,10 +515,7 @@ export class UsersService {
         .from(songLikes)
         .innerJoin(songs, eq(songLikes.songId, songs.id))
         .where(
-          and(
-            eq(songLikes.userId, targetUserId),
-            isNull(songs.deletedAt)
-          )
+          and(eq(songLikes.userId, targetUserId), isNull(songs.deletedAt)),
         ),
 
       // 6. Recent Liked Songs (top 30)
@@ -530,7 +524,9 @@ export class UsersService {
           id: songs.id,
           title: songs.title,
           slug: songs.slug,
-          coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
+          coverImageUrl: sql<
+            string | null
+          >`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
           durationSeconds: songs.durationSeconds,
           audioUrl: songs.audioUrl,
           isExplicit: songs.isExplicit,
@@ -543,40 +539,41 @@ export class UsersService {
         .innerJoin(songs, eq(songLikes.songId, songs.id))
         .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
         .leftJoin(albums, eq(songs.albumId, albums.id))
-        .where(
-          and(
-            eq(songLikes.userId, targetUserId),
-            isNull(songs.deletedAt)
-          )
-        )
+        .where(and(eq(songLikes.userId, targetUserId), isNull(songs.deletedAt)))
         .orderBy(desc(songLikes.createdAt))
         .limit(30),
-    ]);
+    ])
 
-    const createdPlaylists: SharedPlaylistItem[] = createdPlaylistsRows.map((p) => ({
-      ...p,
-      tracksCount: Number(p.tracksCount || 0),
-    }));
+    const createdPlaylists: SharedPlaylistItem[] = createdPlaylistsRows.map(
+      (p) => ({
+        ...p,
+        tracksCount: Number(p.tracksCount || 0),
+      }),
+    )
 
-    const savedPlaylists: SharedPlaylistItem[] = savedPlaylistsRows.map((p) => ({
-      ...p,
-      tracksCount: Number(p.tracksCount || 0),
-    }));
+    const savedPlaylists: SharedPlaylistItem[] = savedPlaylistsRows.map(
+      (p) => ({
+        ...p,
+        tracksCount: Number(p.tracksCount || 0),
+      }),
+    )
 
     const savedAlbums: SharedAlbumItem[] = savedAlbumsRows.map((a) => ({
       ...a,
       isReleased: true,
-    }));
+    }))
 
-    const presavedReleases: SharedAlbumItem[] = presavedReleasesRows.map((a) => ({
-      ...a,
-      isReleased: false,
-    }));
+    const presavedReleases: SharedAlbumItem[] = presavedReleasesRows.map(
+      (a) => ({
+        ...a,
+        isReleased: false,
+      }),
+    )
 
     const likedSongs = {
       totalCount: Number(likedSongsCountRes[0]?.count || 0),
       items: likedSongsRows,
-    };
+    }
 
     return {
       user: {
@@ -590,7 +587,6 @@ export class UsersService {
       savedAlbums,
       presavedReleases,
       likedSongs,
-    };
+    }
   }
 }
-

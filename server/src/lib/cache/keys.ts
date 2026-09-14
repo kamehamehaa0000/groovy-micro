@@ -4,7 +4,7 @@
  */
 export const cacheKeys = {
   auth: {
-    tokenVersion: (userId: string) => `groovy:auth:token_version:${userId}`,
+    tokenVersion: (userId: string) => `user:${userId}:token_version`,
     session: (familyId: string, jti: string) =>
       `groovy:auth:session:${familyId}:${jti}`,
     emailVerify: (tokenHash: string) => `groovy:auth:email_verify:${tokenHash}`,
@@ -60,9 +60,4 @@ export const cacheKeys = {
   telemetry: {
     songPlaysBuffer: () => `groovy:telemetry:song_plays`,
   },
-  jam: {
-    playback: (roomId: string) => `groovy:jam:room:${roomId}:playback`,
-    members: (roomId: string) => `groovy:jam:room:${roomId}:members`,
-    queue: (roomId: string) => `groovy:jam:room:${roomId}:queue`,
-  },
-} as const
+} as const;
