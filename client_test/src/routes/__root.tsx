@@ -14,16 +14,14 @@ import { useEntitlementsStore } from '../stores/entitlements.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
-import { DarkModeSVG, LightModeSVG, UploadCloudSVG } from '../components/icons'
+import { DarkModeSVG, LightModeSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
 import { QueueDrawer } from '../components/player/QueueDrawer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
 import { LiveJamModal } from '../components/jam/LiveJamModal'
-import { LockerImportModal } from '../components/locker/LockerImportModal'
 import { useJamStore } from '../stores/jam.store'
-import { useLockerStore } from '../stores/locker.store'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -251,15 +249,19 @@ function RootComponent() {
                   >
                     Studio
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => useLockerStore.getState().openLockerModal()}
-                    className="flex items-center gap-1.5 text-ink-soft hover:text-indigo-500 pb-0.5 transition-colors cursor-pointer"
-                    title="Manage & Import Personal Collection"
+                  <Link
+                    to="/collection"
+                    activeProps={{
+                      className:
+                        'text-ink font-semibold border-b border-blue pb-0.5',
+                    }}
+                    inactiveProps={{
+                      className: 'text-ink-soft hover:text-ink pb-0.5',
+                    }}
+                    className="transition-colors"
                   >
-                    <UploadCloudSVG className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Personal Collection</span>
-                  </button>
+                    Collection
+                  </Link>
                 </>
               )}
               {user?.role === 'ADMIN' && (
@@ -547,22 +549,14 @@ function RootComponent() {
                       <span>Artist Studio</span>
                       <span className="text-blue">&rarr;</span>
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        useLockerStore.getState().openLockerModal()
-                      }}
-                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line text-left cursor-pointer"
+                    <Link
+                      to="/collection"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
                     >
-                      <span className="flex items-center gap-2">
-                        <UploadCloudSVG className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>Personal Collection</span>
-                      </span>
-                      <span className="text-indigo-600 dark:text-indigo-400 font-mono text-[9px] border border-indigo-500/30 px-1.5 py-0.5 rounded">
-                        Manage
-                      </span>
-                    </button>
+                      <span>Personal Collection</span>
+                      <span className="text-blue">&rarr;</span>
+                    </Link>
                   </>
                 )}
                 {user?.role === 'ADMIN' && (
@@ -658,11 +652,6 @@ function RootComponent() {
       <GlobalSearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
-      />
-      <LockerImportModal
-        isOpen={useLockerStore((s) => s.isOpen)}
-        onClose={() => useLockerStore.getState().closeLockerModal()}
-        onSuccess={() => useLockerStore.getState().triggerRefresh()}
       />
     </div>
   )

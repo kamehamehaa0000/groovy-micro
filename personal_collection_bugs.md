@@ -13,6 +13,8 @@
 
 11. currently soft delete vaults songs but does not have a restore functionality and the restore functinoality should have a functionality to delete permanently.
 12. use plan feature for quota limit in personal collection
+13. soft deleted songs still show in listen history
+14. there is no artist profile pic only banner, need to have profile pic
 
 # Fixed:
 

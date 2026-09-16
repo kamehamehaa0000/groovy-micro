@@ -727,9 +727,17 @@ function ArtistPublicProfileComponent() {
                       Personal Vault
                     </span>
                   </div>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
-                    {discography!.inYourCollection!.length} Offline {discography!.inYourCollection!.length === 1 ? 'Track' : 'Tracks'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                      {discography!.inYourCollection!.length} Offline {discography!.inYourCollection!.length === 1 ? 'Track' : 'Tracks'}
+                    </span>
+                    <Link
+                      to="/collection"
+                      className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue hover:underline"
+                    >
+                      Vault &rarr;
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">

@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PersonalCollectionRouteImport } from './routes/personal-collection'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -41,6 +43,11 @@ const ActivityRoute = ActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CollectionRoute = CollectionRouteImport.update({
+  id: '/collection',
+  path: '/collection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
@@ -54,6 +61,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonalCollectionRoute = PersonalCollectionRouteImport.update({
+  id: '/personal-collection',
+  path: '/personal-collection',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -140,9 +152,11 @@ const UsersIdRoute = UsersIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -163,9 +177,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -187,9 +203,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -212,9 +230,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/login'
+    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/reset-password'
@@ -235,9 +255,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/login'
+    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/reset-password'
@@ -258,9 +280,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/activity'
+    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/login'
+    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/reset-password'
@@ -282,9 +306,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  CollectionRoute: typeof CollectionRoute
   FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PersonalCollectionRoute: typeof PersonalCollectionRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -319,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/collection': {
+      id: '/collection'
+      path: '/collection'
+      fullPath: '/collection'
+      preLoaderRoute: typeof CollectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/feed': {
       id: '/feed'
       path: '/feed'
@@ -338,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personal-collection': {
+      id: '/personal-collection'
+      path: '/personal-collection'
+      fullPath: '/personal-collection'
+      preLoaderRoute: typeof PersonalCollectionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -458,9 +498,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  CollectionRoute: CollectionRoute,
   FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PersonalCollectionRoute: PersonalCollectionRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,

@@ -131,7 +131,6 @@ function ProfileComponent() {
   const [isLoadingLocker, setIsLoadingLocker] = useState(false)
   const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(null)
   const lockerRefreshTrigger = useLockerStore((s) => s.refreshTrigger)
-  const openLockerModal = useLockerStore((s) => s.openLockerModal)
   const triggerRefresh = useLockerStore((s) => s.triggerRefresh)
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
 
@@ -1205,14 +1204,13 @@ function ProfileComponent() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openLockerModal}
+          <Link
+            to="/collection"
             className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold flex items-center justify-center gap-2 cursor-pointer shrink-0"
           >
             <UploadCloudSVG className="w-4 h-4 text-indigo-400" />
             <span>Manage &amp; Import Music</span>
-          </button>
+          </Link>
         </div>
 
         {/* Quota Progress & Stats */}
@@ -1271,13 +1269,12 @@ function ProfileComponent() {
             <p className="font-sans text-xs text-ink-soft max-w-md mx-auto leading-relaxed">
               No offline audio imported yet. You can drag and drop individual music files or whole albums to access them anywhere in Groovy.
             </p>
-            <button
-              type="button"
-              onClick={openLockerModal}
+            <Link
+              to="/collection"
               className="mt-2 inline-block font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer"
             >
               + Launch Importer
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-4">
