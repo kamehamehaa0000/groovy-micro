@@ -107,15 +107,35 @@ export class PlayerService {
     );
 
     // 3. Update public listening presence (evicted automatically if paused, after 45s, or if privacy is OFF)
+    // 3. Update public listening presence (evicted automatically if paused, after 45s, or if privacy is OFF)
     const presenceKey = cacheKeys.player.presence(userId);
     if (!input.isPaused && input.songId) {
       // Check user privacy setting
       const [userRecord] = await db
-        .select({ listeningActivityPrivacy: users.listeningActivityPrivacy })
+        .select({
+          listeningActivityPrivacy: users.listeningActivityPrivacy,
+          lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed,
+        })
         .from(users)
         .where(eq(users.id, userId));
 
-      if (userRecord && userRecord.listeningActivityPrivacy === "OFF") {
+      let shouldSuppressPresence =
+        userRecord && userRecord.listeningActivityPrivacy === "OFF";
+
+      // If user opted out of showing personal locker songs in recently played / friend activity
+      if (!shouldSuppressPresence && userRecord?.lockerIncludeInRecentlyPlayed === false) {
+        const [songRecord] = await db
+          .select({ scope: songs.scope })
+          .from(songs)
+          .where(eq(songs.id, input.songId))
+          .limit(1);
+
+        if (songRecord?.scope === "PERSONAL") {
+          shouldSuppressPresence = true;
+        }
+      }
+
+      if (shouldSuppressPresence) {
         await redis.del(presenceKey);
       } else {
         const presencePayload = {
@@ -189,6 +209,14 @@ export class PlayerService {
    * Retrieves the user's recent listening history (deduplicated for distinct shelves).
    */
   async getRecentHistory(userId: string, limit: number = 20) {
+    const [userRecord] = await db
+      .select({ lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const includePersonal = userRecord?.lockerIncludeInRecentlyPlayed ?? true;
+
     const rows = await db
       .select({
         historyId: listeningHistory.id,
@@ -206,6 +234,7 @@ export class PlayerService {
           audioUrl: songs.audioUrl,
           hlsManifestUrl: songs.hlsManifestUrl,
           rawAudioKey: songs.rawAudioKey,
+          scope: songs.scope,
           artistId: artistProfiles.id,
           artistName: artistProfiles.stageName,
           artistSlug: artistProfiles.slug,
@@ -217,7 +246,17 @@ export class PlayerService {
       .innerJoin(songs, eq(listeningHistory.songId, songs.id))
       .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
       .leftJoin(albums, eq(songs.albumId, albums.id))
-      .where(eq(listeningHistory.userId, userId))
+      .where(
+        and(
+          eq(listeningHistory.userId, userId),
+          includePersonal
+            ? or(
+                eq(songs.scope, "GLOBAL"),
+                and(eq(songs.scope, "PERSONAL"), eq(songs.uploaderUserId, userId))
+              )
+            : eq(songs.scope, "GLOBAL")
+        )
+      )
       .orderBy(desc(listeningHistory.playedAt))
       .limit(limit * 2);
 

@@ -200,6 +200,24 @@ export interface AppearsOnCredit {
   primaryArtistSlug: string;
 }
 
+export interface PersonalCollectionTrack {
+  id: string;
+  title: string;
+  slug: string;
+  durationSeconds: number;
+  audioUrl: string | null;
+  hlsManifestUrl: string | null;
+  rawAudioKey: string | null;
+  coverImageUrl: string | null;
+  playsCount: number;
+  likesCount: number;
+  albumTitle: string | null;
+  artistName: string;
+  scope: string;
+  isPersonal: boolean;
+  isStreamable: boolean;
+}
+
 export interface DiscographyResponse {
   artist: {
     id: string;
@@ -211,6 +229,7 @@ export interface DiscographyResponse {
   mixtapes?: Album[];
   topTracks: EnrichedSong[];
   appearsOn: AppearsOnCredit[];
+  inYourCollection?: PersonalCollectionTrack[];
 }
 
 export interface StudioReleasesResponse {

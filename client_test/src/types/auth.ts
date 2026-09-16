@@ -26,6 +26,10 @@ export interface UserProfile {
   isPrivateAccount?: boolean;
   listeningActivityPrivacy?: "FRIENDS_ONLY" | "FOLLOWERS" | "OFF";
   libraryPrivacy?: "PUBLIC" | "FOLLOWERS_ONLY" | "PRIVATE";
+  lockerIncludeInSearch?: boolean;
+  lockerIncludeInHome?: boolean;
+  lockerIncludeInRecentlyPlayed?: boolean;
+  lockerLinkToGlobalArtists?: boolean;
   createdAt: string;
   subscription: UserSubscription;
   plan: {

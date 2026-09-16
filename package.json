@@ -6,10 +6,12 @@
     "dev:server": "cd server && bun run dev",
     "dev:jam": "cd jam-service && bun run dev",
     "dev:client": "cd client_test && bun run dev",
+    "dev:media-worker": "cd media-convertion-worker && bun run dev",
     "infra:up": "podman compose -f docker-compose.dev.yml up -d",
     "infra:down": "podman compose -f docker-compose.dev.yml down"
   },
   "devDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite-plugin-node-polyfills": "^0.28.0"
   }
 }

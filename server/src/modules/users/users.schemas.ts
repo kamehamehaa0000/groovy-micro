@@ -40,6 +40,10 @@ export const updatePrivacySettingsSchema = z.object({
     .enum(["FRIENDS_ONLY", "FOLLOWERS", "OFF"])
     .optional(),
   libraryPrivacy: z.enum(["PUBLIC", "FOLLOWERS_ONLY", "PRIVATE"]).optional(),
+  lockerIncludeInSearch: z.boolean().optional(),
+  lockerIncludeInHome: z.boolean().optional(),
+  lockerIncludeInRecentlyPlayed: z.boolean().optional(),
+  lockerLinkToGlobalArtists: z.boolean().optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

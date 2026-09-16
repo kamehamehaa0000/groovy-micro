@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -9,17 +10,18 @@ import {
   jsonb,
   primaryKey,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
+import { catalogScopeEnum } from "./enums";
 
 export const artistProfiles = pgTable(
   "artist_profiles",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .unique()
-      .references(() => users.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "cascade" }),
+    scope: catalogScopeEnum("scope").notNull().default("GLOBAL"),
     stageName: varchar("stage_name", { length: 150 }).notNull(),
     slug: varchar("slug", { length: 160 }).notNull().unique(),
     bio: text("bio"),
@@ -42,6 +44,10 @@ export const artistProfiles = pgTable(
   (table) => [
     index("idx_artists_stage_name").on(table.stageName),
     index("idx_artists_verification_status").on(table.verificationStatus),
+    index("idx_artists_scope_owner").on(table.scope, table.ownerUserId),
+    uniqueIndex("idx_artists_user_id_unique")
+      .on(table.userId)
+      .where(sql`${table.userId} IS NOT NULL`),
   ]
 );
 

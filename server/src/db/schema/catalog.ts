@@ -22,6 +22,7 @@ import {
   creditRoleEnum,
   releaseStatusEnum,
   releaseVisibilityEnum,
+  catalogScopeEnum,
 } from "./enums";
 
 export interface SongAudioAnalysis {
@@ -55,12 +56,14 @@ export const albums = pgTable(
     title: varchar("title", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 160 }).notNull(),
     albumType: albumTypeEnum("album_type").notNull().default("ALBUM"),
-    coverImageUrl: text("cover_image_url").notNull(),
+    coverImageUrl: text("cover_image_url"),
     description: text("description"),
     genre: varchar("genre", { length: 60 }),
     releaseDate: date("release_date").notNull(),
 
     // Scheduling & Status Lifecycle
+    scope: catalogScopeEnum("scope").notNull().default("GLOBAL"),
+    uploaderUserId: uuid("uploader_user_id").references(() => users.id, { onDelete: "cascade" }),
     status: releaseStatusEnum("status").notNull().default("PUBLISHED"),
     visibility: releaseVisibilityEnum("visibility").notNull().default("PUBLIC"),
     scheduledReleaseAt: timestamp("scheduled_release_at", { withTimezone: true }),
@@ -90,6 +93,7 @@ export const albums = pgTable(
       .on(table.artistId, table.status, table.releaseDate)
       .where(sql`${table.deletedAt} IS NULL`),
     index("idx_albums_status").on(table.status),
+    index("idx_albums_scope_uploader").on(table.scope, table.uploaderUserId),
     index("idx_albums_scheduled_at").on(table.scheduledReleaseAt),
     index("idx_albums_visibility").on(table.visibility),
     index("idx_albums_deleted_at").on(table.deletedAt),
@@ -113,6 +117,8 @@ export const songs = pgTable(
     trackNumber: integer("track_number").default(1),
     discNumber: integer("disc_number").default(1),
     isExplicit: boolean("is_explicit").notNull().default(false),
+    scope: catalogScopeEnum("scope").notNull().default("GLOBAL"),
+    uploaderUserId: uuid("uploader_user_id").references(() => users.id, { onDelete: "cascade" }),
 
     // Audio Processing Fields
     rawAudioKey: text("raw_audio_key"),
@@ -148,6 +154,7 @@ export const songs = pgTable(
       .on(table.albumId, table.discNumber, table.trackNumber)
       .where(sql`${table.deletedAt} IS NULL`),
     index("idx_songs_status").on(table.processingStatus),
+    index("idx_songs_scope_uploader").on(table.scope, table.uploaderUserId),
     index("idx_songs_title").on(table.title),
     index("idx_songs_deleted_at").on(table.deletedAt),
   ]

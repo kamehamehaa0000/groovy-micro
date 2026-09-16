@@ -36,6 +36,17 @@ export class SearchService {
     const shouldSearchPlaylists = searchAll || type === "playlists";
     const shouldSearchUsers = searchAll || type === "users";
 
+    let includePersonal = false;
+    if (_requesterId) {
+      const [userRecord] = await db
+        .select({ lockerIncludeInSearch: users.lockerIncludeInSearch })
+        .from(users)
+        .where(eq(users.id, _requesterId))
+        .limit(1);
+
+      includePersonal = userRecord?.lockerIncludeInSearch ?? true;
+    }
+
     const [
       songsRows,
       albumsRows,
@@ -60,6 +71,7 @@ export class SearchService {
               albumId: songs.albumId,
               albumTitle: albums.title,
               playsCount: songs.playsCount,
+              scope: songs.scope,
             })
             .from(songs)
             .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
@@ -67,7 +79,21 @@ export class SearchService {
             .where(
               and(
                 isNull(songs.deletedAt),
-                eq(songs.processingStatus, "READY"),
+                includePersonal && _requesterId
+                  ? or(
+                      and(
+                        eq(songs.scope, "GLOBAL"),
+                        eq(songs.processingStatus, "READY")
+                      ),
+                      and(
+                        eq(songs.scope, "PERSONAL"),
+                        eq(songs.uploaderUserId, _requesterId)
+                      )
+                    )
+                  : and(
+                      eq(songs.scope, "GLOBAL"),
+                      eq(songs.processingStatus, "READY")
+                    ),
                 or(
                   ilike(songs.title, pattern),
                   ilike(songs.slug, pattern),
@@ -93,13 +119,28 @@ export class SearchService {
               artistName: artistProfiles.stageName,
               artistSlug: artistProfiles.slug,
               likesCount: albums.likesCount,
+              scope: albums.scope,
             })
             .from(albums)
             .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
             .where(
               and(
                 isNull(albums.deletedAt),
-                eq(albums.visibility, "PUBLIC"),
+                includePersonal && _requesterId
+                  ? or(
+                      and(
+                        eq(albums.scope, "GLOBAL"),
+                        eq(albums.visibility, "PUBLIC")
+                      ),
+                      and(
+                        eq(albums.scope, "PERSONAL"),
+                        eq(albums.uploaderUserId, _requesterId)
+                      )
+                    )
+                  : and(
+                      eq(albums.scope, "GLOBAL"),
+                      eq(albums.visibility, "PUBLIC")
+                    ),
                 or(
                   ilike(albums.title, pattern),
                   ilike(albums.slug, pattern),
@@ -122,19 +163,37 @@ export class SearchService {
               bannerUrl: artistProfiles.bannerUrl,
               verified: artistProfiles.verified,
               monthlyListeners: artistProfiles.monthlyListeners,
+              scope: artistProfiles.scope,
             })
             .from(artistProfiles)
-            .innerJoin(users, eq(artistProfiles.userId, users.id))
+            .leftJoin(users, eq(artistProfiles.userId, users.id))
             .where(
               and(
-                eq(users.isActive, true),
+                includePersonal && _requesterId
+                  ? or(
+                      and(
+                        eq(artistProfiles.scope, "GLOBAL"),
+                        eq(users.isActive, true)
+                      ),
+                      and(
+                        eq(artistProfiles.scope, "PERSONAL"),
+                        eq(artistProfiles.ownerUserId, _requesterId)
+                      )
+                    )
+                  : and(
+                      eq(artistProfiles.scope, "GLOBAL"),
+                      eq(users.isActive, true)
+                    ),
                 or(
                   ilike(artistProfiles.stageName, pattern),
                   ilike(artistProfiles.slug, pattern)
                 )
               )
             )
-            .orderBy(desc(artistProfiles.verified), desc(artistProfiles.monthlyListeners))
+            .orderBy(
+              desc(artistProfiles.verified),
+              desc(artistProfiles.monthlyListeners)
+            )
             .limit(limit)
         : Promise.resolve([]),
 
@@ -193,17 +252,20 @@ export class SearchService {
     const mappedSongs: SearchSongItem[] = (songsRows as any[]).map((s) => ({
       ...s,
       playsCount: Number(s.playsCount || 0),
+      isPersonal: s.scope === "PERSONAL",
     }));
 
     const mappedAlbums: SearchAlbumItem[] = (albumsRows as any[]).map((a) => ({
       ...a,
       isReleased: true,
       likesCount: Number(a.likesCount || 0),
+      isPersonal: a.scope === "PERSONAL",
     }));
 
     const mappedArtists: SearchArtistItem[] = (artistsRows as any[]).map((a) => ({
       ...a,
       monthlyListeners: Number(a.monthlyListeners || 0),
+      isPersonal: a.scope === "PERSONAL",
     }));
 
     const mappedPlaylists: SearchPlaylistItem[] = (playlistsRows as any[]).map((p) => ({

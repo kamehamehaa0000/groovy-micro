@@ -24,7 +24,9 @@ import {
   artistProfiles,
   releasePresaves,
   outboxEvents,
+  users,
 } from "../../db/schema";
+import { redis } from "../../index";
 import {
   scheduleReleaseJob,
   cancelScheduledReleaseJob,
@@ -376,6 +378,8 @@ export class CatalogService {
             totalDurationSeconds: albums.totalDurationSeconds,
             createdAt: albums.createdAt,
             updatedAt: albums.updatedAt,
+            scope: albums.scope,
+            uploaderUserId: albums.uploaderUserId,
             artistUserId: artistProfiles.userId,
             artistStageName: artistProfiles.stageName,
             artistSlug: artistProfiles.slug,
@@ -414,6 +418,8 @@ export class CatalogService {
             processingStatus: songs.processingStatus,
             playsCount: songs.playsCount,
             likesCount: songs.likesCount,
+            scope: songs.scope,
+            uploaderUserId: songs.uploaderUserId,
             createdAt: songs.createdAt,
           })
           .from(songs)
@@ -482,6 +488,16 @@ export class CatalogService {
     }
 
     const isArtistOwner = !!(currentUserId && publicAlbum.artistUserId === currentUserId);
+    const isUploaderOwner = !!(currentUserId && publicAlbum.uploaderUserId === currentUserId);
+    const isOwner = isArtistOwner || isUploaderOwner;
+
+    // Personal Locker releases are strictly private to the uploader
+    if (publicAlbum.scope === "PERSONAL") {
+      if (!isUploaderOwner) {
+        return null;
+      }
+    }
+
     const isLive =
       publicAlbum.status === "PUBLISHED" ||
       (publicAlbum.status === "SCHEDULED" &&
@@ -489,7 +505,7 @@ export class CatalogService {
         new Date(publicAlbum.scheduledReleaseAt).getTime() <= Date.now());
 
     // Check visibility permissions
-    if (!isArtistOwner) {
+    if (!isOwner) {
       if (publicAlbum.visibility === "PRIVATE") {
         return null;
       }
@@ -501,7 +517,7 @@ export class CatalogService {
       }
     }
 
-    const isUpcoming = !isLive && !isArtistOwner;
+    const isUpcoming = publicAlbum.scope === "PERSONAL" ? false : !isLive && !isArtistOwner;
 
     // Check if current user liked or pre-saved the album via 0.2ms Redis Sets
     let isLiked = false;
@@ -931,6 +947,8 @@ export class CatalogService {
             processingStatus: songs.processingStatus,
             playsCount: songs.playsCount,
             likesCount: songs.likesCount,
+            scope: songs.scope,
+            uploaderUserId: songs.uploaderUserId,
             coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
             createdAt: songs.createdAt,
             artistUserId: artistProfiles.userId,
@@ -973,6 +991,31 @@ export class CatalogService {
     }
 
     const isArtistOwner = !!(currentUserId && publicSong.artistUserId === currentUserId);
+    const isUploaderOwner = !!(currentUserId && publicSong.uploaderUserId === currentUserId);
+
+    let isJamAuthorized = false;
+    if (currentUserId && publicSong.uploaderUserId) {
+      try {
+        const userActiveRoom = await redis.get(`jam:user:${currentUserId}:active_room`);
+        if (userActiveRoom) {
+          const isMember = await redis.hexists(
+            `jam:session:${userActiveRoom.toUpperCase()}:members`,
+            publicSong.uploaderUserId
+          );
+          if (isMember === 1) {
+            isJamAuthorized = true;
+          }
+        }
+      } catch (jamErr) {
+        console.warn("[CatalogService] Jam room membership check warning:", jamErr);
+      }
+    }
+
+    // Personal songs are invisible and non-streamable to non-owners outside of a shared active Jam session
+    if (publicSong.scope === "PERSONAL" && !isUploaderOwner && !isJamAuthorized) {
+      return null;
+    }
+
     const isLive =
       !publicSong.albumId ||
       publicSong.albumStatus === "PUBLISHED" ||
@@ -980,7 +1023,10 @@ export class CatalogService {
         publicSong.albumScheduledReleaseAt &&
         new Date(publicSong.albumScheduledReleaseAt).getTime() <= Date.now());
 
-    const isStreamable = isLive || isArtistOwner;
+    const isStreamable =
+      publicSong.scope === "PERSONAL"
+        ? isUploaderOwner || isJamAuthorized
+        : isLive || isArtistOwner;
     const isLiked = await likesCacheService.isSongLiked(currentUserId, publicSong.id);
 
     return {
@@ -1396,6 +1442,7 @@ export class CatalogService {
 
     const conditions = [
       isNull(albums.deletedAt),
+      eq(albums.scope, "GLOBAL"),
       eq(albums.visibility, "PUBLIC"),
       or(
         eq(albums.status, "PUBLISHED"),
@@ -1480,7 +1527,7 @@ export class CatalogService {
     const limit = query.limit;
     const offset = (page - 1) * limit;
 
-    const conditions = [isNull(songs.deletedAt)];
+    const conditions = [isNull(songs.deletedAt), eq(songs.scope, "GLOBAL")];
 
     if (query.genre) {
       conditions.push(ilike(songs.genre, `%${query.genre}%`));
@@ -1704,6 +1751,53 @@ export class CatalogService {
       userLikedSongIds = new Set(likes.map((l) => l.songId));
     }
 
+    // 4. Personal Collection Matches ("In Your Collection" shelf)
+    let inYourCollection: any[] = [];
+    if (currentUserId) {
+      const [userRecord] = await db
+        .select({ lockerLinkToGlobalArtists: users.lockerLinkToGlobalArtists })
+        .from(users)
+        .where(eq(users.id, currentUserId))
+        .limit(1);
+
+      if (userRecord?.lockerLinkToGlobalArtists) {
+        const personalTracks = await db
+          .select({
+            id: songs.id,
+            title: songs.title,
+            slug: songs.slug,
+            durationSeconds: songs.durationSeconds,
+            audioUrl: songs.audioUrl,
+            hlsManifestUrl: songs.hlsManifestUrl,
+            rawAudioKey: songs.rawAudioKey,
+            coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
+            playsCount: songs.playsCount,
+            likesCount: songs.likesCount,
+            albumTitle: albums.title,
+            artistName: artistProfiles.stageName,
+            scope: songs.scope,
+          })
+          .from(songs)
+          .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+          .leftJoin(albums, eq(songs.albumId, albums.id))
+          .where(
+            and(
+              eq(songs.scope, "PERSONAL"),
+              eq(songs.uploaderUserId, currentUserId),
+              isNull(songs.deletedAt),
+              ilike(artistProfiles.stageName, artist.stageName)
+            )
+          )
+          .limit(20);
+
+        inYourCollection = personalTracks.map((t) => ({
+          ...t,
+          isPersonal: true,
+          isStreamable: true,
+        }));
+      }
+    }
+
     return {
       artist,
       albums: albumsList,
@@ -1715,6 +1809,7 @@ export class CatalogService {
         isLiked: userLikedSongIds.has(t.id),
       })),
       appearsOn: appearsOnCredits,
+      inYourCollection,
     };
   }
 

@@ -69,3 +69,8 @@ export const libraryPrivacyEnum = pgEnum("library_privacy", [
   "FOLLOWERS_ONLY",
   "PRIVATE",
 ]);
+
+export const catalogScopeEnum = pgEnum("catalog_scope", [
+  "GLOBAL",
+  "PERSONAL",
+]);

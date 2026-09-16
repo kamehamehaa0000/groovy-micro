@@ -8,7 +8,6 @@ import {
   PlayIconSVG,
   PauseIconSVG,
   HeartIconSVG,
-  DiscIconSVG,
   SvgArtworkSpiral,
   LockIconSVG,
   CalendarIconSVG,
@@ -18,6 +17,7 @@ import { useLikesStore } from '../stores/likes.store'
 import { usePreSavesStore } from '../stores/presaves.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
+import { ProceduralCover } from '../components/common/ProceduralCover'
 import type { PlayerTrack } from '../types/player'
 import { CommentSection } from '../components/comments/CommentSection'
 import { SongActionMenu } from '../components/player/SongActionMenu'
@@ -436,9 +436,12 @@ function AlbumDetailComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <DiscIconSVG className="w-16 h-16 text-ink-soft/40" />
-                </div>
+                <ProceduralCover
+                  size="xl"
+                  title={album.title}
+                  artistName={album.artistStageName}
+                  className="w-full h-full rounded-none text-2xl"
+                />
               )}
             </div>
 
@@ -456,6 +459,11 @@ function AlbumDetailComponent() {
               <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
                 {album.albumType}
               </span>
+              {(album as any).scope === 'PERSONAL' && (
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2.5 py-0.5 border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
+                  Personal Collection
+                </span>
+              )}
               {album.isUpcoming && (
                 <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
                   <CalendarIconSVG className="w-2.5 h-2.5" />

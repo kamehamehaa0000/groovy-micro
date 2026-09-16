@@ -932,6 +932,10 @@ export class AuthService {
         isPrivateAccount: users.isPrivateAccount,
         listeningActivityPrivacy: users.listeningActivityPrivacy,
         libraryPrivacy: users.libraryPrivacy,
+        lockerIncludeInSearch: users.lockerIncludeInSearch,
+        lockerIncludeInHome: users.lockerIncludeInHome,
+        lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed,
+        lockerLinkToGlobalArtists: users.lockerLinkToGlobalArtists,
         createdAt: users.createdAt,
         subscription: {
           planId: userSubscriptions.planId,

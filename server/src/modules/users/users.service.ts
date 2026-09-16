@@ -212,6 +212,18 @@ export class UsersService {
     if (input.libraryPrivacy !== undefined) {
       updateData.libraryPrivacy = input.libraryPrivacy
     }
+    if (input.lockerIncludeInSearch !== undefined) {
+      updateData.lockerIncludeInSearch = input.lockerIncludeInSearch
+    }
+    if (input.lockerIncludeInHome !== undefined) {
+      updateData.lockerIncludeInHome = input.lockerIncludeInHome
+    }
+    if (input.lockerIncludeInRecentlyPlayed !== undefined) {
+      updateData.lockerIncludeInRecentlyPlayed = input.lockerIncludeInRecentlyPlayed
+    }
+    if (input.lockerLinkToGlobalArtists !== undefined) {
+      updateData.lockerLinkToGlobalArtists = input.lockerLinkToGlobalArtists
+    }
 
     const [updatedUser] = await db
       .update(users)
@@ -222,6 +234,10 @@ export class UsersService {
         isPrivateAccount: users.isPrivateAccount,
         listeningActivityPrivacy: users.listeningActivityPrivacy,
         libraryPrivacy: users.libraryPrivacy,
+        lockerIncludeInSearch: users.lockerIncludeInSearch,
+        lockerIncludeInHome: users.lockerIncludeInHome,
+        lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed,
+        lockerLinkToGlobalArtists: users.lockerLinkToGlobalArtists,
         updatedAt: users.updatedAt,
       })
 

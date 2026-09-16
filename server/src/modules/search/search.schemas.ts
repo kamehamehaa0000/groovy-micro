@@ -28,6 +28,8 @@ export interface SearchSongItem {
   albumId: string | null;
   albumTitle: string | null;
   playsCount: number;
+  scope?: "GLOBAL" | "PERSONAL";
+  isPersonal?: boolean;
 }
 
 export interface SearchAlbumItem {
@@ -42,6 +44,8 @@ export interface SearchAlbumItem {
   artistName: string;
   artistSlug: string;
   likesCount: number;
+  scope?: "GLOBAL" | "PERSONAL";
+  isPersonal?: boolean;
 }
 
 export interface SearchArtistItem {
@@ -52,6 +56,8 @@ export interface SearchArtistItem {
   bannerUrl: string | null;
   verified: boolean;
   monthlyListeners: number;
+  scope?: "GLOBAL" | "PERSONAL";
+  isPersonal?: boolean;
 }
 
 export interface SearchPlaylistItem {

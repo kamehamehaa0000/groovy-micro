@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
-import type { DiscographyResponse, EnrichedSong } from '../types/catalog'
+import type { DiscographyResponse, EnrichedSong, PersonalCollectionTrack } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
+import { ProceduralCover } from '../components/common/ProceduralCover'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
@@ -250,6 +251,36 @@ function ArtistPublicProfileComponent() {
     }
   }
 
+  const handlePlayLockerSong = (track: PersonalCollectionTrack, index: number) => {
+    if (currentTrack?.id === track.id) {
+      togglePlay()
+      return
+    }
+    const lockerTracks = discography?.inYourCollection || []
+    const contextTracks: PlayerTrack[] = lockerTracks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      artistId: artist?.id || '',
+      artistName: t.artistName || artist?.stageName || 'Unknown Artist',
+      artistSlug: artist?.slug,
+      albumTitle: t.albumTitle || undefined,
+      coverImageUrl: t.coverImageUrl || undefined,
+      durationSeconds: t.durationSeconds,
+      audioUrl: t.audioUrl,
+      hlsManifestUrl: t.hlsManifestUrl,
+      rawAudioKey: t.rawAudioKey,
+      isExplicit: false,
+    }))
+
+    playTrack(
+      contextTracks[index],
+      contextTracks,
+      index,
+      `personal:artist:${artist?.id || idOrSlug}`,
+      `Your Personal Collection — ${artist?.stageName || 'Artist'}`
+    )
+  }
+
   const handleCopyShareLink = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href)
@@ -300,6 +331,8 @@ function ArtistPublicProfileComponent() {
     discography?.topTracks && discography.topTracks.length > 0
   const hasAppearsOn =
     discography?.appearsOn && discography.appearsOn.length > 0
+  const hasInYourCollection =
+    discography?.inYourCollection && discography.inYourCollection.length > 0
 
   return (
     <div className="w-full pb-20">
@@ -682,6 +715,95 @@ function ArtistPublicProfileComponent() {
               </div>
             )}
 
+            {/* In Your Cloud Locker Shelf */}
+            {hasInYourCollection && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="font-serif italic text-xl text-ink">
+                      In Your Personal Collection
+                    </h2>
+                    <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
+                      Personal Vault
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    {discography!.inYourCollection!.length} Offline {discography!.inYourCollection!.length === 1 ? 'Track' : 'Tracks'}
+                  </span>
+                </div>
+
+                <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
+                  {discography!.inYourCollection!.map((track, idx) => {
+                    const isCurrentPlaying =
+                      currentTrack?.id === track.id && playbackStatus === 'playing'
+
+                    return (
+                      <div
+                        key={track.id}
+                        className={`px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
+                          currentTrack?.id === track.id ? 'bg-panel-deep' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-4">
+                          <button
+                            type="button"
+                            onClick={() => handlePlayLockerSong(track, idx)}
+                            className="w-8 h-8 rounded-full border border-line flex items-center justify-center font-mono text-xs text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
+                            title={isCurrentPlaying ? 'Pause' : 'Play'}
+                          >
+                            {isCurrentPlaying ? (
+                              <PauseIconSVG className="w-3.5 h-3.5" />
+                            ) : (
+                              <PlayIconSVG className="w-3.5 h-3.5 ml-0.5" />
+                            )}
+                          </button>
+
+                          <div className="w-9 h-9 bg-canvas-deep border border-line shrink-0 overflow-hidden relative">
+                            {track.coverImageUrl ? (
+                              <img
+                                src={track.coverImageUrl}
+                                alt={track.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <ProceduralCover
+                                size="sm"
+                                title={track.title}
+                                artistName={track.artistName}
+                                className="w-full h-full rounded-none text-[10px]"
+                              />
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-serif italic text-sm text-ink truncate font-medium">
+                                {track.title}
+                              </span>
+                              <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold shrink-0">
+                                Personal Collection
+                              </span>
+                            </div>
+                            {track.albumTitle && (
+                              <span className="font-sans text-xs text-ink-soft truncate block">
+                                {track.albumTitle}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="font-mono text-[10.5px] text-ink-soft">
+                            {formatDuration(track.durationSeconds)}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Appears On (Featured / Producer Collaborations) */}
             {hasAppearsOn && (
               <div className="space-y-3">
@@ -731,7 +853,7 @@ function ArtistPublicProfileComponent() {
             )}
 
             {/* If no discography yet */}
-            {!hasAlbums && !hasMixtapes && !hasEpsOrSingles && !hasTopTracks && !hasAppearsOn && (
+            {!hasAlbums && !hasMixtapes && !hasEpsOrSingles && !hasTopTracks && !hasAppearsOn && !hasInYourCollection && (
               <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
                 <p className="font-serif italic text-base text-ink">
                   Master Tracks & Albums In Preparation

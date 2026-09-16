@@ -63,6 +63,11 @@ const ALL_SUITES: TestSuite[] = [
     name: 'Player & Real-Time Sync',
     file: 'src/modules/player/player.test.ts',
   },
+  {
+    id: 'locker',
+    name: 'Personal Cloud Locker & Bulk Importer',
+    file: 'src/modules/storage/locker.test.ts',
+  },
 ]
 
 // ANSI Escape Codes

@@ -39,6 +39,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   preSaves: many(releasePresaves),
   followers: many(userFollows, { relationName: "userFollowers" }),
   following: many(userFollows, { relationName: "userFollowing" }),
+  uploadedAlbums: many(albums, { relationName: "uploadedAlbums" }),
+  uploadedSongs: many(songs, { relationName: "uploadedSongs" }),
 }));
 
 export const artistProfilesRelations = relations(
@@ -46,6 +48,10 @@ export const artistProfilesRelations = relations(
   ({ one, many }) => ({
     user: one(users, {
       fields: [artistProfiles.userId],
+      references: [users.id],
+    }),
+    ownerUser: one(users, {
+      fields: [artistProfiles.ownerUserId],
       references: [users.id],
     }),
     albums: many(albums),
@@ -94,6 +100,11 @@ export const albumsRelations = relations(albums, ({ one, many }) => ({
     fields: [albums.artistId],
     references: [artistProfiles.id],
   }),
+  uploader: one(users, {
+    fields: [albums.uploaderUserId],
+    references: [users.id],
+    relationName: "uploadedAlbums",
+  }),
   songs: many(songs),
   savedByUsers: many(userLibraryAlbums),
   preSaves: many(releasePresaves),
@@ -107,6 +118,11 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
   album: one(albums, {
     fields: [songs.albumId],
     references: [albums.id],
+  }),
+  uploader: one(users, {
+    fields: [songs.uploaderUserId],
+    references: [users.id],
+    relationName: "uploadedSongs",
   }),
   playlistEntries: many(playlistSongs),
   likes: many(songLikes),

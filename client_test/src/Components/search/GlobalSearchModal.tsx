@@ -12,6 +12,7 @@ import {
   PauseIconSVG,
   LockIconSVG,
 } from "../icons";
+import { ProceduralCover } from "../common/ProceduralCover";
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
@@ -288,15 +289,25 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-ink-soft">
-                              ♪
-                            </div>
+                            <ProceduralCover
+                              size="md"
+                              title={(results.topResult.item as any).title}
+                              artistName={(results.topResult.item as any).artistName}
+                              className="w-full h-full rounded-none"
+                            />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mb-1">
-                            Track
-                          </span>
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block">
+                              Track
+                            </span>
+                            {(results.topResult.item as any).isPersonal && (
+                              <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                                Personal Collection
+                              </span>
+                            )}
+                          </div>
                           <h3 className="font-serif italic text-xl font-bold text-ink truncate">
                             {(results.topResult.item as any).title}
                           </h3>
@@ -332,15 +343,25 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-ink-soft">
-                              💿
-                            </div>
+                            <ProceduralCover
+                              size="md"
+                              title={(results.topResult.item as any).title}
+                              artistName={(results.topResult.item as any).artistName}
+                              className="w-full h-full rounded-none"
+                            />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block mb-1">
-                            {(results.topResult.item as any).albumType || "Album"}
-                          </span>
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">
+                              {(results.topResult.item as any).albumType || "Album"}
+                            </span>
+                            {(results.topResult.item as any).isPersonal && (
+                              <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                                Personal Collection
+                              </span>
+                            )}
+                          </div>
                           <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-blue transition-colors">
                             {(results.topResult.item as any).title}
                           </h3>
@@ -489,17 +510,25 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
-                                  ♪
-                                </div>
+                                <ProceduralCover
+                                  size="sm"
+                                  title={song.title}
+                                  artistName={song.artistName}
+                                  className="w-full h-full rounded-none text-[10px]"
+                                />
                               )}
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="font-serif italic text-sm font-semibold text-ink truncate">
                                   {song.title}
                                 </span>
+                                {song.isPersonal && (
+                                  <span className="font-mono text-[8px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold">
+                                    Personal Collection
+                                  </span>
+                                )}
                                 {song.isExplicit && (
                                   <span className="font-mono text-[8px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
                                     E
@@ -622,15 +651,25 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
-                              💿
-                            </div>
+                            <ProceduralCover
+                              size="sm"
+                              title={album.title}
+                              artistName={album.artistName}
+                              className="w-full h-full rounded-none text-[10px]"
+                            />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-serif italic text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
-                            {album.title}
-                          </h4>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-serif italic text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                              {album.title}
+                            </h4>
+                            {album.isPersonal && (
+                              <span className="font-mono text-[8px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold">
+                                Personal Collection
+                              </span>
+                            )}
+                          </div>
                           <span className="font-sans text-xs text-ink-soft truncate block">
                             {album.artistName}
                           </span>

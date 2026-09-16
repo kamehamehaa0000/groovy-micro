@@ -11,8 +11,12 @@ import type {
   SubscriptionPlan,
   PlanFeatureDefinition,
 } from '../types/subscriptions'
-import { DiscIconSVG, CalendarIconSVG } from '../components/icons'
+import { DiscIconSVG, CalendarIconSVG, UploadCloudSVG, PlayIconSVG, PauseIconSVG, TrashIconSVG } from '../components/icons'
 import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
+import { ProceduralCover } from '../components/common/ProceduralCover'
+import { storageApi, type LockerQuota } from '../lib/storage.api'
+import { useLockerStore } from '../stores/locker.store'
+import { usePlayerStore } from '../stores/player.store'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
@@ -79,6 +83,10 @@ function ProfileComponent() {
   const [libraryPrivacy, setLibraryPrivacy] = useState<
     'PUBLIC' | 'FOLLOWERS_ONLY' | 'PRIVATE'
   >('PUBLIC')
+  const [lockerIncludeInSearch, setLockerIncludeInSearch] = useState(true)
+  const [lockerIncludeInHome, setLockerIncludeInHome] = useState(false)
+  const [lockerIncludeInRecentlyPlayed, setLockerIncludeInRecentlyPlayed] = useState(true)
+  const [lockerLinkToGlobalArtists, setLockerLinkToGlobalArtists] = useState(false)
   const [isSavingPrivacy, setIsSavingPrivacy] = useState(false)
   const [privacyMsg, setPrivacyMsg] = useState<{
     text: string
@@ -97,6 +105,10 @@ function ProfileComponent() {
       setIsPrivateAccount(!!user.isPrivateAccount)
       setListeningActivityPrivacy(user.listeningActivityPrivacy || 'FRIENDS_ONLY')
       setLibraryPrivacy(user.libraryPrivacy || 'PUBLIC')
+      setLockerIncludeInSearch(user.lockerIncludeInSearch ?? true)
+      setLockerIncludeInHome(user.lockerIncludeInHome ?? false)
+      setLockerIncludeInRecentlyPlayed(user.lockerIncludeInRecentlyPlayed ?? true)
+      setLockerLinkToGlobalArtists(user.lockerLinkToGlobalArtists ?? false)
     }
   }, [user])
 
@@ -112,6 +124,140 @@ function ProfileComponent() {
       useEntitlementsStore.getState().initializeEntitlements()
     }
   }, [isAuthenticated])
+
+  // Cloud Locker State & Controls
+  const [lockerQuota, setLockerQuota] = useState<LockerQuota | null>(null)
+  const [lockerReleases, setLockerReleases] = useState<any[]>([])
+  const [isLoadingLocker, setIsLoadingLocker] = useState(false)
+  const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(null)
+  const lockerRefreshTrigger = useLockerStore((s) => s.refreshTrigger)
+  const openLockerModal = useLockerStore((s) => s.openLockerModal)
+  const triggerRefresh = useLockerStore((s) => s.triggerRefresh)
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
+
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsLoadingLocker(true)
+      Promise.all([
+        storageApi.getQuota().catch(() => null),
+        storageApi.getLockerReleases().catch(() => null),
+      ])
+        .then(([quotaRes, releasesRes]) => {
+          if (quotaRes?.quota) setLockerQuota(quotaRes.quota)
+          if (releasesRes?.releases) setLockerReleases(releasesRes.releases)
+        })
+        .finally(() => setIsLoadingLocker(false))
+    }
+  }, [isAuthenticated, lockerRefreshTrigger])
+
+  const handlePlayLockerTrack = (release: any, track: any, trackIdx: number) => {
+    if (currentTrack?.id === track.id) {
+      togglePlay()
+      return
+    }
+    const contextTracks = release.tracks.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      artistId: release.artistId || '',
+      artistName: release.artistName || 'Unknown Artist',
+      artistSlug: release.artistSlug,
+      albumTitle: release.title,
+      coverImageUrl: release.coverImageUrl || undefined,
+      durationSeconds: t.durationSeconds,
+      audioUrl: t.audioUrl,
+      hlsManifestUrl: t.hlsManifestUrl,
+      rawAudioKey: t.rawAudioKey,
+      isExplicit: t.isExplicit ?? false,
+    }))
+
+    playTrack(
+      contextTracks[trackIdx],
+      contextTracks,
+      trackIdx,
+      `personal:release:${release.id}`,
+      `Personal Collection: ${release.title}`
+    )
+  }
+
+  const handleDeleteLockerSong = async (songId: string, releaseId: string) => {
+    if (!window.confirm('Remove this track from your Personal Collection? This will immediately free 1 quota slot.')) {
+      return
+    }
+    try {
+      setDeletingItemId(songId)
+      await storageApi.deletePersonalSong(songId)
+      setLockerReleases((prev) =>
+        prev
+          .map((r) => {
+            if (r.id !== releaseId) return r
+            const updated = r.tracks.filter((t: any) => t.id !== songId)
+            return {
+              ...r,
+              tracks: updated,
+              totalTracks: updated.length,
+              totalDurationSeconds: updated.reduce(
+                (acc: number, t: any) => acc + (t.durationSeconds || 0),
+                0
+              ),
+            }
+          })
+          .filter((r) => r.tracks.length > 0)
+      )
+      setLockerQuota((prev) =>
+        prev
+          ? {
+              ...prev,
+              usedSongs: Math.max(0, prev.usedSongs - 1),
+              remainingSongs: Math.min(prev.maxSongs, prev.remainingSongs + 1),
+            }
+          : null
+      )
+      triggerRefresh()
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete track')
+    } finally {
+      setDeletingItemId(null)
+    }
+  }
+
+  const handleDeleteLockerRelease = async (
+    releaseId: string,
+    releaseTitle: string,
+    trackCount: number
+  ) => {
+    if (
+      !window.confirm(
+        `Delete "${releaseTitle}" and all ${trackCount} track(s) from your Personal Collection? This will immediately free ${trackCount} quota slot(s).`
+      )
+    ) {
+      return
+    }
+    try {
+      setDeletingItemId(releaseId)
+      const res = await storageApi.deletePersonalRelease(releaseId)
+      const deletedCount = res.deletedTracks ?? trackCount
+      setLockerReleases((prev) => prev.filter((r) => r.id !== releaseId))
+      setLockerQuota((prev) =>
+        prev
+          ? {
+              ...prev,
+              usedSongs: Math.max(0, prev.usedSongs - deletedCount),
+              remainingSongs: Math.min(prev.maxSongs, prev.remainingSongs + deletedCount),
+            }
+          : null
+      )
+      triggerRefresh()
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete release')
+    } finally {
+      setDeletingItemId(null)
+    }
+  }
 
   if (isLoading || !user) {
     return (
@@ -233,6 +379,10 @@ function ProfileComponent() {
         isPrivateAccount,
         listeningActivityPrivacy,
         libraryPrivacy,
+        lockerIncludeInSearch,
+        lockerIncludeInHome,
+        lockerIncludeInRecentlyPlayed,
+        lockerLinkToGlobalArtists,
       })
       await refreshProfile()
       setPrivacyMsg({
@@ -926,6 +1076,107 @@ function ProfileComponent() {
             </div>
           </div>
 
+          {/* Personal Collection & Offline Music Controls */}
+          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-4">
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold flex items-center gap-2">
+                <span>Personal Collection &amp; Offline Music</span>
+                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  Sandboxed Storage
+                </span>
+              </div>
+              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                Granularly control where your privately uploaded offline audio collection surfaces throughout the Groovy experience.
+              </p>
+            </div>
+
+            <div className="space-y-3 divide-y divide-line/60">
+              {/* Toggle 1: Search */}
+              <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Include in Global Search
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Surface your personal collection songs and albums in your own search bar results with a &quot;Personal Collection&quot; badge. (Never visible to other curators).
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={lockerIncludeInSearch}
+                    onChange={(e) => setLockerIncludeInSearch(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 2: Recently Played & Activity */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Include in Recently Played &amp; Activity
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Record personal collection listening history on your Recent tracks shelf. When disabled, personal tracks are omitted from listening history and friend feeds.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={lockerIncludeInRecentlyPlayed}
+                    onChange={(e) => setLockerIncludeInRecentlyPlayed(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 3: Home Feed */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Include on Home &amp; Discovery Deck
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Blend your personal collection releases into your personal home recommendation shelves.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={lockerIncludeInHome}
+                    onChange={(e) => setLockerIncludeInHome(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 4: Verified Artists Link */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Link to Verified Global Artists
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Display an &quot;In Your Collection&quot; shelf on verified artist pages when your personal collection contains matching tracks by that artist.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={lockerLinkToGlobalArtists}
+                    onChange={(e) => setLockerLinkToGlobalArtists(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
@@ -936,6 +1187,275 @@ function ProfileComponent() {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* ===================== PERSONAL COLLECTION VAULT ===================== */}
+      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+          <div>
+            <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-indigo-500 mb-1">
+              <UploadCloudSVG className="w-3.5 h-3.5" />
+              <span>Personal Collection &bull; Offline Music</span>
+            </div>
+            <h3 className="font-serif italic text-2xl text-ink font-normal">
+              Private Audio Vault
+            </h3>
+            <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+              Import local audio folders (MP3, FLAC, WAV, M4A, AAC, OGG). Extracted in-browser and securely stored in your personal lossless vault.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={openLockerModal}
+            className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <UploadCloudSVG className="w-4 h-4 text-indigo-400" />
+            <span>Manage &amp; Import Music</span>
+          </button>
+        </div>
+
+        {/* Quota Progress & Stats */}
+        {lockerQuota && (
+          <div className="bg-canvas border border-line p-4 space-y-2.5">
+            <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-wider">
+              <span className="text-ink-soft">
+                Collection Quota:{' '}
+                <strong className="text-ink font-bold">
+                  {lockerQuota.usedSongs}
+                </strong>{' '}
+                / {lockerQuota.maxSongs} Songs
+              </span>
+              <span
+                className={
+                  lockerQuota.remainingSongs === 0
+                    ? 'text-red-500 font-semibold'
+                    : 'text-indigo-500 font-semibold'
+                }
+              >
+                {lockerQuota.remainingSongs} Remaining
+              </span>
+            </div>
+
+            <div className="w-full h-2 bg-canvas-deep border border-line rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  lockerQuota.usedSongs >= lockerQuota.maxSongs
+                    ? 'bg-red-500'
+                    : 'bg-indigo-500'
+                }`}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.round((lockerQuota.usedSongs / lockerQuota.maxSongs) * 100)
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Releases Shelf / List */}
+        {isLoadingLocker ? (
+          <div className="py-12 text-center font-mono text-xs uppercase tracking-[0.14em] text-ink-soft animate-pulse">
+            Loading private collection releases...
+          </div>
+        ) : lockerReleases.length === 0 ? (
+          <div className="p-8 border border-dashed border-line bg-canvas/30 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mx-auto">
+              <UploadCloudSVG className="w-6 h-6" />
+            </div>
+            <p className="font-serif italic text-base text-ink">
+              Your Personal Collection is Empty
+            </p>
+            <p className="font-sans text-xs text-ink-soft max-w-md mx-auto leading-relaxed">
+              No offline audio imported yet. You can drag and drop individual music files or whole albums to access them anywhere in Groovy.
+            </p>
+            <button
+              type="button"
+              onClick={openLockerModal}
+              className="mt-2 inline-block font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer"
+            >
+              + Launch Importer
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft">
+              {lockerReleases.length} Personal {lockerReleases.length === 1 ? 'Release' : 'Releases'} in Collection
+            </div>
+
+            <div className="space-y-3">
+              {lockerReleases.map((release) => {
+                const isExpanded = expandedReleaseId === release.id
+                const isDeletingRelease = deletingItemId === release.id
+
+                return (
+                  <div
+                    key={release.id}
+                    className="border border-line bg-canvas overflow-hidden transition-all shadow-2xs"
+                  >
+                    {/* Release Card Header */}
+                    <div className="p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="w-12 h-12 bg-panel border border-line shrink-0 overflow-hidden relative">
+                          {release.coverImageUrl ? (
+                            <img
+                              src={release.coverImageUrl}
+                              alt={release.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ProceduralCover
+                              size="sm"
+                              title={release.title}
+                              artistName={release.artistName}
+                              className="w-full h-full rounded-none"
+                            />
+                          )}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-serif italic text-base font-medium text-ink truncate">
+                              {release.title}
+                            </h4>
+                            <span className="font-mono text-[8px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold">
+                              {release.albumType || 'Album'}
+                            </span>
+                          </div>
+                          <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
+                            {release.artistName} &bull; {release.totalTracks}{' '}
+                            {release.totalTracks === 1 ? 'track' : 'tracks'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {release.tracks?.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handlePlayLockerTrack(release, release.tracks[0], 0)
+                            }
+                            className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas flex items-center justify-center text-ink transition-colors cursor-pointer"
+                            title="Play Release"
+                          >
+                            <PlayIconSVG className="w-3.5 h-3.5 ml-0.5" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedReleaseId(isExpanded ? null : release.id)
+                          }
+                          className="font-mono text-[9px] uppercase tracking-wider px-2.5 py-1.5 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer"
+                        >
+                          {isExpanded ? 'Hide Tracks' : 'View Tracks'}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isDeletingRelease}
+                          onClick={() =>
+                            handleDeleteLockerRelease(
+                              release.id,
+                              release.title,
+                              release.totalTracks || release.tracks?.length || 1
+                            )
+                          }
+                          className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-red-500/10 hover:border-red-400 hover:text-red-500 flex items-center justify-center text-ink-soft transition-colors cursor-pointer"
+                          title="Delete Release from Personal Collection"
+                        >
+                          {isDeletingRelease ? (
+                            <div className="w-3 h-3 border border-red-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <TrashIconSVG className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expandable Tracks List */}
+                    {isExpanded && release.tracks && (
+                      <div className="border-t border-line divide-y divide-line/60 bg-panel/40">
+                        {release.tracks.map((track: any, tIdx: number) => {
+                          const isPlayingThis =
+                            currentTrack?.id === track.id &&
+                            playbackStatus === 'playing'
+                          const isDeletingTrack = deletingItemId === track.id
+
+                          return (
+                            <div
+                              key={track.id}
+                              className={`py-2 px-4 flex items-center justify-between gap-4 hover:bg-canvas transition-colors ${
+                                currentTrack?.id === track.id
+                                  ? 'bg-panel-deep'
+                                  : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handlePlayLockerTrack(release, track, tIdx)
+                                  }
+                                  className="w-6 h-6 rounded-full border border-line flex items-center justify-center font-mono text-[10px] text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
+                                >
+                                  {isPlayingThis ? (
+                                    <PauseIconSVG className="w-2.5 h-2.5" />
+                                  ) : (
+                                    <PlayIconSVG className="w-2.5 h-2.5 ml-0.2" />
+                                  )}
+                                </button>
+                                <span className="font-mono text-[10px] text-ink-soft w-4 text-right">
+                                  {track.trackNumber || tIdx + 1}
+                                </span>
+                                <span className="font-serif italic text-xs text-ink truncate">
+                                  {track.title}
+                                </span>
+                                {track.processingStatus === 'PROCESSING' && (
+                                  <span className="font-mono text-[8px] uppercase tracking-wider text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1 py-0.2 rounded animate-pulse">
+                                    Transcoding
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="font-mono text-[10px] text-ink-soft">
+                                  {Math.floor(track.durationSeconds / 60)}:
+                                  {(track.durationSeconds % 60)
+                                    .toString()
+                                    .padStart(2, '0')}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  disabled={isDeletingTrack}
+                                  onClick={() =>
+                                    handleDeleteLockerSong(track.id, release.id)
+                                  }
+                                  className="p-1 text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
+                                  title="Delete track from Personal Collection"
+                                >
+                                  {isDeletingTrack ? (
+                                    <div className="w-2.5 h-2.5 border border-red-400 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <TrashIconSVG className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Display Name Form */}
