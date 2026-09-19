@@ -9,6 +9,7 @@ import {
   presignedUrlSchema,
   batchPresignedUrlsSchema,
   bulkImportReleaseSchema,
+  createPersonalArtistSchema,
 } from './storage.schemas'
 
 export const storageRoutes: FastifyPluginAsync = async (fastify) => {
@@ -51,6 +52,61 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
         request.user.id,
       )
       return reply.status(200).send({ releases })
+    },
+  )
+
+  /**
+   * GET /personal-collection/artists & GET /locker/artists
+   * Returns all personal sandboxed artists created by the user with release & track counts.
+   */
+  const handleGetPersonalArtists = async (request: any, reply: any) => {
+    const result = await storageService.getUserPersonalArtists(request.user.id)
+    return reply.status(200).send(result)
+  }
+
+  fastify.get(
+    '/personal-collection/artists',
+    { preHandler: [requireAuth] },
+    handleGetPersonalArtists,
+  )
+
+  fastify.get(
+    '/locker/artists',
+    { preHandler: [requireAuth] },
+    handleGetPersonalArtists,
+  )
+
+  /**
+   * POST /personal-collection/artists
+   * Creates or resolves a personal sandboxed artist for the user.
+   */
+  fastify.post(
+    '/personal-collection/artists',
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const parseResult = createPersonalArtistSchema.safeParse(request.body)
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Validation failed',
+          errors: parseResult.error.flatten().fieldErrors,
+        })
+      }
+
+      try {
+        const result = await storageService.createPersonalArtist(
+          request.user.id,
+          parseResult.data,
+        )
+        return reply.status(result.isExisting ? 200 : 201).send(result)
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: err.message || 'Failed to create personal artist',
+        })
+      }
     },
   )
 
@@ -121,6 +177,186 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
   )
 
   /**
+   * GET /personal-collection/trash & GET /locker/trash
+   * Returns all soft-deleted songs and releases in the user's trash.
+   */
+  const handleGetTrash = async (request: any, reply: any) => {
+    const trash = await storageService.getUserTrash(request.user.id)
+    return reply.status(200).send(trash)
+  }
+
+  fastify.get(
+    '/personal-collection/trash',
+    { preHandler: [requireAuth] },
+    handleGetTrash,
+  )
+
+  fastify.get('/locker/trash', { preHandler: [requireAuth] }, handleGetTrash)
+
+  /**
+   * POST /personal-collection/songs/:id/restore & POST /locker/songs/:id/restore
+   * Restores a soft-deleted song with quota validation.
+   */
+  const handleRestoreSong = async (request: any, reply: any) => {
+    const { id } = request.params as { id: string }
+    try {
+      const result = await storageService.restorePersonalSong(
+        request.user.id,
+        id,
+      )
+      return reply.status(200).send(result)
+    } catch (err: any) {
+      const isQuota = err.message?.includes('quota exceeded')
+      return reply.status(isQuota ? 403 : 400).send({
+        statusCode: isQuota ? 403 : 400,
+        error: isQuota ? 'Forbidden' : 'Bad Request',
+        message: err.message || 'Failed to restore song from trash',
+      })
+    }
+  }
+
+  fastify.post(
+    '/personal-collection/songs/:id/restore',
+    { preHandler: [requireAuth] },
+    handleRestoreSong,
+  )
+
+  fastify.post(
+    '/locker/songs/:id/restore',
+    { preHandler: [requireAuth] },
+    handleRestoreSong,
+  )
+
+  /**
+   * POST /personal-collection/releases/:id/restore & POST /locker/releases/:id/restore
+   * Restores an entire soft-deleted release and its tracks with quota validation.
+   */
+  const handleRestoreRelease = async (request: any, reply: any) => {
+    const { id } = request.params as { id: string }
+    try {
+      const result = await storageService.restorePersonalRelease(
+        request.user.id,
+        id,
+      )
+      return reply.status(200).send(result)
+    } catch (err: any) {
+      const isQuota = err.message?.includes('quota')
+      return reply.status(isQuota ? 403 : 400).send({
+        statusCode: isQuota ? 403 : 400,
+        error: isQuota ? 'Forbidden' : 'Bad Request',
+        message: err.message || 'Failed to restore release from trash',
+      })
+    }
+  }
+
+  fastify.post(
+    '/personal-collection/releases/:id/restore',
+    { preHandler: [requireAuth] },
+    handleRestoreRelease,
+  )
+
+  fastify.post(
+    '/locker/releases/:id/restore',
+    { preHandler: [requireAuth] },
+    handleRestoreRelease,
+  )
+
+  /**
+   * DELETE /personal-collection/songs/:id/permanent & DELETE /locker/songs/:id/permanent
+   * Permanently deletes a personal song from PostgreSQL and R2.
+   */
+  const handlePermanentlyDeleteSong = async (request: any, reply: any) => {
+    const { id } = request.params as { id: string }
+    try {
+      const result = await storageService.permanentlyDeletePersonalSong(
+        request.user.id,
+        id,
+      )
+      return reply.status(200).send(result)
+    } catch (err: any) {
+      return reply.status(404).send({
+        statusCode: 404,
+        error: 'Not Found',
+        message: err.message || 'Failed to permanently delete song',
+      })
+    }
+  }
+
+  fastify.delete(
+    '/personal-collection/songs/:id/permanent',
+    { preHandler: [requireAuth] },
+    handlePermanentlyDeleteSong,
+  )
+
+  fastify.delete(
+    '/locker/songs/:id/permanent',
+    { preHandler: [requireAuth] },
+    handlePermanentlyDeleteSong,
+  )
+
+  /**
+   * DELETE /personal-collection/releases/:id/permanent & DELETE /locker/releases/:id/permanent
+   * Permanently deletes a personal release and all its tracks from PostgreSQL and R2.
+   */
+  const handlePermanentlyDeleteRelease = async (request: any, reply: any) => {
+    const { id } = request.params as { id: string }
+    try {
+      const result = await storageService.permanentlyDeletePersonalRelease(
+        request.user.id,
+        id,
+      )
+      return reply.status(200).send(result)
+    } catch (err: any) {
+      return reply.status(404).send({
+        statusCode: 404,
+        error: 'Not Found',
+        message: err.message || 'Failed to permanently delete release',
+      })
+    }
+  }
+
+  fastify.delete(
+    '/personal-collection/releases/:id/permanent',
+    { preHandler: [requireAuth] },
+    handlePermanentlyDeleteRelease,
+  )
+
+  fastify.delete(
+    '/locker/releases/:id/permanent',
+    { preHandler: [requireAuth] },
+    handlePermanentlyDeleteRelease,
+  )
+
+  /**
+   * DELETE /personal-collection/trash & DELETE /locker/trash
+   * Empties the user's recycle bin permanently.
+   */
+  const handleEmptyTrash = async (request: any, reply: any) => {
+    try {
+      const result = await storageService.emptyPersonalTrash(request.user.id)
+      return reply.status(200).send(result)
+    } catch (err: any) {
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: err.message || 'Failed to empty recycle bin',
+      })
+    }
+  }
+
+  fastify.delete(
+    '/personal-collection/trash',
+    { preHandler: [requireAuth] },
+    handleEmptyTrash,
+  )
+
+  fastify.delete(
+    '/locker/trash',
+    { preHandler: [requireAuth] },
+    handleEmptyTrash,
+  )
+
+  /**
    * POST /batch-presigned-urls
    * Generates multiple presigned upload URLs for bulk locker imports with quota validation.
    */
@@ -130,11 +366,15 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const parseResult = batchPresignedUrlsSchema.safeParse(request.body)
       if (!parseResult.success) {
+        const fieldErrors = parseResult.error.flatten().fieldErrors
+        const detailedMsg = Object.entries(fieldErrors)
+          .map(([k, v]) => `${k}: ${v?.join(', ')}`)
+          .join('; ')
         return reply.status(400).send({
           statusCode: 400,
           error: 'Bad Request',
-          message: 'Validation failed',
-          errors: parseResult.error.flatten().fieldErrors,
+          message: detailedMsg ? `Validation failed (${detailedMsg})` : 'Validation failed',
+          errors: fieldErrors,
         })
       }
 
@@ -197,11 +437,15 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const parseResult = bulkImportReleaseSchema.safeParse(request.body)
       if (!parseResult.success) {
+        const fieldErrors = parseResult.error.flatten().fieldErrors
+        const detailedMsg = Object.entries(fieldErrors)
+          .map(([k, v]) => `${k}: ${v?.join(', ')}`)
+          .join('; ')
         return reply.status(400).send({
           statusCode: 400,
           error: 'Bad Request',
-          message: 'Validation failed',
-          errors: parseResult.error.flatten().fieldErrors,
+          message: detailedMsg ? `Validation failed (${detailedMsg})` : 'Validation failed',
+          errors: fieldErrors,
         })
       }
 

@@ -97,6 +97,10 @@ export const adminVerifyArtistSchema = z.object({
 
 export const searchArtistsQuerySchema = z.object({
   search: z.string().optional(),
+  scope: z.enum(["GLOBAL", "PERSONAL", "ALL"]).default("GLOBAL"),
+  sort: z
+    .enum(["listeners", "followers", "name", "recent"])
+    .default("listeners"),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
 });

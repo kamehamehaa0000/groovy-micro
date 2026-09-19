@@ -7,12 +7,13 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { s3Client } from './storage.client'
 import { UPLOAD_PRESETS, type UploadCategory } from './storage.presets'
 import { randomUUID } from 'crypto'
-import { eq, and, isNull, sql, ilike, desc, asc } from 'drizzle-orm'
+import { eq, and, isNull, isNotNull, sql, ilike, desc, asc, inArray } from 'drizzle-orm'
 import { db } from '../../db'
-import { songs, albums, artistProfiles, outboxEvents } from '../../db/schema'
+import { songs, albums, artistProfiles, outboxEvents, songCredits } from '../../db/schema'
 import { slugify } from '../artists/artists.service'
 import { enqueueTranscodeJob } from '../../lib/queue/transcode.queue'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
+import { cacheManager, cacheKeys } from '../../lib/cache'
 import type { BulkImportReleaseInput } from './storage.schemas'
 
 const subscriptionsService = new SubscriptionsService()
@@ -29,6 +30,137 @@ function generateScopedSlug(text: string, userId: string): string {
   const userSegment = userId.replace(/-/g, '').slice(0, 8)
   const rand = randomUUID().replace(/-/g, '').slice(0, 4)
   return `${base.slice(0, 120)}-${userSegment}-${rand}`
+}
+
+export function parseArtistNames(rawArtistString: string): string[] {
+  if (!rawArtistString || !rawArtistString.trim()) return ['Various Artists']
+
+  const normalized = rawArtistString
+    .replace(/\s+(?:feat\.|ft\.|featuring)\s+/gi, ', ')
+    .replace(/\s+&\s+/g, ', ')
+    .replace(/;/g, ',')
+
+  const parts = normalized
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0)
+
+  const uniqueNames: string[] = []
+  const seen = new Set<string>()
+  for (const p of parts) {
+    const lower = p.toLowerCase()
+    if (!seen.has(lower)) {
+      seen.add(lower)
+      uniqueNames.push(p)
+    }
+  }
+
+  return uniqueNames.length > 0 ? uniqueNames : ['Various Artists']
+}
+
+async function resolvePersonalArtist(
+  tx: any,
+  artistName: string,
+  userId: string,
+  cache: Map<string, typeof artistProfiles.$inferSelect>,
+): Promise<typeof artistProfiles.$inferSelect> {
+  const cleanName = artistName.trim()
+  const lowerKey = cleanName.toLowerCase()
+
+  if (cache.has(lowerKey)) {
+    return cache.get(lowerKey)!
+  }
+
+  let [existing] = await tx
+    .select()
+    .from(artistProfiles)
+    .where(
+      and(
+        eq(artistProfiles.ownerUserId, userId),
+        eq(artistProfiles.scope, 'PERSONAL'),
+        ilike(artistProfiles.stageName, cleanName),
+      ),
+    )
+    .limit(1)
+
+  if (!existing) {
+    const slug = generateScopedSlug(cleanName, userId)
+    const [created] = await tx
+      .insert(artistProfiles)
+      .values({
+        ownerUserId: userId,
+        userId: null,
+        scope: 'PERSONAL',
+        stageName: cleanName,
+        slug,
+        verified: false,
+        verificationStatus: 'NONE',
+      })
+      .returning()
+    existing = created
+  }
+
+  cache.set(lowerKey, existing)
+  return existing
+}
+
+/**
+ * Checks candidate personal artist IDs and permanently deletes any sandboxed artist
+ * that has 0 remaining songs, 0 remaining credits, and 0 remaining albums anywhere.
+ */
+async function cleanupOrphanedPersonalArtists(
+  tx: any,
+  userId: string,
+  candidateArtistIds: string[],
+) {
+  const uniqueIds = Array.from(new Set(candidateArtistIds.filter(Boolean)))
+  if (uniqueIds.length === 0) return []
+
+  const personalArtists = await tx
+    .select({ id: artistProfiles.id, slug: artistProfiles.slug })
+    .from(artistProfiles)
+    .where(
+      and(
+        inArray(artistProfiles.id, uniqueIds),
+        eq(artistProfiles.ownerUserId, userId),
+        eq(artistProfiles.scope, 'PERSONAL'),
+      ),
+    )
+
+  if (personalArtists.length === 0) return []
+
+  const deletedArtistSlugs: string[] = []
+
+  for (const artist of personalArtists) {
+    // Check if artist has ANY songs remaining in songs table (active OR trashed)
+    const anySongs = await tx
+      .select({ id: songs.id })
+      .from(songs)
+      .where(eq(songs.artistId, artist.id))
+      .limit(1)
+
+    // Check if artist has ANY credits in songCredits table
+    const anyCredits = await tx
+      .select({ songId: songCredits.songId })
+      .from(songCredits)
+      .where(eq(songCredits.artistId, artist.id))
+      .limit(1)
+
+    // Check if artist has ANY albums remaining in albums table (active OR trashed)
+    const anyAlbums = await tx
+      .select({ id: albums.id })
+      .from(albums)
+      .where(eq(albums.artistId, artist.id))
+      .limit(1)
+
+    if (anySongs.length === 0 && anyCredits.length === 0 && anyAlbums.length === 0) {
+      await tx.delete(artistProfiles).where(eq(artistProfiles.id, artist.id))
+      deletedArtistSlugs.push(artist.slug)
+      await cacheManager.invalidateArtist({ id: artist.id, slug: artist.slug })
+    }
+  }
+
+  return deletedArtistSlugs
 }
 
 export class StorageService {
@@ -254,127 +386,224 @@ export class StorageService {
     }> = []
 
     const result = await db.transaction(async (tx) => {
-      // 2. Personal Artist Deduplication: find or create personal artist scoped to this user
-      const primaryArtistName = input.artistName.trim()
-      let [primaryArtist] = await tx
-        .select()
-        .from(artistProfiles)
+      const resolvedArtists = new Map<string, typeof artistProfiles.$inferSelect>()
+
+      // 2. Personal Artist Deduplication: resolve primary artist of album
+      const albumArtistNames = parseArtistNames(input.artistName || 'Various Artists')
+      const primaryArtist = await resolvePersonalArtist(
+        tx,
+        albumArtistNames[0],
+        userId,
+        resolvedArtists,
+      )
+
+      // Query existing active personal songs for this user to deduplicate against
+      const existingPersonalSongs = await tx
+        .select({
+          id: songs.id,
+          title: songs.title,
+          artistId: songs.artistId,
+          durationSeconds: songs.durationSeconds,
+        })
+        .from(songs)
         .where(
           and(
-            eq(artistProfiles.ownerUserId, userId),
-            eq(artistProfiles.scope, 'PERSONAL'),
-            ilike(artistProfiles.stageName, primaryArtistName),
+            eq(songs.uploaderUserId, userId),
+            eq(songs.scope, 'PERSONAL'),
+            isNull(songs.deletedAt),
           ),
         )
-        .limit(1)
 
-      if (!primaryArtist) {
-        const artistSlug = generateScopedSlug(primaryArtistName, userId)
-        const [created] = await tx
-          .insert(artistProfiles)
-          .values({
-            ownerUserId: userId,
-            userId: null, // Personal sandboxed artist has no login user account
-            scope: 'PERSONAL',
-            stageName: primaryArtistName,
-            slug: artistSlug,
-            verified: false,
-            verificationStatus: 'NONE',
-          })
-          .returning()
-        primaryArtist = created
-      }
+      // Pre-resolve artists and filter out duplicate songs
+      const tracksToImport: Array<{
+        track: (typeof input.tracks)[0]
+        primaryArtist: typeof artistProfiles.$inferSelect
+        featuredArtists: Array<typeof artistProfiles.$inferSelect>
+      }> = []
+      let skippedDuplicates = 0
 
-      const resolvedArtists = new Map<string, string>()
-      resolvedArtists.set(primaryArtistName.toLowerCase(), primaryArtist.id)
-
-      // 3. Create Personal Album
-      const albumTitle = input.albumTitle.trim()
-      const albumSlug = generateScopedSlug(albumTitle, userId)
-      const releaseDate =
-        input.releaseDate || new Date().toISOString().split('T')[0]
-      const totalDuration = input.tracks.reduce(
-        (acc, t) => acc + (t.durationSeconds || 0),
-        0,
-      )
-      const albumType =
-        input.albumType ||
-        (input.tracks.length > 3
-          ? 'ALBUM'
-          : input.tracks.length > 1
-            ? 'EP'
-            : 'SINGLE')
-
-      const albumCoverUrl = input.coverImageUrl
-        ? this.ensureFullUrl(input.coverImageUrl)
-        : null
-
-      const [album] = await tx
-        .insert(albums)
-        .values({
-          artistId: primaryArtist.id,
-          uploaderUserId: userId,
-          scope: 'PERSONAL',
-          title: albumTitle,
-          slug: albumSlug,
-          albumType,
-          coverImageUrl: albumCoverUrl,
-          genre: input.genre || input.tracks[0]?.genre || null,
-          releaseDate,
-          status: 'PUBLISHED',
-          visibility: 'PRIVATE',
-          totalTracks: input.tracks.length,
-          totalDurationSeconds: totalDuration,
-        })
-        .returning()
-
-      // 4. Create Songs & Outbox Events
-      const createdSongs = []
       for (let i = 0; i < input.tracks.length; i++) {
         const track = input.tracks[i]
-        const trackArtistName = (track.artistName || primaryArtistName).trim()
-        let trackArtistId = resolvedArtists.get(trackArtistName.toLowerCase())
+        const rawTrackArtist = (track.artistName || input.artistName || 'Various Artists').trim()
+        const trackArtistNames = parseArtistNames(rawTrackArtist)
+        const primaryTrackArtist = await resolvePersonalArtist(
+          tx,
+          trackArtistNames[0],
+          userId,
+          resolvedArtists,
+        )
 
-        if (!trackArtistId) {
-          let [existingTrackArtist] = await tx
-            .select()
-            .from(artistProfiles)
-            .where(
-              and(
-                eq(artistProfiles.ownerUserId, userId),
-                eq(artistProfiles.scope, 'PERSONAL'),
-                ilike(artistProfiles.stageName, trackArtistName),
-              ),
-            )
-            .limit(1)
-
-          if (!existingTrackArtist) {
-            const tSlug = generateScopedSlug(trackArtistName, userId)
-            const [c] = await tx
-              .insert(artistProfiles)
-              .values({
-                ownerUserId: userId,
-                userId: null,
-                scope: 'PERSONAL',
-                stageName: trackArtistName,
-                slug: tSlug,
-                verified: false,
-                verificationStatus: 'NONE',
-              })
-              .returning()
-            existingTrackArtist = c
+        const featuredArtists: Array<typeof artistProfiles.$inferSelect> = []
+        for (const featName of trackArtistNames.slice(1)) {
+          const featArtist = await resolvePersonalArtist(
+            tx,
+            featName,
+            userId,
+            resolvedArtists,
+          )
+          if (
+            featArtist.id !== primaryTrackArtist.id &&
+            !featuredArtists.some((a) => a.id === featArtist.id)
+          ) {
+            featuredArtists.push(featArtist)
           }
-          trackArtistId = existingTrackArtist.id
-          resolvedArtists.set(trackArtistName.toLowerCase(), trackArtistId)
         }
 
+        // Deduplication check: same artist, same title (case-insensitive), duration within 2s
+        const normTitle = track.title.trim().toLowerCase()
+        const trackDur = track.durationSeconds || 0
+        const isDuplicate = existingPersonalSongs.some(
+          (s) =>
+            s.artistId === primaryTrackArtist.id &&
+            s.title.trim().toLowerCase() === normTitle &&
+            Math.abs((s.durationSeconds || 0) - trackDur) <= 2,
+        )
+
+        if (isDuplicate) {
+          skippedDuplicates++
+          // Fire-and-forget immediate cleanup of the uploaded raw audio
+          if (track.rawAudioKey) {
+            this.deleteObject(track.rawAudioKey).catch((err) =>
+              console.warn(
+                `[StorageService] Failed to cleanup duplicate R2 raw audio key: ${track.rawAudioKey}`,
+                err,
+              ),
+            )
+          }
+        } else {
+          tracksToImport.push({
+            track,
+            primaryArtist: primaryTrackArtist,
+            featuredArtists,
+          })
+        }
+      }
+
+      // If all tracks are duplicates, return early without creating an empty album
+      if (tracksToImport.length === 0) {
+        // Also clean up uploaded cover art if a new cover was provided for this skipped release
+        if (input.coverImageUrl && !input.existingAlbumId) {
+          const coverKey = input.coverImageUrl
+            .replace(this.cdnBaseUrl, '')
+            .replace(/^\/+/, '')
+          if (coverKey && !coverKey.startsWith('http')) {
+            this.deleteObject(coverKey).catch((err) =>
+              console.warn(
+                `[StorageService] Failed to cleanup orphaned cover art: ${coverKey}`,
+                err,
+              ),
+            )
+          }
+        }
+
+        return {
+          album: null,
+          artist: primaryArtist,
+          tracks: [],
+          skippedDuplicates,
+          message:
+            'All tracks in this release already exist in your personal collection',
+        }
+      }
+
+      // 3. Resolve or Create Personal Album
+      let album: typeof albums.$inferSelect
+      let startTrackNumber = 1
+
+      if (input.existingAlbumId) {
+        const [existingAlbum] = await tx
+          .select()
+          .from(albums)
+          .where(
+            and(
+              eq(albums.id, input.existingAlbumId),
+              eq(albums.uploaderUserId, userId),
+              eq(albums.scope, 'PERSONAL'),
+              isNull(albums.deletedAt),
+            ),
+          )
+          .limit(1)
+
+        if (!existingAlbum) {
+          throw new Error('Target release not found in your personal collection')
+        }
+
+        startTrackNumber = (existingAlbum.totalTracks || 0) + 1
+        const addDuration = tracksToImport.reduce(
+          (acc, t) => acc + (t.track.durationSeconds || 0),
+          0,
+        )
+
+        const [updatedAlbum] = await tx
+          .update(albums)
+          .set({
+            totalTracks: (existingAlbum.totalTracks || 0) + tracksToImport.length,
+            totalDurationSeconds:
+              (existingAlbum.totalDurationSeconds || 0) + addDuration,
+            updatedAt: new Date(),
+          })
+          .where(eq(albums.id, existingAlbum.id))
+          .returning()
+
+        album = updatedAlbum
+      } else {
+        const albumTitle = input.albumTitle.trim()
+        const albumSlug = generateScopedSlug(albumTitle, userId)
+        const releaseDate =
+          input.releaseDate || new Date().toISOString().split('T')[0]
+        const totalDuration = tracksToImport.reduce(
+          (acc, t) => acc + (t.track.durationSeconds || 0),
+          0,
+        )
+        const albumType =
+          input.albumType ||
+          (tracksToImport.length > 3
+            ? 'ALBUM'
+            : tracksToImport.length > 1
+              ? 'EP'
+              : 'SINGLE')
+
+        const albumCoverUrl = input.coverImageUrl
+          ? this.ensureFullUrl(input.coverImageUrl)
+          : null
+
+        const [createdAlbum] = await tx
+          .insert(albums)
+          .values({
+            artistId: primaryArtist.id,
+            uploaderUserId: userId,
+            scope: 'PERSONAL',
+            title: albumTitle,
+            slug: albumSlug,
+            albumType,
+            coverImageUrl: albumCoverUrl,
+            genre: input.genre || tracksToImport[0]?.track.genre || null,
+            releaseDate,
+            status: 'PUBLISHED',
+            visibility: 'PRIVATE',
+            totalTracks: tracksToImport.length,
+            totalDurationSeconds: totalDuration,
+          })
+          .returning()
+
+        album = createdAlbum
+      }
+
+      // 4. Create Songs, Song Credits & Outbox Events
+      const createdSongs = []
+      for (let i = 0; i < tracksToImport.length; i++) {
+        const {
+          track,
+          primaryArtist: trackPrimaryArtist,
+          featuredArtists: trackFeaturedArtists,
+        } = tracksToImport[i]
         const songSlug = generateScopedSlug(track.title, userId)
         const audioUrl = this.ensureFullUrl(track.rawAudioKey)
 
         const [song] = await tx
           .insert(songs)
           .values({
-            artistId: trackArtistId,
+            artistId: trackPrimaryArtist.id,
             albumId: album.id,
             uploaderUserId: userId,
             scope: 'PERSONAL',
@@ -382,20 +611,41 @@ export class StorageService {
             slug: songSlug,
             genre: track.genre || input.genre || null,
             durationSeconds: track.durationSeconds || 0,
-            trackNumber: track.trackNumber || i + 1,
+            trackNumber: input.existingAlbumId
+              ? startTrackNumber + i
+              : (track.trackNumber || i + 1),
             discNumber: track.discNumber || 1,
             isExplicit: track.isExplicit || false,
             rawAudioKey: track.rawAudioKey,
             audioUrl,
-            coverImageUrl: albumCoverUrl,
+            coverImageUrl: album.coverImageUrl,
             processingStatus: 'PENDING',
           })
           .returning()
 
+        // Insert Song Credits (Primary + Featured Collaborators)
+        const creditsToInsert = [
+          {
+            songId: song.id,
+            artistId: trackPrimaryArtist.id,
+            role: 'PRIMARY' as const,
+          },
+          ...trackFeaturedArtists.map((feat) => ({
+            songId: song.id,
+            artistId: feat.id,
+            role: 'FEATURED' as const,
+          })),
+        ]
+
+        await tx
+          .insert(songCredits)
+          .values(creditsToInsert)
+          .onConflictDoNothing()
+
         const jobPayload = {
           songId: song.id,
           rawAudioKey: track.rawAudioKey,
-          artistId: trackArtistId,
+          artistId: trackPrimaryArtist.id,
           title: song.title,
         }
 
@@ -409,13 +659,36 @@ export class StorageService {
         })
 
         pendingTranscodeJobs.push(jobPayload)
-        createdSongs.push(song)
+        createdSongs.push({
+          ...song,
+          artistName:
+            trackFeaturedArtists.length > 0
+              ? `${trackPrimaryArtist.stageName} feat. ${trackFeaturedArtists.map((f) => f.stageName).join(', ')}`
+              : trackPrimaryArtist.stageName,
+          credits: [
+            {
+              songId: song.id,
+              artistId: trackPrimaryArtist.id,
+              stageName: trackPrimaryArtist.stageName,
+              slug: trackPrimaryArtist.slug,
+              role: 'PRIMARY',
+            },
+            ...trackFeaturedArtists.map((f) => ({
+              songId: song.id,
+              artistId: f.id,
+              stageName: f.stageName,
+              slug: f.slug,
+              role: 'FEATURED',
+            })),
+          ],
+        })
       }
 
       return {
         album,
         artist: primaryArtist,
         tracks: createdSongs,
+        skippedDuplicates,
       }
     })
 
@@ -502,10 +775,60 @@ export class StorageService {
           asc(songs.createdAt),
         )
 
+      const songIds = userSongs.map((s) => s.id)
+      let allCredits: Array<{
+        songId: string
+        artistId: string
+        stageName: string
+        slug: string
+        role: string
+      }> = []
+
+      if (songIds.length > 0) {
+        allCredits = await db
+          .select({
+            songId: songCredits.songId,
+            artistId: songCredits.artistId,
+            stageName: artistProfiles.stageName,
+            slug: artistProfiles.slug,
+            role: songCredits.role,
+          })
+          .from(songCredits)
+          .innerJoin(
+            artistProfiles,
+            eq(songCredits.artistId, artistProfiles.id),
+          )
+          .where(inArray(songCredits.songId, songIds))
+      }
+
       for (const song of userSongs) {
         if (song.albumId) {
+          const songCreditsList = allCredits.filter(
+            (c) => c.songId === song.id,
+          )
+          const primaryCredit = songCreditsList.find(
+            (c) => c.role === 'PRIMARY',
+          )
+          const featCredits = songCreditsList.filter(
+            (c) => c.role === 'FEATURED',
+          )
+
+          let formattedArtistName = song.artistName
+          if (featCredits.length > 0) {
+            const primaryName =
+              primaryCredit?.stageName || song.artistName
+            const featNames = featCredits.map((f) => f.stageName).join(', ')
+            formattedArtistName = `${primaryName} feat. ${featNames}`
+          }
+
+          const enrichedSong = {
+            ...song,
+            artistName: formattedArtistName,
+            credits: songCreditsList,
+          }
+
           const list = songsByAlbum.get(song.albumId) || []
-          list.push(song)
+          list.push(enrichedSong)
           songsByAlbum.set(song.albumId, list)
         }
       }
@@ -577,6 +900,14 @@ export class StorageService {
       }
     })
 
+    await cacheManager.invalidate(cacheKeys.catalog.song(songId))
+    if (song.albumId) {
+      await cacheManager.invalidate(cacheKeys.catalog.album(song.albumId))
+    }
+    if (song.artistId) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(song.artistId))
+    }
+
     return { success: true, message: 'Song removed from personal collection' }
   }
 
@@ -601,6 +932,17 @@ export class StorageService {
       throw new Error('Release not found in your personal collection')
     }
 
+    const albumSongs = await db
+      .select({ id: songs.id })
+      .from(songs)
+      .where(
+        and(
+          eq(songs.albumId, albumId),
+          eq(songs.uploaderUserId, userId),
+          isNull(songs.deletedAt),
+        ),
+      )
+
     const now = sql`NOW()`
 
     await db.transaction(async (tx) => {
@@ -623,9 +965,657 @@ export class StorageService {
         )
     })
 
+    await cacheManager.invalidate(cacheKeys.catalog.album(albumId))
+    if (album.artistId) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(album.artistId))
+    }
+    for (const track of albumSongs) {
+      await cacheManager.invalidate(cacheKeys.catalog.song(track.id))
+    }
+
     return {
       success: true,
       message: 'Release removed from personal collection',
     }
+  }
+
+  /**
+   * Retrieves all soft-deleted songs and releases in the user's personal recycle bin / trash.
+   */
+  async getUserTrash(userId: string) {
+    const trashedSongs = await db
+      .select({
+        id: songs.id,
+        title: songs.title,
+        durationSeconds: songs.durationSeconds,
+        albumId: songs.albumId,
+        albumTitle: albums.title,
+        artistName: artistProfiles.stageName,
+        deletedAt: songs.deletedAt,
+        rawAudioKey: songs.rawAudioKey,
+      })
+      .from(songs)
+      .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+      .leftJoin(albums, eq(songs.albumId, albums.id))
+      .where(
+        and(
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+          isNotNull(songs.deletedAt),
+        ),
+      )
+      .orderBy(desc(songs.deletedAt))
+
+    const trashedAlbums = await db
+      .select({
+        id: albums.id,
+        title: albums.title,
+        albumType: albums.albumType,
+        coverImageUrl: albums.coverImageUrl,
+        deletedAt: albums.deletedAt,
+        totalTracks: albums.totalTracks,
+        artistName: artistProfiles.stageName,
+      })
+      .from(albums)
+      .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+      .where(
+        and(
+          eq(albums.uploaderUserId, userId),
+          eq(albums.scope, 'PERSONAL'),
+          isNotNull(albums.deletedAt),
+        ),
+      )
+      .orderBy(desc(albums.deletedAt))
+
+    return {
+      songs: trashedSongs,
+      releases: trashedAlbums,
+    }
+  }
+
+  /**
+   * Restores a soft-deleted personal song from the recycle bin back to the active collection.
+   * Performs personal quota validation.
+   */
+  async restorePersonalSong(userId: string, songId: string) {
+    const [song] = await db
+      .select()
+      .from(songs)
+      .where(
+        and(
+          eq(songs.id, songId),
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+          isNotNull(songs.deletedAt),
+        ),
+      )
+      .limit(1)
+
+    if (!song) {
+      throw new Error('Song not found in recycle bin')
+    }
+
+    // 1. Quota check: ensure user has at least 1 free slot
+    const quota = await this.getLockerQuota(userId)
+    if (quota.usedSongs + 1 > quota.maxSongs) {
+      throw new Error(
+        `Cannot restore song: personal collection quota exceeded (${quota.usedSongs}/${quota.maxSongs} slots used)`
+      )
+    }
+
+    await db.transaction(async (tx) => {
+      // 2. Restore the song
+      await tx.update(songs).set({ deletedAt: null }).where(eq(songs.id, songId))
+
+      // 3. If part of an album, ensure album is restored & update metadata
+      if (song.albumId) {
+        const [album] = await tx
+          .select()
+          .from(albums)
+          .where(eq(albums.id, song.albumId))
+          .limit(1)
+
+        if (album && album.deletedAt) {
+          await tx
+            .update(albums)
+            .set({ deletedAt: null })
+            .where(eq(albums.id, song.albumId))
+        }
+
+        const activeSongs = await tx
+          .select({ durationSeconds: songs.durationSeconds })
+          .from(songs)
+          .where(and(eq(songs.albumId, song.albumId), isNull(songs.deletedAt)))
+
+        const totalDuration = activeSongs.reduce(
+          (acc, s) => acc + (s.durationSeconds || 0),
+          0,
+        )
+
+        await tx
+          .update(albums)
+          .set({
+            totalTracks: activeSongs.length,
+            totalDurationSeconds: totalDuration,
+          })
+          .where(eq(albums.id, song.albumId))
+      }
+    })
+
+    await cacheManager.invalidate(cacheKeys.catalog.song(songId))
+    if (song.albumId) {
+      await cacheManager.invalidate(cacheKeys.catalog.album(song.albumId))
+    }
+    if (song.artistId) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(song.artistId))
+    }
+
+    return { success: true, message: 'Song restored to personal collection' }
+  }
+
+  /**
+   * Restores an entire soft-deleted personal release and its trashed tracks.
+   * Performs batch quota validation.
+   */
+  async restorePersonalRelease(userId: string, albumId: string) {
+    const [album] = await db
+      .select()
+      .from(albums)
+      .where(
+        and(
+          eq(albums.id, albumId),
+          eq(albums.uploaderUserId, userId),
+          eq(albums.scope, 'PERSONAL'),
+          isNotNull(albums.deletedAt),
+        ),
+      )
+      .limit(1)
+
+    if (!album) {
+      throw new Error('Release not found in recycle bin')
+    }
+
+    // Find all soft-deleted tracks belonging to this album
+    const trashedTracks = await db
+      .select({
+        id: songs.id,
+        durationSeconds: songs.durationSeconds,
+      })
+      .from(songs)
+      .where(
+        and(
+          eq(songs.albumId, albumId),
+          eq(songs.uploaderUserId, userId),
+          isNotNull(songs.deletedAt),
+        ),
+      )
+
+    // Quota validation for restoring all trashed tracks
+    const quota = await this.getLockerQuota(userId)
+    if (quota.usedSongs + trashedTracks.length > quota.maxSongs) {
+      throw new Error(
+        `Cannot restore release: restoring ${trashedTracks.length} song(s) would exceed your quota (${quota.usedSongs}/${quota.maxSongs} slots used)`
+      )
+    }
+
+    await db.transaction(async (tx) => {
+      // 1. Restore the album
+      await tx
+        .update(albums)
+        .set({ deletedAt: null })
+        .where(eq(albums.id, albumId))
+
+      // 2. Restore all soft-deleted tracks in this album
+      if (trashedTracks.length > 0) {
+        await tx
+          .update(songs)
+          .set({ deletedAt: null })
+          .where(
+            and(
+              eq(songs.albumId, albumId),
+              eq(songs.uploaderUserId, userId),
+              isNotNull(songs.deletedAt),
+            ),
+          )
+      }
+
+      // 3. Recalculate totals
+      const activeSongs = await tx
+        .select({ durationSeconds: songs.durationSeconds })
+        .from(songs)
+        .where(and(eq(songs.albumId, albumId), isNull(songs.deletedAt)))
+
+      const totalDuration = activeSongs.reduce(
+        (acc, s) => acc + (s.durationSeconds || 0),
+        0,
+      )
+
+      await tx
+        .update(albums)
+        .set({
+          totalTracks: activeSongs.length,
+          totalDurationSeconds: totalDuration,
+        })
+        .where(eq(albums.id, albumId))
+    })
+
+    await cacheManager.invalidate(cacheKeys.catalog.album(albumId))
+    if (album.artistId) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(album.artistId))
+    }
+    for (const track of trashedTracks) {
+      await cacheManager.invalidate(cacheKeys.catalog.song(track.id))
+    }
+
+    return {
+      success: true,
+      message: `Release restored with ${trashedTracks.length} track(s)`,
+    }
+  }
+
+  /**
+   * Permanently deletes a personal song from PostgreSQL and Cloudflare R2 storage.
+   */
+  async permanentlyDeletePersonalSong(userId: string, songId: string) {
+    const [song] = await db
+      .select()
+      .from(songs)
+      .where(
+        and(
+          eq(songs.id, songId),
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+        ),
+      )
+      .limit(1)
+
+    if (!song) {
+      throw new Error('Song not found in your personal collection')
+    }
+
+    // Identify candidate personal artists (primary & collaborators) for cleanup
+    const songCreditsRows = await db
+      .select({ artistId: songCredits.artistId })
+      .from(songCredits)
+      .where(eq(songCredits.songId, songId))
+    const candidateArtistIds = [
+      song.artistId,
+      ...songCreditsRows.map((r) => r.artistId),
+    ].filter(Boolean) as string[]
+
+    // 1. Delete raw audio from Cloudflare R2
+    if (song.rawAudioKey) {
+      await this.deleteObject(song.rawAudioKey)
+    }
+
+    // 2. Delete database records in transaction
+    await db.transaction(async (tx) => {
+      await tx.delete(songCredits).where(eq(songCredits.songId, songId))
+      await tx.delete(songs).where(eq(songs.id, songId))
+
+      // If part of an album, update remaining track count & duration
+      if (song.albumId) {
+        const remainingActive = await tx
+          .select({ durationSeconds: songs.durationSeconds })
+          .from(songs)
+          .where(and(eq(songs.albumId, song.albumId), isNull(songs.deletedAt)))
+
+        const anyTracksLeft = await tx
+          .select({ id: songs.id })
+          .from(songs)
+          .where(eq(songs.albumId, song.albumId))
+          .limit(1)
+
+        if (anyTracksLeft.length === 0) {
+          await tx.delete(albums).where(eq(albums.id, song.albumId))
+        } else {
+          const totalDuration = remainingActive.reduce(
+            (acc, s) => acc + (s.durationSeconds || 0),
+            0,
+          )
+          await tx
+            .update(albums)
+            .set({
+              totalTracks: remainingActive.length,
+              totalDurationSeconds: totalDuration,
+            })
+            .where(eq(albums.id, song.albumId))
+        }
+      }
+
+      // Cleanup any sandboxed personal artists that now have 0 songs, 0 credits, and 0 albums
+      await cleanupOrphanedPersonalArtists(tx, userId, candidateArtistIds)
+    })
+
+    await cacheManager.invalidate(cacheKeys.catalog.song(songId))
+    if (song.albumId) {
+      await cacheManager.invalidate(cacheKeys.catalog.album(song.albumId))
+    }
+    for (const aId of candidateArtistIds) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
+    }
+
+    return {
+      success: true,
+      message: 'Song permanently deleted from storage and collection',
+    }
+  }
+
+  /**
+   * Permanently deletes a personal release and all its tracks from PostgreSQL and R2.
+   */
+  async permanentlyDeletePersonalRelease(userId: string, albumId: string) {
+    const [album] = await db
+      .select()
+      .from(albums)
+      .where(
+        and(
+          eq(albums.id, albumId),
+          eq(albums.uploaderUserId, userId),
+          eq(albums.scope, 'PERSONAL'),
+        ),
+      )
+      .limit(1)
+
+    if (!album) {
+      throw new Error('Release not found in your personal collection')
+    }
+
+    const albumSongs = await db
+      .select({ id: songs.id, rawAudioKey: songs.rawAudioKey, artistId: songs.artistId })
+      .from(songs)
+      .where(eq(songs.albumId, albumId))
+
+    const songIds = albumSongs.map((s) => s.id)
+    let candidateArtistIds = [
+      album.artistId,
+      ...albumSongs.map((s) => s.artistId),
+    ].filter(Boolean) as string[]
+
+    if (songIds.length > 0) {
+      const credits = await db
+        .select({ artistId: songCredits.artistId })
+        .from(songCredits)
+        .where(inArray(songCredits.songId, songIds))
+      candidateArtistIds = [
+        ...candidateArtistIds,
+        ...credits.map((c) => c.artistId),
+      ]
+    }
+
+    // 1. Delete all audio files from R2
+    for (const song of albumSongs) {
+      if (song.rawAudioKey) {
+        await this.deleteObject(song.rawAudioKey)
+      }
+    }
+
+    // 2. Delete database records in transaction
+    await db.transaction(async (tx) => {
+      if (songIds.length > 0) {
+        await tx.delete(songCredits).where(inArray(songCredits.songId, songIds))
+        await tx.delete(songs).where(eq(songs.albumId, albumId))
+      }
+      await tx.delete(albums).where(eq(albums.id, albumId))
+
+      // Cleanup any sandboxed personal artists that now have 0 songs, 0 credits, and 0 albums
+      await cleanupOrphanedPersonalArtists(tx, userId, candidateArtistIds)
+    })
+
+    await cacheManager.invalidate(cacheKeys.catalog.album(albumId))
+    for (const song of albumSongs) {
+      await cacheManager.invalidate(cacheKeys.catalog.song(song.id))
+    }
+    for (const aId of candidateArtistIds) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
+    }
+
+    return {
+      success: true,
+      message: `Release and ${albumSongs.length} track(s) permanently deleted`,
+    }
+  }
+
+  /**
+   * Permanently deletes all soft-deleted songs and releases in the user's trash.
+   */
+  async emptyPersonalTrash(userId: string) {
+    const trashedSongs = await db
+      .select({
+        id: songs.id,
+        rawAudioKey: songs.rawAudioKey,
+        albumId: songs.albumId,
+        artistId: songs.artistId,
+      })
+      .from(songs)
+      .where(
+        and(
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+          isNotNull(songs.deletedAt),
+        ),
+      )
+
+    const trashedAlbums = await db
+      .select({ id: albums.id, artistId: albums.artistId })
+      .from(albums)
+      .where(
+        and(
+          eq(albums.uploaderUserId, userId),
+          eq(albums.scope, 'PERSONAL'),
+          isNotNull(albums.deletedAt),
+        ),
+      )
+
+    const songIds = trashedSongs.map((s) => s.id)
+    let candidateArtistIds = [
+      ...trashedAlbums.map((a) => a.artistId),
+      ...trashedSongs.map((s) => s.artistId),
+    ].filter(Boolean) as string[]
+
+    if (songIds.length > 0) {
+      const credits = await db
+        .select({ artistId: songCredits.artistId })
+        .from(songCredits)
+        .where(inArray(songCredits.songId, songIds))
+      candidateArtistIds = [
+        ...candidateArtistIds,
+        ...credits.map((c) => c.artistId),
+      ]
+    }
+
+    // 1. Purge all R2 files
+    for (const song of trashedSongs) {
+      if (song.rawAudioKey) {
+        await this.deleteObject(song.rawAudioKey)
+      }
+    }
+
+    // 2. Delete in database transaction
+    await db.transaction(async (tx) => {
+      if (songIds.length > 0) {
+        await tx.delete(songCredits).where(inArray(songCredits.songId, songIds))
+        await tx.delete(songs).where(inArray(songs.id, songIds))
+      }
+
+      const albumIds = trashedAlbums.map((a) => a.id)
+      if (albumIds.length > 0) {
+        await tx.delete(albums).where(inArray(albums.id, albumIds))
+      }
+
+      // Cleanup any sandboxed personal artists that now have 0 songs, 0 credits, and 0 albums
+      await cleanupOrphanedPersonalArtists(tx, userId, candidateArtistIds)
+    })
+
+    // Invalidate caches
+    for (const song of trashedSongs) {
+      await cacheManager.invalidate(cacheKeys.catalog.song(song.id))
+    }
+    for (const album of trashedAlbums) {
+      await cacheManager.invalidate(cacheKeys.catalog.album(album.id))
+    }
+    for (const aId of candidateArtistIds) {
+      await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
+    }
+
+    return {
+      success: true,
+      message: 'Trash emptied successfully',
+      deletedSongsCount: trashedSongs.length,
+      deletedReleasesCount: trashedAlbums.length,
+    }
+  }
+
+  /**
+   * Retrieves all personal artists created by the user with their release and track counts.
+   */
+  async getUserPersonalArtists(userId: string) {
+    const personalArtists = await db
+      .select({
+        id: artistProfiles.id,
+        stageName: artistProfiles.stageName,
+        slug: artistProfiles.slug,
+        bio: artistProfiles.bio,
+        bannerUrl: artistProfiles.bannerUrl,
+        createdAt: artistProfiles.createdAt,
+      })
+      .from(artistProfiles)
+      .where(
+        and(
+          eq(artistProfiles.ownerUserId, userId),
+          eq(artistProfiles.scope, 'PERSONAL'),
+        ),
+      )
+      .orderBy(asc(artistProfiles.stageName))
+
+    if (personalArtists.length === 0) {
+      return { artists: [] }
+    }
+
+    const artistIds = personalArtists.map((a) => a.id)
+
+    // Count active releases per artist
+    const releaseCounts = await db
+      .select({
+        artistId: albums.artistId,
+        count: sql<number>`count(${albums.id})::int`,
+      })
+      .from(albums)
+      .where(
+        and(
+          inArray(albums.artistId, artistIds),
+          eq(albums.uploaderUserId, userId),
+          eq(albums.scope, 'PERSONAL'),
+          isNull(albums.deletedAt),
+        ),
+      )
+      .groupBy(albums.artistId)
+
+    const releaseCountMap = new Map<string, number>()
+    for (const r of releaseCounts) {
+      if (r.artistId) releaseCountMap.set(r.artistId, Number(r.count))
+    }
+
+    // Count active songs per artist (as primary or featured credit)
+    const songCreditsRows = await db
+      .select({
+        artistId: songCredits.artistId,
+        songId: songCredits.songId,
+      })
+      .from(songCredits)
+      .innerJoin(songs, eq(songCredits.songId, songs.id))
+      .where(
+        and(
+          inArray(songCredits.artistId, artistIds),
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+          isNull(songs.deletedAt),
+        ),
+      )
+
+    const songCountMap = new Map<string, Set<string>>()
+    for (const row of songCreditsRows) {
+      const set = songCountMap.get(row.artistId) || new Set<string>()
+      set.add(row.songId)
+      songCountMap.set(row.artistId, set)
+    }
+
+    // Also include songs where songs.artistId is this artist but not yet in songCredits
+    const primarySongs = await db
+      .select({
+        artistId: songs.artistId,
+        id: songs.id,
+      })
+      .from(songs)
+      .where(
+        and(
+          inArray(songs.artistId, artistIds),
+          eq(songs.uploaderUserId, userId),
+          eq(songs.scope, 'PERSONAL'),
+          isNull(songs.deletedAt),
+        ),
+      )
+
+    for (const ps of primarySongs) {
+      if (ps.artistId) {
+        const set = songCountMap.get(ps.artistId) || new Set<string>()
+        set.add(ps.id)
+        songCountMap.set(ps.artistId, set)
+      }
+    }
+
+    const enrichedArtists = personalArtists.map((artist) => ({
+      ...artist,
+      releaseCount: releaseCountMap.get(artist.id) || 0,
+      trackCount: songCountMap.get(artist.id)?.size || 0,
+    }))
+
+    return { artists: enrichedArtists }
+  }
+
+  /**
+   * Creates a new personal sandboxed artist for the user.
+   */
+  async createPersonalArtist(
+    userId: string,
+    input: { stageName: string; bio?: string | null },
+  ) {
+    const cleanName = input.stageName.trim()
+    if (!cleanName) {
+      throw new Error('Artist name is required')
+    }
+
+    const [existing] = await db
+      .select()
+      .from(artistProfiles)
+      .where(
+        and(
+          eq(artistProfiles.ownerUserId, userId),
+          eq(artistProfiles.scope, 'PERSONAL'),
+          ilike(artistProfiles.stageName, cleanName),
+        ),
+      )
+      .limit(1)
+
+    if (existing) {
+      return { artist: existing, isExisting: true }
+    }
+
+    const slug = generateScopedSlug(cleanName, userId)
+    const [created] = await db
+      .insert(artistProfiles)
+      .values({
+        ownerUserId: userId,
+        userId: null,
+        scope: 'PERSONAL',
+        stageName: cleanName,
+        slug,
+        bio: input.bio || null,
+        verified: false,
+        verificationStatus: 'NONE',
+      })
+      .returning()
+
+    return { artist: created, isExisting: false }
   }
 }

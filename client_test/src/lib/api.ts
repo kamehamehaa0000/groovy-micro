@@ -110,10 +110,21 @@ export async function apiFetch<T = any>(
   const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    const message =
-      typeof data === "object" && data?.message
-        ? data.message
-        : response.statusText;
+    let message = response.statusText;
+    if (typeof data === "object" && data !== null) {
+      if (data.message) {
+        message = data.message;
+        if (data.errors && typeof data.errors === "object") {
+          const detailed = Object.values(data.errors)
+            .flat()
+            .filter(Boolean)
+            .join("; ");
+          if (detailed && !message.includes(detailed)) {
+            message = `${message} (${detailed})`;
+          }
+        }
+      }
+    }
     throw new Error(message || `Request failed with status ${response.status}`);
   }
 

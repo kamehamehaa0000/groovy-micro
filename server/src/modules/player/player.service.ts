@@ -1,4 +1,4 @@
-import { eq, desc, sql, and, or } from "drizzle-orm";
+import { eq, desc, sql, and, or, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
 import { listeningHistory, songs, albums, artistProfiles, users, userFollows } from "../../db/schema";
@@ -249,6 +249,7 @@ export class PlayerService {
       .where(
         and(
           eq(listeningHistory.userId, userId),
+          isNull(songs.deletedAt),
           includePersonal
             ? or(
                 eq(songs.scope, "GLOBAL"),

@@ -84,15 +84,19 @@ export const artistsApi = {
   },
 
   /**
-   * Search and browse artist roster with pagination.
+   * Search and browse artist roster with pagination, scope filtering, and sorting.
    */
   async searchArtists(params?: {
     search?: string;
+    scope?: "GLOBAL" | "PERSONAL" | "ALL";
+    sort?: "listeners" | "followers" | "name" | "recent";
     page?: number;
     limit?: number;
   }): Promise<SearchArtistsResponse> {
     const query = new URLSearchParams();
     if (params?.search) query.set("search", params.search);
+    if (params?.scope) query.set("scope", params.scope);
+    if (params?.sort) query.set("sort", params.sort);
     if (params?.page) query.set("page", params.page.toString());
     if (params?.limit) query.set("limit", params.limit.toString());
 

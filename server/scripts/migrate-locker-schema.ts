@@ -20,7 +20,11 @@ async function runMigration() {
         ADD COLUMN IF NOT EXISTS locker_include_in_search boolean NOT NULL DEFAULT true,
         ADD COLUMN IF NOT EXISTS locker_include_in_home boolean NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS locker_include_in_recently_played boolean NOT NULL DEFAULT true,
-        ADD COLUMN IF NOT EXISTS locker_link_to_global_artists boolean NOT NULL DEFAULT false;
+        ADD COLUMN IF NOT EXISTS locker_link_to_global_artists boolean NOT NULL DEFAULT true
+    `;
+    await pgClient`
+      ALTER TABLE users 
+        ALTER COLUMN locker_link_to_global_artists SET DEFAULT true
     `;
     console.log("   ✅ users table locker preferences added.");
 

@@ -29,7 +29,7 @@ export const batchPresignedUrlsSchema = z.object({
       })
     )
     .min(1, "At least one file is required")
-    .max(100, "Maximum 100 files per batch request"),
+    .max(2000, "Maximum 2000 files per batch request"),
 });
 
 export const bulkImportTrackSchema = z.object({
@@ -46,14 +46,21 @@ export const bulkImportTrackSchema = z.object({
 export const bulkImportReleaseSchema = z.object({
   artistName: z.string().min(1, "Artist name is required").max(150),
   albumTitle: z.string().min(1, "Album/Release title is required").max(255),
-  albumType: z.enum(["ALBUM", "EP", "SINGLE"]).optional(),
+  albumType: z.enum(["ALBUM", "EP", "SINGLE", "MIXTAPE", "LP"]).optional(),
   genre: z.string().max(60).nullish(),
   releaseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format must be YYYY-MM-DD").nullish(),
   coverImageUrl: z.string().nullish(),
-  tracks: z.array(bulkImportTrackSchema).min(1, "At least one track is required").max(100),
+  existingAlbumId: z.string().uuid().nullish(),
+  tracks: z.array(bulkImportTrackSchema).min(1, "At least one track is required").max(1000),
+});
+
+export const createPersonalArtistSchema = z.object({
+  stageName: z.string().min(1, "Artist name is required").max(150),
+  bio: z.string().max(1000).nullish(),
 });
 
 export type PresignedUrlInput = z.infer<typeof presignedUrlSchema>;
 export type BatchPresignedUrlsInput = z.infer<typeof batchPresignedUrlsSchema>;
 export type BulkImportReleaseInput = z.infer<typeof bulkImportReleaseSchema>;
 export type BulkImportTrackInput = z.infer<typeof bulkImportTrackSchema>;
+export type CreatePersonalArtistInput = z.infer<typeof createPersonalArtistSchema>;

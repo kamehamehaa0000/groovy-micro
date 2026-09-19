@@ -498,7 +498,170 @@ async function runArtistTests() {
     if (finalPublicData.verified !== true) {
       throw new Error("Public profile did not reflect verified badge");
     }
-    console.log("   ✅ Public artist profile now proudly reflects verified badge: true\n");
+    // 9. Testing Scope Filtering, Zero-Leak Privacy, and Sorting (Item 5)
+    console.log("9️⃣ Testing Artist Directory Scope Filtering, Privacy Isolation, and Sorting...");
+
+    // 9a. Create personal sandboxed artists for Listener 1 and Listener 2
+    const [personalArtist1] = await db
+      .insert(artistProfiles)
+      .values({
+        stageName: "Secret Listener1 Personal Musician",
+        slug: `personal-artist-l1-${Date.now()}`,
+        scope: "PERSONAL",
+        ownerUserId: listener1.user.id,
+        monthlyListeners: 10,
+      })
+      .returning();
+
+    const [personalArtist2] = await db
+      .insert(artistProfiles)
+      .values({
+        stageName: "Alpha Listener2 Band",
+        slug: `personal-artist-l2-${Date.now()}`,
+        scope: "PERSONAL",
+        ownerUserId: listener2.user.id,
+        monthlyListeners: 50,
+      })
+      .returning();
+
+    // 9b. Public anonymous search must NEVER leak personal artists
+    const anonSearchRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?limit=100",
+    });
+    const anonSearchData = JSON.parse(anonSearchRes.body);
+    const anonSlugs = anonSearchData.data.map((a: any) => a.slug);
+    if (anonSlugs.includes(personalArtist1.slug) || anonSlugs.includes(personalArtist2.slug)) {
+      throw new Error("PRIVACY LEAK: Personal artists appeared in public anonymous search!");
+    }
+    console.log("   ✅ Anonymous public search excluded all personal artists");
+
+    // 9c. Anonymous query with scope=PERSONAL must return empty
+    const anonPersonalRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?scope=PERSONAL",
+    });
+    const anonPersonalData = JSON.parse(anonPersonalRes.body);
+    if (anonPersonalData.data.length !== 0 || anonPersonalData.pagination.total !== 0) {
+      throw new Error("Anonymous request with scope=PERSONAL returned results");
+    }
+    console.log("   ✅ Anonymous request with scope=PERSONAL returned empty results");
+
+    // 9d. Listener 1 query with scope=PERSONAL returns only Listener 1's personal artists
+    const l1PersonalRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?scope=PERSONAL",
+      headers: { authorization: `Bearer ${listener1.tokens.accessToken}` },
+    });
+    const l1PersonalData = JSON.parse(l1PersonalRes.body);
+    const l1PersonalSlugs = l1PersonalData.data.map((a: any) => a.slug);
+    if (!l1PersonalSlugs.includes(personalArtist1.slug)) {
+      throw new Error("Listener 1 did not find their own personal artist with scope=PERSONAL");
+    }
+    if (l1PersonalSlugs.includes(personalArtist2.slug)) {
+      throw new Error("PRIVACY LEAK: Listener 1 saw Listener 2's personal artist in scope=PERSONAL!");
+    }
+    console.log("   ✅ Listener 1 correctly saw only their own personal artist in scope=PERSONAL");
+
+    // 9e. Listener 2 query with scope=ALL sees global + their own personal artists, NOT Listener 1's
+    const l2AllRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?scope=ALL&limit=100",
+      headers: { authorization: `Bearer ${listener2.tokens.accessToken}` },
+    });
+    const l2AllData = JSON.parse(l2AllRes.body);
+    const l2AllSlugs = l2AllData.data.map((a: any) => a.slug);
+    if (!l2AllSlugs.includes(personalArtist2.slug)) {
+      throw new Error("Listener 2 did not find their own personal artist in scope=ALL");
+    }
+    if (l2AllSlugs.includes(personalArtist1.slug)) {
+      throw new Error("PRIVACY LEAK: Listener 2 saw Listener 1's personal artist in scope=ALL!");
+    }
+    if (!l2AllSlugs.includes("helene-vane")) {
+      throw new Error("scope=ALL did not include global artist Helene Vane");
+    }
+    console.log("   ✅ scope=ALL returned global artists + own personal artist without leaking others");
+
+    // 9f. Direct Lookup Privacy Check:
+    // Anonymous lookup on personal artist -> 404
+    const anonLookupRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/artists/${personalArtist1.slug}`,
+    });
+    if (anonLookupRes.statusCode !== 404) {
+      throw new Error(`Expected 404 for anonymous lookup of personal artist, got ${anonLookupRes.statusCode}`);
+    }
+
+    // Listener 2 lookup on Listener 1's personal artist -> 404
+    const l2LookupRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/artists/${personalArtist1.slug}`,
+      headers: { authorization: `Bearer ${listener2.tokens.accessToken}` },
+    });
+    if (l2LookupRes.statusCode !== 404) {
+      throw new Error(`Expected 404 for non-owner lookup of personal artist, got ${l2LookupRes.statusCode}`);
+    }
+
+    // Listener 1 lookup on own personal artist -> 200
+    const l1LookupRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/artists/${personalArtist1.slug}`,
+      headers: { authorization: `Bearer ${listener1.tokens.accessToken}` },
+    });
+    if (l1LookupRes.statusCode !== 200) {
+      throw new Error(`Expected 200 for owner lookup of personal artist, got ${l1LookupRes.statusCode}`);
+    }
+    console.log("   ✅ Direct lookup privacy confirmed: 404 for non-owners, 200 for owner");
+
+    // 9g. Discography Privacy Check:
+    const anonDiscographyRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/artists/${personalArtist1.slug}/discography`,
+    });
+    if (anonDiscographyRes.statusCode !== 404) {
+      throw new Error(`Expected 404 for anonymous discography of personal artist, got ${anonDiscographyRes.statusCode}`);
+    }
+    const l1DiscographyRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/artists/${personalArtist1.slug}/discography`,
+      headers: { authorization: `Bearer ${listener1.tokens.accessToken}` },
+    });
+    if (l1DiscographyRes.statusCode !== 200) {
+      throw new Error(`Expected 200 for owner discography of personal artist, got ${l1DiscographyRes.statusCode}`);
+    }
+    console.log("   ✅ Discography lookup privacy confirmed: 404 for non-owners, 200 for owner");
+
+    // 9h. Sorting Checks:
+    // Alphabetical sort (sort=name)
+    const sortNameRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?scope=GLOBAL&sort=name&limit=50",
+    });
+    const sortNameData = JSON.parse(sortNameRes.body);
+    const names = sortNameData.data.map((a: any) => a.stageName.toLowerCase());
+    for (let i = 0; i < names.length - 1; i++) {
+      if (names[i].localeCompare(names[i + 1]) > 0) {
+        throw new Error(`Artists not sorted alphabetically: ${names[i]} before ${names[i + 1]}`);
+      }
+    }
+    console.log("   ✅ sort=name returned correctly ordered alphabetical list");
+
+    // Monthly listeners sort (sort=listeners)
+    const sortListenersRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists?scope=GLOBAL&sort=listeners&limit=50",
+    });
+    const sortListenersData = JSON.parse(sortListenersRes.body);
+    const listeners = sortListenersData.data.map((a: any) => a.monthlyListeners);
+    for (let i = 0; i < listeners.length - 1; i++) {
+      if (listeners[i] < listeners[i + 1]) {
+        throw new Error(`Artists not sorted by monthly listeners descending: ${listeners[i]} before ${listeners[i + 1]}`);
+      }
+    }
+    console.log("   ✅ sort=listeners returned correctly ordered listeners list\n");
+
+    // Clean up test personal artists
+    await db.delete(artistProfiles).where(inArray(artistProfiles.id, [personalArtist1.id, personalArtist2.id]));
 
     console.log("🎉 ALL ARTIST PROFILE & VERIFICATION DESK TESTS PASSED! 🚀\n");
   } finally {

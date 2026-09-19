@@ -10,7 +10,9 @@ export interface VerificationDetails {
 
 export interface ArtistProfile {
   id: string;
-  userId: string;
+  userId?: string | null;
+  ownerUserId?: string | null;
+  scope?: "GLOBAL" | "PERSONAL";
   stageName: string;
   slug: string;
   bio: string | null;

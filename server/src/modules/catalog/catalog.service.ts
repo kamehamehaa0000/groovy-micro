@@ -1636,7 +1636,12 @@ export class CatalogService {
     const isUUID = UUID_REGEX.test(artistIdOrSlug);
 
     const [artist] = await db
-      .select({ id: artistProfiles.id, stageName: artistProfiles.stageName })
+      .select({
+        id: artistProfiles.id,
+        stageName: artistProfiles.stageName,
+        scope: artistProfiles.scope,
+        ownerUserId: artistProfiles.ownerUserId,
+      })
       .from(artistProfiles)
       .where(
         isUUID
@@ -1649,16 +1654,28 @@ export class CatalogService {
       return null;
     }
 
+    // Privacy boundary: Personal sandboxed artists can ONLY be viewed by their owner
+    if (
+      artist.scope === "PERSONAL" &&
+      (!currentUserId || artist.ownerUserId !== currentUserId)
+    ) {
+      return null;
+    }
+
     // 1. Released Albums, EPs, Singles
     // Only published public releases appear in public discography, unless user is the artist themselves
     let isSelf = false;
     if (currentUserId) {
-      const [requestingArtist] = await db
-        .select({ id: artistProfiles.id })
-        .from(artistProfiles)
-        .where(eq(artistProfiles.userId, currentUserId))
-        .limit(1);
-      isSelf = requestingArtist?.id === artist.id;
+      if (artist.scope === "PERSONAL") {
+        isSelf = artist.ownerUserId === currentUserId;
+      } else {
+        const [requestingArtist] = await db
+          .select({ id: artistProfiles.id })
+          .from(artistProfiles)
+          .where(eq(artistProfiles.userId, currentUserId))
+          .limit(1);
+        isSelf = requestingArtist?.id === artist.id;
+      }
     }
 
     const discographyCondition = isSelf
@@ -1730,7 +1747,16 @@ export class CatalogService {
         and(
           eq(songCredits.artistId, artist.id),
           sql`${songCredits.role} != 'PRIMARY'`,
-          isNull(songs.deletedAt)
+          isNull(songs.deletedAt),
+          currentUserId
+            ? or(
+                eq(songs.scope, "GLOBAL"),
+                and(
+                  eq(songs.scope, "PERSONAL"),
+                  eq(songs.uploaderUserId, currentUserId)
+                )
+              )
+            : eq(songs.scope, "GLOBAL")
         )
       )
       .limit(20);
@@ -1760,7 +1786,10 @@ export class CatalogService {
         .where(eq(users.id, currentUserId))
         .limit(1);
 
-      if (userRecord?.lockerLinkToGlobalArtists) {
+      const isLockerLinkEnabled = userRecord?.lockerLinkToGlobalArtists !== false;
+
+      if (isLockerLinkEnabled) {
+        const cleanStageName = artist.stageName.trim();
         const personalTracks = await db
           .select({
             id: songs.id,
@@ -1785,10 +1814,18 @@ export class CatalogService {
               eq(songs.scope, "PERSONAL"),
               eq(songs.uploaderUserId, currentUserId),
               isNull(songs.deletedAt),
-              ilike(artistProfiles.stageName, artist.stageName)
+              or(
+                ilike(artistProfiles.stageName, cleanStageName),
+                sql`EXISTS (
+                  SELECT 1 FROM song_credits sc
+                  INNER JOIN artist_profiles ap ON sc.artist_id = ap.id
+                  WHERE sc.song_id = ${songs.id}
+                  AND LOWER(TRIM(ap.stage_name)) = LOWER(TRIM(${cleanStageName}))
+                )`
+              )
             )
           )
-          .limit(20);
+          .limit(50);
 
         inYourCollection = personalTracks.map((t) => ({
           ...t,

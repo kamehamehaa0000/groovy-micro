@@ -1,4 +1,4 @@
-import { eq, sql, and, or, ilike, desc, count } from "drizzle-orm";
+import { eq, sql, and, or, ilike, desc, asc, count } from "drizzle-orm";
 import { db } from "../../db";
 import { artistProfiles, artistFollowers, users } from "../../db/schema";
 import type {
@@ -134,6 +134,7 @@ export class ArtistsService {
   /**
    * Retrieves an artist profile by either UUID or human-readable slug.
    * Public artist metadata and follower count are cached for 10 minutes.
+   * Personal sandboxed artist profiles are restricted strictly to their owner and never cached publicly.
    */
   async getArtistByIdOrSlug(idOrSlug: string, currentUserId?: string) {
     const isUUID = UUID_REGEX.test(idOrSlug);
@@ -141,67 +142,89 @@ export class ArtistsService {
       ? cacheKeys.catalog.artist(idOrSlug)
       : cacheKeys.catalog.artistSlug(idOrSlug);
 
-    const publicArtist = await cacheManager.getOrSet(
-      cacheKey,
-      async () => {
-        const [artist] = await db
-          .select({
-            id: artistProfiles.id,
-            userId: artistProfiles.userId,
-            stageName: artistProfiles.stageName,
-            slug: artistProfiles.slug,
-            bio: artistProfiles.bio,
-            bannerUrl: artistProfiles.bannerUrl,
-            verified: artistProfiles.verified,
-            monthlyListeners: artistProfiles.monthlyListeners,
-            socialLinks: artistProfiles.socialLinks,
-            createdAt: artistProfiles.createdAt,
-            updatedAt: artistProfiles.updatedAt,
-          })
-          .from(artistProfiles)
-          .where(
-            isUUID
-              ? eq(artistProfiles.id, idOrSlug)
-              : eq(artistProfiles.slug, idOrSlug)
-          )
-          .limit(1);
-
-        if (!artist) {
-          return null;
-        }
-
-        const [followerCountRes] = await db
-          .select({ total: count() })
-          .from(artistFollowers)
-          .where(eq(artistFollowers.artistId, artist.id));
-
-        const result = {
-          ...artist,
-          followersCount: followerCountRes?.total ?? 0,
+    // 1. Check Redis cache first
+    const cached = await cacheManager.get<any>(cacheKey);
+    if (cached) {
+      if (cached.scope === "PERSONAL") {
+        // Invalidate any personal profile mistakenly in public cache
+        await cacheManager.invalidate(cacheKey);
+      } else {
+        const isFollowing = currentUserId
+          ? await followsCacheService.isFollowingArtist(currentUserId, cached.id)
+          : false;
+        return {
+          ...cached,
+          isFollowing,
         };
+      }
+    }
 
-        if (isUUID && artist.slug) {
-          await cacheManager.set(cacheKeys.catalog.artistSlug(artist.slug), result, 600);
-        } else if (!isUUID && artist.id) {
-          await cacheManager.set(cacheKeys.catalog.artist(artist.id), result, 600);
-        }
+    // 2. Fetch from DB
+    const [artist] = await db
+      .select({
+        id: artistProfiles.id,
+        userId: artistProfiles.userId,
+        ownerUserId: artistProfiles.ownerUserId,
+        scope: artistProfiles.scope,
+        stageName: artistProfiles.stageName,
+        slug: artistProfiles.slug,
+        bio: artistProfiles.bio,
+        bannerUrl: artistProfiles.bannerUrl,
+        verified: artistProfiles.verified,
+        monthlyListeners: artistProfiles.monthlyListeners,
+        socialLinks: artistProfiles.socialLinks,
+        createdAt: artistProfiles.createdAt,
+        updatedAt: artistProfiles.updatedAt,
+      })
+      .from(artistProfiles)
+      .where(
+        isUUID
+          ? eq(artistProfiles.id, idOrSlug)
+          : eq(artistProfiles.slug, idOrSlug)
+      )
+      .limit(1);
 
-        return result;
-      },
-      600
-    );
-
-    if (!publicArtist) {
+    if (!artist) {
       return null;
     }
 
-    // Check if current user is following using 0.2ms Redis Set
+    // 3. Privacy boundary: Personal sandboxed artists can ONLY be viewed by their owner
+    if (artist.scope === "PERSONAL") {
+      if (!currentUserId || artist.ownerUserId !== currentUserId) {
+        return null;
+      }
+      return {
+        ...artist,
+        followersCount: 0,
+        isFollowing: false,
+      };
+    }
+
+    // 4. Global artist: enrich with follower count and cache
+    const [followerCountRes] = await db
+      .select({ total: count() })
+      .from(artistFollowers)
+      .where(eq(artistFollowers.artistId, artist.id));
+
+    const result = {
+      ...artist,
+      followersCount: followerCountRes?.total ?? 0,
+    };
+
+    // Cache ONLY global artists in Redis
+    await cacheManager.set(cacheKey, result, 600);
+    if (isUUID && artist.slug) {
+      await cacheManager.set(cacheKeys.catalog.artistSlug(artist.slug), result, 600);
+    } else if (!isUUID && artist.id) {
+      await cacheManager.set(cacheKeys.catalog.artist(artist.id), result, 600);
+    }
+
     const isFollowing = currentUserId
-      ? await followsCacheService.isFollowingArtist(currentUserId, publicArtist.id)
+      ? await followsCacheService.isFollowingArtist(currentUserId, result.id)
       : false;
 
     return {
-      ...publicArtist,
+      ...result,
       isFollowing,
     };
   }
@@ -370,19 +393,60 @@ export class ArtistsService {
   }
 
   /**
-   * Search and list artists with pagination and follow enrichment.
+   * Search and list artists with pagination, scope filtering, sorting, and follow enrichment.
    */
   async searchArtists(query: SearchArtistsQuery, currentUserId?: string) {
     const page = query.page;
     const limit = query.limit;
     const offset = (page - 1) * limit;
 
-    const whereClause = query.search
+    // 1. Determine scope isolation condition
+    let scopeCondition;
+    if (query.scope === "PERSONAL") {
+      if (!currentUserId) {
+        return {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
+        };
+      }
+      scopeCondition = and(
+        eq(artistProfiles.scope, "PERSONAL"),
+        eq(artistProfiles.ownerUserId, currentUserId)
+      );
+    } else if (query.scope === "ALL") {
+      if (currentUserId) {
+        scopeCondition = or(
+          eq(artistProfiles.scope, "GLOBAL"),
+          and(
+            eq(artistProfiles.scope, "PERSONAL"),
+            eq(artistProfiles.ownerUserId, currentUserId)
+          )
+        );
+      } else {
+        scopeCondition = eq(artistProfiles.scope, "GLOBAL");
+      }
+    } else {
+      // Default: GLOBAL
+      scopeCondition = eq(artistProfiles.scope, "GLOBAL");
+    }
+
+    const searchCondition = query.search
       ? or(
           ilike(artistProfiles.stageName, `%${query.search}%`),
           ilike(artistProfiles.slug, `%${query.search}%`)
         )
       : undefined;
+
+    const conditions = [scopeCondition];
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+    const whereClause = and(...conditions);
 
     const [totalRes] = await db
       .select({ total: count() })
@@ -390,6 +454,27 @@ export class ArtistsService {
       .where(whereClause);
 
     const total = totalRes?.total ?? 0;
+
+    // 2. Determine sort ordering
+    let orderByClause;
+    if (query.sort === "name") {
+      orderByClause = [asc(artistProfiles.stageName)];
+    } else if (query.sort === "recent") {
+      orderByClause = [desc(artistProfiles.createdAt)];
+    } else if (query.sort === "followers") {
+      const followersCountExpr = sql<number>`(SELECT COUNT(*) FROM artist_followers WHERE artist_followers.artist_id = ${artistProfiles.id})`;
+      orderByClause = [
+        desc(followersCountExpr),
+        desc(artistProfiles.monthlyListeners),
+        desc(artistProfiles.createdAt),
+      ];
+    } else {
+      // Default: listeners
+      orderByClause = [
+        desc(artistProfiles.monthlyListeners),
+        desc(artistProfiles.createdAt),
+      ];
+    }
 
     const rows = await db
       .select({
@@ -400,11 +485,13 @@ export class ArtistsService {
         bannerUrl: artistProfiles.bannerUrl,
         verified: artistProfiles.verified,
         monthlyListeners: artistProfiles.monthlyListeners,
+        scope: artistProfiles.scope,
+        ownerUserId: artistProfiles.ownerUserId,
         createdAt: artistProfiles.createdAt,
       })
       .from(artistProfiles)
       .where(whereClause)
-      .orderBy(desc(artistProfiles.monthlyListeners), desc(artistProfiles.createdAt))
+      .orderBy(...orderByClause)
       .limit(limit)
       .offset(offset);
 
