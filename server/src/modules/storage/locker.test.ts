@@ -1,7 +1,8 @@
 import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
-import { users, albums, songs, artistProfiles, outboxEvents } from "../../db/schema";
+import { users, albums, songs, artistProfiles, outboxEvents, subscriptionPlans, userSubscriptions } from "../../db/schema";
 import { eq, and } from "drizzle-orm";
+import { entitlementsCacheService } from "../../lib/cache";
 
 async function runTests() {
   console.log("🧪 Starting Personal Cloud Locker & Bulk Importer Tests...\n");
@@ -68,20 +69,20 @@ async function runTests() {
     console.log("   ✅ User A & User B registered and authenticated successfully");
 
     // 2. Test Quota Endpoint
-    console.log("\n2️⃣ Checking initial locker quota (Free tier default: 50)...");
+    console.log("\n2️⃣ Checking initial personal collection quota...");
     const quotaRes = await app.inject({
       method: "GET",
-      url: "/api/v1/storage/locker-quota",
+      url: "/api/v1/storage/personal-collection/quota",
       headers: { authorization: `Bearer ${userAToken}` },
     });
     if (quotaRes.statusCode !== 200) {
       throw new Error(`Expected 200, got ${quotaRes.statusCode}: ${quotaRes.body}`);
     }
     const quotaBody = JSON.parse(quotaRes.body);
-    if (quotaBody.quota.maxSongs !== 50 || quotaBody.quota.remainingSongs !== 50) {
+    if (quotaBody.quota.maxSongs <= 0 || quotaBody.quota.remainingSongs <= 0) {
       throw new Error(`Invalid quota: ${JSON.stringify(quotaBody)}`);
     }
-    console.log("   ✅ Initial quota: 0 / 50 songs used, 50 remaining");
+    console.log(`   ✅ Initial quota: ${quotaBody.quota.usedSongs} / ${quotaBody.quota.maxSongs} songs used, ${quotaBody.quota.remainingSongs} remaining`);
 
     // 3. Batch presigned URLs with quota check
     console.log("\n3️⃣ Testing batch presigned URLs & quota gating...");
@@ -128,8 +129,30 @@ async function runTests() {
     }
     console.log("   ✅ 3 Presigned URLs generated successfully for audio & cover art");
 
-    // Test exceeding quota (51 files)
-    const overFiles = Array.from({ length: 51 }, (_, i) => ({
+    // Test exceeding quota via low-quota plan (e.g. personal_collection_quota: 2)
+    await db
+      .insert(subscriptionPlans)
+      .values({
+        id: "test_low_quota_plan",
+        name: "Low Quota Test Plan",
+        features: { personal_collection_quota: 2 },
+        priceCents: 0,
+        currency: "USD",
+        interval: "month",
+        isActive: true,
+      })
+      .onConflictDoUpdate({
+        target: subscriptionPlans.id,
+        set: { features: { personal_collection_quota: 2 } },
+      });
+
+    await db
+      .update(userSubscriptions)
+      .set({ planId: "test_low_quota_plan" })
+      .where(eq(userSubscriptions.userId, userAId));
+    await entitlementsCacheService.invalidateUserEntitlements(userAId);
+
+    const overFiles = Array.from({ length: 3 }, (_, i) => ({
       clientFileId: `over_${i}`,
       category: "SONG_AUDIO_RAW",
       resourceId: `res_${i}`,
@@ -144,9 +167,16 @@ async function runTests() {
       payload: { files: overFiles },
     });
     if (overRes.statusCode !== 403) {
-      throw new Error(`Expected 403 quota exceeded, got ${overRes.statusCode}`);
+      throw new Error(`Expected 403 quota exceeded, got ${overRes.statusCode}: ${overRes.body}`);
     }
     console.log("   ✅ Batch request exceeding quota correctly rejected with 403 Forbidden");
+
+    // Restore userA plan to free
+    await db
+      .update(userSubscriptions)
+      .set({ planId: "free" })
+      .where(eq(userSubscriptions.userId, userAId));
+    await entitlementsCacheService.invalidateUserEntitlements(userAId);
 
     // 4. Bulk import release with sandboxed artist & outbox events
     console.log("\n4️⃣ Importing clustered release (Album + 2 tracks)...");
@@ -341,8 +371,8 @@ async function runTests() {
     await redis.del(`jam:user:${userBId}:active_room`);
     await redis.del(`jam:session:${roomCode}:members`);
 
-    // 8. GET /api/v1/storage/locker/releases & /personal-collection/releases
-    console.log("\n8️⃣ Testing GET /api/v1/storage/locker/releases & /personal-collection/releases...");
+    // 8. GET /api/v1/storage/personal-collection/releases
+    console.log("\n8️⃣ Testing GET /api/v1/storage/personal-collection/releases...");
     const lockerRes = await app.inject({
       method: "GET",
       url: "/api/v1/storage/personal-collection/releases",

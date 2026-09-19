@@ -96,7 +96,7 @@ function ArtistsDirectoryComponent() {
               </button>
             )}
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-soft ml-4 shrink-0">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft ml-4 shrink-0">
             {totalCount} {totalCount === 1 ? 'Artist' : 'Artists'}
           </span>
         </div>
@@ -146,7 +146,7 @@ function ArtistsDirectoryComponent() {
                     {artist.stageName.charAt(0)}
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-panel/70 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-panel/70 to-transparent pointer-events-none" />
               </div>
 
               {/* Card Meta Content */}

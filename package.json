@@ -7,6 +7,7 @@
     "dev:jam": "cd jam-service && bun run dev",
     "dev:client": "cd client_test && bun run dev",
     "dev:media-worker": "cd media-convertion-worker && bun run dev",
+    "dev:all": "bun run --parallel dev:server dev:jam dev:client dev:media-worker",
     "infra:up": "podman compose -f docker-compose.dev.yml up -d",
     "infra:down": "podman compose -f docker-compose.dev.yml down"
   },

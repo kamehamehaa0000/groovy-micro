@@ -504,7 +504,7 @@ function PersonalCollectionPage() {
             </Link>
             <Link
               to="/register"
-              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors font-mono"
+              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
             >
               Create Account
             </Link>
@@ -608,7 +608,7 @@ function PersonalCollectionPage() {
               Checking quota...
             </div>
           ) : quota ? (
-            <div className="bg-panel border border-line p-4 sm:min-w-[270px] space-y-2 shrink-0 shadow-xs">
+            <div className="bg-panel border border-line p-4 sm:min-w-67.5 space-y-2 shrink-0 shadow-xs">
               <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
                 <span className="text-ink-soft">Storage Quota</span>
                 <span className="text-ink font-bold font-mono">

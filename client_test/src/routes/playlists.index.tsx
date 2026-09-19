@@ -15,9 +15,12 @@ export const Route = createFileRoute('/playlists/')({
 function PlaylistsIndexComponent() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
-  const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } = usePlaylistsStore()
+  const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } =
+    usePlaylistsStore()
 
-  const [activeTab, setActiveTab] = useState<'discover' | 'my' | 'saved'>('discover')
+  const [activeTab, setActiveTab] = useState<'discover' | 'my' | 'saved'>(
+    'discover',
+  )
   const [search, setSearch] = useState('')
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -27,7 +30,9 @@ function PlaylistsIndexComponent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
-  const [newVisibility, setNewVisibility] = useState<'PUBLIC' | 'UNLISTED' | 'PRIVATE'>('PUBLIC')
+  const [newVisibility, setNewVisibility] = useState<
+    'PUBLIC' | 'UNLISTED' | 'PRIVATE'
+  >('PUBLIC')
   const [newAllowDuplicates, setNewAllowDuplicates] = useState(false)
   const [newAllowComments, setNewAllowComments] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,7 +60,7 @@ function PlaylistsIndexComponent() {
           if (isMounted) {
             const filtered = search.trim()
               ? res.playlists.filter((p) =>
-                  p.title.toLowerCase().includes(search.toLowerCase())
+                  p.title.toLowerCase().includes(search.toLowerCase()),
                 )
               : res.playlists
             setPlaylists(filtered)
@@ -67,7 +72,7 @@ function PlaylistsIndexComponent() {
           if (isMounted) {
             const filtered = search.trim()
               ? res.playlists.filter((p) =>
-                  p.title.toLowerCase().includes(search.toLowerCase())
+                  p.title.toLowerCase().includes(search.toLowerCase()),
                 )
               : res.playlists
             setPlaylists(filtered)
@@ -152,7 +157,7 @@ function PlaylistsIndexComponent() {
             isSaved: nextSaved,
             savesCount: Math.max(0, pl.savesCount + (nextSaved ? 1 : -1)),
           }
-        })
+        }),
       )
     } catch (err) {
       console.error('Failed to toggle playlist save:', err)
@@ -172,7 +177,8 @@ function PlaylistsIndexComponent() {
               Community Soundtracks
             </h1>
             <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
-              Explore public collections with real-time mosaic artworks, or craft your own collaborative mixtapes.
+              Explore public collections with real-time mosaic artworks, or
+              craft your own collaborative mixtapes.
             </p>
           </div>
 
@@ -259,7 +265,7 @@ function PlaylistsIndexComponent() {
             )}
           </div>
 
-          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-soft">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
             {totalCount} {totalCount === 1 ? 'Playlist' : 'Playlists'}
           </span>
         </div>
@@ -278,7 +284,9 @@ function PlaylistsIndexComponent() {
         </div>
       ) : playlists.length === 0 ? (
         <div className="p-16 border border-dashed border-line bg-panel text-center">
-          <p className="font-serif italic text-lg text-ink">No playlists found</p>
+          <p className="font-serif italic text-lg text-ink">
+            No playlists found
+          </p>
           <p className="font-mono text-[10.5px] text-ink-soft mt-1.5">
             {activeTab === 'my'
               ? "You haven't created any playlists yet. Click 'Create Playlist' above to get started!"
@@ -312,7 +320,9 @@ function PlaylistsIndexComponent() {
                   <button
                     type="button"
                     onClick={(e) => handleToggleSave(e, pl.id)}
-                    aria-label={saved ? 'Remove from library' : 'Save to library'}
+                    aria-label={
+                      saved ? 'Remove from library' : 'Save to library'
+                    }
                     className={`absolute bottom-2 right-2 p-2 border backdrop-blur-md transition-all cursor-pointer shadow-sm ${
                       saved
                         ? 'bg-blue text-canvas border-blue opacity-100'
@@ -360,7 +370,9 @@ function PlaylistsIndexComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
           <div className="w-full max-w-md border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-line pb-3 mb-5">
-              <h2 className="font-serif italic text-xl text-ink">Create New Playlist</h2>
+              <h2 className="font-serif italic text-xl text-ink">
+                Create New Playlist
+              </h2>
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
@@ -433,7 +445,9 @@ function PlaylistsIndexComponent() {
                       onChange={(e) => setNewAllowDuplicates(e.target.checked)}
                       className="accent-blue"
                     />
-                    <span className="font-mono text-[10.5px] text-ink">Allow Dups</span>
+                    <span className="font-mono text-[10.5px] text-ink">
+                      Allow Dups
+                    </span>
                   </label>
                 </div>
 
@@ -448,7 +462,9 @@ function PlaylistsIndexComponent() {
                       onChange={(e) => setNewAllowComments(e.target.checked)}
                       className="accent-blue"
                     />
-                    <span className="font-mono text-[10.5px] text-ink">Allow Comments</span>
+                    <span className="font-mono text-[10.5px] text-ink">
+                      Allow Comments
+                    </span>
                   </label>
                 </div>
               </div>

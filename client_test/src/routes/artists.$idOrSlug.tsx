@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
-import type { DiscographyResponse, EnrichedSong, PersonalCollectionTrack } from '../types/catalog'
+import type {
+  DiscographyResponse,
+  EnrichedSong,
+  PersonalCollectionTrack,
+} from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import {
@@ -31,12 +35,8 @@ function ArtistPublicProfileComponent() {
   const { user, isAuthenticated } = useAuthStore()
 
   // Player integration
-  const {
-    currentTrack,
-    playbackStatus,
-    playTrack,
-    togglePlay,
-  } = usePlayerStore()
+  const { currentTrack, playbackStatus, playTrack, togglePlay } =
+    usePlayerStore()
 
   // Likes & Follows store integration
   const likedSongIds = useLikesStore((s) => s.likedSongIds)
@@ -48,7 +48,9 @@ function ArtistPublicProfileComponent() {
   const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
 
   const [artist, setArtist] = useState<ArtistProfile | null>(null)
-  const [discography, setDiscography] = useState<DiscographyResponse | null>(null)
+  const [discography, setDiscography] = useState<DiscographyResponse | null>(
+    null,
+  )
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -172,9 +174,7 @@ function ArtistPublicProfileComponent() {
         return {
           ...prev,
           topTracks: prev.topTracks.map((t) =>
-            t.id === track.id
-              ? { ...t, likesCount: res.likesCount }
-              : t,
+            t.id === track.id ? { ...t, likesCount: res.likesCount } : t,
           ),
         }
       })
@@ -185,9 +185,7 @@ function ArtistPublicProfileComponent() {
         return {
           ...prev,
           topTracks: prev.topTracks.map((t) =>
-            t.id === track.id
-              ? { ...t, likesCount: prevCount }
-              : t,
+            t.id === track.id ? { ...t, likesCount: prevCount } : t,
           ),
         }
       })
@@ -203,7 +201,8 @@ function ArtistPublicProfileComponent() {
     albumId: song.albumId || undefined,
     albumTitle: song.albumTitle || undefined,
     albumSlug: song.albumSlug || undefined,
-    coverImageUrl: song.coverImageUrl || song.albumCoverImageUrl || artist?.bannerUrl,
+    coverImageUrl:
+      song.coverImageUrl || song.albumCoverImageUrl || artist?.bannerUrl,
     durationSeconds: song.durationSeconds,
     audioUrl: song.audioUrl,
     hlsManifestUrl: song.hlsManifestUrl,
@@ -251,7 +250,10 @@ function ArtistPublicProfileComponent() {
     }
   }
 
-  const handlePlayLockerSong = (track: PersonalCollectionTrack, index: number) => {
+  const handlePlayLockerSong = (
+    track: PersonalCollectionTrack,
+    index: number,
+  ) => {
     if (currentTrack?.id === track.id) {
       togglePlay()
       return
@@ -277,7 +279,7 @@ function ArtistPublicProfileComponent() {
       contextTracks,
       index,
       `personal:artist:${artist?.id || idOrSlug}`,
-      `Your Personal Collection — ${artist?.stageName || 'Artist'}`
+      `Your Personal Collection — ${artist?.stageName || 'Artist'}`,
     )
   }
 
@@ -354,7 +356,7 @@ function ArtistPublicProfileComponent() {
         )}
 
         {/* Ambient Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-canvas via-canvas/40 to-transparent" />
 
         {/* Top Controls Overlay */}
         <div className="absolute top-4 left-4 right-4 max-w-6xl mx-auto flex items-center justify-between pointer-events-none">
@@ -478,7 +480,8 @@ function ArtistPublicProfileComponent() {
                 <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
                   {discography!.topTracks.map((track, idx) => {
                     const isCurrentPlaying =
-                      currentTrack?.id === track.id && playbackStatus === 'playing'
+                      currentTrack?.id === track.id &&
+                      playbackStatus === 'playing'
                     const isCurrentLoaded = currentTrack?.id === track.id
                     const isLocked = track.isStreamable === false
 
@@ -573,9 +576,7 @@ function ArtistPublicProfileComponent() {
             {hasAlbums && (
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline border-b border-line pb-2">
-                  <h2 className="font-serif italic text-xl text-ink">
-                    Albums
-                  </h2>
+                  <h2 className="font-serif italic text-xl text-ink">Albums</h2>
                   <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
                     {discography!.albums.length} Releases
                   </span>
@@ -626,7 +627,9 @@ function ArtistPublicProfileComponent() {
                   </h2>
                   <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
                     {discography!.mixtapes!.length}{' '}
-                    {discography!.mixtapes!.length === 1 ? 'Release' : 'Releases'}
+                    {discography!.mixtapes!.length === 1
+                      ? 'Release'
+                      : 'Releases'}
                   </span>
                 </div>
 
@@ -704,7 +707,8 @@ function ArtistPublicProfileComponent() {
                         {rel.title}
                       </div>
                       <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
-                        <span className="uppercase">{rel.albumType}</span> &bull;{' '}
+                        <span className="uppercase">{rel.albumType}</span>{' '}
+                        &bull;{' '}
                         {rel.releaseDate
                           ? new Date(rel.releaseDate).getFullYear()
                           : 'Recent'}
@@ -729,7 +733,10 @@ function ArtistPublicProfileComponent() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
-                      {discography!.inYourCollection!.length} Offline {discography!.inYourCollection!.length === 1 ? 'Track' : 'Tracks'}
+                      {discography!.inYourCollection!.length} Offline{' '}
+                      {discography!.inYourCollection!.length === 1
+                        ? 'Track'
+                        : 'Tracks'}
                     </span>
                     <Link
                       to="/collection"
@@ -743,7 +750,8 @@ function ArtistPublicProfileComponent() {
                 <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
                   {discography!.inYourCollection!.map((track, idx) => {
                     const isCurrentPlaying =
-                      currentTrack?.id === track.id && playbackStatus === 'playing'
+                      currentTrack?.id === track.id &&
+                      playbackStatus === 'playing'
 
                     return (
                       <div
@@ -861,16 +869,21 @@ function ArtistPublicProfileComponent() {
             )}
 
             {/* If no discography yet */}
-            {!hasAlbums && !hasMixtapes && !hasEpsOrSingles && !hasTopTracks && !hasAppearsOn && !hasInYourCollection && (
-              <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
-                <p className="font-serif italic text-base text-ink">
-                  Master Tracks & Albums In Preparation
-                </p>
-                <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
-                  No public releases have been published to this catalog yet.
-                </p>
-              </div>
-            )}
+            {!hasAlbums &&
+              !hasMixtapes &&
+              !hasEpsOrSingles &&
+              !hasTopTracks &&
+              !hasAppearsOn &&
+              !hasInYourCollection && (
+                <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
+                  <p className="font-serif italic text-base text-ink">
+                    Master Tracks & Albums In Preparation
+                  </p>
+                  <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+                    No public releases have been published to this catalog yet.
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* Right Column: Social Channels & Telemetry */}
