@@ -79,9 +79,25 @@ export async function verifyGoogleIdToken(
   idToken: string
 ): Promise<GoogleUserInfo | null> {
   try {
+    let cleanToken = idToken.trim();
+
+    // If idToken is a JSON string (e.g. from browser FedCM containing { id_token: "..." }), extract the actual JWT
+    if (cleanToken.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(cleanToken);
+        if (parsed.id_token && typeof parsed.id_token === "string") {
+          cleanToken = parsed.id_token.trim();
+        } else if (parsed.token && typeof parsed.token === "string") {
+          cleanToken = parsed.token.trim();
+        }
+      } catch {
+        // Fall back to cleanToken as-is
+      }
+    }
+
     const res = await fetch(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(
-        idToken
+        cleanToken
       )}`
     );
 

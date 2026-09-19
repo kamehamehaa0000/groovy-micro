@@ -66,12 +66,27 @@ export function useGoogleFedCM(
           return
         }
 
+        // FedCM in Chromium may return a serialized JSON object containing { id_token: "..." }
+        let idToken = credential.token
+        if (typeof idToken === 'string' && idToken.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(idToken)
+            if (parsed.id_token && typeof parsed.id_token === 'string') {
+              idToken = parsed.id_token.trim()
+            } else if (parsed.token && typeof parsed.token === 'string') {
+              idToken = parsed.token.trim()
+            }
+          } catch {
+            // Keep original token
+          }
+        }
+
         // Send the browser-verified Google ID Token to Fastify backend
         const result = await api.post<{
           user: any
           accessToken: string
         }>('/api/v1/auth/google/token', {
-          idToken: credential.token,
+          idToken,
         })
 
         // Store tokens & update Zustand state
