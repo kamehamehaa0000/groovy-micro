@@ -80,6 +80,22 @@ function StudioComponent() {
   } | null>(null)
   const [isPurging, setIsPurging] = useState(false)
 
+  // Soft Delete Confirmation State (Modal)
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'album' | 'song'
+    id: string
+    title: string
+    trackCount?: number
+    parentAlbumId?: string
+  } | null>(null)
+  const [isDeletingItem, setIsDeletingItem] = useState(false)
+
+  // Batch Deduplication Notice State
+  const [duplicateNotice, setDuplicateNotice] = useState<{
+    count: number
+    titles: string[]
+  } | null>(null)
+
   // Upgrade Form State (for Listeners)
   const [stageName, setStageName] = useState('')
   const [customSlug, setCustomSlug] = useState('')
@@ -354,41 +370,71 @@ function StudioComponent() {
     }
   }
 
-  // Soft delete album
-  const handleDeleteAlbum = async (albumId: string) => {
-    if (
-      !confirm(
-        'Move this release and all its cuts to trash? (Available for 30-day restore)',
-      )
-    )
-      return
-
-    try {
-      await catalogApi.deleteAlbum(albumId)
-      setSuccessNotice(
-        'Release moved to 30-day trash. You can restore it anytime within 30 days.',
-      )
-      loadReleases()
-    } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to archive release')
-    }
+  // Trigger soft delete confirmation modal for an album release
+  const handleDeleteAlbum = (
+    albumId: string,
+    title?: string,
+    trackCount?: number,
+  ) => {
+    setDeleteConfirm({
+      type: 'album',
+      id: albumId,
+      title: title || 'Release',
+      trackCount: trackCount || 1,
+    })
   }
 
-  // Soft delete standalone song
-  const handleDeleteSong = async (songId: string) => {
-    if (
-      !confirm(
-        'Move this master track to trash? (Available for 30-day restore)',
-      )
-    )
-      return
+  // Trigger soft delete confirmation modal for a song
+  const handleDeleteSong = (
+    songId: string,
+    title?: string,
+    parentAlbumId?: string,
+    trackCount?: number,
+  ) => {
+    setDeleteConfirm({
+      type: 'song',
+      id: songId,
+      title: title || 'Master track',
+      parentAlbumId,
+      trackCount,
+    })
+  }
+
+  // Execute confirmed soft delete
+  const confirmSoftDelete = async () => {
+    if (!deleteConfirm) return
 
     try {
-      await catalogApi.deleteSong(songId)
-      setSuccessNotice('Track moved to 30-day trash.')
+      setIsDeletingItem(true)
+      setErrorNotice(null)
+      if (deleteConfirm.type === 'album') {
+        await catalogApi.deleteAlbum(deleteConfirm.id)
+        setSuccessNotice(
+          'Release and all its cuts moved to 30-day trash. You can restore it anytime within 30 days.',
+        )
+      } else {
+        const res = await catalogApi.deleteSong(deleteConfirm.id)
+        setSuccessNotice(res.message || 'Master track moved to 30-day trash.')
+        if (deleteConfirm.parentAlbumId) {
+          try {
+            const fullAlbum = await catalogApi.getAlbum(
+              deleteConfirm.parentAlbumId,
+            )
+            setAlbumTrackMap((prev) => ({
+              ...prev,
+              [deleteConfirm.parentAlbumId!]: fullAlbum.tracks,
+            }))
+          } catch {
+            // Parent album may have been deleted if it was the last track
+          }
+        }
+      }
+      setDeleteConfirm(null)
       loadReleases()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to archive track')
+      setErrorNotice(err.message || 'Failed to archive item')
+    } finally {
+      setIsDeletingItem(false)
     }
   }
 
@@ -628,6 +674,7 @@ function StudioComponent() {
     if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
     if (batchCutsInputRef.current) batchCutsInputRef.current.value = ''
     if (quickStartInputRef.current) quickStartInputRef.current.value = ''
+    setDuplicateNotice(null)
   }
 
   // Standalone Single Audio Upload & Metadata Prefill
@@ -745,9 +792,100 @@ function StudioComponent() {
         )
       }
 
+      // Deduplication: filter out duplicates against existing draftTracks and within incoming parsedList
+      const isInitialEmptyDraft =
+        draftTracks.length === 1 &&
+        !draftTracks[0].title.trim() &&
+        !draftTracks[0].audioUrl &&
+        !draftTracks[0].rawAudioKey
+
+      const existingDrafts = isInitialEmptyDraft ? [] : draftTracks
+
+      const isMatch = (
+        candidate: { title: string; durationSeconds: number; fileName: string; fileSize: number },
+        existing: { title: string; durationSeconds: number; audioFileName?: string },
+      ) => {
+        // Match 1: Exact audio filename match
+        if (
+          existing.audioFileName &&
+          candidate.fileName.toLowerCase() === existing.audioFileName.toLowerCase()
+        ) {
+          return true
+        }
+
+        // Match 2: Exact metadata match (normalized title + duration within ±2s)
+        const titleA = candidate.title.trim().toLowerCase()
+        const titleB = (existing.title || '').trim().toLowerCase()
+        if (titleA && titleB && titleA === titleB) {
+          const durA = candidate.durationSeconds || 0
+          const durB = existing.durationSeconds || 0
+          if (durA > 0 && durB > 0 && Math.abs(durA - durB) <= 2) {
+            return true
+          }
+        }
+
+        return false
+      }
+
+      const uniqueParsedList: typeof parsedList = []
+      const duplicateNames: string[] = []
+
+      for (const track of parsedList) {
+        const candidateInfo = {
+          title: track.title,
+          durationSeconds: track.durationSeconds,
+          fileName: track.file.name,
+          fileSize: track.file.size,
+        }
+
+        // Check against already staged drafts
+        const inExistingDrafts = existingDrafts.some((d) =>
+          isMatch(candidateInfo, {
+            title: d.title,
+            durationSeconds: d.durationSeconds,
+            audioFileName: d.audioFileName,
+          }),
+        )
+        if (inExistingDrafts) {
+          duplicateNames.push(track.title || track.file.name)
+          continue
+        }
+
+        // Check against tracks accepted in current batch (intra-batch)
+        const inCurrentBatch = uniqueParsedList.some((u) =>
+          isMatch(candidateInfo, {
+            title: u.title,
+            durationSeconds: u.durationSeconds,
+            audioFileName: u.file.name,
+          }),
+        )
+        if (inCurrentBatch) {
+          duplicateNames.push(track.title || track.file.name)
+          continue
+        }
+
+        uniqueParsedList.push(track)
+      }
+
+      if (duplicateNames.length > 0) {
+        setDuplicateNotice({
+          count: duplicateNames.length,
+          titles: duplicateNames,
+        })
+      }
+
+      if (uniqueParsedList.length === 0) {
+        setErrorNotice(
+          `All ${parsedList.length} selected audio file(s) are duplicates of cuts already in this release draft.`,
+        )
+        return
+      }
+
       // 2. Prefill Release Title if empty
       if (!releaseTitle.trim()) {
-        const taggedAlbum = parsedList.find((t) => t.hasAlbumTag && t.albumTitle.trim())
+        const taggedAlbum = uniqueParsedList.find(
+          (t) => t.hasAlbumTag && t.albumTitle.trim(),
+        )
         if (taggedAlbum) {
           setReleaseTitle(taggedAlbum.albumTitle.trim())
         }
@@ -755,22 +893,18 @@ function StudioComponent() {
 
       // 3. Prefill Release Cover Artwork if empty (Deferred / Lazy preview)
       if (!releaseCoverFile && !releaseCoverUrl) {
-        const firstWithCover = parsedList.find((t) => t.coverFile)
+        const firstWithCover = uniqueParsedList.find((t) => t.coverFile)
         if (firstWithCover && firstWithCover.coverFile) {
           setReleaseCoverFile(firstWithCover.coverFile)
-          setReleaseCoverPreview(firstWithCover.coverPreviewUrl || URL.createObjectURL(firstWithCover.coverFile))
+          setReleaseCoverPreview(
+            firstWithCover.coverPreviewUrl ||
+              URL.createObjectURL(firstWithCover.coverFile),
+          )
         }
       }
 
       // 4. Create TrackDraft entries
-      // If draftTracks only has 1 empty initial placeholder cut, replace it; else append
-      const isInitialEmptyDraft =
-        draftTracks.length === 1 &&
-        !draftTracks[0].title.trim() &&
-        !draftTracks[0].audioUrl &&
-        !draftTracks[0].rawAudioKey
-
-      const newDrafts: TrackDraft[] = parsedList.map((p) => ({
+      const newDrafts: TrackDraft[] = uniqueParsedList.map((p) => ({
         id: crypto.randomUUID(),
         title: p.title,
         genre: p.genre || '',
@@ -792,9 +926,9 @@ function StudioComponent() {
       let currentIndex = 0
 
       const uploadWorker = async () => {
-        while (currentIndex < parsedList.length) {
+        while (currentIndex < uniqueParsedList.length) {
           const index = currentIndex++
-          const parsedTrack = parsedList[index]
+          const parsedTrack = uniqueParsedList[index]
           const targetDraftId = newDrafts[index].id
 
           try {
@@ -827,13 +961,15 @@ function StudioComponent() {
       }
 
       const workers = Array.from(
-        { length: Math.min(poolLimit, parsedList.length) },
+        { length: Math.min(poolLimit, uniqueParsedList.length) },
         () => uploadWorker(),
       )
       await Promise.all(workers)
 
       setSuccessNotice(
-        `Imported and extracted metadata for ${parsedList.length} cuts! All details can be reviewed and edited.`,
+        duplicateNames.length > 0
+          ? `Imported ${uniqueParsedList.length} cut(s) into release draft (${duplicateNames.length} duplicate(s) excluded).`
+          : `Imported and extracted metadata for ${uniqueParsedList.length} cuts! All details can be reviewed and edited.`,
       )
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to batch import cuts')
@@ -2155,6 +2291,27 @@ function StudioComponent() {
                       </div>
                     </div>
 
+                    {duplicateNotice && duplicateNotice.count > 0 && (
+                      <div className="p-3 border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2.5 rounded-xs animate-in fade-in duration-150">
+                        <span className="font-mono text-xs shrink-0 mt-0.5">⚠️</span>
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <p className="font-sans font-medium">
+                            <strong>{duplicateNotice.count}</strong> duplicate cut(s) were automatically detected and excluded:
+                          </p>
+                          <p className="font-sans text-[11px] opacity-90 truncate">
+                            {duplicateNotice.titles.join(', ')}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateNotice(null)}
+                          className="font-mono text-[10px] text-ink-soft hover:text-ink cursor-pointer ml-auto shrink-0"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       {draftTracks.map((draft, idx) => (
                         <div
@@ -2520,7 +2677,13 @@ function StudioComponent() {
 
                           <button
                             type="button"
-                            onClick={() => handleDeleteAlbum(album.id)}
+                            onClick={() =>
+                              handleDeleteAlbum(
+                                album.id,
+                                album.title,
+                                album.totalTracks || tracks.length || 1,
+                              )
+                            }
                             className="p-1.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
                             title="Move to 30-Day Trash"
                           >
@@ -2588,7 +2751,12 @@ function StudioComponent() {
                                     <button
                                       type="button"
                                       onClick={() =>
-                                        handleDeleteSong(track.id)
+                                        handleDeleteSong(
+                                          track.id,
+                                          track.title,
+                                          album.id,
+                                          tracks.length,
+                                        )
                                       }
                                       className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
                                       title="Trash track"
@@ -3753,6 +3921,73 @@ function StudioComponent() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Soft Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
+          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+                <TrashIconSVG className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-serif italic text-lg text-ink font-normal">
+                  {deleteConfirm.type === 'album'
+                    ? 'Move Release to Trash?'
+                    : 'Move Master Track to Trash?'}
+                </h4>
+                <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+                  {deleteConfirm.type === 'album' ? (
+                    <>
+                      Are you sure you want to move{' '}
+                      <strong className="text-ink font-semibold">
+                        "{deleteConfirm.title}"
+                      </strong>{' '}
+                      and its {deleteConfirm.trackCount || 'associated'} cut(s) to the 30-day trash? You can restore it anytime within 30 days.
+                    </>
+                  ) : (
+                    <>
+                      Are you sure you want to move{' '}
+                      <strong className="text-ink font-semibold">
+                        "{deleteConfirm.title}"
+                      </strong>{' '}
+                      to the 30-day trash?
+                      {deleteConfirm.trackCount === 1 ? (
+                        <span className="block text-ink font-medium mt-1">
+                          Since this is the only cut in this release, the parent release will also be moved to the 30-day trash.
+                        </span>
+                      ) : (
+                        <span className="block text-ink-soft mt-1">
+                          You can restore it anytime within 30 days.
+                        </span>
+                      )}
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isDeletingItem}
+                onClick={() => setDeleteConfirm(null)}
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingItem}
+                onClick={confirmSoftDelete}
+                className="font-mono text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs"
+              >
+                {isDeletingItem ? 'Moving...' : 'Move to Trash'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -118,26 +118,63 @@ export class CatalogService {
 
   /**
    * Generates a unique slug for a song, resolving collisions with numbers.
+   * Checks both database collisions (matching constraint: (artistId, slug) WHERE deletedAt IS NULL)
+   * and in-memory collisions within the current batch.
    */
   async generateUniqueSongSlug(
     baseText: string,
-    currentSongId?: string
+    currentSongIdOrOptions?:
+      | string
+      | {
+          currentSongId?: string;
+          artistId?: string;
+          usedSlugs?: Set<string>;
+          executor?: any;
+        }
   ): Promise<string> {
+    const options =
+      typeof currentSongIdOrOptions === "string"
+        ? { currentSongId: currentSongIdOrOptions }
+        : currentSongIdOrOptions;
+
     const baseSlug = slugify(baseText) || "track";
     let candidate = baseSlug;
     let counter = 1;
+    const executor = options?.executor || db;
 
     while (true) {
-      const existing = await db
+      // 1. Check in-memory batch collisions first
+      if (options?.usedSlugs && options.usedSlugs.has(candidate)) {
+        counter++;
+        candidate = `${baseSlug}-${counter}`;
+        continue;
+      }
+
+      // 2. Check database collisions matching unique index: (artistId, slug) WHERE deletedAt IS NULL
+      const condition = options?.artistId
+        ? and(
+            eq(songs.artistId, options.artistId),
+            eq(songs.slug, candidate),
+            isNull(songs.deletedAt)
+          )
+        : and(
+            eq(songs.slug, candidate),
+            isNull(songs.deletedAt)
+          );
+
+      const existing = await executor
         .select({ id: songs.id })
         .from(songs)
-        .where(eq(songs.slug, candidate))
+        .where(condition)
         .limit(1);
 
       if (
         existing.length === 0 ||
-        (currentSongId && existing[0].id === currentSongId)
+        (options?.currentSongId && existing[0].id === options.currentSongId)
       ) {
+        if (options?.usedSlugs) {
+          options.usedSlugs.add(candidate);
+        }
         return candidate;
       }
 
@@ -145,6 +182,7 @@ export class CatalogService {
       candidate = `${baseSlug}-${counter}`;
     }
   }
+
 
   /**
    * Resolves the artist profile belonging to a user.
@@ -172,9 +210,9 @@ export class CatalogService {
    */
   async createAlbum(userId: string, input: CreateAlbumInput) {
     const artist = await this.getArtistByUserId(userId);
-    const finalSlug = input.slug
-      ? slugify(input.slug)
-      : await this.generateUniqueAlbumSlug(input.title);
+    const finalSlug = await this.generateUniqueAlbumSlug(
+      input.slug || input.title
+    );
 
     const isScheduled = input.scheduledReleaseAt
       ? new Date(input.scheduledReleaseAt).getTime() > Date.now()
@@ -196,6 +234,52 @@ export class CatalogService {
       title: string;
       artistId: string;
     }> = [];
+
+    // Intra-release payload validation & deduplication checks
+    if (input.tracks && input.tracks.length > 0) {
+      const seenAudioKeys = new Set<string>();
+      const seenTrackSignatures = new Set<string>();
+      const seenTrackPositions = new Set<string>();
+
+      for (let idx = 0; idx < input.tracks.length; idx++) {
+        const t = input.tracks[idx];
+
+        // 1. Validate audio uniqueness within release
+        const audioRef = t.rawAudioKey || t.audioUrl;
+        if (audioRef) {
+          if (seenAudioKeys.has(audioRef)) {
+            throw new Error(
+              `Duplicate audio recording detected in release: '${t.title || "Untitled"}' references the same audio file as another track.`
+            );
+          }
+          seenAudioKeys.add(audioRef);
+        }
+
+        // 2. Validate track numbering within same disc
+        const discNum = t.discNumber ?? 1;
+        const trackNum = t.trackNumber ?? idx + 1;
+        const posKey = `${discNum}:${trackNum}`;
+        if (seenTrackPositions.has(posKey)) {
+          throw new Error(
+            `Duplicate track position detected: Disc ${discNum}, Track ${trackNum}.`
+          );
+        }
+        seenTrackPositions.add(posKey);
+
+        // 3. Validate exact metadata duplication (same title & duration > 0) within same release
+        const normTitle = (t.title || "").trim().toLowerCase();
+        const dur = t.durationSeconds || 0;
+        if (normTitle && dur > 0) {
+          const sig = `${normTitle}::${dur}`;
+          if (seenTrackSignatures.has(sig)) {
+            throw new Error(
+              `Duplicate track detected in release payload: '${t.title}' appears more than once with identical duration.`
+            );
+          }
+          seenTrackSignatures.add(sig);
+        }
+      }
+    }
 
     const result = await db.transaction(async (tx) => {
       const albumCoverUrl = this.ensureFullUrl(input.coverImageUrl)!;
@@ -230,16 +314,22 @@ export class CatalogService {
 
       // 2. Insert initial tracks if supplied
       if (input.tracks && input.tracks.length > 0) {
+        const usedSongSlugs = new Set<string>();
+
         for (let idx = 0; idx < input.tracks.length; idx++) {
           const trackInput = input.tracks[idx];
           const trackNumber = trackInput.trackNumber ?? idx + 1;
-          const songSlug = trackInput.slug
-            ? slugify(trackInput.slug)
-            : await this.generateUniqueSongSlug(trackInput.title);
+          const baseSlugText = trackInput.slug || trackInput.title;
+          const songSlug = await this.generateUniqueSongSlug(baseSlugText, {
+            artistId: artist.id,
+            usedSlugs: usedSongSlugs,
+            executor: tx,
+          });
 
           const trackAudioUrl = this.ensureFullUrl(
             trackInput.audioUrl || trackInput.rawAudioKey
           );
+
           const trackCoverUrl =
             this.ensureFullUrl(trackInput.coverImageUrl) || albumCoverUrl;
 
@@ -858,6 +948,40 @@ export class CatalogService {
         throw new Error("Target album not found or not owned by artist");
       }
 
+      // Check duplicate audio or exact metadata in this existing album
+      const existingAlbumSongs = await db
+        .select({
+          title: songs.title,
+          durationSeconds: songs.durationSeconds,
+          rawAudioKey: songs.rawAudioKey,
+          audioUrl: songs.audioUrl,
+        })
+        .from(songs)
+        .where(and(eq(songs.albumId, album.id), isNull(songs.deletedAt)));
+
+      const candidateAudio = input.rawAudioKey || input.audioUrl;
+      const normCandidateTitle = (input.title || "").trim().toLowerCase();
+      const candidateDur = input.durationSeconds || 0;
+
+      for (const existingSong of existingAlbumSongs) {
+        const existingAudio = existingSong.rawAudioKey || existingSong.audioUrl;
+        if (candidateAudio && existingAudio && candidateAudio === existingAudio) {
+          throw new Error(
+            `This audio recording is already included in the release.`
+          );
+        }
+        if (
+          normCandidateTitle &&
+          candidateDur > 0 &&
+          existingSong.title.trim().toLowerCase() === normCandidateTitle &&
+          Math.abs((existingSong.durationSeconds || 0) - candidateDur) <= 2
+        ) {
+          throw new Error(
+            `A track titled "${input.title}" with matching duration already exists in this release.`
+          );
+        }
+      }
+
       targetAlbumId = album.id;
       targetAlbumSlug = album.slug;
       if (!input.trackNumber) {
@@ -892,9 +1016,13 @@ export class CatalogService {
       trackNumber = 1;
     }
 
-    const finalSlug = input.slug
-      ? slugify(input.slug)
-      : await this.generateUniqueSongSlug(input.title);
+    const finalSlug = await this.generateUniqueSongSlug(
+      input.slug || input.title,
+      {
+        artistId: artist.id,
+      }
+    );
+
 
     const createdSong = await db.transaction(async (tx) => {
       const finalAudioUrl = this.ensureFullUrl(
@@ -1152,8 +1280,12 @@ export class CatalogService {
 
     let finalSlug = existing.slug;
     if (input.slug && input.slug !== existing.slug) {
-      finalSlug = await this.generateUniqueSongSlug(input.slug, songId);
+      finalSlug = await this.generateUniqueSongSlug(input.slug, {
+        currentSongId: songId,
+        artistId: artist.id,
+      });
     }
+
 
     const updatedSong = await db.transaction(async (tx) => {
       const oldAlbumId = existing.albumId;

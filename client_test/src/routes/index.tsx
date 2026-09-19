@@ -151,21 +151,22 @@ function HomeComponent() {
   return (
     <div className="space-y-10">
       {/* Editorial Hero Section */}
-      <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-deep mb-3">
-          Introduction · Meaning of groove
-        </div>
-        <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
-          A collection of sounds, Straight to your ears.
-        </h1>
-        <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-xl leading-relaxed mb-8">
-          Crafted for uninterrupted listening. Powered by the community of
-          listeners, curators and creators. Explore and experience the sound
-          with never-before-felt experience.
-        </p>
 
-        <div className="flex flex-wrap items-center gap-4 relative z-10">
-          {!isAuthenticated && !isLoading ? (
+      {!isAuthenticated && !isLoading && (
+        <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-deep mb-3">
+            Introduction · Meaning of groove
+          </div>
+          <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
+            A collection of sounds, Straight to your ears.
+          </h1>
+          <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-xl leading-relaxed mb-8">
+            Crafted for uninterrupted listening. Powered by the community of
+            listeners, curators and creators. Explore and experience the sound
+            with never-before-felt experience.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-4 relative z-10">
             <>
               <Link
                 to="/login"
@@ -180,19 +181,12 @@ function HomeComponent() {
                 Join the Collective
               </Link>
             </>
-          ) : (
-            <Link
-              to="/profile"
-              className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
-            >
-              Curator Profile & Vault &rarr;
-            </Link>
-          )}
-        </div>
+          </div>
 
-        {/* Vinyl Rings Watermark Background */}
-        <SvgArtworkSpiral />
-      </section>
+          {/* Vinyl Rings Watermark Background */}
+          <SvgArtworkSpiral />
+        </section>
+      )}
 
       {/* Recently Played History Shelf (Authenticated) */}
       <RecentlyPlayedShelf />
