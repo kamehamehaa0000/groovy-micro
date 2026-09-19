@@ -1,6 +1,5 @@
 # bugs related to personal collection/vault and catalog
 
-9. add metadata extraction feature for global releases also to prefill the form as much as possible.
 10. soft deleted songs still show in listen history and are playable
 11. there is no artist profile pic only banner, need to have profile pic
 12. songs added to queue does not have option to remove from queue in three dots menu, also queue bar should also have left swipe to remove the song from queue. and the single song bar should have swipe to right to add the song to queue.
@@ -8,8 +7,8 @@
 14. songs presaved by user should go back to be normally saved instead of being kept as presaved, the stale entry is still there in db.
 15. play count not showing on release page.
 16. No go to release or artist page on clicking song's name or artist name on song bar.
-17. One tap login not working.
-18. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
+17. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
+18. No permanent delete option in studio trash.
 
 # Need to verify once more -
 
@@ -32,6 +31,8 @@
 13. the styling of personal collection modal is not at all matching the rest of the application.
 14. the song upload fails after one upload and only works if you reload.
 15. immediate server cleanup of duplicate uploaded raw audio keys and cover art in R2 when duplicate tracks/releases are skipped on bulk import.
+16. metadata extraction feature for global releases to prefill release/song title, genre, duration, explicit advisory flag, embedded cover art (uploaded to R2), and batch cut importing with sequential ordering in Artist Studio.
+17. One tap login not working.
 
 # Things to check (later):
 

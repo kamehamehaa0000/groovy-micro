@@ -43,10 +43,28 @@ import type {
 import { slugify } from "../artists/artists.service";
 import { cacheManager, cacheKeys, likesCacheService, presavesCacheService } from "../../lib/cache";
 
+import { StorageService } from "../storage/storage.service";
+
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function extractR2KeyFromUrl(urlOrKey: string | null | undefined): string | null {
+  if (!urlOrKey) return null;
+  if (!urlOrKey.startsWith("http://") && !urlOrKey.startsWith("https://")) {
+    return urlOrKey;
+  }
+  try {
+    const parsed = new URL(urlOrKey);
+    const key = parsed.pathname.replace(/^\/+/, "");
+    return key || null;
+  } catch {
+    return null;
+  }
+}
+
 export class CatalogService {
+  private storageService = new StorageService();
+
   private get cdnBaseUrl(): string {
     const raw =
       process.env.CDN_BASE_URL ||
@@ -732,6 +750,83 @@ export class CatalogService {
     return res;
   }
 
+  /**
+   * Permanently deletes a global album release and all its associated songs from database and R2 storage.
+   */
+  async permanentlyDeleteAlbum(userId: string, albumId: string) {
+    const artist = await this.getArtistByUserId(userId);
+
+    const [album] = await db
+      .select()
+      .from(albums)
+      .where(and(eq(albums.id, albumId), eq(albums.artistId, artist.id)))
+      .limit(1);
+
+    if (!album) {
+      throw new Error("Album not found or you do not have permission");
+    }
+
+    const albumSongs = await db
+      .select({
+        id: songs.id,
+        rawAudioKey: songs.rawAudioKey,
+      })
+      .from(songs)
+      .where(eq(songs.albumId, albumId));
+
+    const songIds = albumSongs.map((s) => s.id);
+
+    // 1. Delete all raw audio and cover files from R2
+    for (const s of albumSongs) {
+      if (s.rawAudioKey) {
+        await this.storageService.deleteObject(s.rawAudioKey).catch((err) =>
+          console.warn(`Failed to delete raw audio from R2: ${s.rawAudioKey}`, err)
+        );
+      }
+    }
+    if (album.coverImageUrl) {
+      const coverKey = extractR2KeyFromUrl(album.coverImageUrl);
+      if (coverKey && (coverKey.startsWith("covers/") || coverKey.startsWith("artwork/"))) {
+        await this.storageService.deleteObject(coverKey).catch((err) =>
+          console.warn(`Failed to delete cover from R2: ${coverKey}`, err)
+        );
+      }
+    }
+
+    // 2. Cascade delete records in PostgreSQL transaction
+    await db.transaction(async (tx) => {
+      if (songIds.length > 0) {
+        await tx.delete(songCredits).where(inArray(songCredits.songId, songIds));
+        await tx.delete(songs).where(eq(songs.albumId, albumId));
+      }
+      await tx.delete(albums).where(eq(albums.id, albumId));
+    });
+
+    // 3. Invalidate caches
+    await cacheManager.invalidateAlbum({
+      id: albumId,
+      slug: album.slug,
+      artistId: artist.id,
+    });
+    for (const s of albumSongs) {
+      await cacheManager.invalidateSong({
+        id: s.id,
+        albumId,
+        artistId: artist.id,
+      });
+    }
+    await cacheManager.invalidate(
+      cacheKeys.catalog.artist(artist.id),
+      cacheKeys.catalog.artistAlbumsTag(artist.id)
+    );
+
+    return {
+      success: true,
+      message: `Release and all associated tracks permanently deleted`,
+    };
+  }
+
+
   // =========================================================================
   // SONG OPERATIONS
   // =========================================================================
@@ -1351,6 +1446,8 @@ export class CatalogService {
     }
 
     const now = new Date();
+    let albumWasSoftDeleted = false;
+    let albumSlug: string | null = null;
 
     const res = await db.transaction(async (tx) => {
       await tx
@@ -1359,17 +1456,52 @@ export class CatalogService {
         .where(eq(songs.id, songId));
 
       if (existing.albumId) {
-        await tx
-          .update(albums)
-          .set({
-            totalTracks: sql`GREATEST(0, ${albums.totalTracks} - 1)`,
-            totalDurationSeconds: sql`GREATEST(0, ${albums.totalDurationSeconds} - ${existing.duration})`,
-            updatedAt: now,
-          })
-          .where(eq(albums.id, existing.albumId));
+        const remainingActive = await tx
+          .select({ id: songs.id, durationSeconds: songs.durationSeconds })
+          .from(songs)
+          .where(
+            and(
+              eq(songs.albumId, existing.albumId),
+              isNull(songs.deletedAt)
+            )
+          );
+
+        const [alb] = await tx
+          .select({ slug: albums.slug })
+          .from(albums)
+          .where(eq(albums.id, existing.albumId))
+          .limit(1);
+        albumSlug = alb?.slug || null;
+
+        if (remainingActive.length === 0) {
+          // If no more active tracks in this album, soft-delete the parent album as well
+          await tx
+            .update(albums)
+            .set({ deletedAt: now, updatedAt: now })
+            .where(eq(albums.id, existing.albumId));
+          albumWasSoftDeleted = true;
+        } else {
+          const totalDuration = remainingActive.reduce(
+            (acc, s) => acc + (s.durationSeconds || 0),
+            0
+          );
+          await tx
+            .update(albums)
+            .set({
+              totalTracks: remainingActive.length,
+              totalDurationSeconds: totalDuration,
+              updatedAt: now,
+            })
+            .where(eq(albums.id, existing.albumId));
+        }
       }
 
-      return { message: "Song moved to trash (30-day restore window)", deletedAt: now.toISOString() };
+      return {
+        message: albumWasSoftDeleted
+          ? "Last song and parent release moved to 30-day trash"
+          : "Song moved to trash (30-day restore window)",
+        deletedAt: now.toISOString(),
+      };
     });
 
     await cacheManager.invalidateSong({
@@ -1377,6 +1509,20 @@ export class CatalogService {
       albumId: existing.albumId,
       artistId: artist.id,
     });
+    if (existing.albumId) {
+      if (albumWasSoftDeleted) {
+        await cacheManager.invalidateAlbum({
+          id: existing.albumId,
+          slug: albumSlug,
+          artistId: artist.id,
+        });
+      } else {
+        await cacheManager.invalidate(
+          cacheKeys.catalog.album(existing.albumId),
+          cacheKeys.catalog.artistAlbumsTag(artist.id)
+        );
+      }
+    }
 
     return res;
   }
@@ -1398,6 +1544,8 @@ export class CatalogService {
     }
 
     const now = new Date();
+    let parentAlbumSlug: string | null = null;
+    let albumWasRestored = false;
 
     const res = await db.transaction(async (tx) => {
       await tx
@@ -1406,17 +1554,53 @@ export class CatalogService {
         .where(eq(songs.id, songId));
 
       if (existing.albumId) {
+        const [album] = await tx
+          .select({ id: albums.id, slug: albums.slug, deletedAt: albums.deletedAt })
+          .from(albums)
+          .where(eq(albums.id, existing.albumId))
+          .limit(1);
+
+        parentAlbumSlug = album?.slug || null;
+
+        if (album && album.deletedAt) {
+          // If parent album was soft-deleted, restore the album too
+          await tx
+            .update(albums)
+            .set({ deletedAt: null, updatedAt: now })
+            .where(eq(albums.id, existing.albumId));
+          albumWasRestored = true;
+        }
+
+        const activeSongs = await tx
+          .select({ durationSeconds: songs.durationSeconds })
+          .from(songs)
+          .where(
+            and(
+              eq(songs.albumId, existing.albumId),
+              isNull(songs.deletedAt)
+            )
+          );
+
+        const totalDuration = activeSongs.reduce(
+          (acc, s) => acc + (s.durationSeconds || 0),
+          0
+        );
+
         await tx
           .update(albums)
           .set({
-            totalTracks: sql`${albums.totalTracks} + 1`,
-            totalDurationSeconds: sql`${albums.totalDurationSeconds} + ${existing.duration}`,
+            totalTracks: activeSongs.length,
+            totalDurationSeconds: totalDuration,
             updatedAt: now,
           })
           .where(eq(albums.id, existing.albumId));
       }
 
-      return { message: "Song restored successfully" };
+      return {
+        message: albumWasRestored
+          ? "Song and parent release restored successfully"
+          : "Song restored successfully",
+      };
     });
 
     await cacheManager.invalidateSong({
@@ -1424,9 +1608,139 @@ export class CatalogService {
       albumId: existing.albumId,
       artistId: artist.id,
     });
+    if (existing.albumId) {
+      await cacheManager.invalidateAlbum({
+        id: existing.albumId,
+        slug: parentAlbumSlug,
+        artistId: artist.id,
+      });
+    }
 
     return res;
   }
+
+
+  /**
+   * Permanently deletes a global song and its raw audio from database and R2 storage.
+   */
+  async permanentlyDeleteSong(userId: string, songId: string) {
+    const artist = await this.getArtistByUserId(userId);
+
+    const [song] = await db
+      .select()
+      .from(songs)
+      .where(and(eq(songs.id, songId), eq(songs.artistId, artist.id)))
+      .limit(1);
+
+    if (!song) {
+      throw new Error("Song not found or you do not have permission");
+    }
+
+    // Pre-fetch parent album info if attached to an album
+    let parentAlbum: { id: string; slug: string | null; coverImageUrl: string | null } | null = null;
+    if (song.albumId) {
+      const [alb] = await db
+        .select({
+          id: albums.id,
+          slug: albums.slug,
+          coverImageUrl: albums.coverImageUrl,
+        })
+        .from(albums)
+        .where(eq(albums.id, song.albumId))
+        .limit(1);
+      parentAlbum = alb || null;
+    }
+
+    // 1. Delete raw audio from R2
+    if (song.rawAudioKey) {
+      await this.storageService.deleteObject(song.rawAudioKey).catch((err) =>
+        console.warn(`Failed to delete raw audio from R2: ${song.rawAudioKey}`, err)
+      );
+    }
+
+    let albumWasDeleted = false;
+
+    // 2. Delete database records in transaction
+    await db.transaction(async (tx) => {
+      await tx.delete(songCredits).where(eq(songCredits.songId, songId));
+      await tx.delete(songs).where(eq(songs.id, songId));
+
+      if (song.albumId) {
+        const remainingTracks = await tx
+          .select({ durationSeconds: songs.durationSeconds })
+          .from(songs)
+          .where(and(eq(songs.albumId, song.albumId), isNull(songs.deletedAt)));
+
+        const anyTracksLeft = await tx
+          .select({ id: songs.id })
+          .from(songs)
+          .where(eq(songs.albumId, song.albumId))
+          .limit(1);
+
+        if (anyTracksLeft.length === 0) {
+          await tx.delete(albums).where(eq(albums.id, song.albumId));
+          albumWasDeleted = true;
+        } else {
+          const totalDuration = remainingTracks.reduce(
+            (acc, t) => acc + (t.durationSeconds || 0),
+            0
+          );
+          await tx
+            .update(albums)
+            .set({
+              totalTracks: remainingTracks.length,
+              totalDurationSeconds: totalDuration,
+              updatedAt: new Date(),
+            })
+            .where(eq(albums.id, song.albumId));
+        }
+      }
+    });
+
+    // 3. If parent album was deleted (0 tracks remaining), purge its cover artwork from R2
+    if (albumWasDeleted && parentAlbum?.coverImageUrl) {
+      const coverKey = extractR2KeyFromUrl(parentAlbum.coverImageUrl);
+      if (coverKey && (coverKey.startsWith("covers/") || coverKey.startsWith("artwork/"))) {
+        await this.storageService.deleteObject(coverKey).catch((err) =>
+          console.warn(`Failed to delete parent album cover from R2: ${coverKey}`, err)
+        );
+      }
+    }
+
+    // 4. Invalidate caches
+    await cacheManager.invalidateSong({
+      id: songId,
+      albumId: song.albumId,
+      artistId: artist.id,
+    });
+    if (song.albumId) {
+      if (albumWasDeleted && parentAlbum) {
+        await cacheManager.invalidateAlbum({
+          id: song.albumId,
+          slug: parentAlbum.slug,
+          artistId: artist.id,
+        });
+      } else {
+        await cacheManager.invalidate(
+          cacheKeys.catalog.album(song.albumId),
+          cacheKeys.catalog.artistAlbumsTag(artist.id)
+        );
+      }
+    }
+    await cacheManager.invalidate(
+      cacheKeys.catalog.artist(artist.id),
+      cacheKeys.catalog.artistAlbumsTag(artist.id)
+    );
+
+    return {
+      success: true,
+      message: albumWasDeleted
+        ? "Song and empty parent release permanently deleted from storage and catalog"
+        : "Song permanently deleted from storage and catalog",
+    };
+  }
+
+
 
   // =========================================================================
   // PUBLIC CATALOG & DISCOVERY
@@ -1880,6 +2194,85 @@ export class CatalogService {
       artist,
       albums: artistAlbums,
       songs: artistSongs,
+    };
+  }
+
+  /**
+   * Permanently empties all soft-deleted releases and standalone cuts in the artist's studio trash.
+   */
+  async emptyStudioTrash(userId: string) {
+    const artist = await this.getArtistByUserId(userId);
+
+    const trashedAlbums = await db
+      .select({ id: albums.id, coverImageUrl: albums.coverImageUrl })
+      .from(albums)
+      .where(and(eq(albums.artistId, artist.id), isNotNull(albums.deletedAt)));
+
+    const trashedAlbumIds = trashedAlbums.map((a) => a.id);
+
+    const trashedSongs = await db
+      .select({
+        id: songs.id,
+        rawAudioKey: songs.rawAudioKey,
+        albumId: songs.albumId,
+      })
+      .from(songs)
+      .where(
+        or(
+          and(eq(songs.artistId, artist.id), isNotNull(songs.deletedAt)),
+          trashedAlbumIds.length > 0 ? inArray(songs.albumId, trashedAlbumIds) : sql`false`
+        )
+      );
+
+    const allSongIds = trashedSongs.map((s) => s.id);
+
+    // 1. Delete all raw audio from R2
+    for (const song of trashedSongs) {
+      if (song.rawAudioKey) {
+        await this.storageService.deleteObject(song.rawAudioKey).catch((err) =>
+          console.warn(`Failed to delete raw audio: ${song.rawAudioKey}`, err)
+        );
+      }
+    }
+    for (const album of trashedAlbums) {
+      if (album.coverImageUrl) {
+        const coverKey = extractR2KeyFromUrl(album.coverImageUrl);
+        if (coverKey && (coverKey.startsWith("covers/") || coverKey.startsWith("artwork/"))) {
+          await this.storageService.deleteObject(coverKey).catch((err) =>
+            console.warn(`Failed to delete cover: ${coverKey}`, err)
+          );
+        }
+      }
+    }
+
+    // 2. Transactional database deletion
+    await db.transaction(async (tx) => {
+      if (allSongIds.length > 0) {
+        await tx.delete(songCredits).where(inArray(songCredits.songId, allSongIds));
+        await tx.delete(songs).where(inArray(songs.id, allSongIds));
+      }
+      if (trashedAlbumIds.length > 0) {
+        await tx.delete(albums).where(inArray(albums.id, trashedAlbumIds));
+      }
+    });
+
+    // 3. Invalidate caches
+    for (const aId of trashedAlbumIds) {
+      await cacheManager.invalidate(cacheKeys.catalog.album(aId));
+    }
+    for (const s of trashedSongs) {
+      await cacheManager.invalidate(cacheKeys.catalog.song(s.id));
+    }
+    await cacheManager.invalidate(
+      cacheKeys.catalog.artist(artist.id),
+      cacheKeys.catalog.artistAlbumsTag(artist.id)
+    );
+
+    return {
+      success: true,
+      message: `Studio trash emptied permanently: ${allSongIds.length} song(s) and ${trashedAlbumIds.length} release(s) deleted`,
+      deletedSongsCount: allSongIds.length,
+      deletedReleasesCount: trashedAlbumIds.length,
     };
   }
 

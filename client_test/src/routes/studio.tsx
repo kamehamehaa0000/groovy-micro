@@ -73,6 +73,12 @@ function StudioComponent() {
   const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
   const [trashSongs, setTrashSongs] = useState<Song[]>([])
   const [isLoadingTrash, setIsLoadingTrash] = useState(false)
+  const [trashConfirm, setTrashConfirm] = useState<{
+    type: 'empty' | 'permanent_release' | 'permanent_song'
+    id?: string
+    title?: string
+  } | null>(null)
+  const [isPurging, setIsPurging] = useState(false)
 
   // Upgrade Form State (for Listeners)
   const [stageName, setStageName] = useState('')
@@ -407,6 +413,55 @@ function StudioComponent() {
       setErrorNotice(err.message || 'Failed to restore track')
     }
   }
+
+  // Permanently delete album release and its tracks
+  const handlePermanentDeleteAlbum = async (albumId: string) => {
+    try {
+      setIsPurging(true)
+      setErrorNotice(null)
+      await catalogApi.permanentlyDeleteAlbum(albumId)
+      setSuccessNotice('Release and all associated tracks permanently deleted.')
+      setTrashConfirm(null)
+      loadTrash()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to permanently delete release')
+    } finally {
+      setIsPurging(false)
+    }
+  }
+
+  // Permanently delete master cut
+  const handlePermanentDeleteSong = async (songId: string) => {
+    try {
+      setIsPurging(true)
+      setErrorNotice(null)
+      await catalogApi.permanentlyDeleteSong(songId)
+      setSuccessNotice('Master cut permanently deleted.')
+      setTrashConfirm(null)
+      loadTrash()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to permanently delete track')
+    } finally {
+      setIsPurging(false)
+    }
+  }
+
+  // Permanently empty all items in studio trash
+  const handleEmptyTrash = async () => {
+    try {
+      setIsPurging(true)
+      setErrorNotice(null)
+      const res = await catalogApi.emptyStudioTrash()
+      setSuccessNotice(res.message || 'Studio trash emptied permanently.')
+      setTrashConfirm(null)
+      loadTrash()
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to empty studio trash')
+    } finally {
+      setIsPurging(false)
+    }
+  }
+
 
   // Cover image select for new release (Deferred / Lazy Upload)
   const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2561,15 +2616,27 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {activeTab === 'trash' && (
         <div className="space-y-6">
-          <div className="p-4 border border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 font-sans text-xs flex flex-col gap-1">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] font-semibold">
-              30-Day Recovery Guarantee
-            </span>
-            <p className="leading-relaxed">
-              Archived releases and master recordings are retained in this safe
-              vault for 30 days before irreversible purging. You can restore
-              them to your active catalog at any time with a single click.
-            </p>
+          <div className="p-4 border border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 font-sans text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] font-semibold block mb-0.5">
+                30-Day Recovery Guarantee
+              </span>
+              <p className="leading-relaxed">
+                Archived releases and master recordings are retained in this safe
+                vault for 30 days before irreversible purging. You can restore
+                them to your active catalog at any time, or permanently purge them.
+              </p>
+            </div>
+            {(trashAlbums.length > 0 || trashSongs.length > 0) && (
+              <button
+                type="button"
+                disabled={isPurging}
+                onClick={() => setTrashConfirm({ type: 'empty' })}
+                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors font-semibold cursor-pointer shrink-0"
+              >
+                {isPurging ? 'Emptying...' : 'Empty Trash'}
+              </button>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -2590,7 +2657,7 @@ function StudioComponent() {
                 {trashAlbums.map((album) => (
                   <div
                     key={album.id}
-                    className="p-4 border border-line bg-panel flex items-center justify-between gap-4"
+                    className="p-4 border border-line bg-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -2609,14 +2676,30 @@ function StudioComponent() {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleRestoreAlbum(album.id)}
-                      className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3.5 bg-ink text-canvas hover:opacity-90 cursor-pointer flex items-center gap-1.5 shrink-0"
-                    >
-                      <UndoIconSVG className="w-3 h-3" />
-                      <span>Restore Release</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreAlbum(album.id)}
+                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3.5 bg-ink text-canvas hover:opacity-90 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <UndoIconSVG className="w-3 h-3" />
+                        <span>Restore Release</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPurging}
+                        onClick={() =>
+                          setTrashConfirm({
+                            type: 'permanent_release',
+                            id: album.id,
+                            title: album.title,
+                          })
+                        }
+                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold cursor-pointer transition-colors"
+                      >
+                        Delete Forever
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2634,7 +2717,7 @@ function StudioComponent() {
                 {trashSongs.map((song) => (
                   <div
                     key={song.id}
-                    className="p-3 border border-line bg-panel flex items-center justify-between gap-4"
+                    className="p-3 border border-line bg-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
                       <span className="font-serif italic text-sm text-ink truncate block">
@@ -2648,14 +2731,30 @@ function StudioComponent() {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleRestoreSong(song.id)}
-                      className="font-mono text-[9.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer flex items-center gap-1 shrink-0"
-                    >
-                      <UndoIconSVG className="w-3 h-3" />
-                      <span>Restore</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreSong(song.id)}
+                        className="font-mono text-[9.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer flex items-center gap-1"
+                      >
+                        <UndoIconSVG className="w-3 h-3" />
+                        <span>Restore</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPurging}
+                        onClick={() =>
+                          setTrashConfirm({
+                            type: 'permanent_song',
+                            id: song.id,
+                            title: song.title,
+                          })
+                        }
+                        className="font-mono text-[9.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold cursor-pointer transition-colors"
+                      >
+                        Delete Forever
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2663,6 +2762,7 @@ function StudioComponent() {
           )}
         </div>
       )}
+
 
       {/* ========================================================================= */}
       {/* TAB 3: PROFILE & BRANDING */}
@@ -3656,6 +3756,69 @@ function StudioComponent() {
           </div>
         </div>
       )}
+
+      {/* Permanent Delete / Empty Trash Confirmation Modal */}
+      {trashConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
+          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+                <TrashIconSVG className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-serif italic text-lg text-ink font-normal">
+                  {trashConfirm.type === 'empty'
+                    ? 'Empty Studio Trash?'
+                    : trashConfirm.type === 'permanent_release'
+                      ? 'Permanently Delete Release?'
+                      : 'Permanently Delete Master Cut?'}
+                </h4>
+                <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+                  {trashConfirm.type === 'empty'
+                    ? 'Are you sure you want to permanently delete all items in the studio trash? All associated master audio recordings and artwork will be permanently purged from cloud storage. This action cannot be undone.'
+                    : trashConfirm.type === 'permanent_release'
+                      ? `Are you sure you want to permanently delete "${trashConfirm.title}" and all its audio files and artwork? This action cannot be undone.`
+                      : `Are you sure you want to permanently delete "${trashConfirm.title}"? Master audio will be purged from storage. This action cannot be undone.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isPurging}
+                onClick={() => setTrashConfirm(null)}
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isPurging}
+                onClick={() => {
+                  if (trashConfirm.type === 'empty') {
+                    handleEmptyTrash()
+                  } else if (
+                    trashConfirm.type === 'permanent_release' &&
+                    trashConfirm.id
+                  ) {
+                    handlePermanentDeleteAlbum(trashConfirm.id)
+                  } else if (
+                    trashConfirm.type === 'permanent_song' &&
+                    trashConfirm.id
+                  ) {
+                    handlePermanentDeleteSong(trashConfirm.id)
+                  }
+                }}
+                className="font-mono text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs"
+              >
+                {isPurging ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+

@@ -152,6 +152,14 @@ export const catalogApi = {
   },
 
   /**
+   * Permanently delete an album and all its tracks from database and R2 storage.
+   */
+  async permanentlyDeleteAlbum(id: string): Promise<{ success: boolean; message: string }> {
+    return await api.delete<{ success: boolean; message: string }>(`/api/v1/albums/${id}/permanent`);
+  },
+
+
+  /**
    * Toggle like on an album.
    */
   async toggleAlbumLike(id: string): Promise<{ liked: boolean; likesCount: number }> {
@@ -230,6 +238,14 @@ export const catalogApi = {
   },
 
   /**
+   * Permanently delete a song and its audio from database and R2 storage.
+   */
+  async permanentlyDeleteSong(id: string): Promise<{ success: boolean; message: string }> {
+    return await api.delete<{ success: boolean; message: string }>(`/api/v1/songs/${id}/permanent`);
+  },
+
+
+  /**
    * Toggle like on a song.
    */
   async toggleSongLike(id: string): Promise<{ liked: boolean; likesCount: number }> {
@@ -267,6 +283,24 @@ export const catalogApi = {
   async getStudioReleases(trash = false): Promise<StudioReleasesResponse> {
     return await api.get<StudioReleasesResponse>(`/api/v1/studio/releases${trash ? "?trash=true" : ""}`);
   },
+
+  /**
+   * Permanently empty all items in artist's studio trash from database and R2 storage.
+   */
+  async emptyStudioTrash(): Promise<{
+    success: boolean;
+    message: string;
+    deletedSongsCount: number;
+    deletedReleasesCount: number;
+  }> {
+    return await api.delete<{
+      success: boolean;
+      message: string;
+      deletedSongsCount: number;
+      deletedReleasesCount: number;
+    }>("/api/v1/studio/trash");
+  },
+
 
   // =========================================================================
   // CLOUDFLARE R2 ASSET UPLOADS

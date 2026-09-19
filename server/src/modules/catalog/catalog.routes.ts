@@ -223,6 +223,29 @@ export const albumsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * DELETE /:id/permanent
+   * Permanently deletes a global album release, all associated tracks, and R2 assets.
+   */
+  fastify.delete(
+    "/:id/permanent",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.permanentlyDeleteAlbum(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to permanently delete release",
+        });
+      }
+    }
+  );
+
+
+  /**
    * POST /:id/like
    * Toggles like/unlike on an album.
    */
@@ -596,6 +619,29 @@ export const songsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * DELETE /:id/permanent
+   * Permanently deletes a global song, credits, and R2 raw audio asset.
+   */
+  fastify.delete(
+    "/:id/permanent",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.permanentlyDeleteSong(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to permanently delete song",
+        });
+      }
+    }
+  );
+
+
+  /**
    * POST /:id/like
    * Toggles like/unlike on a song.
    */
@@ -655,4 +701,68 @@ export const studioCatalogRoutes: FastifyPluginAsync = async (fastify) => {
     { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
     getReleasesHandler
   );
+
+  /**
+   * DELETE /trash
+   * Empties all soft-deleted releases and master cuts in the artist's studio trash permanently.
+   */
+  fastify.delete(
+    "/trash",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      try {
+        const result = await catalogService.emptyStudioTrash(request.user.id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to empty studio trash",
+        });
+      }
+    }
+  );
+
+  /**
+   * DELETE /releases/:id/permanent
+   */
+  fastify.delete(
+    "/releases/:id/permanent",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.permanentlyDeleteAlbum(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to permanently delete release",
+        });
+      }
+    }
+  );
+
+  /**
+   * DELETE /songs/:id/permanent
+   */
+  fastify.delete(
+    "/songs/:id/permanent",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      try {
+        const result = await catalogService.permanentlyDeleteSong(request.user.id, id);
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to permanently delete song",
+        });
+      }
+    }
+  );
 };
+
