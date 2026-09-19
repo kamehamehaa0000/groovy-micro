@@ -313,6 +313,7 @@ export const catalogApi = {
     storageKey: string;
     publicUrl: string;
     durationSeconds: number;
+    cleanupToken?: string;
   }> {
     const ext = file.name.split(".").pop() || "flac";
     const resourceId = crypto.randomUUID();
@@ -322,6 +323,7 @@ export const catalogApi = {
         uploadUrl: string;
         storageKey: string;
         publicUrl: string;
+        cleanupToken?: string;
       }>("/api/v1/storage/presigned-url", {
         category: "SONG_AUDIO_RAW",
         resourceId,
@@ -347,7 +349,18 @@ export const catalogApi = {
     return {
       storageKey: presigned.storageKey,
       publicUrl: presigned.publicUrl,
+      cleanupToken: presigned.cleanupToken,
       durationSeconds,
     };
+  },
+
+  /**
+   * Safely delete an uncommitted raw audio master from R2 if user resets or removes a cut.
+   */
+  async cleanupUncommittedAudio(storageKey: string, cleanupToken: string): Promise<void> {
+    await api.delete<{ success: boolean }>("/api/v1/storage/uncommitted-audio", {
+      storageKey,
+      cleanupToken,
+    });
   },
 };

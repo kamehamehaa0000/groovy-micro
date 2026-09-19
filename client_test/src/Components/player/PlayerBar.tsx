@@ -357,7 +357,7 @@ export function PlayerBar() {
           onClick={handleToggleLike}
           aria-label={isLiked ? "Unlike song" : "Like song"}
           className="p-1.5 rounded-full hover:bg-stone/20 cursor-pointer transition-colors shrink-0"
-          title={isLiked ? "Saved in your library" : "Save to library"}
+          title={isLiked ? "Saved in your library (L)" : "Save to library (L)"}
         >
           <HeartIcon filled={isLiked} className="w-4 h-4" />
         </button>
@@ -375,6 +375,7 @@ export function PlayerBar() {
           onClick={togglePlay}
           disabled={isLoading}
           aria-label={isPlaying ? "Pause" : "Play"}
+          title={isPlaying ? "Pause (Space)" : "Play (Space)"}
           className="w-9 h-9 rounded-full bg-ink text-canvas flex items-center justify-center active:scale-95 cursor-pointer shadow-md transition-all"
         >
           {isLoading ? (
@@ -411,7 +412,7 @@ export function PlayerBar() {
           <button
             type="button"
             onClick={toggleShuffle}
-            title={isShuffle ? "Shuffle on" : "Shuffle off"}
+            title={isShuffle ? "Shuffle on (S)" : "Shuffle off (S)"}
             className="p-1 cursor-pointer transition-colors"
           >
             <ShuffleIcon active={isShuffle} className="w-4 h-4" />
@@ -421,7 +422,7 @@ export function PlayerBar() {
           <button
             type="button"
             onClick={previous}
-            title="Previous"
+            title="Previous (Shift + ←)"
             className="text-ink-soft hover:text-ink cursor-pointer transition-colors p-1"
           >
             <SkipBackIcon className="w-4 h-4" />
@@ -436,8 +437,8 @@ export function PlayerBar() {
               activeRoom && !isJamHost
                 ? `Playback controlled by DJ (${activeRoom.hostName})`
                 : isPlaying
-                ? "Pause"
-                : "Play"
+                ? "Pause (Space)"
+                : "Play (Space)"
             }
             aria-label={isPlaying ? "Pause" : "Play"}
             className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-md transition-all duration-150"
@@ -455,7 +456,7 @@ export function PlayerBar() {
           <button
             type="button"
             onClick={next}
-            title="Next"
+            title="Next (Shift + →)"
             className="text-ink-soft hover:text-ink cursor-pointer transition-colors p-1"
           >
             <SkipForwardIcon className="w-4 h-4" />
@@ -465,7 +466,7 @@ export function PlayerBar() {
           <button
             type="button"
             onClick={toggleRepeat}
-            title={`Repeat mode: ${repeatMode}`}
+            title={`Repeat mode: ${repeatMode} (R)`}
             className="p-1 cursor-pointer transition-colors"
           >
             <RepeatIcon mode={repeatMode} className="w-4 h-4" />
@@ -528,6 +529,7 @@ export function PlayerBar() {
             type="button"
             onClick={toggleMute}
             aria-label={isMuted ? "Unmute" : "Mute"}
+            title={isMuted ? "Unmute (M)" : "Mute (M)"}
             className="text-ink-soft hover:text-ink cursor-pointer p-1 transition-colors"
           >
             <VolumeIcon muted={isMuted} volume={volume} className="w-4 h-4" />

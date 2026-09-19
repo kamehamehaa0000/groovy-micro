@@ -140,6 +140,7 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
   let tagDiscNo = 1;
   let tagGenre: string | null = null;
   let tagDuration = 0;
+  let tagExplicit = false;
 
   try {
     // Ensure the Blob has a valid audio MIME type so parseBlob's BlobTokenizer
@@ -180,6 +181,26 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
     tagDiscNo = common.disk?.no || 1;
     tagGenre = common.genre?.[0]?.trim() || null;
     tagDuration = Math.round(format.duration || 0);
+
+    // Check ID3/Vorbis/MP4 native tags for explicit advisory flag
+    if (metadata.native) {
+      for (const tagList of Object.values(metadata.native) as any[]) {
+        if (!Array.isArray(tagList)) continue;
+        for (const tag of tagList) {
+          if (!tag) continue;
+          const tid = String(tag.id || "").toUpperCase();
+          const val = tag.value;
+          if (tid === "RTNG" && (val === 1 || val === "1" || val === 4 || val === "4")) {
+            tagExplicit = true;
+          } else if (
+            (tid === "ITUNESADVISORY" || tid === "TXXX:ITUNESADVISORY" || (tid === "TXXX" && val?.description?.toUpperCase() === "ITUNESADVISORY")) &&
+            (val?.text === "1" || val === 1 || val === "1" || val?.text === "4" || val === 4)
+          ) {
+            tagExplicit = true;
+          }
+        }
+      }
+    }
   } catch (err) {
     console.warn(`[AudioParser] parseBlob warning for ${file.name}:`, err);
   }
@@ -207,7 +228,7 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
     discNumber: tagDiscNo,
     durationSeconds,
     genre: tagGenre,
-    isExplicit: false,
+    isExplicit: tagExplicit,
     coverFile,
     coverPreviewUrl,
   };

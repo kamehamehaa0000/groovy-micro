@@ -597,4 +597,54 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
       }
     },
   )
+
+  /**
+   * DELETE /uncommitted-audio
+   * Safely deletes an uncommitted raw audio file from R2 when user resets or cancels an audio cut.
+   * Guarded by HMAC cleanupToken and database active-reference check.
+   */
+  fastify.delete(
+    '/uncommitted-audio',
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const body = (request.body as any) || {}
+      const query = (request.query as any) || {}
+      const storageKey = body.storageKey || query.storageKey
+      const cleanupToken = body.cleanupToken || query.cleanupToken
+
+      if (!storageKey || !cleanupToken) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Both storageKey and cleanupToken are required',
+        })
+      }
+
+      try {
+        await storageService.cleanupUncommittedAudio(
+          request.user.id,
+          storageKey,
+          cleanupToken,
+        )
+        return reply
+          .status(200)
+          .send({ success: true, message: 'Uncommitted audio cleaned up successfully' })
+      } catch (err: any) {
+        const isForbidden =
+          err.message.includes('Unauthorized') ||
+          err.message.includes('cleanup token')
+        const isConflict = err.message.includes('actively referenced')
+        return reply
+          .status(isForbidden ? 403 : isConflict ? 409 : 400)
+          .send({
+            statusCode: isForbidden
+              ? 'Forbidden'
+              : isConflict
+                ? 'Conflict'
+                : 'Bad Request',
+            message: err.message || 'Failed to cleanup uncommitted audio',
+          })
+      }
+    },
+  )
 }

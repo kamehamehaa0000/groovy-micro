@@ -6,7 +6,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { s3Client } from './storage.client'
 import { UPLOAD_PRESETS, type UploadCategory } from './storage.presets'
-import { randomUUID } from 'crypto'
+import { randomUUID, createHmac, timingSafeEqual } from 'crypto'
 import { eq, and, isNull, isNotNull, sql, ilike, desc, asc, inArray } from 'drizzle-orm'
 import { db } from '../../db'
 import { songs, albums, artistProfiles, outboxEvents, songCredits } from '../../db/schema'
@@ -23,6 +23,23 @@ export interface LockerQuota {
   maxSongs: number
   usedSongs: number
   remainingSongs: number
+}
+
+function generateCleanupToken(userId: string, storageKey: string): string {
+  const secret = process.env.JWT_SECRET || 'groovy-cleanup-secret'
+  return createHmac('sha256', secret).update(`${userId}:${storageKey}`).digest('hex')
+}
+
+function verifyCleanupToken(userId: string, storageKey: string, token: string): boolean {
+  try {
+    const expected = generateCleanupToken(userId, storageKey)
+    const a = Buffer.from(expected, 'hex')
+    const b = Buffer.from(token, 'hex')
+    if (a.length !== b.length) return false
+    return timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 function generateScopedSlug(text: string, userId: string): string {
@@ -234,12 +251,51 @@ export class StorageService {
       ? `${this.cdnBaseUrl}/${storageKey}`
       : null
 
+    const cleanupToken = generateCleanupToken(params.ownerId, storageKey)
+
     return {
       uploadUrl,
       storageKey,
       publicUrl,
       expiresInSeconds: preset.ttlSeconds,
+      cleanupToken,
     }
+  }
+
+  /**
+   * Securely deletes an uncommitted raw audio file from R2.
+   * Ensures:
+   * 1. Storage key matches category SONG_AUDIO_RAW ('audio/raw/').
+   * 2. Cleanup token matches the authenticated user and storageKey.
+   * 3. Database guard: The storageKey is NOT referenced by any song in the catalog.
+   */
+  async cleanupUncommittedAudio(
+    userId: string,
+    storageKey: string,
+    cleanupToken: string,
+  ): Promise<boolean> {
+    if (!storageKey || !storageKey.startsWith('audio/raw/')) {
+      throw new Error('Invalid storage key format for uncommitted audio')
+    }
+
+    if (!verifyCleanupToken(userId, storageKey, cleanupToken)) {
+      throw new Error('Invalid or unauthorized cleanup token')
+    }
+
+    // Active Database Guard: Ensure key is not committed to any song in catalog
+    const [referencedSong] = await db
+      .select({ id: songs.id })
+      .from(songs)
+      .where(eq(songs.rawAudioKey, storageKey))
+      .limit(1)
+
+    if (referencedSong) {
+      throw new Error('Cannot delete key: object is actively referenced by a published song')
+    }
+
+    // Safe to delete from R2
+    await this.deleteObject(storageKey)
+    return true
   }
 
   /**

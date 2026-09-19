@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi, slugifyText } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
+import { parseAudioFile, parseAudioFilesWithPool } from '../lib/audio-metadata'
 import type { ArtistProfile } from '../types/artist'
 import type { Album, Song, AlbumType, ReleaseVisibility } from '../types/catalog'
 import {
@@ -36,6 +37,7 @@ interface TrackDraft {
   durationSeconds: number
   isExplicit: boolean
   rawAudioKey?: string
+  cleanupToken?: string
   audioUrl?: string
   audioFileName?: string
   coverImageUrl?: string
@@ -87,6 +89,8 @@ function StudioComponent() {
   const [releaseType, setReleaseType] = useState<AlbumType>('SINGLE')
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
+  const [releaseCoverFile, setReleaseCoverFile] = useState<File | null>(null)
+  const [releaseCoverPreview, setReleaseCoverPreview] = useState<string | null>(null)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
@@ -133,6 +137,7 @@ function StudioComponent() {
   const [singleTrackExplicit, setSingleTrackExplicit] = useState(false)
   const [singleTrackAudioUrl, setSingleTrackAudioUrl] = useState('')
   const [singleTrackAudioKey, setSingleTrackAudioKey] = useState('')
+  const [singleTrackCleanupToken, setSingleTrackCleanupToken] = useState('')
   const [singleTrackAudioFileName, setSingleTrackAudioFileName] = useState('')
   const [isUploadingSingleAudio, setIsUploadingSingleAudio] = useState(false)
   const [singleTrackCredits, setSingleTrackCredits] = useState<SelectedCredit[]>([])
@@ -140,6 +145,9 @@ function StudioComponent() {
 
   // Multi-track draft cuts (when releaseType !== 'SINGLE')
   const [draftTracks, setDraftTracks] = useState<TrackDraft[]>([])
+  const [isBatchImporting, setIsBatchImporting] = useState(false)
+  const batchCutsInputRef = useRef<HTMLInputElement>(null)
+  const quickStartInputRef = useRef<HTMLInputElement>(null)
 
   // Banner Upload State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
@@ -400,44 +408,62 @@ function StudioComponent() {
     }
   }
 
-  // Cover image upload for new release
-  const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Cover image select for new release (Deferred / Lazy Upload)
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setIsUploadingCover(true)
-    setErrorNotice(null)
-
-    try {
-      const publicUrl = await catalogApi.uploadAlbumCover(file)
-      setReleaseCoverUrl(publicUrl)
-      setSuccessNotice('Cover art uploaded to Cloudflare R2.')
-    } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload cover art')
-    } finally {
-      setIsUploadingCover(false)
+    if (releaseCoverPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(releaseCoverPreview)
     }
+    setReleaseCoverFile(file)
+    setReleaseCoverPreview(URL.createObjectURL(file))
+    setSuccessNotice('Cover artwork selected for release.')
   }
 
-  // Audio file select for track draft in new release
-  const handleDraftAudioSelect = async (
-    draftId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleRemoveCover = () => {
+    if (releaseCoverPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(releaseCoverPreview)
+    }
+    setReleaseCoverFile(null)
+    setReleaseCoverPreview(null)
+    setReleaseCoverUrl('')
+    if (coverInputRef.current) coverInputRef.current.value = ''
+  }
 
+  // Audio file select for track draft in new release with metadata extraction
+  const handleDraftAudioFile = async (draftId: string, file: File) => {
     setDraftTracks((prev) =>
       prev.map((t) => (t.id === draftId ? { ...t, isUploadingAudio: true } : t)),
     )
     setErrorNotice(null)
 
     try {
-      const { storageKey, publicUrl, durationSeconds } =
+      // 1. Extract metadata from audio file
+      const parsed = await parseAudioFile(file)
+
+      // Auto-prefill release-level title if empty and album tag is present
+      if (!releaseTitle.trim() && parsed.albumTitle && parsed.hasAlbumTag) {
+        setReleaseTitle(parsed.albumTitle)
+      }
+
+      // Auto-prefill release cover artwork if empty (Deferred / Lazy preview)
+      if (!releaseCoverFile && !releaseCoverUrl && parsed.coverFile) {
+        setReleaseCoverFile(parsed.coverFile)
+        setReleaseCoverPreview(parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile))
+      }
+
+      // 2. Upload master audio to Cloudflare R2
+      const { storageKey, publicUrl, durationSeconds, cleanupToken } =
         await catalogApi.uploadAudioRaw(file)
 
-      // Auto-populate title if empty
-      const cleanName = file.name.replace(/\.[^/.]+$/, '')
+      // If replacing previously uploaded audio cut, clean up previous file from R2
+      const existingCut = draftTracks.find((t) => t.id === draftId)
+      if (existingCut?.rawAudioKey && existingCut?.cleanupToken && existingCut.rawAudioKey !== storageKey) {
+        catalogApi.cleanupUncommittedAudio(existingCut.rawAudioKey, existingCut.cleanupToken).catch((err) =>
+          console.warn(`Failed to cleanup replaced cut audio: ${existingCut.rawAudioKey}`, err),
+        )
+      }
 
       setDraftTracks((prev) =>
         prev.map((t) =>
@@ -445,16 +471,19 @@ function StudioComponent() {
             ? {
                 ...t,
                 rawAudioKey: storageKey,
+                cleanupToken: cleanupToken,
                 audioUrl: publicUrl,
                 audioFileName: file.name,
-                durationSeconds: durationSeconds || t.durationSeconds,
-                title: t.title.trim() ? t.title : cleanName,
+                durationSeconds: durationSeconds || parsed.durationSeconds || t.durationSeconds,
+                title: t.title.trim() ? t.title : parsed.title,
+                genre: t.genre.trim() ? t.genre : (parsed.genre || ''),
+                isExplicit: t.isExplicit || parsed.isExplicit,
                 isUploadingAudio: false,
               }
             : t,
         ),
       )
-      setSuccessNotice(`Master audio "${file.name}" uploaded to R2.`)
+      setSuccessNotice(`Master audio "${file.name}" uploaded to R2 and metadata prefilled.`)
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to upload audio cut')
       setDraftTracks((prev) =>
@@ -465,13 +494,29 @@ function StudioComponent() {
     }
   }
 
+  const handleDraftAudioSelect = async (
+    draftId: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await handleDraftAudioFile(draftId, file)
+  }
+
   const handleResetDraftAudio = (draftId: string) => {
+    const target = draftTracks.find((t) => t.id === draftId)
+    if (target?.rawAudioKey && target?.cleanupToken) {
+      catalogApi.cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken).catch((err) =>
+        console.warn(`Failed to cleanup reset cut audio: ${target.rawAudioKey}`, err),
+      )
+    }
     setDraftTracks((prev) =>
       prev.map((t) =>
         t.id === draftId
           ? {
               ...t,
               rawAudioKey: undefined,
+              cleanupToken: undefined,
               audioUrl: undefined,
               audioFileName: undefined,
               durationSeconds: 0,
@@ -481,11 +526,26 @@ function StudioComponent() {
     )
   }
 
+  const handleRemoveDraftCut = (draftId: string) => {
+    const target = draftTracks.find((t) => t.id === draftId)
+    if (target?.rawAudioKey && target?.cleanupToken) {
+      catalogApi.cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken).catch((err) =>
+        console.warn(`Failed to cleanup removed cut audio: ${target.rawAudioKey}`, err),
+      )
+    }
+    setDraftTracks((prev) => prev.filter((t) => t.id !== draftId))
+  }
+
   const resetReleaseForm = () => {
+    if (releaseCoverPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(releaseCoverPreview)
+    }
     setReleaseTitle('')
     setReleaseType('SINGLE')
     setReleaseDescription('')
     setReleaseCoverUrl('')
+    setReleaseCoverFile(null)
+    setReleaseCoverPreview(null)
     setReleaseMode('IMMEDIATE')
     setScheduledDate('')
     setScheduledTime('')
@@ -496,6 +556,7 @@ function StudioComponent() {
     setSingleTrackExplicit(false)
     setSingleTrackAudioUrl('')
     setSingleTrackAudioKey('')
+    setSingleTrackCleanupToken('')
     setSingleTrackAudioFileName('')
     setSingleTrackCredits([])
     setDraftTracks([
@@ -510,43 +571,221 @@ function StudioComponent() {
     ])
     if (coverInputRef.current) coverInputRef.current.value = ''
     if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
+    if (batchCutsInputRef.current) batchCutsInputRef.current.value = ''
+    if (quickStartInputRef.current) quickStartInputRef.current.value = ''
   }
 
-  // Standalone Single Audio Upload
+  // Standalone Single Audio Upload & Metadata Prefill
+  const handleSingleAudioFile = async (file: File) => {
+    setIsUploadingSingleAudio(true)
+    setErrorNotice(null)
+
+    try {
+      // 1. Extract metadata from audio file
+      const parsed = await parseAudioFile(file)
+
+      // Prefill Release Title if empty or equal to filename without extension
+      if (!releaseTitle.trim() || releaseTitle === file.name.replace(/\.[^/.]+$/, '')) {
+        setReleaseTitle(parsed.title)
+      }
+
+      // Prefill Genre if empty
+      if (!singleTrackGenre.trim() && parsed.genre) {
+        setSingleTrackGenre(parsed.genre)
+      }
+
+      // Prefill Duration
+      if (parsed.durationSeconds > 0) {
+        setSingleTrackDuration(parsed.durationSeconds)
+      }
+
+      // Prefill Explicit
+      if (parsed.isExplicit) {
+        setSingleTrackExplicit(true)
+      }
+
+      // Prefill cover artwork if empty (Deferred / Lazy preview)
+      if (!releaseCoverFile && !releaseCoverUrl && parsed.coverFile) {
+        setReleaseCoverFile(parsed.coverFile)
+        setReleaseCoverPreview(parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile))
+      }
+
+      // 2. Upload raw audio file to Cloudflare R2
+      const { storageKey, publicUrl, durationSeconds, cleanupToken } =
+        await catalogApi.uploadAudioRaw(file)
+
+      // If replacing previously uploaded single audio, clean it up from R2
+      if (singleTrackAudioKey && singleTrackCleanupToken && singleTrackAudioKey !== storageKey) {
+        catalogApi.cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken).catch((err) =>
+          console.warn(`Failed to cleanup replaced single audio: ${singleTrackAudioKey}`, err),
+        )
+      }
+
+      setSingleTrackAudioKey(storageKey)
+      setSingleTrackCleanupToken(cleanupToken || '')
+      setSingleTrackAudioUrl(publicUrl)
+      setSingleTrackAudioFileName(file.name)
+      if (durationSeconds && durationSeconds > 0) {
+        setSingleTrackDuration(durationSeconds)
+      }
+
+      setSuccessNotice(
+        `Audio master "${file.name}" uploaded and metadata prefilled. You can review or edit all details.`,
+      )
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload audio')
+    } finally {
+      setIsUploadingSingleAudio(false)
+      if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
+    }
+  }
+
   const handleSingleAudioSelect = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    setIsUploadingSingleAudio(true)
-    setErrorNotice(null)
-
-    try {
-      const { storageKey, publicUrl, durationSeconds } =
-        await catalogApi.uploadAudioRaw(file)
-      setSingleTrackAudioKey(storageKey)
-      setSingleTrackAudioUrl(publicUrl)
-      setSingleTrackAudioFileName(file.name)
-      setSingleTrackDuration(durationSeconds)
-      if (!releaseTitle.trim()) {
-        setReleaseTitle(file.name.replace(/\.[^/.]+$/, ''))
-      }
-      setSuccessNotice(`Audio master "${file.name}" added successfully.`)
-    } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload audio')
-    } finally {
-      setIsUploadingSingleAudio(false)
-    }
+    await handleSingleAudioFile(file)
   }
 
   const handleResetSingleAudio = () => {
+    if (singleTrackAudioKey && singleTrackCleanupToken) {
+      catalogApi.cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken).catch((err) =>
+        console.warn(`Failed to cleanup reset single audio: ${singleTrackAudioKey}`, err),
+      )
+    }
     setSingleTrackAudioKey('')
+    setSingleTrackCleanupToken('')
     setSingleTrackAudioUrl('')
     setSingleTrackAudioFileName('')
     setSingleTrackDuration(0)
     if (singleAudioInputRef.current) {
       singleAudioInputRef.current.value = ''
+    }
+  }
+
+  // Batch import multiple audio cuts for multi-track releases
+  const handleBatchImportFiles = async (files: File[]) => {
+    if (files.length === 0) return
+    setIsBatchImporting(true)
+    setErrorNotice(null)
+
+    try {
+      // 1. Concurrently parse metadata for all selected audio files
+      const parsedList = await parseAudioFilesWithPool(files, 6)
+
+      // Sort by disc & track number if tagged, otherwise natural filename sorting
+      const hasTrackNumbers = parsedList.some((t) => t.trackNumber > 0)
+      if (hasTrackNumbers) {
+        parsedList.sort((a, b) => {
+          if (a.discNumber !== b.discNumber) return a.discNumber - b.discNumber
+          return a.trackNumber - b.trackNumber
+        })
+      } else {
+        parsedList.sort((a, b) =>
+          a.file.name.localeCompare(b.file.name, undefined, {
+            numeric: true,
+            sensitivity: 'base',
+          }),
+        )
+      }
+
+      // 2. Prefill Release Title if empty
+      if (!releaseTitle.trim()) {
+        const taggedAlbum = parsedList.find((t) => t.hasAlbumTag && t.albumTitle.trim())
+        if (taggedAlbum) {
+          setReleaseTitle(taggedAlbum.albumTitle.trim())
+        }
+      }
+
+      // 3. Prefill Release Cover Artwork if empty (Deferred / Lazy preview)
+      if (!releaseCoverFile && !releaseCoverUrl) {
+        const firstWithCover = parsedList.find((t) => t.coverFile)
+        if (firstWithCover && firstWithCover.coverFile) {
+          setReleaseCoverFile(firstWithCover.coverFile)
+          setReleaseCoverPreview(firstWithCover.coverPreviewUrl || URL.createObjectURL(firstWithCover.coverFile))
+        }
+      }
+
+      // 4. Create TrackDraft entries
+      // If draftTracks only has 1 empty initial placeholder cut, replace it; else append
+      const isInitialEmptyDraft =
+        draftTracks.length === 1 &&
+        !draftTracks[0].title.trim() &&
+        !draftTracks[0].audioUrl &&
+        !draftTracks[0].rawAudioKey
+
+      const newDrafts: TrackDraft[] = parsedList.map((p) => ({
+        id: crypto.randomUUID(),
+        title: p.title,
+        genre: p.genre || '',
+        durationSeconds: p.durationSeconds,
+        isExplicit: p.isExplicit,
+        audioFileName: p.file.name,
+        isUploadingAudio: true,
+        credits: [],
+      }))
+
+      if (isInitialEmptyDraft) {
+        setDraftTracks(newDrafts)
+      } else {
+        setDraftTracks((prev) => [...prev, ...newDrafts])
+      }
+
+      // 5. Upload raw audio files with concurrency pool of 3
+      const poolLimit = 3
+      let currentIndex = 0
+
+      const uploadWorker = async () => {
+        while (currentIndex < parsedList.length) {
+          const index = currentIndex++
+          const parsedTrack = parsedList[index]
+          const targetDraftId = newDrafts[index].id
+
+          try {
+            const { storageKey, publicUrl, durationSeconds, cleanupToken } =
+              await catalogApi.uploadAudioRaw(parsedTrack.file)
+
+            setDraftTracks((prev) =>
+              prev.map((t) =>
+                t.id === targetDraftId
+                  ? {
+                      ...t,
+                      rawAudioKey: storageKey,
+                      cleanupToken: cleanupToken,
+                      audioUrl: publicUrl,
+                      durationSeconds: durationSeconds || t.durationSeconds,
+                      isUploadingAudio: false,
+                    }
+                  : t,
+              ),
+            )
+          } catch (uploadErr: any) {
+            console.error(`Failed to upload ${parsedTrack.file.name}:`, uploadErr)
+            setDraftTracks((prev) =>
+              prev.map((t) =>
+                t.id === targetDraftId ? { ...t, isUploadingAudio: false } : t,
+              ),
+            )
+          }
+        }
+      }
+
+      const workers = Array.from(
+        { length: Math.min(poolLimit, parsedList.length) },
+        () => uploadWorker(),
+      )
+      await Promise.all(workers)
+
+      setSuccessNotice(
+        `Imported and extracted metadata for ${parsedList.length} cuts! All details can be reviewed and edited.`,
+      )
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to batch import cuts')
+    } finally {
+      setIsBatchImporting(false)
+      if (batchCutsInputRef.current) batchCutsInputRef.current.value = ''
+      if (quickStartInputRef.current) quickStartInputRef.current.value = ''
     }
   }
 
@@ -561,8 +800,8 @@ function StudioComponent() {
       )
       return
     }
-    if (!releaseCoverUrl) {
-      setErrorNotice('Please upload cover artwork image (Cloudflare R2)')
+    if (!releaseCoverFile && !releaseCoverUrl) {
+      setErrorNotice('Please provide cover artwork for the release')
       return
     }
 
@@ -593,6 +832,30 @@ function StudioComponent() {
     }
 
     try {
+      // 1. Upload deferred cover artwork to R2 if selected as local File
+      let finalCoverUrl = releaseCoverUrl
+      if (releaseCoverFile) {
+        setIsUploadingCover(true)
+        try {
+          finalCoverUrl = await catalogApi.uploadAlbumCover(releaseCoverFile)
+          setReleaseCoverUrl(finalCoverUrl)
+          setReleaseCoverFile(null)
+        } catch (covErr: any) {
+          setErrorNotice(covErr.message || 'Failed to upload cover artwork to R2')
+          setIsSubmittingRelease(false)
+          setIsUploadingCover(false)
+          return
+        } finally {
+          setIsUploadingCover(false)
+        }
+      }
+
+      if (!finalCoverUrl) {
+        setErrorNotice('Please provide cover artwork for the release')
+        setIsSubmittingRelease(false)
+        return
+      }
+
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
           setErrorNotice('Please upload a master audio file for the single release')
@@ -610,7 +873,7 @@ function StudioComponent() {
             isExplicit: singleTrackExplicit,
             rawAudioKey: singleTrackAudioKey || undefined,
             audioUrl: singleTrackAudioUrl || undefined,
-            coverImageUrl: releaseCoverUrl,
+            coverImageUrl: finalCoverUrl,
             credits:
               singleTrackCredits.length > 0
                 ? singleTrackCredits.map((c) => ({
@@ -624,7 +887,7 @@ function StudioComponent() {
         await catalogApi.createAlbum({
           title: releaseTitle.trim(),
           albumType: 'SINGLE',
-          coverImageUrl: releaseCoverUrl,
+          coverImageUrl: finalCoverUrl,
           description: releaseDescription.trim() || undefined,
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
@@ -667,7 +930,7 @@ function StudioComponent() {
         await catalogApi.createAlbum({
           title: releaseTitle.trim(),
           albumType: releaseType,
-          coverImageUrl: releaseCoverUrl,
+          coverImageUrl: finalCoverUrl,
           description: releaseDescription.trim() || undefined,
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
@@ -1365,6 +1628,79 @@ function StudioComponent() {
                 </div>
               </div>
 
+              {/* Quick Start: Auto-fill Metadata Assistant Dropzone */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const droppedFiles = Array.from(e.dataTransfer.files).filter(
+                    (f) =>
+                      f.type.startsWith('audio/') ||
+                      /\.(mp3|wav|flac|m4a|aac|ogg|wma)$/i.test(f.name),
+                  )
+                  if (droppedFiles.length === 0) return
+                  if (releaseType === 'SINGLE' && droppedFiles.length === 1) {
+                    handleSingleAudioFile(droppedFiles[0])
+                  } else {
+                    if (releaseType === 'SINGLE') {
+                      setReleaseType(droppedFiles.length <= 6 ? 'EP' : 'ALBUM')
+                    }
+                    handleBatchImportFiles(droppedFiles)
+                  }
+                }}
+                className="p-4 border-2 border-dashed border-line hover:border-ink bg-canvas/60 transition-colors flex flex-col sm:flex-row items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 border border-line bg-panel flex items-center justify-center shrink-0">
+                    <UploadCloudSVG className="w-5 h-5 text-ink" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs uppercase tracking-wider text-ink font-semibold flex items-center gap-1.5">
+                      <span>✦ Quick Start: Auto-Fill from Audio Metadata</span>
+                    </div>
+                    <p className="font-sans text-xs text-ink-soft mt-0.5">
+                      Drop audio file{releaseType !== 'SINGLE' ? 's' : ''} or browse to auto-extract release title, embedded artwork, track titles, genres, and durations. All prefilled fields remain completely editable.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <label className="font-mono text-xs uppercase tracking-wider py-2 px-3.5 border border-ink bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
+                    <span>
+                      {isBatchImporting || isUploadingSingleAudio
+                        ? 'Extracting & Uploading...'
+                        : releaseType === 'SINGLE'
+                          ? 'Select Single Audio'
+                          : 'Select Audio Cuts'}
+                    </span>
+                    <input
+                      ref={quickStartInputRef}
+                      type="file"
+                      accept="audio/*"
+                      multiple={releaseType !== 'SINGLE'}
+                      disabled={isBatchImporting || isUploadingSingleAudio}
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || [])
+                        if (files.length === 0) return
+                        if (releaseType === 'SINGLE' && files.length === 1) {
+                          handleSingleAudioFile(files[0])
+                        } else {
+                          if (releaseType === 'SINGLE') {
+                            setReleaseType(files.length <= 6 ? 'EP' : 'ALBUM')
+                          }
+                          handleBatchImportFiles(files)
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
               <form onSubmit={handlePublishRelease} className="space-y-6">
                 {/* Basic Release Metadata */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1526,9 +1862,9 @@ function StudioComponent() {
                   </p>
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
-                      {releaseCoverUrl ? (
+                      {releaseCoverPreview || releaseCoverUrl ? (
                         <img
-                          src={releaseCoverUrl}
+                          src={releaseCoverPreview || releaseCoverUrl}
                           alt="Cover preview"
                           className="w-full h-full object-cover"
                         />
@@ -1542,7 +1878,7 @@ function StudioComponent() {
                           <span>
                             {isUploadingCover
                               ? 'Uploading to R2...'
-                              : releaseCoverUrl
+                              : releaseCoverPreview || releaseCoverUrl
                                 ? 'Replace Artwork'
                                 : 'Upload Cover Artwork'}
                           </span>
@@ -1555,13 +1891,10 @@ function StudioComponent() {
                             className="hidden"
                           />
                         </label>
-                        {releaseCoverUrl && (
+                        {(releaseCoverPreview || releaseCoverUrl) && (
                           <button
                             type="button"
-                            onClick={() => {
-                              setReleaseCoverUrl('')
-                              if (coverInputRef.current) coverInputRef.current.value = ''
-                            }}
+                            onClick={handleRemoveCover}
                             className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-2.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
                           >
                             Remove
@@ -1569,7 +1902,7 @@ function StudioComponent() {
                         )}
                       </div>
                       <span className="font-mono text-[9px] text-ink-soft">
-                        {releaseCoverUrl
+                        {releaseCoverPreview || releaseCoverUrl
                           ? '✓ Artwork attached to release'
                           : 'Official release artwork required'}
                       </span>
@@ -1725,29 +2058,46 @@ function StudioComponent() {
                 ) : (
                   /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */
                   <div className="pt-4 border-t border-line-soft space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink">
                         Master Cuts / Tracklist ({draftTracks.length})
                       </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraftTracks([
-                            ...draftTracks,
-                            {
-                              id: crypto.randomUUID(),
-                              title: '',
-                              genre: '',
-                              durationSeconds: 0,
-                              isExplicit: false,
-                              credits: [],
-                            },
-                          ])
-                        }
-                        className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
-                      >
-                        + Add Cut
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <label className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1 font-medium">
+                          <span>{isBatchImporting ? 'Importing Cuts...' : '✦ Batch Import Cuts'}</span>
+                          <input
+                            ref={batchCutsInputRef}
+                            type="file"
+                            accept="audio/*"
+                            multiple
+                            disabled={isBatchImporting}
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || [])
+                              if (files.length > 0) handleBatchImportFiles(files)
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDraftTracks([
+                              ...draftTracks,
+                              {
+                                id: crypto.randomUUID(),
+                                title: '',
+                                genre: '',
+                                durationSeconds: 0,
+                                isExplicit: false,
+                                credits: [],
+                              },
+                            ])
+                          }
+                          className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
+                        >
+                          + Add Cut
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -1867,11 +2217,7 @@ function StudioComponent() {
                               {draftTracks.length > 1 && (
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    setDraftTracks(
-                                      draftTracks.filter((t) => t.id !== draft.id),
-                                    )
-                                  }
+                                  onClick={() => handleRemoveDraftCut(draft.id)}
                                   className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
                                   title="Remove Cut"
                                 >

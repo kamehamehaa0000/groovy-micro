@@ -6,8 +6,12 @@ import { useEntitlementsStore } from "../../stores/entitlements.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { playerApi } from "../../lib/player.api";
 import { getDeviceInfo } from "../../lib/device";
+import { usePlayerKeyboardControls } from "../../hooks/usePlayerKeyboardControls";
 
 export function GlobalAudioEngine() {
+  // Mount high-efficiency global player keyboard controls
+  usePlayerKeyboardControls();
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);

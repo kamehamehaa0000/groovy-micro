@@ -156,6 +156,15 @@ export const api = {
             : JSON.stringify(body)
           : undefined,
     }),
-  delete: <T = any>(url: string, options?: RequestInit) =>
-    apiFetch<T>(url, { ...options, method: "DELETE" }),
+  delete: <T = any>(url: string, body?: any, options?: RequestInit) =>
+    apiFetch<T>(url, {
+      ...options,
+      method: "DELETE",
+      body:
+        body !== undefined
+          ? body instanceof FormData
+            ? body
+            : JSON.stringify(body)
+          : undefined,
+    }),
 };
