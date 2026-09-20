@@ -104,14 +104,20 @@ export function SongActionMenu({
     }
   };
 
+  const isPersonalCut = (track as any).scope === "PERSONAL";
+
   const handleAddSongToPlaylist = async (playlist: Playlist) => {
+    if (isPersonalCut && (playlist.visibility !== "PRIVATE" || playlist.isCollaborative)) {
+      showToast("Personal cuts can only be added to private playlists");
+      return;
+    }
     setAddingToPlaylistId(playlist.id);
     try {
       await playlistsApi.addTracks(playlist.id, [track.id]);
       showToast(`Added to "${playlist.title}"`);
       setIsPlaylistModalOpen(false);
     } catch (err: any) {
-      alert(err.message || "Could not add track to playlist");
+      showToast(err.message || "Could not add track to playlist");
     } finally {
       setAddingToPlaylistId(null);
     }
@@ -276,6 +282,11 @@ export function SongActionMenu({
                 <p className="font-mono text-[10px] text-ink-soft truncate max-w-[220px]">
                   {track.title}
                 </p>
+                {isPersonalCut && (
+                  <p className="mt-1 font-mono text-[9px] text-amber-600 dark:text-amber-400">
+                    🔒 Personal cut: private playlists only
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -291,9 +302,13 @@ export function SongActionMenu({
                 <div className="py-8 text-center font-mono text-xs text-ink-soft">
                   Loading playlists...
                 </div>
-              ) : userPlaylists.length === 0 ? (
+              ) : (isPersonalCut ? userPlaylists.filter((pl) => pl.visibility === "PRIVATE" && !pl.isCollaborative) : userPlaylists).length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="font-serif italic text-sm text-ink-soft">No playlists found.</p>
+                  <p className="font-serif italic text-sm text-ink-soft">
+                    {isPersonalCut
+                      ? "No private playlists found. Create a private playlist for your personal cuts."
+                      : "No playlists found."}
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
@@ -306,7 +321,10 @@ export function SongActionMenu({
                   </button>
                 </div>
               ) : (
-                userPlaylists.map((pl) => (
+                (isPersonalCut
+                  ? userPlaylists.filter((pl) => pl.visibility === "PRIVATE" && !pl.isCollaborative)
+                  : userPlaylists
+                ).map((pl) => (
                   <button
                     key={pl.id}
                     type="button"

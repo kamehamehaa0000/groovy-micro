@@ -14,6 +14,8 @@ export interface PlayerTrack {
   rawAudioKey?: string | null;
   isExplicit?: boolean;
   isLiked?: boolean;
+  scope?: "GLOBAL" | "PERSONAL";
+  isStreamable?: boolean;
 }
 
 export type RepeatMode = "off" | "all" | "one";

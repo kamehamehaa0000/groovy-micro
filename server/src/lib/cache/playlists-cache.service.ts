@@ -1,11 +1,11 @@
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
-import { playlists, userLibraryPlaylists } from "../../db/schema";
+import { playlists, userLibraryPlaylists, playlistSongs } from "../../db/schema";
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
 
-const EMPTY_SENTINEL = "__EMPTY__";
+export const EMPTY_SENTINEL = "__EMPTY__";
 const USER_SAVED_PLAYLISTS_TTL_SEC = 86400; // 24 hours
 const PLAYLIST_METADATA_TTL_SEC = 3600; // 1 hour
 
@@ -221,6 +221,53 @@ export class PlaylistsCacheService {
       await redis.del(cacheKeys.social.playlist(playlistId));
     } catch (err) {
       console.warn(`[PlaylistsCacheService] Invalidation failed for playlist ${playlistId}:`, err);
+    }
+  }
+
+  /**
+   * Batch invalidates all playlists containing any of the provided song IDs.
+   */
+  async invalidatePlaylistsForSongs(songIds: string[]): Promise<void> {
+    if (!songIds || songIds.length === 0) return;
+    try {
+      const rows = await db
+        .selectDistinct({ playlistId: playlistSongs.playlistId })
+        .from(playlistSongs)
+        .where(inArray(playlistSongs.songId, songIds));
+
+      const playlistIds = rows.map((r) => r.playlistId);
+      if (playlistIds.length === 0) return;
+
+      await Promise.all(playlistIds.map((pid) => this.invalidatePlaylistCache(pid)));
+    } catch (err) {
+      console.warn(`[PlaylistsCacheService] Invalidation failed for song playlists:`, err);
+    }
+  }
+
+  /**
+   * Cleans up deleted playlist ID from Redis saved sets of all users who had saved it.
+   */
+  async cleanupUserSavedPlaylists(playlistId: string): Promise<void> {
+    try {
+      const savedUsers = await db
+        .select({ userId: userLibraryPlaylists.userId })
+        .from(userLibraryPlaylists)
+        .where(eq(userLibraryPlaylists.playlistId, playlistId));
+
+      for (const row of savedUsers) {
+        const key = cacheKeys.social.userSavedPlaylists(row.userId);
+        try {
+          await redis.srem(key, playlistId);
+          const remainingCount = await redis.scard(key);
+          if (remainingCount === 0) {
+            await redis.sadd(key, EMPTY_SENTINEL);
+          }
+        } catch (e) {
+          // ignore redis connection error
+        }
+      }
+    } catch (err) {
+      console.warn(`[PlaylistsCacheService] Failed to clean up user saved sets for playlist ${playlistId}:`, err);
     }
   }
 }

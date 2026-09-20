@@ -38,6 +38,8 @@ export interface PlaylistTrack {
   artistStageName?: string;
   artistSlug?: string;
   artistVerified?: boolean;
+  scope?: "GLOBAL" | "PERSONAL";
+  uploaderUserId?: string | null;
   isStreamable?: boolean;
   scheduledReleaseAt?: string | Date | null;
   isLiked?: boolean;

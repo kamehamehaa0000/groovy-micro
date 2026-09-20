@@ -41,7 +41,7 @@ import type {
   SearchSongsQuery,
 } from "./catalog.schemas";
 import { slugify } from "../artists/artists.service";
-import { cacheManager, cacheKeys, likesCacheService, presavesCacheService } from "../../lib/cache";
+import { cacheManager, cacheKeys, likesCacheService, presavesCacheService, playlistsCacheService } from "../../lib/cache";
 
 import { StorageService } from "../storage/storage.service";
 
@@ -796,6 +796,14 @@ export class CatalogService {
       artistId: artist.id,
     });
 
+    const albumSongs = await db
+      .select({ id: songs.id })
+      .from(songs)
+      .where(eq(songs.albumId, albumId));
+    if (albumSongs.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((s) => s.id));
+    }
+
     return res;
   }
 
@@ -836,6 +844,14 @@ export class CatalogService {
       slug: existing.slug,
       artistId: artist.id,
     });
+
+    const albumSongs = await db
+      .select({ id: songs.id })
+      .from(songs)
+      .where(eq(songs.albumId, albumId));
+    if (albumSongs.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((s) => s.id));
+    }
 
     return res;
   }
@@ -909,6 +925,9 @@ export class CatalogService {
       cacheKeys.catalog.artist(artist.id),
       cacheKeys.catalog.artistAlbumsTag(artist.id)
     );
+    if (songIds.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(songIds);
+    }
 
     return {
       success: true,
@@ -1497,6 +1516,7 @@ export class CatalogService {
     if (existing.albumId && existing.albumId !== updatedSong.albumId) {
       await cacheManager.invalidateAlbum({ id: existing.albumId });
     }
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId]);
 
     return updatedSong;
   }
@@ -1656,6 +1676,8 @@ export class CatalogService {
       }
     }
 
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId]);
+
     return res;
   }
 
@@ -1747,6 +1769,8 @@ export class CatalogService {
         artistId: artist.id,
       });
     }
+
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId]);
 
     return res;
   }
@@ -1863,6 +1887,7 @@ export class CatalogService {
       cacheKeys.catalog.artist(artist.id),
       cacheKeys.catalog.artistAlbumsTag(artist.id)
     );
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId]);
 
     return {
       success: true,

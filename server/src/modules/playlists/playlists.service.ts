@@ -13,7 +13,7 @@ import {
   artistProfiles,
   type Playlist,
 } from "../../db/schema";
-import { playlistsCacheService, likesCacheService, cacheKeys, cacheManager } from "../../lib/cache";
+import { playlistsCacheService, likesCacheService, cacheKeys, cacheManager, EMPTY_SENTINEL } from "../../lib/cache";
 import type {
   CreatePlaylistInput,
   UpdatePlaylistInput,
@@ -44,6 +44,8 @@ export interface EnrichedPlaylistTrack {
   artistStageName: string;
   artistSlug: string;
   artistVerified: boolean;
+  scope?: "GLOBAL" | "PERSONAL";
+  uploaderUserId?: string | null;
   isLiked?: boolean;
   isStreamable?: boolean;
   scheduledReleaseAt?: Date | string | null;
@@ -141,6 +143,8 @@ export class PlaylistsService {
         const validSongs = await tx
           .select({
             id: songs.id,
+            scope: songs.scope,
+            uploaderUserId: songs.uploaderUserId,
             albumId: songs.albumId,
             albumStatus: albums.status,
             albumScheduledReleaseAt: albums.scheduledReleaseAt,
@@ -152,7 +156,15 @@ export class PlaylistsService {
           .where(and(inArray(songs.id, input.initialSongIds), isNull(songs.deletedAt)));
 
         const now = Date.now();
+        const hasPersonalTrack = validSongs.some((s) => s.scope === "PERSONAL");
+        if (hasPersonalTrack && visibility !== "PRIVATE") {
+          throw new Error("Personal collection tracks can only be added to private playlists");
+        }
+
         const addableSongs = validSongs.filter((s) => {
+          if (s.scope === "PERSONAL") {
+            return s.uploaderUserId === userId && visibility === "PRIVATE";
+          }
           const isOwner = s.artistUserId === userId;
           const isLive =
             !s.albumId ||
@@ -185,7 +197,7 @@ export class PlaylistsService {
     // Sync Redis Set for fast sync and 0ms checks
     const key = cacheKeys.social.userSavedPlaylists(userId);
     try {
-      await redis.srem(key, "EMPTY");
+      await redis.srem(key, EMPTY_SENTINEL);
       await redis.sadd(key, createdPlaylist.id);
       await redis.expire(key, 86400 * 7);
     } catch (err) {
@@ -251,6 +263,8 @@ export class PlaylistsService {
             hlsManifestUrl: songs.hlsManifestUrl,
             isExplicit: songs.isExplicit,
             songCoverUrl: songs.coverImageUrl,
+            scope: songs.scope,
+            uploaderUserId: songs.uploaderUserId,
             albumId: albums.id,
             albumTitle: albums.title,
             albumCoverUrl: albums.coverImageUrl,
@@ -332,14 +346,21 @@ export class PlaylistsService {
     const now = Date.now();
     const tracks: EnrichedPlaylistTrack[] = trackRows.map((row: any) => {
       const isArtistOwner = !!(currentUserId && row.artistUserId === currentUserId);
-      const isLive =
-        !row.albumId ||
-        row.albumStatus === "PUBLISHED" ||
-        (row.albumStatus === "SCHEDULED" &&
-          row.albumScheduledReleaseAt &&
-          new Date(row.albumScheduledReleaseAt).getTime() <= now);
+      const isPersonalOwner = !!(currentUserId && row.uploaderUserId === currentUserId);
 
-      const isStreamable = isLive || isArtistOwner;
+      let isStreamable = false;
+      let isLive = false;
+      if (row.scope === "PERSONAL") {
+        isStreamable = isPersonalOwner;
+      } else {
+        isLive =
+          !row.albumId ||
+          row.albumStatus === "PUBLISHED" ||
+          (row.albumStatus === "SCHEDULED" &&
+            row.albumScheduledReleaseAt &&
+            new Date(row.albumScheduledReleaseAt).getTime() <= now);
+        isStreamable = isLive || isArtistOwner;
+      }
 
       const coverUrl = row.songCoverUrl || row.albumCoverUrl;
       const scheduledRelease = !isLive && row.albumScheduledReleaseAt ? row.albumScheduledReleaseAt : null;
@@ -360,6 +381,8 @@ export class PlaylistsService {
         artistStageName: row.artistStageName,
         artistSlug: row.artistSlug,
         artistVerified: row.artistVerified,
+        scope: row.scope,
+        uploaderUserId: row.uploaderUserId,
         isStreamable,
         scheduledReleaseAt: scheduledRelease,
         isLiked: false,
@@ -389,6 +412,8 @@ export class PlaylistsService {
         artistStageName: row.artistStageName,
         artistSlug: row.artistSlug,
         artistVerified: row.artistVerified,
+        scope: row.scope,
+        uploaderUserId: row.uploaderUserId,
         isStreamable,
         scheduledReleaseAt: scheduledRelease,
         song: songObj,
@@ -493,7 +518,12 @@ export class PlaylistsService {
         createdAt: playlists.createdAt,
         updatedAt: playlists.updatedAt,
         tracksCount: sql<number>`(
-          SELECT count(*)::int FROM playlist_songs WHERE playlist_songs.playlist_id = playlists.id
+          SELECT count(*)::int
+          FROM playlist_songs
+          INNER JOIN songs ON songs.id = playlist_songs.song_id
+          WHERE playlist_songs.playlist_id = playlists.id
+            AND songs.deleted_at IS NULL
+            AND songs.scope = 'GLOBAL'
         )`,
       })
       .from(playlists)
@@ -520,6 +550,7 @@ export class PlaylistsService {
           and(
             inArray(playlistSongs.playlistId, playlistIds),
             isNull(songs.deletedAt),
+            eq(songs.scope, "GLOBAL"),
             sql`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl}) IS NOT NULL`,
             or(
               isNull(albums.id),
@@ -584,7 +615,11 @@ export class PlaylistsService {
         createdAt: playlists.createdAt,
         updatedAt: playlists.updatedAt,
         tracksCount: sql<number>`(
-          SELECT count(*)::int FROM playlist_songs WHERE playlist_songs.playlist_id = playlists.id
+          SELECT count(*)::int
+          FROM playlist_songs
+          INNER JOIN songs ON songs.id = playlist_songs.song_id
+          WHERE playlist_songs.playlist_id = playlists.id
+            AND songs.deleted_at IS NULL
         )`,
       })
       .from(playlists)
@@ -619,7 +654,11 @@ export class PlaylistsService {
         createdAt: playlists.createdAt,
         updatedAt: playlists.updatedAt,
         tracksCount: sql<number>`(
-          SELECT count(*)::int FROM playlist_songs WHERE playlist_songs.playlist_id = playlists.id
+          SELECT count(*)::int
+          FROM playlist_songs
+          INNER JOIN songs ON songs.id = playlist_songs.song_id
+          WHERE playlist_songs.playlist_id = playlists.id
+            AND songs.deleted_at IS NULL
         )`,
       })
       .from(userLibraryPlaylists)
@@ -652,6 +691,25 @@ export class PlaylistsService {
 
     if (!existing) throw new Error("Playlist not found");
     if (existing.ownerId !== userId) throw new Error("Only the playlist creator can edit metadata");
+
+    if (input.visibility !== undefined && input.visibility !== "PRIVATE") {
+      const [personalTrack] = await db
+        .select({ id: playlistSongs.id })
+        .from(playlistSongs)
+        .innerJoin(songs, eq(playlistSongs.songId, songs.id))
+        .where(
+          and(
+            eq(playlistSongs.playlistId, playlistId),
+            eq(songs.scope, "PERSONAL"),
+            isNull(songs.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (personalTrack) {
+        throw new Error("Cannot make playlist public or unlisted while it contains personal collection tracks");
+      }
+    }
 
     let shareToken = existing.shareToken;
     if (input.visibility === "UNLISTED" && !shareToken) {
@@ -692,6 +750,7 @@ export class PlaylistsService {
     if (!existing) throw new Error("Playlist not found");
     if (existing.ownerId !== userId) throw new Error("Only the playlist creator can delete it");
 
+    await playlistsCacheService.cleanupUserSavedPlaylists(playlistId);
     await db.delete(playlists).where(eq(playlists.id, playlistId));
     await playlistsCacheService.invalidatePlaylistCache(playlistId);
   }
@@ -737,6 +796,8 @@ export class PlaylistsService {
     const validSongs = await db
       .select({
         id: songs.id,
+        scope: songs.scope,
+        uploaderUserId: songs.uploaderUserId,
         albumId: songs.albumId,
         albumStatus: albums.status,
         albumScheduledReleaseAt: albums.scheduledReleaseAt,
@@ -749,20 +810,34 @@ export class PlaylistsService {
 
     const now = Date.now();
     const addableSongs = validSongs.filter((s) => {
-      const isOwner = s.artistUserId === userId;
+      if (s.scope === "PERSONAL") {
+        return (
+          playlist.visibility === "PRIVATE" &&
+          !playlist.isCollaborative &&
+          isOwner &&
+          s.uploaderUserId === userId
+        );
+      }
+      const isOwnerArtist = s.artistUserId === userId;
       const isLive =
         !s.albumId ||
         s.albumStatus === "PUBLISHED" ||
         (s.albumStatus === "SCHEDULED" &&
           s.albumScheduledReleaseAt &&
           new Date(s.albumScheduledReleaseAt).getTime() <= now);
-      return isLive || isOwner;
+      return isLive || isOwnerArtist;
     });
 
     const validSongIdSet = new Set(addableSongs.map((s) => s.id));
     let toAdd = songIds.filter((id) => validSongIdSet.has(id));
 
     if (toAdd.length === 0) {
+      const hasAttemptedPersonal = validSongs.some((s) => s.scope === "PERSONAL");
+      if (hasAttemptedPersonal) {
+        throw new Error(
+          "Personal collection tracks can only be added to private, non-collaborative playlists owned by you"
+        );
+      }
       throw new Error("No eligible, released songs found to add");
     }
 
@@ -838,6 +913,12 @@ export class PlaylistsService {
       .limit(1);
 
     if (!entry) throw new Error("Track entry not found in playlist");
+
+    if (!isOwner && isCollaborator) {
+      if (entry.addedByUserId !== userId) {
+        throw new Error("Collaborators can only remove tracks they added themselves");
+      }
+    }
 
     await db.delete(playlistSongs).where(eq(playlistSongs.id, entryId));
     await db.update(playlists).set({ updatedAt: new Date() }).where(eq(playlists.id, playlistId));
@@ -940,11 +1021,18 @@ export class PlaylistsService {
       .select({
         songId: playlistSongs.songId,
         position: playlistSongs.position,
+        scope: songs.scope,
+        uploaderUserId: songs.uploaderUserId,
       })
       .from(playlistSongs)
       .innerJoin(songs, eq(playlistSongs.songId, songs.id))
       .where(and(eq(playlistSongs.playlistId, playlistId), isNull(songs.deletedAt)))
       .orderBy(asc(playlistSongs.position));
+
+    // Filter out personal songs: only include if scope is GLOBAL or (scope is PERSONAL and cloner is the uploader)
+    const eligibleTracks = sourceTracks.filter(
+      (t) => t.scope === "GLOBAL" || (t.scope === "PERSONAL" && t.uploaderUserId === userId)
+    );
 
     const clonedPlaylist = await db.transaction(async (tx) => {
       const [cloned] = await tx
@@ -962,12 +1050,12 @@ export class PlaylistsService {
         })
         .returning();
 
-      if (sourceTracks.length > 0) {
-        const rows = sourceTracks.map((t) => ({
+      if (eligibleTracks.length > 0) {
+        const rows = eligibleTracks.map((t, idx) => ({
           playlistId: cloned.id,
           songId: t.songId,
           addedByUserId: userId,
-          position: t.position,
+          position: idx,
         }));
         await tx.insert(playlistSongs).values(rows);
       }
@@ -1021,6 +1109,24 @@ export class PlaylistsService {
 
     if (!playlist) throw new Error("Playlist not found");
     if (playlist.ownerId !== userId) throw new Error("Only the playlist creator can enable collaboration");
+
+    // Check if playlist contains any personal collection tracks
+    const [personalTrack] = await db
+      .select({ id: playlistSongs.id })
+      .from(playlistSongs)
+      .innerJoin(songs, eq(playlistSongs.songId, songs.id))
+      .where(
+        and(
+          eq(playlistSongs.playlistId, playlistId),
+          eq(songs.scope, "PERSONAL"),
+          isNull(songs.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (personalTrack) {
+      throw new Error("Cannot enable collaboration on a playlist containing personal collection tracks");
+    }
 
     const token = this.generateToken("collab");
     await db

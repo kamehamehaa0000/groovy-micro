@@ -74,6 +74,24 @@ function PlaylistDetailComponent() {
   const [isCollabModalOpen, setIsCollabModalOpen] = useState(false)
   const [isAddTracksModalOpen, setIsAddTracksModalOpen] = useState(false)
 
+  // In-app alert / confirm modal replacements
+  const [toastNotice, setToastNotice] = useState<{
+    message: string
+    type: 'info' | 'error' | 'success'
+  } | null>(null)
+  const showToast = (message: string, type: 'info' | 'error' | 'success' = 'info') => {
+    setToastNotice({ message, type })
+    setTimeout(() => setToastNotice(null), 3200)
+  }
+
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string
+    description: string
+    confirmLabel?: string
+    isDestructive?: boolean
+    onConfirm: () => void
+  } | null>(null)
+
   // Edit form state
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
@@ -144,7 +162,7 @@ function PlaylistDetailComponent() {
   const handlePlayTrack = (track: PlaylistTrack, index?: number) => {
     const song = track.song || track
     if (song.isStreamable === false) {
-      alert('This cut is scheduled and locked until release.')
+      showToast('This cut is scheduled and locked until release.', 'info')
       return
     }
 
@@ -179,7 +197,7 @@ function PlaylistDetailComponent() {
     if (firstPlayableIdx >= 0) {
       handlePlayTrack(playlist.tracks[firstPlayableIdx], firstPlayableIdx)
     } else {
-      alert('No streamable tracks found in this playlist.')
+      showToast('No streamable tracks found in this playlist.', 'info')
     }
   }
 
@@ -223,9 +241,10 @@ function PlaylistDetailComponent() {
     try {
       const res = await playlistsApi.clonePlaylist(playlist.id, shareToken)
       hydratePlaylists([{ id: res.playlist.id, isSaved: true }])
+      showToast(`Cloned into "${res.playlist.title}"`, 'success')
       navigate({ to: '/playlists/$id', params: { id: res.playlist.id } })
     } catch (err: any) {
-      alert(err.message || 'Failed to clone playlist')
+      showToast(err.message || 'Failed to clone playlist', 'error')
     } finally {
       setIsCloning(false)
     }
@@ -249,10 +268,11 @@ function PlaylistDetailComponent() {
     try {
       const res = await playlistsApi.joinCollaboration(id, collabToken)
       setCollabJoinSuccess(res.message || 'Successfully joined as a collaborator!')
+      showToast(res.message || 'Successfully joined as a collaborator!', 'success')
       hydratePlaylists([{ id, isSaved: true }])
       await fetchPlaylist()
     } catch (err: any) {
-      alert(err.message || 'Failed to join collaboration')
+      showToast(err.message || 'Failed to join collaboration', 'error')
     } finally {
       setIsJoiningCollab(false)
     }
@@ -265,12 +285,14 @@ function PlaylistDetailComponent() {
     try {
       if (playlist.isCollaborative) {
         await playlistsApi.disableCollaboration(playlist.id)
+        showToast('Collaboration disabled', 'info')
       } else {
         await playlistsApi.enableCollaboration(playlist.id)
+        showToast('Collaboration enabled', 'success')
       }
       await fetchPlaylist()
     } catch (err: any) {
-      alert(err.message || 'Failed to update collaboration')
+      showToast(err.message || 'Failed to update collaboration', 'error')
     } finally {
       setIsUpdatingCollab(false)
     }
@@ -279,17 +301,25 @@ function PlaylistDetailComponent() {
   // Regenerate invite link
   const handleRegenerateCollabToken = async () => {
     if (!playlist || isUpdatingCollab) return
-    if (!confirm('Regenerating will invalidate existing invite links. Continue?')) return
-
-    setIsUpdatingCollab(true)
-    try {
-      await playlistsApi.regenerateCollaborationToken(playlist.id)
-      await fetchPlaylist()
-    } catch (err: any) {
-      alert(err.message || 'Failed to regenerate invite link')
-    } finally {
-      setIsUpdatingCollab(false)
-    }
+    setConfirmModal({
+      title: 'Regenerate Invite Link?',
+      description:
+        'Regenerating will invalidate existing invite links. Active collaborators will remain unaffected. Continue?',
+      confirmLabel: 'Regenerate',
+      isDestructive: false,
+      onConfirm: async () => {
+        setIsUpdatingCollab(true)
+        try {
+          await playlistsApi.regenerateCollaborationToken(playlist.id)
+          await fetchPlaylist()
+          showToast('Invite link regenerated', 'success')
+        } catch (err: any) {
+          showToast(err.message || 'Failed to regenerate invite link', 'error')
+        } finally {
+          setIsUpdatingCollab(false)
+        }
+      },
+    })
   }
 
   // Kick collaborator
@@ -298,8 +328,9 @@ function PlaylistDetailComponent() {
     try {
       await playlistsApi.removeCollaborator(playlist.id, collaboratorUserId)
       await fetchPlaylist()
+      showToast('Collaborator removed', 'info')
     } catch (err: any) {
-      alert(err.message || 'Failed to remove collaborator')
+      showToast(err.message || 'Failed to remove collaborator', 'error')
     }
   }
 
@@ -311,8 +342,9 @@ function PlaylistDetailComponent() {
       setPlaylist((prev) =>
         prev ? { ...prev, tracks: prev.tracks.filter((t) => t.id !== entryId) } : null
       )
+      showToast('Track removed from playlist', 'info')
     } catch (err: any) {
-      alert(err.message || 'Failed to remove track')
+      showToast(err.message || 'Failed to remove track', 'error')
     }
   }
 
@@ -333,7 +365,7 @@ function PlaylistDetailComponent() {
       const orderedEntryIds = newTracks.map((t) => t.id)
       await playlistsApi.reorderTracks(playlist.id, orderedEntryIds)
     } catch (err: any) {
-      alert(err.message || 'Failed to reorder tracks')
+      showToast(err.message || 'Failed to reorder tracks', 'error')
       await fetchPlaylist()
     }
   }
@@ -377,6 +409,7 @@ function PlaylistDetailComponent() {
       setSelectedSongIds([])
       setSongSearchQuery('')
       await fetchPlaylist()
+      showToast('Track(s) added successfully', 'success')
     } catch (err: any) {
       setAddTrackError(err.message || 'Failed to add tracks')
     } finally {
@@ -399,22 +432,30 @@ function PlaylistDetailComponent() {
       })
       setPlaylist((prev) => (prev ? { ...prev, ...updated } : null))
       setIsEditModalOpen(false)
+      showToast('Playlist settings saved', 'success')
     } catch (err: any) {
-      alert(err.message || 'Failed to update playlist')
+      showToast(err.message || 'Failed to update playlist', 'error')
     }
   }
 
   // Delete playlist
   const handleDeletePlaylist = async () => {
     if (!playlist) return
-    if (!confirm('Are you sure you want to delete this playlist? This action cannot be undone.')) return
-
-    try {
-      await playlistsApi.deletePlaylist(playlist.id)
-      navigate({ to: '/playlists' })
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete playlist')
-    }
+    setConfirmModal({
+      title: 'Delete Playlist?',
+      description:
+        'Are you sure you want to delete this playlist? This action cannot be undone.',
+      confirmLabel: 'Delete Playlist',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await playlistsApi.deletePlaylist(playlist.id)
+          navigate({ to: '/playlists' })
+        } catch (err: any) {
+          showToast(err.message || 'Failed to delete playlist', 'error')
+        }
+      },
+    })
   }
 
   if (isLoading) {
@@ -1147,9 +1188,9 @@ function PlaylistDetailComponent() {
                     onClick={() => {
                       const url = `${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`
                       navigator.clipboard.writeText(url)
-                      alert('Invite link copied to clipboard!')
+                      showToast('Invite link copied to clipboard!', 'success')
                     }}
-                    className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas shrink-0"
+                    className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas shrink-0 cursor-pointer"
                   >
                     Copy
                   </button>
@@ -1217,12 +1258,66 @@ function PlaylistDetailComponent() {
               <button
                 type="button"
                 onClick={() => setIsCollabModalOpen(false)}
-                className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas"
+                className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas cursor-pointer"
               >
                 Close
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===================== CONFIRMATION MODAL ===================== */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
+          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+            <h3 className="font-serif italic text-xl text-ink font-semibold">
+              {confirmModal.title}
+            </h3>
+            <p className="font-mono text-xs text-ink-soft leading-relaxed">
+              {confirmModal.description}
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const action = confirmModal.onConfirm
+                  setConfirmModal(null)
+                  action()
+                }}
+                className={`font-mono text-xs uppercase tracking-wider px-4 py-2 transition-colors cursor-pointer font-semibold shadow-xs ${
+                  confirmModal.isDestructive
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-ink text-canvas hover:opacity-90'
+                }`}
+              >
+                {confirmModal.confirmLabel || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== TOAST FEEDBACK NOTIFICATION ===================== */}
+      {toastNotice && (
+        <div
+          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 shadow-2xl rounded-xs pointer-events-none animate-in fade-in duration-150 border ${
+            toastNotice.type === 'error'
+              ? 'bg-red-950 text-red-100 border-red-500/40'
+              : toastNotice.type === 'success'
+              ? 'bg-emerald-950 text-emerald-100 border-emerald-500/40'
+              : 'bg-ink text-canvas border-line'
+          }`}
+        >
+          {toastNotice.type === 'error' ? '✕ ' : toastNotice.type === 'success' ? '✓ ' : 'ℹ '}
+          {toastNotice.message}
         </div>
       )}
     </div>

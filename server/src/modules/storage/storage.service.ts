@@ -13,7 +13,7 @@ import { songs, albums, artistProfiles, outboxEvents, songCredits } from '../../
 import { slugify } from '../artists/artists.service'
 import { enqueueTranscodeJob } from '../../lib/queue/transcode.queue'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
-import { cacheManager, cacheKeys } from '../../lib/cache'
+import { cacheManager, cacheKeys, playlistsCacheService } from '../../lib/cache'
 import type { BulkImportReleaseInput } from './storage.schemas'
 
 const subscriptionsService = new SubscriptionsService()
@@ -963,6 +963,7 @@ export class StorageService {
     if (song.artistId) {
       await cacheManager.invalidate(cacheKeys.catalog.artist(song.artistId))
     }
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId])
 
     return { success: true, message: 'Song removed from personal collection' }
   }
@@ -1027,6 +1028,9 @@ export class StorageService {
     }
     for (const track of albumSongs) {
       await cacheManager.invalidate(cacheKeys.catalog.song(track.id))
+    }
+    if (albumSongs.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((t) => t.id))
     }
 
     return {
@@ -1165,6 +1169,7 @@ export class StorageService {
     if (song.artistId) {
       await cacheManager.invalidate(cacheKeys.catalog.artist(song.artistId))
     }
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId])
 
     return { success: true, message: 'Song restored to personal collection' }
   }
@@ -1262,6 +1267,9 @@ export class StorageService {
     for (const track of trashedTracks) {
       await cacheManager.invalidate(cacheKeys.catalog.song(track.id))
     }
+    if (trashedTracks.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(trashedTracks.map((t) => t.id))
+    }
 
     return {
       success: true,
@@ -1350,6 +1358,7 @@ export class StorageService {
     for (const aId of candidateArtistIds) {
       await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
     }
+    await playlistsCacheService.invalidatePlaylistsForSongs([songId])
 
     return {
       success: true,
@@ -1424,6 +1433,9 @@ export class StorageService {
     }
     for (const aId of candidateArtistIds) {
       await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
+    }
+    if (albumSongs.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((s) => s.id))
     }
 
     return {
@@ -1512,6 +1524,9 @@ export class StorageService {
     }
     for (const aId of candidateArtistIds) {
       await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
+    }
+    if (trashedSongs.length > 0) {
+      await playlistsCacheService.invalidatePlaylistsForSongs(trashedSongs.map((s) => s.id))
     }
 
     return {

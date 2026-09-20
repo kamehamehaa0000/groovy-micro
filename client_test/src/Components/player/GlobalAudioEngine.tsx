@@ -91,6 +91,12 @@ export function GlobalAudioEngine() {
     }
     destroyHls();
 
+    if (currentTrack.isStreamable === false) {
+      _setError("Track is unreleased or not streamable");
+      _setStatus("error");
+      return;
+    }
+
     const loadAudioSource = async () => {
       try {
         const wantsLossless = useEntitlementsStore.getState().hasEntitlement("lossless");
@@ -106,8 +112,24 @@ export function GlobalAudioEngine() {
             hlsUrl = res.hlsManifestUrl || hlsUrl;
             quality = res.quality || "standard";
           }
-        } catch {
-          // Fall back to direct audioUrl from track props if offline/dev
+        } catch (err: any) {
+          // If server explicitly returned 401/403 or access denied, do NOT fall back to audio
+          const status = err?.status || err?.response?.status;
+          const msg = (err?.message || "").toLowerCase();
+          if (
+            status === 401 ||
+            status === 403 ||
+            msg.includes("forbidden") ||
+            msg.includes("unauthorized") ||
+            msg.includes("denied") ||
+            msg.includes("private")
+          ) {
+            if (isCancelled) return;
+            _setError(err?.message || "Stream access denied");
+            _setStatus("error");
+            return;
+          }
+          // Otherwise fall back to direct audioUrl from track props if offline/dev
         }
 
         if (isCancelled) return;

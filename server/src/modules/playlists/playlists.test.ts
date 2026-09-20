@@ -646,6 +646,153 @@ async function runTests() {
     }
     console.log("   ✅ Rule C: Unreleased album artwork excluded from public mosaic covers");
 
+    // -------------------------------------------------------------------------
+    // 10. COLLABORATOR PERMISSION CONSTRAINTS (REMOVE TRACK)
+    // -------------------------------------------------------------------------
+    console.log("\n🔟 Testing Collaborator Permission Restrictions on Track Removal...");
+    // Re-add Bob as collaborator to test collaborator permission constraints on removal
+    await db.insert(playlistCollaborators).values({
+      playlistId: privatePlaylist.id,
+      userId: collaborator.user.id,
+    });
+
+    // Fetch tracks of the collaborative playlist where Bob joined
+    const collabPlaylistDetailRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/playlists/${privatePlaylist.id}`,
+      headers: { authorization: `Bearer ${curator.tokens.accessToken}` },
+    });
+    const collabPlaylistDetail = collabPlaylistDetailRes.json();
+    const curatorTrackEntry = collabPlaylistDetail.tracks.find((t: any) => t.addedByUserId === curator.user.id);
+    const bobTrackEntry = collabPlaylistDetail.tracks.find((t: any) => t.addedByUserId === collaborator.user.id);
+
+    // Bob tries to delete Curator's track -> 400 Bad Request
+    if (curatorTrackEntry) {
+      const bobDeleteCuratorTrackRes = await app.inject({
+        method: "DELETE",
+        url: `/api/v1/playlists/${privatePlaylist.id}/tracks/${curatorTrackEntry.entryId}`,
+        headers: { authorization: `Bearer ${collaborator.tokens.accessToken}` },
+      });
+      if (bobDeleteCuratorTrackRes.statusCode !== 400) {
+        throw new Error(
+          `Expected 400 Bad Request when collaborator deletes owner track, got ${bobDeleteCuratorTrackRes.statusCode}`
+        );
+      }
+      console.log("   ✅ Collaborator blocked from deleting cuts added by other members");
+    }
+
+    // Bob deletes his own track -> 200 OK
+    if (bobTrackEntry) {
+      const bobDeleteOwnTrackRes = await app.inject({
+        method: "DELETE",
+        url: `/api/v1/playlists/${privatePlaylist.id}/tracks/${bobTrackEntry.entryId}`,
+        headers: { authorization: `Bearer ${collaborator.tokens.accessToken}` },
+      });
+      if (bobDeleteOwnTrackRes.statusCode !== 200) {
+        throw new Error(`Collaborator could not delete their own track: ${bobDeleteOwnTrackRes.body}`);
+      }
+      console.log("   ✅ Collaborator successfully removed their own cut");
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. OPTION B HYBRID SPOTIFY-STYLE: PERSONAL COLLECTION ISOLATION
+    // -------------------------------------------------------------------------
+    console.log("\n1️⃣1️⃣ Testing Option B (Hybrid Spotify-Style) Personal Track Isolation...");
+    // Seed a personal cut for Curator Alice
+    const [personalSong] = await db
+      .insert(songs)
+      .values({
+        artistId: profile.id,
+        title: "Alice's Secret Demo (Personal Cut)",
+        slug: `alice-demo-${Date.now()}`,
+        durationSeconds: 160,
+        scope: "PERSONAL",
+        uploaderUserId: curator.user.id,
+        audioUrl: "https://r2.groovy.sound/audio/alice_demo.flac",
+        coverImageUrl: "https://r2.groovy.sound/covers/alice_demo.jpg",
+      })
+      .returning();
+
+    // 1. Attempt to add personal cut to a PUBLIC playlist -> 400 Bad Request
+    const addPersonalToPublicRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/playlists/${createdPlaylist.id}/tracks`,
+      headers: { authorization: `Bearer ${curator.tokens.accessToken}` },
+      payload: { songIds: [personalSong.id] },
+    });
+    if (addPersonalToPublicRes.statusCode !== 400) {
+      throw new Error(
+        `Expected 400 Bad Request adding personal track to public playlist, got ${addPersonalToPublicRes.statusCode}`
+      );
+    }
+    console.log("   ✅ Personal cut rejected from public playlist");
+
+    // 2. Create a PRIVATE playlist with the personal cut -> 201 Created
+    const privatePersonalPlRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/playlists",
+      headers: { authorization: `Bearer ${curator.tokens.accessToken}` },
+      payload: {
+        title: "My Private Vault",
+        visibility: "PRIVATE",
+        initialSongIds: [personalSong.id],
+      },
+    });
+    if (privatePersonalPlRes.statusCode !== 201) {
+      throw new Error(`Failed to create private playlist with personal cut: ${privatePersonalPlRes.body}`);
+    }
+    const privatePersonalPl = privatePersonalPlRes.json();
+    console.log("   ✅ Created private playlist containing personal cut");
+
+    // 3. Attempt to change visibility to PUBLIC -> 400 Bad Request
+    const changeToPublicRes = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/playlists/${privatePersonalPl.id}`,
+      headers: { authorization: `Bearer ${curator.tokens.accessToken}` },
+      payload: { visibility: "PUBLIC" },
+    });
+    if (changeToPublicRes.statusCode !== 400) {
+      throw new Error(
+        `Expected 400 Bad Request making playlist with personal track public, got ${changeToPublicRes.statusCode}`
+      );
+    }
+    console.log("   ✅ Changing visibility to PUBLIC rejected while personal cut is present");
+
+    // 4. Attempt to enable collaboration on playlist with personal cut -> 400 Bad Request
+    const enableCollabPersonalRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/playlists/${privatePersonalPl.id}/collaboration/enable`,
+      headers: { authorization: `Bearer ${curator.tokens.accessToken}` },
+    });
+    if (enableCollabPersonalRes.statusCode !== 400) {
+      throw new Error(
+        `Expected 400 Bad Request enabling collaboration on playlist with personal cut, got ${enableCollabPersonalRes.statusCode}`
+      );
+    }
+    console.log("   ✅ Enabling collaboration rejected while personal cut is present");
+
+    // 5. Another user (Charlie) attempts to add Alice's personal cut to his own private playlist -> 400 Bad Request (IDOR protection)
+    const charlieVaultRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/playlists",
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+      payload: { title: "Charlie's Vault", visibility: "PRIVATE" },
+    });
+    const charlieVault = charlieVaultRes.json();
+
+    const charlieAddAliceTrackRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/playlists/${charlieVault.id}/tracks`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+      payload: { songIds: [personalSong.id] },
+    });
+    if (charlieAddAliceTrackRes.statusCode !== 400) {
+      throw new Error(
+        `Expected 400 Bad Request when adding another user's personal cut, got ${charlieAddAliceTrackRes.statusCode}`
+      );
+    }
+    console.log("   ✅ IDOR Protection: User blocked from adding another user's personal cut");
+
     console.log("\n🎉 ALL PLAYLISTS & SOCIAL TESTS PASSED SUCCESSFULLY! 🚀\n");
   } finally {
     // Cleanup test users, outbox events, redis sets, and cascade
