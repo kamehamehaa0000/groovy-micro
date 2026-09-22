@@ -494,6 +494,7 @@ export class CatalogService {
             artistSlug: artistProfiles.slug,
             artistVerified: artistProfiles.verified,
             artistBannerUrl: artistProfiles.bannerUrl,
+            artistAvatarUrl: artistProfiles.avatarUrl,
           })
           .from(albums)
           .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))

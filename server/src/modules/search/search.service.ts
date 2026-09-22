@@ -197,7 +197,7 @@ export class SearchService {
               id: artistProfiles.id,
               stageName: artistProfiles.stageName,
               slug: artistProfiles.slug,
-              avatarUrl: users.avatarUrl,
+              avatarUrl: sql<string | null>`coalesce(${artistProfiles.avatarUrl}, ${users.avatarUrl})`,
               bannerUrl: artistProfiles.bannerUrl,
               verified: artistProfiles.verified,
               monthlyListeners: artistProfiles.monthlyListeners,

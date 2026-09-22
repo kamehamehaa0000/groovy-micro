@@ -1,13 +1,9 @@
 # bugs related to personal collection/vault and catalog
 
-10. soft deleted songs still show in listen history and are playable
-11. there is no artist profile pic only banner, need to have profile pic
 12. songs added to queue does not have option to remove from queue in three dots menu, also queue bar should also have left swipe to remove the song from queue. and the single song bar should have swipe to right to add the song to queue.
 13. after deleting the song permanently/soft delete the player was still able to play it if it was already playing, which is fine but that also means there is no check for soft delete or deleted songs on /stream endpoint, should we have it or not, nor there is a check if the song its requesting is in requesting user's personal collection or not if its a personal collection song.
-14. songs presaved by user should go back to be normally saved instead of being kept as presaved, the stale entry is still there in db.
-15. play count not showing on release page.
-16. No go to release or artist page on clicking song's name or artist name on song bar.
-17. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
+14. No go to release or artist page on clicking song's name or artist name on song bar.
+15. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
 
 # Need to verify once more -
 
@@ -34,6 +30,10 @@
 17. One tap login not working.
 18. added /search page to client
 19. No permanent delete option in studio trash.
+20. sidebars and bottom bar for mobile
+21. songs presaved by user should go back to be normally saved instead of being kept as presaved, the stale entry is still there in db.
+22. soft deleted songs still show in listen history and are playable
+23. there is no artist profile pic only banner, need to have profile pic
 
 # Things to check (later):
 

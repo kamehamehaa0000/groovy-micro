@@ -50,6 +50,11 @@ export const updateArtistSchema = z.object({
     .url("Banner URL must be a valid URL")
     .nullable()
     .optional(),
+  avatarUrl: z
+    .string()
+    .url("Avatar URL must be a valid URL")
+    .nullable()
+    .optional(),
   socialLinks: z
     .record(z.string().url("Invalid social media URL"))
     .optional(),

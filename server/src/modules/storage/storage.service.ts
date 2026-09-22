@@ -1548,6 +1548,7 @@ export class StorageService {
         slug: artistProfiles.slug,
         bio: artistProfiles.bio,
         bannerUrl: artistProfiles.bannerUrl,
+        avatarUrl: artistProfiles.avatarUrl,
         createdAt: artistProfiles.createdAt,
       })
       .from(artistProfiles)

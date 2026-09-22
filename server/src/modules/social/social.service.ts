@@ -474,6 +474,7 @@ export class SocialService {
           stageName: artistProfiles.stageName,
           artistSlug: artistProfiles.slug,
           bannerUrl: artistProfiles.bannerUrl,
+          avatarUrl: artistProfiles.avatarUrl,
         })
         .from(albums)
         .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
@@ -490,7 +491,7 @@ export class SocialService {
           actor: {
             id: rel.artistId,
             name: rel.stageName,
-            avatarUrl: rel.bannerUrl,
+            avatarUrl: rel.avatarUrl || rel.bannerUrl,
             slug: rel.artistSlug,
             isArtist: true,
           },

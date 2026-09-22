@@ -177,6 +177,44 @@ export const artistsApi = {
   },
 
   /**
+   * Upload an artist avatar image to Cloudflare R2 via presigned PUT.
+   */
+  async uploadAvatar(artistId: string, file: File): Promise<string> {
+    const ext = file.name.split(".").pop() || "webp";
+
+    // 1. Get presigned upload URL
+    const presigned = await api.post<{
+      uploadUrl: string;
+      storageKey: string;
+      publicUrl: string;
+    }>("/api/v1/storage/presigned-url", {
+      category: "ARTIST_AVATAR",
+      resourceId: artistId,
+      mimeType: file.type || "image/webp",
+      fileExtension: ext,
+      fileSizeBytes: file.size,
+    });
+
+    // 2. Direct PUT upload to Cloudflare R2
+    const uploadRes = await fetch(presigned.uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "image/webp",
+      },
+      body: file,
+    });
+
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload avatar to R2 (Status: ${uploadRes.status})`);
+    }
+
+    // 3. Update artist profile with the new public CDN URL
+    await this.updateMyProfile({ avatarUrl: presigned.publicUrl });
+
+    return presigned.publicUrl;
+  },
+
+  /**
    * Admin: List artists filtered by verification status.
    */
   async adminListArtists(params?: {

@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 
 export type UploadCategory =
   | "USER_AVATAR"
+  | "ARTIST_AVATAR"
   | "ARTIST_BANNER"
   | "ALBUM_COVER"
   | "PLAYLIST_COVER"
@@ -25,6 +26,14 @@ export const UPLOAD_PRESETS: Record<UploadCategory, UploadPresetConfig> = {
     isPublic: true,
     generateKey: (userId, _, ext) =>
       `avatars/${userId}/${randomUUID()}.${ext}`,
+  },
+  ARTIST_AVATAR: {
+    maxSizeBytes: 5 * 1024 * 1024, // 5 MB
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+    ttlSeconds: 600,
+    isPublic: true,
+    generateKey: (_, artistId, ext) =>
+      `artists/${artistId}/avatar/${randomUUID()}.${ext}`,
   },
   ARTIST_BANNER: {
     maxSizeBytes: 10 * 1024 * 1024, // 10 MB

@@ -210,9 +210,9 @@ export function ArtistCreditPicker({
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 rounded-full bg-canvas border border-line flex items-center justify-center font-serif italic text-xs shrink-0 overflow-hidden">
-                        {artist.bannerUrl ? (
+                        {artist.avatarUrl || artist.bannerUrl ? (
                           <img
-                            src={artist.bannerUrl}
+                            src={(artist.avatarUrl || artist.bannerUrl)!}
                             alt=""
                             className="w-full h-full object-cover"
                           />

@@ -500,6 +500,7 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
           }
           break
 
+        case 'ARTIST_AVATAR':
         case 'ARTIST_BANNER':
         case 'ARTIST_VERIFICATION_DOC': {
           if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {

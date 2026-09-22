@@ -3,6 +3,7 @@ import { z } from "zod";
 export const presignedUrlSchema = z.object({
   category: z.enum([
     "USER_AVATAR",
+    "ARTIST_AVATAR",
     "ARTIST_BANNER",
     "ALBUM_COVER",
     "PLAYLIST_COVER",

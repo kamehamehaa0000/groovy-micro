@@ -239,13 +239,13 @@ export function PlayerBar() {
       )}
 
       {/* Live Jam Floating Bar */}
-      <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-40">
+      <div className="fixed bottom-[120px] md:bottom-20 left-0 right-0 z-40">
         <LiveJamBar />
       </div>
 
       <footer
         aria-label="Audio Player"
-        className="fixed bottom-0 left-0 right-0 z-40 h-16 sm:h-20 bg-panel/95 backdrop-blur-md border-t border-line px-3 sm:px-8 flex items-center justify-between shadow-2xl transition-all duration-200 select-none"
+        className="fixed bottom-14 md:bottom-0 left-0 right-0 z-40 h-16 sm:h-20 bg-panel/95 backdrop-blur-md border-t border-line px-3 sm:px-8 flex items-center justify-between shadow-2xl transition-all duration-200 select-none"
       >
         {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
         <div

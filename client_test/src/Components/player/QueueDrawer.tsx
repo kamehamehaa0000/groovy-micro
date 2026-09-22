@@ -50,7 +50,7 @@ export function QueueDrawer() {
       {/* Drawer Panel */}
       <aside
         aria-label="Queue Drawer"
-        className="fixed top-0 right-0 bottom-20 z-50 w-full sm:w-96 bg-panel border-l border-line shadow-2xl flex flex-col transition-transform duration-300"
+        className="fixed top-0 right-0 bottom-[120px] md:bottom-20 z-50 w-full sm:w-96 bg-panel border-l border-line shadow-2xl flex flex-col transition-transform duration-300"
       >
         {/* Header */}
         <div className="h-14 border-b border-line px-5 flex items-center justify-between shrink-0">

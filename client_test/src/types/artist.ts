@@ -17,6 +17,7 @@ export interface ArtistProfile {
   slug: string;
   bio: string | null;
   bannerUrl: string | null;
+  avatarUrl?: string | null;
   verified: boolean;
   verificationStatus: VerificationStatus;
   verificationDetails: VerificationDetails | null;
@@ -46,6 +47,7 @@ export interface UpdateArtistInput {
   slug?: string;
   bio?: string | null;
   bannerUrl?: string | null;
+  avatarUrl?: string | null;
   socialLinks?: Record<string, string>;
 }
 

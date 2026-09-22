@@ -26,6 +26,7 @@ export const artistProfiles = pgTable(
     slug: varchar("slug", { length: 160 }).notNull().unique(),
     bio: text("bio"),
     bannerUrl: text("banner_url"),
+    avatarUrl: text("avatar_url"),
     verified: boolean("verified").notNull().default(false),
     verificationStatus: varchar("verification_status", { length: 20 })
       .notNull()

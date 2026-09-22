@@ -22,6 +22,7 @@ import {
   ArtistCreditPicker,
   type SelectedCredit,
 } from '../components/ArtistCreditPicker'
+import { ImageCropModal } from '../components/common/ImageCropModal'
 
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
@@ -171,9 +172,14 @@ function StudioComponent() {
   const batchCutsInputRef = useRef<HTMLInputElement>(null)
   const quickStartInputRef = useRef<HTMLInputElement>(null)
 
-  // Banner Upload State
+  // Banner & Avatar Upload & Crop State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
   const bannerInputRef = useRef<HTMLInputElement>(null)
+  const [bannerCropFile, setBannerCropFile] = useState<File | null>(null)
+
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const [avatarCropFile, setAvatarCropFile] = useState<File | null>(null)
 
   // Verification Application State
   const [verifyPitch, setVerifyPitch] = useState('')
@@ -1557,25 +1563,75 @@ function StudioComponent() {
     )
   }
 
-  // Handle Banner Upload via Cloudflare R2
-  const handleBannerSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Banner Select -> Launch Cropper
+  const handleBannerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setBannerCropFile(file)
+    if (bannerInputRef.current) bannerInputRef.current.value = ''
+  }
 
+  // Handle Cropped Banner Upload via Cloudflare R2
+  const handleBannerCropComplete = async (croppedFile: File) => {
+    if (!artistProfile) return
     setIsUploadingBanner(true)
     setErrorNotice(null)
 
     try {
-      const publicUrl = await artistsApi.uploadBanner(artistProfile.id, file)
+      const publicUrl = await artistsApi.uploadBanner(artistProfile.id, croppedFile)
       setArtistProfile((prev) =>
         prev ? { ...prev, bannerUrl: publicUrl } : null,
       )
-      setSuccessNotice('Banner image uploaded to Cloudflare R2 and synced.')
+      setSuccessNotice('Banner image cropped, uploaded to Cloudflare R2, and synced.')
+      setBannerCropFile(null)
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to upload banner')
     } finally {
       setIsUploadingBanner(false)
-      if (bannerInputRef.current) bannerInputRef.current.value = ''
+    }
+  }
+
+  // Handle Avatar Select -> Launch Cropper
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarCropFile(file)
+    if (avatarInputRef.current) avatarInputRef.current.value = ''
+  }
+
+  // Handle Cropped Avatar Upload via Cloudflare R2
+  const handleAvatarCropComplete = async (croppedFile: File) => {
+    if (!artistProfile) return
+    setIsUploadingAvatar(true)
+    setErrorNotice(null)
+
+    try {
+      const publicUrl = await artistsApi.uploadAvatar(artistProfile.id, croppedFile)
+      setArtistProfile((prev) =>
+        prev ? { ...prev, avatarUrl: publicUrl } : null,
+      )
+      setSuccessNotice('Artist avatar cropped, uploaded to Cloudflare R2, and synced.')
+      setAvatarCropFile(null)
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to upload avatar')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
+  // Handle Remove Avatar
+  const handleRemoveAvatar = async () => {
+    if (!artistProfile) return
+    setIsUploadingAvatar(true)
+    setErrorNotice(null)
+    try {
+      await artistsApi.updateMyProfile({ avatarUrl: null })
+      setArtistProfile((prev) => (prev ? { ...prev, avatarUrl: null } : null))
+      setSuccessNotice('Artist avatar removed.')
+    } catch (err: any) {
+      setErrorNotice(err.message || 'Failed to remove avatar')
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -2937,6 +2993,81 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {activeTab === 'profile' && (
         <div className="space-y-10">
+          {/* Avatar Customizer */}
+          <div className="p-6 border border-line bg-panel shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 className="font-serif italic text-xl text-ink">
+                  Artist Avatar / Profile Picture
+                </h2>
+                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  Square profile artwork used for artist credits, jam sessions, and search results.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {artistProfile.avatarUrl && (
+                  <button
+                    type="button"
+                    disabled={isUploadingAvatar}
+                    onClick={handleRemoveAvatar}
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3 border border-line bg-canvas hover:border-red-500/40 hover:text-red-500 text-ink-soft transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={isUploadingAvatar}
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0 shadow-xs"
+                >
+                  <UploadCloudSVG className="w-4 h-4" />
+                  <span>
+                    {isUploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
+                  </span>
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/avif"
+                  onChange={handleAvatarSelect}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-5">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-line bg-canvas-deep overflow-hidden relative shrink-0 flex items-center justify-center shadow-inner">
+                {artistProfile.avatarUrl ? (
+                  <img
+                    src={artistProfile.avatarUrl}
+                    alt={artistProfile.stageName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="font-serif italic text-3xl sm:text-4xl text-ink-soft select-none">
+                    {artistProfile.stageName.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-[9px] text-ink animate-pulse text-center p-1">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+
+              <div className="font-mono text-xs text-ink-soft space-y-1">
+                <div className="text-ink font-serif italic text-base">
+                  {artistProfile.stageName}
+                </div>
+                <p className="text-[11px] text-ink-soft/80">
+                  Recommended: Minimum 500 × 500px square image. An interactive cropper with circular guide is provided before upload.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Banner Customizer */}
           <div className="p-6 border border-line bg-panel shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -2945,8 +3076,7 @@ function StudioComponent() {
                   Artist Profile Banner
                 </h2>
                 <p className="font-sans text-xs text-ink-soft mt-0.5">
-                  High-resolution cover displayed across your public artist page
-                  (stored on Cloudflare R2).
+                  Panoramic cover displayed across your public artist page. Interactive cropping and framing preview is provided before upload.
                 </p>
               </div>
 
@@ -4053,6 +4183,36 @@ function StudioComponent() {
           </div>
         </div>
       )}
+
+      {/* Banner Crop Modal */}
+      <ImageCropModal
+        isOpen={!!bannerCropFile}
+        onClose={() => setBannerCropFile(null)}
+        imageFile={bannerCropFile}
+        title="Crop Artist Banner"
+        subtitle="Maison Studio · Panoramic Banner"
+        aspectRatio={3}
+        isCircularMask={false}
+        targetMaxWidth={1920}
+        targetMaxHeight={640}
+        isSubmitting={isUploadingBanner}
+        onCropComplete={handleBannerCropComplete}
+      />
+
+      {/* Avatar Crop Modal */}
+      <ImageCropModal
+        isOpen={!!avatarCropFile}
+        onClose={() => setAvatarCropFile(null)}
+        imageFile={avatarCropFile}
+        title="Crop Artist Avatar"
+        subtitle="Maison Studio · Profile Avatar"
+        aspectRatio={1}
+        isCircularMask={true}
+        targetMaxWidth={600}
+        targetMaxHeight={600}
+        isSubmitting={isUploadingAvatar}
+        onCropComplete={handleAvatarCropComplete}
+      />
     </div>
   )
 }
