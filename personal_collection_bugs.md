@@ -8,7 +8,6 @@
 15. play count not showing on release page.
 16. No go to release or artist page on clicking song's name or artist name on song bar.
 17. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
-18. No permanent delete option in studio trash.
 
 # Need to verify once more -
 
@@ -33,6 +32,8 @@
 15. immediate server cleanup of duplicate uploaded raw audio keys and cover art in R2 when duplicate tracks/releases are skipped on bulk import.
 16. metadata extraction feature for global releases to prefill release/song title, genre, duration, explicit advisory flag, embedded cover art (uploaded to R2), and batch cut importing with sequential ordering in Artist Studio.
 17. One tap login not working.
+18. added /search page to client
+19. No permanent delete option in studio trash.
 
 # Things to check (later):
 

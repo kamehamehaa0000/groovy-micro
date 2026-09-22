@@ -161,6 +161,19 @@ function RootComponent() {
                 Catalog
               </Link>
               <Link
+                to="/search"
+                activeProps={{
+                  className:
+                    'text-ink font-semibold border-b border-blue pb-0.5',
+                }}
+                inactiveProps={{
+                  className: 'text-ink-soft hover:text-ink pb-0.5',
+                }}
+                className="transition-colors"
+              >
+                Search
+              </Link>
+              <Link
                 to="/artists"
                 activeProps={{
                   className:
@@ -479,6 +492,14 @@ function RootComponent() {
                   className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
                 >
                   <span>Catalog Overview</span>
+                  <span className="text-blue">&rarr;</span>
+                </Link>
+                <Link
+                  to="/search"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-panel border border-transparent hover:border-line"
+                >
+                  <span>Search Page</span>
                   <span className="text-blue">&rarr;</span>
                 </Link>
                 <Link

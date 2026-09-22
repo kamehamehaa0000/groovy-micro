@@ -152,6 +152,15 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && query.trim()) {
+                onClose();
+                navigate({
+                  to: "/search",
+                  search: { q: query.trim(), type: activeCategory },
+                });
+              }
+            }}
             placeholder="Search tracks, artists, albums, playlists, or listeners..."
             className="w-full bg-transparent border-none text-ink text-sm sm:text-base placeholder:text-ink-soft/60 focus:outline-hidden font-sans"
           />
@@ -778,7 +787,20 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
 
         {/* Footer info strip */}
         <div className="px-4 sm:px-6 py-2.5 border-t border-line bg-canvas/90 flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-ink-soft/70">
-          <span>Search the entire Groovy catalog & community</span>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate({
+                to: "/search",
+                search: { q: query.trim() || undefined, type: activeCategory },
+              });
+            }}
+            className="text-ink hover:text-blue transition-colors flex items-center gap-1 cursor-pointer font-semibold"
+          >
+            <span>Open Dedicated Search Page</span>
+            <span aria-hidden="true">&rarr;</span>
+          </button>
           <div className="flex items-center gap-2">
             <span>Navigation:</span>
             <kbd className="px-1.5 py-0.5 border border-line bg-panel rounded">ESC</kbd>

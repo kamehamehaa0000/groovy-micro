@@ -6,7 +6,7 @@ export const searchQuerySchema = z.object({
     .trim()
     .min(1, "Search query cannot be empty")
     .max(100, "Search query must not exceed 100 characters"),
-  limit: z.coerce.number().min(1).max(20).default(5),
+  limit: z.coerce.number().min(1).max(50).default(5),
   type: z
     .enum(["all", "songs", "albums", "artists", "playlists", "users"])
     .default("all"),
