@@ -223,6 +223,7 @@ export interface DiscographyResponse {
     id: string;
     stageName: string;
   };
+  upcoming?: (Album & { isUpcoming?: boolean; isPreSaved?: boolean })[];
   albums: Album[];
   eps: Album[];
   singles: Album[];

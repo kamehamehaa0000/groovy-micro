@@ -808,7 +808,6 @@ export class PlaylistsService {
       .leftJoin(albums, eq(songs.albumId, albums.id))
       .where(and(inArray(songs.id, songIds), isNull(songs.deletedAt)));
 
-    const now = Date.now();
     const addableSongs = validSongs.filter((s) => {
       if (s.scope === "PERSONAL") {
         return (
@@ -818,14 +817,8 @@ export class PlaylistsService {
           s.uploaderUserId === userId
         );
       }
-      const isOwnerArtist = s.artistUserId === userId;
-      const isLive =
-        !s.albumId ||
-        s.albumStatus === "PUBLISHED" ||
-        (s.albumStatus === "SCHEDULED" &&
-          s.albumScheduledReleaseAt &&
-          new Date(s.albumScheduledReleaseAt).getTime() <= now);
-      return isLive || isOwnerArtist;
+      // Any global catalog song (published or upcoming scheduled) can be added to playlists
+      return true;
     });
 
     const validSongIdSet = new Set(addableSongs.map((s) => s.id));
@@ -838,7 +831,7 @@ export class PlaylistsService {
           "Personal collection tracks can only be added to private, non-collaborative playlists owned by you"
         );
       }
-      throw new Error("No eligible, released songs found to add");
+      throw new Error("No eligible songs found to add");
     }
 
     // Duplicate check if allowDuplicates is false

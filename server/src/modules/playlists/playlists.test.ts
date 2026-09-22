@@ -575,17 +575,21 @@ async function runTests() {
       })
       .returning();
 
-    // Test A.1: Arbitrary listener attempts to add unreleased track to their playlist -> BLOCKED
-    const listenerAddRes = await app.inject({
+    // Test A.1: Arbitrary listener creates a playlist and curates unreleased scheduled track -> ALLOWED (Anticipation playlist)
+    const listenerPlaylistRes = await app.inject({
       method: "POST",
-      url: `/api/v1/playlists/${createdPlaylist.id}/tracks`,
+      url: "/api/v1/playlists",
       headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
-      payload: { songIds: [unreleasedSong.id] },
+      payload: {
+        title: "Listener Anticipation Playlist",
+        visibility: "PUBLIC",
+        initialSongIds: [unreleasedSong.id],
+      },
     });
-    if (listenerAddRes.statusCode !== 400) {
-      throw new Error(`Expected status 400 for unreleased track addition, got ${listenerAddRes.statusCode}: ${listenerAddRes.body}`);
+    if (listenerPlaylistRes.statusCode !== 201) {
+      throw new Error(`Failed to create listener anticipation playlist: ${listenerPlaylistRes.body}`);
     }
-    console.log("   ✅ Rule A: Regular listeners blocked from adding unreleased scheduled track (400 Bad Request)");
+    console.log("   ✅ Rule A: Regular listeners allowed to curate unreleased scheduled tracks in their playlists");
 
     // Test A.2: Artist owner adds their own upcoming track to their curated playlist -> ALLOWED (Artist Teaser)
     const artistPlaylistRes = await app.inject({

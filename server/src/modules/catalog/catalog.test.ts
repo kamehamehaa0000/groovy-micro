@@ -560,17 +560,59 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Pre-save removed: preSavesCount = 0");
 
-    // Test transition to PUBLISHED
+    // Listener re-pre-saves to test automated drop-day library conversion
+    const rePreSaveRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/albums/${scheduledAlbum.id}/pre-save`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    if (rePreSaveRes.statusCode !== 200) {
+      throw new Error(`Failed to re-pre-save: ${rePreSaveRes.body}`);
+    }
+
+    // Test transition to PUBLISHED & automated library conversion
     await executePublishRelease(scheduledAlbum.id);
     const afterPublishRes = await app.inject({
       method: "GET",
       url: `/api/v1/albums/${scheduledAlbum.id}`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
     });
     const afterPublishData = JSON.parse(afterPublishRes.body);
     if (afterPublishData.status !== "PUBLISHED" || afterPublishData.isUpcoming) {
       throw new Error("Album not properly live after publishing execution!");
     }
-    console.log("   ✅ Published transition: status = 'PUBLISHED', isUpcoming = false, audio unlocked!\n");
+    if (!afterPublishData.isLiked || afterPublishData.likesCount !== 1) {
+      throw new Error(`Expected isLiked: true and likesCount: 1 after conversion, got ${JSON.stringify(afterPublishData)}`);
+    }
+    if (afterPublishData.isPreSaved || afterPublishData.preSavesCount !== 0) {
+      throw new Error(`Expected isPreSaved: false and preSavesCount: 0 after conversion, got ${JSON.stringify(afterPublishData)}`);
+    }
+    console.log("   ✅ Drop day conversion verified: pre-saver converted to liked library album (likesCount = 1, preSavesCount = 0)");
+
+    // Verify user's /presaves/mine is now empty of the published album
+    const presavesAfterPublishRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/albums/presaves/mine",
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    const presavesAfterPublishData = JSON.parse(presavesAfterPublishRes.body);
+    if (presavesAfterPublishData.presaves.some((p: any) => p.albumId === scheduledAlbum.id)) {
+      throw new Error("Published album still present in /presaves/mine!");
+    }
+    console.log("   ✅ Published album cleanly cleared from user's upcoming pre-saves list");
+
+    // Verify user's library reflects the converted album under savedAlbums
+    const libraryRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/users/${listener.user.id}/library`,
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    const libraryData = JSON.parse(libraryRes.body);
+    const convertedInLibrary = libraryData.savedAlbums?.some((a: any) => a.id === scheduledAlbum.id);
+    if (!convertedInLibrary) {
+      throw new Error("Converted album missing from user library savedAlbums!");
+    }
+    console.log("   ✅ Converted album verified present in listener library savedAlbums\n");
 
     console.log("🎉 ALL CATALOG (ALBUMS, SONGS, CREDITS, SOFT-DELETE, LIKES, SCHEDULED RELEASES & PRE-SAVES) TESTS PASSED! 🚀\n");
   } finally {

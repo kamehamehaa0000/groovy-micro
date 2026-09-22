@@ -12,13 +12,16 @@ interface SongActionMenuProps {
   track: PlayerTrack;
   buttonClassName?: string;
   align?: "left" | "right";
+  isLocked?: boolean;
 }
 
 export function SongActionMenu({
   track,
   buttonClassName = "p-1.5 text-ink-soft hover:text-ink transition-colors cursor-pointer rounded",
   align = "right",
+  isLocked: propIsLocked,
 }: SongActionMenuProps) {
+  const isLocked = Boolean(propIsLocked || track.isStreamable === false);
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
@@ -55,12 +58,14 @@ export function SongActionMenu({
 
   const handlePlayNow = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isLocked) return;
     setIsOpen(false);
     playTrack(track);
   };
 
   const handlePlayNext = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isLocked) return;
     setIsOpen(false);
     playNext(track);
     showToast("Playing next in queue");
@@ -68,6 +73,7 @@ export function SongActionMenu({
 
   const handleAddToQueue = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isLocked) return;
     setIsOpen(false);
     addToQueue(track);
     showToast("Added to queue");
@@ -174,61 +180,63 @@ export function SongActionMenu({
           } bottom-full mb-1 sm:bottom-auto sm:top-full sm:mt-1 z-50 w-48 border border-line bg-panel shadow-2xl py-1 divide-y divide-line/40 animate-in fade-in zoom-in-95 duration-100 font-sans text-xs`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={handlePlayNow}
-              className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
-            >
-              <span className="text-blue">▶</span>
-              <span>Play Now</span>
-            </button>
-            <button
-              type="button"
-              onClick={handlePlayNext}
-              className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
-            >
-              <span>⏭</span>
-              <span>Play Next</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleAddToQueue}
-              className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
-            >
-              <span>➕</span>
-              <span>Add to Queue</span>
-            </button>
-            {activeJamRoom && (
+          {!isLocked && (
+            <div className="py-1">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                  addToJamQueue({
-                    id: track.id,
-                    title: track.title,
-                    artistId: track.artistId,
-                    artistName: track.artistName,
-                    artistSlug: track.artistSlug,
-                    albumId: track.albumId,
-                    albumTitle: track.albumTitle,
-                    albumSlug: track.albumSlug,
-                    duration: track.durationSeconds || 0,
-                    artworkUrl: track.coverImageUrl,
-                    audioUrl: track.audioUrl,
-                    hlsManifestUrl: track.hlsManifestUrl,
-                    rawAudioKey: track.rawAudioKey,
-                  });
-                  showToast("Added to Live Jam queue!");
-                }}
-                className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-700 dark:text-emerald-400 font-medium cursor-pointer"
+                onClick={handlePlayNow}
+                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
               >
-                <span>🎧</span>
-                <span>Add to Jam Queue</span>
+                <span className="text-blue">▶</span>
+                <span>Play Now</span>
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={handlePlayNext}
+                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+              >
+                <span>⏭</span>
+                <span>Play Next</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleAddToQueue}
+                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+              >
+                <span>➕</span>
+                <span>Add to Queue</span>
+              </button>
+              {activeJamRoom && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                    addToJamQueue({
+                      id: track.id,
+                      title: track.title,
+                      artistId: track.artistId,
+                      artistName: track.artistName,
+                      artistSlug: track.artistSlug,
+                      albumId: track.albumId,
+                      albumTitle: track.albumTitle,
+                      albumSlug: track.albumSlug,
+                      duration: track.durationSeconds || 0,
+                      artworkUrl: track.coverImageUrl,
+                      audioUrl: track.audioUrl,
+                      hlsManifestUrl: track.hlsManifestUrl,
+                      rawAudioKey: track.rawAudioKey,
+                    });
+                    showToast("Added to Live Jam queue!");
+                  }}
+                  className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-700 dark:text-emerald-400 font-medium cursor-pointer"
+                >
+                  <span>🎧</span>
+                  <span>Add to Jam Queue</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="py-1">
             <button

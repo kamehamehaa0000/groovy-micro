@@ -1,4 +1,4 @@
-import { ilike, or, and, isNull, desc, count, sql, eq } from "drizzle-orm";
+import { ilike, or, and, isNull, desc, count, sql, eq, lte } from "drizzle-orm";
 import { db } from "../../db";
 import {
   songs,
@@ -83,7 +83,16 @@ export class SearchService {
                   ? or(
                       and(
                         eq(songs.scope, "GLOBAL"),
-                        eq(songs.processingStatus, "READY")
+                        eq(songs.processingStatus, "READY"),
+                        or(
+                          isNull(albums.id),
+                          eq(albums.status, "PUBLISHED"),
+                          and(
+                            eq(albums.status, "SCHEDULED"),
+                            lte(albums.scheduledReleaseAt, sql`NOW()`)
+                          ),
+                          eq(artistProfiles.userId, _requesterId)
+                        )
                       ),
                       and(
                         eq(songs.scope, "PERSONAL"),
@@ -92,7 +101,18 @@ export class SearchService {
                     )
                   : and(
                       eq(songs.scope, "GLOBAL"),
-                      eq(songs.processingStatus, "READY")
+                      eq(songs.processingStatus, "READY"),
+                      or(
+                        isNull(albums.id),
+                        eq(albums.status, "PUBLISHED"),
+                        and(
+                          eq(albums.status, "SCHEDULED"),
+                          lte(albums.scheduledReleaseAt, sql`NOW()`)
+                        ),
+                        _requesterId
+                          ? eq(artistProfiles.userId, _requesterId)
+                          : sql`FALSE`
+                      )
                     ),
                 or(
                   ilike(songs.title, pattern),
@@ -130,7 +150,15 @@ export class SearchService {
                   ? or(
                       and(
                         eq(albums.scope, "GLOBAL"),
-                        eq(albums.visibility, "PUBLIC")
+                        eq(albums.visibility, "PUBLIC"),
+                        or(
+                          eq(albums.status, "PUBLISHED"),
+                          and(
+                            eq(albums.status, "SCHEDULED"),
+                            lte(albums.scheduledReleaseAt, sql`NOW()`)
+                          ),
+                          eq(artistProfiles.userId, _requesterId)
+                        )
                       ),
                       and(
                         eq(albums.scope, "PERSONAL"),
@@ -139,7 +167,17 @@ export class SearchService {
                     )
                   : and(
                       eq(albums.scope, "GLOBAL"),
-                      eq(albums.visibility, "PUBLIC")
+                      eq(albums.visibility, "PUBLIC"),
+                      or(
+                        eq(albums.status, "PUBLISHED"),
+                        and(
+                          eq(albums.status, "SCHEDULED"),
+                          lte(albums.scheduledReleaseAt, sql`NOW()`)
+                        ),
+                        _requesterId
+                          ? eq(artistProfiles.userId, _requesterId)
+                          : sql`FALSE`
+                      )
                     ),
                 or(
                   ilike(albums.title, pattern),

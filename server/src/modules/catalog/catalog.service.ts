@@ -30,6 +30,7 @@ import { redis } from "../../index";
 import {
   scheduleReleaseJob,
   cancelScheduledReleaseJob,
+  executePublishRelease,
 } from "./catalog.queue";
 import { enqueueTranscodeJob } from "../../lib/queue/transcode.queue";
 import type {
@@ -741,6 +742,9 @@ export class CatalogService {
       await scheduleReleaseJob(updated);
     } else {
       await cancelScheduledReleaseJob(albumId);
+      if (existing.status === "SCHEDULED") {
+        await executePublishRelease(albumId);
+      }
     }
 
     await cacheManager.invalidateAlbum({
@@ -796,6 +800,8 @@ export class CatalogService {
       artistId: artist.id,
     });
 
+    await cancelScheduledReleaseJob(albumId);
+
     const albumSongs = await db
       .select({ id: songs.id })
       .from(songs)
@@ -814,7 +820,16 @@ export class CatalogService {
     const artist = await this.getArtistByUserId(userId);
 
     const [existing] = await db
-      .select({ id: albums.id, slug: albums.slug, deletedAt: albums.deletedAt })
+      .select({
+        id: albums.id,
+        artistId: albums.artistId,
+        title: albums.title,
+        albumType: albums.albumType,
+        slug: albums.slug,
+        status: albums.status,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        deletedAt: albums.deletedAt,
+      })
       .from(albums)
       .where(and(eq(albums.id, albumId), eq(albums.artistId, artist.id)))
       .limit(1);
@@ -838,6 +853,14 @@ export class CatalogService {
 
       return { message: "Album and its tracks restored successfully" };
     });
+
+    if (
+      existing.status === "SCHEDULED" &&
+      existing.scheduledReleaseAt &&
+      new Date(existing.scheduledReleaseAt).getTime() > Date.now()
+    ) {
+      await scheduleReleaseJob(existing);
+    }
 
     await cacheManager.invalidateAlbum({
       id: albumId,
@@ -928,6 +951,8 @@ export class CatalogService {
     if (songIds.length > 0) {
       await playlistsCacheService.invalidatePlaylistsForSongs(songIds);
     }
+    await cancelScheduledReleaseJob(albumId);
+    await presavesCacheService.cleanupUserPreSavedAlbums(albumId);
 
     return {
       success: true,
@@ -2157,10 +2182,7 @@ export class CatalogService {
           eq(albums.visibility, "PUBLIC"),
           or(
             eq(albums.status, "PUBLISHED"),
-            and(
-              eq(albums.status, "SCHEDULED"),
-              lte(albums.scheduledReleaseAt, sql`NOW()`)
-            )
+            eq(albums.status, "SCHEDULED")
           )
         );
 
@@ -2170,12 +2192,51 @@ export class CatalogService {
       .where(discographyCondition)
       .orderBy(desc(albums.releaseDate), desc(albums.createdAt));
 
-    const albumsList = artistAlbums.filter(
+    const nowMs = Date.now();
+    const upcomingRaw: typeof artistAlbums = [];
+    const releasedRaw: typeof artistAlbums = [];
+
+    for (const a of artistAlbums) {
+      const isUpcoming =
+        a.scope !== "PERSONAL" &&
+        a.status === "SCHEDULED" &&
+        a.scheduledReleaseAt &&
+        new Date(a.scheduledReleaseAt).getTime() > nowMs;
+
+      if (isUpcoming) {
+        upcomingRaw.push(a);
+      } else if (
+        a.status === "PUBLISHED" ||
+        (a.status === "SCHEDULED" &&
+          a.scheduledReleaseAt &&
+          new Date(a.scheduledReleaseAt).getTime() <= nowMs) ||
+        isSelf
+      ) {
+        releasedRaw.push(a);
+      }
+    }
+
+    // Sort upcoming releases with closest scheduled drop date first
+    upcomingRaw.sort((a, b) => {
+      const timeA = a.scheduledReleaseAt ? new Date(a.scheduledReleaseAt).getTime() : 0;
+      const timeB = b.scheduledReleaseAt ? new Date(b.scheduledReleaseAt).getTime() : 0;
+      return timeA - timeB;
+    });
+
+    const upcoming = await presavesCacheService.enrichAlbumsWithPreSaves(
+      currentUserId,
+      upcomingRaw.map((a) => ({
+        ...a,
+        isUpcoming: true,
+      }))
+    );
+
+    const albumsList = releasedRaw.filter(
       (a) => a.albumType === "ALBUM" || a.albumType === "LP"
     );
-    const epsList = artistAlbums.filter((a) => a.albumType === "EP");
-    const singlesList = artistAlbums.filter((a) => a.albumType === "SINGLE");
-    const mixtapesList = artistAlbums.filter((a) => a.albumType === "MIXTAPE");
+    const epsList = releasedRaw.filter((a) => a.albumType === "EP");
+    const singlesList = releasedRaw.filter((a) => a.albumType === "SINGLE");
+    const mixtapesList = releasedRaw.filter((a) => a.albumType === "MIXTAPE");
 
     // 2. Top Tracks (Top 10 most played)
     const topTracks = await db
@@ -2195,7 +2256,21 @@ export class CatalogService {
       })
       .from(songs)
       .leftJoin(albums, eq(songs.albumId, albums.id))
-      .where(and(eq(songs.artistId, artist.id), isNull(songs.deletedAt)))
+      .where(
+        and(
+          eq(songs.artistId, artist.id),
+          isNull(songs.deletedAt),
+          or(
+            isNull(albums.id),
+            eq(albums.status, "PUBLISHED"),
+            and(
+              eq(albums.status, "SCHEDULED"),
+              lte(albums.scheduledReleaseAt, sql`NOW()`)
+            ),
+            sql`${isSelf} = true`
+          )
+        )
+      )
       .orderBy(desc(songs.playsCount))
       .limit(10);
 
@@ -2214,11 +2289,21 @@ export class CatalogService {
       .from(songCredits)
       .innerJoin(songs, eq(songCredits.songId, songs.id))
       .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+      .leftJoin(albums, eq(songs.albumId, albums.id))
       .where(
         and(
           eq(songCredits.artistId, artist.id),
           sql`${songCredits.role} != 'PRIMARY'`,
           isNull(songs.deletedAt),
+          or(
+            isNull(albums.id),
+            eq(albums.status, "PUBLISHED"),
+            and(
+              eq(albums.status, "SCHEDULED"),
+              lte(albums.scheduledReleaseAt, sql`NOW()`)
+            ),
+            sql`${isSelf} = true`
+          ),
           currentUserId
             ? or(
                 eq(songs.scope, "GLOBAL"),
@@ -2308,6 +2393,7 @@ export class CatalogService {
 
     return {
       artist,
+      upcoming,
       albums: albumsList,
       eps: epsList,
       singles: singlesList,
@@ -2574,7 +2660,11 @@ export class CatalogService {
       .where(
         and(
           eq(releasePresaves.userId, userId),
-          isNull(albums.deletedAt)
+          isNull(albums.deletedAt),
+          eq(albums.scope, "GLOBAL"),
+          eq(albums.visibility, "PUBLIC"),
+          eq(albums.status, "SCHEDULED"),
+          gt(albums.scheduledReleaseAt, sql`NOW()`)
         )
       )
       .orderBy(asc(albums.scheduledReleaseAt), desc(releasePresaves.createdAt));

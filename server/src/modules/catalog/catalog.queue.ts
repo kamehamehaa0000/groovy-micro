@@ -1,9 +1,11 @@
 import { Queue, Worker, type Job } from "bullmq";
 import { db } from "../../db";
-import { albums } from "../../db/schema/catalog";
+import { albums, releasePresaves } from "../../db/schema/catalog";
+import { albumLikes } from "../../db/schema/social";
 import { outboxEvents } from "../../db/schema/outbox";
-import { eq } from "drizzle-orm";
-import { cacheManager } from "../../lib/cache";
+import { eq, and, isNull, sql } from "drizzle-orm";
+import { cacheManager, cacheKeys } from "../../lib/cache";
+import { redis } from "../../db/redis";
 
 const redisUrl = new URL(process.env.REDIS_URL || "redis://localhost:6379");
 export const bullmqConnection = {
@@ -35,29 +37,85 @@ export const releaseQueue = new Queue<ScheduledReleaseJobPayload>(
 );
 
 /**
- * Execute immediate publish of an album
+ * Execute immediate publish of an album:
+ * 1. Verifies album exists and is not soft-deleted.
+ * 2. In a single ACID transaction:
+ *    - Transitions album status to PUBLISHED with publishedAt = NOW().
+ *    - Migrates all pre-savers from release_presaves to album_likes.
+ *    - Updates albums.likesCount by converted count and resets preSavesCount to 0.
+ *    - Deletes processed release_presaves rows.
+ *    - Emits 'album.released' outbox event with pre-saver metadata.
+ * 3. Reconciles Redis sets: purges albumId from pre-saved sets and adds to liked sets.
+ * 4. Invalidates public album and artist catalog caches.
  */
 export async function executePublishRelease(albumId: string): Promise<void> {
   const publishedDate = new Date();
   let updatedArtistId: string | null = null;
   let updatedSlug: string | null = null;
+  let convertedUserIds: string[] = [];
 
   await db.transaction(async (tx) => {
+    // 1. Verify album is not soft-deleted
+    const [existing] = await tx
+      .select({
+        id: albums.id,
+        status: albums.status,
+        deletedAt: albums.deletedAt,
+        artistId: albums.artistId,
+        slug: albums.slug,
+        title: albums.title,
+        albumType: albums.albumType,
+      })
+      .from(albums)
+      .where(and(eq(albums.id, albumId), isNull(albums.deletedAt)))
+      .limit(1);
+
+    if (!existing) {
+      // Album does not exist or is in trash
+      return;
+    }
+
+    updatedArtistId = existing.artistId;
+    updatedSlug = existing.slug;
+
+    // 2. Fetch all pre-savers for this release
+    const presaverRows = await tx
+      .select({ userId: releasePresaves.userId })
+      .from(releasePresaves)
+      .where(eq(releasePresaves.albumId, albumId));
+
+    convertedUserIds = presaverRows.map((r) => r.userId);
+
+    // 3. Convert pre-savers to album_likes
+    if (convertedUserIds.length > 0) {
+      await tx
+        .insert(albumLikes)
+        .values(convertedUserIds.map((userId) => ({ userId, albumId })))
+        .onConflictDoNothing();
+
+      await tx
+        .delete(releasePresaves)
+        .where(eq(releasePresaves.albumId, albumId));
+    }
+
+    // 4. Update album status, published date, and like/presave counters
     const [updated] = await tx
       .update(albums)
       .set({
         status: "PUBLISHED",
         publishedAt: publishedDate,
         updatedAt: publishedDate,
+        preSavesCount: 0,
+        ...(convertedUserIds.length > 0
+          ? { likesCount: sql`${albums.likesCount} + ${convertedUserIds.length}` }
+          : {}),
       })
-      .where(eq(albums.id, albumId))
+      .where(and(eq(albums.id, albumId), isNull(albums.deletedAt)))
       .returning();
 
     if (!updated) return;
-    updatedArtistId = updated.artistId;
-    updatedSlug = updated.slug;
 
-    // Transactional outbox event for downstream consumers (e.g. notifications)
+    // 5. Transactional outbox event for downstream consumers
     await tx.insert(outboxEvents).values({
       aggregateType: "ALBUM",
       aggregateId: albumId,
@@ -68,17 +126,44 @@ export async function executePublishRelease(albumId: string): Promise<void> {
         title: updated.title,
         albumType: updated.albumType,
         publishedAt: publishedDate.toISOString(),
+        convertedPreSavesCount: convertedUserIds.length,
+        convertedUserIds,
       },
     });
   });
 
-  // Invalidate Redis caches
+  // 6. Synchronize Redis Sets for converted listeners
+  for (const userId of convertedUserIds) {
+    try {
+      const presavedKey = cacheKeys.social.userPreSavedAlbums(userId);
+      const likedKey = cacheKeys.social.userLikedAlbums(userId);
+
+      await redis.srem(presavedKey, albumId);
+
+      const likedExists = await redis.exists(likedKey);
+      if (likedExists) {
+        await redis.srem(likedKey, "__EMPTY__");
+        await redis.sadd(likedKey, albumId);
+        await redis.expire(likedKey, 86400);
+      }
+    } catch (err) {
+      console.warn(`[executePublishRelease] Redis sync failed for user ${userId}:`, err);
+    }
+  }
+
+  // 7. Invalidate Redis caches
   try {
     await cacheManager.invalidateAlbum({
       id: albumId,
       slug: updatedSlug,
       artistId: updatedArtistId,
     });
+    if (updatedArtistId) {
+      await cacheManager.invalidate(
+        cacheKeys.catalog.artist(updatedArtistId),
+        cacheKeys.catalog.artistAlbumsTag(updatedArtistId)
+      );
+    }
   } catch (err) {
     console.warn(`[executePublishRelease] Cache invalidation failed:`, err);
   }

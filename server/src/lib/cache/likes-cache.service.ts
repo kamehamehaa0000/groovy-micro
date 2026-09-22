@@ -1,7 +1,7 @@
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
-import { songs, albums, songLikes, albumLikes } from "../../db/schema";
+import { songs, albums, songLikes, albumLikes, artistProfiles } from "../../db/schema";
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
 
@@ -191,13 +191,30 @@ export class LikesCacheService {
     songId: string
   ): Promise<{ liked: boolean; likesCount: number }> {
     const [song] = await db
-      .select({ id: songs.id, albumId: songs.albumId })
+      .select({
+        id: songs.id,
+        albumId: songs.albumId,
+        albumStatus: albums.status,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        artistUserId: artistProfiles.userId,
+      })
       .from(songs)
+      .leftJoin(albums, eq(songs.albumId, albums.id))
+      .leftJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
       .where(and(eq(songs.id, songId), sql`${songs.deletedAt} IS NULL`))
       .limit(1);
 
     if (!song) {
       throw new Error("Song not found");
+    }
+
+    const isSongUnreleased =
+      song.albumStatus === "SCHEDULED" &&
+      song.scheduledReleaseAt &&
+      new Date(song.scheduledReleaseAt).getTime() > Date.now();
+
+    if (isSongUnreleased && song.artistUserId !== userId) {
+      throw new Error("Cannot like tracks from an unreleased scheduled release");
     }
 
     const likedSet = await this.getUserLikedSongIds(userId);
@@ -267,13 +284,30 @@ export class LikesCacheService {
     albumId: string
   ): Promise<{ liked: boolean; likesCount: number }> {
     const [album] = await db
-      .select({ id: albums.id, slug: albums.slug, artistId: albums.artistId })
+      .select({
+        id: albums.id,
+        slug: albums.slug,
+        artistId: albums.artistId,
+        status: albums.status,
+        scheduledReleaseAt: albums.scheduledReleaseAt,
+        artistUserId: artistProfiles.userId,
+      })
       .from(albums)
+      .leftJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
       .where(and(eq(albums.id, albumId), sql`${albums.deletedAt} IS NULL`))
       .limit(1);
 
     if (!album) {
       throw new Error("Album not found");
+    }
+
+    const isAlbumUnreleased =
+      album.status === "SCHEDULED" &&
+      album.scheduledReleaseAt &&
+      new Date(album.scheduledReleaseAt).getTime() > Date.now();
+
+    if (isAlbumUnreleased && album.artistUserId !== userId) {
+      throw new Error("Cannot like an unreleased scheduled album. Please pre-save it instead.");
     }
 
     const likedSet = await this.getUserLikedAlbumIds(userId);

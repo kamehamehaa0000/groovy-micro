@@ -152,6 +152,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   dismissSuperseded: () => set({ supersededByDevice: null }),
 
   playTrack: (track, contextQueue, contextIndex = 0, contextUri, contextTitle) => {
+    if (track.isStreamable === false) {
+      return;
+    }
+
     const isShuffle = get().isShuffle;
 
     let nextContext = contextQueue ? [...contextQueue] : get().contextQueue;
@@ -432,6 +436,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   playNext: (track) => {
+    if (track.isStreamable === false) return;
     set((state) => ({
       userQueue: [track, ...state.userQueue],
     }));
@@ -439,6 +444,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   addToQueue: (track) => {
+    if (track.isStreamable === false) return;
     set((state) => ({
       userQueue: [...state.userQueue, track],
     }));

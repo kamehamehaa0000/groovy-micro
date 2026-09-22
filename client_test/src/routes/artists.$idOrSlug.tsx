@@ -18,9 +18,11 @@ import {
   PauseIconSVG,
   HeartIconSVG,
   DiscIconSVG,
+  CalendarIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
+import { usePreSavesStore } from '../stores/presaves.store'
 import { useFollowsStore } from '../stores/follows.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
@@ -46,6 +48,12 @@ function ArtistPublicProfileComponent() {
   const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
   const toggleFollow = useFollowsStore((s) => s.toggleFollow)
   const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
+
+  // Pre-saves store integration
+  const preSavedAlbumIds = usePreSavesStore((s) => s.preSavedAlbumIds)
+  const togglePreSaveStore = usePreSavesStore((s) => s.togglePreSave)
+  const hydratePreSavedAlbums = usePreSavesStore((s) => s.hydrateAlbums)
+  const [preSavingAlbumId, setPreSavingAlbumId] = useState<string | null>(null)
 
   const [artist, setArtist] = useState<ArtistProfile | null>(null)
   const [discography, setDiscography] = useState<DiscographyResponse | null>(
@@ -86,6 +94,15 @@ function ArtistPublicProfileComponent() {
         if (discoData?.topTracks?.length) {
           hydrateSongs(discoData.topTracks)
         }
+
+        // Hydrate pre-saves store from upcoming releases
+        if (discoData?.upcoming?.length) {
+          hydratePreSavedAlbums(
+            discoData.upcoming
+              .filter((u: any) => u.isPreSaved)
+              .map((u: any) => ({ id: u.id, isPreSaved: true }))
+          )
+        }
       })
       .catch((err) => {
         if (!isMounted) return
@@ -98,7 +115,71 @@ function ArtistPublicProfileComponent() {
     return () => {
       isMounted = false
     }
-  }, [idOrSlug, hydrateSongs, hydrateArtists])
+  }, [idOrSlug, hydrateSongs, hydrateArtists, hydratePreSavedAlbums])
+
+  const handleTogglePreSave = async (album: any) => {
+    if (!isAuthenticated) {
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Upcoming Release',
+        subtitle: 'Pre-Save',
+        title: 'Pre-save this album.',
+        description:
+          'Sign in or create an account to pre-save this upcoming release and have it automatically added to your library on drop day.',
+      })
+      return
+    }
+
+    if (preSavingAlbumId === album.id) return
+    setPreSavingAlbumId(album.id)
+
+    const isCurrentlyPreSaved = preSavedAlbumIds.has(album.id)
+    const prevCount = album.preSavesCount ?? 0
+
+    // Optimistic count update in discography state
+    setDiscography((prev) => {
+      if (!prev || !prev.upcoming) return prev
+      return {
+        ...prev,
+        upcoming: prev.upcoming.map((u) =>
+          u.id === album.id
+            ? {
+                ...u,
+                preSavesCount: isCurrentlyPreSaved
+                  ? Math.max(0, prevCount - 1)
+                  : prevCount + 1,
+              }
+            : u,
+        ),
+      }
+    })
+
+    try {
+      const res = await togglePreSaveStore(album.id)
+      setDiscography((prev) => {
+        if (!prev || !prev.upcoming) return prev
+        return {
+          ...prev,
+          upcoming: prev.upcoming.map((u) =>
+            u.id === album.id ? { ...u, preSavesCount: res.preSavesCount } : u,
+          ),
+        }
+      })
+    } catch (err: any) {
+      // Rollback count on error
+      setDiscography((prev) => {
+        if (!prev || !prev.upcoming) return prev
+        return {
+          ...prev,
+          upcoming: prev.upcoming.map((u) =>
+            u.id === album.id ? { ...u, preSavesCount: prevCount } : u,
+          ),
+        }
+      })
+      alert(err.message || 'Could not update pre-save status')
+    } finally {
+      setPreSavingAlbumId(null)
+    }
+  }
 
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
@@ -324,6 +405,7 @@ function ArtistPublicProfileComponent() {
   }
 
   const isOwner = user?.id === artist.userId
+  const hasUpcoming = Boolean(discography?.upcoming && discography.upcoming.length > 0)
   const hasAlbums = discography?.albums && discography.albums.length > 0
   const hasMixtapes = discography?.mixtapes && discography.mixtapes.length > 0
   const hasEpsOrSingles =
@@ -566,6 +648,111 @@ function ArtistPublicProfileComponent() {
                           </button>
                         </div>
                       </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Upcoming Pre-Savable Releases Shelf */}
+            {hasUpcoming && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline border-b border-line pb-2">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="font-serif italic text-xl text-ink">
+                      Upcoming Releases
+                    </h2>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
+                      <CalendarIconSVG className="w-2.5 h-2.5" />
+                      <span>Pre-Save Available</span>
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                    {discography!.upcoming!.length}{' '}
+                    {discography!.upcoming!.length === 1 ? 'Upcoming Drop' : 'Upcoming Drops'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {discography!.upcoming!.map((up) => {
+                    const isPreSaved = preSavedAlbumIds.has(up.id)
+                    const dropDateStr = up.scheduledReleaseAt
+                      ? new Date(up.scheduledReleaseAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : 'Coming Soon'
+
+                    return (
+                      <Link
+                        key={up.id}
+                        to="/albums/$idOrSlug"
+                        params={{ idOrSlug: up.slug }}
+                        className="border-2 border-blue/40 bg-blue/5 p-4 shadow-2xs hover:border-blue transition-colors group text-inherit no-underline flex flex-col justify-between relative overflow-hidden"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                            {up.coverImageUrl ? (
+                              <img
+                                src={up.coverImageUrl}
+                                alt={up.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <ProceduralCover
+                                size="md"
+                                title={up.title}
+                                artistName={artist.stageName}
+                                className="w-full h-full rounded-none"
+                              />
+                            )}
+                            <div className="absolute top-1 left-1 font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas/90 backdrop-blur-xs border border-line text-blue font-semibold">
+                              {up.albumType}
+                            </div>
+                          </div>
+
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue font-semibold flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
+                              <span>Drops {dropDateStr}</span>
+                            </div>
+
+                            <h3 className="font-serif italic font-medium text-base text-ink group-hover:text-blue transition-colors truncate">
+                              {up.title}
+                            </h3>
+
+                            <p className="font-mono text-[10px] text-ink-soft">
+                              {up.totalTracks} {up.totalTracks === 1 ? 'Cut' : 'Cuts'} &bull; Master Audio Locked
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-blue/20 flex items-center justify-between gap-3">
+                          <button
+                            type="button"
+                            disabled={preSavingAlbumId === up.id}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleTogglePreSave(up)
+                            }}
+                            className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs ${
+                              isPreSaved
+                                ? 'border-blue bg-blue text-canvas hover:opacity-90'
+                                : 'border-ink bg-ink text-canvas hover:opacity-90'
+                            }`}
+                          >
+                            <span>{isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save'}</span>
+                            <span className="opacity-80 font-mono text-[9px]">({up.preSavesCount ?? 0})</span>
+                          </button>
+
+                          <span className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
+                            <span>Liner Notes</span>
+                            <span>&rarr;</span>
+                          </span>
+                        </div>
+                      </Link>
                     )
                   })}
                 </div>

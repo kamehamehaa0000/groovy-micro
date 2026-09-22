@@ -71,6 +71,54 @@ function AlbumDetailComponent() {
   // Share feedback
   const [copiedLink, setCopiedLink] = useState(false)
 
+  // Live drop countdown timer
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number
+    hours: number
+    minutes: number
+    seconds: number
+    totalMs: number
+  } | null>(null)
+
+  useEffect(() => {
+    if (!album?.isUpcoming || !album?.scheduledReleaseAt) {
+      setTimeLeft(null)
+      return
+    }
+
+    const target = new Date(album.scheduledReleaseAt).getTime()
+
+    const updateTimer = () => {
+      const diff = target - Date.now()
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, totalMs: 0 })
+        // Auto-refresh album to unlock playback upon drop
+        catalogApi
+          .getAlbum(idOrSlug, shareToken)
+          .then((data) => {
+            setAlbum(data)
+            setLikesCount(data.likesCount ?? 0)
+            setPreSavesCount(data.preSavesCount ?? 0)
+            if (data.isLiked) {
+              hydrateAlbums([{ id: data.id, isLiked: true }])
+            }
+          })
+          .catch(() => {})
+        return
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+      const minutes = Math.floor((diff / (1000 * 60)) % 60)
+      const seconds = Math.floor((diff / 1000) % 60)
+      setTimeLeft({ days, hours, minutes, seconds, totalMs: diff })
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+    return () => clearInterval(interval)
+  }, [album?.isUpcoming, album?.scheduledReleaseAt, idOrSlug, shareToken])
+
   // Check creator / artist privileges for governance
   useEffect(() => {
     if (!isAuthenticated || !user || !album) {
@@ -176,6 +224,11 @@ function AlbumDetailComponent() {
   }
 
   const handleToggleTrackLike = async (track: EnrichedSong) => {
+    if (album?.isUpcoming && !isCreator) {
+      alert('Tracks cannot be liked until the scheduled release date.')
+      return
+    }
+
     if (!isAuthenticated) {
       useAuthModalStore.getState().openAuthModal({
         category: 'Favorites & Library',
@@ -284,10 +337,12 @@ function AlbumDetailComponent() {
     hlsManifestUrl: song.hlsManifestUrl,
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
+    isStreamable: isCreator ? true : song.isStreamable !== false && !album?.isUpcoming,
   })
 
   const handlePlaySong = (song: EnrichedSong, index: number) => {
-    if (album?.isUpcoming || song.isStreamable === false) {
+    const isLocked = (album?.isUpcoming || song.isStreamable === false) && !isCreator
+    if (isLocked) {
       alert('This master cut is locked until the scheduled release date.')
       return
     }
@@ -309,13 +364,13 @@ function AlbumDetailComponent() {
   }
 
   const handlePlayAlbumFromStart = () => {
-    if (album?.isUpcoming) {
+    if (album?.isUpcoming && !isCreator) {
       handleTogglePreSave()
       return
     }
     if (!album || !album.tracks || album.tracks.length === 0) return
     const firstPlayableIdx = album.tracks.findIndex(
-      (t) => t.isStreamable !== false,
+      (t) => isCreator || t.isStreamable !== false,
     )
     if (firstPlayableIdx >= 0) {
       handlePlaySong(album.tracks[firstPlayableIdx], firstPlayableIdx)
@@ -400,6 +455,15 @@ function AlbumDetailComponent() {
                   })
                 : 'Coming Soon'}
             </h2>
+            {timeLeft && timeLeft.totalMs > 0 && (
+              <div className="flex items-center gap-2 font-mono text-xs text-blue font-semibold pt-0.5">
+                <span>⏳ Drops in:</span>
+                <span className="px-2 py-0.5 border border-blue/40 bg-blue/10 rounded font-mono text-[11px] tracking-wider">
+                  {timeLeft.days > 0 && `${timeLeft.days}d `}
+                  {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
+                </span>
+              </div>
+            )}
             <p className="font-mono text-[10px] text-ink-soft">
               Lossless master audio streams unlock automatically on release date. Pre-save now to add this {album.albumType.toLowerCase()} to your library immediately upon drop.
             </p>
@@ -515,7 +579,7 @@ function AlbumDetailComponent() {
 
             {/* Action Bar */}
             <div className="flex items-center gap-3 pt-3 flex-wrap">
-              {album.isUpcoming ? (
+              {album.isUpcoming && !isCreator ? (
                 <button
                   type="button"
                   disabled={isPreSaveLoading}
@@ -536,26 +600,28 @@ function AlbumDetailComponent() {
                   className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
-                  <span>Play Release</span>
+                  <span>{album.isUpcoming && isCreator ? 'Audition Release' : 'Play Release'}</span>
                 </button>
               )}
 
-              <button
-                type="button"
-                disabled={isLikeLoading}
-                onClick={handleToggleAlbumLike}
-                className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line transition-colors cursor-pointer flex items-center gap-2 ${
-                  isLiked
-                    ? 'bg-red-50 dark:bg-red-950/20 text-red-600 border-red-300'
-                    : 'bg-canvas text-ink hover:border-ink'
-                }`}
-              >
-                <HeartIconSVG
-                  filled={isLiked}
-                  className={`w-3.5 h-3.5 ${isLiked ? 'text-red-500' : 'text-ink-soft'}`}
-                />
-                <span>{likesCount.toLocaleString()}</span>
-              </button>
+              {!album.isUpcoming && (
+                <button
+                  type="button"
+                  disabled={isLikeLoading}
+                  onClick={handleToggleAlbumLike}
+                  className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line transition-colors cursor-pointer flex items-center gap-2 ${
+                    isLiked
+                      ? 'bg-red-50 dark:bg-red-950/20 text-red-600 border-red-300'
+                      : 'bg-canvas text-ink hover:border-ink'
+                  }`}
+                >
+                  <HeartIconSVG
+                    filled={isLiked}
+                    className={`w-3.5 h-3.5 ${isLiked ? 'text-red-500' : 'text-ink-soft'}`}
+                  />
+                  <span>{likesCount.toLocaleString()}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -635,16 +701,20 @@ function AlbumDetailComponent() {
                       type="button"
                       onClick={() => handlePlaySong(track, idx)}
                       aria-label={
-                        album.isUpcoming || track.isStreamable === false
+                        album.isUpcoming && !isCreator
                           ? 'Track is locked until scheduled release'
                           : isCurrentPlaying
                             ? 'Pause track'
                             : 'Play track'
                       }
-                      className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
+                      className={`w-6 h-6 flex items-center justify-center ${
+                        album.isUpcoming && !isCreator
+                          ? 'text-ink-soft/50 cursor-not-allowed'
+                          : 'text-ink-soft group-hover:text-ink cursor-pointer'
+                      } shrink-0`}
                     >
-                      {album.isUpcoming || track.isStreamable === false ? (
-                        <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/70" />
+                      {album.isUpcoming && !isCreator ? (
+                        <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/60" />
                       ) : isCurrentPlaying ? (
                         <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
                       ) : (
@@ -670,7 +740,7 @@ function AlbumDetailComponent() {
                           {track.title}
                         </span>
 
-                        {(album.isUpcoming || track.isStreamable === false) && (
+                        {((album.isUpcoming && !isCreator) || track.isStreamable === false) && (
                           <span
                             title="Locked until scheduled drop"
                             className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.2 border border-line text-ink-soft bg-canvas-deep flex items-center gap-1"
@@ -726,24 +796,29 @@ function AlbumDetailComponent() {
                     </span>
 
                     {/* Action Menu (Play Next, Add to Queue, Add to Playlist...) */}
-                    <SongActionMenu track={toPlayerTrack(track)} />
+                    <SongActionMenu
+                      track={toPlayerTrack(track)}
+                      isLocked={album.isUpcoming && !isCreator}
+                    />
 
                     {/* Like Heart */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleTrackLike(track)}
-                      aria-label="Like track"
-                      className="p-1 cursor-pointer"
-                    >
-                      <HeartIconSVG
-                        filled={likedSongIds.has(track.id)}
-                        className={`w-3.5 h-3.5 transition-colors ${
-                          likedSongIds.has(track.id)
-                            ? 'text-red-500'
-                            : 'text-ink-soft/40 hover:text-ink'
-                        }`}
-                      />
-                    </button>
+                    {!album.isUpcoming && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleTrackLike(track)}
+                        aria-label="Like track"
+                        className="p-1 cursor-pointer"
+                      >
+                        <HeartIconSVG
+                          filled={likedSongIds.has(track.id)}
+                          className={`w-3.5 h-3.5 transition-colors ${
+                            likedSongIds.has(track.id)
+                              ? 'text-red-500'
+                              : 'text-ink-soft/40 hover:text-ink'
+                          }`}
+                        />
+                      </button>
+                    )}
                   </div>
                 </div>
               )

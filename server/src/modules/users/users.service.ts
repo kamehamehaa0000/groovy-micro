@@ -1,4 +1,4 @@
-import { eq, and, count, desc, isNull, sql } from 'drizzle-orm'
+import { eq, and, or, lte, gt, count, desc, isNull, sql } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { db } from '../../db'
 import {
@@ -6,7 +6,7 @@ import {
   playlists,
   playlistSongs,
   userLibraryPlaylists,
-  userLibraryAlbums,
+  albumLikes,
   releasePresaves,
   songLikes,
   songs,
@@ -486,19 +486,24 @@ export class UsersService {
           artistId: albums.artistId,
           artistName: artistProfiles.stageName,
           artistSlug: artistProfiles.slug,
-          savedAt: userLibraryAlbums.savedAt,
+          savedAt: albumLikes.createdAt,
         })
-        .from(userLibraryAlbums)
-        .innerJoin(albums, eq(userLibraryAlbums.albumId, albums.id))
+        .from(albumLikes)
+        .innerJoin(albums, eq(albumLikes.albumId, albums.id))
         .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
         .where(
           and(
-            eq(userLibraryAlbums.userId, targetUserId),
+            eq(albumLikes.userId, targetUserId),
             eq(albums.visibility, 'PUBLIC'),
+            eq(albums.scope, 'GLOBAL'),
             isNull(albums.deletedAt),
+            or(
+              eq(albums.status, 'PUBLISHED'),
+              and(eq(albums.status, 'SCHEDULED'), lte(albums.scheduledReleaseAt, sql`NOW()`))
+            ),
           ),
         )
-        .orderBy(desc(userLibraryAlbums.savedAt)),
+        .orderBy(desc(albumLikes.createdAt)),
 
       // 4. Pre-saved Releases
       db
@@ -521,6 +526,10 @@ export class UsersService {
           and(
             eq(releasePresaves.userId, targetUserId),
             isNull(albums.deletedAt),
+            eq(albums.scope, 'GLOBAL'),
+            eq(albums.visibility, 'PUBLIC'),
+            eq(albums.status, 'SCHEDULED'),
+            gt(albums.scheduledReleaseAt, sql`NOW()`),
           ),
         )
         .orderBy(desc(releasePresaves.createdAt)),

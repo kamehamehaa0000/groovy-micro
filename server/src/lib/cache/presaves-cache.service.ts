@@ -105,8 +105,27 @@ export class PresavesCacheService {
   }
 
   /**
+   * Cleans up deleted or converted album IDs from all pre-saving users' Redis sets.
+   */
+  async cleanupUserPreSavedAlbums(albumId: string): Promise<void> {
+    try {
+      const rows = await db
+        .select({ userId: releasePresaves.userId })
+        .from(releasePresaves)
+        .where(eq(releasePresaves.albumId, albumId));
+
+      for (const r of rows) {
+        const key = cacheKeys.social.userPreSavedAlbums(r.userId);
+        await redis.srem(key, albumId).catch(() => {});
+      }
+    } catch (err) {
+      console.warn(`[PresavesCacheService] cleanupUserPreSavedAlbums failed for album ${albumId}:`, err);
+    }
+  }
+
+  /**
    * Pre-save an album:
-   * 1. 100% ACID write to PostgreSQL `release_presaves` and increments counter.
+   * 1. 100% ACID write to PostgreSQL `release_presaves` and increments counter within transaction.
    * 2. Instant Redis set insertion (SADD).
    * 3. Invalidates album public cache.
    */
@@ -124,37 +143,55 @@ export class PresavesCacheService {
       throw new Error("Release not found");
     }
 
-    const isLive =
-      album.status === "PUBLISHED" ||
-      (album.status === "SCHEDULED" &&
-        album.scheduledReleaseAt &&
-        new Date(album.scheduledReleaseAt).getTime() <= Date.now());
+    if (album.scope !== "GLOBAL" || album.visibility !== "PUBLIC") {
+      throw new Error("Only public global releases can be pre-saved");
+    }
 
-    if (isLive) {
+    if (album.status !== "SCHEDULED") {
+      if (album.status === "PUBLISHED") {
+        throw new Error("This release is already published and can be added directly to your library");
+      }
+      throw new Error("This release is not scheduled for release");
+    }
+
+    const now = Date.now();
+    if (album.scheduledReleaseAt && new Date(album.scheduledReleaseAt).getTime() <= now) {
       throw new Error("This release is already published and can be added directly to your library");
     }
 
-    // 1. ACID Insert
-    const [inserted] = await db
-      .insert(releasePresaves)
-      .values({
-        userId,
-        albumId,
-      })
-      .onConflictDoNothing()
-      .returning();
-
-    // 2. Increment counter if newly inserted
-    if (inserted) {
-      await db
-        .update(albums)
-        .set({
-          preSavesCount: sql`${albums.preSavesCount} + 1`,
+    // 1. ACID Transaction
+    const { finalCount } = await db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(releasePresaves)
+        .values({
+          userId,
+          albumId,
         })
-        .where(eq(albums.id, albumId));
-    }
+        .onConflictDoNothing()
+        .returning();
 
-    // 3. Redis Set update
+      if (inserted) {
+        const [updated] = await tx
+          .update(albums)
+          .set({
+            preSavesCount: sql`${albums.preSavesCount} + 1`,
+          })
+          .where(eq(albums.id, albumId))
+          .returning({ preSavesCount: albums.preSavesCount });
+
+        return { finalCount: updated?.preSavesCount ?? 1 };
+      }
+
+      const [existing] = await tx
+        .select({ preSavesCount: albums.preSavesCount })
+        .from(albums)
+        .where(eq(albums.id, albumId))
+        .limit(1);
+
+      return { finalCount: existing?.preSavesCount ?? 0 };
+    });
+
+    // 2. Redis Set update
     const key = cacheKeys.social.userPreSavedAlbums(userId);
     try {
       await redis.srem(key, EMPTY_SENTINEL);
@@ -164,13 +201,7 @@ export class PresavesCacheService {
       console.warn(`[PresavesCacheService] Redis SADD failed for ${key}:`, err);
     }
 
-    const [updated] = await db
-      .select({ preSavesCount: albums.preSavesCount })
-      .from(albums)
-      .where(eq(albums.id, albumId))
-      .limit(1);
-
-    // 4. Invalidate album public cache
+    // 3. Invalidate album public cache
     await cacheManager.invalidateAlbum({
       id: albumId,
       slug: album.slug,
@@ -179,13 +210,13 @@ export class PresavesCacheService {
 
     return {
       preSaved: true,
-      preSavesCount: updated?.preSavesCount ?? 0,
+      preSavesCount: finalCount,
     };
   }
 
   /**
    * Remove pre-save:
-   * 1. ACID delete from PostgreSQL `release_presaves` and decrements counter.
+   * 1. ACID delete from PostgreSQL `release_presaves` and decrements counter within transaction.
    * 2. Instant Redis set removal (SREM).
    * 3. Invalidates album public cache.
    */
@@ -199,24 +230,37 @@ export class PresavesCacheService {
       .where(eq(albums.id, albumId))
       .limit(1);
 
-    const deleted = await db
-      .delete(releasePresaves)
-      .where(
-        and(
-          eq(releasePresaves.userId, userId),
-          eq(releasePresaves.albumId, albumId)
+    const { finalCount } = await db.transaction(async (tx) => {
+      const deleted = await tx
+        .delete(releasePresaves)
+        .where(
+          and(
+            eq(releasePresaves.userId, userId),
+            eq(releasePresaves.albumId, albumId)
+          )
         )
-      )
-      .returning();
+        .returning();
 
-    if (deleted.length > 0) {
-      await db
-        .update(albums)
-        .set({
-          preSavesCount: sql`GREATEST(0, ${albums.preSavesCount} - 1)`,
-        })
-        .where(eq(albums.id, albumId));
-    }
+      if (deleted.length > 0) {
+        const [updated] = await tx
+          .update(albums)
+          .set({
+            preSavesCount: sql`GREATEST(0, ${albums.preSavesCount} - 1)`,
+          })
+          .where(eq(albums.id, albumId))
+          .returning({ preSavesCount: albums.preSavesCount });
+
+        return { finalCount: updated?.preSavesCount ?? 0 };
+      }
+
+      const [existing] = await tx
+        .select({ preSavesCount: albums.preSavesCount })
+        .from(albums)
+        .where(eq(albums.id, albumId))
+        .limit(1);
+
+      return { finalCount: existing?.preSavesCount ?? 0 };
+    });
 
     // 2. Redis Set removal
     const key = cacheKeys.social.userPreSavedAlbums(userId);
@@ -225,12 +269,6 @@ export class PresavesCacheService {
     } catch (err) {
       console.warn(`[PresavesCacheService] Redis SREM failed for ${key}:`, err);
     }
-
-    const [updated] = await db
-      .select({ preSavesCount: albums.preSavesCount })
-      .from(albums)
-      .where(eq(albums.id, albumId))
-      .limit(1);
 
     // 3. Invalidate album public cache
     if (album) {
@@ -243,7 +281,7 @@ export class PresavesCacheService {
 
     return {
       preSaved: false,
-      preSavesCount: updated?.preSavesCount ?? 0,
+      preSavesCount: finalCount,
     };
   }
 }
