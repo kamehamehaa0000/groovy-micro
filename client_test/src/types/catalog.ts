@@ -31,6 +31,13 @@ export interface InitialTrackInput {
   title: string;
   slug?: string;
   genre?: string;
+  primaryGenre?: string;
+  subGenre?: string;
+  moods?: string[];
+  tags?: string[];
+  bpm?: number | null;
+  musicalKey?: string | null;
+  energy?: number | null;
   durationSeconds?: number;
   trackNumber?: number;
   discNumber?: number;
@@ -50,6 +57,10 @@ export interface CreateAlbumInput {
   coverImageUrl: string;
   description?: string;
   genre?: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
   releaseDate?: string;
   allowComments?: boolean;
   tracks?: InitialTrackInput[];
@@ -64,6 +75,10 @@ export interface UpdateAlbumInput {
   coverImageUrl?: string;
   description?: string | null;
   genre?: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
   releaseDate?: string;
   allowComments?: boolean;
 }
@@ -73,6 +88,13 @@ export interface CreateSongInput {
   slug?: string;
   albumId?: string | null;
   genre?: string;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
+  bpm?: number | null;
+  musicalKey?: string | null;
+  energy?: number | null;
   durationSeconds?: number;
   trackNumber?: number;
   discNumber?: number;
@@ -89,6 +111,13 @@ export interface UpdateSongInput {
   slug?: string;
   albumId?: string | null;
   genre?: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
+  bpm?: number | null;
+  musicalKey?: string | null;
+  energy?: number | null;
   durationSeconds?: number;
   trackNumber?: number | null;
   discNumber?: number;
@@ -107,6 +136,13 @@ export interface Song {
   title: string;
   slug: string;
   genre: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
+  bpm?: number | null;
+  musicalKey?: string | null;
+  energy?: number | null;
   durationSeconds: number;
   trackNumber: number | null;
   discNumber: number;
@@ -146,6 +182,10 @@ export interface Album {
   coverImageUrl: string;
   description: string | null;
   genre?: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  moods?: string[];
+  tags?: string[];
   releaseDate: string;
   status?: ReleaseStatus;
   visibility?: ReleaseVisibility;

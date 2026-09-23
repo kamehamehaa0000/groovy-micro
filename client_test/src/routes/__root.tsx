@@ -169,8 +169,20 @@ function RootComponent() {
             </button>
 
             {/* Center: Brand Monogram / Title */}
-            <div>{/*music \ following\*/}</div>
-
+            <div className="flex items-start w-full gap-2">
+              <Link
+                to="/"
+                className="font-serif text-sm tracking-tight mx-1  ml-2 text-ink hover:opacity-80 transition-opacity"
+              >
+                Home
+              </Link>
+              <Link
+                to="/feed"
+                className="font-serif text-sm tracking-tight mx-1 text-ink hover:opacity-80 transition-opacity"
+              >
+                Feed
+              </Link>
+            </div>
             {/* Right: Plus (+) Icon (Quick Action Drawer) */}
             <button
               type="button"
@@ -704,11 +716,17 @@ function RootComponent() {
 
           {/* Editorial Maison Footnote */}
           <footer className="border-t border-line py-8 px-6 text-center">
-            <div className="font-serif italic text-base text-ink mb-1">
-              Grooooooove into it.
-            </div>
             <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
-              High-Fidelity Streaming
+              Groovy Streaming @ 2026 • All Rights Reserved • Made with ❤️ by
+              &nbsp;
+              <a
+                href="https://github.com/kamehamehaa0000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink hover:text-ink-soft "
+              >
+                Aayush Gupta
+              </a>
             </p>
           </footer>
         </div>

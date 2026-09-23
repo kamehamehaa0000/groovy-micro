@@ -67,6 +67,25 @@ export function GlobalAudioEngine() {
 
     // Only skip if track hasn't changed AND audio source is already active
     if (lastTrackIdRef.current === currentTrack.id && hasSource) return;
+
+    // Detect Immediate Skip Telemetry on previous track (< 5 seconds)
+    if (lastTrackIdRef.current && lastTrackIdRef.current !== currentTrack.id) {
+      const prevTrackId = lastTrackIdRef.current;
+      const prevTime = audio.currentTime || 0;
+      if (prevTime < 5 && qualifiedReportedTrackIdRef.current !== prevTrackId) {
+        playerApi
+          .sendTelemetry({
+            songId: prevTrackId,
+            durationListenedSeconds: Math.floor(prevTime),
+            completed: false,
+            countPlay: false,
+            skipped: true,
+            skipDurationSeconds: Math.max(1, Math.floor(prevTime)),
+          })
+          .catch(() => {});
+      }
+    }
+
     lastTrackIdRef.current = currentTrack.id;
     qualifiedReportedTrackIdRef.current = null;
 
@@ -306,6 +325,22 @@ export function GlobalAudioEngine() {
     if (!audio) return;
 
     if (!currentTrack || playbackStatus === "idle") {
+      if (lastTrackIdRef.current) {
+        const prevTrackId = lastTrackIdRef.current;
+        const prevTime = audio.currentTime || 0;
+        if (prevTime < 5 && qualifiedReportedTrackIdRef.current !== prevTrackId) {
+          playerApi
+            .sendTelemetry({
+              songId: prevTrackId,
+              durationListenedSeconds: Math.floor(prevTime),
+              completed: false,
+              countPlay: false,
+              skipped: true,
+              skipDurationSeconds: Math.max(1, Math.floor(prevTime)),
+            })
+            .catch(() => {});
+        }
+      }
       audio.pause();
       audio.src = "";
       destroyHls();

@@ -15,6 +15,13 @@ export const playerTrackSchema = z.object({
   rawAudioKey: z.string().nullish(),
   isExplicit: z.boolean().default(false),
   isLiked: z.boolean().optional(),
+  primaryGenre: z.string().nullish(),
+  subGenre: z.string().nullish(),
+  moods: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  bpm: z.number().nullish(),
+  musicalKey: z.string().nullish(),
+  energy: z.number().nullish(),
 });
 
 export type PlayerTrack = z.infer<typeof playerTrackSchema>;
@@ -81,6 +88,8 @@ export const telemetryPlaySchema = z.object({
   durationListenedSeconds: z.coerce.number().int().nonnegative().default(30),
   completed: z.boolean().default(false),
   countPlay: z.boolean().default(true),
+  skipped: z.boolean().default(false),
+  skipDurationSeconds: z.coerce.number().int().nonnegative().nullish(),
 });
 
 export type TelemetryPlayInput = z.infer<typeof telemetryPlaySchema>;

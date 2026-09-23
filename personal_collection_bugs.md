@@ -1,9 +1,10 @@
 # bugs related to personal collection/vault and catalog
 
-12. songs added to queue does not have option to remove from queue in three dots menu, also queue bar should also have left swipe to remove the song from queue. and the single song bar should have swipe to right to add the song to queue.
-13. after deleting the song permanently/soft delete the player was still able to play it if it was already playing, which is fine but that also means there is no check for soft delete or deleted songs on /stream endpoint, should we have it or not, nor there is a check if the song its requesting is in requesting user's personal collection or not if its a personal collection song.
-14. No go to release or artist page on clicking song's name or artist name on song bar.
-15. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
+1. songs added to queue does not have option to remove from queue in three dots menu, also queue bar should also have left swipe to remove the song from queue. and the single song bar should have swipe to right to add the song to queue.
+2. after deleting the song permanently/soft delete the player was still able to play it if it was already playing, which is fine but that also means there is no check for soft delete or deleted songs on /stream endpoint, should we have it or not, nor there is a check if the song its requesting is in requesting user's personal collection or not if its a personal collection song.
+3. No go to release or artist page on clicking song's name or artist name on song bar.
+4. sometimes creating a room get stuck at loading and then if i reload and then create again it immediately creates and joins.
+5. creating new pages and making the current one responsive.
 
 # Need to verify once more -
 

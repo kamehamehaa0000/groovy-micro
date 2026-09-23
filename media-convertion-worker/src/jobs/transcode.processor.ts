@@ -84,6 +84,9 @@ export async function processTranscodeJob(job: Job<TranscodeJobPayload>): Promis
         hlsManifestUrl,
         durationSeconds: analysis.durationSeconds || undefined,
         audioAnalysis: analysis,
+        bpm: analysis.musical?.bpm || undefined,
+        musicalKey: analysis.musical?.key || undefined,
+        energy: analysis.energy !== undefined ? analysis.energy : undefined,
         updatedAt: new Date(),
       })
       .where(eq(songs.id, songId));

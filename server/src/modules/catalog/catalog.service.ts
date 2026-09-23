@@ -295,7 +295,11 @@ export class CatalogService {
           albumType: input.albumType,
           coverImageUrl: albumCoverUrl,
           description: input.description ?? null,
-          genre: input.genre ?? (input.tracks?.[0]?.genre ?? null),
+          genre: input.primaryGenre || input.genre || (input.tracks?.[0]?.primaryGenre ?? input.tracks?.[0]?.genre ?? null),
+          primaryGenre: input.primaryGenre ?? (input.tracks?.[0]?.primaryGenre ?? null),
+          subGenre: input.subGenre ?? (input.tracks?.[0]?.subGenre ?? null),
+          moods: input.moods ?? [],
+          tags: input.tags ?? [],
           releaseDate: releaseDateDay,
           status: isScheduled ? "SCHEDULED" : "PUBLISHED",
           visibility,
@@ -341,7 +345,14 @@ export class CatalogService {
               albumId: newAlbum.id,
               title: trackInput.title,
               slug: songSlug,
-              genre: trackInput.genre ?? null,
+              genre: trackInput.primaryGenre || trackInput.genre || input.primaryGenre || input.genre || null,
+              primaryGenre: trackInput.primaryGenre ?? input.primaryGenre ?? null,
+              subGenre: trackInput.subGenre ?? input.subGenre ?? null,
+              moods: (trackInput.moods && trackInput.moods.length > 0) ? trackInput.moods : (input.moods ?? []),
+              tags: (trackInput.tags && trackInput.tags.length > 0) ? trackInput.tags : (input.tags ?? []),
+              bpm: trackInput.bpm ?? null,
+              musicalKey: trackInput.musicalKey ?? null,
+              energy: trackInput.energy ?? null,
               durationSeconds: trackInput.durationSeconds,
               trackNumber,
               discNumber: trackInput.discNumber ?? 1,
@@ -474,6 +485,10 @@ export class CatalogService {
             coverImageUrl: albums.coverImageUrl,
             description: albums.description,
             genre: albums.genre,
+            primaryGenre: albums.primaryGenre,
+            subGenre: albums.subGenre,
+            moods: albums.moods,
+            tags: albums.tags,
             releaseDate: albums.releaseDate,
             status: albums.status,
             visibility: albums.visibility,
@@ -517,6 +532,13 @@ export class CatalogService {
             title: songs.title,
             slug: songs.slug,
             genre: songs.genre,
+            primaryGenre: songs.primaryGenre,
+            subGenre: songs.subGenre,
+            moods: songs.moods,
+            tags: songs.tags,
+            bpm: songs.bpm,
+            musicalKey: songs.musicalKey,
+            energy: songs.energy,
             durationSeconds: songs.durationSeconds,
             trackNumber: songs.trackNumber,
             discNumber: songs.discNumber,
@@ -727,6 +749,10 @@ export class CatalogService {
         ...(input.coverImageUrl ? { coverImageUrl: this.ensureFullUrl(input.coverImageUrl)! } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.genre !== undefined ? { genre: input.genre } : {}),
+        ...(input.primaryGenre !== undefined ? { primaryGenre: input.primaryGenre } : {}),
+        ...(input.subGenre !== undefined ? { subGenre: input.subGenre } : {}),
+        ...(input.moods !== undefined ? { moods: input.moods } : {}),
+        ...(input.tags !== undefined ? { tags: input.tags } : {}),
         ...(input.releaseDate ? { releaseDate: input.releaseDate } : {}),
         status: isScheduled ? "SCHEDULED" : "PUBLISHED",
         visibility,
@@ -1049,6 +1075,11 @@ export class CatalogService {
           slug: singleSlug,
           albumType: "SINGLE",
           coverImageUrl: coverUrl,
+          genre: input.primaryGenre || input.genre || null,
+          primaryGenre: input.primaryGenre ?? null,
+          subGenre: input.subGenre ?? null,
+          moods: input.moods ?? [],
+          tags: input.tags ?? [],
           releaseDate: new Date().toISOString().split("T")[0],
           totalTracks: 1,
           totalDurationSeconds: input.durationSeconds || 0,
@@ -1082,7 +1113,14 @@ export class CatalogService {
           albumId: targetAlbumId,
           title: input.title,
           slug: finalSlug,
-          genre: input.genre ?? null,
+          genre: input.primaryGenre || input.genre || null,
+          primaryGenre: input.primaryGenre ?? null,
+          subGenre: input.subGenre ?? null,
+          moods: input.moods ?? [],
+          tags: input.tags ?? [],
+          bpm: input.bpm ?? null,
+          musicalKey: input.musicalKey ?? null,
+          energy: input.energy ?? null,
           durationSeconds: input.durationSeconds,
           trackNumber,
           discNumber: input.discNumber ?? 1,
@@ -1204,6 +1242,13 @@ export class CatalogService {
             title: songs.title,
             slug: songs.slug,
             genre: songs.genre,
+            primaryGenre: songs.primaryGenre,
+            subGenre: songs.subGenre,
+            moods: songs.moods,
+            tags: songs.tags,
+            bpm: songs.bpm,
+            musicalKey: songs.musicalKey,
+            energy: songs.energy,
             durationSeconds: songs.durationSeconds,
             trackNumber: songs.trackNumber,
             discNumber: songs.discNumber,
@@ -1402,6 +1447,13 @@ export class CatalogService {
           slug: finalSlug,
           albumId: finalAlbumId,
           ...(input.genre !== undefined ? { genre: input.genre } : {}),
+          ...(input.primaryGenre !== undefined ? { primaryGenre: input.primaryGenre } : {}),
+          ...(input.subGenre !== undefined ? { subGenre: input.subGenre } : {}),
+          ...(input.moods !== undefined ? { moods: input.moods } : {}),
+          ...(input.tags !== undefined ? { tags: input.tags } : {}),
+          ...(input.bpm !== undefined ? { bpm: input.bpm } : {}),
+          ...(input.musicalKey !== undefined ? { musicalKey: input.musicalKey } : {}),
+          ...(input.energy !== undefined ? { energy: input.energy } : {}),
           ...(input.durationSeconds !== undefined
             ? { durationSeconds: input.durationSeconds }
             : {}),
@@ -1956,6 +2008,18 @@ export class CatalogService {
     if (query.artistId) {
       conditions.push(eq(albums.artistId, query.artistId));
     }
+    if (query.primaryGenre) {
+      conditions.push(ilike(albums.primaryGenre, `%${query.primaryGenre}%`));
+    }
+    if (query.subGenre) {
+      conditions.push(ilike(albums.subGenre, `%${query.subGenre}%`));
+    }
+    if (query.mood) {
+      conditions.push(sql`${albums.moods} @> ${JSON.stringify([query.mood])}::jsonb`);
+    }
+    if (query.tag) {
+      conditions.push(sql`${albums.tags} @> ${JSON.stringify([query.tag])}::jsonb`);
+    }
     if (query.search) {
       conditions.push(
         or(
@@ -1985,6 +2049,10 @@ export class CatalogService {
         albumType: albums.albumType,
         coverImageUrl: albums.coverImageUrl,
         genre: albums.genre,
+        primaryGenre: albums.primaryGenre,
+        subGenre: albums.subGenre,
+        moods: albums.moods,
+        tags: albums.tags,
         releaseDate: albums.releaseDate,
         status: albums.status,
         visibility: albums.visibility,
@@ -2029,6 +2097,18 @@ export class CatalogService {
     if (query.genre) {
       conditions.push(ilike(songs.genre, `%${query.genre}%`));
     }
+    if (query.primaryGenre) {
+      conditions.push(ilike(songs.primaryGenre, `%${query.primaryGenre}%`));
+    }
+    if (query.subGenre) {
+      conditions.push(ilike(songs.subGenre, `%${query.subGenre}%`));
+    }
+    if (query.mood) {
+      conditions.push(sql`${songs.moods} @> ${JSON.stringify([query.mood])}::jsonb`);
+    }
+    if (query.tag) {
+      conditions.push(sql`${songs.tags} @> ${JSON.stringify([query.tag])}::jsonb`);
+    }
     if (query.artistId) {
       conditions.push(eq(songs.artistId, query.artistId));
     }
@@ -2070,6 +2150,13 @@ export class CatalogService {
         title: songs.title,
         slug: songs.slug,
         genre: songs.genre,
+        primaryGenre: songs.primaryGenre,
+        subGenre: songs.subGenre,
+        moods: songs.moods,
+        tags: songs.tags,
+        bpm: songs.bpm,
+        musicalKey: songs.musicalKey,
+        energy: songs.energy,
         durationSeconds: songs.durationSeconds,
         trackNumber: songs.trackNumber,
         isExplicit: songs.isExplicit,
@@ -2247,6 +2334,14 @@ export class CatalogService {
         albumId: songs.albumId,
         title: songs.title,
         slug: songs.slug,
+        genre: songs.genre,
+        primaryGenre: songs.primaryGenre,
+        subGenre: songs.subGenre,
+        moods: songs.moods,
+        tags: songs.tags,
+        bpm: songs.bpm,
+        musicalKey: songs.musicalKey,
+        energy: songs.energy,
         durationSeconds: songs.durationSeconds,
         isExplicit: songs.isExplicit,
         audioUrl: songs.audioUrl,
@@ -2576,6 +2671,14 @@ export class CatalogService {
         albumId: songs.albumId,
         title: songs.title,
         slug: songs.slug,
+        genre: songs.genre,
+        primaryGenre: songs.primaryGenre,
+        subGenre: songs.subGenre,
+        moods: songs.moods,
+        tags: songs.tags,
+        bpm: songs.bpm,
+        musicalKey: songs.musicalKey,
+        energy: songs.energy,
         durationSeconds: songs.durationSeconds,
         isExplicit: songs.isExplicit,
         audioUrl: songs.audioUrl,

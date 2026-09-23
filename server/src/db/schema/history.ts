@@ -21,6 +21,8 @@ export const listeningHistory = pgTable(
       .references(() => songs.id, { onDelete: "cascade" }),
     durationListenedSeconds: integer("duration_listened_seconds").notNull(),
     completed: boolean("completed").notNull().default(false),
+    skipped: boolean("skipped").notNull().default(false),
+    skipDurationSeconds: integer("skip_duration_seconds"),
     playedAt: timestamp("played_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

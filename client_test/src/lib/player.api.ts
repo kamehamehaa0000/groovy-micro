@@ -27,6 +27,8 @@ export interface TelemetryPayload {
   durationListenedSeconds: number;
   completed?: boolean;
   countPlay?: boolean;
+  skipped?: boolean;
+  skipDurationSeconds?: number | null;
 }
 
 export interface RecentHistoryItem {
@@ -39,6 +41,13 @@ export interface RecentHistoryItem {
     title: string;
     slug: string;
     genre: string | null;
+    primaryGenre?: string | null;
+    subGenre?: string | null;
+    moods?: string[];
+    tags?: string[];
+    bpm?: number | null;
+    musicalKey?: string | null;
+    energy?: number | null;
     durationSeconds: number;
     isExplicit: boolean;
     coverImageUrl: string | null;

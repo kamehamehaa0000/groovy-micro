@@ -256,14 +256,33 @@ export function detectBpm(filePath: string, durationSeconds: number, probedBpm?:
 }
 
 /**
+ * Computes a normalized perceived energy metric (0.0 to 1.0) based on integrated loudness (LUFS)
+ * and detected tempo (BPM).
+ * - Integrated LUFS typical music range: -24 LUFS (quiet/ambient) to -6 LUFS (loud master)
+ * - BPM typical range: 60 BPM to 175 BPM
+ */
+export function computeEnergy(
+  loudness: { integratedLufs: number; loudnessRangeLu: number },
+  bpm?: number
+): number {
+  const lufsNorm = Math.min(1, Math.max(0, (loudness.integratedLufs - -24) / (-6 - -24)));
+  const bpmNorm = bpm ? Math.min(1, Math.max(0, (bpm - 60) / (175 - 60))) : 0.5;
+  const rawEnergy = lufsNorm * 0.65 + bpmNorm * 0.35;
+  const clamped = Math.min(0.99, Math.max(0.05, rawEnergy));
+  return Math.round(clamped * 100) / 100;
+}
+
+/**
  * Comprehensive audio analysis pipeline extracting technical specs, EBU R128 loudness,
- * a 100-point waveform peak array, and musical BPM.
+ * a 100-point waveform peak array, musical BPM, and energy metric.
  */
 export function analyzeAudio(filePath: string): SongAudioAnalysis {
   const probe = probeAudio(filePath);
   const loudness = extractLoudness(filePath);
   const waveform = extractWaveform(filePath, 100);
   const bpm = detectBpm(filePath, probe.durationSeconds, probe.probedBpm);
+  const resolvedBpm = bpm || probe.probedBpm;
+  const energy = computeEnergy(loudness, resolvedBpm);
 
   return {
     durationSeconds: probe.durationSeconds,
@@ -277,8 +296,9 @@ export function analyzeAudio(filePath: string): SongAudioAnalysis {
     loudness,
     waveform,
     musical: {
-      bpm: bpm || probe.probedBpm,
+      bpm: resolvedBpm,
       key: probe.probedKey,
     },
+    energy,
   };
 }

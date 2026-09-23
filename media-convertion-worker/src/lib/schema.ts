@@ -9,6 +9,7 @@ import {
   timestamp,
   jsonb,
   pgEnum,
+  real,
 } from "drizzle-orm/pg-core";
 
 export const songStatusEnum = pgEnum("song_status", [
@@ -37,6 +38,7 @@ export interface SongAudioAnalysis {
     bpm?: number;
     key?: string;
   };
+  energy?: number;
 }
 
 export const songs = pgTable("songs", {
@@ -46,6 +48,13 @@ export const songs = pgTable("songs", {
   title: varchar("title", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 160 }).notNull(),
   genre: varchar("genre", { length: 60 }),
+  primaryGenre: varchar("primary_genre", { length: 60 }),
+  subGenre: varchar("sub_genre", { length: 80 }),
+  moods: jsonb("moods").$type<string[]>().default([]),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  bpm: integer("bpm"),
+  musicalKey: varchar("musical_key", { length: 20 }),
+  energy: real("energy"),
   durationSeconds: integer("duration_seconds").notNull().default(0),
   trackNumber: integer("track_number").default(1),
   discNumber: integer("disc_number").default(1),

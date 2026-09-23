@@ -199,6 +199,8 @@ export class PlayerService {
         songId: input.songId,
         durationListenedSeconds: input.durationListenedSeconds,
         completed: input.completed,
+        skipped: input.skipped ?? false,
+        skipDurationSeconds: input.skipDurationSeconds ?? null,
       });
     }
 
@@ -228,6 +230,13 @@ export class PlayerService {
           title: songs.title,
           slug: songs.slug,
           genre: songs.genre,
+          primaryGenre: songs.primaryGenre,
+          subGenre: songs.subGenre,
+          moods: songs.moods,
+          tags: songs.tags,
+          bpm: songs.bpm,
+          musicalKey: songs.musicalKey,
+          energy: songs.energy,
           durationSeconds: songs.durationSeconds,
           isExplicit: songs.isExplicit,
           coverImageUrl: songs.coverImageUrl,
@@ -249,6 +258,7 @@ export class PlayerService {
       .where(
         and(
           eq(listeningHistory.userId, userId),
+          eq(listeningHistory.skipped, false),
           isNull(songs.deletedAt),
           includePersonal
             ? or(

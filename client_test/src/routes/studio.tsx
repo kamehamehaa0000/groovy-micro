@@ -23,6 +23,11 @@ import {
   type SelectedCredit,
 } from '../components/ArtistCreditPicker'
 import { ImageCropModal } from '../components/common/ImageCropModal'
+import {
+  PRIMARY_GENRES,
+  GENRE_SUBGENRES_MAP,
+  CATALOG_MOODS,
+} from '../lib/taxonomy'
 
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
@@ -35,6 +40,13 @@ interface TrackDraft {
   id: string
   title: string
   genre: string
+  primaryGenre?: string
+  subGenre?: string
+  moods?: string[]
+  tags?: string[]
+  bpm?: number | null
+  musicalKey?: string | null
+  energy?: number | null
   durationSeconds: number
   isExplicit: boolean
   rawAudioKey?: string
@@ -50,6 +62,13 @@ interface EditTrackDraft {
   id: string
   title: string
   genre: string
+  primaryGenre?: string
+  subGenre?: string
+  moods?: string[]
+  tags?: string[]
+  bpm?: number | null
+  musicalKey?: string | null
+  energy?: number | null
   durationSeconds: number
   isExplicit: boolean
   coverImageUrl?: string
@@ -111,6 +130,11 @@ function StudioComponent() {
   const [releaseTitle, setReleaseTitle] = useState('')
   const [releaseType, setReleaseType] = useState<AlbumType>('SINGLE')
   const [releaseDescription, setReleaseDescription] = useState('')
+  const [releasePrimaryGenre, setReleasePrimaryGenre] = useState<string>('')
+  const [releaseSubGenre, setReleaseSubGenre] = useState<string>('')
+  const [releaseMoods, setReleaseMoods] = useState<string[]>([])
+  const [releaseTags, setReleaseTags] = useState<string[]>([])
+  const [releaseTagInput, setReleaseTagInput] = useState<string>('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
   const [releaseCoverFile, setReleaseCoverFile] = useState<File | null>(null)
   const [releaseCoverPreview, setReleaseCoverPreview] = useState<string | null>(null)
@@ -131,6 +155,11 @@ function StudioComponent() {
   const [editReleaseTitle, setEditReleaseTitle] = useState('')
   const [editReleaseType, setEditReleaseType] = useState<AlbumType>('ALBUM')
   const [editReleaseGenre, setEditReleaseGenre] = useState('')
+  const [editReleasePrimaryGenre, setEditReleasePrimaryGenre] = useState<string>('')
+  const [editReleaseSubGenre, setEditReleaseSubGenre] = useState<string>('')
+  const [editReleaseMoods, setEditReleaseMoods] = useState<string[]>([])
+  const [editReleaseTags, setEditReleaseTags] = useState<string[]>([])
+  const [editReleaseTagInput, setEditReleaseTagInput] = useState<string>('')
   const [editReleaseDescription, setEditReleaseDescription] = useState('')
   const [editReleaseCoverUrl, setEditReleaseCoverUrl] = useState('')
   const [isUploadingEditCover, setIsUploadingEditCover] = useState(false)
@@ -156,6 +185,8 @@ function StudioComponent() {
 
   // Single-release specific fields (when releaseType === 'SINGLE')
   const [singleTrackGenre, setSingleTrackGenre] = useState('')
+  const [singleTrackBpm, setSingleTrackBpm] = useState<number | null>(null)
+  const [singleTrackKey, setSingleTrackKey] = useState('')
   const [singleTrackDuration, setSingleTrackDuration] = useState(0)
   const [singleTrackExplicit, setSingleTrackExplicit] = useState(false)
   const [singleTrackAudioUrl, setSingleTrackAudioUrl] = useState('')
@@ -650,6 +681,11 @@ function StudioComponent() {
     setReleaseTitle('')
     setReleaseType('SINGLE')
     setReleaseDescription('')
+    setReleasePrimaryGenre('')
+    setReleaseSubGenre('')
+    setReleaseMoods([])
+    setReleaseTags([])
+    setReleaseTagInput('')
     setReleaseCoverUrl('')
     setReleaseCoverFile(null)
     setReleaseCoverPreview(null)
@@ -659,6 +695,8 @@ function StudioComponent() {
     setReleaseVisibility('PUBLIC')
     setReleaseAllowComments(true)
     setSingleTrackGenre('')
+    setSingleTrackBpm(null)
+    setSingleTrackKey('')
     setSingleTrackDuration(0)
     setSingleTrackExplicit(false)
     setSingleTrackAudioUrl('')
@@ -700,6 +738,21 @@ function StudioComponent() {
       // Prefill Genre if empty
       if (!singleTrackGenre.trim() && parsed.genre) {
         setSingleTrackGenre(parsed.genre)
+      }
+      if (!releasePrimaryGenre && parsed.primaryGenre) {
+        setReleasePrimaryGenre(parsed.primaryGenre)
+        if (parsed.subGenre) {
+          setReleaseSubGenre(parsed.subGenre)
+        }
+      }
+      if (releaseMoods.length === 0 && parsed.moods && parsed.moods.length > 0) {
+        setReleaseMoods(parsed.moods.slice(0, 3))
+      }
+      if (parsed.bpm) {
+        setSingleTrackBpm(parsed.bpm)
+      }
+      if (parsed.musicalKey) {
+        setSingleTrackKey(parsed.musicalKey)
       }
 
       // Prefill Duration
@@ -909,11 +962,35 @@ function StudioComponent() {
         }
       }
 
+      // Prefill Primary Genre & Subgenre if empty
+      if (!releasePrimaryGenre) {
+        const firstWithPrimary = uniqueParsedList.find((t) => t.primaryGenre)
+        if (firstWithPrimary && firstWithPrimary.primaryGenre) {
+          setReleasePrimaryGenre(firstWithPrimary.primaryGenre)
+          if (firstWithPrimary.subGenre) {
+            setReleaseSubGenre(firstWithPrimary.subGenre)
+          }
+        }
+      }
+      // Prefill Moods if empty
+      if (releaseMoods.length === 0) {
+        const firstWithMoods = uniqueParsedList.find((t) => t.moods && t.moods.length > 0)
+        if (firstWithMoods && firstWithMoods.moods) {
+          setReleaseMoods(firstWithMoods.moods.slice(0, 3))
+        }
+      }
+
       // 4. Create TrackDraft entries
       const newDrafts: TrackDraft[] = uniqueParsedList.map((p) => ({
         id: crypto.randomUUID(),
         title: p.title,
-        genre: p.genre || '',
+        genre: p.primaryGenre || p.genre || '',
+        primaryGenre: p.primaryGenre,
+        subGenre: p.subGenre,
+        moods: p.moods || [],
+        tags: p.tags || [],
+        bpm: p.bpm,
+        musicalKey: p.musicalKey,
         durationSeconds: p.durationSeconds,
         isExplicit: p.isExplicit,
         audioFileName: p.file.name,
@@ -1063,7 +1140,13 @@ function StudioComponent() {
         const singleTrackPayload = [
           {
             title: releaseTitle.trim(),
-            genre: singleTrackGenre.trim() || undefined,
+            genre: releasePrimaryGenre || singleTrackGenre.trim() || undefined,
+            primaryGenre: releasePrimaryGenre || undefined,
+            subGenre: releaseSubGenre || undefined,
+            moods: releaseMoods.length > 0 ? releaseMoods : undefined,
+            tags: releaseTags.length > 0 ? releaseTags : undefined,
+            bpm: singleTrackBpm || undefined,
+            musicalKey: singleTrackKey.trim() || undefined,
             durationSeconds: singleTrackDuration,
             trackNumber: 1,
             discNumber: 1,
@@ -1086,6 +1169,11 @@ function StudioComponent() {
           albumType: 'SINGLE',
           coverImageUrl: finalCoverUrl,
           description: releaseDescription.trim() || undefined,
+          genre: releasePrimaryGenre || singleTrackGenre.trim() || undefined,
+          primaryGenre: releasePrimaryGenre || undefined,
+          subGenre: releaseSubGenre || undefined,
+          moods: releaseMoods.length > 0 ? releaseMoods : undefined,
+          tags: releaseTags.length > 0 ? releaseTags : undefined,
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
           visibility: releaseVisibility,
@@ -1107,7 +1195,13 @@ function StudioComponent() {
 
         const tracksPayload = draftTracks.map((t, idx) => ({
           title: t.title.trim() || `Cut ${idx + 1}`,
-          genre: t.genre.trim() || undefined,
+          genre: t.primaryGenre || t.genre.trim() || releasePrimaryGenre || undefined,
+          primaryGenre: t.primaryGenre || releasePrimaryGenre || undefined,
+          subGenre: t.subGenre || releaseSubGenre || undefined,
+          moods: (t.moods && t.moods.length > 0) ? t.moods : (releaseMoods.length > 0 ? releaseMoods : undefined),
+          tags: (t.tags && t.tags.length > 0) ? t.tags : (releaseTags.length > 0 ? releaseTags : undefined),
+          bpm: t.bpm || undefined,
+          musicalKey: t.musicalKey || undefined,
           durationSeconds: t.durationSeconds,
           trackNumber: idx + 1,
           discNumber: 1,
@@ -1129,6 +1223,11 @@ function StudioComponent() {
           albumType: releaseType,
           coverImageUrl: finalCoverUrl,
           description: releaseDescription.trim() || undefined,
+          genre: releasePrimaryGenre || undefined,
+          primaryGenre: releasePrimaryGenre || undefined,
+          subGenre: releaseSubGenre || undefined,
+          moods: releaseMoods.length > 0 ? releaseMoods : undefined,
+          tags: releaseTags.length > 0 ? releaseTags : undefined,
           releaseDate: todayDate,
           scheduledReleaseAt: scheduledReleaseAtIso,
           visibility: releaseVisibility,
@@ -1196,6 +1295,11 @@ function StudioComponent() {
     setEditReleaseTitle(album.title)
     setEditReleaseType(album.albumType)
     setEditReleaseGenre(album.genre || '')
+    setEditReleasePrimaryGenre(album.primaryGenre || '')
+    setEditReleaseSubGenre(album.subGenre || '')
+    setEditReleaseMoods(album.moods || [])
+    setEditReleaseTags(album.tags || [])
+    setEditReleaseTagInput('')
     setEditReleaseDescription(album.description || '')
     setEditReleaseCoverUrl(album.coverImageUrl)
     setEditReleaseVisibility(album.visibility || 'PUBLIC')
@@ -1228,6 +1332,13 @@ function StudioComponent() {
             id: t.id,
             title: t.title,
             genre: t.genre || '',
+            primaryGenre: t.primaryGenre || undefined,
+            subGenre: t.subGenre || undefined,
+            moods: t.moods || [],
+            tags: t.tags || [],
+            bpm: t.bpm,
+            musicalKey: t.musicalKey,
+            energy: t.energy,
             isExplicit: t.isExplicit,
             coverImageUrl: t.coverImageUrl || undefined,
             durationSeconds: t.durationSeconds,
@@ -1324,7 +1435,11 @@ function StudioComponent() {
       await catalogApi.updateAlbum(editingAlbum.id, {
         title: editReleaseTitle.trim(),
         albumType: editReleaseType,
-        genre: editReleaseGenre.trim() || null,
+        genre: editReleasePrimaryGenre || editReleaseGenre.trim() || null,
+        primaryGenre: editReleasePrimaryGenre || null,
+        subGenre: editReleaseSubGenre || null,
+        moods: editReleaseMoods,
+        tags: editReleaseTags,
         description: editReleaseDescription.trim() || null,
         coverImageUrl: editReleaseCoverUrl,
         visibility: editReleaseVisibility,
@@ -1337,7 +1452,13 @@ function StudioComponent() {
         for (const track of editTracks) {
           await catalogApi.updateSong(track.id, {
             title: track.title.trim() || undefined,
-            genre: track.genre.trim() || null,
+            genre: track.primaryGenre || track.genre.trim() || null,
+            primaryGenre: track.primaryGenre || null,
+            subGenre: track.subGenre || null,
+            moods: track.moods,
+            tags: track.tags,
+            bpm: track.bpm,
+            musicalKey: track.musicalKey,
             isExplicit: track.isExplicit,
             coverImageUrl: track.coverImageUrl || undefined,
             credits: track.credits.map((c) => ({
@@ -2157,6 +2278,149 @@ function StudioComponent() {
                   </div>
                 </div>
 
+                {/* Release Taxonomy & Classification */}
+                <div className="space-y-4 pt-2 border-t border-line-soft">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Primary Genre Dropdown */}
+                    <div>
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                        Primary Genre
+                      </label>
+                      <select
+                        value={releasePrimaryGenre}
+                        onChange={(e) => {
+                          setReleasePrimaryGenre(e.target.value)
+                          setReleaseSubGenre('')
+                        }}
+                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      >
+                        <option value="">Select Primary Genre...</option>
+                        {PRIMARY_GENRES.map((g) => (
+                          <option key={g} value={g}>
+                            {g}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
+                    <div>
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                        Sub-Genre (Optional)
+                      </label>
+                      <select
+                        value={releaseSubGenre}
+                        onChange={(e) => setReleaseSubGenre(e.target.value)}
+                        disabled={!releasePrimaryGenre || !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length}
+                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                      >
+                        <option value="">Select Sub-Genre...</option>
+                        {releasePrimaryGenre &&
+                          GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.map((sg) => (
+                            <option key={sg} value={sg}>
+                              {sg}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Mood Selection (1-3 optional) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink">
+                        Musical Moods (Select 1 to 3)
+                      </label>
+                      <span className="font-mono text-[9px] text-ink-soft">
+                        {releaseMoods.length}/3 selected
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CATALOG_MOODS.map((mood) => {
+                        const isSelected = releaseMoods.includes(mood)
+                        return (
+                          <button
+                            key={mood}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setReleaseMoods(releaseMoods.filter((m) => m !== mood))
+                              } else if (releaseMoods.length < 3) {
+                                setReleaseMoods([...releaseMoods, mood])
+                              }
+                            }}
+                            className={`font-mono text-[10px] uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'border-ink bg-ink text-canvas font-semibold'
+                                : 'border-line bg-canvas text-ink-soft hover:text-ink hover:border-ink/50'
+                            }`}
+                          >
+                            {mood}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Tags */}
+                  <div>
+                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                      Catalog Tags (Press Enter to add)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={releaseTagInput}
+                        onChange={(e) => setReleaseTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            const trimmed = releaseTagInput.trim().toLowerCase()
+                            if (trimmed && !releaseTags.includes(trimmed)) {
+                              setReleaseTags([...releaseTags, trimmed])
+                              setReleaseTagInput('')
+                            }
+                          }
+                        }}
+                        placeholder="e.g. lo-fi, instrumental, summer, acoustic"
+                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const trimmed = releaseTagInput.trim().toLowerCase()
+                          if (trimmed && !releaseTags.includes(trimmed)) {
+                            setReleaseTags([...releaseTags, trimmed])
+                            setReleaseTagInput('')
+                          }
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink cursor-pointer"
+                      >
+                        + Add Tag
+                      </button>
+                    </div>
+                    {releaseTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {releaseTags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink flex items-center gap-1.5"
+                          >
+                            <span>#{tag}</span>
+                            <button
+                              type="button"
+                              onClick={() => setReleaseTags(releaseTags.filter((t) => t !== tag))}
+                              className="text-ink-soft hover:text-red-500 cursor-pointer ml-1"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Liner Notes & Description */}
                 <div>
                   <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
@@ -2276,18 +2540,48 @@ function StudioComponent() {
                       )}
                     </div>
 
-                    {/* Genre Input */}
-                    <div>
-                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
-                        Genre
-                      </label>
-                      <input
-                        type="text"
-                        value={singleTrackGenre}
-                        onChange={(e) => setSingleTrackGenre(e.target.value)}
-                        placeholder="e.g. Modern Jazz, Neo-Soul, Ambient Electronic"
-                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
-                      />
+                    {/* Genre, BPM & Musical Key */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                          Track Genre
+                        </label>
+                        <input
+                          type="text"
+                          value={singleTrackGenre}
+                          onChange={(e) => setSingleTrackGenre(e.target.value)}
+                          placeholder={releasePrimaryGenre || 'e.g. Modern Jazz'}
+                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                          BPM (Tempo)
+                        </label>
+                        <input
+                          type="number"
+                          min={30}
+                          max={300}
+                          value={singleTrackBpm ?? ''}
+                          onChange={(e) =>
+                            setSingleTrackBpm(e.target.value ? Number(e.target.value) : null)
+                          }
+                          placeholder="e.g. 120"
+                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                          Musical Key
+                        </label>
+                        <input
+                          type="text"
+                          value={singleTrackKey}
+                          onChange={(e) => setSingleTrackKey(e.target.value)}
+                          placeholder="e.g. C min, F# maj"
+                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        />
+                      </div>
                     </div>
 
                     {/* Collaborator & Credit Attribution */}
@@ -2492,6 +2786,45 @@ function StudioComponent() {
                                   ✕
                                 </button>
                               )}
+                            </div>
+                          </div>
+
+                          {/* Acoustic Details (BPM & Musical Key) */}
+                          <div className="flex items-center gap-3 pt-1 border-t border-line-soft/40">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                              Acoustics:
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <label className="font-mono text-[8.5px] uppercase text-ink-soft">BPM</label>
+                              <input
+                                type="number"
+                                min={30}
+                                max={300}
+                                placeholder="Auto/120"
+                                value={draft.bpm ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value ? Number(e.target.value) : null
+                                  setDraftTracks((prev) =>
+                                    prev.map((t) => (t.id === draft.id ? { ...t, bpm: val } : t)),
+                                  )
+                                }}
+                                className="w-20 font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <label className="font-mono text-[8.5px] uppercase text-ink-soft">Key</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. C min"
+                                value={draft.musicalKey ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setDraftTracks((prev) =>
+                                    prev.map((t) => (t.id === draft.id ? { ...t, musicalKey: val } : t)),
+                                  )
+                                }}
+                                className="w-24 font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink"
+                              />
                             </div>
                           </div>
 
@@ -3667,61 +4000,188 @@ function StudioComponent() {
                   </div>
                 </div>
 
-                {/* Genre & Cover Art Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
-                  <div>
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Primary Genre
-                    </label>
-                    <input
-                      type="text"
-                      value={editReleaseGenre}
-                      onChange={(e) => setEditReleaseGenre(e.target.value)}
-                      placeholder="e.g. Neo-Soul, Ambient Jazz, Synthwave"
-                      className="w-full font-mono text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
-                    />
-                    <p className="font-mono text-[9px] text-ink-soft mt-1.5">
-                      Used for catalog indexing, genre discovery &amp; radio curation.
-                    </p>
+                {/* Taxonomy & Classification Row */}
+                <div className="space-y-4 pt-2 border-t border-line-soft">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Primary Genre Dropdown */}
+                    <div>
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                        Primary Genre
+                      </label>
+                      <select
+                        value={editReleasePrimaryGenre}
+                        onChange={(e) => {
+                          setEditReleasePrimaryGenre(e.target.value)
+                          setEditReleaseSubGenre('')
+                        }}
+                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      >
+                        <option value="">Select Primary Genre...</option>
+                        {PRIMARY_GENRES.map((g) => (
+                          <option key={g} value={g}>
+                            {g}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="font-mono text-[9px] text-ink-soft mt-1.5">
+                        Used for catalog indexing, genre discovery &amp; radio curation.
+                      </p>
+                    </div>
+
+                    {/* Sub-Genre Dropdown */}
+                    <div>
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                        Sub-Genre (Optional)
+                      </label>
+                      <select
+                        value={editReleaseSubGenre}
+                        onChange={(e) => setEditReleaseSubGenre(e.target.value)}
+                        disabled={!editReleasePrimaryGenre || !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.length}
+                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                      >
+                        <option value="">Select Sub-Genre...</option>
+                        {editReleasePrimaryGenre &&
+                          GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.map((sg) => (
+                            <option key={sg} value={sg}>
+                              {sg}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {/* Cover Artwork */}
+                  {/* Mood Selection (1-3 optional) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink">
+                        Musical Moods (Select 1 to 3)
+                      </label>
+                      <span className="font-mono text-[9px] text-ink-soft">
+                        {editReleaseMoods.length}/3 selected
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CATALOG_MOODS.map((mood) => {
+                        const isSelected = editReleaseMoods.includes(mood)
+                        return (
+                          <button
+                            key={mood}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setEditReleaseMoods(editReleaseMoods.filter((m) => m !== mood))
+                              } else if (editReleaseMoods.length < 3) {
+                                setEditReleaseMoods([...editReleaseMoods, mood])
+                              }
+                            }}
+                            className={`font-mono text-[10px] uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'border-ink bg-ink text-canvas font-semibold'
+                                : 'border-line bg-canvas text-ink-soft hover:text-ink hover:border-ink/50'
+                            }`}
+                          >
+                            {mood}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Tags */}
                   <div>
                     <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
-                      Master Cover Artwork
+                      Catalog Tags (Press Enter to add)
                     </label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden flex items-center justify-center">
-                        {editReleaseCoverUrl ? (
-                          <img
-                            src={editReleaseCoverUrl}
-                            alt="Cover preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
-                          <span>
-                            {isUploadingEditCover
-                              ? 'Uploading to R2...'
-                              : 'Upload Replacement Artwork'}
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={editReleaseTagInput}
+                        onChange={(e) => setEditReleaseTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            const trimmed = editReleaseTagInput.trim().toLowerCase()
+                            if (trimmed && !editReleaseTags.includes(trimmed)) {
+                              setEditReleaseTags([...editReleaseTags, trimmed])
+                              setEditReleaseTagInput('')
+                            }
+                          }
+                        }}
+                        placeholder="e.g. lo-fi, instrumental, summer, acoustic"
+                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const trimmed = editReleaseTagInput.trim().toLowerCase()
+                          if (trimmed && !editReleaseTags.includes(trimmed)) {
+                            setEditReleaseTags([...editReleaseTags, trimmed])
+                            setEditReleaseTagInput('')
+                          }
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink cursor-pointer"
+                      >
+                        + Add Tag
+                      </button>
+                    </div>
+                    {editReleaseTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {editReleaseTags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink flex items-center gap-1.5"
+                          >
+                            <span>#{tag}</span>
+                            <button
+                              type="button"
+                              onClick={() => setEditReleaseTags(editReleaseTags.filter((t) => t !== tag))}
+                              className="text-ink-soft hover:text-red-500 cursor-pointer ml-1"
+                            >
+                              ×
+                            </button>
                           </span>
-                          <input
-                            ref={editCoverInputRef}
-                            type="file"
-                            accept="image/*"
-                            disabled={isUploadingEditCover || isSavingRelease}
-                            onChange={handleEditCoverSelect}
-                            className="hidden"
-                          />
-                        </label>
-                        <p className="font-mono text-[9px] text-ink-soft">
-                          Direct Cloudflare R2 upload (PNG, JPG, WEBP).
-                        </p>
+                        ))}
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Master Cover Artwork */}
+                <div className="pt-2 border-t border-line-soft">
+                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1.5">
+                    Master Cover Artwork
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden flex items-center justify-center">
+                      {editReleaseCoverUrl ? (
+                        <img
+                          src={editReleaseCoverUrl}
+                          alt="Cover preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                        <span>
+                          {isUploadingEditCover
+                            ? 'Uploading to R2...'
+                            : 'Upload Replacement Artwork'}
+                        </span>
+                        <input
+                          ref={editCoverInputRef}
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploadingEditCover || isSavingRelease}
+                          onChange={handleEditCoverSelect}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="font-mono text-[9px] text-ink-soft">
+                        Direct Cloudflare R2 upload (PNG, JPG, WEBP).
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -4001,6 +4461,45 @@ function StudioComponent() {
                                   </span>
                                 )}
                               </div>
+                            </div>
+                          </div>
+
+                          {/* Acoustic Details (BPM & Musical Key) */}
+                          <div className="flex items-center gap-3 pt-1 border-t border-line-soft/40">
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                              Acoustics:
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <label className="font-mono text-[8.5px] uppercase text-ink-soft">BPM</label>
+                              <input
+                                type="number"
+                                min={30}
+                                max={300}
+                                placeholder="Auto/120"
+                                value={track.bpm ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value ? Number(e.target.value) : null
+                                  setEditTracks((prev) =>
+                                    prev.map((t) => (t.id === track.id ? { ...t, bpm: val } : t)),
+                                  )
+                                }}
+                                className="w-20 font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <label className="font-mono text-[8.5px] uppercase text-ink-soft">Key</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. C min"
+                                value={track.musicalKey ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setEditTracks((prev) =>
+                                    prev.map((t) => (t.id === track.id ? { ...t, musicalKey: val } : t)),
+                                  )
+                                }}
+                                className="w-24 font-mono text-[10px] py-0.5 px-2 border border-line bg-panel text-ink"
+                              />
                             </div>
                           </div>
 

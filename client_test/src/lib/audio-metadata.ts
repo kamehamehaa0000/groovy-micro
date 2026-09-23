@@ -1,4 +1,5 @@
 import { parseBlob } from "music-metadata";
+import { matchFuzzyGenre, CATALOG_MOODS } from "./taxonomy";
 
 export interface ParsedTrack {
   id: string; // client unique ID
@@ -12,6 +13,13 @@ export interface ParsedTrack {
   discNumber: number;
   durationSeconds: number;
   genre: string | null;
+  primaryGenre?: string;
+  subGenre?: string;
+  moods?: string[];
+  tags?: string[];
+  bpm?: number | null;
+  musicalKey?: string | null;
+  energy?: number | null;
   isExplicit: boolean;
   coverFile: File | null;
   coverPreviewUrl: string | null;
@@ -23,6 +31,10 @@ export interface ClusteredRelease {
   albumTitle: string;
   albumType: "ALBUM" | "EP" | "SINGLE" | "MIXTAPE" | "LP";
   genre: string | null;
+  primaryGenre?: string;
+  subGenre?: string;
+  moods?: string[];
+  tags?: string[];
   releaseDate: string;
   coverFile: File | null;
   coverPreviewUrl: string | null;
@@ -141,6 +153,8 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
   let tagGenre: string | null = null;
   let tagDuration = 0;
   let tagExplicit = false;
+  let tagBpm: number | null = null;
+  let tagKey: string | null = null;
 
   try {
     // Ensure the Blob has a valid audio MIME type so parseBlob's BlobTokenizer
@@ -182,7 +196,18 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
     tagGenre = common.genre?.[0]?.trim() || null;
     tagDuration = Math.round(format.duration || 0);
 
-    // Check ID3/Vorbis/MP4 native tags for explicit advisory flag
+    // Extract BPM & Musical Key from tags
+    if (common.bpm) {
+      const parsed = Math.round(Number(common.bpm));
+      if (!Number.isNaN(parsed) && parsed >= 40 && parsed <= 260) {
+        tagBpm = parsed;
+      }
+    }
+    if (common.key?.trim()) {
+      tagKey = common.key.trim();
+    }
+
+    // Check ID3/Vorbis/MP4 native tags for explicit advisory flag, BPM, and Key
     if (metadata.native) {
       for (const tagList of Object.values(metadata.native) as any[]) {
         if (!Array.isArray(tagList)) continue;
@@ -197,6 +222,19 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
             (val?.text === "1" || val === 1 || val === "1" || val?.text === "4" || val === 4)
           ) {
             tagExplicit = true;
+          }
+
+          if (!tagBpm && (tid === "TBPM" || tid === "BPM")) {
+            const num = Math.round(parseFloat(String(val)));
+            if (!Number.isNaN(num) && num >= 40 && num <= 260) {
+              tagBpm = num;
+            }
+          }
+
+          if (!tagKey && (tid === "TKEY" || tid === "INITIALKEY" || tid === "KEY")) {
+            if (typeof val === "string" && val.trim()) {
+              tagKey = val.trim();
+            }
           }
         }
       }
@@ -216,6 +254,18 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
   const hasAlbumTag = Boolean(tagAlbum && tagAlbum.trim().length > 0);
   const albumArtist = tagAlbumArtist || undefined;
 
+  // 5. Taxonomy & Mood Detection
+  const { primaryGenre, subGenre } = matchFuzzyGenre(tagGenre);
+  const detectedMoods: string[] = [];
+  if (tagGenre) {
+    const lowerGenre = tagGenre.toLowerCase();
+    for (const mood of CATALOG_MOODS) {
+      if (lowerGenre.includes(mood.toLowerCase())) {
+        detectedMoods.push(mood);
+      }
+    }
+  }
+
   return {
     id,
     file,
@@ -228,6 +278,12 @@ export async function parseAudioFile(file: File): Promise<ParsedTrack> {
     discNumber: tagDiscNo,
     durationSeconds,
     genre: tagGenre,
+    primaryGenre,
+    subGenre,
+    moods: detectedMoods,
+    tags: [],
+    bpm: tagBpm,
+    musicalKey: tagKey,
     isExplicit: tagExplicit,
     coverFile,
     coverPreviewUrl,
@@ -329,6 +385,10 @@ export function clusterTracksIntoReleases(tracks: ParsedTrack[]): ClusteredRelea
       albumTitle,
       albumType,
       genre: firstTrack.genre || null,
+      primaryGenre: firstTrack.primaryGenre,
+      subGenre: firstTrack.subGenre,
+      moods: firstTrack.moods || [],
+      tags: firstTrack.tags || [],
       releaseDate: new Date().toISOString().split("T")[0],
       coverFile: coverTrack?.coverFile || null,
       coverPreviewUrl: coverTrack?.coverPreviewUrl || null,
