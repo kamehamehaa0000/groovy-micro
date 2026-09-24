@@ -48,7 +48,7 @@ export class CommentsService {
         .limit(1);
 
       if (!song) return { exists: false, allowComments: false, ownerUserId: "", targetType: "SONG", targetId: target.songId };
-      return { exists: true, allowComments: song.allowComments, ownerUserId: song.ownerUserId, targetType: "SONG", targetId: song.id };
+      return { exists: true, allowComments: song.allowComments, ownerUserId: song.ownerUserId ?? "", targetType: "SONG", targetId: song.id };
     }
 
     if (target.albumId) {
@@ -64,7 +64,7 @@ export class CommentsService {
         .limit(1);
 
       if (!album) return { exists: false, allowComments: false, ownerUserId: "", targetType: "ALBUM", targetId: target.albumId };
-      return { exists: true, allowComments: album.allowComments, ownerUserId: album.ownerUserId, targetType: "ALBUM", targetId: album.id };
+      return { exists: true, allowComments: album.allowComments, ownerUserId: album.ownerUserId ?? "", targetType: "ALBUM", targetId: album.id };
     }
 
     if (target.playlistId) {

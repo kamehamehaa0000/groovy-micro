@@ -4,7 +4,7 @@ import {
   Outlet,
   useLocation,
 } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
 import { useLikesStore } from '../stores/likes.store'
@@ -13,6 +13,8 @@ import { usePreSavesStore } from '../stores/presaves.store'
 import { useEntitlementsStore } from '../stores/entitlements.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
 import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
@@ -25,6 +27,7 @@ import { useJamStore } from '../stores/jam.store'
 import { MobileBottomBar } from '../components/navigation/MobileBottomBar'
 import { MobileActionDrawer } from '../components/navigation/MobileActionDrawer'
 import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal'
+import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -40,7 +43,12 @@ function RootComponent() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
   const [rightActionDrawerOpen, setRightActionDrawerOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
+  const createMenuRef = useRef<HTMLDivElement>(null)
   const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const activeJamRoom = useJamStore((s) => s.activeRoom)
+  const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
+  const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal)
 
   // Global keyboard shortcut: Ctrl+K / Cmd+K opens search
   useEffect(() => {
@@ -90,6 +98,33 @@ function RootComponent() {
   }, [isAuthenticated])
 
   const { pathname } = useLocation()
+
+  // Close desktop create dropdown on outside click or Escape key
+  useEffect(() => {
+    if (!createMenuOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (createMenuRef.current && !createMenuRef.current.contains(e.target as Node)) {
+        setCreateMenuOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setCreateMenuOpen(false)
+      }
+    }
+    window.addEventListener('mousedown', handleClickOutside)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [createMenuOpen])
+
+  // Close create menu on route change
+  useEffect(() => {
+    setCreateMenuOpen(false)
+  }, [pathname])
+
   const isAuthPage =
     pathname === '/login' ||
     pathname === '/register' ||
@@ -236,7 +271,7 @@ function RootComponent() {
                 >
                   Catalog
                 </Link>
-                <Link
+                {/* <Link
                   to="/search"
                   activeProps={{
                     className:
@@ -248,7 +283,7 @@ function RootComponent() {
                   className="transition-colors"
                 >
                   Search
-                </Link>
+                </Link> */}
                 <Link
                   to="/artists"
                   activeProps={{
@@ -303,7 +338,7 @@ function RootComponent() {
                     >
                       Activity
                     </Link>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => useJamStore.getState().openModal()}
                       className="flex items-center gap-1.5 text-ink-soft hover:text-emerald-400 pb-0.5 transition-colors cursor-pointer"
@@ -311,7 +346,7 @@ function RootComponent() {
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       <span>Live Jam</span>
-                    </button>
+                    </button> */}
                     <Link
                       to="/profile"
                       activeProps={{
@@ -397,6 +432,138 @@ function RootComponent() {
                 </kbd>
               </button>
 
+              {/* Quick Actions Dropdown Menu (+) */}
+              <div className="relative" ref={createMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setCreateMenuOpen((prev) => !prev)}
+                  aria-label="Create new playlist or live jam"
+                  aria-haspopup="menu"
+                  aria-expanded={createMenuOpen}
+                  title="Create"
+                  className={`w-8 h-8 rounded-full border bg-panel flex items-center justify-center transition-all cursor-pointer shadow-2xs relative group ${
+                    createMenuOpen
+                      ? 'border-ink text-ink bg-canvas-deep'
+                      : 'border-line hover:border-ink hover:bg-canvas text-ink-soft hover:text-ink'
+                  }`}
+                >
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      createMenuOpen ? 'rotate-45 text-ink' : ''
+                    }`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span className="sr-only">Create and quick actions</span>
+
+                  {activeJamRoom && !createMenuOpen && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-panel animate-pulse" />
+                  )}
+
+                  {!createMenuOpen && (
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
+                    >
+                      Create
+                    </span>
+                  )}
+                </button>
+
+                {createMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-orientation="vertical"
+                    className="absolute right-0 top-full mt-2 w-60 bg-panel border border-line shadow-2xl rounded-xs p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
+                  >
+                    <div className="px-2.5 py-1.5 border-b border-line mb-1">
+                      <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400">
+                        Creation Desk
+                      </div>
+                      <div className="font-serif italic text-xs text-ink font-medium">
+                        Create &amp; Broadcast
+                      </div>
+                    </div>
+
+                    {/* Start / Join Live Jam */}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setCreateMenuOpen(false)
+                        useJamStore.getState().openModal()
+                      }}
+                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="2" />
+                          <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink">
+                            Live Jam
+                          </span>
+                          {activeJamRoom && (
+                            <span className="flex items-center gap-1 px-1 py-0.2 bg-emerald-500/10 text-emerald-500 text-[8px] font-mono uppercase tracking-wider border border-emerald-500/30 rounded">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              Live
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-sans text-[11px] text-ink-soft truncate">
+                          {activeJamRoom ? 'Active room session' : 'Synchronized social session'}
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Create Playlist */}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setCreateMenuOpen(false)
+                        if (!isAuthenticated) {
+                          openAuthModal({
+                            title: 'Create Playlists',
+                            description: 'Sign in to build custom playlists and collaborative mixes on Groovy.',
+                          })
+                          return
+                        }
+                        openCreatePlaylistModal()
+                      }}
+                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 18V5l12-2v13" />
+                          <circle cx="6" cy="18" r="3" />
+                          <circle cx="18" cy="16" r="3" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink">
+                          Create Playlist
+                        </span>
+                        <p className="font-sans text-[11px] text-ink-soft truncate">
+                          Curate track collections &amp; mixes
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Theme Switcher Toggle */}
               <button
                 type="button"
@@ -442,13 +609,39 @@ function RootComponent() {
                       </span>
                     </div>
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => logout()}
-                    className="font-mono text-[9.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
+
+                  {/* Minimal Sign Out Icon Button with Hover Tooltip & Aria Tags */}
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => logout()}
+                      aria-label="Sign out"
+                      title="Sign out"
+                      className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink hover:text-red-500 text-ink-soft flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      <span className="sr-only">Sign out</span>
+                    </button>
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
+                    >
+                      Sign Out
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -739,6 +932,7 @@ function RootComponent() {
       <AuthPromptModal key="permanent-auth-modal" />
       <LiveJamModal key="permanent-live-jam-modal" />
       <CreatePlaylistModal key="permanent-create-playlist-modal" />
+      <AddToPlaylistModal key="permanent-add-to-playlist-modal" />
       <GlobalSearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}

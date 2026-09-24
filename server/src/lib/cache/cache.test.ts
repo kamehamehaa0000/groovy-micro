@@ -287,7 +287,7 @@ async function runCacheTests() {
     console.log("   ✅ Fast sync endpoint GET /api/v1/artists/following/ids returned user's followed artist IDs!");
 
     // Search batch enrichment
-    const searchRes = await artistsService.searchArtists({ search: profile.stageName, page: 1, limit: 10 }, listenerUserId);
+    const searchRes = await artistsService.searchArtists({ search: profile.stageName, scope: "ALL", sort: "name", page: 1, limit: 10 }, listenerUserId);
     const enrichedArtist = searchRes.data.find((a) => a.id === profile.id);
     if (!enrichedArtist?.isFollowing) {
       throw new Error("Artist in search roster should be enriched with isFollowing: true!");

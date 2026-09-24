@@ -588,8 +588,14 @@ export class CatalogService {
           credits: allCredits.filter((c) => c.songId === song.id),
         }));
 
+        const totalPlays = albumSongs.reduce(
+          (sum, s) => sum + Number(s.playsCount || 0),
+          0
+        );
+
         const result = {
           ...album,
+          totalPlays,
           tracks: tracksWithCredits,
         };
 

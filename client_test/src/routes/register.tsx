@@ -1,14 +1,38 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { GoogleIcon, SvgArtworkSpiral } from '../components/icons'
 
 export const Route = createFileRoute('/register')({
+  beforeLoad: async () => {
+    const { isLoading, checkAuth } = useAuthStore.getState()
+    if (isLoading) {
+      try {
+        await checkAuth()
+      } catch {
+        // ignore
+      }
+    }
+    if (useAuthStore.getState().isAuthenticated) {
+      throw redirect({ to: '/' })
+    }
+  },
   component: RegisterComponent,
 })
 
 function RegisterComponent() {
-  const { register, resendVerification } = useAuthStore()
+  const navigate = useNavigate()
+  const { register, resendVerification, isAuthenticated, isLoading } = useAuthStore()
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: '/', replace: true })
+    }
+  }, [isLoading, isAuthenticated, navigate])
+
+  if (!isLoading && isAuthenticated) {
+    return null
+  }
 
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')

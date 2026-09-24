@@ -34,6 +34,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   const [activeCategory, setActiveCategory] = useState<SearchCategory>("all");
   const [results, setResults] = useState<GlobalSearchResponse | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [queuedSongId, setQueuedSongId] = useState<string | null>(null);
 
   const { currentTrack, playbackStatus, playTrack, togglePlay, addToQueue } = usePlayerStore();
 
@@ -575,11 +576,39 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   audioUrl: song.audioUrl,
                                   isExplicit: song.isExplicit,
                                 });
+                                setQueuedSongId(song.id);
+                                setTimeout(() => {
+                                  setQueuedSongId((prev) => (prev === song.id ? null : prev));
+                                }, 1500);
                               }}
-                              className="font-mono text-[9px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors px-2 py-1 border border-line hover:border-ink cursor-pointer bg-canvas"
+                              className="w-7 h-7 flex items-center justify-center rounded-xs border border-line bg-canvas hover:border-ink text-ink-soft hover:text-ink transition-all cursor-pointer group/q shadow-2xs hover:bg-canvas-deep active:scale-95 shrink-0"
                               title="Add to queue"
+                              aria-label="Add to queue"
                             >
-                              + Queue
+                              {queuedSongId === song.id ? (
+                                <span className="text-emerald-500 font-mono text-xs font-bold animate-in zoom-in-75 duration-150">
+                                  ✓
+                                </span>
+                              ) : (
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="w-3.5 h-3.5 group-hover/q:scale-110 transition-transform"
+                                >
+                                  <line x1="8" y1="6" x2="21" y2="6" />
+                                  <line x1="8" y1="12" x2="21" y2="12" />
+                                  <line x1="8" y1="18" x2="16" y2="18" />
+                                  <line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="2.5" />
+                                  <line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="2.5" />
+                                  <line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="2.5" />
+                                  <line x1="19" y1="15" x2="19" y2="21" strokeWidth="2" />
+                                  <line x1="16" y1="18" x2="22" y2="18" strokeWidth="2" />
+                                </svg>
+                              )}
                             </button>
                           </div>
                         </div>

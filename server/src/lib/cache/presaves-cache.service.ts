@@ -197,6 +197,8 @@ export class PresavesCacheService {
       await redis.srem(key, EMPTY_SENTINEL);
       await redis.sadd(key, albumId);
       await redis.expire(key, USER_PRESAVES_TTL_SEC);
+      // Synchronize with user liked albums set
+      await redis.sadd(cacheKeys.social.userLikedAlbums(userId), albumId).catch(() => {});
     } catch (err) {
       console.warn(`[PresavesCacheService] Redis SADD failed for ${key}:`, err);
     }
@@ -266,6 +268,8 @@ export class PresavesCacheService {
     const key = cacheKeys.social.userPreSavedAlbums(userId);
     try {
       await redis.srem(key, albumId);
+      // Synchronize with user liked albums set
+      await redis.srem(cacheKeys.social.userLikedAlbums(userId), albumId).catch(() => {});
     } catch (err) {
       console.warn(`[PresavesCacheService] Redis SREM failed for ${key}:`, err);
     }

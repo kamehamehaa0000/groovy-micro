@@ -11,12 +11,11 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
 import { CommentSection } from '../components/comments/CommentSection'
-import { SongActionMenu } from '../components/player/SongActionMenu'
+import { SongRow } from '../components/common/SongRow'
+import type { SongActionCustomItem } from '../components/player/SongActionMenu'
 import {
   PlayIconSVG,
-  PauseIconSVG,
   HeartIconSVG,
-  LockIconSVG,
   TrashIconSVG,
   PlusIconSVG,
   EditIconSVG,
@@ -52,7 +51,6 @@ function PlaylistDetailComponent() {
   const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } = usePlaylistsStore()
   const {
     currentTrack,
-    playbackStatus,
     playTrack,
     togglePlay,
   } = usePlayerStore()
@@ -66,8 +64,8 @@ function PlaylistDetailComponent() {
   const [isCloning, setIsCloning] = useState(false)
   const [isJoiningCollab, setIsJoiningCollab] = useState(false)
   const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(null)
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null)
+  const [draggedTrackIdx, setDraggedTrackIdx] = useState<number | null>(null)
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -358,21 +356,17 @@ function PlaylistDetailComponent() {
     const [moved] = newTracks.splice(fromIndex, 1)
     newTracks.splice(toIndex, 0, moved)
 
-    // Optimistic reorder
-    setPlaylist((prev) => (prev ? { ...prev, tracks: newTracks } : null))
+    // Optimistic sequential position update so track numbering reflects new order immediately
+    const reorderedTracks = newTracks.map((t, idx) => ({ ...t, position: idx }))
+    setPlaylist((prev) => (prev ? { ...prev, tracks: reorderedTracks } : null))
 
     try {
-      const orderedEntryIds = newTracks.map((t) => t.id)
+      const orderedEntryIds = reorderedTracks.map((t) => t.id || (t as any).entryId)
       await playlistsApi.reorderTracks(playlist.id, orderedEntryIds)
     } catch (err: any) {
       showToast(err.message || 'Failed to reorder tracks', 'error')
       await fetchPlaylist()
     }
-  }
-
-  const handleMoveTrack = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    handleReorderTracks(index, targetIndex)
   }
 
   // Search catalog songs to add
@@ -733,184 +727,65 @@ function PlaylistDetailComponent() {
             {(playlist.tracks ?? []).map((track, idx) => {
               const entryId = track.id || (track as any).entryId
               const song = track.song || (track as any)
-              const songId = track.songId || song.id || track.id
-              const isCurrentPlaying =
-                currentTrack?.id === songId && playbackStatus === 'playing'
-              const isCurrentLoaded = currentTrack?.id === songId
               const isLocked = song.isStreamable === false
 
+              const customActions: SongActionCustomItem[] = []
+              if (canEdit) {
+                if (idx > 0) {
+                  customActions.push({
+                    label: 'Move Up in Playlist',
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                        <polyline points="18 15 12 9 6 15" />
+                      </svg>
+                    ),
+                    onClick: () => handleReorderTracks(idx, idx - 1),
+                  })
+                }
+                if (idx < (playlist.tracks ?? []).length - 1) {
+                  customActions.push({
+                    label: 'Move Down in Playlist',
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    ),
+                    onClick: () => handleReorderTracks(idx, idx + 1),
+                  })
+                }
+              }
+
               return (
-                <div
+                <SongRow
                   key={entryId || idx}
-                  draggable={canEdit && !isLocked}
-                  onDragStart={(e) => {
-                    if (!canEdit || isLocked) return
-                    e.dataTransfer.setData('text/plain', String(idx))
-                    e.dataTransfer.dropEffect = 'move'
-                    setDraggedIdx(idx)
-                  }}
-                  onDragOver={(e) => {
-                    if (!canEdit) return
-                    e.preventDefault()
-                    if (draggedIdx !== null && draggedIdx !== idx) {
-                      setDropTargetIdx(idx)
-                    }
-                  }}
-                  onDragLeave={() => {
-                    if (dropTargetIdx === idx) setDropTargetIdx(null)
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const from = Number(e.dataTransfer.getData('text/plain'))
-                    if (!isNaN(from) && from !== idx) {
-                      handleReorderTracks(from, idx)
-                    }
-                    setDraggedIdx(null)
-                    setDropTargetIdx(null)
-                  }}
+                  track={toPlayerTrack(track)}
+                  index={idx}
+                  trackNumberDisplay={track.position + 1}
+                  variant="playlist"
+                  addedByDisplayName={track.addedByDisplayName}
+                  scheduledReleaseAt={song.scheduledReleaseAt}
+                  albumTitleOverride={song.albumTitle}
+                  albumSlugOverride={song.albumSlug || song.albumId}
+                  isDraggable={canEdit && !isLocked}
+                  isDragging={draggedTrackIdx === idx}
+                  isDragOver={dropTargetIdx === idx && draggedTrackIdx !== idx}
+                  onDragStart={() => setDraggedTrackIdx(idx)}
+                  onDragOver={() => setDropTargetIdx(idx)}
                   onDragEnd={() => {
-                    setDraggedIdx(null)
+                    setDraggedTrackIdx(null)
                     setDropTargetIdx(null)
                   }}
-                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-all group ${
-                    isCurrentPlaying ? 'bg-blue/5' : ''
-                  } ${isLocked ? 'opacity-65 bg-line/10' : ''} ${
-                    draggedIdx === idx ? 'opacity-40 bg-line/20' : ''
-                  } ${dropTargetIdx === idx ? 'border-t-2 border-blue bg-blue/5' : ''}`}
-                >
-                  {/* Left: Drag Handle, Index / Play, Title, Artist, Scheduled Badge */}
-                  <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                    {canEdit && (
-                      <span
-                        className="cursor-grab active:cursor-grabbing text-ink-soft/40 hover:text-ink select-none font-mono text-xs opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                        title="Drag to reorder"
-                      >
-                        ⋮⋮
-                      </span>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => handlePlayTrack(track, idx)}
-                      aria-label={
-                        isLocked
-                          ? 'Track is locked until scheduled release'
-                          : isCurrentPlaying
-                            ? 'Pause track'
-                            : 'Play track'
-                      }
-                      className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
-                    >
-                      {isLocked ? (
-                        <LockIconSVG className="w-3.5 h-3.5 text-ink-soft" />
-                      ) : isCurrentPlaying ? (
-                        <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
-                      ) : (
-                        <>
-                          <span
-                            className={`font-mono text-[10.5px] ${
-                              isCurrentLoaded ? 'text-blue font-bold' : ''
-                            } group-hover:hidden`}
-                          >
-                            {String(track.position + 1).padStart(2, '0')}
-                          </span>
-                          <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
-                        </>
-                      )}
-                    </button>
-
-                    {/* Artwork preview */}
-                    {(song.coverImageUrl || song.albumCoverUrl) && (
-                      <img
-                        src={song.coverImageUrl || song.albumCoverUrl}
-                        alt=""
-                        className="w-8 h-8 object-cover border border-line shrink-0 hidden sm:block"
-                      />
-                    )}
-
-                    {/* Metadata */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className={`font-serif text-sm truncate ${
-                            isCurrentPlaying ? 'text-blue font-medium' : isCurrentLoaded ? 'text-blue' : 'text-ink'
-                          }`}
-                        >
-                          {song.title}
-                        </span>
-
-                        {song.isExplicit && (
-                          <span className="font-mono text-[8px] uppercase tracking-[0.14em] px-1 py-0.2 border border-line text-ink-soft">
-                            E
-                          </span>
-                        )}
-
-                        {/* Greyed-out Scheduled Badge */}
-                        {isLocked && (
-                          <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
-                            <LockIconSVG className="w-2.5 h-2.5" />
-                            <span>
-                              Releases{' '}
-                              {song.scheduledReleaseAt
-                                ? new Date(song.scheduledReleaseAt).toLocaleDateString()
-                                : 'Soon'}
-                            </span>
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="font-mono text-[10.5px] text-ink-soft truncate">
-                        {song.artistStageName || 'Unknown Artist'}
-                        {song.albumTitle && ` — ${song.albumTitle}`}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Duration, Added By, SongActionMenu, Move & Remove Buttons */}
-                  <div className="flex items-center gap-3 shrink-0 font-mono text-[10.5px] text-ink-soft">
-                    <span className="hidden md:inline text-ink-soft/70">
-                      Added by {track.addedByDisplayName || 'Member'}
-                    </span>
-
-                    <span>{formatDuration(song.durationSeconds ?? 0)}</span>
-
-                    {!isLocked && (
-                      <SongActionMenu track={toPlayerTrack(track)} />
-                    )}
-
-                    {/* Edit controls: Up / Down / Remove */}
-                    {canEdit && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveTrack(idx, 'up')}
-                          className="p-1 hover:text-ink disabled:opacity-20 cursor-pointer"
-                          title="Move up"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === playlist.tracks.length - 1}
-                          onClick={() => handleMoveTrack(idx, 'down')}
-                          className="p-1 hover:text-ink disabled:opacity-20 cursor-pointer"
-                          title="Move down"
-                        >
-                          ▼
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTrack(entryId)}
-                          className="p-1 hover:text-red-500 cursor-pointer ml-1"
-                          title="Remove from playlist"
-                        >
-                          <TrashIconSVG className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  onDrop={(from, to) => {
+                    handleReorderTracks(from, to)
+                    setDraggedTrackIdx(null)
+                    setDropTargetIdx(null)
+                  }}
+                  onPlay={() => handlePlayTrack(track, idx)}
+                  onRemoveFromPlaylist={
+                    canEdit ? () => handleRemoveTrack(entryId) : undefined
+                  }
+                  customActions={customActions}
+                />
               )
             })}
           </div>

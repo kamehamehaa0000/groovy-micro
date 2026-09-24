@@ -6,10 +6,8 @@ import type { AlbumDetail, EnrichedSong } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
   PlayIconSVG,
-  PauseIconSVG,
   HeartIconSVG,
   SvgArtworkSpiral,
-  LockIconSVG,
   CalendarIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
@@ -20,10 +18,12 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import type { PlayerTrack } from '../types/player'
 import { CommentSection } from '../components/comments/CommentSection'
-import { SongActionMenu } from '../components/player/SongActionMenu'
+import { SongRow } from '../components/common/SongRow'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
-  validateSearch: (search: Record<string, unknown>): { shareToken?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { shareToken?: string } => ({
     shareToken: (search.shareToken as string) || undefined,
   }),
   component: AlbumDetailComponent,
@@ -36,9 +36,7 @@ function AlbumDetailComponent() {
 
   // High-performance client-side likes store
   const likedAlbumIds = useLikesStore((s) => s.likedAlbumIds)
-  const likedSongIds = useLikesStore((s) => s.likedSongIds)
   const toggleAlbumLike = useLikesStore((s) => s.toggleAlbumLike)
-  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
   const hydrateAlbums = useLikesStore((s) => s.hydrateAlbums)
   const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
 
@@ -64,7 +62,6 @@ function AlbumDetailComponent() {
 
   // Player store state & actions
   const currentTrack = usePlayerStore((s) => s.currentTrack)
-  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
   const playTrack = usePlayerStore((s) => s.playTrack)
   const togglePlay = usePlayerStore((s) => s.togglePlay)
 
@@ -223,73 +220,6 @@ function AlbumDetailComponent() {
     }
   }
 
-  const handleToggleTrackLike = async (track: EnrichedSong) => {
-    if (album?.isUpcoming && !isCreator) {
-      alert('Tracks cannot be liked until the scheduled release date.')
-      return
-    }
-
-    if (!isAuthenticated) {
-      useAuthModalStore.getState().openAuthModal({
-        category: 'Favorites & Library',
-        subtitle: 'Library',
-        title: 'Save to your library.',
-        description:
-          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
-      })
-      return
-    }
-
-    const wasLiked = likedSongIds.has(track.id)
-    const prevCount = track.likesCount
-
-    // Optimistic track count update
-    setAlbum((prev) => {
-      if (!prev) return null
-      return {
-        ...prev,
-        tracks: prev.tracks.map((t) =>
-          t.id === track.id
-            ? {
-                ...t,
-                likesCount: wasLiked
-                  ? Math.max(0, prevCount - 1)
-                  : prevCount + 1,
-              }
-            : t,
-        ),
-      }
-    })
-
-    try {
-      const res = await toggleSongLike(track.id)
-      setAlbum((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          tracks: prev.tracks.map((t) =>
-            t.id === track.id
-              ? { ...t, likesCount: res.likesCount }
-              : t,
-          ),
-        }
-      })
-    } catch {
-      // Rollback count on error
-      setAlbum((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          tracks: prev.tracks.map((t) =>
-            t.id === track.id
-              ? { ...t, likesCount: prevCount }
-              : t,
-          ),
-        }
-      })
-    }
-  }
-
   const handleTogglePreSave = async () => {
     if (!isAuthenticated) {
       useAuthModalStore.getState().openAuthModal({
@@ -308,7 +238,9 @@ function AlbumDetailComponent() {
     const willBePreSaved = !isPreSaved
 
     // Optimistic count update (Zustand store instantly updates preSavedAlbumIds Set)
-    setPreSavesCount(willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1))
+    setPreSavesCount(
+      willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1),
+    )
 
     try {
       const res = await togglePreSaveStore(album.id)
@@ -337,11 +269,14 @@ function AlbumDetailComponent() {
     hlsManifestUrl: song.hlsManifestUrl,
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
-    isStreamable: isCreator ? true : song.isStreamable !== false && !album?.isUpcoming,
+    isStreamable: isCreator
+      ? true
+      : song.isStreamable !== false && !album?.isUpcoming,
   })
 
   const handlePlaySong = (song: EnrichedSong, index: number) => {
-    const isLocked = (album?.isUpcoming || song.isStreamable === false) && !isCreator
+    const isLocked =
+      (album?.isUpcoming || song.isStreamable === false) && !isCreator
     if (isLocked) {
       alert('This master cut is locked until the scheduled release date.')
       return
@@ -359,7 +294,7 @@ function AlbumDetailComponent() {
       contextTracks,
       index,
       `album:${album.id}`,
-      album.title
+      album.title,
     )
   }
 
@@ -431,12 +366,16 @@ function AlbumDetailComponent() {
     ? new Date(album.releaseDate).getFullYear()
     : new Date(album.createdAt).getFullYear()
 
+  const totalPlays =
+    album.totalPlays ??
+    (album.tracks ?? []).reduce((acc, t) => acc + (t.playsCount || 0), 0)
+
   return (
     <div className="w-full pb-20 space-y-10">
       {/* ===================== UPCOMING RELEASE BANNER ===================== */}
       {album.isUpcoming && (
-        <div className="border-2 border-blue bg-blue/5 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="space-y-1.5">
+        <div className="border-2 border-blue bg-blue/5 p-4 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+          <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue font-semibold">
               <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
               <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
@@ -456,43 +395,78 @@ function AlbumDetailComponent() {
                 : 'Coming Soon'}
             </h2>
             {timeLeft && timeLeft.totalMs > 0 && (
-              <div className="flex items-center gap-2 font-mono text-xs text-blue font-semibold pt-0.5">
-                <span>⏳ Drops in:</span>
-                <span className="px-2 py-0.5 border border-blue/40 bg-blue/10 rounded font-mono text-[11px] tracking-wider">
-                  {timeLeft.days > 0 && `${timeLeft.days}d `}
-                  {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
-                </span>
+              <div className="pt-1">
+                <div className="grid grid-cols-4 gap-2 max-w-xs">
+                  <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded">
+                    <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                      {timeLeft.days}
+                    </span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      Days
+                    </span>
+                  </div>
+                  <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded">
+                    <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                      {String(timeLeft.hours).padStart(2, '0')}
+                    </span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      Hours
+                    </span>
+                  </div>
+                  <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded">
+                    <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                      {String(timeLeft.minutes).padStart(2, '0')}
+                    </span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      Mins
+                    </span>
+                  </div>
+                  <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded">
+                    <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                      {String(timeLeft.seconds).padStart(2, '0')}
+                    </span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      Secs
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
-            <p className="font-mono text-[10px] text-ink-soft">
-              Lossless master audio streams unlock automatically on release date. Pre-save now to add this {album.albumType.toLowerCase()} to your library immediately upon drop.
+            <p className="font-mono text-[10px] text-ink-soft leading-relaxed max-w-xl">
+              Lossless master audio streams unlock automatically on release
+              date. Pre-save now to add this {album.albumType.toLowerCase()} to
+              your library immediately upon drop.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="w-full md:w-auto shrink-0">
             <button
               type="button"
               disabled={isPreSaveLoading}
               onClick={handleTogglePreSave}
-              className={`font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center gap-2 ${
+              className={`w-full md:w-auto font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
                 isPreSaved
                   ? 'border-blue bg-blue text-canvas hover:opacity-90'
                   : 'border-ink bg-ink text-canvas hover:opacity-90'
               }`}
             >
-              <span>{isPreSaved ? '✓ Pre-Saved to Library' : '✦ Pre-Save Release'}</span>
-              <span className="opacity-75 font-mono text-[10px]">({preSavesCount})</span>
+              <span>
+                {isPreSaved ? '✓ Pre-Saved to Library' : '✦ Pre-Save Release'}
+              </span>
+              <span className="opacity-75 font-mono text-[10px]">
+                ({preSavesCount})
+              </span>
             </button>
           </div>
         </div>
       )}
 
       {/* ===================== ALBUM HERO HEADER ===================== */}
-      <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
+      <div className="border border-line bg-panel p-5 sm:p-8 md:p-10 shadow-xs relative overflow-hidden">
+        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 sm:gap-8 relative z-10 text-center md:text-left">
           {/* Cover Art Container with Vinyl Shadow Effect */}
-          <div className="relative shrink-0 group">
-            <div className="w-48 h-48 sm:w-56 sm:h-56 bg-canvas-deep border border-line shadow-md overflow-hidden relative">
+          <div className="relative shrink-0 group mx-auto md:mx-0">
+            <div className="w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 bg-canvas-deep border border-line shadow-md overflow-hidden relative">
               {album.coverImageUrl ? (
                 <img
                   src={album.coverImageUrl}
@@ -510,7 +484,7 @@ function AlbumDetailComponent() {
             </div>
 
             {/* Simulated Vinyl Record Peek */}
-            <div className="hidden sm:block absolute -right-6 top-3 w-48 h-48 -z-10 rounded-full border border-line-soft bg-canvas-deep opacity-60 pointer-events-none transition-transform group-hover:translate-x-3 duration-300">
+            <div className="hidden sm:block absolute -right-6 top-3 w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 -z-10 rounded-full border border-line-soft bg-canvas-deep opacity-60 pointer-events-none transition-transform group-hover:translate-x-3 duration-300">
               <div className="w-full h-full rounded-full border border-line/30 flex items-center justify-center">
                 <div className="w-14 h-14 rounded-full border border-line/40" />
               </div>
@@ -518,8 +492,8 @@ function AlbumDetailComponent() {
           </div>
 
           {/* Release Metadata */}
-          <div className="flex-1 flex flex-col justify-end gap-3">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1 flex flex-col justify-end items-center md:items-start gap-2.5 sm:gap-3 w-full min-w-0">
+            <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3 flex-wrap">
               <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
                 {album.albumType}
               </span>
@@ -544,16 +518,16 @@ function AlbumDetailComponent() {
               </span>
             </div>
 
-            <h1 className="font-serif italic text-3xl sm:text-5xl text-ink tracking-tight leading-tight">
+            <h1 className="font-serif italic text-2xl sm:text-4xl md:text-5xl text-ink tracking-tight leading-tight">
               {album.title}
             </h1>
 
-            {/* Artist Attribution */}
-            <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Artist Attribution & Aggregate Stats */}
+            <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-2.5 flex-wrap">
               <Link
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: album.artistSlug }}
-                className="font-serif italic text-lg sm:text-xl text-ink hover:text-blue transition-colors flex items-center gap-1.5"
+                className="font-serif italic text-base sm:text-lg md:text-xl text-ink hover:text-blue transition-colors flex items-center gap-1.5"
               >
                 <span>{album.artistStageName}</span>
                 {album.artistVerified && (
@@ -563,88 +537,105 @@ function AlbumDetailComponent() {
 
               <span className="font-mono text-xs text-ink-soft">&bull;</span>
               <span className="font-mono text-xs text-ink-soft">
-                {album.totalTracks} {album.totalTracks === 1 ? 'Track' : 'Tracks'}
+                {album.totalTracks}{' '}
+                {album.totalTracks === 1 ? 'Track' : 'Tracks'}
               </span>
               <span className="font-mono text-xs text-ink-soft">&bull;</span>
               <span className="font-mono text-xs text-ink-soft">
                 {formatDuration(album.totalDurationSeconds)}
               </span>
+              <span className="font-mono text-xs text-ink-soft">&bull;</span>
+              <span className="font-mono text-xs text-ink-soft font-semibold">
+                {totalPlays.toLocaleString()} {totalPlays === 1 ? 'Stream' : 'Streams'}
+              </span>
             </div>
 
             {album.description && (
-              <p className="font-sans text-xs text-ink-soft leading-relaxed mt-2 max-w-2xl">
+              <p className="font-sans text-xs text-ink-soft leading-relaxed mt-1 max-w-2xl">
                 {album.description}
               </p>
             )}
 
             {/* Action Bar */}
-            <div className="flex items-center gap-3 pt-3 flex-wrap">
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-center md:justify-start gap-2.5 pt-3 w-full">
               {album.isUpcoming && !isCreator ? (
                 <button
                   type="button"
                   disabled={isPreSaveLoading}
                   onClick={handleTogglePreSave}
-                  className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold ${
+                  className={`w-full sm:w-auto font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs font-semibold ${
                     isPreSaved
                       ? 'border-blue bg-blue text-canvas hover:opacity-90'
                       : 'border-ink bg-ink text-canvas hover:opacity-90'
                   }`}
                 >
-                  <span>{isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save Release'}</span>
-                  <span className="opacity-80 font-mono text-[9.5px]">({preSavesCount})</span>
+                  <span>
+                    {isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save Release'}
+                  </span>
+                  <span className="opacity-80 font-mono text-[9.5px]">
+                    ({preSavesCount})
+                  </span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handlePlayAlbumFromStart}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-all cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
+                  className="w-full sm:w-auto font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs font-semibold"
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
-                  <span>{album.isUpcoming && isCreator ? 'Audition Release' : 'Play Release'}</span>
+                  <span>
+                    {album.isUpcoming && isCreator
+                      ? 'Audition Release'
+                      : 'Play Release'}
+                  </span>
                 </button>
               )}
 
-              {!album.isUpcoming && (
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                {!album.isUpcoming && (
+                  <button
+                    type="button"
+                    disabled={isLikeLoading}
+                    onClick={handleToggleAlbumLike}
+                    className={`flex-1 sm:flex-initial font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                      isLiked
+                        ? 'bg-red-50 dark:bg-red-950/20 text-red-600 border-red-300'
+                        : 'bg-canvas text-ink hover:border-ink'
+                    }`}
+                  >
+                    <HeartIconSVG
+                      filled={isLiked}
+                      className={`w-3.5 h-3.5 ${isLiked ? 'text-red-500' : 'text-ink-soft'}`}
+                    />
+                    <span>{likesCount.toLocaleString()}</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  disabled={isLikeLoading}
-                  onClick={handleToggleAlbumLike}
-                  className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line transition-colors cursor-pointer flex items-center gap-2 ${
-                    isLiked
-                      ? 'bg-red-50 dark:bg-red-950/20 text-red-600 border-red-300'
-                      : 'bg-canvas text-ink hover:border-ink'
-                  }`}
+                  onClick={handleCopyShareLink}
+                  className="flex-1 sm:flex-initial font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer text-center"
                 >
-                  <HeartIconSVG
-                    filled={isLiked}
-                    className={`w-3.5 h-3.5 ${isLiked ? 'text-red-500' : 'text-ink-soft'}`}
-                  />
-                  <span>{likesCount.toLocaleString()}</span>
+                  {copiedLink ? '✓ Copied' : 'Share'}
                 </button>
-              )}
 
-              <button
-                type="button"
-                onClick={handleCopyShareLink}
-                className="font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer"
-              >
-                {copiedLink ? '✓ Copied' : 'Share'}
-              </button>
-
-              {isCreator && (
-                <button
-                  type="button"
-                  onClick={handleToggleComments}
-                  className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-4 border transition-colors cursor-pointer ${
-                    album.allowComments === false
-                      ? 'border-red-400 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-500'
-                      : 'border-line bg-canvas hover:border-ink text-ink-soft hover:text-ink'
-                  }`}
-                  title="Toggle comment section for this release"
-                >
-                  {album.allowComments === false ? '💬 Comments: Off' : '💬 Comments: On'}
-                </button>
-              )}
+                {isCreator && (
+                  <button
+                    type="button"
+                    onClick={handleToggleComments}
+                    className={`flex-1 sm:flex-initial font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-4 border transition-colors cursor-pointer text-center ${
+                      album.allowComments === false
+                        ? 'border-red-400 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-500'
+                        : 'border-line bg-canvas hover:border-ink text-ink-soft hover:text-ink'
+                    }`}
+                    title="Toggle comment section for this release"
+                  >
+                    {album.allowComments === false
+                      ? '💬 Off'
+                      : '💬 On'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -660,12 +651,10 @@ function AlbumDetailComponent() {
             <h2 className="font-serif italic font-medium text-xl text-ink">
               Master Tracklist
             </h2>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              Lossless Architecture
-            </span>
           </div>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
-            {(album.tracks ?? []).length} {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
+            {(album.tracks ?? []).length}{' '}
+            {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
           </span>
         </div>
 
@@ -679,150 +668,50 @@ function AlbumDetailComponent() {
             </p>
           </div>
         ) : (
-          <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
-            {(album.tracks ?? []).map((track, idx) => {
-              const isCurrentPlaying =
-                currentTrack?.id === track.id && playbackStatus === 'playing'
-              const hasFeatured =
-                track.credits &&
-                track.credits.some((c) => c.role !== 'PRIMARY')
+          <div className="border border-line bg-panel shadow-xs">
+            {/* Desktop Tracklist Column Header */}
+            <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/60 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <span className="w-6 text-center">#</span>
+                <span>Title &amp; Credits</span>
+              </div>
+              <div className="w-24 text-right">Streams</div>
+              <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 min-w-[120px] pr-2">
+                <span>Duration</span>
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={track.id}
-                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
-                    isCurrentPlaying ? 'bg-blue/5' : ''
-                  }`}
-                >
-                  {/* Left: Number, Play Button, Title & Credits */}
-                  <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                    {/* Play Button or Track Index / Lock */}
-                    <button
-                      type="button"
-                      onClick={() => handlePlaySong(track, idx)}
-                      aria-label={
-                        album.isUpcoming && !isCreator
-                          ? 'Track is locked until scheduled release'
-                          : isCurrentPlaying
-                            ? 'Pause track'
-                            : 'Play track'
-                      }
-                      className={`w-6 h-6 flex items-center justify-center ${
-                        album.isUpcoming && !isCreator
-                          ? 'text-ink-soft/50 cursor-not-allowed'
-                          : 'text-ink-soft group-hover:text-ink cursor-pointer'
-                      } shrink-0`}
-                    >
-                      {album.isUpcoming && !isCreator ? (
-                        <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/60" />
-                      ) : isCurrentPlaying ? (
-                        <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
-                      ) : (
-                        <>
-                          <span className="font-mono text-[10.5px] group-hover:hidden">
-                            {String(track.trackNumber || idx + 1).padStart(2, '0')}
-                          </span>
-                          <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
-                        </>
-                      )}
-                    </button>
+            <div className="divide-y divide-line/60">
+              {(album.tracks ?? []).map((track, idx) => {
+                const primaryCredits =
+                  track.credits?.filter((c) => c.role === 'PRIMARY') || []
+                const featuredCredits =
+                  track.credits?.filter((c) => c.role === 'FEATURED') || []
+                const producerCredits =
+                  track.credits?.filter((c) => c.role === 'PRODUCER') || []
 
-                    {/* Title & Metadata */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`font-serif text-sm truncate ${
-                            isCurrentPlaying
-                              ? 'text-blue font-medium'
-                              : 'text-ink'
-                          }`}
-                        >
-                          {track.title}
-                        </span>
-
-                        {((album.isUpcoming && !isCreator) || track.isStreamable === false) && (
-                          <span
-                            title="Locked until scheduled drop"
-                            className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.2 border border-line text-ink-soft bg-canvas-deep flex items-center gap-1"
-                          >
-                            <LockIconSVG className="w-2.5 h-2.5" />
-                            <span>Locked</span>
-                          </span>
-                        )}
-
-                        {track.isExplicit && (
-                          <span
-                            title="Explicit Content"
-                            className="font-mono text-[8.5px] uppercase tracking-widest px-1 py-0.2 border border-line text-ink-soft bg-canvas"
-                          >
-                            E
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Featured Artists & Collaborators */}
-                      {hasFeatured && (
-                        <div className="font-mono text-[10px] text-ink-soft truncate flex items-center gap-1 mt-0.5">
-                          <span>feat.</span>
-                          {track.credits!
-                            .filter((c) => c.role !== 'PRIMARY')
-                            .map((c, i, arr) => (
-                              <span key={c.artistId}>
-                                <Link
-                                  to="/artists/$idOrSlug"
-                                  params={{ idOrSlug: c.slug }}
-                                  className="hover:text-ink underline decoration-line"
-                                >
-                                  {c.stageName}
-                                </Link>
-                                {i < arr.length - 1 ? ', ' : ''}
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right: Plays, Duration & Track Like Button */}
-                  <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-                    {track.genre && (
-                      <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-ink-soft hidden md:inline-block">
-                        {track.genre}
-                      </span>
-                    )}
-
-                    <span className="font-mono text-[10.5px] text-ink-soft">
-                      {formatDuration(track.durationSeconds)}
-                    </span>
-
-                    {/* Action Menu (Play Next, Add to Queue, Add to Playlist...) */}
-                    <SongActionMenu
-                      track={toPlayerTrack(track)}
-                      isLocked={album.isUpcoming && !isCreator}
-                    />
-
-                    {/* Like Heart */}
-                    {!album.isUpcoming && (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleTrackLike(track)}
-                        aria-label="Like track"
-                        className="p-1 cursor-pointer"
-                      >
-                        <HeartIconSVG
-                          filled={likedSongIds.has(track.id)}
-                          className={`w-3.5 h-3.5 transition-colors ${
-                            likedSongIds.has(track.id)
-                              ? 'text-red-500'
-                              : 'text-ink-soft/40 hover:text-ink'
-                          }`}
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+                return (
+                  <SongRow
+                    key={track.id}
+                    track={toPlayerTrack(track)}
+                    index={idx}
+                    trackNumberDisplay={track.trackNumber || idx + 1}
+                    variant="album"
+                    playsCount={track.playsCount}
+                    primaryCredits={primaryCredits}
+                    featuredCredits={featuredCredits}
+                    producerCredits={producerCredits}
+                    scheduledReleaseAt={
+                      album.isUpcoming && !isCreator
+                        ? album.scheduledReleaseAt
+                        : undefined
+                    }
+                    onPlay={() => handlePlaySong(track, idx)}
+                    hideGoToAlbum={true}
+                  />
+                )
+              })}
+            </div>
           </div>
         )}
 

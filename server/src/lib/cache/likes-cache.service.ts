@@ -4,6 +4,7 @@ import { redis } from "../../db/redis";
 import { songs, albums, songLikes, albumLikes, artistProfiles } from "../../db/schema";
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
+import { presavesCacheService } from "./presaves-cache.service";
 
 const EMPTY_SENTINEL = "__EMPTY__";
 const USER_LIKES_TTL_SEC = 86400; // 24 hours
@@ -145,7 +146,8 @@ export class LikesCacheService {
   async isAlbumLiked(userId: string | null | undefined, albumId: string): Promise<boolean> {
     if (!userId || !albumId) return false;
     const likedSet = await this.getUserLikedAlbumIds(userId);
-    return likedSet.has(albumId);
+    if (likedSet.has(albumId)) return true;
+    return await presavesCacheService.isAlbumPreSaved(userId, albumId);
   }
 
   /**
@@ -213,8 +215,26 @@ export class LikesCacheService {
       song.scheduledReleaseAt &&
       new Date(song.scheduledReleaseAt).getTime() > Date.now();
 
-    if (isSongUnreleased && song.artistUserId !== userId) {
-      throw new Error("Cannot like tracks from an unreleased scheduled release");
+    if (isSongUnreleased) {
+      if (song.albumId) {
+        const isPreSaved = await presavesCacheService.isAlbumPreSaved(userId, song.albumId);
+        const songKey = cacheKeys.social.userLikedSongs(userId);
+        if (isPreSaved) {
+          const res = await presavesCacheService.removePreSave(userId, song.albumId);
+          await redis.srem(songKey, songId).catch(() => {});
+          return {
+            liked: false,
+            likesCount: res.preSavesCount,
+          };
+        } else {
+          const res = await presavesCacheService.preSaveAlbum(userId, song.albumId);
+          await redis.sadd(songKey, songId).catch(() => {});
+          return {
+            liked: true,
+            likesCount: res.preSavesCount,
+          };
+        }
+      }
     }
 
     const likedSet = await this.getUserLikedSongIds(userId);
@@ -306,8 +326,24 @@ export class LikesCacheService {
       album.scheduledReleaseAt &&
       new Date(album.scheduledReleaseAt).getTime() > Date.now();
 
-    if (isAlbumUnreleased && album.artistUserId !== userId) {
-      throw new Error("Cannot like an unreleased scheduled album. Please pre-save it instead.");
+    if (isAlbumUnreleased) {
+      const isPreSaved = await presavesCacheService.isAlbumPreSaved(userId, albumId);
+      const albumKey = cacheKeys.social.userLikedAlbums(userId);
+      if (isPreSaved) {
+        const res = await presavesCacheService.removePreSave(userId, albumId);
+        await redis.srem(albumKey, albumId).catch(() => {});
+        return {
+          liked: false,
+          likesCount: res.preSavesCount,
+        };
+      } else {
+        const res = await presavesCacheService.preSaveAlbum(userId, albumId);
+        await redis.sadd(albumKey, albumId).catch(() => {});
+        return {
+          liked: true,
+          likesCount: res.preSavesCount,
+        };
+      }
     }
 
     const likedSet = await this.getUserLikedAlbumIds(userId);

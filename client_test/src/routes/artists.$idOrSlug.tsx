@@ -16,7 +16,6 @@ import {
   SvgArtworkSpiral,
   PlayIconSVG,
   PauseIconSVG,
-  HeartIconSVG,
   DiscIconSVG,
   CalendarIconSVG,
 } from '../components/icons'
@@ -26,7 +25,7 @@ import { usePreSavesStore } from '../stores/presaves.store'
 import { useFollowsStore } from '../stores/follows.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
-import { SongActionMenu } from '../components/player/SongActionMenu'
+import { SongRow } from '../components/common/SongRow'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
   component: ArtistPublicProfileComponent,
@@ -41,8 +40,6 @@ function ArtistPublicProfileComponent() {
     usePlayerStore()
 
   // Likes & Follows store integration
-  const likedSongIds = useLikesStore((s) => s.likedSongIds)
-  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
   const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
 
   const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
@@ -212,64 +209,6 @@ function ArtistPublicProfileComponent() {
       alert(err.message || 'Could not update follow status')
     } finally {
       setIsFollowLoading(false)
-    }
-  }
-
-  const handleToggleTrackLike = async (track: EnrichedSong) => {
-    if (!isAuthenticated) {
-      useAuthModalStore.getState().openAuthModal({
-        category: 'Favorites & Library',
-        subtitle: 'Library',
-        title: 'Save to your library.',
-        description:
-          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
-      })
-      return
-    }
-
-    const wasLiked = likedSongIds.has(track.id)
-    const prevCount = track.likesCount
-
-    // Optimistic track count update in topTracks
-    setDiscography((prev) => {
-      if (!prev) return null
-      return {
-        ...prev,
-        topTracks: prev.topTracks.map((t) =>
-          t.id === track.id
-            ? {
-                ...t,
-                likesCount: wasLiked
-                  ? Math.max(0, prevCount - 1)
-                  : prevCount + 1,
-              }
-            : t,
-        ),
-      }
-    })
-
-    try {
-      const res = await toggleSongLike(track.id)
-      setDiscography((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          topTracks: prev.topTracks.map((t) =>
-            t.id === track.id ? { ...t, likesCount: res.likesCount } : t,
-          ),
-        }
-      })
-    } catch {
-      // Rollback on failure
-      setDiscography((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          topTracks: prev.topTracks.map((t) =>
-            t.id === track.id ? { ...t, likesCount: prevCount } : t,
-          ),
-        }
-      })
     }
   }
 
@@ -560,96 +499,18 @@ function ArtistPublicProfileComponent() {
                 </div>
 
                 <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
-                  {discography!.topTracks.map((track, idx) => {
-                    const isCurrentPlaying =
-                      currentTrack?.id === track.id &&
-                      playbackStatus === 'playing'
-                    const isCurrentLoaded = currentTrack?.id === track.id
-                    const isLocked = track.isStreamable === false
-
-                    return (
-                      <div
-                        key={track.id}
-                        className={`px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
-                          isCurrentPlaying ? 'bg-blue/5' : ''
-                        } ${isLocked ? 'opacity-65 bg-line/10' : ''}`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
-                          <button
-                            type="button"
-                            onClick={() => handlePlaySong(track, idx)}
-                            aria-label={
-                              isCurrentPlaying ? 'Pause' : 'Play track'
-                            }
-                            className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
-                          >
-                            {isCurrentPlaying ? (
-                              <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
-                            ) : (
-                              <>
-                                <span
-                                  className={`font-mono text-[10.5px] ${
-                                    isCurrentLoaded ? 'text-blue font-bold' : ''
-                                  } group-hover:hidden`}
-                                >
-                                  {String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
-                              </>
-                            )}
-                          </button>
-
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className={`font-serif text-sm truncate ${
-                                  isCurrentPlaying
-                                    ? 'text-blue font-medium'
-                                    : isCurrentLoaded
-                                      ? 'text-blue'
-                                      : 'text-ink'
-                                }`}
-                              >
-                                {track.title}
-                              </span>
-                              {track.isExplicit && (
-                                <span className="font-mono text-[8.5px] px-1 py-0.2 border border-line text-ink-soft bg-canvas">
-                                  E
-                                </span>
-                              )}
-                            </div>
-                            <span className="font-mono text-[9px] text-ink-soft">
-                              {track.playsCount.toLocaleString()} plays
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          {!isLocked && (
-                            <SongActionMenu track={toPlayerTrack(track)} />
-                          )}
-
-                          <span className="font-mono text-[10.5px] text-ink-soft">
-                            {formatDuration(track.durationSeconds)}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleTrackLike(track)}
-                            className="p-1 cursor-pointer"
-                          >
-                            <HeartIconSVG
-                              filled={likedSongIds.has(track.id)}
-                              className={`w-3.5 h-3.5 transition-colors ${
-                                likedSongIds.has(track.id)
-                                  ? 'text-red-500'
-                                  : 'text-ink-soft/40 hover:text-ink'
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
+                  {discography!.topTracks.map((track, idx) => (
+                    <SongRow
+                      key={track.id}
+                      track={toPlayerTrack(track)}
+                      index={idx}
+                      trackNumberDisplay={idx + 1}
+                      variant="artist"
+                      playsCount={track.playsCount}
+                      onPlay={() => handlePlaySong(track, idx)}
+                      hideGoToArtist={true}
+                    />
+                  ))}
                 </div>
               </div>
             )}

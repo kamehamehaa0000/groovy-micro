@@ -21,7 +21,7 @@ import {
   DiscIconSVG,
 } from '../components/icons'
 import { ProceduralCover } from '../components/common/ProceduralCover'
-import { SongActionMenu } from '../components/player/SongActionMenu'
+import { SongRow } from '../components/common/SongRow'
 
 interface SearchPageParams {
   q?: string
@@ -41,12 +41,6 @@ export const Route = createFileRoute('/search')({
     }
   },
 })
-
-function formatDuration(totalSeconds: number) {
-  const mins = Math.floor(totalSeconds / 60)
-  const secs = totalSeconds % 60
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
 
 const GENRE_SUGGESTIONS = [
   'Electronic',
@@ -72,7 +66,7 @@ function SearchPageComponent() {
   const [results, setResults] = useState<GlobalSearchResponse | null>(null)
   const [isSearching, setIsSearching] = useState(false)
 
-  const { currentTrack, playbackStatus, playTrack, togglePlay, addToQueue } =
+  const { currentTrack, playbackStatus, playTrack, togglePlay } =
     usePlayerStore()
   const { isSongLiked, toggleSongLike, isAlbumLiked, toggleAlbumLike } =
     useLikesStore()
@@ -835,11 +829,6 @@ function SearchPageComponent() {
 
               <div className="border border-line bg-panel divide-y divide-line shadow-xs">
                 {results.songs.map((song, idx) => {
-                  const isCurrentPlaying =
-                    currentTrack?.id === song.id &&
-                    playbackStatus === 'playing'
-                  const isLiked = isSongLiked(song.id)
-
                   const playerTrackData: PlayerTrack = {
                     id: song.id,
                     title: song.title,
@@ -852,113 +841,19 @@ function SearchPageComponent() {
                     durationSeconds: song.durationSeconds,
                     audioUrl: song.audioUrl,
                     isExplicit: song.isExplicit,
+                    scope: song.isPersonal ? 'PERSONAL' : 'GLOBAL',
                   }
 
                   return (
-                    <div
+                    <SongRow
                       key={song.id}
-                      className="flex items-center justify-between p-3.5 hover:bg-canvas-deep transition-colors group"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-4">
-                        <button
-                          type="button"
-                          onClick={() => handlePlaySong(song, results.songs, idx)}
-                          className="w-8 h-8 rounded-full border border-line flex items-center justify-center font-mono text-xs text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
-                          title={isCurrentPlaying ? 'Pause' : 'Play'}
-                        >
-                          {isCurrentPlaying ? (
-                            <PauseIconSVG className="w-3.5 h-3.5" />
-                          ) : (
-                            <PlayIconSVG className="w-3.5 h-3.5 ml-0.5" />
-                          )}
-                        </button>
-
-                        <div className="w-10 h-10 bg-stone/20 border border-line shrink-0 overflow-hidden shadow-2xs">
-                          {song.coverImageUrl ? (
-                            <img
-                              src={song.coverImageUrl}
-                              alt={song.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <ProceduralCover
-                              size="sm"
-                              title={song.title}
-                              artistName={song.artistName}
-                              className="w-full h-full rounded-none text-[10px]"
-                            />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-serif italic text-base font-semibold text-ink truncate group-hover:text-blue transition-colors">
-                              {song.title}
-                            </span>
-                            {song.isPersonal && (
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold">
-                                Personal
-                              </span>
-                            )}
-                            {song.isExplicit && (
-                              <span className="font-mono text-[8px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
-                                E
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-ink-soft font-sans truncate">
-                            <Link
-                              to="/artists/$idOrSlug"
-                              params={{ idOrSlug: song.artistSlug }}
-                              className="hover:text-ink hover:underline transition-colors"
-                            >
-                              {song.artistName}
-                            </Link>
-                            {song.albumTitle && song.albumId && (
-                              <>
-                                <span>•</span>
-                                <Link
-                                  to="/albums/$idOrSlug"
-                                  params={{ idOrSlug: song.slug || song.albumId }}
-                                  className="hover:text-ink hover:underline transition-colors truncate"
-                                >
-                                  {song.albumTitle}
-                                </Link>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="font-mono text-xs text-ink-soft">
-                          {formatDuration(song.durationSeconds)}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => handleToggleSongLike(song.id)}
-                          className="p-1.5 text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
-                          title="Like Track"
-                        >
-                          <HeartIconSVG
-                            className="w-4 h-4"
-                            filled={isLiked}
-                          />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => addToQueue(playerTrackData)}
-                          className="hidden sm:inline-block font-mono text-[9px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors px-2 py-1 border border-line hover:border-ink cursor-pointer bg-canvas"
-                          title="Add to queue"
-                        >
-                          + Queue
-                        </button>
-
-                        <SongActionMenu track={playerTrackData} align="right" />
-                      </div>
-                    </div>
+                      track={playerTrackData}
+                      index={idx}
+                      variant="search"
+                      albumTitleOverride={song.albumTitle}
+                      albumSlugOverride={song.slug || song.albumId}
+                      onPlay={() => handlePlaySong(song, results.songs, idx)}
+                    />
                   )
                 })}
               </div>

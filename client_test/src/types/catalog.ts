@@ -197,6 +197,7 @@ export interface Album {
   likesCount: number;
   totalTracks: number;
   totalDurationSeconds: number;
+  totalPlays?: number;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt?: string;

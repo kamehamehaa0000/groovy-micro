@@ -1,13 +1,37 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 
 export const Route = createFileRoute('/forgot-password')({
+  beforeLoad: async () => {
+    const { isLoading, checkAuth } = useAuthStore.getState()
+    if (isLoading) {
+      try {
+        await checkAuth()
+      } catch {
+        // ignore
+      }
+    }
+    if (useAuthStore.getState().isAuthenticated) {
+      throw redirect({ to: '/' })
+    }
+  },
   component: ForgotPasswordComponent,
 })
 
 function ForgotPasswordComponent() {
-  const { forgotPassword } = useAuthStore()
+  const navigate = useNavigate()
+  const { forgotPassword, isAuthenticated, isLoading } = useAuthStore()
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: '/', replace: true })
+    }
+  }, [isLoading, isAuthenticated, navigate])
+
+  if (!isLoading && isAuthenticated) {
+    return null
+  }
 
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)

@@ -7,20 +7,13 @@ import { usePlayerStore } from "../stores/player.store";
 import { useAuthModalStore } from "../stores/auth-modal.store";
 import type { PlayerTrack } from "../types/player";
 import {
-  PlayIconSVG,
-  PauseIconSVG,
   LockIconSVG,
 } from "../components/icons";
+import { SongRow } from "../components/common/SongRow";
 
 export const Route = createFileRoute("/users/$id")({
   component: UserProfileComponent,
 });
-
-function formatDuration(totalSeconds: number) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
 
 function formatDate(dateStr?: string | Date) {
   if (!dateStr) return "";
@@ -35,7 +28,7 @@ function UserProfileComponent() {
   const { id } = Route.useParams();
   const { user: currentUser, isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModalStore();
-  const { currentTrack, playbackStatus, playTrack, togglePlay, addToQueue } = usePlayerStore();
+  const { currentTrack, playTrack, togglePlay } = usePlayerStore();
 
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [relationship, setRelationship] = useState<RelationshipStatus>("NONE");
@@ -669,96 +662,28 @@ function UserProfileComponent() {
                 ) : (
                   <div className="border border-line bg-panel shadow-xs divide-y divide-line">
                     {library.likedSongs.items.map((song, index) => {
-                      const isPlaying =
-                        currentTrack?.id === song.id &&
-                        playbackStatus === "playing";
+                      const playerTrackData: PlayerTrack = {
+                        id: song.id,
+                        title: song.title,
+                        artistId: song.artistId,
+                        artistName: song.artistName,
+                        artistSlug: song.artistSlug,
+                        albumId: "",
+                        albumTitle: "",
+                        coverImageUrl: song.coverImageUrl,
+                        durationSeconds: song.durationSeconds,
+                        audioUrl: song.audioUrl,
+                        isExplicit: song.isExplicit,
+                      };
 
                       return (
-                        <div
+                        <SongRow
                           key={song.id}
-                          className="flex items-center justify-between p-3.5 hover:bg-canvas-deep transition-colors group"
-                        >
-                          <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                            {/* Play Button / Track Index */}
-                            <button
-                              type="button"
-                              onClick={() => handlePlayLikedSong(song, index)}
-                              className="w-8 h-8 rounded-full border border-line flex items-center justify-center font-mono text-xs text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
-                            >
-                              {isPlaying ? (
-                                <PauseIconSVG className="w-3.5 h-3.5" />
-                              ) : (
-                                <PlayIconSVG className="w-3.5 h-3.5 ml-0.5" />
-                              )}
-                            </button>
-
-                            {/* Cover art thumbnail */}
-                            <div className="w-10 h-10 bg-stone/20 border border-line shrink-0 overflow-hidden">
-                              {song.coverImageUrl ? (
-                                <img
-                                  src={song.coverImageUrl}
-                                  alt={song.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
-                                  ♪
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Track Details */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-serif italic text-sm font-semibold text-ink truncate">
-                                  {song.title}
-                                </span>
-                                {song.isExplicit && (
-                                  <span className="font-mono text-[8px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
-                                    E
-                                  </span>
-                                )}
-                              </div>
-                              <Link
-                                to="/artists/$idOrSlug"
-                                params={{ idOrSlug: song.artistSlug }}
-                                className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block"
-                              >
-                                {song.artistName}
-                              </Link>
-                            </div>
-                          </div>
-
-                          {/* Right Side: Duration & Quick Queue */}
-                          <div className="flex items-center gap-4 shrink-0">
-                            <span className="font-mono text-xs text-ink-soft">
-                              {formatDuration(song.durationSeconds)}
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                addToQueue({
-                                  id: song.id,
-                                  title: song.title,
-                                  artistId: song.artistId,
-                                  artistName: song.artistName,
-                                  artistSlug: song.artistSlug,
-                                  albumId: "",
-                                  albumTitle: "",
-                                  coverImageUrl: song.coverImageUrl,
-                                  durationSeconds: song.durationSeconds,
-                                  audioUrl: song.audioUrl,
-                                  isExplicit: song.isExplicit,
-                                });
-                              }}
-                              className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors px-2 py-1 border border-line hover:border-ink cursor-pointer bg-canvas"
-                              title="Add to queue"
-                            >
-                              + Queue
-                            </button>
-                          </div>
-                        </div>
+                          track={playerTrackData}
+                          index={index}
+                          variant="standard"
+                          onPlay={() => handlePlayLikedSong(song, index)}
+                        />
                       );
                     })}
                   </div>

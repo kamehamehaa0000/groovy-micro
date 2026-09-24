@@ -4,18 +4,14 @@ import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import {
   SvgArtworkSpiral,
-  PlayIconSVG,
-  PauseIconSVG,
-  HeartIconSVG,
   DiscIconSVG,
 } from '../components/icons'
-import { catalogApi, formatDuration } from '../lib/catalog.api'
+import { catalogApi } from '../lib/catalog.api'
 import type { Album, EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { usePlayerStore } from '../stores/player.store'
-import { useAuthModalStore } from '../stores/auth-modal.store'
-import { SongActionMenu } from '../components/player/SongActionMenu'
 import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
+import { SongRow } from '../components/common/SongRow'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -25,8 +21,6 @@ function HomeComponent() {
   const { isAuthenticated, isLoading } = useAuthStore()
 
   // High-performance client-side likes store
-  const likedSongIds = useLikesStore((s) => s.likedSongIds)
-  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
   const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
 
   const [liveAlbums, setLiveAlbums] = useState<
@@ -36,8 +30,7 @@ function HomeComponent() {
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true)
 
   // Player integration
-  const { currentTrack, playbackStatus, playTrack, togglePlay } =
-    usePlayerStore()
+  const { currentTrack, playTrack, togglePlay } = usePlayerStore()
 
   useEffect(() => {
     let isMounted = true
@@ -104,48 +97,6 @@ function HomeComponent() {
       'home:curated',
       'Curated Master Cuts',
     )
-  }
-
-  const handleToggleTrackLike = async (track: EnrichedSong) => {
-    if (!isAuthenticated) {
-      useAuthModalStore.getState().openAuthModal({
-        category: 'Favorites & Library',
-        subtitle: 'Library',
-        title: 'Save to your library.',
-        description:
-          'Sign in or create an account to like tracks, build custom playlists, and sync your music across devices.',
-      })
-      return
-    }
-
-    const wasLiked = likedSongIds.has(track.id)
-    const prevCount = track.likesCount
-
-    setLiveSongs((prev) =>
-      prev.map((t) =>
-        t.id === track.id
-          ? {
-              ...t,
-              likesCount: wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1,
-            }
-          : t,
-      ),
-    )
-
-    try {
-      const res = await toggleSongLike(track.id)
-      setLiveSongs((prev) =>
-        prev.map((t) =>
-          t.id === track.id ? { ...t, likesCount: res.likesCount } : t,
-        ),
-      )
-    } catch {
-      setLiveSongs((prev) =>
-        prev.map((t) =>
-          t.id === track.id ? { ...t, likesCount: prevCount } : t,
-        ),
-      )
-    }
   }
 
   return (
@@ -270,91 +221,15 @@ function HomeComponent() {
 
         {liveSongs.length > 0 ? (
           <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
-            {liveSongs.map((t, idx) => {
-              const isCurrentPlaying =
-                currentTrack?.id === t.id && playbackStatus === 'playing'
-              const isCurrentLoaded = currentTrack?.id === t.id
-
-              return (
-                <div
-                  key={t.id}
-                  className={`px-5 py-3.5 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
-                    isCurrentPlaying ? 'bg-blue/5' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                    <button
-                      type="button"
-                      onClick={() => handlePlaySong(t, idx)}
-                      aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
-                      className="w-6 h-6 flex items-center justify-center text-ink-soft group-hover:text-ink cursor-pointer shrink-0"
-                    >
-                      {isCurrentPlaying ? (
-                        <PauseIconSVG className="w-3.5 h-3.5 text-blue" />
-                      ) : (
-                        <span
-                          className={`font-mono text-[10px] ${
-                            isCurrentLoaded ? 'text-blue font-bold' : ''
-                          } group-hover:hidden`}
-                        >
-                          {String(idx + 1).padStart(2, '0')}
-                        </span>
-                      )}
-                      {!isCurrentPlaying && (
-                        <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink" />
-                      )}
-                    </button>
-
-                    <div className="truncate">
-                      <div
-                        className={`font-serif font-medium text-sm truncate ${
-                          isCurrentPlaying
-                            ? 'text-blue font-medium'
-                            : isCurrentLoaded
-                              ? 'text-blue'
-                              : 'text-ink'
-                        }`}
-                      >
-                        {t.title}
-                      </div>
-                      <div className="font-mono text-[10px] text-ink-soft truncate">
-                        {t.artistStageName || 'Groovy Artist'} &bull;{' '}
-                        {t.genre || 'Master Cut'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0 pl-3">
-                    {t.isExplicit && (
-                      <span className="font-mono text-[8px] px-1 border border-line text-ink-soft bg-canvas">
-                        E
-                      </span>
-                    )}
-
-                    <span className="font-mono text-[10.5px] text-ink-soft">
-                      {formatDuration(t.durationSeconds)}
-                    </span>
-
-                    <SongActionMenu track={toPlayerTrack(t)} />
-
-                    <button
-                      type="button"
-                      onClick={() => handleToggleTrackLike(t)}
-                      className="p-1 cursor-pointer"
-                    >
-                      <HeartIconSVG
-                        filled={likedSongIds.has(t.id)}
-                        className={`w-3.5 h-3.5 ${
-                          likedSongIds.has(t.id)
-                            ? 'text-red-500'
-                            : 'text-ink-soft/40 hover:text-ink'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+            {liveSongs.map((t, idx) => (
+              <SongRow
+                key={t.id}
+                track={toPlayerTrack(t)}
+                index={idx}
+                variant="standard"
+                onPlay={() => handlePlaySong(t, idx)}
+              />
+            ))}
           </div>
         ) : (
           <div className="border border-line bg-panel divide-y divide-line/60">
