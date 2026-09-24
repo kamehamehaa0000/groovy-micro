@@ -30,10 +30,6 @@ function LoginComponent() {
     }
   }, [isLoading, isAuthenticated, navigate])
 
-  if (!isLoading && isAuthenticated) {
-    return null
-  }
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -99,6 +95,10 @@ function LoginComponent() {
     error &&
     (error.toLowerCase().includes('verify your email') ||
       error.toLowerCase().includes('verify'))
+
+  if (!isLoading && isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[640px] overflow-hidden">

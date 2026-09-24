@@ -30,10 +30,6 @@ function RegisterComponent() {
     }
   }, [isLoading, isAuthenticated, navigate])
 
-  if (!isLoading && isAuthenticated) {
-    return null
-  }
-
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -94,6 +90,10 @@ function RegisterComponent() {
     } finally {
       setIsResending(false)
     }
+  }
+
+  if (!isLoading && isAuthenticated) {
+    return null
   }
 
   return (

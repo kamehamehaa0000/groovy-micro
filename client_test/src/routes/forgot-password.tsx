@@ -29,10 +29,6 @@ function ForgotPasswordComponent() {
     }
   }, [isLoading, isAuthenticated, navigate])
 
-  if (!isLoading && isAuthenticated) {
-    return null
-  }
-
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notice, setNotice] = useState<{
@@ -73,6 +69,10 @@ function ForgotPasswordComponent() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (!isLoading && isAuthenticated) {
+    return null
   }
 
   return (

@@ -87,8 +87,11 @@ export function MarqueeText({
         style={
           shouldAnimate
             ? {
-                animation: `marquee-pingpong ${totalCycleSec}s ease-in-out infinite`,
+                animationName: 'marquee-pingpong',
+                animationDuration: `${totalCycleSec}s`,
+                animationTimingFunction: 'ease-in-out',
                 animationDelay: '0.8s',
+                animationIterationCount: 'infinite',
                 ['--marquee-distance' as any]: `-${overflowDistance}px`,
               }
             : undefined
