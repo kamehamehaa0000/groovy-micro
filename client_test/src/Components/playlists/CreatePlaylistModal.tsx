@@ -6,7 +6,7 @@ import { usePlaylistsStore } from '../../stores/playlists.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
 
 export function CreatePlaylistModal() {
-  const { isOpen, closeModal } = useCreatePlaylistModalStore()
+  const { isOpen, closeModal, initialTrackIds } = useCreatePlaylistModalStore()
   const navigate = useNavigate()
   const hydratePlaylists = usePlaylistsStore((s) => s.hydratePlaylists)
 
@@ -64,6 +64,13 @@ export function CreatePlaylistModal() {
       }
 
       const created = await playlistsApi.createPlaylist(input)
+      if (initialTrackIds && initialTrackIds.length > 0) {
+        try {
+          await playlistsApi.addTracks(created.id, initialTrackIds)
+        } catch (addErr) {
+          console.error('Failed to attach queued tracks:', addErr)
+        }
+      }
       hydratePlaylists([{ id: created.id, isSaved: true }])
       closeModal()
 
@@ -83,7 +90,7 @@ export function CreatePlaylistModal() {
       <div className="fixed inset-0" onClick={closeModal} />
 
       <div className="w-full max-w-md border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 z-10">
-        <div className="flex items-center justify-between border-b border-line pb-3 mb-5">
+        <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
           <h2 className="font-serif italic text-xl text-ink">
             Create New Playlist
           </h2>
@@ -96,6 +103,13 @@ export function CreatePlaylistModal() {
             ✕
           </button>
         </div>
+
+        {initialTrackIds.length > 0 && (
+          <div className="font-mono text-[9.5px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
+            <span>Saving Active Queue</span>
+            <span>{initialTrackIds.length} tracks</span>
+          </div>
+        )}
 
         {modalError && (
           <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[10.5px]">

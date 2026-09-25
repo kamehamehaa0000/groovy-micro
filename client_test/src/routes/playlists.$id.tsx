@@ -11,8 +11,7 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
 import { CommentSection } from '../components/comments/CommentSection'
-import { SongRow } from '../components/common/SongRow'
-import type { SongActionCustomItem } from '../components/player/SongActionMenu'
+import { PlaylistTrackReorderList } from '../components/playlists/PlaylistTrackReorderList'
 import {
   PlayIconSVG,
   HeartIconSVG,
@@ -64,8 +63,6 @@ function PlaylistDetailComponent() {
   const [isCloning, setIsCloning] = useState(false)
   const [isJoiningCollab, setIsJoiningCollab] = useState(false)
   const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(null)
-  const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null)
-  const [draggedTrackIdx, setDraggedTrackIdx] = useState<number | null>(null)
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -723,72 +720,14 @@ function PlaylistDetailComponent() {
             )}
           </div>
         ) : (
-          <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
-            {(playlist.tracks ?? []).map((track, idx) => {
-              const entryId = track.id || (track as any).entryId
-              const song = track.song || (track as any)
-              const isLocked = song.isStreamable === false
-
-              const customActions: SongActionCustomItem[] = []
-              if (canEdit) {
-                if (idx > 0) {
-                  customActions.push({
-                    label: 'Move Up in Playlist',
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-                        <polyline points="18 15 12 9 6 15" />
-                      </svg>
-                    ),
-                    onClick: () => handleReorderTracks(idx, idx - 1),
-                  })
-                }
-                if (idx < (playlist.tracks ?? []).length - 1) {
-                  customActions.push({
-                    label: 'Move Down in Playlist',
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    ),
-                    onClick: () => handleReorderTracks(idx, idx + 1),
-                  })
-                }
-              }
-
-              return (
-                <SongRow
-                  key={entryId || idx}
-                  track={toPlayerTrack(track)}
-                  index={idx}
-                  trackNumberDisplay={track.position + 1}
-                  variant="playlist"
-                  addedByDisplayName={track.addedByDisplayName}
-                  scheduledReleaseAt={song.scheduledReleaseAt}
-                  albumTitleOverride={song.albumTitle}
-                  albumSlugOverride={song.albumSlug || song.albumId}
-                  isDraggable={canEdit && !isLocked}
-                  isDragging={draggedTrackIdx === idx}
-                  isDragOver={dropTargetIdx === idx && draggedTrackIdx !== idx}
-                  onDragStart={() => setDraggedTrackIdx(idx)}
-                  onDragOver={() => setDropTargetIdx(idx)}
-                  onDragEnd={() => {
-                    setDraggedTrackIdx(null)
-                    setDropTargetIdx(null)
-                  }}
-                  onDrop={(from, to) => {
-                    handleReorderTracks(from, to)
-                    setDraggedTrackIdx(null)
-                    setDropTargetIdx(null)
-                  }}
-                  onPlay={() => handlePlayTrack(track, idx)}
-                  onRemoveFromPlaylist={
-                    canEdit ? () => handleRemoveTrack(entryId) : undefined
-                  }
-                  customActions={customActions}
-                />
-              )
-            })}
-          </div>
+          <PlaylistTrackReorderList
+            tracks={playlist.tracks ?? []}
+            canEdit={canEdit}
+            toPlayerTrack={toPlayerTrack}
+            onReorder={handleReorderTracks}
+            onPlayTrack={handlePlayTrack}
+            onRemoveTrack={handleRemoveTrack}
+          />
         )}
       </div>
 

@@ -19,7 +19,7 @@ import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
-import { QueueDrawer } from '../components/player/QueueDrawer'
+import { QueueDrawer, QueueDesktopSection } from '../components/player/QueueDrawer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
 import { LiveJamModal } from '../components/jam/LiveJamModal'
@@ -900,28 +900,34 @@ function RootComponent() {
           <Outlet />
         </div>
       ) : (
-        <div
-          className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
-        >
-          <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
-            <Outlet />
-          </main>
+        <div className="flex-1 flex min-w-0 relative">
+          {/* Main App Page Flow */}
+          <div
+            className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
+          >
+            <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
+              <Outlet />
+            </main>
 
-          {/* Editorial Maison Footnote */}
-          <footer className="border-t border-line py-8 px-6 text-center">
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
-              Groovy Streaming @ 2026 • All Rights Reserved • Made with ❤️ by
-              &nbsp;
-              <a
-                href="https://github.com/kamehamehaa0000"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-ink hover:text-ink-soft "
-              >
-                Aayush Gupta
-              </a>
-            </p>
-          </footer>
+            {/* Editorial Maison Footnote */}
+            <footer className="border-t border-line py-8 px-6 text-center">
+              <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
+                Groovy Streaming @ 2026 • All Rights Reserved • Made with ❤️ by
+                &nbsp;
+                <a
+                  href="https://github.com/kamehamehaa0000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-ink hover:text-ink-soft "
+                >
+                  Aayush Gupta
+                </a>
+              </p>
+            </footer>
+          </div>
+
+          {/* Desktop Queue Section (Collapsible Docked Right Panel) */}
+          <QueueDesktopSection />
         </div>
       )}
 

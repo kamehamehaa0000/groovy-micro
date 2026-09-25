@@ -1,93 +1,86 @@
-import { useState, useRef, memo } from "react";
-import { Link } from "@tanstack/react-router";
-import { usePlayerStore } from "../../stores/player.store";
-import { useLikesStore } from "../../stores/likes.store";
-import { useAuthStore } from "../../stores/auth.store";
-import { useAuthModalStore } from "../../stores/auth-modal.store";
-import { useAddToPlaylistModalStore } from "../../stores/add-to-playlist-modal.store";
-import { formatDuration } from "../../lib/catalog.api";
-import { ProceduralCover } from "./ProceduralCover";
-import { MarqueeText } from "./MarqueeText";
+import { useState, useRef, useEffect, memo } from 'react'
+import { Link } from '@tanstack/react-router'
+import { usePlayerStore } from '../../stores/player.store'
+import { useLikesStore } from '../../stores/likes.store'
+import { useAuthStore } from '../../stores/auth.store'
+import { useAuthModalStore } from '../../stores/auth-modal.store'
+import { useAddToPlaylistModalStore } from '../../stores/add-to-playlist-modal.store'
+import { formatDuration } from '../../lib/catalog.api'
+import { ProceduralCover } from './ProceduralCover'
+import { MarqueeText } from './MarqueeText'
 import {
   SongActionMenu,
   type SongActionCustomItem,
-} from "../player/SongActionMenu";
-import {
-  PlayIconSVG,
-  PauseIconSVG,
-  HeartIconSVG,
-  LockIconSVG,
-} from "../icons";
-import type { PlayerTrack } from "../../types/player";
+} from '../player/SongActionMenu'
+import { PlayIconSVG, PauseIconSVG, HeartIconSVG, LockIconSVG } from '../icons'
+import type { PlayerTrack } from '../../types/player'
 
 export interface SongRowArtistCredit {
-  artistId: string;
-  stageName: string;
-  slug?: string;
-  role?: string;
+  artistId: string
+  stageName: string
+  slug?: string
+  role?: string
 }
 
 export interface SongRowProducerCredit {
-  artistId: string;
-  stageName: string;
-  slug?: string;
-  role?: string;
+  artistId: string
+  stageName: string
+  slug?: string
+  role?: string
 }
 
 export type SongRowVariant =
-  | "standard"
-  | "album"
-  | "playlist"
-  | "artist"
-  | "search";
+  'standard' | 'album' | 'playlist' | 'artist' | 'search'
 
 export interface SongRowProps {
-  track: PlayerTrack;
-  index?: number;
-  trackNumberDisplay?: number | string;
-  variant?: SongRowVariant;
+  track: PlayerTrack
+  index?: number
+  trackNumberDisplay?: number | string
+  variant?: SongRowVariant
 
   // Contextual metadata
-  playsCount?: number;
-  addedByDisplayName?: string | null;
-  scheduledReleaseAt?: string | null;
-  primaryCredits?: SongRowArtistCredit[];
-  featuredCredits?: SongRowArtistCredit[];
-  producerCredits?: SongRowProducerCredit[];
-  albumTitleOverride?: string | null;
-  albumSlugOverride?: string | null;
+  playsCount?: number
+  addedByDisplayName?: string | null
+  scheduledReleaseAt?: string | null
+  primaryCredits?: SongRowArtistCredit[]
+  featuredCredits?: SongRowArtistCredit[]
+  producerCredits?: SongRowProducerCredit[]
+  albumTitleOverride?: string | null
+  albumSlugOverride?: string | null
 
-  // Drag-and-drop (Playlist only)
-  isDraggable?: boolean;
-  isDragging?: boolean;
-  onDragStart?: (index: number) => void;
-  onDragOver?: (index: number) => void;
-  onDragEnd?: () => void;
-  onDrop?: (fromIndex: number, toIndex: number) => void;
-  isDragOver?: boolean;
+  // Fluid pointer reordering (Playlist variant)
+  isDraggable?: boolean
+  isDragging?: boolean
+  style?: React.CSSProperties
+  onGripPointerDown?: (e: React.PointerEvent<HTMLSpanElement>) => void
+  onDragStart?: (index: number) => void
+  onDragOver?: (index: number) => void
+  onDragEnd?: () => void
+  onDrop?: (fromIndex: number, toIndex: number) => void
+  isDragOver?: boolean
 
   // Playback callback (for album / playlist queue context)
-  onPlay?: () => void;
+  onPlay?: () => void
 
   // Touch Swipe overrides
-  disableSwipeLeft?: boolean;
-  disableSwipeRight?: boolean;
+  disableSwipeLeft?: boolean
+  disableSwipeRight?: boolean
 
   // Contextual actions
-  hideGoToArtist?: boolean;
-  hideGoToAlbum?: boolean;
-  hideAddToPlaylist?: boolean;
-  onRemoveFromPlaylist?: (track: PlayerTrack) => void;
-  customActions?: SongActionCustomItem[];
+  hideGoToArtist?: boolean
+  hideGoToAlbum?: boolean
+  hideAddToPlaylist?: boolean
+  onRemoveFromPlaylist?: (track: PlayerTrack) => void
+  customActions?: SongActionCustomItem[]
 
-  className?: string;
+  className?: string
 }
 
 export const SongRow = memo(function SongRow({
   track,
   index = 0,
   trackNumberDisplay,
-  variant = "standard",
+  variant = 'standard',
 
   playsCount,
   addedByDisplayName,
@@ -100,11 +93,8 @@ export const SongRow = memo(function SongRow({
 
   isDraggable = false,
   isDragging = false,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  onDrop,
-  isDragOver = false,
+  style,
+  onGripPointerDown,
 
   onPlay,
 
@@ -117,278 +107,244 @@ export const SongRow = memo(function SongRow({
   onRemoveFromPlaylist,
   customActions,
 
-  className = "",
+  className = '',
 }: SongRowProps) {
-  const currentTrack = usePlayerStore((s) => s.currentTrack);
-  const playbackStatus = usePlayerStore((s) => s.playbackStatus);
-  const playTrack = usePlayerStore((s) => s.playTrack);
-  const togglePlay = usePlayerStore((s) => s.togglePlay);
-  const addToQueue = usePlayerStore((s) => s.addToQueue);
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
+  const addToQueue = usePlayerStore((s) => s.addToQueue)
 
-  const likedSongIds = useLikesStore((s) => s.likedSongIds);
-  const toggleSongLike = useLikesStore((s) => s.toggleSongLike);
-  const { isAuthenticated } = useAuthStore();
+  const likedSongIds = useLikesStore((s) => s.likedSongIds)
+  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
+  const { isAuthenticated } = useAuthStore()
 
-  const isCurrentLoaded = currentTrack?.id === track.id;
-  const isCurrentPlaying = isCurrentLoaded && playbackStatus === "playing";
-  const isLiked = likedSongIds.has(track.id);
+  const isCurrentLoaded = currentTrack?.id === track.id
+  const isCurrentPlaying = isCurrentLoaded && playbackStatus === 'playing'
+  const isLiked = likedSongIds.has(track.id)
   const isScheduled = Boolean(
-    scheduledReleaseAt && new Date(scheduledReleaseAt).getTime() > Date.now()
-  );
+    scheduledReleaseAt && new Date(scheduledReleaseAt).getTime() > Date.now(),
+  )
 
-  const isLocked = Boolean(track.isStreamable === false || isScheduled);
+  const isLocked = Boolean(track.isStreamable === false || isScheduled)
 
   // In playlist variant, user explicitly instructed:
   // "in playlist have only left swipe to add to queue"
-  const canSwipeRight = !disableSwipeRight && variant !== "playlist";
-  const canSwipeLeft = !disableSwipeLeft;
+  const canSwipeRight = !disableSwipeRight && variant !== 'playlist'
+  const canSwipeLeft = !disableSwipeLeft
 
-  // Touch & Pointer swipe gesture state
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
-  const [showQueuedBadge, setShowQueuedBadge] = useState(false);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const touchDirectionRef = useRef<"horizontal" | "vertical" | null>(null);
-  const isPointerDownRef = useRef(false);
+  // Touch swipe gesture state (touch devices only)
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
+  const [showQueuedBadge, setShowQueuedBadge] = useState(false)
+  const [isQueuedBadgeFading, setIsQueuedBadgeFading] = useState(false)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const touchDirectionRef = useRef<'horizontal' | 'vertical' | null>(null)
+  const queuedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clean up badge timers on unmount
+  useEffect(() => {
+    return () => {
+      if (queuedTimerRef.current) clearTimeout(queuedTimerRef.current)
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+    }
+  }, [])
 
   const startSwipe = (clientX: number, clientY: number) => {
-    touchStartRef.current = { x: clientX, y: clientY };
-    touchDirectionRef.current = null;
-    setIsSwiping(false);
-  };
+    touchStartRef.current = { x: clientX, y: clientY }
+    touchDirectionRef.current = null
+    setIsSwiping(false)
+  }
 
-  const moveSwipe = (clientX: number, clientY: number, cancelEvent?: () => void) => {
-    if (!touchStartRef.current) return;
+  const moveSwipe = (
+    clientX: number,
+    clientY: number,
+    cancelEvent?: () => void,
+  ) => {
+    if (!touchStartRef.current) return
 
-    const deltaX = clientX - touchStartRef.current.x;
-    const deltaY = clientY - touchStartRef.current.y;
+    const deltaX = clientX - touchStartRef.current.x
+    const deltaY = clientY - touchStartRef.current.y
 
     if (!touchDirectionRef.current) {
       if (Math.abs(deltaY) > 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
-        touchDirectionRef.current = "vertical";
-        return;
+        touchDirectionRef.current = 'vertical'
+        return
       }
       if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        touchDirectionRef.current = "horizontal";
-        setIsSwiping(true);
+        touchDirectionRef.current = 'horizontal'
+        setIsSwiping(true)
       }
     }
 
-    if (touchDirectionRef.current === "horizontal") {
-      cancelEvent?.();
+    if (touchDirectionRef.current === 'horizontal') {
+      cancelEvent?.()
 
       // Disallow right swipe if disabled or in playlist
       if (deltaX > 0 && !canSwipeRight) {
-        setSwipeOffset(0);
-        return;
+        setSwipeOffset(0)
+        return
       }
       if (deltaX < 0 && !canSwipeLeft) {
-        setSwipeOffset(0);
-        return;
+        setSwipeOffset(0)
+        return
       }
 
       // Elastic resistance damping
-      const maxDrag = 110;
+      const maxDrag = 110
       const damped =
-        Math.sign(deltaX) *
-        Math.min(Math.abs(deltaX) * 0.75, maxDrag);
-      setSwipeOffset(damped);
+        Math.sign(deltaX) * Math.min(Math.abs(deltaX) * 0.75, maxDrag)
+      setSwipeOffset(damped)
     }
-  };
+  }
 
   const endSwipe = () => {
-    if (touchDirectionRef.current === "horizontal") {
+    if (touchDirectionRef.current === 'horizontal') {
       // Swipe left threshold: Add to Queue
       if (swipeOffset < -45 && canSwipeLeft) {
-        addToQueue(track);
-        setShowQueuedBadge(true);
-        setTimeout(() => setShowQueuedBadge(false), 1600);
+        addToQueue(track)
+        if (queuedTimerRef.current) clearTimeout(queuedTimerRef.current)
+        if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+
+        setShowQueuedBadge(true)
+        setIsQueuedBadgeFading(false)
+
+        // Show briefly (450ms) then fade out quickly over 200ms
+        queuedTimerRef.current = setTimeout(() => {
+          setIsQueuedBadgeFading(true)
+          fadeTimerRef.current = setTimeout(() => {
+            setShowQueuedBadge(false)
+            setIsQueuedBadgeFading(false)
+          }, 200)
+        }, 450)
       }
       // Swipe right threshold: Add to Playlist
       else if (swipeOffset > 45 && canSwipeRight) {
-        useAddToPlaylistModalStore.getState().openModal(track);
+        useAddToPlaylistModalStore.getState().openModal(track)
       }
     }
 
-    touchStartRef.current = null;
-    touchDirectionRef.current = null;
-    isPointerDownRef.current = false;
-    setSwipeOffset(0);
-    setIsSwiping(false);
-  };
+    touchStartRef.current = null
+    touchDirectionRef.current = null
+    setSwipeOffset(0)
+    setIsSwiping(false)
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    startSwipe(e.touches[0].clientX, e.touches[0].clientY);
-  };
+    if (e.touches.length !== 1) return
+    startSwipe(e.touches[0].clientX, e.touches[0].clientY)
+  }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current || e.touches.length !== 1) return;
+    if (!touchStartRef.current || e.touches.length !== 1) return
     moveSwipe(e.touches[0].clientX, e.touches[0].clientY, () => {
-      if (e.cancelable) e.preventDefault();
-    });
-  };
+      if (e.cancelable) e.preventDefault()
+    })
+  }
 
   const handleTouchEnd = () => {
-    endSwipe();
-  };
-
-  // Pointer event support for desktop mouse swipe testing
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (isDraggable || e.pointerType === "touch") return;
-    const target = e.target as HTMLElement;
-    if (target.closest("button, a, input, [role='menu']")) return;
-    isPointerDownRef.current = true;
-    startSwipe(e.clientX, e.clientY);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isPointerDownRef.current || isDraggable || e.pointerType === "touch") return;
-    moveSwipe(e.clientX, e.clientY);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!isPointerDownRef.current || isDraggable || e.pointerType === "touch") return;
-    endSwipe();
-  };
-
-  // Mobile Touch Reordering for Playlist Grip Handle (⋮⋮)
-  const touchDragOverIdxRef = useRef<number | null>(null);
-
-  const handleGripTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    if (!isDraggable) return;
-    touchDragOverIdxRef.current = index;
-    onDragStart?.(index);
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      try {
-        navigator.vibrate(25);
-      } catch {}
-    }
-  };
-
-  const handleGripTouchMove = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    if (!isDraggable || e.touches.length !== 1) return;
-    if (e.cancelable) {
-      e.preventDefault();
-    }
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const rowEl = el?.closest("[data-track-index]");
-    if (rowEl) {
-      const targetIdxAttr = rowEl.getAttribute("data-track-index");
-      if (targetIdxAttr !== null) {
-        const targetIdx = Number(targetIdxAttr);
-        if (!isNaN(targetIdx) && targetIdx !== touchDragOverIdxRef.current) {
-          touchDragOverIdxRef.current = targetIdx;
-          onDragOver?.(targetIdx);
-        }
-      }
-    }
-  };
-
-  const handleGripTouchEnd = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    if (!isDraggable) return;
-    const targetIdx = touchDragOverIdxRef.current;
-    if (targetIdx !== null && targetIdx !== undefined && targetIdx !== index) {
-      onDrop?.(index, targetIdx);
-    }
-    touchDragOverIdxRef.current = null;
-    onDragEnd?.();
-  };
+    endSwipe()
+  }
 
   const handleRowClick = (e: React.MouseEvent) => {
     // If was swiping horizontally, suppress click to play
-    if (isSwiping || Math.abs(swipeOffset) > 10) return;
+    if (isSwiping || Math.abs(swipeOffset) > 10) return
 
     // If clicking an interactive child element (button, link, input), let it handle its own event
-    const target = e.target as HTMLElement;
+    const target = e.target as HTMLElement
     if (
-      target.closest("button") ||
-      target.closest("a") ||
-      target.closest("input") ||
+      target.closest('button') ||
+      target.closest('a') ||
+      target.closest('input') ||
       target.closest('[role="menu"]')
     ) {
-      return;
+      return
     }
 
-    if (isLocked) return;
+    if (isLocked) return
 
     if (onPlay) {
-      onPlay();
+      onPlay()
     } else {
       if (isCurrentPlaying) {
-        togglePlay();
+        togglePlay()
       } else if (isCurrentLoaded) {
-        togglePlay();
+        togglePlay()
       } else {
-        playTrack(track);
+        playTrack(track)
       }
     }
-  };
+  }
 
   const handlePlayButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isLocked) return;
+    e.stopPropagation()
+    if (isLocked) return
     if (onPlay) {
-      onPlay();
+      onPlay()
     } else {
       if (isCurrentPlaying || isCurrentLoaded) {
-        togglePlay();
+        togglePlay()
       } else {
-        playTrack(track);
+        playTrack(track)
       }
     }
-  };
+  }
 
   const handleToggleLikeClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation()
     if (!isAuthenticated) {
       useAuthModalStore.getState().openAuthModal({
-        category: "Favorites & Library",
-        subtitle: "Library",
-        title: "Save to your library.",
+        category: 'Favorites & Library',
+        subtitle: 'Library',
+        title: 'Save to your library.',
         description:
-          "Sign in or create an account to like tracks and build your personal collection.",
-      });
-      return;
+          'Sign in or create an account to like tracks and build your personal collection.',
+      })
+      return
     }
-    await toggleSongLike(track.id);
-  };
+    await toggleSongLike(track.id)
+  }
 
-  const albumTitle = albumTitleOverride || track.albumTitle;
-  const albumSlug = albumSlugOverride || track.albumSlug || track.albumId;
+  const albumTitle = albumTitleOverride || track.albumTitle
+  const albumSlug = albumSlugOverride || track.albumSlug || track.albumId
 
   const showThumbnail =
-    variant === "standard" ||
-    variant === "playlist" ||
-    variant === "search" ||
-    (variant === "artist" && true);
+    variant === 'standard' ||
+    variant === 'playlist' ||
+    variant === 'search' ||
+    (variant === 'artist' && true)
 
   return (
     <div
+      style={style}
+      data-playlist-row-index={index}
       data-track-index={index}
-      className={`relative overflow-hidden select-none touch-pan-y ${className}`}
+      className={`relative select-none overflow-hidden ${
+        isDragging
+          ? 'z-40 shadow-2xl ring-2 ring-blue/60 bg-panel-elevated opacity-95 scale-[1.01]'
+          : ''
+      } ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
     >
       {/* Queued Feedback Banner */}
       {showQueuedBadge && (
-        <div className="absolute inset-0 z-30 bg-blue/95 flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-wider animate-in fade-in duration-150">
+        <div
+          className={`absolute inset-0 z-30 bg-blue/95 flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-200 ease-out ${
+            isQueuedBadgeFading
+              ? 'opacity-0'
+              : 'opacity-100 animate-in fade-in duration-100'
+          }`}
+        >
           <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="3"
-            className="w-4 h-4"
+            className="w-4 h-4 shrink-0"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -400,7 +356,7 @@ export const SongRow = memo(function SongRow({
       {canSwipeLeft && (
         <div
           className={`absolute inset-y-0 right-0 w-24 bg-blue flex items-center justify-center gap-1.5 text-white font-mono text-[10px] uppercase tracking-wider transition-opacity ${
-            swipeOffset < -20 ? "opacity-100" : "opacity-0 pointer-events-none"
+            swipeOffset < -20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           <svg
@@ -425,7 +381,7 @@ export const SongRow = memo(function SongRow({
       {canSwipeRight && (
         <div
           className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-mono text-[10px] uppercase tracking-wider transition-opacity ${
-            swipeOffset > 20 ? "opacity-100" : "opacity-0 pointer-events-none"
+            swipeOffset > 20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           <svg
@@ -445,55 +401,41 @@ export const SongRow = memo(function SongRow({
       <div
         data-track-index={index}
         onClick={handleRowClick}
-        draggable={isDraggable}
-        onDragStart={(e) => {
-          if (!isDraggable) return;
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", String(index));
-          onDragStart?.(index);
-        }}
-        onDragOver={(e) => {
-          if (!isDraggable) return;
-          e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
-          onDragOver?.(index);
-        }}
-        onDragEnd={() => {
-          onDragEnd?.();
-        }}
-        onDrop={(e) => {
-          if (!isDraggable) return;
-          e.preventDefault();
-          const from = Number(e.dataTransfer.getData("text/plain"));
-          if (!isNaN(from) && from !== index) {
-            onDrop?.(from, index);
-          }
-          onDragEnd?.();
-        }}
         style={{
           transform: `translateX(${swipeOffset}px)`,
-          transition: isSwiping ? "none" : "transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: isSwiping
+            ? 'none'
+            : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         className={`relative z-10 px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 bg-panel hover:bg-canvas-deep active:bg-canvas-deep/80 transition-colors group cursor-pointer ${
-          isCurrentPlaying ? "bg-blue/5" : ""
-        } ${isLocked ? "opacity-65" : ""} ${
-          isDragging ? "opacity-40 border-2 border-dashed border-blue/40 scale-[0.99]" : ""
-        } ${
-          isDragOver ? "border-t-2 border-blue bg-blue/10 shadow-sm" : ""
+          isCurrentPlaying ? 'bg-blue/5' : ''
+        } ${isLocked ? 'opacity-65' : ''} ${
+          isDragging ? 'bg-panel-elevated' : ''
         }`}
       >
         {/* ==================== LEFT SECTION ==================== */}
         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
           {/* Drag Grip Handle (Playlist variant only) */}
-          {variant === "playlist" && isDraggable && (
+          {variant === 'playlist' && isDraggable && (
             <span
-              className="cursor-grab active:cursor-grabbing text-ink-soft/50 hover:text-ink select-none font-mono text-xs px-1 opacity-70 group-hover:opacity-100 transition-all shrink-0 touch-none active:scale-125"
+              data-drag-handle="true"
+              onPointerDown={(e) => {
+                e.stopPropagation()
+                onGripPointerDown?.(e)
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+              }}
+              className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded ${
+                isDragging
+                  ? 'text-blue bg-blue/15 scale-110 shadow-xs'
+                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-blue active:bg-blue/10'
+              }`}
               title="Drag to reorder tracks"
-              onClick={(e) => e.stopPropagation()}
-              onTouchStart={handleGripTouchStart}
-              onTouchMove={handleGripTouchMove}
-              onTouchEnd={handleGripTouchEnd}
-              onTouchCancel={handleGripTouchEnd}
             >
               ⋮⋮
             </span>
@@ -523,11 +465,11 @@ export const SongRow = memo(function SongRow({
               <button
                 type="button"
                 onClick={handlePlayButtonClick}
-                aria-label={isCurrentPlaying ? "Pause" : "Play"}
+                aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
                 className={`absolute inset-0 bg-ink/40 flex items-center justify-center transition-opacity cursor-pointer ${
                   isCurrentPlaying
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100 group-hover/thumb:opacity-100"
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100 group-hover/thumb:opacity-100'
                 }`}
               >
                 {isLocked ? (
@@ -544,11 +486,11 @@ export const SongRow = memo(function SongRow({
             <button
               type="button"
               onClick={handlePlayButtonClick}
-              aria-label={isCurrentPlaying ? "Pause" : "Play"}
+              aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
               className={`w-7 h-7 flex items-center justify-center shrink-0 ${
                 isLocked
-                  ? "text-ink-soft/50 cursor-not-allowed"
-                  : "text-ink-soft group-hover:text-ink cursor-pointer"
+                  ? 'text-ink-soft/50 cursor-not-allowed'
+                  : 'text-ink-soft group-hover:text-ink cursor-pointer'
               }`}
             >
               {isLocked ? (
@@ -559,10 +501,10 @@ export const SongRow = memo(function SongRow({
                 <>
                   <span
                     className={`font-mono text-[11px] group-hover:hidden ${
-                      isCurrentLoaded ? "text-blue font-bold" : ""
+                      isCurrentLoaded ? 'text-blue font-bold' : ''
                     }`}
                   >
-                    {String(trackNumberDisplay ?? index + 1).padStart(2, "0")}
+                    {String(trackNumberDisplay ?? index + 1).padStart(2, '0')}
                   </span>
                   <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink ml-0.5" />
                 </>
@@ -578,10 +520,10 @@ export const SongRow = memo(function SongRow({
                 className="min-w-0"
                 innerClassName={`font-serif text-sm font-medium ${
                   isCurrentPlaying
-                    ? "text-blue"
+                    ? 'text-blue'
                     : isCurrentLoaded
-                    ? "text-blue"
-                    : "text-ink"
+                      ? 'text-blue'
+                      : 'text-ink'
                 }`}
               >
                 {track.title}
@@ -596,7 +538,7 @@ export const SongRow = memo(function SongRow({
                   <span>
                     {scheduledReleaseAt
                       ? `Releases ${new Date(scheduledReleaseAt).toLocaleDateString()}`
-                      : "Locked"}
+                      : 'Locked'}
                   </span>
                 </span>
               )}
@@ -612,7 +554,7 @@ export const SongRow = memo(function SongRow({
             </div>
 
             {/* Subtitle / Artist Credits Line */}
-            {variant === "album" ? (
+            {variant === 'album' ? (
               <MarqueeText
                 className="min-w-0 text-[11px] text-ink-soft"
                 innerClassName="inline-flex items-center gap-1"
@@ -633,7 +575,7 @@ export const SongRow = memo(function SongRow({
                       ) : (
                         <span>{c.stageName}</span>
                       )}
-                      {i < primaryCredits.length - 1 ? ", " : ""}
+                      {i < primaryCredits.length - 1 ? ', ' : ''}
                     </span>
                   ))
                 ) : track.artistSlug ? (
@@ -646,7 +588,7 @@ export const SongRow = memo(function SongRow({
                     {track.artistName}
                   </Link>
                 ) : (
-                  <span>{track.artistName || "Unknown Artist"}</span>
+                  <span>{track.artistName || 'Unknown Artist'}</span>
                 )}
 
                 {/* Featured Credits */}
@@ -669,7 +611,7 @@ export const SongRow = memo(function SongRow({
                         ) : (
                           <span>{c.stageName}</span>
                         )}
-                        {i < featuredCredits.length - 1 ? ", " : ""}
+                        {i < featuredCredits.length - 1 ? ', ' : ''}
                       </span>
                     ))}
                   </>
@@ -695,7 +637,7 @@ export const SongRow = memo(function SongRow({
                         ) : (
                           <span>{c.stageName}</span>
                         )}
-                        {i < producerCredits.length - 1 ? ", " : ""}
+                        {i < producerCredits.length - 1 ? ', ' : ''}
                       </span>
                     ))}
                   </>
@@ -711,10 +653,12 @@ export const SongRow = memo(function SongRow({
                     onClick={(e) => e.stopPropagation()}
                     className="hover:text-ink hover:underline decoration-line transition-colors truncate"
                   >
-                    {track.artistName || "Unknown Artist"}
+                    {track.artistName || 'Unknown Artist'}
                   </Link>
                 ) : (
-                  <span className="truncate">{track.artistName || "Unknown Artist"}</span>
+                  <span className="truncate">
+                    {track.artistName || 'Unknown Artist'}
+                  </span>
                 )}
 
                 {albumTitle && (
@@ -730,7 +674,9 @@ export const SongRow = memo(function SongRow({
                         {albumTitle}
                       </Link>
                     ) : (
-                      <span className="truncate hidden sm:inline">{albumTitle}</span>
+                      <span className="truncate hidden sm:inline">
+                        {albumTitle}
+                      </span>
                     )}
                   </>
                 )}
@@ -780,15 +726,15 @@ export const SongRow = memo(function SongRow({
             <button
               type="button"
               onClick={handleToggleLikeClick}
-              aria-label={isLiked ? "Unlike track" : "Like track"}
+              aria-label={isLiked ? 'Unlike track' : 'Like track'}
               className="p-1 sm:p-1.5 cursor-pointer hover:scale-110 active:scale-95 transition-transform"
             >
               <HeartIconSVG
                 filled={isLiked}
                 className={`w-3.5 h-3.5 transition-colors ${
                   isLiked
-                    ? "text-red-500 fill-current"
-                    : "text-ink-soft/40 hover:text-ink opacity-0 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    ? 'text-red-500 fill-current'
+                    : 'text-neutral-400 hover:text-ink dark:text-neutral-300 dark:hover:text-white opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                 }`}
               />
             </button>
@@ -796,5 +742,5 @@ export const SongRow = memo(function SongRow({
         </div>
       </div>
     </div>
-  );
-});
+  )
+})
