@@ -333,10 +333,10 @@ export const SongRow = memo(function SongRow({
       {/* Queued Feedback Banner */}
       {showQueuedBadge && (
         <div
-          className={`absolute inset-0 z-30 bg-blue/95 flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-200 ease-out ${
+          className={`absolute inset-0 z-30 bg-blue/95 flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
             isQueuedBadgeFading
               ? 'opacity-0'
-              : 'opacity-100 animate-in fade-in duration-100'
+              : 'opacity-100 animate-in fade-in duration-75'
           }`}
         >
           <svg

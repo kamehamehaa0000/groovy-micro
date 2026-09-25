@@ -19,7 +19,10 @@ import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
-import { QueueDrawer, QueueDesktopSection } from '../components/player/QueueDrawer'
+import {
+  QueueDrawer,
+  QueueDesktopSection,
+} from '../components/player/QueueDrawer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
 import { LiveJamModal } from '../components/jam/LiveJamModal'
@@ -48,7 +51,9 @@ function RootComponent() {
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const activeJamRoom = useJamStore((s) => s.activeRoom)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
-  const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal)
+  const openCreatePlaylistModal = useCreatePlaylistModalStore(
+    (s) => s.openModal,
+  )
 
   // Global keyboard shortcut: Ctrl+K / Cmd+K opens search
   useEffect(() => {
@@ -103,7 +108,10 @@ function RootComponent() {
   useEffect(() => {
     if (!createMenuOpen) return
     const handleClickOutside = (e: MouseEvent) => {
-      if (createMenuRef.current && !createMenuRef.current.contains(e.target as Node)) {
+      if (
+        createMenuRef.current &&
+        !createMenuRef.current.contains(e.target as Node)
+      ) {
         setCreateMenuOpen(false)
       }
     }
@@ -169,7 +177,7 @@ function RootComponent() {
         </header>
       ) : (
         /* ===================== TOP NAVIGATION HEADER ===================== */
-        <header className="sticky top-0 z-40 w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
+        <header className="sticky top-0 z-40 w-full h-12 border-b border-line bg-canvas/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
           {/* ---------------- MOBILE TOP BAR (< md) ---------------- */}
           <div className="md:hidden flex items-center justify-between w-full">
             {/* Left: Profile Icon (Left Sidebar Toggle) */}
@@ -207,13 +215,13 @@ function RootComponent() {
             <div className="flex items-start w-full gap-2">
               <Link
                 to="/"
-                className="font-serif text-sm tracking-tight mx-1  ml-2 text-ink hover:opacity-80 transition-opacity"
+                className="font-robo text-sm tracking-tight mx-1  ml-2 text-ink hover:opacity-80 transition-opacity"
               >
                 Home
               </Link>
               <Link
                 to="/feed"
-                className="font-serif text-sm tracking-tight mx-1 text-ink hover:opacity-80 transition-opacity"
+                className="font-robo text-sm tracking-tight mx-1 text-ink hover:opacity-80 transition-opacity"
               >
                 Feed
               </Link>
@@ -504,7 +512,15 @@ function RootComponent() {
                       className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
                     >
                       <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <circle cx="12" cy="12" r="2" />
                           <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
                         </svg>
@@ -522,7 +538,9 @@ function RootComponent() {
                           )}
                         </div>
                         <p className="font-sans text-[11px] text-ink-soft truncate">
-                          {activeJamRoom ? 'Active room session' : 'Synchronized social session'}
+                          {activeJamRoom
+                            ? 'Active room session'
+                            : 'Synchronized social session'}
                         </p>
                       </div>
                     </button>
@@ -536,7 +554,8 @@ function RootComponent() {
                         if (!isAuthenticated) {
                           openAuthModal({
                             title: 'Create Playlists',
-                            description: 'Sign in to build custom playlists and collaborative mixes on Groovy.',
+                            description:
+                              'Sign in to build custom playlists and collaborative mixes on Groovy.',
                           })
                           return
                         }
@@ -545,7 +564,15 @@ function RootComponent() {
                       className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
                     >
                       <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <path d="M9 18V5l12-2v13" />
                           <circle cx="6" cy="18" r="3" />
                           <circle cx="18" cy="16" r="3" />
@@ -905,7 +932,7 @@ function RootComponent() {
           <div
             className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
           >
-            <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-12 py-10">
+            <main className="flex-1 max-w-5xl w-full mx-auto px-2.5 sm:px-12 sm:py-10">
               <Outlet />
             </main>
 
