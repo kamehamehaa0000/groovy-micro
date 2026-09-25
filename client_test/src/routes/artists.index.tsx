@@ -53,7 +53,7 @@ function ArtistsDirectoryComponent() {
       isMounted = false
       clearTimeout(timer)
     }
-  }, [search, scope, sort, page, hydrateArtists])
+  }, [search, scope, sort, page, user?.id, hydrateArtists])
 
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">

@@ -113,7 +113,7 @@ function ArtistPublicProfileComponent() {
     return () => {
       isMounted = false
     }
-  }, [idOrSlug, hydrateSongs, hydrateArtists, hydratePreSavedAlbums])
+  }, [idOrSlug, user?.id, hydrateSongs, hydrateArtists, hydratePreSavedAlbums])
 
   const handleTogglePreSave = async (album: any) => {
     if (!isAuthenticated) {

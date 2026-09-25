@@ -140,7 +140,7 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
     contextUri?.startsWith('history:') ||
     contextUri?.includes('recent') ||
     contextTitle?.toLowerCase().includes('recently played') ||
-    contextTitle?.toLowerCase().includes('recent')
+    contextTitle?.toLowerCase().includes('recent'),
   )
 
   // Calculate total upcoming queue time
@@ -194,7 +194,7 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           onClick={() => {
             if (mode === 'mobile') onClose()
           }}
-          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-blue hover:underline max-w-[200px] truncate"
+          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-blue hover:underline max-w-50 truncate"
           title={`Album: ${contextTitle || 'View Release'}`}
         >
           <span>✦ Album:</span>
@@ -212,7 +212,7 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           onClick={() => {
             if (mode === 'mobile') onClose()
           }}
-          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-blue hover:underline max-w-[200px] truncate"
+          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-blue hover:underline max-w-50 truncate"
           title={`Playlist: ${contextTitle || 'View Playlist'}`}
         >
           <span>✦ Playlist:</span>
@@ -222,7 +222,7 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
     }
 
     return (
-      <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft max-w-[200px] truncate">
+      <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft max-w-50 truncate">
         ✦ From: {contextTitle || 'Catalog'}
       </span>
     )
@@ -491,7 +491,8 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
               {jamQueue.length === 0 ? (
                 <p className="text-xs text-ink-soft/70 italic py-2">
-                  No tracks in Jam queue yet. Use "Add to Jam Queue" on any song to contribute!
+                  No tracks in Jam queue yet. Use "Add to Jam Queue" on any song
+                  to contribute!
                 </p>
               ) : (
                 <div className="flex flex-col gap-1">
@@ -529,7 +530,8 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   Priority queue is empty
                 </p>
                 <p className="font-sans text-[11px] text-ink-soft/70">
-                  Swipe left on songs across Groovy or tap "Play Next" to add them here.
+                  Swipe left on songs across Groovy or tap "Play Next" to add
+                  them here.
                 </p>
               </div>
             ) : (
@@ -547,7 +549,9 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           <div className="flex flex-col gap-2 pt-3">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft font-semibold truncate">
-                {contextTitle ? `Next from: ${contextTitle}` : 'Next from Context'}
+                {contextTitle
+                  ? `Next from: ${contextTitle}`
+                  : 'Next from Context'}
               </span>
               <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft/70">
                 {upcomingContext.length} upcoming
@@ -598,7 +602,8 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                 Listening history requires an account
               </p>
               <p className="text-xs text-ink-soft/80 max-w-xs mx-auto">
-                Sign in to track recently played records, synchronize playbacks, and revisit past sessions.
+                Sign in to track recently played records, synchronize playbacks,
+                and revisit past sessions.
               </p>
               <button
                 type="button"
@@ -657,7 +662,9 @@ function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                           {playerTrack.title}
                         </span>
                         <div className="flex items-center gap-1.5 text-[10.5px] text-ink-soft truncate font-sans">
-                          <span className="truncate">{playerTrack.artistName}</span>
+                          <span className="truncate">
+                            {playerTrack.artistName}
+                          </span>
                           {item.playedAt && (
                             <span className="font-mono text-[9px] text-ink-soft/70 shrink-0">
                               • {formatRelativeTime(item.playedAt)}
@@ -707,11 +714,11 @@ export function QueueDesktopSection() {
       }}
       className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-panel border-l border-line transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
         isQueueOpen
-          ? 'w-[380px] lg:w-[400px] opacity-100'
+          ? 'w-95 lg:w-100 opacity-100'
           : 'w-0 opacity-0 border-l-0 pointer-events-none'
       }`}
     >
-      <div className="w-[380px] lg:w-[400px] h-full flex flex-col min-h-0">
+      <div className="w-95 lg:w-100 h-full flex flex-col min-h-0">
         <QueueContent mode="desktop" onClose={() => setQueueOpen(false)} />
       </div>
     </aside>
@@ -803,7 +810,9 @@ export function QueueDrawer() {
 
     // Never initiate drawer drag-down if touching a queue reorder handle or queue row
     const target = e.target as HTMLElement | null
-    if (target?.closest('.drag-grip, [data-drag-handle], [data-queue-row-index]')) {
+    if (
+      target?.closest('.drag-grip, [data-drag-handle], [data-queue-row-index]')
+    ) {
       return
     }
 
@@ -827,7 +836,9 @@ export function QueueDrawer() {
     if (!touchDataRef.current || e.touches.length !== 1) return
 
     const target = e.target as HTMLElement | null
-    if (target?.closest('.drag-grip, [data-drag-handle], [data-queue-row-index]')) {
+    if (
+      target?.closest('.drag-grip, [data-drag-handle], [data-queue-row-index]')
+    ) {
       touchDataRef.current = null
       return
     }
@@ -883,7 +894,10 @@ export function QueueDrawer() {
       <div
         className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
         style={{
-          opacity: !isOpenAnimated || isClosing ? 0 : Math.max(0, 1 - sheetTranslateY / 320),
+          opacity:
+            !isOpenAnimated || isClosing
+              ? 0
+              : Math.max(0, 1 - sheetTranslateY / 320),
           transition: isDragging ? 'none' : 'opacity 0.25s ease-out',
           touchAction: 'none',
         }}
@@ -902,8 +916,8 @@ export function QueueDrawer() {
             !isOpenAnimated || isClosing
               ? 'translateY(100%)'
               : isDragging || sheetTranslateY > 0
-              ? `translateY(${sheetTranslateY}px)`
-              : 'translateY(0%)',
+                ? `translateY(${sheetTranslateY}px)`
+                : 'translateY(0%)',
           transition: isDragging
             ? 'none'
             : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
@@ -922,11 +936,7 @@ export function QueueDrawer() {
           <div className="w-12 h-1.5 bg-stone/40 hover:bg-stone/60 rounded-full transition-colors" />
         </div>
 
-        <QueueContent
-          mode="mobile"
-          onClose={handleClose}
-          listRef={listRef}
-        />
+        <QueueContent mode="mobile" onClose={handleClose} listRef={listRef} />
       </aside>
     </div>
   )

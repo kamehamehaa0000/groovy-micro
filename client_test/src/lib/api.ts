@@ -26,6 +26,23 @@ export async function apiFetch<T = any>(
 ): Promise<T> {
   const headers = new Headers(options.headers || {});
 
+  // If initial auth verification is in flight, await it first before sending request
+  // so that endpoints (especially optionalAuth ones) receive the user's token!
+  if (
+    useAuthStore.getState().isLoading &&
+    !endpoint.includes("/auth/login") &&
+    !endpoint.includes("/auth/register") &&
+    !endpoint.includes("/auth/refresh") &&
+    !endpoint.includes("/auth/verify-email") &&
+    !endpoint.includes("/auth/reset-password")
+  ) {
+    try {
+      await useAuthStore.getState().checkAuth();
+    } catch {
+      // Ignore; checkAuth handles setting state to unauthenticated
+    }
+  }
+
   // Attach access token from Zustand store if available
   const token = useAuthStore.getState().accessToken;
   if (token && !headers.has("Authorization")) {
