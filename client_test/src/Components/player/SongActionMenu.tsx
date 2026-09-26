@@ -29,6 +29,8 @@ export interface SongActionMenuProps {
   hideGoToArtist?: boolean
   hideGoToAlbum?: boolean
   hideAddToPlaylist?: boolean
+  isPersonal?: boolean
+  hideShare?: boolean
   onRemoveFromPlaylist?: (track: PlayerTrack) => void
   customActions?: SongActionCustomItem[]
 }
@@ -43,9 +45,13 @@ export function SongActionMenu({
   hideGoToArtist = false,
   hideGoToAlbum = false,
   hideAddToPlaylist = false,
+  isPersonal: propIsPersonal,
+  hideShare = false,
   onRemoveFromPlaylist,
   customActions,
 }: SongActionMenuProps) {
+  const isPersonal = Boolean(propIsPersonal || track.scope === 'PERSONAL')
+  const shouldHideShare = Boolean(hideShare || isPersonal)
   const isScheduled = Boolean(
     propIsScheduled ||
     ((track as any).scheduledReleaseAt &&
@@ -449,7 +455,7 @@ export function SongActionMenu({
                   </svg>
                   <span>Add to Queue</span>
                 </button>
-                {activeJamRoom && (
+                {activeJamRoom && !isPersonal && (
                   <button
                     type="button"
                     onClick={handleAddToJam}
@@ -619,26 +625,28 @@ export function SongActionMenu({
                   <span className="truncate">Go to Release</span>
                 </button>
               )}
-              <button
-                type="button"
-                onClick={handleShareTrack}
-                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-3.5 h-3.5 text-ink-soft shrink-0"
+              {!shouldHideShare && (
+                <button
+                  type="button"
+                  onClick={handleShareTrack}
+                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
                 >
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-                <span>Share Track</span>
-              </button>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  <span>Share Track</span>
+                </button>
+              )}
             </div>
           </div>,
           document.body,
@@ -835,7 +843,7 @@ export function SongActionMenu({
                         </svg>
                         <span>Add to Queue</span>
                       </button>
-                      {activeJamRoom && (
+                      {activeJamRoom && !isPersonal && (
                         <button
                           type="button"
                           onClick={handleAddToJam}
@@ -987,26 +995,28 @@ export function SongActionMenu({
                       <span className="truncate">Go to Release</span>
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={handleShareTrack}
-                    className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-5 h-5 text-ink-soft shrink-0"
+                  {!shouldHideShare && (
+                    <button
+                      type="button"
+                      onClick={handleShareTrack}
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
                     >
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
-                    <span>Share Track</span>
-                  </button>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="w-5 h-5 text-ink-soft shrink-0"
+                      >
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                      </svg>
+                      <span>Share Track</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

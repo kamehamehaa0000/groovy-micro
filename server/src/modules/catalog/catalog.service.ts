@@ -2385,8 +2385,14 @@ export class CatalogService {
         songSlug: songs.slug,
         songDuration: songs.durationSeconds,
         audioUrl: songs.audioUrl,
+        albumId: songs.albumId,
+        albumTitle: albums.title,
+        albumSlug: albums.slug,
+        coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
+        primaryArtistId: artistProfiles.id,
         primaryArtistName: artistProfiles.stageName,
         primaryArtistSlug: artistProfiles.slug,
+        primaryArtistAvatarUrl: artistProfiles.avatarUrl,
       })
       .from(songCredits)
       .innerJoin(songs, eq(songCredits.songId, songs.id))
@@ -2460,7 +2466,9 @@ export class CatalogService {
             coverImageUrl: sql<string | null>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
             playsCount: songs.playsCount,
             likesCount: songs.likesCount,
+            albumId: songs.albumId,
             albumTitle: albums.title,
+            albumSlug: albums.slug,
             artistName: artistProfiles.stageName,
             scope: songs.scope,
           })

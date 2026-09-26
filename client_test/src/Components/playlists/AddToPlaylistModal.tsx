@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useAddToPlaylistModalStore } from "../../stores/add-to-playlist-modal.store";
+import { useCreatePlaylistModalStore } from "../../stores/create-playlist-modal.store";
+import { useLibraryStore } from "../../stores/library.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { useAuthModalStore } from "../../stores/auth-modal.store";
 import { playlistsApi } from "../../lib/playlists.api";
@@ -8,8 +9,8 @@ import type { Playlist } from "../../types/playlist";
 
 export function AddToPlaylistModal() {
   const { isOpen, track, closeModal } = useAddToPlaylistModalStore();
+  const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal);
   const { isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
 
   const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
   const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
@@ -85,6 +86,8 @@ export function AddToPlaylistModal() {
     setAddingToPlaylistId(playlist.id);
     try {
       await playlistsApi.addTracks(playlist.id, [track.id]);
+      useLibraryStore.getState().updatePlaylistTracksCount(playlist.id, 1);
+      useLibraryStore.getState().invalidate();
       showToast(`Added to "${playlist.title}"`);
       setTimeout(() => {
         closeModal();
@@ -148,8 +151,9 @@ export function AddToPlaylistModal() {
               <button
                 type="button"
                 onClick={() => {
+                  const trackIdToAdd = track?.id ? [track.id] : []
                   closeModal();
-                  navigate({ to: "/library" });
+                  openCreatePlaylistModal(trackIdToAdd);
                 }}
                 className="mt-3 font-mono text-[10px] uppercase tracking-wider py-1.5 px-3.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
               >
@@ -157,27 +161,43 @@ export function AddToPlaylistModal() {
               </button>
             </div>
           ) : (
-            eligiblePlaylists.map((pl) => (
-              <button
-                key={pl.id}
-                type="button"
-                disabled={addingToPlaylistId === pl.id}
-                onClick={() => handleAddSongToPlaylist(pl)}
-                className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-canvas-deep transition-colors text-left cursor-pointer group"
-              >
-                <div className="min-w-0 flex-1 pr-2">
-                  <p className="font-medium text-xs text-ink group-hover:text-blue truncate">
-                    {pl.title}
-                  </p>
-                  <p className="font-mono text-[9.5px] text-ink-soft">
-                    {pl.savesCount ?? 0} saves &bull; {pl.tracksCount ?? 0} tracks
-                  </p>
-                </div>
-                <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink shrink-0">
-                  {addingToPlaylistId === pl.id ? "Adding..." : "+ Add"}
-                </span>
-              </button>
-            ))
+            <>
+              {eligiblePlaylists.map((pl) => (
+                <button
+                  key={pl.id}
+                  type="button"
+                  disabled={addingToPlaylistId === pl.id}
+                  onClick={() => handleAddSongToPlaylist(pl)}
+                  className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-canvas-deep transition-colors text-left cursor-pointer group"
+                >
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="font-medium text-xs text-ink group-hover:text-blue truncate">
+                      {pl.title}
+                    </p>
+                    <p className="font-mono text-[9.5px] text-ink-soft">
+                      {pl.savesCount ?? 0} saves &bull; {pl.tracksCount ?? 0} tracks
+                    </p>
+                  </div>
+                  <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink shrink-0">
+                    {addingToPlaylistId === pl.id ? "Adding..." : "+ Add"}
+                  </span>
+                </button>
+              ))}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const trackIdToAdd = track?.id ? [track.id] : []
+                    closeModal();
+                    openCreatePlaylistModal(trackIdToAdd);
+                  }}
+                  className="w-full font-mono text-[10px] uppercase tracking-wider py-2 px-3 border border-dashed border-line bg-canvas hover:border-ink text-ink cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
+                >
+                  <span>+</span>
+                  <span>New Playlist</span>
+                </button>
+              </div>
+            </>
           )}
         </div>
 

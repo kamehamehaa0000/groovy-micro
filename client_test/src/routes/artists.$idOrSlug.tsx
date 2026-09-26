@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
@@ -16,8 +16,8 @@ import {
   ExternalLinkSVG,
   SvgArtworkSpiral,
   PlayIconSVG,
-  PauseIconSVG,
-  CalendarIconSVG,
+  GridIconSVG,
+  ListIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
@@ -36,8 +36,7 @@ function ArtistPublicProfileComponent() {
   const { user, isAuthenticated } = useAuthStore()
 
   // Player integration
-  const { currentTrack, playbackStatus, playTrack, togglePlay } =
-    usePlayerStore()
+  const { currentTrack, playTrack, togglePlay } = usePlayerStore()
 
   // Likes & Follows store integration
   const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
@@ -59,6 +58,13 @@ function ArtistPublicProfileComponent() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showAllTopTracks, setShowAllTopTracks] = useState(false)
+
+  // Discography tabs & pagination
+  const [activeTab, setActiveTab] = useState<
+    'all' | 'albums' | 'singles' | 'featured'
+  >('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [visibleCount, setVisibleCount] = useState<number>(8)
 
   // Follow state
   const isFollowing = artist ? followedArtistIds.has(artist.id) : false
@@ -272,6 +278,26 @@ function ArtistPublicProfileComponent() {
     }
   }
 
+  const toPlayerTrackFromPersonal = (
+    track: PersonalCollectionTrack,
+  ): PlayerTrack => ({
+    id: track.id,
+    title: track.title,
+    artistId: artist?.id || '',
+    artistName: track.artistName || artist?.stageName || 'Unknown Artist',
+    artistSlug: artist?.slug,
+    albumId: track.albumId || null,
+    albumTitle: track.albumTitle || undefined,
+    albumSlug: track.albumSlug || undefined,
+    coverImageUrl: track.coverImageUrl || undefined,
+    durationSeconds: track.durationSeconds,
+    audioUrl: track.audioUrl,
+    hlsManifestUrl: track.hlsManifestUrl,
+    rawAudioKey: track.rawAudioKey,
+    isExplicit: false,
+    scope: 'PERSONAL',
+  })
+
   const handlePlayLockerSong = (
     track: PersonalCollectionTrack,
     index: number,
@@ -281,20 +307,9 @@ function ArtistPublicProfileComponent() {
       return
     }
     const lockerTracks = discography?.inYourCollection || []
-    const contextTracks: PlayerTrack[] = lockerTracks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      artistId: artist?.id || '',
-      artistName: t.artistName || artist?.stageName || 'Unknown Artist',
-      artistSlug: artist?.slug,
-      albumTitle: t.albumTitle || undefined,
-      coverImageUrl: t.coverImageUrl || undefined,
-      durationSeconds: t.durationSeconds,
-      audioUrl: t.audioUrl,
-      hlsManifestUrl: t.hlsManifestUrl,
-      rawAudioKey: t.rawAudioKey,
-      isExplicit: false,
-    }))
+    const contextTracks: PlayerTrack[] = lockerTracks.map(
+      toPlayerTrackFromPersonal,
+    )
 
     playTrack(
       contextTracks[index],
@@ -322,6 +337,101 @@ function ArtistPublicProfileComponent() {
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 2000)
   }
+
+  const isOwner = Boolean(user?.id && artist?.userId && user.id === artist.userId)
+  const hasUpcoming = Boolean(
+    discography?.upcoming && discography.upcoming.length > 0,
+  )
+  const hasTopTracks = Boolean(
+    discography?.topTracks && discography.topTracks.length > 0,
+  )
+  const hasInYourCollection = Boolean(
+    discography?.inYourCollection && discography.inYourCollection.length > 0,
+  )
+
+  const albumsAndCompilations = useMemo(() => {
+    const list = [
+      ...(discography?.albums || []),
+      ...(discography?.mixtapes || []),
+      ...(discography?.eps || []),
+    ]
+    return list.sort((a, b) => {
+      const timeA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0
+      const timeB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0
+      return timeB - timeA
+    })
+  }, [discography?.albums, discography?.mixtapes, discography?.eps])
+
+  const singles = useMemo(() => {
+    return [...(discography?.singles || [])].sort((a, b) => {
+      const timeA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0
+      const timeB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0
+      return timeB - timeA
+    })
+  }, [discography?.singles])
+
+  const allReleases = useMemo(() => {
+    const list = [
+      ...(discography?.albums || []),
+      ...(discography?.mixtapes || []),
+      ...(discography?.eps || []),
+      ...(discography?.singles || []),
+    ]
+    return list.sort((a, b) => {
+      const timeA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0
+      const timeB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0
+      return timeB - timeA
+    })
+  }, [
+    discography?.albums,
+    discography?.mixtapes,
+    discography?.eps,
+    discography?.singles,
+  ])
+
+  const appearsOn = useMemo(() => {
+    return discography?.appearsOn || []
+  }, [discography?.appearsOn])
+
+  const collaboratedArtists = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string
+        slug: string
+        name: string
+        avatarUrl?: string | null
+        count: number
+      }
+    >()
+
+    for (const credit of appearsOn) {
+      const key =
+        credit.primaryArtistSlug ||
+        credit.primaryArtistId ||
+        credit.primaryArtistName
+      if (!key) continue
+      const existing = map.get(key)
+      if (existing) {
+        existing.count += 1
+        if (!existing.avatarUrl && credit.primaryArtistAvatarUrl) {
+          existing.avatarUrl = credit.primaryArtistAvatarUrl
+        }
+      } else {
+        map.set(key, {
+          id: credit.primaryArtistId || credit.primaryArtistSlug,
+          slug: credit.primaryArtistSlug,
+          name: credit.primaryArtistName,
+          avatarUrl: credit.primaryArtistAvatarUrl,
+          count: 1,
+        })
+      }
+    }
+
+    return Array.from(map.values())
+  }, [appearsOn])
+
+  const hasAnyDiscography = allReleases.length > 0 || appearsOn.length > 0
 
   if (isLoading) {
     return (
@@ -354,22 +464,6 @@ function ArtistPublicProfileComponent() {
       </div>
     )
   }
-
-  const isOwner = user?.id === artist.userId
-  const hasUpcoming = Boolean(
-    discography?.upcoming && discography.upcoming.length > 0,
-  )
-  const hasAlbums = discography?.albums && discography.albums.length > 0
-  const hasMixtapes = discography?.mixtapes && discography.mixtapes.length > 0
-  const hasEpsOrSingles =
-    (discography?.eps && discography.eps.length > 0) ||
-    (discography?.singles && discography.singles.length > 0)
-  const hasTopTracks =
-    discography?.topTracks && discography.topTracks.length > 0
-  const hasAppearsOn =
-    discography?.appearsOn && discography.appearsOn.length > 0
-  const hasInYourCollection =
-    discography?.inYourCollection && discography.inYourCollection.length > 0
 
   return (
     <div className="w-full pb-20 ">
@@ -581,7 +675,6 @@ function ArtistPublicProfileComponent() {
                       hideGoToArtist={true}
                     />
                   ))}
-                  
               </div>
               {discography!.topTracks.length > 5 && (
                 <button
@@ -597,26 +690,25 @@ function ArtistPublicProfileComponent() {
 
           {/* Upcoming Pre-Savable Releases Shelf */}
           {hasUpcoming && (
-            <div className="space-y-4">
+            <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-line pb-2">
-                <div className="flex items-center gap-2.5">
-                  <h2 className="font-serif italic text-xl text-ink">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
                     Upcoming Releases
                   </h2>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
-                    <CalendarIconSVG className="w-2.5 h-2.5" />
-                    <span>Pre-Save Available</span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-blue/10 text-blue border border-blue/20 rounded-full font-semibold">
+                    Pre-Save
                   </span>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
                   {discography!.upcoming!.length}{' '}
                   {discography!.upcoming!.length === 1
-                    ? 'Upcoming Drop'
-                    : 'Upcoming Drops'}
+                    ? 'Scheduled Drop'
+                    : 'Scheduled Drops'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2.5">
                 {discography!.upcoming!.map((up) => {
                   const isPreSaved = preSavedAlbumIds.has(up.id)
                   const dropDateStr = up.scheduledReleaseAt
@@ -631,14 +723,16 @@ function ArtistPublicProfileComponent() {
                     : 'Coming Soon'
 
                   return (
-                    <Link
+                    <div
                       key={up.id}
-                      to="/albums/$idOrSlug"
-                      params={{ idOrSlug: up.slug }}
-                      className="border-2  border-blue/40 bg-blue/5 p-4 shadow-2xs hover:border-blue transition-colors group text-inherit no-underline flex flex-col justify-between relative overflow-hidden"
+                      className="border border-blue/30 bg-blue/5 hover:border-blue/60 transition-colors rounded-lg p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="w-24 h-24 sm:w-28 sm:h-28 bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                      <Link
+                        to="/albums/$idOrSlug"
+                        params={{ idOrSlug: up.slug }}
+                        className="flex items-center gap-3.5 min-w-0 flex-1 text-inherit no-underline"
+                      >
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
                           {up.coverImageUrl ? (
                             <img
                               src={up.coverImageUrl}
@@ -647,36 +741,34 @@ function ArtistPublicProfileComponent() {
                             />
                           ) : (
                             <ProceduralCover
-                              size="md"
+                              size="sm"
                               title={up.title}
                               artistName={artist.stageName}
                               className="w-full h-full rounded-none"
                             />
                           )}
-                          <div className="absolute top-1 left-1 font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas/90 backdrop-blur-xs border border-line text-blue font-semibold">
+                          <div className="absolute top-0.5 left-0.5 font-mono text-[7.5px] uppercase tracking-wider px-1 py-0.2 bg-canvas/90 backdrop-blur-xs border border-line text-blue font-semibold rounded-xs">
                             {up.albumType}
                           </div>
                         </div>
 
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                          <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue font-semibold flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue font-semibold flex items-center gap-1.5 mb-0.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
                             <span>Drops {dropDateStr}</span>
                           </div>
-
                           <h3 className="font-serif italic font-medium text-base text-ink group-hover:text-blue transition-colors truncate">
                             {up.title}
                           </h3>
-
-                          <p className="font-mono text-[10px] text-ink-soft">
+                          <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
                             {up.totalTracks}{' '}
-                            {up.totalTracks === 1 ? 'Cut' : 'Cuts'} &bull;
-                            Master Audio Locked
+                            {up.totalTracks === 1 ? 'Cut' : 'Cuts'} &bull; Master
+                            Audio Locked
                           </p>
                         </div>
-                      </div>
+                      </Link>
 
-                      <div className="mt-4 pt-3 border-t border-blue/20 flex items-center justify-between gap-3">
+                      <div className="flex items-center justify-end sm:justify-start shrink-0">
                         <button
                           type="button"
                           disabled={preSavingAlbumId === up.id}
@@ -685,7 +777,7 @@ function ArtistPublicProfileComponent() {
                             e.stopPropagation()
                             handleTogglePreSave(up)
                           }}
-                          className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs ${
+                          className={`font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3.5 rounded border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs whitespace-nowrap ${
                             isPreSaved
                               ? 'border-blue bg-blue text-canvas hover:opacity-90'
                               : 'border-ink bg-ink text-canvas hover:opacity-90'
@@ -698,135 +790,304 @@ function ArtistPublicProfileComponent() {
                             ({up.preSavesCount ?? 0})
                           </span>
                         </button>
-
-                        <span className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
-                          <span>Liner Notes</span>
-                          <span>&rarr;</span>
-                        </span>
                       </div>
-                    </Link>
+                    </div>
                   )
                 })}
               </div>
             </div>
           )}
 
-          {/* Full Albums Grid */}
-          {hasAlbums && (
-            <div className="space-y-4">
+          {/* Consolidated Discography Section */}
+          {hasAnyDiscography && (
+            <div className="space-y-4 px-1">
+              {/* Header with Title & View Mode Toggle */}
               <div className="flex items-end justify-between border-b border-line pb-3">
                 <div>
                   <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
-                    Discography
+                    Catalog
                   </p>
                   <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
-                    Albums
-                  </h2>
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
-                  {discography!.albums.length}{' '}
-                  {discography!.albums.length === 1 ? 'Release' : 'Releases'}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-                {discography!.albums.map((album) => (
-                  <MediaTile
-                    key={album.id}
-                    to="/albums/$idOrSlug"
-                    params={{ idOrSlug: album.slug }}
-                    title={album.title}
-                    subtitle={`${album.releaseDate ? new Date(album.releaseDate).getFullYear() : 'Recent'} · ${album.totalTracks} ${album.totalTracks === 1 ? 'track' : 'tracks'}`}
-                    imageUrl={album.coverImageUrl}
-                    artistName={artist?.stageName}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Mixtapes Grid */}
-          {hasMixtapes && (
-            <div className="space-y-4">
-              <div className="flex items-end justify-between border-b border-line pb-3">
-                <div>
-                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
                     Discography
-                  </p>
-                  <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
-                    Mixtapes
                   </h2>
                 </div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
-                  {discography!.mixtapes!.length}{' '}
-                  {discography!.mixtapes!.length === 1 ? 'Release' : 'Releases'}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-                {discography!.mixtapes!.map((mix) => (
-                  <MediaTile
-                    key={mix.id}
-                    to="/albums/$idOrSlug"
-                    params={{ idOrSlug: mix.slug }}
-                    title={mix.title}
-                    subtitle={`Mixtape · ${mix.releaseDate ? new Date(mix.releaseDate).getFullYear() : 'Recent'} · ${mix.totalTracks} ${mix.totalTracks === 1 ? 'track' : 'tracks'}`}
-                    imageUrl={mix.coverImageUrl}
-                    artistName={artist?.stageName}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* EPs & Singles Grid */}
-          {hasEpsOrSingles && (
-            <div className="space-y-4">
-              <div className="flex items-end justify-between border-b border-line pb-3">
-                <div>
-                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
-                    Discography
-                  </p>
-                  <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
-                    Singles & EPs
-                  </h2>
+                {/* Grid / List Mode Toggle */}
+                <div className="flex items-center gap-1 border border-line rounded-lg p-0.5 bg-panel">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    title="Grid view"
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      viewMode === 'grid'
+                        ? 'bg-canvas text-ink shadow-2xs'
+                        : 'text-ink-soft hover:text-ink'
+                    }`}
+                  >
+                    <GridIconSVG className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    title="List view"
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      viewMode === 'list'
+                        ? 'bg-canvas text-ink shadow-2xs'
+                        : 'text-ink-soft hover:text-ink'
+                    }`}
+                  >
+                    <ListIconSVG className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
-                  {(discography?.eps?.length || 0) +
-                    (discography?.singles?.length || 0)}{' '}
-                  {(discography?.eps?.length || 0) +
-                    (discography?.singles?.length || 0) ===
-                  1
-                    ? 'Release'
-                    : 'Releases'}
-                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+              {/* Pill Tabs: All, Albums & Compilations, Singles, Featured On */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                 {[
-                  ...(discography?.eps || []),
-                  ...(discography?.singles || []),
-                ].map((rel) => (
-                  <MediaTile
-                    key={rel.id}
-                    to="/albums/$idOrSlug"
-                    params={{ idOrSlug: rel.slug }}
-                    title={rel.title}
-                    subtitle={`${rel.albumType || 'Single'} · ${rel.releaseDate ? new Date(rel.releaseDate).getFullYear() : 'Recent'}${rel.totalTracks > 1 ? ` · ${rel.totalTracks} tracks` : ''}`}
-                    imageUrl={rel.coverImageUrl}
-                    artistName={artist?.stageName}
-                  />
-                ))}
+                  { id: 'all', label: 'All', count: allReleases.length },
+                  {
+                    id: 'albums',
+                    label: 'Albums & Compilations',
+                    count: albumsAndCompilations.length,
+                  },
+                  { id: 'singles', label: 'Singles', count: singles.length },
+                  {
+                    id: 'featured',
+                    label: 'Featured On',
+                    count: appearsOn.length,
+                  },
+                ]
+                  .filter((tab) => tab.count > 0 || tab.id === 'all')
+                  .map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab.id as any)
+                        setVisibleCount(8)
+                      }}
+                      className={`font-mono text-[10.5px] uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                        activeTab === tab.id
+                          ? 'bg-ink text-canvas font-semibold shadow-xs'
+                          : 'bg-canvas-deep border border-line text-ink-soft hover:text-ink hover:border-ink-soft/40'
+                      }`}
+                    >
+                      {tab.label}
+                      <span className="ml-1.5 opacity-60 text-[9.5px]">
+                        ({tab.count})
+                      </span>
+                    </button>
+                  ))}
               </div>
+
+              {/* Discography Items Container */}
+              {activeTab === 'featured' ? (
+                /* Featured On / Collaborations Tab */
+                viewMode === 'grid' ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                    {appearsOn.slice(0, visibleCount).map((item) => (
+                      <MediaTile
+                        key={item.songId}
+                        to={
+                          item.albumSlug || item.albumId
+                            ? '/albums/$idOrSlug'
+                            : '/artists/$idOrSlug'
+                        }
+                        params={{
+                          idOrSlug:
+                            item.albumSlug ||
+                            item.albumId ||
+                            item.primaryArtistSlug,
+                        }}
+                        title={item.songTitle}
+                        subtitle={`${item.role} · with ${item.primaryArtistName}`}
+                        imageUrl={item.coverImageUrl}
+                        artistName={item.primaryArtistName}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {appearsOn.slice(0, visibleCount).map((item) => (
+                      <Link
+                        key={item.songId}
+                        to={
+                          item.albumSlug || item.albumId
+                            ? '/albums/$idOrSlug'
+                            : '/artists/$idOrSlug'
+                        }
+                        params={{
+                          idOrSlug:
+                            item.albumSlug ||
+                            item.albumId ||
+                            item.primaryArtistSlug,
+                        }}
+                        className="flex items-center gap-3.5 p-2.5 rounded-lg border border-line bg-panel hover:bg-canvas-deep transition-all group text-inherit no-underline"
+                      >
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                          {item.coverImageUrl ? (
+                            <img
+                              src={item.coverImageUrl}
+                              alt={item.songTitle}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <ProceduralCover
+                              size="sm"
+                              title={item.songTitle}
+                              artistName={item.primaryArtistName}
+                              className="w-full h-full rounded-none"
+                            />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                              {item.songTitle}
+                            </h3>
+                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-blue/30 bg-blue/10 text-blue shrink-0 font-semibold">
+                              {item.role}
+                            </span>
+                          </div>
+                          <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                            {item.albumTitle ? `${item.albumTitle} · ` : ''}with{' '}
+                            {item.primaryArtistName} &bull;{' '}
+                            {formatDuration(item.songDuration)}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )
+              ) : (
+                /* Releases: All, Albums & Compilations, or Singles */
+                (() => {
+                  const currentReleases =
+                    activeTab === 'albums'
+                      ? albumsAndCompilations
+                      : activeTab === 'singles'
+                        ? singles
+                        : allReleases
+                  const visibleReleases = currentReleases.slice(0, visibleCount)
+
+                  return viewMode === 'grid' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                      {visibleReleases.map((album) => (
+                        <MediaTile
+                          key={album.id}
+                          to="/albums/$idOrSlug"
+                          params={{ idOrSlug: album.slug }}
+                          title={album.title}
+                          subtitle={`${album.albumType ? `${album.albumType} · ` : ''}${album.releaseDate ? new Date(album.releaseDate).getFullYear() : 'Recent'}${album.totalTracks > 1 ? ` · ${album.totalTracks} tracks` : ''}`}
+                          imageUrl={album.coverImageUrl}
+                          artistName={artist?.stageName}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {visibleReleases.map((album) => (
+                        <Link
+                          key={album.id}
+                          to="/albums/$idOrSlug"
+                          params={{ idOrSlug: album.slug }}
+                          className="flex items-center gap-3.5 p-2.5 rounded-lg border border-line bg-panel hover:bg-canvas-deep transition-all group text-inherit no-underline"
+                        >
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                            {album.coverImageUrl ? (
+                              <img
+                                src={album.coverImageUrl}
+                                alt={album.title}
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <ProceduralCover
+                                size="sm"
+                                title={album.title}
+                                artistName={artist?.stageName}
+                                className="w-full h-full rounded-none"
+                              />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                                {album.title}
+                              </h3>
+                              {album.albumType && (
+                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft shrink-0">
+                                  {album.albumType}
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                              {album.releaseDate
+                                ? new Date(album.releaseDate).getFullYear()
+                                : 'Recent'}
+                              {album.totalTracks
+                                ? ` · ${album.totalTracks} ${album.totalTracks === 1 ? 'cut' : 'cuts'}`
+                                : ''}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )
+                })()
+              )}
+
+              {/* Pagination: See More / Show Less */}
+              {(() => {
+                const totalInActiveTab =
+                  activeTab === 'albums'
+                    ? albumsAndCompilations.length
+                    : activeTab === 'singles'
+                      ? singles.length
+                      : activeTab === 'featured'
+                        ? appearsOn.length
+                        : allReleases.length
+                const hasMore = totalInActiveTab > visibleCount
+
+                if (hasMore) {
+                  return (
+                    <div className="pt-2 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((prev) => prev + 8)}
+                        className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors cursor-pointer rounded-md font-medium"
+                      >
+                        See More ({totalInActiveTab - visibleCount} remaining)
+                      </button>
+                    </div>
+                  )
+                }
+
+                if (totalInActiveTab > 8) {
+                  return (
+                    <div className="pt-2 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount(8)}
+                        className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors cursor-pointer"
+                      >
+                        Show Less
+                      </button>
+                    </div>
+                  )
+                }
+
+                return null
+              })()}
             </div>
           )}
 
-          {/* In Your Cloud Locker Shelf */}
+          {/* In Your Personal Collection (Vault) Shelf */}
           {hasInYourCollection && (
-            <div className="space-y-3">
-              <div className="flex justify-between items-baseline  border-b border-line pb-2">
+            <div className="space-y-3 px-1">
+              <div className="flex justify-between items-baseline border-b border-line pb-2">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="font-serif italic text-xl text-ink">
+                  <h2 className="font-serif italic text-xl text-ink font-semibold">
                     In Your Personal Collection
                   </h2>
                   <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
@@ -835,7 +1096,7 @@ function ArtistPublicProfileComponent() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
-                    {discography!.inYourCollection!.length} Offline{' '}
+                    {discography!.inYourCollection!.length}{' '}
                     {discography!.inYourCollection!.length === 1
                       ? 'Track'
                       : 'Tracks'}
@@ -849,134 +1110,87 @@ function ArtistPublicProfileComponent() {
                 </div>
               </div>
 
-              <div className="border border-line overflow-clip rounded-md bg-panel divide-y divide-line/60 shadow-2xs">
-                {discography!.inYourCollection!.map((track, idx) => {
-                  const isCurrentPlaying =
-                    currentTrack?.id === track.id &&
-                    playbackStatus === 'playing'
-
-                  return (
-                    <div
-                      key={track.id}
-                      className={`px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors group ${
-                        currentTrack?.id === track.id ? 'bg-panel-deep' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-4">
-                        <button
-                          type="button"
-                          onClick={() => handlePlayLockerSong(track, idx)}
-                          className="w-8 h-8 rounded-full border border-line flex items-center justify-center font-mono text-xs text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
-                          title={isCurrentPlaying ? 'Pause' : 'Play'}
-                        >
-                          {isCurrentPlaying ? (
-                            <PauseIconSVG className="w-3.5 h-3.5" />
-                          ) : (
-                            <PlayIconSVG className="w-3.5 h-3.5 ml-0.5" />
-                          )}
-                        </button>
-
-                        <div className="w-9 h-9 bg-canvas-deep border border-line shrink-0 overflow-hidden relative">
-                          {track.coverImageUrl ? (
-                            <img
-                              src={track.coverImageUrl}
-                              alt={track.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <ProceduralCover
-                              size="sm"
-                              title={track.title}
-                              artistName={track.artistName}
-                              className="w-full h-full rounded-none text-[10px]"
-                            />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-serif italic text-sm text-ink truncate font-medium">
-                              {track.title}
-                            </span>
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold shrink-0">
-                              Personal Collection
-                            </span>
-                          </div>
-                          {track.albumTitle && (
-                            <span className="font-sans text-xs text-ink-soft truncate block">
-                              {track.albumTitle}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="font-mono text-[10.5px] text-ink-soft">
-                          {formatDuration(track.durationSeconds)}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="border border-line rounded-md overflow-clip bg-panel divide-y divide-line/60 shadow-2xs">
+                {discography!.inYourCollection!.map((track, idx) => (
+                  <SongRow
+                    key={track.id}
+                    track={toPlayerTrackFromPersonal(track)}
+                    index={idx}
+                    trackNumberDisplay={idx + 1}
+                    variant="artist"
+                    isPersonal={true}
+                    playsCount={track.playsCount}
+                    onPlay={() => handlePlayLockerSong(track, idx)}
+                    hideGoToArtist={true}
+                  />
+                ))}
               </div>
             </div>
           )}
 
-          {/* Appears On (Featured / Producer Collaborations) */}
-          {hasAppearsOn && (
-            <div className="space-y-3">
+          {/* Collaborated Artists Shelf */}
+          {collaboratedArtists.length > 0 && (
+            <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-line pb-2">
-                <h2 className="font-serif italic text-xl text-ink">
-                  Appears On & Collaborations
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
+                    Collaborators &amp; Features
+                  </h2>
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
+                    Cross-Artist
+                  </span>
+                </div>
                 <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
-                  Cross-Artist Credits
+                  {collaboratedArtists.length}{' '}
+                  {collaboratedArtists.length === 1 ? 'Artist' : 'Artists'}
                 </span>
               </div>
 
-              <div className="border border-line bg-panel divide-y divide-line/60 shadow-2xs">
-                {discography!.appearsOn.map((item) => (
-                  <div
-                    key={item.songId}
-                    className="px-4 py-3 flex items-center justify-between hover:bg-canvas-deep transition-colors"
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                {collaboratedArtists.map((collab) => (
+                  <Link
+                    key={collab.slug || collab.id}
+                    to="/artists/$idOrSlug"
+                    params={{ idOrSlug: collab.slug || collab.id }}
+                    className="p-3 rounded-lg border border-line bg-panel hover:bg-canvas-deep transition-all group text-inherit no-underline flex items-center gap-3 shadow-2xs"
                   >
-                    <div className="min-w-0">
-                      <div className="font-serif text-sm text-ink truncate">
-                        {item.songTitle}
-                      </div>
-                      <div className="font-mono text-[10px] text-ink-soft truncate">
-                        with{' '}
-                        <Link
-                          to="/artists/$idOrSlug"
-                          params={{ idOrSlug: item.primaryArtistSlug }}
-                          className="hover:text-ink underline decoration-line"
-                        >
-                          {item.primaryArtistName}
-                        </Link>
-                      </div>
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs flex items-center justify-center">
+                      {collab.avatarUrl ? (
+                        <img
+                          src={collab.avatarUrl}
+                          alt={collab.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-canvas-deep flex items-center justify-center font-serif italic text-sm font-semibold text-ink-soft">
+                          {collab.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-blue font-semibold">
-                        {item.role}
-                      </span>
-                      <span className="font-mono text-[10.5px] text-ink-soft">
-                        {formatDuration(item.songDuration)}
-                      </span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-serif italic font-medium text-sm text-ink group-hover:text-blue transition-colors truncate">
+                        {collab.name}
+                      </h4>
+                      <p className="font-mono text-[9.5px] text-ink-soft truncate mt-0.5">
+                        {collab.count}{' '}
+                        {collab.count === 1
+                          ? 'collaboration'
+                          : 'collaborations'}
+                      </p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
           )}
 
           {/* If no discography yet */}
-          {!hasAlbums &&
-            !hasMixtapes &&
-            !hasEpsOrSingles &&
+          {!hasAnyDiscography &&
             !hasTopTracks &&
-            !hasAppearsOn &&
-            !hasInYourCollection && (
+            !hasInYourCollection &&
+            !hasUpcoming &&
+            collaboratedArtists.length === 0 && (
               <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
                 <p className="font-serif italic text-base text-ink">
                   Master Tracks & Albums In Preparation

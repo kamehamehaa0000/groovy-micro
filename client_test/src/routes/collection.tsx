@@ -173,6 +173,7 @@ function PersonalCollectionPage() {
       await storageApi.restorePersonalSong(songId)
       setSuccessMessage('Song restored to your personal collection')
       await Promise.all([loadQuota(), loadCollection(), loadTrash(), loadPersonalArtists()])
+      triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore song')
     } finally {
@@ -187,6 +188,7 @@ function PersonalCollectionPage() {
       await storageApi.restorePersonalRelease(releaseId)
       setSuccessMessage('Release restored to your personal collection')
       await Promise.all([loadQuota(), loadCollection(), loadTrash(), loadPersonalArtists()])
+      triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore release')
     } finally {
@@ -202,6 +204,7 @@ function PersonalCollectionPage() {
       setSuccessMessage('Song permanently deleted')
       setTrashConfirm(null)
       await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to delete song permanently')
     } finally {
@@ -217,6 +220,7 @@ function PersonalCollectionPage() {
       setSuccessMessage('Release permanently deleted')
       setTrashConfirm(null)
       await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to delete release permanently')
     } finally {
@@ -232,6 +236,7 @@ function PersonalCollectionPage() {
       setSuccessMessage('Recycle bin permanently emptied')
       setTrashConfirm(null)
       await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to empty recycle bin')
     } finally {

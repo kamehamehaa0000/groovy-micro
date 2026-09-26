@@ -4,6 +4,7 @@ import {
   libraryApi,
   type LibraryPayload,
   type LibraryPin,
+  type LibraryPlaylist,
 } from "../lib/library.api";
 import type {
   LibraryFilterType,
@@ -23,13 +24,24 @@ interface LibraryStoreState extends LibraryPreferences {
   payload: LibraryPayload | null;
   isLoading: boolean;
   error: string | null;
+  isStale: boolean;
+  lastFetchedAt: number | null;
+  isLibraryMounted: boolean;
 
   setViewMode: (mode: LibraryViewMode) => void;
   setActiveSort: (sort: LibrarySortType) => void;
   setActiveFilter: (filter: LibraryFilterType) => void;
   setSearchQuery: (query: string) => void;
 
+  setLibraryMounted: (mounted: boolean) => void;
   fetchLibrary: (force?: boolean) => Promise<void>;
+  invalidate: (options?: { forceImmediate?: boolean }) => Promise<void>;
+  addPlaylist: (playlist: LibraryPlaylist) => void;
+  updatePlaylistTracksCount: (playlistId: string, delta: number) => void;
+  removePlaylist: (playlistId: string) => void;
+  removeRelease: (releaseId: string) => void;
+  removeArtist: (artistId: string) => void;
+  updateLikedSongsCount: (delta: number) => void;
   togglePin: (
     itemType: "LIKED_SONGS" | "PERSONAL_COLLECTION" | "PLAYLIST" | "ALBUM" | "ARTIST",
     itemId: string
@@ -37,6 +49,7 @@ interface LibraryStoreState extends LibraryPreferences {
 }
 
 let fetchLibraryPromise: Promise<void> | null = null;
+let debounceInvalidateTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useLibraryStore = create<LibraryStoreState>()(
   persist(
@@ -48,31 +61,43 @@ export const useLibraryStore = create<LibraryStoreState>()(
       payload: null,
       isLoading: false,
       error: null,
+      isStale: false,
+      lastFetchedAt: null,
+      isLibraryMounted: false,
 
       setViewMode: (viewMode) => set({ viewMode }),
       setActiveSort: (activeSort) => set({ activeSort }),
       setActiveFilter: (activeFilter) => set({ activeFilter }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
 
+      setLibraryMounted: (isLibraryMounted) => set({ isLibraryMounted }),
+
       fetchLibrary: async (force = false) => {
-        if (!force && get().payload && !get().isLoading) {
-          return;
-        }
+        const hasData = get().payload !== null;
 
         if (fetchLibraryPromise && !force) {
           return fetchLibraryPromise;
         }
 
-        set({ isLoading: true, error: null });
+        // Only show full loading skeleton if we don't have any data yet
+        if (!hasData) {
+          set({ isLoading: true, error: null });
+        }
 
         fetchLibraryPromise = (async () => {
           try {
             const data = await libraryApi.getLibrary();
-            set({ payload: data, isLoading: false, error: null });
+            set({
+              payload: data,
+              isLoading: false,
+              error: null,
+              isStale: false,
+              lastFetchedAt: Date.now(),
+            });
           } catch (err: any) {
             set({
               isLoading: false,
-              error: err?.message || "Failed to load library",
+              error: hasData ? null : (err?.message || "Failed to load library"),
             });
           } finally {
             fetchLibraryPromise = null;
@@ -80,6 +105,122 @@ export const useLibraryStore = create<LibraryStoreState>()(
         })();
 
         return fetchLibraryPromise;
+      },
+
+      invalidate: async (options?: { forceImmediate?: boolean }) => {
+        const { isLibraryMounted } = get();
+        if (!isLibraryMounted) {
+          // Off-screen: simply mark as stale so next visit revalidates. 0 network calls!
+          set({ isStale: true });
+          return;
+        }
+
+        if (options?.forceImmediate) {
+          if (debounceInvalidateTimer) {
+            clearTimeout(debounceInvalidateTimer);
+            debounceInvalidateTimer = null;
+          }
+          return get().fetchLibrary(true);
+        }
+
+        // On-screen: debounce rapid changes (e.g. queue saves, fast likes)
+        if (debounceInvalidateTimer) {
+          clearTimeout(debounceInvalidateTimer);
+        }
+
+        return new Promise<void>((resolve) => {
+          debounceInvalidateTimer = setTimeout(() => {
+            debounceInvalidateTimer = null;
+            get().fetchLibrary(true).then(resolve).catch(resolve);
+          }, 300);
+        });
+      },
+
+      addPlaylist: (playlist: LibraryPlaylist) => {
+        const payload = get().payload;
+        if (!payload) return;
+        const filtered = payload.playlists.filter((p) => p.id !== playlist.id);
+        set({
+          payload: {
+            ...payload,
+            playlists: [playlist, ...filtered],
+          },
+        });
+      },
+
+      updatePlaylistTracksCount: (playlistId: string, delta: number) => {
+        const payload = get().payload;
+        if (!payload) return;
+        set({
+          payload: {
+            ...payload,
+            playlists: payload.playlists.map((p) =>
+              p.id === playlistId
+                ? { ...p, tracksCount: Math.max(0, p.tracksCount + delta) }
+                : p
+            ),
+          },
+        });
+      },
+
+      removePlaylist: (playlistId: string) => {
+        const payload = get().payload;
+        if (!payload) return;
+        set({
+          payload: {
+            ...payload,
+            playlists: payload.playlists.filter((p) => p.id !== playlistId),
+            pins: payload.pins.filter(
+              (pin) => !(pin.itemType === "PLAYLIST" && pin.itemId === playlistId)
+            ),
+          },
+        });
+      },
+
+      removeRelease: (releaseId: string) => {
+        const payload = get().payload;
+        if (!payload) return;
+        set({
+          payload: {
+            ...payload,
+            releases: payload.releases.filter((r) => r.id !== releaseId),
+            pins: payload.pins.filter(
+              (pin) => !(pin.itemType === "ALBUM" && pin.itemId === releaseId)
+            ),
+          },
+        });
+      },
+
+      removeArtist: (artistId: string) => {
+        const payload = get().payload;
+        if (!payload) return;
+        set({
+          payload: {
+            ...payload,
+            artists: payload.artists.filter((a) => a.id !== artistId),
+            pins: payload.pins.filter(
+              (pin) => !(pin.itemType === "ARTIST" && pin.itemId === artistId)
+            ),
+          },
+        });
+      },
+
+      updateLikedSongsCount: (delta: number) => {
+        const payload = get().payload;
+        if (!payload) return;
+        set({
+          payload: {
+            ...payload,
+            likedSongs: {
+              ...payload.likedSongs,
+              totalTracks: Math.max(0, payload.likedSongs.totalTracks + delta),
+              lastAddedAt:
+                delta > 0
+                  ? new Date().toISOString()
+                  : payload.likedSongs.lastAddedAt,
+            },
+          },
+        });
       },
 
       togglePin: async (itemType, itemId) => {
@@ -201,9 +342,9 @@ export function buildUnifiedLibraryItems(
     kind: "liked_songs",
     itemId: "LIKED_SONGS",
     title: "Liked Songs",
-    subtitle: `Playlist • ${payload.likedSongs.totalTracks} songs`,
+    subtitle: `Collection • ${payload.likedSongs.totalTracks} ${payload.likedSongs.totalTracks === 1 ? "song" : "songs"}`,
     imageUrl: null,
-    linkTo: "/playlists/liked", // or liked songs route
+    linkTo: "/liked",
     addedAt: payload.likedSongs.lastAddedAt || new Date(0).toISOString(),
     creatorOrArtistName: "You",
     isPinned: !!likedSongsPin,

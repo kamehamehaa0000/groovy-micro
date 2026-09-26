@@ -12,6 +12,7 @@ import type { Song } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { useAuthStore } from '../stores/auth.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
+import { useLibraryStore } from '../stores/library.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
@@ -122,70 +123,7 @@ function PlaylistDetailComponent() {
     setErrorMsg(null)
     try {
       if (id === 'liked') {
-        if (!isAuthenticated) {
-          setErrorMsg('Please sign in to view your Liked Songs')
-          setIsLoading(false)
-          return
-        }
-        const res = await catalogApi.getLikedSongs(1, 100)
-        const tracksList: PlaylistTrack[] = res.data.map((s, idx) => ({
-          id: s.id,
-          entryId: s.id,
-          playlistId: 'liked',
-          songId: s.id,
-          addedByUserId: user?.id || '',
-          addedByDisplayName: user?.displayName || 'You',
-          position: idx + 1,
-          addedAt: (s as any).likedAt || new Date().toISOString(),
-          title: s.title,
-          slug: s.slug,
-          durationSeconds: s.durationSeconds,
-          audioUrl: s.audioUrl,
-          hlsManifestUrl: s.hlsManifestUrl,
-          isExplicit: s.isExplicit,
-          coverImageUrl: s.coverImageUrl || s.albumCoverImageUrl,
-          albumId: s.albumId,
-          albumTitle: s.albumTitle,
-          artistId: s.artistId,
-          artistStageName: s.artistStageName,
-          artistSlug: s.artistSlug,
-          artistVerified: s.artistVerified,
-          isLiked: true,
-        }))
-
-        const totalDuration = res.data.reduce(
-          (acc, s) => acc + (s.durationSeconds || 0),
-          0,
-        )
-
-        const likedPlaylist: PlaylistDetail = {
-          id: 'liked',
-          ownerId: user?.id || '',
-          title: 'Liked Songs',
-          description: 'Your favorite saved tracks in one place',
-          coverImageUrl: null,
-          visibility: 'PRIVATE',
-          shareToken: null,
-          collaborationToken: null,
-          isCollaborative: false,
-          allowDuplicates: false,
-          allowComments: false,
-          savesCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          ownerDisplayName: user?.displayName || 'You',
-          tracksCount: res.pagination?.total ?? res.data.length,
-          totalDurationSeconds: totalDuration,
-          isOwner: true,
-          isSaved: true,
-          collaborators: [],
-          tracks: tracksList,
-        }
-
-        setPlaylist(likedPlaylist)
-        setEditTitle(likedPlaylist.title)
-        setEditDescription(likedPlaylist.description || '')
-        setIsLoading(false)
+        navigate({ to: '/liked', replace: true })
         return
       }
 
@@ -542,6 +480,8 @@ function PlaylistDetailComponent() {
       onConfirm: async () => {
         try {
           await playlistsApi.deletePlaylist(playlist.id)
+          useLibraryStore.getState().removePlaylist(playlist.id)
+          useLibraryStore.getState().invalidate()
           navigate({ to: '/library' })
         } catch (err: any) {
           showToast(err.message || 'Failed to delete playlist', 'error')
@@ -640,20 +580,12 @@ function PlaylistDetailComponent() {
         <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
           {/* Mosaic / Artwork Container */}
           <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-canvas-deep border border-line shadow-md overflow-hidden relative">
-            {playlist.id === 'liked' ? (
-              <div className="w-full h-full bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-400 flex items-center justify-center select-none shadow-inner">
-                <div className="text-white scale-150">
-                  <HeartIconSVG filled={true} className="w-12 h-12" />
-                </div>
-              </div>
-            ) : (
-              <PlaylistCover
-                coverImageUrl={playlist.coverImageUrl}
-                mosaicCovers={playlist.mosaicCovers}
-                title={playlist.title}
-                className="w-full h-full"
-              />
-            )}
+            <PlaylistCover
+              coverImageUrl={playlist.coverImageUrl}
+              mosaicCovers={playlist.mosaicCovers}
+              title={playlist.title}
+              className="w-full h-full"
+            />
           </div>
 
           {/* Details & Actions */}

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useLibraryStore } from "./library.store";
 
 interface LockerStoreState {
   isOpen: boolean;
@@ -13,5 +14,8 @@ export const useLockerStore = create<LockerStoreState>((set) => ({
   refreshTrigger: 0,
   openLockerModal: () => set({ isOpen: true }),
   closeLockerModal: () => set({ isOpen: false }),
-  triggerRefresh: () => set((s) => ({ refreshTrigger: s.refreshTrigger + 1 })),
+  triggerRefresh: () => {
+    set((s) => ({ refreshTrigger: s.refreshTrigger + 1 }));
+    useLibraryStore.getState().invalidate();
+  },
 }));

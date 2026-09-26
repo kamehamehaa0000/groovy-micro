@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { artistsApi } from "../lib/artists.api";
+import { useLibraryStore } from "./library.store";
 
 interface FollowsState {
   followedArtistIds: Set<string>;
@@ -100,6 +101,12 @@ export const useFollowsStore = create<FollowsState>((set, get) => ({
         }
         set({ followedArtistIds: reconciled });
       }
+
+      if (!res.following) {
+        useLibraryStore.getState().removeArtist(artistId);
+      }
+      useLibraryStore.getState().invalidate();
+
       return res;
     } catch (err) {
       // Rollback on failure

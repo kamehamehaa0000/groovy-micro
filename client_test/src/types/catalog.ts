@@ -237,8 +237,14 @@ export interface AppearsOnCredit {
   songSlug: string;
   songDuration: number;
   audioUrl: string | null;
+  albumId?: string | null;
+  albumTitle?: string | null;
+  albumSlug?: string | null;
+  coverImageUrl?: string | null;
+  primaryArtistId?: string;
   primaryArtistName: string;
   primaryArtistSlug: string;
+  primaryArtistAvatarUrl?: string | null;
 }
 
 export interface PersonalCollectionTrack {
@@ -252,6 +258,8 @@ export interface PersonalCollectionTrack {
   coverImageUrl: string | null;
   playsCount: number;
   likesCount: number;
+  albumId?: string | null;
+  albumSlug?: string | null;
   albumTitle: string | null;
   artistName: string;
   scope: string;

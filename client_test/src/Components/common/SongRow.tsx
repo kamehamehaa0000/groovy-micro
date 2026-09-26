@@ -70,6 +70,7 @@ export interface SongRowProps {
   hideGoToArtist?: boolean
   hideGoToAlbum?: boolean
   hideAddToPlaylist?: boolean
+  isPersonal?: boolean
   onRemoveFromPlaylist?: (track: PlayerTrack) => void
   customActions?: SongActionCustomItem[]
 
@@ -104,6 +105,7 @@ export const SongRow = memo(function SongRow({
   hideGoToArtist = false,
   hideGoToAlbum = false,
   hideAddToPlaylist = false,
+  isPersonal,
   onRemoveFromPlaylist,
   customActions,
 
@@ -551,6 +553,15 @@ export const SongRow = memo(function SongRow({
                   E
                 </span>
               )}
+
+              {(isPersonal || track.scope === 'PERSONAL') && (
+                <span
+                  title="Personal Collection (Vault)"
+                  className="font-mono text-[8px] font-semibold uppercase tracking-widest px-1 py-0.2 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs"
+                >
+                  V
+                </span>
+              )}
             </div>
 
             {/* Subtitle / Artist Credits Line */}
@@ -716,6 +727,8 @@ export const SongRow = memo(function SongRow({
               hideGoToArtist={hideGoToArtist}
               hideGoToAlbum={hideGoToAlbum}
               hideAddToPlaylist={hideAddToPlaylist}
+              isPersonal={isPersonal || track.scope === 'PERSONAL'}
+              hideShare={isPersonal || track.scope === 'PERSONAL'}
               onRemoveFromPlaylist={onRemoveFromPlaylist}
               customActions={customActions}
             />

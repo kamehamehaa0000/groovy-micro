@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { playlistsApi } from "../lib/playlists.api";
+import { useLibraryStore } from "./library.store";
 
 interface PlaylistsState {
   savedPlaylistIds: Set<string>;
@@ -100,6 +101,11 @@ export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
         }
         set({ savedPlaylistIds: reconciled });
       }
+
+      if (!res.saved) {
+        useLibraryStore.getState().removePlaylist(playlistId);
+      }
+      useLibraryStore.getState().invalidate();
 
       return res;
     } catch (err) {

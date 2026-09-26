@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { catalogApi } from "../lib/catalog.api";
+import { useLibraryStore } from "./library.store";
 
 interface LikesState {
   likedSongIds: Set<string>;
@@ -123,6 +124,7 @@ export const useLikesStore = create<LikesState>((set, get) => ({
         }
         set({ likedSongIds: reconciled });
       }
+      useLibraryStore.getState().updateLikedSongsCount(res.liked ? 1 : -1);
       return res;
     } catch (err) {
       // Rollback on failure
@@ -162,6 +164,10 @@ export const useLikesStore = create<LikesState>((set, get) => ({
         }
         set({ likedAlbumIds: reconciled });
       }
+      if (!res.liked) {
+        useLibraryStore.getState().removeRelease(albumId);
+      }
+      useLibraryStore.getState().invalidate();
       return res;
     } catch (err) {
       // Rollback on failure

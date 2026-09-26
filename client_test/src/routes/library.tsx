@@ -54,12 +54,36 @@ function LibraryPageComponent() {
     }, 2800)
   }
 
-  // Fetch library data on mount or authentication change
+  // Mount-aware SWR revalidation and lifecycle tracking
   useEffect(() => {
+    useLibraryStore.getState().setLibraryMounted(true)
+
     if (isAuthenticated) {
-      fetchLibrary()
+      const { payload, isStale, lastFetchedAt, fetchLibrary } = useLibraryStore.getState()
+      const isOlderThanStaleTime = !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
+      if (!payload || isStale || isOlderThanStaleTime) {
+        fetchLibrary(true)
+      }
     }
-  }, [isAuthenticated, fetchLibrary])
+
+    return () => {
+      useLibraryStore.getState().setLibraryMounted(false)
+    }
+  }, [isAuthenticated])
+
+  // Revalidate library on window focus with 60-second throttle
+  useEffect(() => {
+    const handleFocus = () => {
+      if (!isAuthenticated) return
+      const { isStale, lastFetchedAt, fetchLibrary } = useLibraryStore.getState()
+      const isOlderThanThrottle = !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
+      if (isStale || isOlderThanThrottle) {
+        fetchLibrary(true)
+      }
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [isAuthenticated])
 
   // Focus search input when toggled open
   useEffect(() => {

@@ -4,6 +4,7 @@ import { playlistsApi } from '../../lib/playlists.api'
 import type { CreatePlaylistInput } from '../../types/playlist'
 import { usePlaylistsStore } from '../../stores/playlists.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
+import { useLibraryStore } from '../../stores/library.store'
 
 export function CreatePlaylistModal() {
   const { isOpen, closeModal, initialTrackIds } = useCreatePlaylistModalStore()
@@ -72,6 +73,22 @@ export function CreatePlaylistModal() {
         }
       }
       hydratePlaylists([{ id: created.id, isSaved: true }])
+      useLibraryStore.getState().addPlaylist({
+        id: created.id,
+        title: created.title,
+        description: created.description ?? null,
+        coverImageUrl: created.coverImageUrl ?? null,
+        visibility: created.visibility,
+        isCollaborative: created.isCollaborative,
+        isOwner: true,
+        ownerId: created.ownerId,
+        ownerName: created.ownerDisplayName || 'You',
+        ownerAvatarUrl: null,
+        savesCount: created.savesCount || 0,
+        tracksCount: (initialTrackIds && initialTrackIds.length) || 0,
+        addedAt: created.createdAt || new Date().toISOString(),
+      })
+      useLibraryStore.getState().invalidate()
       closeModal()
 
       navigate({ to: '/playlists/$id', params: { id: created.id } })
