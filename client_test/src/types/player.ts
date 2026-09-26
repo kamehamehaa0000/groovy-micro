@@ -1,3 +1,5 @@
+import type { SongCredit } from "./catalog";
+
 export interface PlayerTrack {
   id: string;
   title: string;
@@ -16,6 +18,7 @@ export interface PlayerTrack {
   isLiked?: boolean;
   scope?: "GLOBAL" | "PERSONAL";
   isStreamable?: boolean;
+  credits?: SongCredit[];
 }
 
 export type RepeatMode = "off" | "all" | "one";

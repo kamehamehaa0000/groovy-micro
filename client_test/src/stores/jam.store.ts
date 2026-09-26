@@ -66,6 +66,7 @@ interface JamStoreState {
 }
 
 let syncInterval: ReturnType<typeof setInterval> | null = null;
+let connectingPromise: Promise<WebSocket> | null = null;
 
 export const useJamStore = create<JamStoreState>((set, get) => ({
   ws: null,
@@ -92,6 +93,9 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     if (existingWs && existingWs.readyState === WebSocket.OPEN) {
       return existingWs;
     }
+    if (connectingPromise) {
+      return connectingPromise;
+    }
 
     const token = useAuthStore.getState().accessToken;
     const user = useAuthStore.getState().user;
@@ -102,9 +106,22 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     if (user?.displayName) url.searchParams.set("displayName", user.displayName);
     if (user?.avatarUrl) url.searchParams.set("avatarUrl", user.avatarUrl);
 
-    const ws = new WebSocket(url.toString());
+    connectingPromise = new Promise<WebSocket>((resolve, reject) => {
+      let settled = false;
+      const ws = new WebSocket(url.toString());
 
-    return new Promise<WebSocket>((resolve, reject) => {
+      // Timeout connection attempt if neither open nor error fired within 8s
+      const connTimeout = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          connectingPromise = null;
+          try {
+            ws.close();
+          } catch {}
+          reject(new Error("Live Jam connection timed out."));
+        }
+      }, 8000);
+
       ws.onopen = () => {
         set({ ws, isConnected: true, errorMessage: null });
         get().syncClock();
@@ -115,13 +132,66 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           if (get().isConnected) get().syncClock();
         }, 45000);
 
-        resolve(ws);
+        if (!token) {
+          // Unauthenticated or guest: resolve immediately
+          if (!settled) {
+            settled = true;
+            clearTimeout(connTimeout);
+            connectingPromise = null;
+            resolve(ws);
+          }
+          return;
+        }
+
+        // Authenticated user: wait for AUTH_SUCCESS message from server (max 2.5s)
+        const authFallbackTimeout = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(connTimeout);
+            connectingPromise = null;
+            resolve(ws);
+          }
+        }, 2500);
+
+        const authHandler = (event: MessageEvent) => {
+          try {
+            const data = JSON.parse(event.data.toString());
+            if (data.type === "AUTH_SUCCESS" || data.type === "ROOM_STATE") {
+              clearTimeout(authFallbackTimeout);
+              ws.removeEventListener("message", authHandler);
+              if (!settled) {
+                settled = true;
+                clearTimeout(connTimeout);
+                connectingPromise = null;
+                resolve(ws);
+              }
+            } else if (data.type === "ERROR" && data.code === "UNAUTHORIZED") {
+              clearTimeout(authFallbackTimeout);
+              ws.removeEventListener("message", authHandler);
+              if (!settled) {
+                settled = true;
+                clearTimeout(connTimeout);
+                connectingPromise = null;
+                reject(new Error(data.message || "Unauthorized session"));
+              }
+            }
+          } catch {
+            // ignore
+          }
+        };
+
+        ws.addEventListener("message", authHandler);
       };
 
       ws.onerror = (err) => {
         console.error("[JamWS] WebSocket error:", err);
         set({ isConnected: false, syncStatus: "disconnected" });
-        reject(err);
+        if (!settled) {
+          settled = true;
+          clearTimeout(connTimeout);
+          connectingPromise = null;
+          reject(err);
+        }
       };
 
       ws.onclose = () => {
@@ -131,6 +201,7 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
           syncStatus: "disconnected",
         });
         if (syncInterval) clearInterval(syncInterval);
+        connectingPromise = null;
       };
 
       ws.onmessage = (event) => {
@@ -142,6 +213,8 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
         }
       };
     });
+
+    return connectingPromise;
   },
 
   disconnect: () => {
@@ -251,18 +324,35 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     }
 
     return new Promise<string>((resolve, reject) => {
+      let settled = false;
+      const timeoutTimer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          ws.removeEventListener("message", handler);
+          reject(new Error("Live Jam creation timed out. Please try again."));
+        }
+      }, 8000);
+
       const handler = (event: MessageEvent) => {
         try {
           const msg = JSON.parse(event.data.toString());
           if (msg.type === "ROOM_STATE") {
-            ws.removeEventListener("message", handler);
-            try {
-              localStorage.setItem("groovy:jam:active_room_code", msg.room.roomCode);
-            } catch {}
-            resolve(msg.room.roomCode);
+            if (!settled) {
+              settled = true;
+              clearTimeout(timeoutTimer);
+              ws.removeEventListener("message", handler);
+              try {
+                localStorage.setItem("groovy:jam:active_room_code", msg.room.roomCode);
+              } catch {}
+              resolve(msg.room.roomCode);
+            }
           } else if (msg.type === "ERROR") {
-            ws.removeEventListener("message", handler);
-            reject(new Error(msg.message));
+            if (!settled) {
+              settled = true;
+              clearTimeout(timeoutTimer);
+              ws.removeEventListener("message", handler);
+              reject(new Error(msg.message || "Failed to create room"));
+            }
           }
         } catch {
           // ignore
@@ -270,15 +360,21 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
       };
 
       ws.addEventListener("message", handler);
-      ws.send(
-        JSON.stringify({
-          type: "ROOM_CREATE",
-          privacy,
-          allowGuestQueue,
-          initialTrack,
-          initialPositionMs: Math.floor(currentTime * 1000),
-        })
-      );
+      try {
+        ws.send(
+          JSON.stringify({
+            type: "ROOM_CREATE",
+            privacy,
+            allowGuestQueue,
+            initialTrack,
+            initialPositionMs: Math.floor(currentTime * 1000),
+          })
+        );
+      } catch (err) {
+        clearTimeout(timeoutTimer);
+        ws.removeEventListener("message", handler);
+        reject(err);
+      }
     });
   },
 
@@ -293,21 +389,38 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
     const ws = await get().connect();
 
     return new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const timeoutTimer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          ws.removeEventListener("message", handler);
+          reject(new Error("Joining Live Jam timed out."));
+        }
+      }, 8000);
+
       const handler = (event: MessageEvent) => {
         try {
           const msg = JSON.parse(event.data.toString());
           if (msg.type === "ROOM_STATE") {
-            ws.removeEventListener("message", handler);
-            try {
-              localStorage.setItem("groovy:jam:active_room_code", code);
-            } catch {}
-            resolve();
+            if (!settled) {
+              settled = true;
+              clearTimeout(timeoutTimer);
+              ws.removeEventListener("message", handler);
+              try {
+                localStorage.setItem("groovy:jam:active_room_code", code);
+              } catch {}
+              resolve();
+            }
           } else if (msg.type === "ERROR") {
-            ws.removeEventListener("message", handler);
-            try {
-              localStorage.removeItem("groovy:jam:active_room_code");
-            } catch {}
-            reject(new Error(msg.message));
+            if (!settled) {
+              settled = true;
+              clearTimeout(timeoutTimer);
+              ws.removeEventListener("message", handler);
+              try {
+                localStorage.removeItem("groovy:jam:active_room_code");
+              } catch {}
+              reject(new Error(msg.message || "Failed to join room"));
+            }
           }
         } catch {
           // ignore
@@ -315,7 +428,13 @@ export const useJamStore = create<JamStoreState>((set, get) => ({
       };
 
       ws.addEventListener("message", handler);
-      ws.send(JSON.stringify({ type: "ROOM_JOIN", roomCode: code }));
+      try {
+        ws.send(JSON.stringify({ type: "ROOM_JOIN", roomCode: code }));
+      } catch (err) {
+        clearTimeout(timeoutTimer);
+        ws.removeEventListener("message", handler);
+        reject(err);
+      }
     });
   },
 

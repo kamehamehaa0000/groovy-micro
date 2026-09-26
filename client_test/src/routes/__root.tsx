@@ -19,10 +19,9 @@ import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
-import {
-  QueueDrawer,
-  QueueDesktopSection,
-} from '../components/player/QueueDrawer'
+import { QueueDrawer } from '../components/player/QueueDrawer'
+import { DesktopRightSidebar } from '../components/player/DesktopRightSidebar'
+import { MobileExpandedPlayer } from '../components/player/MobileExpandedPlayer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
 import { LiveJamModal } from '../components/jam/LiveJamModal'
@@ -48,6 +47,8 @@ function RootComponent() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [createMenuOpen, setCreateMenuOpen] = useState(false)
   const createMenuRef = useRef<HTMLDivElement>(null)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const activeJamRoom = useJamStore((s) => s.activeRoom)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
@@ -104,20 +105,30 @@ function RootComponent() {
 
   const { pathname } = useLocation()
 
-  // Close desktop create dropdown on outside click or Escape key
+  // Close desktop create and user dropdowns on outside click or Escape key
   useEffect(() => {
-    if (!createMenuOpen) return
+    if (!createMenuOpen && !userMenuOpen) return
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node
       if (
+        createMenuOpen &&
         createMenuRef.current &&
-        !createMenuRef.current.contains(e.target as Node)
+        !createMenuRef.current.contains(target)
       ) {
         setCreateMenuOpen(false)
+      }
+      if (
+        userMenuOpen &&
+        userMenuRef.current &&
+        !userMenuRef.current.contains(target)
+      ) {
+        setUserMenuOpen(false)
       }
     }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setCreateMenuOpen(false)
+        setUserMenuOpen(false)
       }
     }
     window.addEventListener('mousedown', handleClickOutside)
@@ -126,11 +137,12 @@ function RootComponent() {
       window.removeEventListener('mousedown', handleClickOutside)
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [createMenuOpen])
+  }, [createMenuOpen, userMenuOpen])
 
-  // Close create menu on route change
+  // Close menus on route change
   useEffect(() => {
     setCreateMenuOpen(false)
+    setUserMenuOpen(false)
   }, [pathname])
 
   const isAuthPage =
@@ -346,32 +358,6 @@ function RootComponent() {
                       <span>Live Jam</span>
                     </button> */}
                     <Link
-                      to="/profile"
-                      activeProps={{
-                        className:
-                          'text-ink font-semibold border-b border-blue pb-0.5',
-                      }}
-                      inactiveProps={{
-                        className: 'text-ink-soft hover:text-ink pb-0.5',
-                      }}
-                      className="transition-colors"
-                    >
-                      Profile
-                    </Link>
-                    <Link
-                      to="/studio"
-                      activeProps={{
-                        className:
-                          'text-ink font-semibold border-b border-blue pb-0.5',
-                      }}
-                      inactiveProps={{
-                        className: 'text-ink-soft hover:text-ink pb-0.5',
-                      }}
-                      className="transition-colors"
-                    >
-                      Studio
-                    </Link>
-                    <Link
                       to="/collection"
                       activeProps={{
                         className:
@@ -385,21 +371,6 @@ function RootComponent() {
                       Collection
                     </Link>
                   </>
-                )}
-                {user?.role === 'ADMIN' && (
-                  <Link
-                    to="/admin/verification"
-                    activeProps={{
-                      className:
-                        'text-ink font-semibold border-b border-blue pb-0.5',
-                    }}
-                    inactiveProps={{
-                      className: 'text-blue hover:underline pb-0.5',
-                    }}
-                    className="transition-colors"
-                  >
-                    Admin Desk
-                  </Link>
                 )}
               </nav>
             </div>
@@ -480,14 +451,32 @@ function RootComponent() {
                   <div
                     role="menu"
                     aria-orientation="vertical"
-                    className="absolute right-0 top-full mt-2 w-60 bg-panel border border-line shadow-2xl rounded-xs p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
+                    className="absolute right-0 top-full mt-4 w-64 bg-panel border border-line shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
                   >
-                    <div className="px-2.5 py-1.5 border-b border-line mb-1">
-                      <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400">
-                        Creation Desk
+                    {/* Creation Header */}
+                    <div className="px-2.5 py-2 border-b border-line mb-1">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-serif italic text-xs font-semibold text-ink truncate">
+                              Creation Desk
+                            </span>{' '}
+                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[8px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                              Quick Actions
+                            </span>
+                          </div>
+                          <div className="font-mono text-[9px] text-ink-soft truncate">
+                            Create &amp; broadcast
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-serif italic text-xs text-ink font-medium">
-                        Create &amp; Broadcast
+                      <div className="flex items-center gap-1.5">
+                        {activeJamRoom && (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Jam Active
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -517,7 +506,7 @@ function RootComponent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
                             Live Jam
                           </span>
                           {activeJamRoom && (
@@ -569,7 +558,7 @@ function RootComponent() {
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink">
+                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
                           Create Playlist
                         </span>
                         <p className="font-sans text-[11px] text-ink-soft truncate">
@@ -598,13 +587,16 @@ function RootComponent() {
                   Authenticating...
                 </span>
               ) : isAuthenticated && user ? (
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/profile"
-                    className="flex items-center gap-2.5 text-inherit no-underline group"
-                    title="Open Curator Profile & Vault"
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUserMenuOpen((prev) => !prev)}
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="menu"
+                    aria-label="User account menu"
+                    className="flex items-center gap-2.5 text-inherit no-underline group cursor-pointer focus:outline-none rounded-full py-0.5 px-1 hover:bg-canvas transition-colors"
                   >
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-line group-hover:border-ink transition-colors shadow-2xs">
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-line group-hover:border-ink transition-colors shadow-2xs shrink-0">
                       {user.avatarUrl ? (
                         <img
                           src={user.avatarUrl}
@@ -617,48 +609,183 @@ function RootComponent() {
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col text-left">
-                      <span className="font-serif italic text-xs text-ink leading-tight">
-                        {user.displayName}
-                      </span>
-                      <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink-soft">
-                        {user.role}
-                      </span>
-                    </div>
-                  </Link>
+                  </button>
 
-                  {/* Minimal Sign Out Icon Button with Hover Tooltip & Aria Tags */}
-                  <div className="relative group">
-                    <button
-                      type="button"
-                      onClick={() => logout()}
-                      aria-label="Sign out"
-                      title="Sign out"
-                      className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink hover:text-red-500 text-ink-soft flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+                  {userMenuOpen && (
+                    <div
+                      role="menu"
+                      aria-orientation="vertical"
+                      className="absolute right-0 top-full mt-4 w-64 bg-panel border border-line shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
                     >
-                      <svg
-                        className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
+                      {/* User Identity Header */}
+                      <div className="px-2.5 py-2 border-b border-line mb-1">
+                        <div className="flex items-center gap-2.5 mb-1.5">
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-line shrink-0">
+                            {user.avatarUrl ? (
+                              <img
+                                src={user.avatarUrl}
+                                alt={user.displayName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-canvas text-ink flex items-center justify-center font-serif italic text-xs">
+                                {user.displayName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-serif italic text-xs font-semibold text-ink truncate">
+                              {user.displayName}
+                            </div>
+                            <div className="font-mono text-[9px] text-ink-soft truncate">
+                              {user.email}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                            {user.role}
+                          </span>
+                          {user.isEmailVerified && (
+                            <span className="px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                              Verified
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Profile */}
+                      <Link
+                        to="/profile"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
                       >
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
-                      </svg>
-                      <span className="sr-only">Sign out</span>
-                    </button>
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
-                    >
-                      Sign Out
-                    </span>
-                  </div>
+                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                            Profile
+                          </span>
+                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                            Preferences &amp; Settings
+                          </p>
+                        </div>
+                      </Link>
+
+                      {/* Studio */}
+                      <Link
+                        to="/studio"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                      >
+                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                            Studio
+                          </span>
+                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                            Artist &amp; catalog management
+                          </p>
+                        </div>
+                      </Link>
+
+                      {/* Admin Desk (If Admin) */}
+                      {user.role === 'ADMIN' && (
+                        <Link
+                          to="/admin/verification"
+                          role="menuitem"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                        >
+                          <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-blue group-hover:border-blue/50 transition-colors shrink-0">
+                            <svg
+                              className="w-3.5 h-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-blue block">
+                              Admin Desk
+                            </span>
+                            <p className="font-sans text-[11px] text-ink-soft truncate">
+                              Manage Platform
+                            </p>
+                          </div>
+                        </Link>
+                      )}
+
+                      {/* Divider */}
+                      <div className="border-t border-line my-1" />
+
+                      {/* Sign Out */}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          logout()
+                        }}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink hover:text-red-500 transition-colors cursor-pointer group"
+                      >
+                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-red-500 group-hover:border-red-500/50 transition-colors shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium block">
+                            Sign Out
+                          </span>
+                          <p className="font-sans text-[11px] text-ink-soft group-hover:text-red-400/80 truncate">
+                            End current session
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -943,14 +1070,15 @@ function RootComponent() {
             </footer>
           </div>
 
-          {/* Desktop Queue Section (Collapsible Docked Right Panel) */}
-          <QueueDesktopSection />
+          {/* Desktop Right Sidebar (Now Playing & Queue Docked Panel) */}
+          <DesktopRightSidebar />
         </div>
       )}
 
       {/* ===================== GLOBAL AUDIO ENGINE & CONTROLS ===================== */}
       <GlobalAudioEngine key="permanent-audio-engine" />
       <PlayerBar key="permanent-player-bar" />
+      <MobileExpandedPlayer key="permanent-mobile-expanded-player" />
       <QueueDrawer key="permanent-queue-drawer" />
       <AuthPromptModal key="permanent-auth-modal" />
       <LiveJamModal key="permanent-live-jam-modal" />

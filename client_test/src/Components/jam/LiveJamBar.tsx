@@ -29,7 +29,7 @@ export function LiveJamBar() {
   };
 
   return (
-    <div className="w-full bg-canvas-deep/95 dark:bg-panel/95 backdrop-blur-md border-t border-line text-ink px-3 sm:px-8 h-9 flex items-center justify-between text-xs z-30 transition-colors shadow-2xs select-none">
+    <div className="w-full bg-panel/95 backdrop-blur-md border border-emerald-500/30 md:border-t md:border-b-0 md:border-x-0 md:border-line rounded-xl md:rounded-none text-ink px-3 sm:px-6 md:px-8 py-1.5 md:py-0 md:h-9 flex items-center justify-between text-xs transition-all shadow-md md:shadow-none select-none">
       {/* Left: Live Pulse & Room Code */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-mono text-[9px] uppercase tracking-wider font-semibold shrink-0">

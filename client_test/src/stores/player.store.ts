@@ -5,6 +5,7 @@ import type {
   RepeatMode,
   PlayerStateSnapshot,
 } from "../types/player";
+import type { SongCredit } from "../types/catalog";
 import { playerApi } from "../lib/player.api";
 import { useAuthStore } from "./auth.store";
 
@@ -45,6 +46,8 @@ interface PlayerState {
 
   // UI state
   isQueueOpen: boolean;
+  isNowPlayingExpanded: boolean;
+  desktopRightSidebarView: "none" | "now-playing" | "queue";
   isInitialized: boolean;
 
   // Multi-Device Takeover (Option A)
@@ -84,6 +87,11 @@ interface PlayerState {
   // UI actions
   setQueueOpen: (isOpen: boolean) => void;
   toggleQueueDrawer: () => void;
+  setNowPlayingExpanded: (isOpen: boolean) => void;
+  toggleNowPlayingExpanded: () => void;
+  setDesktopRightSidebarView: (view: "none" | "now-playing" | "queue") => void;
+  toggleDesktopRightSidebar: (view: "now-playing" | "queue") => void;
+  updateTrackCredits: (songId: string, credits: SongCredit[]) => void;
 
   // Internal engine setters
   _setStatus: (status: PlaybackStatus) => void;
@@ -120,6 +128,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   contextTitle: null,
 
   isQueueOpen: false,
+  isNowPlayingExpanded: false,
+  desktopRightSidebarView: "none",
   isInitialized: false,
   supersededByDevice: null,
 
@@ -532,8 +542,56 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  setQueueOpen: (isOpen) => set({ isQueueOpen: isOpen }),
-  toggleQueueDrawer: () => set((s) => ({ isQueueOpen: !s.isQueueOpen })),
+  setQueueOpen: (isOpen) =>
+    set((s) => ({
+      isQueueOpen: isOpen,
+      desktopRightSidebarView: isOpen
+        ? "queue"
+        : s.desktopRightSidebarView === "queue"
+        ? "none"
+        : s.desktopRightSidebarView,
+    })),
+  toggleQueueDrawer: () =>
+    set((s) => {
+      const nextOpen = !s.isQueueOpen;
+      return {
+        isQueueOpen: nextOpen,
+        desktopRightSidebarView: nextOpen
+          ? "queue"
+          : s.desktopRightSidebarView === "queue"
+          ? "none"
+          : s.desktopRightSidebarView,
+      };
+    }),
+  setNowPlayingExpanded: (isOpen) => set({ isNowPlayingExpanded: isOpen }),
+  toggleNowPlayingExpanded: () =>
+    set((s) => ({ isNowPlayingExpanded: !s.isNowPlayingExpanded })),
+  setDesktopRightSidebarView: (view) =>
+    set({
+      desktopRightSidebarView: view,
+      isQueueOpen: view === "queue",
+    }),
+  toggleDesktopRightSidebar: (view) =>
+    set((s) => {
+      const nextView = s.desktopRightSidebarView === view ? "none" : view;
+      return {
+        desktopRightSidebarView: nextView,
+        isQueueOpen: nextView === "queue",
+      };
+    }),
+  updateTrackCredits: (songId, credits) => {
+    set((state) => {
+      if (state.currentTrack && state.currentTrack.id === songId) {
+        return {
+          currentTrack: {
+            ...state.currentTrack,
+            credits,
+          },
+        };
+      }
+      return state;
+    });
+  },
 
   _setStatus: (status) => set({ playbackStatus: status }),
   _setCurrentTime: (time) => set({ currentTime: time }),

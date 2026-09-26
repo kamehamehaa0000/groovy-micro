@@ -19,6 +19,7 @@ import {
 } from '../lib/storage.api'
 import { usePlayerStore } from '../stores/player.store'
 import type { PlayerTrack } from '../types/player'
+import { seedArtistCache } from '../lib/artist-resolver'
 import { useLockerStore } from '../stores/locker.store'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import {
@@ -242,7 +243,16 @@ function PersonalCollectionPage() {
     try {
       setIsLoadingArtists(true)
       const res = await storageApi.getPersonalArtists()
-      setPersonalArtists(res.artists || [])
+      const artists = res.artists || []
+      setPersonalArtists(artists)
+      seedArtistCache(
+        artists.map((a) => ({
+          id: a.id,
+          stageName: a.stageName,
+          slug: a.slug,
+          scope: 'PERSONAL',
+        }))
+      )
     } catch (err: any) {
       console.error('Failed to load personal artists:', err)
     } finally {
@@ -270,6 +280,14 @@ function PersonalCollectionPage() {
           `Personal artist "${res.artist.stageName}" created successfully.`,
         )
         setPersonalArtists((prev) => [res.artist, ...prev])
+        seedArtistCache([
+          {
+            id: res.artist.id,
+            stageName: res.artist.stageName,
+            slug: res.artist.slug,
+            scope: 'PERSONAL',
+          },
+        ])
       }
       setNewArtistName('')
       setNewArtistBio('')
@@ -299,6 +317,40 @@ function PersonalCollectionPage() {
       const res = await storageApi.getPersonalReleases()
       const releases = res.releases || []
       setPersonalReleases(releases)
+
+      const seeds: Array<{
+        id?: string
+        stageName?: string
+        slug?: string
+        scope?: 'GLOBAL' | 'PERSONAL'
+      }> = []
+
+      for (const rel of releases) {
+        if (rel.artistName && rel.artistSlug) {
+          seeds.push({
+            id: rel.artistId,
+            stageName: rel.artistName,
+            slug: rel.artistSlug,
+            scope: 'PERSONAL',
+          })
+        }
+        for (const trk of rel.tracks || []) {
+          if (trk.credits && trk.credits.length > 0) {
+            for (const c of trk.credits) {
+              seeds.push({
+                id: c.artistId,
+                stageName: c.stageName,
+                slug: c.slug,
+                scope: 'PERSONAL',
+              })
+            }
+          }
+        }
+      }
+
+      if (seeds.length > 0) {
+        seedArtistCache(seeds)
+      }
 
       // Expand first release by default if available
       if (releases.length > 0) {
@@ -337,20 +389,34 @@ function PersonalCollectionPage() {
       return
     }
 
-    const contextTracks: PlayerTrack[] = release.tracks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      artistId: release.artistId || '',
-      artistName: t.artistName || release.artistName || 'Personal Artist',
-      artistSlug: release.artistSlug,
-      albumTitle: release.title,
-      coverImageUrl: t.coverImageUrl || release.coverImageUrl || undefined,
-      durationSeconds: t.durationSeconds,
-      audioUrl: t.audioUrl,
-      hlsManifestUrl: t.hlsManifestUrl,
-      rawAudioKey: t.rawAudioKey,
-      isExplicit: t.isExplicit ?? false,
-    }))
+    const contextTracks: PlayerTrack[] = release.tracks.map((t) => {
+      const primaryCredit =
+        t.credits?.find((c) => c.role === 'PRIMARY') || t.credits?.[0]
+      return {
+        id: t.id,
+        title: t.title,
+        artistId: primaryCredit?.artistId || release.artistId || '',
+        artistName: t.artistName || release.artistName || 'Personal Artist',
+        artistSlug: primaryCredit?.slug || release.artistSlug,
+        albumId: release.id,
+        albumTitle: release.title,
+        albumSlug: release.slug,
+        coverImageUrl: t.coverImageUrl || release.coverImageUrl || undefined,
+        durationSeconds: t.durationSeconds,
+        audioUrl: t.audioUrl,
+        hlsManifestUrl: t.hlsManifestUrl,
+        rawAudioKey: t.rawAudioKey,
+        isExplicit: t.isExplicit ?? false,
+        scope: 'PERSONAL',
+        credits: (t.credits || []).map((c) => ({
+          artistId: c.artistId,
+          stageName: c.stageName,
+          slug: c.slug,
+          verified: false,
+          role: (c.role as any) || 'PRIMARY',
+        })),
+      }
+    })
 
     playTrack(
       contextTracks[trackIdx],

@@ -695,7 +695,7 @@ export const SongRow = memo(function SongRow({
 
         {/* Added by (for Collaborative Playlists) */}
         {addedByDisplayName && (
-          <div className="hidden md:block text-right font-mono text-[10.5px] text-ink-soft/70 shrink-0 max-w-[140px] truncate">
+          <div className="hidden md:block text-right font-mono text-[10.5px] text-ink-soft/70 shrink-0 max-w-35 truncate">
             Added by {addedByDisplayName}
           </div>
         )}

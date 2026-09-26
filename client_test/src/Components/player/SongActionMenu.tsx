@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import { useLikesStore } from '../../stores/likes.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { useAddToPlaylistModalStore } from '../../stores/add-to-playlist-modal.store'
+import { navigateToArtist, useResolvedTrackCredits } from '../../lib/artist-resolver'
 import type { PlayerTrack } from '../../types/player'
 import { ProceduralCover } from '../common/ProceduralCover'
 import { PlayIconSVG, HeartIconSVG, DiscIconSVG } from '../icons'
@@ -76,6 +77,7 @@ export function SongActionMenu({
   const playNext = usePlayerStore((s) => s.playNext)
   const addToQueue = usePlayerStore((s) => s.addToQueue)
   const playTrack = usePlayerStore((s) => s.playTrack)
+  const setNowPlayingExpanded = usePlayerStore((s) => s.setNowPlayingExpanded)
   const activeJamRoom = useJamStore((s) => s.activeRoom)
   const addToJamQueue = useJamStore((s) => s.addToJamQueue)
   const { isAuthenticated } = useAuthStore()
@@ -83,6 +85,7 @@ export function SongActionMenu({
   const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
 
   const isLiked = likedSongIds.has(track.id)
+  const parsedCredits = useResolvedTrackCredits(track)
 
   // Measure and position dropdown relative to viewport
   const updatePosition = () => {
@@ -310,20 +313,33 @@ export function SongActionMenu({
     onRemoveFromPlaylist?.(track)
   }
 
-  const handleGoToArtist = (e: React.MouseEvent) => {
+  const handleGoToArtist = (
+    e: React.MouseEvent,
+    artistTarget?: { id?: string; slug?: string; name?: string }
+  ) => {
     e.stopPropagation()
     setIsOpen(false)
-    if (track.artistSlug || track.artistId) {
-      navigate({
-        to: '/artists/$idOrSlug',
-        params: { idOrSlug: track.artistSlug || track.artistId },
-      })
+    setNowPlayingExpanded(false)
+    const artist = artistTarget || {
+      id: track.artistId,
+      slug: track.artistSlug,
+      name: track.artistName,
     }
+    navigateToArtist(
+      {
+        id: artist.id,
+        slug: artist.slug,
+        name: artist.name || track.artistName,
+      },
+      navigate,
+      () => setNowPlayingExpanded(false)
+    )
   }
 
   const handleGoToAlbum = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsOpen(false)
+    setNowPlayingExpanded(false)
     const target = track.albumSlug || track.albumId
     if (target) {
       navigate({
@@ -531,24 +547,67 @@ export function SongActionMenu({
             </div>
 
             <div className="py-1">
-              {!hideGoToArtist && (track.artistSlug || track.artistId) && (
-                <button
-                  type="button"
-                  onClick={handleGoToArtist}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <span className="truncate">Go to Artist</span>
-                </button>
+              {!hideGoToArtist && (
+                <>
+                  {(parsedCredits.primary.slug || parsedCredits.primary.id || track.artistSlug || track.artistId) && (
+                    <button
+                      type="button"
+                      onClick={(e) =>
+                        handleGoToArtist(e, {
+                          id: parsedCredits.primary.id || track.artistId,
+                          slug: parsedCredits.primary.slug || track.artistSlug,
+                          name: parsedCredits.primary.name || track.artistName,
+                        })
+                      }
+                      className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      <span className="truncate">
+                        Go to Artist ({parsedCredits.primary.name})
+                      </span>
+                    </button>
+                  )}
+
+                  {parsedCredits.collaborators.map((collab, idx) => (
+                    <button
+                      key={collab.name + idx}
+                      type="button"
+                      onClick={(e) =>
+                        handleGoToArtist(e, {
+                          id: collab.id,
+                          slug: collab.slug,
+                          name: collab.name,
+                        })
+                      }
+                      className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                      >
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                      <span className="truncate">
+                        Go to {collab.role || 'Collaborator'} ({collab.name})
+                      </span>
+                    </button>
+                  ))}
+                </>
               )}
               {!hideGoToAlbum && (track.albumSlug || track.albumId) && (
                 <button
@@ -856,24 +915,67 @@ export function SongActionMenu({
                 </div>
 
                 <div className="py-1">
-                  {!hideGoToArtist && (track.artistSlug || track.artistId) && (
-                    <button
-                      type="button"
-                      onClick={handleGoToArtist}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="w-5 h-5 text-ink-soft shrink-0"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      <span className="truncate">Go to Artist</span>
-                    </button>
+                  {!hideGoToArtist && (
+                    <>
+                      {(parsedCredits.primary.slug || parsedCredits.primary.id || track.artistSlug || track.artistId) && (
+                        <button
+                          type="button"
+                          onClick={(e) =>
+                            handleGoToArtist(e, {
+                              id: parsedCredits.primary.id || track.artistId,
+                              slug: parsedCredits.primary.slug || track.artistSlug,
+                              name: parsedCredits.primary.name || track.artistName,
+                            })
+                          }
+                          className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="w-5 h-5 text-ink-soft shrink-0"
+                          >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                          <span className="truncate">
+                            Go to Artist ({parsedCredits.primary.name})
+                          </span>
+                        </button>
+                      )}
+
+                      {parsedCredits.collaborators.map((collab, idx) => (
+                        <button
+                          key={collab.name + idx}
+                          type="button"
+                          onClick={(e) =>
+                            handleGoToArtist(e, {
+                              id: collab.id,
+                              slug: collab.slug,
+                              name: collab.name,
+                            })
+                          }
+                          className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="w-5 h-5 text-ink-soft shrink-0"
+                          >
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                          <span className="truncate">
+                            Go to {collab.role || 'Collaborator'} ({collab.name})
+                          </span>
+                        </button>
+                      ))}
+                    </>
                   )}
                   {!hideGoToAlbum && (track.albumSlug || track.albumId) && (
                     <button

@@ -229,6 +229,7 @@ function ArtistPublicProfileComponent() {
     hlsManifestUrl: song.hlsManifestUrl,
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
+    credits: song.credits,
   })
 
   const handlePlaySong = (song: EnrichedSong, index?: number) => {

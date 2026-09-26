@@ -80,7 +80,7 @@ interface QueueContentProps {
   listRef?: React.RefObject<HTMLDivElement | null>
 }
 
-function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
+export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
   const localListRef = useRef<HTMLDivElement | null>(null)
   const activeListRef = listRef || localListRef
 

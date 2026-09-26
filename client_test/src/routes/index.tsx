@@ -2,9 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
-import {
-  SvgArtworkSpiral,
-} from '../components/icons'
+import { SvgArtworkSpiral } from '../components/icons'
 import { catalogApi } from '../lib/catalog.api'
 import type { Album, EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
@@ -72,6 +70,7 @@ function HomeComponent() {
     hlsManifestUrl: song.hlsManifestUrl,
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
+    credits: song.credits,
   })
 
   const handlePlaySong = (song: EnrichedSong, index?: number) => {
@@ -199,7 +198,7 @@ function HomeComponent() {
         </div>
 
         {liveSongs.length > 0 ? (
-          <div className="border border-line bg-panel divide-y divide-line/60 shadow-xs">
+          <div className="border border-line rounded-lg overflow-clip bg-panel divide-y divide-line/60 shadow-xs">
             {liveSongs.map((t, idx) => (
               <SongRow
                 key={t.id}

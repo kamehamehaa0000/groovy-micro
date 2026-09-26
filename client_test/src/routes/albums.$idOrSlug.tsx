@@ -269,6 +269,7 @@ function AlbumDetailComponent() {
     hlsManifestUrl: song.hlsManifestUrl,
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
+    credits: song.credits,
     isStreamable: isCreator
       ? true
       : song.isStreamable !== false && !album?.isUpcoming,

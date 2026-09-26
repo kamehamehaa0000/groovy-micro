@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { SongActionMenu } from './SongActionMenu'
 import { LiveJamBar } from '../jam/LiveJamBar'
+import { MobileMiniPlayer } from './MobileMiniPlayer'
 
 function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
@@ -220,6 +221,9 @@ export function PlayerBar() {
   const streamQuality = usePlayerStore((s) => s.streamQuality)
   const streamFormat = usePlayerStore((s) => s.streamFormat)
   const isQueueOpen = usePlayerStore((s) => s.isQueueOpen)
+  const desktopRightSidebarView = usePlayerStore(
+    (s) => s.desktopRightSidebarView,
+  )
 
   const togglePlay = usePlayerStore((s) => s.togglePlay)
   const next = usePlayerStore((s) => s.next)
@@ -230,6 +234,9 @@ export function PlayerBar() {
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle)
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat)
   const toggleQueueDrawer = usePlayerStore((s) => s.toggleQueueDrawer)
+  const toggleDesktopRightSidebar = usePlayerStore(
+    (s) => s.toggleDesktopRightSidebar,
+  )
   const supersededByDevice = usePlayerStore((s) => s.supersededByDevice)
   const takeoverPlayback = usePlayerStore((s) => s.takeoverPlayback)
   const dismissSuperseded = usePlayerStore((s) => s.dismissSuperseded)
@@ -315,13 +322,16 @@ export function PlayerBar() {
       )}
 
       {/* Live Jam Floating Bar */}
-      <div className="fixed bottom-[120px] md:bottom-20 left-0 right-0 z-40">
+      <div className="fixed bottom-31.5 left-3 right-3 md:bottom-20 md:left-0 md:right-0 z-40 select-none pointer-events-auto">
         <LiveJamBar />
       </div>
 
+      {/* Mobile Floating Mini Player (docked above bottom nav bar) */}
+      <MobileMiniPlayer />
+
       <footer
         aria-label="Audio Player"
-        className="fixed bottom-14 md:bottom-0 left-0 right-0 z-40 h-16 sm:h-20 bg-panel/95 backdrop-blur-md border-t border-line px-3 sm:px-8 flex items-center justify-between shadow-2xl transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-20 bg-panel/95 backdrop-blur-md border-t border-line px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
       >
         {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
         <div
@@ -343,41 +353,49 @@ export function PlayerBar() {
 
         {/* LEFT: Track Artwork & Info + Like Button + Action Menu */}
         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 sm:flex-initial sm:w-1/4">
-          {/* Cover Art (Clickable to Album) */}
-          {albumTarget ? (
-            <Link
-              to="/albums/$idOrSlug"
-              params={{ idOrSlug: albumTarget }}
-              className="relative w-10 h-10 sm:w-12 sm:h-12 rounded bg-stone/40 border border-line shrink-0 overflow-hidden shadow-xs hover:opacity-90 transition-opacity"
-              title={`View ${currentTrack.albumTitle || 'Release'}`}
-            >
-              {currentTrack.coverImageUrl ? (
-                <img
-                  src={currentTrack.coverImageUrl}
-                  alt={currentTrack.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-ink-soft">
-                  ♪
-                </div>
-              )}
-            </Link>
-          ) : (
-            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded bg-stone/40 border border-line shrink-0 overflow-hidden shadow-xs">
-              {currentTrack.coverImageUrl ? (
-                <img
-                  src={currentTrack.coverImageUrl}
-                  alt={currentTrack.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-ink-soft">
-                  ♪
-                </div>
-              )}
+          {/* Cover Art (Click to expand / collapse Now Playing View on desktop) */}
+          <button
+            type="button"
+            onClick={() => toggleDesktopRightSidebar('now-playing')}
+            className={`group relative w-12 h-12 rounded bg-stone/40 border transition-all shrink-0 overflow-hidden shadow-xs cursor-pointer ${
+              desktopRightSidebarView === 'now-playing'
+                ? 'border-blue ring-1 ring-blue/50'
+                : 'border-line hover:border-ink/40'
+            }`}
+            title={
+              desktopRightSidebarView === 'now-playing'
+                ? 'Collapse Now Playing View'
+                : 'Expand Now Playing View'
+            }
+          >
+            {currentTrack.coverImageUrl ? (
+              <img
+                src={currentTrack.coverImageUrl}
+                alt={currentTrack.title}
+                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-ink-soft">
+                ♪
+              </div>
+            )}
+            {/* Spotify-style hover expand overlay chevron */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  desktopRightSidebarView === 'now-playing' ? 'rotate-180' : ''
+                }`}
+              >
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
             </div>
-          )}
+          </button>
 
           {/* Metadata */}
           <div className="flex flex-col min-w-0 pr-1 flex-1">
@@ -651,10 +669,10 @@ export function PlayerBar() {
           {/* Queue Drawer Toggle */}
           <button
             type="button"
-            onClick={toggleQueueDrawer}
+            onClick={() => toggleDesktopRightSidebar('queue')}
             title="Toggle Queue"
             className={`relative p-2 rounded-md transition-colors cursor-pointer ${
-              isQueueOpen
+              desktopRightSidebarView === 'queue'
                 ? 'bg-blue/10 text-blue font-semibold'
                 : 'text-ink-soft hover:text-ink hover:bg-stone/20'
             }`}

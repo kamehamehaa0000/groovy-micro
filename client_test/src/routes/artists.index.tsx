@@ -18,7 +18,9 @@ function ArtistsDirectoryComponent() {
   const [artists, setArtists] = useState<ArtistProfile[]>([])
   const [search, setSearch] = useState('')
   const [scope, setScope] = useState<'GLOBAL' | 'PERSONAL' | 'ALL'>('GLOBAL')
-  const [sort, setSort] = useState<'listeners' | 'followers' | 'name' | 'recent'>('listeners')
+  const [sort, setSort] = useState<
+    'listeners' | 'followers' | 'name' | 'recent'
+  >('listeners')
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
@@ -56,7 +58,7 @@ function ArtistsDirectoryComponent() {
   }, [search, scope, sort, page, user?.id, hydrateArtists])
 
   return (
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">
+    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full ">
       {/* Maison Hero Header */}
       <div className="border-b border-line pb-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
@@ -68,8 +70,8 @@ function ArtistsDirectoryComponent() {
               The Roster
             </h1>
             <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
-              Discover verified recording artists, composers, and personal collection
-              creators shaping the Groovy acoustics.
+              Discover verified recording artists, composers, and personal
+              collection creators shaping the Groovy acoustics.
             </p>
           </div>
 
@@ -92,7 +94,7 @@ function ArtistsDirectoryComponent() {
               setScope('GLOBAL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'GLOBAL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -106,7 +108,7 @@ function ArtistsDirectoryComponent() {
               setScope('PERSONAL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'PERSONAL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -120,7 +122,7 @@ function ArtistsDirectoryComponent() {
               setScope('ALL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'ALL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -141,7 +143,7 @@ function ArtistsDirectoryComponent() {
                 setPage(1)
               }}
               placeholder="Search by artist name or vanity handle..."
-              className="w-full font-mono text-xs py-2.5 pl-3 pr-8 border border-line bg-panel text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors"
+              className="w-full font-mono rounded-xl text-xs py-2.5 pl-3 pr-8 border border-line bg-panel text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors"
             />
             {search && (
               <button
@@ -172,7 +174,7 @@ function ArtistsDirectoryComponent() {
                   setSort(e.target.value as any)
                   setPage(1)
                 }}
-                className="font-mono text-xs py-2 px-3 border border-line bg-panel text-ink focus:outline-none focus:border-ink transition-colors cursor-pointer"
+                className="font-mono rounded-xl text-xs py-2 px-3 border border-line bg-panel text-ink focus:outline-none focus:border-ink transition-colors cursor-pointer"
               >
                 <option value="listeners">Monthly Listeners</option>
                 <option value="followers">Followers</option>

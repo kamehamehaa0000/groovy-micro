@@ -23,6 +23,13 @@ export async function buildJamApp() {
     },
   });
 
+  // Connect Redis client eagerly
+  if (redis.status === "wait" || redis.status === "close") {
+    await redis.connect().catch((err) => {
+      app.log.warn({ err }, "Redis initial connection failed, will retry on demand");
+    });
+  }
+
   // CORS
   await app.register(fastifyCors, {
     origin: true,

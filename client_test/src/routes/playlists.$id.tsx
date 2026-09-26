@@ -235,6 +235,7 @@ function PlaylistDetailComponent() {
       hlsManifestUrl: song.hlsManifestUrl || track.hlsManifestUrl || undefined,
       rawAudioKey: song.rawAudioKey || (track as any).rawAudioKey || undefined,
       isExplicit: song.isExplicit ?? track.isExplicit ?? false,
+      credits: song.credits || (track as any).credits,
     }
   }
 
