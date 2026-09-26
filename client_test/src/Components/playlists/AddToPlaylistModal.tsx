@@ -149,7 +149,7 @@ export function AddToPlaylistModal() {
                 type="button"
                 onClick={() => {
                   closeModal();
-                  navigate({ to: "/playlists" });
+                  navigate({ to: "/library" });
                 }}
                 className="mt-3 font-mono text-[10px] uppercase tracking-wider py-1.5 px-3.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
               >

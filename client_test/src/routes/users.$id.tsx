@@ -10,6 +10,7 @@ import {
   LockIconSVG,
 } from "../components/icons";
 import { SongRow } from "../components/common/SongRow";
+import { MediaTile } from "../components/common/MediaTile";
 
 export const Route = createFileRoute("/users/$id")({
   component: UserProfileComponent,
@@ -474,37 +475,17 @@ function UserProfileComponent() {
                       No public playlists created yet.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                       {library.createdPlaylists.map((pl) => (
-                        <Link
+                        <MediaTile
                           key={pl.id}
                           to="/playlists/$id"
                           params={{ id: pl.id }}
-                          className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-all group flex flex-col justify-between"
-                        >
-                          <div className="aspect-square w-full bg-stone/20 border border-line mb-3 overflow-hidden relative">
-                            {pl.coverImageUrl ? (
-                              <img
-                                src={pl.coverImageUrl}
-                                alt={pl.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-ink-soft">
-                                ♫
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="font-serif italic text-sm font-semibold text-ink truncate mb-1">
-                              {pl.title}
-                            </h4>
-                            <div className="flex items-center justify-between font-mono text-[9.5px] text-ink-soft">
-                              <span>{pl.tracksCount} tracks</span>
-                              <span>{pl.savesCount} saves</span>
-                            </div>
-                          </div>
-                        </Link>
+                          title={pl.title}
+                          subtitle={`${pl.tracksCount} tracks · ${pl.savesCount} saves`}
+                          imageUrl={pl.coverImageUrl}
+                          fallbackInitials="♫"
+                        />
                       ))}
                     </div>
                   )}
@@ -516,37 +497,17 @@ function UserProfileComponent() {
                     <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft mb-4">
                       Saved Playlists ({savedPlaylistsCount})
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                       {library.savedPlaylists.map((pl) => (
-                        <Link
+                        <MediaTile
                           key={pl.id}
                           to="/playlists/$id"
                           params={{ id: pl.id }}
-                          className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-all group flex flex-col justify-between"
-                        >
-                          <div className="aspect-square w-full bg-stone/20 border border-line mb-3 overflow-hidden relative">
-                            {pl.coverImageUrl ? (
-                              <img
-                                src={pl.coverImageUrl}
-                                alt={pl.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-ink-soft">
-                                ♫
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="font-serif italic text-sm font-semibold text-ink truncate mb-1">
-                              {pl.title}
-                            </h4>
-                            <div className="flex items-center justify-between font-mono text-[9.5px] text-ink-soft">
-                              <span>By {pl.ownerName || "Curator"}</span>
-                              <span>{pl.tracksCount} tracks</span>
-                            </div>
-                          </div>
-                        </Link>
+                          title={pl.title}
+                          subtitle={`By ${pl.ownerName || "Curator"} · ${pl.tracksCount} tracks`}
+                          imageUrl={pl.coverImageUrl}
+                          fallbackInitials="♫"
+                        />
                       ))}
                     </div>
                   </div>
@@ -563,40 +524,22 @@ function UserProfileComponent() {
                     <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-blue-deep dark:text-blue-400 mb-4">
                       Pre-Saved Drops ({library.presavedReleases.length})
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                       {library.presavedReleases.map((album) => (
-                        <Link
+                        <MediaTile
                           key={album.id}
                           to="/albums/$idOrSlug"
                           params={{ idOrSlug: album.slug || album.id }}
-                          className="border border-blue/30 bg-panel p-3.5 shadow-2xs hover:border-blue transition-all group"
-                        >
-                          <div className="aspect-square w-full bg-stone/20 border border-line mb-3 overflow-hidden relative">
-                            {album.coverImageUrl ? (
-                              <img
-                                src={album.coverImageUrl}
-                                alt={album.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-ink-soft">
-                                💿
-                              </div>
-                            )}
-                            <div className="absolute top-2 right-2 bg-blue text-white font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs">
+                          title={album.title}
+                          subtitle={`${album.artistName} · Dropping ${formatDate(album.releaseDate)}`}
+                          imageUrl={album.coverImageUrl}
+                          artistName={album.artistName}
+                          badge={
+                            <span className="bg-panel/90 backdrop-blur-md text-blue text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
                               Pre-Saved
-                            </div>
-                          </div>
-                          <h4 className="font-serif italic text-sm font-semibold text-ink truncate mb-1">
-                            {album.title}
-                          </h4>
-                          <p className="font-sans text-xs text-ink-soft truncate mb-1">
-                            {album.artistName}
-                          </p>
-                          <span className="font-mono text-[9px] text-ink-soft block">
-                            Dropping {formatDate(album.releaseDate)}
-                          </span>
-                        </Link>
+                            </span>
+                          }
+                        />
                       ))}
                     </div>
                   </div>
@@ -613,34 +556,17 @@ function UserProfileComponent() {
                       No saved albums found in library.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                       {library.savedAlbums.map((album) => (
-                        <Link
+                        <MediaTile
                           key={album.id}
                           to="/albums/$idOrSlug"
                           params={{ idOrSlug: album.slug || album.id }}
-                          className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-all group"
-                        >
-                          <div className="aspect-square w-full bg-stone/20 border border-line mb-3 overflow-hidden relative">
-                            {album.coverImageUrl ? (
-                              <img
-                                src={album.coverImageUrl}
-                                alt={album.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-ink-soft">
-                                💿
-                              </div>
-                            )}
-                          </div>
-                          <h4 className="font-serif italic text-sm font-semibold text-ink truncate mb-1">
-                            {album.title}
-                          </h4>
-                          <p className="font-sans text-xs text-ink-soft truncate">
-                            {album.artistName}
-                          </p>
-                        </Link>
+                          title={album.title}
+                          subtitle={album.artistName}
+                          imageUrl={album.coverImageUrl}
+                          artistName={album.artistName}
+                        />
                       ))}
                     </div>
                   )}

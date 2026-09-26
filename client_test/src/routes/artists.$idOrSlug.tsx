@@ -10,13 +10,13 @@ import type {
 } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../components/common/ProceduralCover'
+import { MediaTile } from '../components/common/MediaTile'
 import {
   VerifiedBadgeSVG,
   ExternalLinkSVG,
   SvgArtworkSpiral,
   PlayIconSVG,
   PauseIconSVG,
-  DiscIconSVG,
   CalendarIconSVG,
 } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
@@ -713,44 +713,32 @@ function ArtistPublicProfileComponent() {
           {/* Full Albums Grid */}
           {hasAlbums && (
             <div className="space-y-4">
-              <div className="flex justify-between items-baseline border-b border-line pb-2">
-                <h2 className="font-serif italic text-xl text-ink">Albums</h2>
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
-                  {discography!.albums.length} Releases
+              <div className="flex items-end justify-between border-b border-line pb-3">
+                <div>
+                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
+                    Discography
+                  </p>
+                  <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
+                    Albums
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
+                  {discography!.albums.length}{' '}
+                  {discography!.albums.length === 1 ? 'Release' : 'Releases'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 {discography!.albums.map((album) => (
-                  <Link
+                  <MediaTile
                     key={album.id}
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: album.slug }}
-                    className="border border-line  bg-panel p-2.5 rounded-md shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
-                  >
-                    <div className="aspect-square rounded-md bg-canvas-deep border border-line mb-3 overflow-hidden relative">
-                      {album.coverImageUrl ? (
-                        <img
-                          src={album.coverImageUrl}
-                          alt={album.title}
-                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
-                      {album.title}
-                    </div>
-                    <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
-                      {album.releaseDate
-                        ? new Date(album.releaseDate).getFullYear()
-                        : 'Recent'}{' '}
-                      &bull; {album.totalTracks} cuts
-                    </div>
-                  </Link>
+                    title={album.title}
+                    subtitle={`${album.releaseDate ? new Date(album.releaseDate).getFullYear() : 'Recent'} · ${album.totalTracks} ${album.totalTracks === 1 ? 'track' : 'tracks'}`}
+                    imageUrl={album.coverImageUrl}
+                    artistName={artist?.stageName}
+                  />
                 ))}
               </div>
             </div>
@@ -759,46 +747,32 @@ function ArtistPublicProfileComponent() {
           {/* Mixtapes Grid */}
           {hasMixtapes && (
             <div className="space-y-4">
-              <div className="flex justify-between items-baseline border-b border-line pb-2">
-                <h2 className="font-serif italic text-xl text-ink">Mixtapes</h2>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+              <div className="flex items-end justify-between border-b border-line pb-3">
+                <div>
+                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
+                    Discography
+                  </p>
+                  <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
+                    Mixtapes
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
                   {discography!.mixtapes!.length}{' '}
                   {discography!.mixtapes!.length === 1 ? 'Release' : 'Releases'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 {discography!.mixtapes!.map((mix) => (
-                  <Link
+                  <MediaTile
                     key={mix.id}
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: mix.slug }}
-                    className="border border-line  bg-panel p-2.5 rounded-md  shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
-                  >
-                    <div className="aspect-square  rounded-md bg-canvas-deep border border-line mb-3 overflow-hidden relative">
-                      {mix.coverImageUrl ? (
-                        <img
-                          src={mix.coverImageUrl}
-                          alt={mix.title}
-                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
-                      {mix.title}
-                    </div>
-                    <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
-                      <span className="uppercase">Mixtape</span> &bull;{' '}
-                      {mix.releaseDate
-                        ? new Date(mix.releaseDate).getFullYear()
-                        : 'Recent'}{' '}
-                      &bull; {mix.totalTracks} cuts
-                    </div>
-                  </Link>
+                    title={mix.title}
+                    subtitle={`Mixtape · ${mix.releaseDate ? new Date(mix.releaseDate).getFullYear() : 'Recent'} · ${mix.totalTracks} ${mix.totalTracks === 1 ? 'track' : 'tracks'}`}
+                    imageUrl={mix.coverImageUrl}
+                    artistName={artist?.stageName}
+                  />
                 ))}
               </div>
             </div>
@@ -807,46 +781,40 @@ function ArtistPublicProfileComponent() {
           {/* EPs & Singles Grid */}
           {hasEpsOrSingles && (
             <div className="space-y-4">
-              <div className="flex justify-between items-baseline border-b border-line pb-2">
-                <h2 className="font-serif italic text-xl text-ink">
-                  Singles & EPs
-                </h2>
+              <div className="flex items-end justify-between border-b border-line pb-3">
+                <div>
+                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
+                    Discography
+                  </p>
+                  <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
+                    Singles & EPs
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-ink-soft">
+                  {(discography?.eps?.length || 0) +
+                    (discography?.singles?.length || 0)}{' '}
+                  {(discography?.eps?.length || 0) +
+                    (discography?.singles?.length || 0) ===
+                  1
+                    ? 'Release'
+                    : 'Releases'}
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 {[
                   ...(discography?.eps || []),
                   ...(discography?.singles || []),
                 ].map((rel) => (
-                  <Link
+                  <MediaTile
                     key={rel.id}
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: rel.slug }}
-                    className="border border-line  bg-panel p-2.5 rounded-md shadow-2xs hover:border-ink transition-colors group text-inherit no-underline"
-                  >
-                    <div className="aspect-square rounded-md bg-canvas-deep border border-line mb-3 overflow-hidden relative">
-                      {rel.coverImageUrl ? (
-                        <img
-                          src={rel.coverImageUrl}
-                          alt={rel.title}
-                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <DiscIconSVG className="w-10 h-10 text-ink-soft/40" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="font-serif italic font-medium text-sm text-ink truncate group-hover:text-blue transition-colors">
-                      {rel.title}
-                    </div>
-                    <div className="font-mono text-[9.5px] text-ink-soft mt-0.5">
-                      <span className="uppercase">{rel.albumType}</span> &bull;{' '}
-                      {rel.releaseDate
-                        ? new Date(rel.releaseDate).getFullYear()
-                        : 'Recent'}
-                    </div>
-                  </Link>
+                    title={rel.title}
+                    subtitle={`${rel.albumType || 'Single'} · ${rel.releaseDate ? new Date(rel.releaseDate).getFullYear() : 'Recent'}${rel.totalTracks > 1 ? ` · ${rel.totalTracks} tracks` : ''}`}
+                    imageUrl={rel.coverImageUrl}
+                    artistName={artist?.stageName}
+                  />
                 ))}
               </div>
             </div>

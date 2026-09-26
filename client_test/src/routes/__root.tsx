@@ -307,19 +307,7 @@ function RootComponent() {
                 >
                   Library
                 </Link>
-                <Link
-                  to="/playlists"
-                  activeProps={{
-                    className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
-                  }}
-                  inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
-                  }}
-                  className="transition-colors"
-                >
-                  Playlists
-                </Link>
+
                 {isAuthenticated && (
                   <>
                     <Link
@@ -824,14 +812,6 @@ function RootComponent() {
                   className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
                 >
                   <span>Your Library</span>
-                  <span className="text-ink-soft">&rarr;</span>
-                </Link>
-                <Link
-                  to="/playlists"
-                  onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
-                >
-                  <span>Playlists</span>
                   <span className="text-ink-soft">&rarr;</span>
                 </Link>
 

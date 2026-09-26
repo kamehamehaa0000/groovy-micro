@@ -140,17 +140,17 @@ export function RecentlyPlayedShelf({
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="border border-line bg-panel p-3 animate-pulse space-y-2.5">
-              <div className="aspect-square bg-canvas-deep border border-line" />
-              <div className="h-3 bg-stone/20 rounded-xs w-3/4" />
-              <div className="h-2.5 bg-stone/10 rounded-xs w-1/2" />
+            <div key={i} className="p-2.5 rounded-xl bg-panel/40 animate-pulse space-y-2.5">
+              <div className="aspect-square bg-line/40 rounded-md" />
+              <div className="h-3 bg-line/50 rounded-xs w-3/4" />
+              <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
           {displayedItems.map((item) => {
             const isThisTrack = currentTrack?.id === item.song.id;
             const isPlayingThis = isThisTrack && playbackStatus === "playing";
@@ -158,14 +158,14 @@ export function RecentlyPlayedShelf({
             return (
               <div
                 key={item.historyId}
-                className={`group relative border transition-all duration-200 p-3 flex flex-col justify-between ${
+                className={`group relative flex flex-col p-2.5 rounded-xl select-none transition-all duration-150 active:scale-[0.98] ${
                   isThisTrack
-                    ? "border-blue bg-blue/5 shadow-xs"
-                    : "border-line bg-panel hover:border-ink hover:shadow-xs"
+                    ? "bg-blue/10 dark:bg-blue/15"
+                    : "hover:bg-canvas-soft/70"
                 }`}
               >
                 {/* Artwork with Quick Play Hover Button */}
-                <div className="aspect-square bg-canvas-deep border border-line relative overflow-hidden mb-2.5">
+                <div className="aspect-square bg-canvas-deep border border-line relative overflow-hidden rounded-md mb-2.5">
                   {item.song.coverImageUrl ? (
                     <img
                       src={item.song.coverImageUrl}

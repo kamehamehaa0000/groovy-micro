@@ -4,7 +4,6 @@ import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import {
   SvgArtworkSpiral,
-  DiscIconSVG,
 } from '../components/icons'
 import { catalogApi } from '../lib/catalog.api'
 import type { Album, EnrichedSong } from '../types/catalog'
@@ -12,6 +11,7 @@ import type { PlayerTrack } from '../types/player'
 import { usePlayerStore } from '../stores/player.store'
 import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
 import { SongRow } from '../components/common/SongRow'
+import { MediaTile } from '../components/common/MediaTile'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -163,38 +163,17 @@ function HomeComponent() {
             Loading master releases...
           </div>
         ) : liveAlbums.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {liveAlbums.slice(0, 3).map((album) => (
-              <Link
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
+            {liveAlbums.slice(0, 6).map((album) => (
+              <MediaTile
                 key={album.id}
                 to="/albums/$idOrSlug"
                 params={{ idOrSlug: album.slug }}
-                className="border border-line bg-panel p-5 shadow-xs hover:border-ink transition-colors group text-inherit no-underline"
-              >
-                <div className="aspect-square bg-canvas-deep border border-line mb-4 relative flex items-center justify-center overflow-hidden">
-                  {album.coverImageUrl ? (
-                    <img
-                      src={album.coverImageUrl}
-                      alt={album.title}
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                    />
-                  ) : (
-                    <DiscIconSVG className="w-12 h-12 text-ink-soft/40" />
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-canvas/60">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2.5 py-1 bg-ink text-canvas">
-                      Inspect Master
-                    </span>
-                  </div>
-                </div>
-                <div className="font-serif font-medium text-sm text-ink mb-0.5 truncate group-hover:text-blue transition-colors">
-                  {album.title}
-                </div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft truncate">
-                  {album.artistStageName || 'Groovy Artist'} &bull;{' '}
-                  {album.albumType}
-                </div>
-              </Link>
+                title={album.title}
+                subtitle={`${album.artistStageName || 'Groovy Artist'} · ${album.albumType}`}
+                imageUrl={album.coverImageUrl}
+                artistName={album.artistStageName}
+              />
             ))}
           </div>
         ) : (

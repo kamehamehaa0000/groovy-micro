@@ -21,6 +21,7 @@ import {
   DiscIconSVG,
 } from '../components/icons'
 import { ProceduralCover } from '../components/common/ProceduralCover'
+import { MediaTile } from '../components/common/MediaTile'
 import { SongRow } from '../components/common/SongRow'
 
 interface SearchPageParams {
@@ -394,7 +395,7 @@ function SearchPageComponent() {
               </Link>
 
               <Link
-                to="/playlists"
+                to="/library"
                 className="group border border-line bg-panel p-5 hover:border-ink transition-all flex flex-col justify-between h-40 shadow-xs"
               >
                 <div>
@@ -942,49 +943,28 @@ function SearchPageComponent() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
                 {results.albums.map((album) => (
-                  <Link
+                  <MediaTile
                     key={album.id}
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: album.slug }}
-                    className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-all group flex flex-col"
-                  >
-                    <div className="w-full aspect-square bg-stone/20 border border-line shrink-0 overflow-hidden mb-3 shadow-2xs">
-                      {album.coverImageUrl ? (
-                        <img
-                          src={album.coverImageUrl}
-                          alt={album.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <ProceduralCover
-                          size="md"
-                          title={album.title}
-                          artistName={album.artistName}
-                          className="w-full h-full rounded-none"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span className="font-mono text-[8px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded font-semibold">
-                          {album.albumType || 'Album'}
+                    title={album.title}
+                    subtitle={
+                      album.artistName
+                        ? `${album.artistName} · ${album.albumType || 'Album'}`
+                        : album.albumType || 'Album'
+                    }
+                    imageUrl={album.coverImageUrl}
+                    artistName={album.artistName}
+                    badge={
+                      album.isPersonal ? (
+                        <span className="bg-panel/90 backdrop-blur-md text-indigo-500 text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
+                          Personal
                         </span>
-                        {album.isPersonal && (
-                          <span className="font-mono text-[8px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold">
-                            Personal
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="font-serif italic text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
-                        {album.title}
-                      </h4>
-                      <span className="font-sans text-xs text-ink-soft truncate block mt-0.5">
-                        {album.artistName}
-                      </span>
-                    </div>
-                  </Link>
+                      ) : undefined
+                    }
+                  />
                 ))}
               </div>
             </div>
@@ -1011,37 +991,22 @@ function SearchPageComponent() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
                 {results.playlists.map((playlist) => (
-                  <Link
+                  <MediaTile
                     key={playlist.id}
                     to="/playlists/$id"
                     params={{ id: playlist.id }}
-                    className="border border-line bg-panel p-3.5 shadow-2xs hover:border-ink transition-all group flex flex-col"
-                  >
-                    <div className="w-full aspect-square bg-stone/20 border border-line shrink-0 overflow-hidden mb-3 shadow-2xs flex items-center justify-center">
-                      {playlist.coverImageUrl ? (
-                        <img
-                          src={playlist.coverImageUrl}
-                          alt={playlist.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="font-serif italic text-2xl text-ink-soft">♫</div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded font-semibold inline-block mb-1">
+                    title={playlist.title}
+                    subtitle={`By ${playlist.ownerName} • ${playlist.tracksCount} tracks`}
+                    imageUrl={playlist.coverImageUrl}
+                    fallbackInitials="♫"
+                    badge={
+                      <span className="bg-panel/90 backdrop-blur-md text-amber-600 dark:text-amber-400 text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
                         Playlist
                       </span>
-                      <h4 className="font-serif italic text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
-                        {playlist.title}
-                      </h4>
-                      <span className="font-mono text-[9px] text-ink-soft block truncate mt-0.5">
-                        By {playlist.ownerName} • {playlist.tracksCount} tracks
-                      </span>
-                    </div>
-                  </Link>
+                    }
+                  />
                 ))}
               </div>
             </div>

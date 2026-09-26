@@ -1,4 +1,9 @@
-import { createFileRoute, Link, useNavigate, useSearch } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  useSearch,
+} from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { playlistsApi } from '../lib/playlists.api'
 import { catalogApi } from '../lib/catalog.api'
@@ -29,8 +34,10 @@ export const Route = createFileRoute('/playlists/$id')({
   component: PlaylistDetailComponent,
   validateSearch: (search: Record<string, unknown>): PlaylistSearchParams => {
     return {
-      shareToken: typeof search.shareToken === 'string' ? search.shareToken : undefined,
-      collabToken: typeof search.collabToken === 'string' ? search.collabToken : undefined,
+      shareToken:
+        typeof search.shareToken === 'string' ? search.shareToken : undefined,
+      collabToken:
+        typeof search.collabToken === 'string' ? search.collabToken : undefined,
     }
   },
 })
@@ -47,12 +54,9 @@ function PlaylistDetailComponent() {
   const navigate = useNavigate()
 
   const { isAuthenticated, user } = useAuthStore()
-  const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } = usePlaylistsStore()
-  const {
-    currentTrack,
-    playTrack,
-    togglePlay,
-  } = usePlayerStore()
+  const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } =
+    usePlaylistsStore()
+  const { currentTrack, playTrack, togglePlay } = usePlayerStore()
 
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -62,7 +66,9 @@ function PlaylistDetailComponent() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [isCloning, setIsCloning] = useState(false)
   const [isJoiningCollab, setIsJoiningCollab] = useState(false)
-  const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(null)
+  const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(
+    null,
+  )
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -74,7 +80,10 @@ function PlaylistDetailComponent() {
     message: string
     type: 'info' | 'error' | 'success'
   } | null>(null)
-  const showToast = (message: string, type: 'info' | 'error' | 'success' = 'info') => {
+  const showToast = (
+    message: string,
+    type: 'info' | 'error' | 'success' = 'info',
+  ) => {
     setToastNotice({ message, type })
     setTimeout(() => setToastNotice(null), 3200)
   }
@@ -90,7 +99,9 @@ function PlaylistDetailComponent() {
   // Edit form state
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [editVisibility, setEditVisibility] = useState<'PUBLIC' | 'UNLISTED' | 'PRIVATE'>('PUBLIC')
+  const [editVisibility, setEditVisibility] = useState<
+    'PUBLIC' | 'UNLISTED' | 'PRIVATE'
+  >('PUBLIC')
   const [editAllowDuplicates, setEditAllowDuplicates] = useState(false)
   const [editAllowComments, setEditAllowComments] = useState(true)
 
@@ -144,7 +155,7 @@ function PlaylistDetailComponent() {
 
         const totalDuration = res.data.reduce(
           (acc, s) => acc + (s.durationSeconds || 0),
-          0
+          0,
         )
 
         const likedPlaylist: PlaylistDetail = {
@@ -178,7 +189,11 @@ function PlaylistDetailComponent() {
         return
       }
 
-      const data = await playlistsApi.getPlaylistById(id, shareToken, collabToken)
+      const data = await playlistsApi.getPlaylistById(
+        id,
+        shareToken,
+        collabToken,
+      )
       setPlaylist(data)
       setEditTitle(data.title)
       setEditDescription(data.description || '')
@@ -203,7 +218,8 @@ function PlaylistDetailComponent() {
       id: track.songId || song.id || track.id,
       title: song.title || track.title || 'Untitled',
       artistId: song.artistId || track.artistId || '',
-      artistName: song.artistStageName || track.artistStageName || 'Unknown Artist',
+      artistName:
+        song.artistStageName || track.artistStageName || 'Unknown Artist',
       artistSlug: song.artistSlug || track.artistSlug,
       albumId: song.albumId || track.albumId || undefined,
       albumTitle: song.albumTitle || track.albumTitle || undefined,
@@ -237,7 +253,7 @@ function PlaylistDetailComponent() {
 
     if (!playlist) return
     const validTracks = (playlist.tracks || []).filter(
-      (t) => (t.song || t).isStreamable !== false
+      (t) => (t.song || t).isStreamable !== false,
     )
     const contextTracks = validTracks.map(toPlayerTrack)
     const targetTrack = toPlayerTrack(track)
@@ -248,14 +264,14 @@ function PlaylistDetailComponent() {
       contextTracks,
       targetIdx >= 0 ? targetIdx : (index ?? 0),
       `playlist:${playlist.id}`,
-      playlist.title
+      playlist.title,
     )
   }
 
   const handlePlayPlaylistFromStart = () => {
     if (!playlist || !playlist.tracks || playlist.tracks.length === 0) return
     const firstPlayableIdx = playlist.tracks.findIndex(
-      (t) => (t.song || t).isStreamable !== false
+      (t) => (t.song || t).isStreamable !== false,
     )
     if (firstPlayableIdx >= 0) {
       handlePlayTrack(playlist.tracks[firstPlayableIdx], firstPlayableIdx)
@@ -280,7 +296,11 @@ function PlaylistDetailComponent() {
 
     try {
       const res = await toggleSavePlaylist(playlist.id)
-      setPlaylist((prev) => (prev ? { ...prev, savesCount: res.savesCount, isSaved: res.saved } : null))
+      setPlaylist((prev) =>
+        prev
+          ? { ...prev, savesCount: res.savesCount, isSaved: res.saved }
+          : null,
+      )
     } catch (err) {
       console.error('Failed to toggle playlist save:', err)
     }
@@ -330,8 +350,13 @@ function PlaylistDetailComponent() {
     setIsJoiningCollab(true)
     try {
       const res = await playlistsApi.joinCollaboration(id, collabToken)
-      setCollabJoinSuccess(res.message || 'Successfully joined as a collaborator!')
-      showToast(res.message || 'Successfully joined as a collaborator!', 'success')
+      setCollabJoinSuccess(
+        res.message || 'Successfully joined as a collaborator!',
+      )
+      showToast(
+        res.message || 'Successfully joined as a collaborator!',
+        'success',
+      )
       hydratePlaylists([{ id, isSaved: true }])
       await fetchPlaylist()
     } catch (err: any) {
@@ -403,7 +428,9 @@ function PlaylistDetailComponent() {
     try {
       await playlistsApi.removeTrack(playlist.id, entryId)
       setPlaylist((prev) =>
-        prev ? { ...prev, tracks: prev.tracks.filter((t) => t.id !== entryId) } : null
+        prev
+          ? { ...prev, tracks: prev.tracks.filter((t) => t.id !== entryId) }
+          : null,
       )
       showToast('Track removed from playlist', 'info')
     } catch (err: any) {
@@ -426,7 +453,9 @@ function PlaylistDetailComponent() {
     setPlaylist((prev) => (prev ? { ...prev, tracks: reorderedTracks } : null))
 
     try {
-      const orderedEntryIds = reorderedTracks.map((t) => t.id || (t as any).entryId)
+      const orderedEntryIds = reorderedTracks.map(
+        (t) => t.id || (t as any).entryId,
+      )
       await playlistsApi.reorderTracks(playlist.id, orderedEntryIds)
     } catch (err: any) {
       showToast(err.message || 'Failed to reorder tracks', 'error')
@@ -444,7 +473,10 @@ function PlaylistDetailComponent() {
     const timer = setTimeout(async () => {
       setIsSearchingSongs(true)
       try {
-        const res = await catalogApi.searchSongs({ search: songSearchQuery.trim(), limit: 10 })
+        const res = await catalogApi.searchSongs({
+          search: songSearchQuery.trim(),
+          limit: 10,
+        })
         setSearchSongResults(res.data)
       } catch (err) {
         console.error('Song search failed:', err)
@@ -509,7 +541,7 @@ function PlaylistDetailComponent() {
       onConfirm: async () => {
         try {
           await playlistsApi.deletePlaylist(playlist.id)
-          navigate({ to: '/playlists' })
+          navigate({ to: '/library' })
         } catch (err: any) {
           showToast(err.message || 'Failed to delete playlist', 'error')
         }
@@ -531,13 +563,17 @@ function PlaylistDetailComponent() {
     return (
       <div className="max-w-xl mx-auto px-5 py-20 text-center">
         <div className="p-8 border border-red-500/40 bg-panel shadow-md">
-          <h2 className="font-serif italic text-2xl text-ink">Access Restricted</h2>
-          <p className="font-mono text-xs text-ink-soft mt-2">{errorMsg || 'Playlist not found'}</p>
+          <h2 className="font-serif italic text-2xl text-ink">
+            Access Restricted
+          </h2>
+          <p className="font-mono text-xs text-ink-soft mt-2">
+            {errorMsg || 'Playlist not found'}
+          </p>
           <Link
-            to="/playlists"
+            to="/"
             className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas"
           >
-            ← Back to Playlists
+            ← Back home
           </Link>
         </div>
       </div>
@@ -561,7 +597,8 @@ function PlaylistDetailComponent() {
               <span>✓</span> You are a Collaborator on this playlist
             </h4>
             <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
-              You have already joined as a collaborator. You can add tracks and reorder tracks.
+              You have already joined as a collaborator. You can add tracks and
+              reorder tracks.
             </p>
           </div>
           <span className="font-mono text-[11px] uppercase tracking-[0.14em] py-1.5 px-3 border border-emerald-500/30 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold">
@@ -658,7 +695,9 @@ function PlaylistDetailComponent() {
                 Curated by {playlist.ownerDisplayName || 'Anonymous Curator'}
               </span>
               <span>&bull;</span>
-              <span>{playlist.tracksCount ?? (playlist.tracks ?? []).length} Cuts</span>
+              <span>
+                {playlist.tracksCount ?? (playlist.tracks ?? []).length} Cuts
+              </span>
               <span>&bull;</span>
               <span>{formatDuration(playlist.totalDurationSeconds ?? 0)}</span>
               <span>&bull;</span>
@@ -669,16 +708,17 @@ function PlaylistDetailComponent() {
             <div className="flex items-center gap-3 pt-3 flex-wrap">
               {/* Play First Track */}
               {(playlist.tracks ?? []).length > 0 &&
-                ((playlist.tracks[0].song || playlist.tracks[0]).isStreamable !== false) && (
-                <button
-                  type="button"
-                  onClick={handlePlayPlaylistFromStart}
-                  className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
-                >
-                  <PlayIconSVG className="w-3.5 h-3.5" />
-                  <span>Play</span>
-                </button>
-              )}
+                (playlist.tracks[0].song || playlist.tracks[0]).isStreamable !==
+                  false && (
+                  <button
+                    type="button"
+                    onClick={handlePlayPlaylistFromStart}
+                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                  >
+                    <PlayIconSVG className="w-3.5 h-3.5" />
+                    <span>Play</span>
+                  </button>
+                )}
 
               {/* 0ms Optimistic Save Bookmark */}
               <button
@@ -727,7 +767,9 @@ function PlaylistDetailComponent() {
                   onClick={() => setIsCollabModalOpen(true)}
                   className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer"
                 >
-                  <span>👥 Collaborators ({(playlist.collaborators ?? []).length})</span>
+                  <span>
+                    👥 Collaborators ({(playlist.collaborators ?? []).length})
+                  </span>
                 </button>
               )}
 
@@ -767,7 +809,8 @@ function PlaylistDetailComponent() {
               Tracklist
             </h2>
             <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              {(playlist.tracks ?? []).length} {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
+              {(playlist.tracks ?? []).length}{' '}
+              {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
           </div>
 
@@ -820,7 +863,9 @@ function PlaylistDetailComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
           <div className="w-full max-w-lg border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
             <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
-              <h3 className="font-serif italic text-xl text-ink">Add Tracks to Playlist</h3>
+              <h3 className="font-serif italic text-xl text-ink">
+                Add Tracks to Playlist
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsAddTracksModalOpen(false)}
@@ -849,10 +894,14 @@ function PlaylistDetailComponent() {
 
             <div className="flex-1 overflow-y-auto divide-y divide-line/60 border border-line mb-4 min-h-[160px]">
               {isSearchingSongs ? (
-                <div className="p-8 text-center font-mono text-xs text-ink-soft">Searching cuts...</div>
+                <div className="p-8 text-center font-mono text-xs text-ink-soft">
+                  Searching cuts...
+                </div>
               ) : searchSongResults.length === 0 ? (
                 <div className="p-8 text-center font-mono text-xs text-ink-soft">
-                  {songSearchQuery.trim() ? 'No songs match your query' : 'Type to search available master tracks'}
+                  {songSearchQuery.trim()
+                    ? 'No songs match your query'
+                    : 'Type to search available master tracks'}
                 </div>
               ) : (
                 searchSongResults.map((s) => {
@@ -862,7 +911,9 @@ function PlaylistDetailComponent() {
                       key={s.id}
                       onClick={() => {
                         setSelectedSongIds((prev) =>
-                          isSelected ? prev.filter((id) => id !== s.id) : [...prev, s.id]
+                          isSelected
+                            ? prev.filter((id) => id !== s.id)
+                            : [...prev, s.id],
                         )
                       }}
                       className={`p-3 flex items-center justify-between cursor-pointer hover:bg-canvas-deep transition-colors ${
@@ -870,7 +921,9 @@ function PlaylistDetailComponent() {
                       }`}
                     >
                       <div className="min-w-0 pr-3">
-                        <div className="font-serif text-sm text-ink truncate">{s.title}</div>
+                        <div className="font-serif text-sm text-ink truncate">
+                          {s.title}
+                        </div>
                         <div className="font-mono text-[10px] text-ink-soft">
                           {formatDuration(s.durationSeconds)}
                         </div>
@@ -918,7 +971,9 @@ function PlaylistDetailComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
           <div className="w-full max-w-md border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-line pb-3 mb-5">
-              <h3 className="font-serif italic text-xl text-ink">Playlist Settings</h3>
+              <h3 className="font-serif italic text-xl text-ink">
+                Playlist Settings
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
@@ -981,7 +1036,9 @@ function PlaylistDetailComponent() {
                       onChange={(e) => setEditAllowDuplicates(e.target.checked)}
                       className="accent-blue"
                     />
-                    <span className="font-mono text-[10.5px] text-ink">Allow Dups</span>
+                    <span className="font-mono text-[10.5px] text-ink">
+                      Allow Dups
+                    </span>
                   </label>
                 </div>
 
@@ -996,7 +1053,9 @@ function PlaylistDetailComponent() {
                       onChange={(e) => setEditAllowComments(e.target.checked)}
                       className="accent-blue"
                     />
-                    <span className="font-mono text-[10.5px] text-ink">Allow Comments</span>
+                    <span className="font-mono text-[10.5px] text-ink">
+                      Allow Comments
+                    </span>
                   </label>
                 </div>
               </div>
@@ -1026,7 +1085,9 @@ function PlaylistDetailComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
           <div className="w-full max-w-lg border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 space-y-6">
             <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="font-serif italic text-xl text-ink">Collaboration Manager</h3>
+              <h3 className="font-serif italic text-xl text-ink">
+                Collaboration Manager
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsCollabModalOpen(false)}
@@ -1040,9 +1101,12 @@ function PlaylistDetailComponent() {
             {isOwner && (
               <div className="flex items-center justify-between p-4 border border-line bg-canvas">
                 <div>
-                  <h4 className="font-serif text-sm text-ink">Allow Collaboration</h4>
+                  <h4 className="font-serif text-sm text-ink">
+                    Allow Collaboration
+                  </h4>
                   <p className="font-mono text-[10px] text-ink-soft mt-0.5">
-                    When enabled, users with the invite link can contribute tracks.
+                    When enabled, users with the invite link can contribute
+                    tracks.
                   </p>
                 </div>
                 <button
@@ -1102,10 +1166,13 @@ function PlaylistDetailComponent() {
             {/* Collaborators List */}
             {playlist.isCollaborative && (
               <div className="space-y-2 pt-2 border-t border-line">
-                <h4 className="font-serif text-sm text-ink">Active Collaborators</h4>
+                <h4 className="font-serif text-sm text-ink">
+                  Active Collaborators
+                </h4>
                 {(playlist.collaborators ?? []).length === 0 ? (
                   <p className="font-mono text-[10.5px] text-ink-soft italic">
-                    No collaborators have joined yet. Share the invite link above!
+                    No collaborators have joined yet. Share the invite link
+                    above!
                   </p>
                 ) : (
                   <div className="divide-y divide-line/60 border border-line max-h-48 overflow-y-auto">
@@ -1116,7 +1183,11 @@ function PlaylistDetailComponent() {
                       >
                         <div>
                           <div className="font-serif flex items-center gap-1.5">
-                            <span>{c.user?.displayName || (c as any).displayName || 'Collaborator'}</span>
+                            <span>
+                              {c.user?.displayName ||
+                                (c as any).displayName ||
+                                'Collaborator'}
+                            </span>
                             {user && c.userId === user.id && (
                               <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-bold">
                                 You
@@ -1202,11 +1273,15 @@ function PlaylistDetailComponent() {
             toastNotice.type === 'error'
               ? 'bg-red-950 text-red-100 border-red-500/40'
               : toastNotice.type === 'success'
-              ? 'bg-emerald-950 text-emerald-100 border-emerald-500/40'
-              : 'bg-ink text-canvas border-line'
+                ? 'bg-emerald-950 text-emerald-100 border-emerald-500/40'
+                : 'bg-ink text-canvas border-line'
           }`}
         >
-          {toastNotice.type === 'error' ? '✕ ' : toastNotice.type === 'success' ? '✓ ' : 'ℹ '}
+          {toastNotice.type === 'error'
+            ? '✕ '
+            : toastNotice.type === 'success'
+              ? '✓ '
+              : 'ℹ '}
           {toastNotice.message}
         </div>
       )}

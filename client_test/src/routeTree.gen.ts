@@ -31,7 +31,6 @@ import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
 import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
 import { Route as JamCodeRouteImport } from './routes/jam.$code'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
-import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 
@@ -145,11 +144,6 @@ const OauthCallbackRoute = OauthCallbackRouteImport.update({
   path: '/oauth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlaylistsIndexRoute = PlaylistsIndexRouteImport.update({
-  id: '/playlists/',
-  path: '/playlists/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
   id: '/playlists/$id',
   path: '/playlists/$id',
@@ -186,7 +180,6 @@ export interface FileRoutesByFullPath {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
-  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -213,7 +206,6 @@ export interface FileRoutesByTo {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists': typeof ArtistsIndexRoute
-  '/playlists': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -241,7 +233,6 @@ export interface FileRoutesById {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
-  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -270,7 +261,6 @@ export interface FileRouteTypes {
     | '/playlists/$id'
     | '/users/$id'
     | '/artists/'
-    | '/playlists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -297,7 +287,6 @@ export interface FileRouteTypes {
     | '/playlists/$id'
     | '/users/$id'
     | '/artists'
-    | '/playlists'
   id:
     | '__root__'
     | '/'
@@ -324,7 +313,6 @@ export interface FileRouteTypes {
     | '/playlists/$id'
     | '/users/$id'
     | '/artists/'
-    | '/playlists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -352,7 +340,6 @@ export interface RootRouteChildren {
   PlaylistsIdRoute: typeof PlaylistsIdRoute
   UsersIdRoute: typeof UsersIdRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
-  PlaylistsIndexRoute: typeof PlaylistsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -511,13 +498,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/playlists/': {
-      id: '/playlists/'
-      path: '/playlists'
-      fullPath: '/playlists/'
-      preLoaderRoute: typeof PlaylistsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/playlists/$id': {
       id: '/playlists/$id'
       path: '/playlists/$id'
@@ -560,7 +540,6 @@ const rootRouteChildren: RootRouteChildren = {
   PlaylistsIdRoute: PlaylistsIdRoute,
   UsersIdRoute: UsersIdRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
-  PlaylistsIndexRoute: PlaylistsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
