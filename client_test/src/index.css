@@ -34,16 +34,19 @@
 }
 
 .dark {
-  --color-canvas: #1a1912;
-  --color-canvas-deep: #141309;
-  --color-panel: #221f17;
-  --color-ink: #f3efe3;
-  --color-ink-soft: #9c9788;
-  --color-stone: #3b372c;
-  --color-blue: #5b9bdb;
-  --color-blue-deep: #9cc3ea;
-  --color-line: rgba(243, 239, 227, 0.14);
-  --color-line-soft: rgba(243, 239, 227, 0.08);
+  --color-canvas: #171813;
+  --color-canvas-deep: #1c1d17;
+  --color-panel: #1c1d17;
+
+  --color-ink: #f4f3eb;
+  --color-ink-soft: #9a9a8e;
+
+  --color-stone: #25261f;
+
+  --color-blue: #c9ff35;
+  --color-blue-deep: #a8d92d;
+  --color-line: rgba(213, 214, 193, 0.16);
+  --color-line-soft: rgba(213, 214, 193, 0.09);
 }
 
 html,
@@ -53,4 +56,16 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+/* Scrollbar hiding utilities */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

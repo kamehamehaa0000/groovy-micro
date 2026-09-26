@@ -17,6 +17,8 @@ export function GlobalAudioEngine() {
   const lastTrackIdRef = useRef<string | null>(null);
   const qualifiedReportedTrackIdRef = useRef<string | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
+  const isSourceChangingRef = useRef<boolean>(false);
+  const lastHeartbeatTimeRef = useRef<number>(0);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -94,6 +96,7 @@ export function GlobalAudioEngine() {
     hlsRecoveryAttemptsRef.current = 0;
     activeSourceTypeRef.current = null;
     fallbackUrlRef.current = null;
+    isSourceChangingRef.current = true;
 
     // Record any initial saved position to seek safely once metadata is ready
     const initialTime = usePlayerStore.getState().currentTime;
@@ -173,15 +176,22 @@ export function GlobalAudioEngine() {
             audio
               .play()
               .then(() => {
+                isSourceChangingRef.current = false;
                 useJamStore.getState().setNeedsGesture(false);
               })
               .catch((err) => {
+                isSourceChangingRef.current = false;
+                if (err?.name === "AbortError") {
+                  // Standard browser interruption due to rapid switch or source reload; do not set status to paused
+                  return;
+                }
                 if (err?.name === "NotAllowedError" && useJamStore.getState().activeRoom) {
                   useJamStore.getState().setNeedsGesture(true);
                 }
                 _setStatus("paused");
               });
           } else {
+            isSourceChangingRef.current = false;
             _setStatus("paused");
           }
         };
@@ -367,6 +377,10 @@ export function GlobalAudioEngine() {
             useJamStore.getState().setNeedsGesture(false);
           })
           .catch((err) => {
+            if (err?.name === "AbortError") {
+              // Standard browser interruption due to rapid switch or source reload; do not set status to paused
+              return;
+            }
             if (err?.name === "NotAllowedError" && useJamStore.getState().activeRoom) {
               useJamStore.getState().setNeedsGesture(true);
             }
@@ -415,6 +429,13 @@ export function GlobalAudioEngine() {
       const audio = audioRef.current;
       if (!audio || isTerminated) return;
 
+      // Minimum 5-second cooldown between non-takeover heartbeat requests to prevent any network storm
+      const now = Date.now();
+      if (!isTakeover && now - lastHeartbeatTimeRef.current < 5000) {
+        return;
+      }
+      lastHeartbeatTimeRef.current = now;
+
       try {
         const res = await playerApi.sendHeartbeat({
           deviceId,
@@ -446,7 +467,8 @@ export function GlobalAudioEngine() {
               clearInterval(fadeInterval);
               if (audio) {
                 audio.pause();
-                audio.volume = isMuted ? 0 : volume; // Restore base volume setting
+                const { isMuted: curMuted, volume: curVol } = usePlayerStore.getState();
+                audio.volume = curMuted ? 0 : curVol; // Restore base volume setting
               }
               usePlayerStore.setState({
                 playbackStatus: "paused",
@@ -460,7 +482,7 @@ export function GlobalAudioEngine() {
       }
     };
 
-    // Immediate heartbeat on starting playback
+    // Immediate heartbeat on starting playback (throttled by lastHeartbeatTimeRef)
     pingHeartbeat();
 
     // Routine 15s pulse
@@ -472,7 +494,7 @@ export function GlobalAudioEngine() {
       isTerminated = true;
       clearInterval(interval);
     };
-  }, [currentTrack, playbackStatus, isAuthenticated, volume, isMuted]);
+  }, [currentTrack?.id, playbackStatus, isAuthenticated]);
 
   // 6. 30-Second Qualified Play Telemetry Tracker
   useEffect(() => {
@@ -580,12 +602,18 @@ export function GlobalAudioEngine() {
           _setDuration(audioRef.current.duration);
         }
       }}
-      onWaiting={() => _setStatus("loading")}
+      onWaiting={() => {
+        if (!isSourceChangingRef.current) {
+          _setStatus("loading");
+        }
+      }}
       onPlay={() => {
+        isSourceChangingRef.current = false;
         useJamStore.getState().setNeedsGesture(false);
         _setStatus("playing");
       }}
       onPlaying={() => {
+        isSourceChangingRef.current = false;
         useJamStore.getState().setNeedsGesture(false);
         _setStatus("playing");
       }}
@@ -607,7 +635,13 @@ export function GlobalAudioEngine() {
           }
         }
       }}
-      onPause={() => _setStatus("paused")}
+      onPause={() => {
+        // Ignore native pause events during media reset or source changing
+        if (isSourceChangingRef.current) {
+          return;
+        }
+        _setStatus("paused");
+      }}
       onEnded={() => {
         if (currentTrack) {
           const alreadyCounted = qualifiedReportedTrackIdRef.current === currentTrack.id;
@@ -680,14 +714,23 @@ export function GlobalAudioEngine() {
           audio.src = fallbackUrlRef.current;
           const targetStatus = usePlayerStore.getState().playbackStatus;
           if (targetStatus === "playing" || targetStatus === "loading") {
-            audio.play().catch(() => _setStatus("paused"));
+            audio.play().catch((err) => {
+              if (err?.name === "AbortError") return;
+              _setStatus("paused");
+            });
           }
           return;
         }
 
         // Do not block UI if initial empty or unmounted
         if (currentTrack) {
-          _setError("Playback error: Audio stream unavailable");
+          if (error?.code === 4 || error?.code === 3) {
+            _setError(
+              "Audio codec unsupported in this browser environment. For audio playback, please open Groovy in Chrome, Brave, Edge, or Firefox."
+            );
+          } else {
+            _setError("Playback error: Audio stream unavailable");
+          }
         }
       }}
     />

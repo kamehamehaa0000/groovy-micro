@@ -16,7 +16,7 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
-import { DarkModeSVG, LightModeSVG } from '../components/icons'
+import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
 import {
@@ -231,20 +231,9 @@ function RootComponent() {
               type="button"
               onClick={() => setRightActionDrawerOpen(true)}
               aria-label="Create and quick actions"
-              className="w-8 h-8 rounded-full border border-line bg-panel hover:border-ink hover:text-ink text-ink-soft flex items-center justify-center cursor-pointer shadow-2xs transition-colors shrink-0"
+              className="w-8 h-8 rounded-full   hover:border-ink hover:text-ink text-ink-soft flex items-center justify-center cursor-pointer  transition-colors shrink-0"
             >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <PlusIconSVG className="w-7 h-7" />
             </button>
           </div>
 
@@ -304,6 +293,19 @@ function RootComponent() {
                   className="transition-colors"
                 >
                   Artists
+                </Link>
+                <Link
+                  to="/library"
+                  activeProps={{
+                    className:
+                      'text-ink font-semibold border-b border-blue pb-0.5',
+                  }}
+                  inactiveProps={{
+                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                  }}
+                  className="transition-colors"
+                >
+                  Library
                 </Link>
                 <Link
                   to="/playlists"
@@ -814,6 +816,14 @@ function RootComponent() {
                   className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
                 >
                   <span>Artists Roster</span>
+                  <span className="text-ink-soft">&rarr;</span>
+                </Link>
+                <Link
+                  to="/library"
+                  onClick={() => setLeftSidebarOpen(false)}
+                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                >
+                  <span>Your Library</span>
                   <span className="text-ink-soft">&rarr;</span>
                 </Link>
                 <Link

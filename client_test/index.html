@@ -2,9 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#141414" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Groovy — Maison Édition</title>
+    <title>Groovy</title>
 
     <!-- Google Fonts: Fraunces, Inter, IBM Plex Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,19 +22,20 @@
 
     <!-- Early Theme Detection Script (Prevents FOUC) -->
     <script>
-      (function () {
+      ;(function () {
         try {
-          const saved = localStorage.getItem('groovy_theme');
+          const saved = localStorage.getItem('groovy_theme')
           const isDark =
             saved === 'dark' ||
-            (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            (!saved &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
           if (isDark) {
-            document.documentElement.classList.add('dark');
+            document.documentElement.classList.add('dark')
           } else {
-            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.remove('dark')
           }
         } catch (_) {}
-      })();
+      })()
     </script>
   </head>
   <body class="bg-canvas text-ink antialiased">
@@ -36,4 +43,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -16,6 +16,7 @@ export function MobileBottomBar() {
   const isCatalogActive = pathname === '/'
   const isSearchActive = pathname.startsWith('/search')
   const isLibraryActive =
+    pathname.startsWith('/library') ||
     pathname.startsWith('/playlists') ||
     pathname.startsWith('/collection') ||
     pathname.startsWith('/personal-collection')
@@ -79,7 +80,7 @@ export function MobileBottomBar() {
 
       {/* 3. Library / Playlists */}
       <Link
-        to="/playlists"
+        to="/library"
         className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
           isLibraryActive
             ? 'text-ink font-semibold'

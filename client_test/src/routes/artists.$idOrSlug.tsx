@@ -508,51 +508,17 @@ function ArtistPublicProfileComponent() {
                 <button
                   type="button"
                   onClick={handlePlayArtistFromStart}
-                  className="
-                inline-flex
-                items-center
-                justify-center
-                gap-2
-                min-h-10
-                px-5
-                sm:px-6
-                bg-blue
-                text-canvas
-                font-mono
-                text-[10px]
-                uppercase
-                tracking-[0.12em]
-                font-semibold
-                hover:opacity-90
-                transition-opacity
-                shadow-2xs
-                cursor-pointer
+                  className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[10px] uppercase tracking-[0.12em] font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer
               "
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
                   Play
                 </button>
               )}
-
               {isOwner ? (
                 <Link
                   to="/studio"
-                  className="
-                inline-flex
-                items-center
-                justify-center
-                min-h-10
-                px-4
-                sm:px-5
-                bg-ink
-                text-canvas
-                font-mono
-                text-[10px]
-                uppercase
-                tracking-[0.1em]
-                hover:opacity-90
-                transition-opacity
-                whitespace-nowrap
+                  className="rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-5 bg-ink text-canvas font-mono text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity whitespace-nowrap
               "
                 >
                   <span className="sm:hidden">Studio</span>
@@ -563,34 +529,11 @@ function ArtistPublicProfileComponent() {
                   type="button"
                   disabled={isFollowLoading}
                   onClick={handleToggleFollow}
-                  className={`
-                inline-flex
-                items-center
-                justify-center
-                min-h-10
-                px-4
-                sm:px-6
-                font-mono
-                text-[10px]
-                uppercase
-                tracking-[0.1em]
-                transition-all
-                cursor-pointer
-                whitespace-nowrap
+                  className={`rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-6 font-mono text-[10px] uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap
                 ${
                   isFollowing
-                    ? `
-                      border border-line
-                      bg-panel
-                      text-ink
-                      hover:border-red-400
-                      hover:text-red-500
-                    `
-                    : `
-                      bg-ink
-                      text-canvas
-                      hover:opacity-90
-                    `
+                    ? ` border border-line bg-panel text-ink hover:border-red-400 hover:text-red-500`
+                    : ` bg-ink text-canvas hover:opacity-90`
                 }
               `}
                 >
@@ -612,7 +555,7 @@ function ArtistPublicProfileComponent() {
         <div className="md:col-span-2 space-y-10">
           {/* Top Tracks Section */}
           {hasTopTracks && (
-            <div className="space-y-3">
+            <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-line-soft pb-2">
                 <h2 className="font-serif font-semibold  italic text-xl text-ink">
                   Popular Tracks
@@ -637,6 +580,7 @@ function ArtistPublicProfileComponent() {
                       hideGoToArtist={true}
                     />
                   ))}
+                  
               </div>
               {discography!.topTracks.length > 5 && (
                 <button
@@ -1078,19 +1022,20 @@ function ArtistPublicProfileComponent() {
         {/* Right Column: Social Channels & Telemetry */}
         <div className="flex flex-col gap-6">
           {/* Social Links Pill List */}
-          {/* About Blurb */}
-          {artist.bio && (
-            <div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-2">
-                About Artist
-              </span>
-              <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line">
-                {artist.bio}
-              </p>
-            </div>
-          )}
 
-          <div className="p-5 border border-line bg-panel">
+          <div className="p-5 border border-line bg-panel rounded-md">
+            {/* About Blurb */}
+            {artist.bio && (
+              <div className="mb-5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-2">
+                  About Artist
+                </span>
+                <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line">
+                  {artist.bio}
+                </p>
+              </div>
+            )}
+
             <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-3">
               Official Links & Press
             </span>

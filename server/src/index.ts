@@ -18,6 +18,7 @@ import { transcodeQueue } from "./lib/queue/transcode.queue";
 import { subscriptionsRoutes, adminSubscriptionsRoutes } from "./modules/subscriptions";
 import { playlistsRoutes } from "./modules/playlists";
 import { commentsRoutes } from "./modules/comments";
+import { libraryRoutes } from "./modules/library";
 import {
   playerRoutes,
   playerService,
@@ -94,6 +95,7 @@ export async function bootstrap(options: { listen?: boolean } = { listen: true }
   await app.register(adminSubscriptionsRoutes, { prefix: "/api/v1/admin/subscriptions" });
   await app.register(playlistsRoutes, { prefix: "/api/v1/playlists" });
   await app.register(commentsRoutes, { prefix: "/api/v1/comments" });
+  await app.register(libraryRoutes, { prefix: "/api/v1/library" });
   await app.register(playerRoutes, { prefix: "/api/v1/player" });
   await app.register(socialRoutes, { prefix: "/api/v1/social" });
   await app.register(searchRoutes, { prefix: "/api/v1/search" });

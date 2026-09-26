@@ -14,6 +14,7 @@ import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PersonalCollectionRouteImport } from './routes/personal-collection'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -57,6 +58,11 @@ const FeedRoute = FeedRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/feed'
     | '/forgot-password'
+    | '/library'
     | '/login'
     | '/personal-collection'
     | '/profile'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/feed'
     | '/forgot-password'
+    | '/library'
     | '/login'
     | '/personal-collection'
     | '/profile'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/feed'
     | '/forgot-password'
+    | '/library'
     | '/login'
     | '/personal-collection'
     | '/profile'
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   CollectionRoute: typeof CollectionRoute
   FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
   PersonalCollectionRoute: typeof PersonalCollectionRoute
   ProfileRoute: typeof ProfileRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -521,6 +541,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionRoute: CollectionRoute,
   FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
   PersonalCollectionRoute: PersonalCollectionRoute,
   ProfileRoute: ProfileRoute,
