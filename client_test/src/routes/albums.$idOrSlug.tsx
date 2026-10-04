@@ -404,9 +404,9 @@ function AlbumDetailComponent() {
             <button
               type="button"
               onClick={handleCopyShareLink}
-              className=" pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
+              className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
             >
-              Share
+              {copiedLink ? '✓ Copied' : 'Share'}
             </button>
           </div>
         </div>

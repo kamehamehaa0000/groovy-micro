@@ -58,6 +58,16 @@ export const updateArtistSchema = z.object({
   socialLinks: z
     .record(z.string().url("Invalid social media URL"))
     .optional(),
+  pinnedReleaseId: z
+    .string()
+    .uuid("Invalid pinned release UUID")
+    .nullable()
+    .optional(),
+  pinnedComment: z
+    .string()
+    .max(280, "Pinned note cannot exceed 280 characters")
+    .nullable()
+    .optional(),
 });
 
 export const requestVerificationSchema = z.object({

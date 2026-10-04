@@ -24,6 +24,8 @@ export interface ArtistProfile {
   rejectionReason: string | null;
   monthlyListeners: number;
   socialLinks: Record<string, string>;
+  pinnedReleaseId?: string | null;
+  pinnedComment?: string | null;
   followersCount?: number;
   isFollowing?: boolean;
   createdAt: string;
@@ -49,6 +51,8 @@ export interface UpdateArtistInput {
   bannerUrl?: string | null;
   avatarUrl?: string | null;
   socialLinks?: Record<string, string>;
+  pinnedReleaseId?: string | null;
+  pinnedComment?: string | null;
 }
 
 export interface RequestVerificationInput {

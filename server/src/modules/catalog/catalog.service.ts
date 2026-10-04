@@ -821,6 +821,11 @@ export class CatalogService {
         .set({ deletedAt: now, updatedAt: now })
         .where(eq(songs.albumId, albumId));
 
+      await tx
+        .update(artistProfiles)
+        .set({ pinnedReleaseId: null, pinnedComment: null, updatedAt: now })
+        .where(eq(artistProfiles.pinnedReleaseId, albumId));
+
       return {
         message: "Album and its tracks moved to trash (available for 30-day restore)",
         deletedAt: now.toISOString(),
@@ -831,6 +836,11 @@ export class CatalogService {
       id: albumId,
       slug: existing.slug,
       artistId: artist.id,
+    });
+
+    await cacheManager.invalidateArtist({
+      id: artist.id,
+      slug: artist.slug,
     });
 
     await cancelScheduledReleaseJob(albumId);

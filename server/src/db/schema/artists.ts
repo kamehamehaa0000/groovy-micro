@@ -13,6 +13,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
+import { albums } from "./catalog";
 import { catalogScopeEnum } from "./enums";
 
 export const artistProfiles = pgTable(
@@ -35,6 +36,10 @@ export const artistProfiles = pgTable(
     rejectionReason: text("rejection_reason"),
     monthlyListeners: integer("monthly_listeners").notNull().default(0),
     socialLinks: jsonb("social_links").default({}),
+    pinnedReleaseId: uuid("pinned_release_id").references((): any => albums.id, {
+      onDelete: "set null",
+    }),
+    pinnedComment: text("pinned_comment"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

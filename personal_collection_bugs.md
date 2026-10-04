@@ -43,3 +43,50 @@
 - add keyboard listeners for better player controls
 - cron job to purge the personal vault artist that don't have a song attached to them.
 - review the whole playlist system again with jam and personal collection in mind.
+
+# Release Page updates -
+
+1. update the player bar to include artist name also.
+2. have total streams/plays of release (aggregated if more than one song)
+3. more responsive UI/UX
+4.
+
+# song row
+
+1. animation time for gesture operation
+
+# player
+
+1. play here option does not appear on phone.
+2. artist pick on artist page.
+3. library page creation
+
+
+  ## 3. Recommended Non-Performance-Taxing Features
+
+  All of these features require 0 or minimal network overhead and utilize data already available:
+
+  1. Multi-Disc Segmentation (discNumber) (0 network tax):
+      • If an album or deluxe edition contains multiple discs (e.g. discNumber: 1, discNumber: 2), it automatically organizes tracks
+      under clean Disc 1 and Disc 2 headers with disc-specific track counts and durations (just like Spotify / Apple Music / vinyl
+      releases). If single disc, it stays clean without extra headers.
+  2. Mini Artist Card with Instant 1-Click Follow (0 network tax):
+      • Uses album.artistAvatarUrl, album.artistStageName, and album.artistSlug (which the server already delivers in getAlbum).
+      • Includes an integrated 1-click Follow / Following toggle connected to useFollowsStore.
+  3. Liner Notes & Catalog Specs Panel (0 network tax):
+      • Archival music liner panel showing:
+          • Exact Release Date (e.g., October 24, 2024).
+          • Genre & Subgenre chips (e.g., Hip-Hop, Boom Bap).
+          • Audio Master Specification badge (e.g., 24-bit / 48kHz Master Tape Transfer).
+          • Publishing & Record Label line (e.g., ℗ 2024 Kalamkaar / Groovy Catalog).
+
+  4. "More By {Artist}" Mini-Shelf (Low/Cached network tax):
+      • A compact, beautiful 2-3 card shelf in the sidebar (or bottom of mobile) featuring other releases by the same artist, loaded
+      via the cached catalogApi.getArtistDiscography(artistSlug). Prevents dead ends after listening.
+  5. In-Page Search / Quick Filter (for 8+ track releases) (0 network tax):
+      • For long mixtapes, double albums, or compilations (15–30 tracks), a subtle search filter input above the tracklist allows
+      instant filtering by song title or featured artist.
+  6. Audio Quality / Lossless Master Indicator (0 network tax):
+      • An elegant pill in the header and sidebar indicating LOSSLESS / MASTER RECORDING.
+  7. Floating Share Action with Instant Toast (0 network tax):
+      • Clean top-right share button with ✓ Copied Link feedback and automatic handling of UNLISTED share tokens.

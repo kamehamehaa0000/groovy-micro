@@ -389,6 +389,19 @@ function ArtistPublicProfileComponent() {
     discography?.singles,
   ])
 
+  const pinnedRelease = useMemo(() => {
+    if (artist?.pinnedReleaseId) {
+      const found = allReleases.find((r) => r.id === artist.pinnedReleaseId)
+      if (found) return found
+    }
+    return allReleases[0] || null
+  }, [artist?.pinnedReleaseId, allReleases])
+
+  const isCustomPick = Boolean(
+    artist?.pinnedReleaseId &&
+      allReleases.some((r) => r.id === artist.pinnedReleaseId),
+  )
+
   const appearsOn = useMemo(() => {
     return discography?.appearsOn || []
   }, [discography?.appearsOn])
@@ -1204,6 +1217,74 @@ function ArtistPublicProfileComponent() {
 
         {/* Right Column: Social Channels & Telemetry */}
         <div className="flex flex-col gap-6">
+          {/* ===================== ARTIST SPOTLIGHT / LATEST RELEASE ===================== */}
+          {pinnedRelease && (
+            <div className="border border-line rounded-md bg-panel p-4 sm:p-5 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between gap-2 border-b border-line-soft pb-2.5">
+                <div className="flex items-center gap-2">
+                  {isCustomPick && artist.avatarUrl && (
+                    <div className="w-5 h-5 rounded-full overflow-hidden border border-line bg-canvas shrink-0">
+                      <img
+                        src={artist.avatarUrl}
+                        alt={artist.stageName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue font-semibold flex items-center gap-1.5">
+                    <span>{isCustomPick ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
+                  </span>
+                </div>
+                {pinnedRelease.albumType && (
+                  <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft">
+                    {pinnedRelease.albumType}
+                  </span>
+                )}
+              </div>
+
+              {isCustomPick && artist.pinnedComment && (
+                <p className="font-serif italic text-xs text-ink/90 leading-relaxed bg-canvas/60 p-2.5 rounded border border-line-soft">
+                  "{artist.pinnedComment}"
+                </p>
+              )}
+
+              <Link
+                to="/albums/$idOrSlug"
+                params={{ idOrSlug: pinnedRelease.slug || pinnedRelease.id }}
+                className="flex items-center gap-3.5 group text-inherit no-underline"
+              >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                  {pinnedRelease.coverImageUrl ? (
+                    <img
+                      src={pinnedRelease.coverImageUrl}
+                      alt={pinnedRelease.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <ProceduralCover
+                      size="sm"
+                      title={pinnedRelease.title}
+                      artistName={artist.stageName}
+                      className="w-full h-full rounded-none"
+                    />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                    {pinnedRelease.title}
+                  </h3>
+                  <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                    {pinnedRelease.releaseDate
+                      ? new Date(pinnedRelease.releaseDate).getFullYear()
+                      : 'Recent'}{' '}
+                    &bull; {pinnedRelease.totalTracks}{' '}
+                    {pinnedRelease.totalTracks === 1 ? 'cut' : 'cuts'}
+                  </p>
+                </div>
+              </Link>
+            </div>
+          )}
+
           {/* Social Links Pill List */}
 
           <div className="p-5 border border-line bg-panel rounded-md">

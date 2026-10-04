@@ -1,6 +1,6 @@
 import { eq, sql, and, or, ilike, desc, asc, count } from "drizzle-orm";
 import { db } from "../../db";
-import { artistProfiles, artistFollowers, users } from "../../db/schema";
+import { artistProfiles, artistFollowers, users, albums } from "../../db/schema";
 import type {
   CreateArtistInput,
   UpdateArtistInput,
@@ -174,6 +174,8 @@ export class ArtistsService {
         verified: artistProfiles.verified,
         monthlyListeners: artistProfiles.monthlyListeners,
         socialLinks: artistProfiles.socialLinks,
+        pinnedReleaseId: artistProfiles.pinnedReleaseId,
+        pinnedComment: artistProfiles.pinnedComment,
         createdAt: artistProfiles.createdAt,
         updatedAt: artistProfiles.updatedAt,
       })
@@ -290,6 +292,38 @@ export class ArtistsService {
       updatedSlug = formatted;
     }
 
+    // Handle pinned release updates
+    let finalPinnedReleaseId = profile.pinnedReleaseId;
+    let finalPinnedComment = profile.pinnedComment;
+
+    if (input.pinnedReleaseId !== undefined) {
+      if (input.pinnedReleaseId === null) {
+        finalPinnedReleaseId = null;
+        finalPinnedComment = null;
+      } else {
+        const [album] = await db
+          .select({ id: albums.id })
+          .from(albums)
+          .where(
+            and(
+              eq(albums.id, input.pinnedReleaseId),
+              eq(albums.artistId, profile.id),
+              sql`${albums.deletedAt} IS NULL`
+            )
+          )
+          .limit(1);
+
+        if (!album) {
+          throw new Error("Pinned release not found or is in trash");
+        }
+        finalPinnedReleaseId = album.id;
+      }
+    }
+
+    if (input.pinnedComment !== undefined) {
+      finalPinnedComment = input.pinnedComment;
+    }
+
     const [updated] = await db
       .update(artistProfiles)
       .set({
@@ -299,6 +333,8 @@ export class ArtistsService {
         ...(input.bannerUrl !== undefined ? { bannerUrl: input.bannerUrl } : {}),
         ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
         ...(input.socialLinks ? { socialLinks: input.socialLinks } : {}),
+        pinnedReleaseId: finalPinnedReleaseId,
+        pinnedComment: finalPinnedComment,
         updatedAt: new Date(),
       })
       .where(eq(artistProfiles.id, profile.id))

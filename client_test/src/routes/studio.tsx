@@ -23,6 +23,7 @@ import {
   type SelectedCredit,
 } from '../components/ArtistCreditPicker'
 import { ImageCropModal } from '../components/common/ImageCropModal'
+import { ProceduralCover } from '../components/common/ProceduralCover'
 import {
   PRIMARY_GENRES,
   GENRE_SUBGENRES_MAP,
@@ -230,6 +231,13 @@ function StudioComponent() {
   const [editSpotify, setEditSpotify] = useState('')
   const [isSavingEdit, setIsSavingEdit] = useState(false)
 
+  // Artist Spotlight & Pick State
+  const [spotlightReleaseId, setSpotlightReleaseId] = useState('')
+  const [spotlightComment, setSpotlightComment] = useState('')
+  const [isSavingSpotlight, setIsSavingSpotlight] = useState(false)
+  const [spotlightStatus, setSpotlightStatus] = useState<'idle' | 'saved' | 'cleared' | 'error'>('idle')
+  const [spotlightStatusMessage, setSpotlightStatusMessage] = useState<string | null>(null)
+
   // Expanded album tracks view in Studio
   const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
   const [albumTrackMap, setAlbumTrackMap] = useState<Record<string, Song[]>>({})
@@ -256,6 +264,8 @@ function StudioComponent() {
           setEditInstagram(profile.socialLinks?.instagram || '')
           setEditWebsite(profile.socialLinks?.website || '')
           setEditSpotify(profile.socialLinks?.spotify || '')
+          setSpotlightReleaseId(profile.pinnedReleaseId || '')
+          setSpotlightComment(profile.pinnedComment || '')
           setVerifyContactEmail(user.email)
         })
         .catch((err) => {
@@ -298,7 +308,7 @@ function StudioComponent() {
 
   useEffect(() => {
     if (artistProfile) {
-      if (activeTab === 'releases') {
+      if (activeTab === 'releases' || activeTab === 'profile') {
         loadReleases()
       } else if (activeTab === 'trash') {
         loadTrash()
@@ -1783,6 +1793,88 @@ function StudioComponent() {
     } finally {
       setIsSavingEdit(false)
     }
+  }
+
+  // Handle Save Spotlight / Artist Pick
+  const handleSaveSpotlight = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!artistProfile) return
+    setIsSavingSpotlight(true)
+    setErrorNotice(null)
+    setSpotlightStatus('idle')
+    setSpotlightStatusMessage(null)
+
+    try {
+      const res = await artistsApi.updateMyProfile({
+        pinnedReleaseId: spotlightReleaseId || null,
+        pinnedComment: spotlightReleaseId ? (spotlightComment.trim() || null) : null,
+      })
+      setArtistProfile(res.profile)
+      setSpotlightReleaseId(res.profile.pinnedReleaseId || '')
+      setSpotlightComment(res.profile.pinnedComment || '')
+      const msg = spotlightReleaseId
+        ? 'Artist Pick spotlight updated successfully.'
+        : 'Artist Pick spotlight reset to automatic latest release.'
+      setSuccessNotice(msg)
+      setSpotlightStatus('saved')
+      setSpotlightStatusMessage(
+        spotlightReleaseId
+          ? 'Spotlight saved! Your public profile is now updated.'
+          : 'Reset to automatic latest release fallback.'
+      )
+      setTimeout(() => {
+        setSpotlightStatus((prev) => (prev === 'saved' ? 'idle' : prev))
+      }, 4000)
+    } catch (err: any) {
+      const errMsg = err.message || 'Failed to update spotlight'
+      setErrorNotice(errMsg)
+      setSpotlightStatus('error')
+      setSpotlightStatusMessage(errMsg)
+    } finally {
+      setIsSavingSpotlight(false)
+    }
+  }
+
+  // Handle Reset Spotlight to Latest Release
+  const handleClearSpotlight = async () => {
+    if (!artistProfile) return
+    setIsSavingSpotlight(true)
+    setErrorNotice(null)
+    setSpotlightStatus('idle')
+    setSpotlightStatusMessage(null)
+
+    try {
+      const res = await artistsApi.updateMyProfile({
+        pinnedReleaseId: null,
+        pinnedComment: null,
+      })
+      setArtistProfile(res.profile)
+      setSpotlightReleaseId('')
+      setSpotlightComment('')
+      const msg = 'Artist Pick reset to automatic latest release.'
+      setSuccessNotice(msg)
+      setSpotlightStatus('cleared')
+      setSpotlightStatusMessage('Reset to automatic latest release fallback.')
+      setTimeout(() => {
+        setSpotlightStatus((prev) => (prev === 'cleared' ? 'idle' : prev))
+      }, 4000)
+    } catch (err: any) {
+      const errMsg = err.message || 'Failed to reset spotlight'
+      setErrorNotice(errMsg)
+      setSpotlightStatus('error')
+      setSpotlightStatusMessage(errMsg)
+    } finally {
+      setIsSavingSpotlight(false)
+    }
+  }
+
+  // Handle Discard Spotlight Changes
+  const handleDiscardSpotlightChanges = () => {
+    if (!artistProfile) return
+    setSpotlightReleaseId(artistProfile.pinnedReleaseId || '')
+    setSpotlightComment(artistProfile.pinnedComment || '')
+    setSpotlightStatus('idle')
+    setSpotlightStatusMessage(null)
   }
 
   // Handle Verification Application Submission
@@ -3613,6 +3705,374 @@ function StudioComponent() {
               </div>
             )}
           </div>
+
+          {/* Artist Spotlight & Pick Customizer */}
+          {(() => {
+            const currentPinnedRelease = artistProfile.pinnedReleaseId
+              ? albums.find((a) => a.id === artistProfile.pinnedReleaseId)
+              : null
+            const isSpotlightDirty =
+              spotlightReleaseId !== (artistProfile.pinnedReleaseId || '') ||
+              spotlightComment.trim() !== (artistProfile.pinnedComment || '')
+
+            return (
+              <div className="p-6 sm:p-7 border border-line bg-panel shadow-2xs space-y-6 relative rounded-xs">
+                {/* Header & Status Indicator */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line-soft">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue font-semibold px-2 py-0.5 rounded border border-blue/30 bg-blue/10">
+                        ✦ Profile Spotlight
+                      </span>
+                      {artistProfile.pinnedReleaseId ? (
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/30 px-2 py-0.5 rounded flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue animate-pulse" />
+                          <span>
+                            Active: {currentPinnedRelease ? `"${currentPinnedRelease.title}"` : 'Custom Pick'}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-2 py-0.5 rounded flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>Active: Automatic Latest Drop</span>
+                        </span>
+                      )}
+                      {isSpotlightDirty && (
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded flex items-center gap-1 font-semibold animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          <span>Unsaved Changes</span>
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="font-serif italic text-xl text-ink">
+                      Artist Pick &amp; Spotlight
+                    </h2>
+                    <p className="font-sans text-xs text-ink-soft mt-0.5 max-w-xl">
+                      Feature a chosen release and personal note at the top of your public artist profile. When none is selected, your newest release is showcased automatically.
+                    </p>
+                  </div>
+
+                  {artistProfile.pinnedReleaseId && (
+                    <button
+                      type="button"
+                      disabled={isSavingSpotlight}
+                      onClick={handleClearSpotlight}
+                      className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-canvas hover:border-red-400 hover:text-red-500 text-ink-soft transition-colors cursor-pointer self-start sm:self-auto rounded shrink-0"
+                    >
+                      Reset to Latest Release
+                    </button>
+                  )}
+                </div>
+
+                {/* Inline Confirmation Alert Strip */}
+                {spotlightStatus === 'saved' && (
+                  <div className="flex items-center justify-between gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700/50 rounded text-emerald-800 dark:text-emerald-200 font-mono text-xs shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                        ✓
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-semibold block truncate">Spotlight Saved &amp; Synced!</span>
+                        <span className="font-sans text-[11px] opacity-80 block truncate">
+                          {spotlightStatusMessage || 'Your public artist profile has been updated.'}
+                        </span>
+                      </div>
+                    </div>
+                    {artistProfile.slug && (
+                      <Link
+                        to="/artists/$idOrSlug"
+                        params={{ idOrSlug: artistProfile.slug }}
+                        target="_blank"
+                        className="font-mono text-[10px] uppercase tracking-wider py-1 px-2.5 border border-emerald-400 dark:border-emerald-600 bg-white/50 dark:bg-black/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded transition-colors shrink-0 flex items-center gap-1"
+                      >
+                        <span>View Live</span>
+                        <ExternalLinkSVG className="w-2.5 h-2.5" />
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                {spotlightStatus === 'cleared' && (
+                  <div className="flex items-center gap-2.5 p-3.5 bg-blue/10 border border-blue/30 rounded text-blue font-mono text-xs shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span className="w-5 h-5 rounded-full bg-blue text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                      ✓
+                    </span>
+                    <div>
+                      <span className="font-semibold block">Spotlight Reset to Dynamic Mode</span>
+                      <span className="font-sans text-[11px] opacity-80 block">
+                        Your public profile will now dynamically showcase your newest catalog release.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {spotlightStatus === 'error' && (
+                  <div className="flex items-center gap-2.5 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-700/50 rounded text-red-700 dark:text-red-300 font-mono text-xs shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                      ✕
+                    </span>
+                    <div>
+                      <span className="font-semibold block">Failed to Update Spotlight</span>
+                      <span className="font-sans text-[11px] opacity-80 block">
+                        {spotlightStatusMessage || 'An unexpected error occurred while saving.'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveSpotlight} className="flex flex-col gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Release Selector */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink font-medium">
+                          Spotlighted Release
+                        </label>
+                        {isLoadingReleases && (
+                          <span className="font-mono text-[9px] text-ink-soft animate-pulse">
+                            Loading catalog...
+                          </span>
+                        )}
+                      </div>
+                      <select
+                        value={spotlightReleaseId}
+                        onChange={(e) => {
+                          setSpotlightReleaseId(e.target.value)
+                          setSpotlightStatus('idle')
+                        }}
+                        className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink rounded-xs transition-colors"
+                      >
+                        <option value="">
+                          -- Automatic Default: Always show latest release --
+                        </option>
+                        {albums.map((alb) => (
+                          <option key={alb.id} value={alb.id}>
+                            {alb.title} ({alb.albumType || 'Release'} &bull;{' '}
+                            {alb.releaseDate
+                              ? new Date(alb.releaseDate).getFullYear()
+                              : 'Upcoming'}
+                            )
+                          </option>
+                        ))}
+                      </select>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1.5">
+                        {spotlightReleaseId
+                          ? 'Pinned release stays locked at the top of your right column until changed or deleted.'
+                          : 'Dynamic mode: Groovy automatically presents your newest published drop.'}
+                      </p>
+                      {albums.length === 0 && !isLoadingReleases && (
+                        <p className="font-mono text-[10.5px] text-amber-600 dark:text-amber-400 mt-1">
+                          No published releases found yet. Upload a single or album in the Releases tab to feature it here.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Optional Comment / Note */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink font-medium">
+                          Artist Note / Quote (Optional)
+                        </label>
+                        {spotlightReleaseId && (
+                          <span
+                            className={`font-mono text-[9px] ${
+                              spotlightComment.length > 250
+                                ? 'text-amber-500 font-semibold'
+                                : 'text-ink-soft'
+                            }`}
+                          >
+                            {spotlightComment.length}/280
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          maxLength={280}
+                          value={spotlightComment}
+                          disabled={!spotlightReleaseId}
+                          onChange={(e) => {
+                            setSpotlightComment(e.target.value)
+                            setSpotlightStatus('idle')
+                          }}
+                          placeholder={
+                            spotlightReleaseId
+                              ? 'e.g. Turn the volume up! Celebrating our new drop with you all.'
+                              : 'Select a specific release first to add a custom quote'
+                          }
+                          className="w-full font-sans text-xs py-2 pl-3 pr-8 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50 disabled:bg-canvas-deep rounded-xs transition-colors"
+                        />
+                        {spotlightReleaseId && spotlightComment && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSpotlightComment('')
+                              setSpotlightStatus('idle')
+                            }}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink text-xs font-mono cursor-pointer"
+                            title="Clear note"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1.5">
+                        {spotlightReleaseId
+                          ? 'Appears in italic quotation marks directly above the release card.'
+                          : 'Notes are exclusive to manually pinned releases.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Live Preview of the Spotlight Card */}
+                  {(() => {
+                    const previewRelease = spotlightReleaseId
+                      ? albums.find((a) => a.id === spotlightReleaseId)
+                      : albums[0]
+
+                    if (!previewRelease) {
+                      return (
+                        <div className="pt-2">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft block mb-2">
+                            Public Profile Live Preview
+                          </span>
+                          <div className="max-w-md border border-dashed border-line rounded-md bg-canvas/40 p-5 text-center text-ink-soft font-mono text-xs">
+                            Upload a release to preview the spotlight card here.
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div className="pt-2">
+                        <div className="flex items-center justify-between gap-2 max-w-md mb-2">
+                          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft block">
+                            Public Profile Live Preview &bull; Right Column Top
+                          </span>
+                          {artistProfile.slug && (
+                            <Link
+                              to="/artists/$idOrSlug"
+                              params={{ idOrSlug: artistProfile.slug }}
+                              target="_blank"
+                              className="font-mono text-[9.5px] uppercase tracking-wider text-blue hover:underline inline-flex items-center gap-1"
+                            >
+                              <span>View Live Profile</span>
+                              <ExternalLinkSVG className="w-2.5 h-2.5" />
+                            </Link>
+                          )}
+                        </div>
+
+                        <div className="max-w-md border border-line rounded-md bg-canvas p-4 sm:p-5 shadow-2xs space-y-3">
+                          <div className="flex items-center justify-between gap-2 border-b border-line-soft pb-2.5">
+                            <div className="flex items-center gap-2">
+                              {artistProfile.avatarUrl && (
+                                <div className="w-5 h-5 rounded-full overflow-hidden border border-line bg-canvas shrink-0">
+                                  <img
+                                    src={artistProfile.avatarUrl}
+                                    alt={artistProfile.stageName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue font-semibold flex items-center gap-1.5">
+                                <span>{spotlightReleaseId ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
+                              </span>
+                            </div>
+                            {previewRelease.albumType && (
+                              <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft">
+                                {previewRelease.albumType}
+                              </span>
+                            )}
+                          </div>
+
+                          {spotlightReleaseId && spotlightComment.trim() && (
+                            <p className="font-serif italic text-xs text-ink/90 leading-relaxed bg-panel p-2.5 rounded border border-line-soft">
+                              "{spotlightComment.trim()}"
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-3.5 group">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                              {previewRelease.coverImageUrl ? (
+                                <img
+                                  src={previewRelease.coverImageUrl}
+                                  alt={previewRelease.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <ProceduralCover
+                                  size="sm"
+                                  title={previewRelease.title}
+                                  artistName={artistProfile.stageName}
+                                  className="w-full h-full rounded-none"
+                                />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-serif italic font-medium text-sm sm:text-base text-ink truncate">
+                                {previewRelease.title}
+                              </h4>
+                              <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                                {previewRelease.releaseDate
+                                  ? new Date(previewRelease.releaseDate).getFullYear()
+                                  : 'Recent'}{' '}
+                                &bull; {previewRelease.totalTracks}{' '}
+                                {previewRelease.totalTracks === 1 ? 'cut' : 'cuts'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Actions Bar */}
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSavingSpotlight}
+                      className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 transition-all cursor-pointer rounded flex items-center gap-2 ${
+                        spotlightStatus === 'saved'
+                          ? 'bg-emerald-600 text-white border border-emerald-500 shadow-sm'
+                          : isSpotlightDirty
+                            ? 'bg-ink text-canvas hover:bg-blue hover:text-white shadow-sm'
+                            : 'bg-ink text-canvas hover:opacity-90'
+                      } disabled:opacity-50`}
+                    >
+                      {isSavingSpotlight ? (
+                        <>
+                          <span className="w-3 h-3 border-2 border-canvas border-t-transparent rounded-full animate-spin inline-block" />
+                          <span>Saving Changes...</span>
+                        </>
+                      ) : spotlightStatus === 'saved' ? (
+                        <>
+                          <span>✓ Saved to Profile!</span>
+                        </>
+                      ) : isSpotlightDirty ? (
+                        <>
+                          <span>Save Artist Pick</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        </>
+                      ) : (
+                        <span>Save Artist Pick</span>
+                      )}
+                    </button>
+
+                    {isSpotlightDirty && (
+                      <button
+                        type="button"
+                        onClick={handleDiscardSpotlightChanges}
+                        disabled={isSavingSpotlight}
+                        className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-canvas hover:bg-panel text-ink-soft transition-colors cursor-pointer rounded"
+                      >
+                        Revert Changes
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -4712,6 +5172,24 @@ function StudioComponent() {
         isSubmitting={isUploadingAvatar}
         onCropComplete={handleAvatarCropComplete}
       />
+
+      {/* ===================== VIEWPORT-WIDE FLOATING TOAST ===================== */}
+      {(successNotice || errorNotice) && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-3 px-6 shadow-2xl rounded-xs pointer-events-none transition-all duration-200 border flex items-center gap-3 max-w-[92vw] text-center backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 ${
+            errorNotice
+              ? 'bg-red-950/95 text-red-100 border-red-500/50'
+              : 'bg-emerald-950/95 text-emerald-100 border-emerald-500/50'
+          }`}
+        >
+          <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-white/20">
+            {errorNotice ? '✕' : '✓'}
+          </span>
+          <span className="truncate">{errorNotice || successNotice}</span>
+        </div>
+      )}
     </div>
   )
 }
