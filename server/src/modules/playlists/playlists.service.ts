@@ -485,7 +485,7 @@ export class PlaylistsService {
     params: SearchPlaylistsQuery,
     currentUserId?: string
   ): Promise<{ data: PlaylistSummary[]; total: number; page: number; limit: number }> {
-    const { search, page, limit } = params;
+    const { search, sort = "popular", page, limit } = params;
     const offset = (page - 1) * limit;
 
     const conditions = [eq(playlists.visibility, "PUBLIC")];
@@ -500,6 +500,24 @@ export class PlaylistsService {
       .select({ count: sql<number>`count(*)::int` })
       .from(playlists)
       .where(whereClause);
+
+    const tracksCountSql = sql<number>`(
+      SELECT count(*)::int
+      FROM playlist_songs
+      INNER JOIN songs ON songs.id = playlist_songs.song_id
+      WHERE playlist_songs.playlist_id = playlists.id
+        AND songs.deleted_at IS NULL
+        AND songs.scope = 'GLOBAL'
+    )`;
+
+    let orderByClause;
+    if (sort === "recent") {
+      orderByClause = [desc(playlists.createdAt), desc(playlists.savesCount)];
+    } else if (sort === "tracks") {
+      orderByClause = [desc(tracksCountSql), desc(playlists.savesCount)];
+    } else {
+      orderByClause = [desc(playlists.savesCount), desc(playlists.createdAt)];
+    }
 
     const playlistRows = await db
       .select({
@@ -517,19 +535,12 @@ export class PlaylistsService {
         savesCount: playlists.savesCount,
         createdAt: playlists.createdAt,
         updatedAt: playlists.updatedAt,
-        tracksCount: sql<number>`(
-          SELECT count(*)::int
-          FROM playlist_songs
-          INNER JOIN songs ON songs.id = playlist_songs.song_id
-          WHERE playlist_songs.playlist_id = playlists.id
-            AND songs.deleted_at IS NULL
-            AND songs.scope = 'GLOBAL'
-        )`,
+        tracksCount: tracksCountSql,
       })
       .from(playlists)
       .innerJoin(users, eq(playlists.ownerId, users.id))
       .where(whereClause)
-      .orderBy(desc(playlists.savesCount), desc(playlists.createdAt))
+      .orderBy(...orderByClause)
       .limit(limit)
       .offset(offset);
 

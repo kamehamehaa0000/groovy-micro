@@ -4,7 +4,7 @@ import {
   useNavigate,
   useSearch,
 } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { playlistsApi } from '../lib/playlists.api'
 import { catalogApi } from '../lib/catalog.api'
 import type { PlaylistDetail, PlaylistTrack } from '../types/playlist'
@@ -18,12 +18,16 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
 import { CommentSection } from '../components/comments/CommentSection'
 import { PlaylistTrackReorderList } from '../components/playlists/PlaylistTrackReorderList'
+import { PlaylistActionMenu } from '../components/common/PlaylistActionMenu'
+import { ImageCropModal } from '../components/common/ImageCropModal'
 import {
   PlayIconSVG,
   HeartIconSVG,
-  TrashIconSVG,
   PlusIconSVG,
   EditIconSVG,
+  SvgArtworkSpiral,
+  TrashIconSVG,
+  UploadCloudSVG,
 } from '../components/icons'
 
 interface PlaylistSearchParams {
@@ -71,9 +75,16 @@ function PlaylistDetailComponent() {
     null,
   )
 
-  // Modals
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isCollabModalOpen, setIsCollabModalOpen] = useState(false)
+  // Single Scrollable Settings Modal State
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+
+  // Image Cropping & Uploading State
+  const [cropImageFile, setCropImageFile] = useState<File | null>(null)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [isUploadingArtwork, setIsUploadingArtwork] = useState(false)
+  const artworkFileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Add tracks modal
   const [isAddTracksModalOpen, setIsAddTracksModalOpen] = useState(false)
 
   // In-app alert / confirm modal replacements
@@ -97,14 +108,16 @@ function PlaylistDetailComponent() {
     onConfirm: () => void
   } | null>(null)
 
-  // Edit form state
+  // Edit settings form state
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [editCoverUrl, setEditCoverUrl] = useState<string | null>(null)
   const [editVisibility, setEditVisibility] = useState<
     'PUBLIC' | 'UNLISTED' | 'PRIVATE'
   >('PUBLIC')
   const [editAllowDuplicates, setEditAllowDuplicates] = useState(false)
   const [editAllowComments, setEditAllowComments] = useState(true)
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
 
   // Add tracks search state
   const [songSearchQuery, setSongSearchQuery] = useState('')
@@ -135,6 +148,7 @@ function PlaylistDetailComponent() {
       setPlaylist(data)
       setEditTitle(data.title)
       setEditDescription(data.description || '')
+      setEditCoverUrl(data.coverImageUrl || null)
       setEditVisibility(data.visibility)
       setEditAllowDuplicates(data.allowDuplicates)
       setEditAllowComments(data.allowComments ?? true)
@@ -173,6 +187,7 @@ function PlaylistDetailComponent() {
       hlsManifestUrl: song.hlsManifestUrl || track.hlsManifestUrl || undefined,
       rawAudioKey: song.rawAudioKey || (track as any).rawAudioKey || undefined,
       isExplicit: song.isExplicit ?? track.isExplicit ?? false,
+      scope: song.scope || (track as any).scope || 'GLOBAL',
       credits: song.credits || (track as any).credits,
     }
   }
@@ -270,6 +285,33 @@ function PlaylistDetailComponent() {
     } finally {
       setIsCloning(false)
     }
+  }
+
+  // Copy share link
+  const handleCopyShareLink = async () => {
+    if (!playlist) return
+    let shareUrl = `${window.location.origin}/playlists/${playlist.id}`
+    if (playlist.visibility === 'UNLISTED' && playlist.shareToken) {
+      shareUrl = `${window.location.origin}/playlists/${playlist.id}?shareToken=${playlist.shareToken}`
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: playlist.title,
+          text: `Check out ${playlist.title} on Groovy`,
+          url: shareUrl,
+        })
+        return
+      } catch {
+        // Fallback to clipboard
+      }
+    }
+
+    await navigator.clipboard.writeText(shareUrl)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2000)
+    showToast('Share link copied to clipboard!', 'success')
   }
 
   // Join collaboration via token
@@ -387,7 +429,7 @@ function PlaylistDetailComponent() {
     const [moved] = newTracks.splice(fromIndex, 1)
     newTracks.splice(toIndex, 0, moved)
 
-    // Optimistic sequential position update so track numbering reflects new order immediately
+    // Optimistic sequential position update
     const reorderedTracks = newTracks.map((t, idx) => ({ ...t, position: idx }))
     setPlaylist((prev) => (prev ? { ...prev, tracks: reorderedTracks } : null))
 
@@ -447,24 +489,76 @@ function PlaylistDetailComponent() {
     }
   }
 
-  // Update playlist metadata
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // File picker handler for custom artwork
+  const handleArtworkFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setCropImageFile(file)
+    setIsCropModalOpen(true)
+  }
+
+  // Crop completion & Cloudflare R2 upload
+  const handleArtworkCropComplete = async (croppedFile: File) => {
+    if (!playlist) return
+    setIsUploadingArtwork(true)
+    try {
+      const publicUrl = await playlistsApi.uploadPlaylistCover(
+        playlist.id,
+        croppedFile,
+      )
+      await playlistsApi.updatePlaylist(playlist.id, {
+        coverImageUrl: publicUrl,
+      })
+      setPlaylist((prev) =>
+        prev ? { ...prev, coverImageUrl: publicUrl } : null,
+      )
+      setEditCoverUrl(publicUrl)
+      showToast('Playlist artwork updated!', 'success')
+      setIsCropModalOpen(false)
+      setCropImageFile(null)
+    } catch (err: any) {
+      showToast(err.message || 'Failed to upload artwork', 'error')
+    } finally {
+      setIsUploadingArtwork(false)
+    }
+  }
+
+  // Remove custom artwork & revert to dynamic mosaic
+  const handleRemoveArtwork = async () => {
+    if (!playlist) return
+    try {
+      await playlistsApi.updatePlaylist(playlist.id, { coverImageUrl: null })
+      setPlaylist((prev) => (prev ? { ...prev, coverImageUrl: null } : null))
+      setEditCoverUrl(null)
+      showToast('Reverted to dynamic track mosaic', 'info')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to revert artwork', 'error')
+    }
+  }
+
+  // Update playlist metadata & settings
+  const handleSaveSettings = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!playlist) return
 
+    setIsSavingSettings(true)
     try {
       const updated = await playlistsApi.updatePlaylist(playlist.id, {
         title: editTitle.trim(),
         description: editDescription.trim() || null,
+        coverImageUrl: editCoverUrl,
         visibility: editVisibility,
         allowDuplicates: editAllowDuplicates,
         allowComments: editAllowComments,
       })
       setPlaylist((prev) => (prev ? { ...prev, ...updated } : null))
-      setIsEditModalOpen(false)
-      showToast('Playlist settings saved', 'success')
+      setIsSettingsModalOpen(false)
+      showToast('Playlist settings updated', 'success')
     } catch (err: any) {
       showToast(err.message || 'Failed to update playlist', 'error')
+    } finally {
+      setIsSavingSettings(false)
     }
   }
 
@@ -492,31 +586,31 @@ function PlaylistDetailComponent() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-16 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.14em] text-ink-soft animate-pulse">
-          Loading playlist acoustics...
-        </p>
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+        Retrieving playlist acoustics &amp; curation...
       </div>
     )
   }
 
   if (errorMsg || !playlist) {
     return (
-      <div className="max-w-xl mx-auto px-5 py-20 text-center">
-        <div className="p-8 border border-red-500/40 bg-panel shadow-md">
-          <h2 className="font-serif italic text-2xl text-ink">
-            Access Restricted
-          </h2>
-          <p className="font-mono text-xs text-ink-soft mt-2">
-            {errorMsg || 'Playlist not found'}
-          </p>
-          <Link
-            to="/"
-            className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas"
-          >
-            ← Back home
-          </Link>
-        </div>
+      <div className="max-w-xl mx-auto py-24 px-6 text-center">
+        <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">
+          404 Catalog Notice
+        </span>
+        <h1 className="font-serif italic text-3xl text-ink">
+          Playlist Not Found
+        </h1>
+        <p className="font-sans text-xs text-ink-soft mt-3 leading-relaxed">
+          {errorMsg ||
+            'The requested playlist could not be located in the archive.'}
+        </p>
+        <Link
+          to="/playlists"
+          className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors rounded"
+        >
+          &larr; Return to Playlists
+        </Link>
       </div>
     )
   }
@@ -528,275 +622,756 @@ function PlaylistDetailComponent() {
     (!!user && (playlist.collaborators ?? []).some((c) => c.userId === user.id))
   const canEdit = isOwner || isCollaborator
 
+  const mosaicCovers =
+    playlist.mosaicCovers || (playlist as any).mosaicCoverUrls || []
+
   return (
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full space-y-10">
+    <div className="w-full pb-20 select-none">
+      {/* Hidden File Input for Artwork Upload */}
+      <input
+        ref={artworkFileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/avif"
+        onChange={handleArtworkFileSelect}
+        className="hidden"
+      />
+
       {/* ===================== COLLABORATION INVITE / STATUS BANNER ===================== */}
       {collabToken && !isOwner && isCollaborator && (
-        <div className="p-4 border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-between gap-4 flex-wrap shadow-xs">
-          <div>
-            <h4 className="font-serif italic text-base text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-              <span>✓</span> You are a Collaborator on this playlist
-            </h4>
-            <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
-              You have already joined as a collaborator. You can add tracks and
-              reorder tracks.
-            </p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-4">
+          <div className="p-4 border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-between gap-4 flex-wrap rounded-lg shadow-xs">
+            <div>
+              <h4 className="font-serif italic text-base text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                <span>✓</span> You are a Collaborator on this playlist
+              </h4>
+              <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
+                You have already joined as a collaborator. You can add tracks
+                and reorder the tracklist.
+              </p>
+            </div>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] py-1.5 px-3 border border-emerald-500/30 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold rounded">
+              Active Collaborator
+            </span>
           </div>
-          <span className="font-mono text-[11px] uppercase tracking-[0.14em] py-1.5 px-3 border border-emerald-500/30 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold">
-            Already Joined
-          </span>
         </div>
       )}
 
       {collabToken && !isOwner && !isCollaborator && (
-        <div className="p-4 border border-blue bg-blue/10 flex items-center justify-between gap-4 flex-wrap shadow-xs">
-          <div>
-            <h4 className="font-serif italic text-base text-ink">
-              Collaborator Invitation
-            </h4>
-            <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
-              You were invited to contribute tracks and curate this playlist.
-            </p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-4">
+          <div className="p-4 border border-blue bg-blue/10 flex items-center justify-between gap-4 flex-wrap rounded-lg shadow-xs">
+            <div>
+              <h4 className="font-serif italic text-base text-ink">
+                Collaborator Invitation
+              </h4>
+              <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
+                You were invited to contribute tracks and curate this playlist
+                with the community.
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isJoiningCollab}
+              onClick={handleJoinCollaboration}
+              className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-blue text-canvas font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs rounded"
+            >
+              {isJoiningCollab
+                ? 'Joining...'
+                : '✦ Accept & Join as Collaborator'}
+            </button>
           </div>
-          <button
-            type="button"
-            disabled={isJoiningCollab}
-            onClick={handleJoinCollaboration}
-            className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-blue text-canvas font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
-          >
-            {isJoiningCollab ? 'Joining...' : '✦ Accept & Join as Collaborator'}
-          </button>
         </div>
       )}
 
       {collabJoinSuccess && (
-        <div className="p-3 border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400 font-mono text-xs">
-          ✓ {collabJoinSuccess}
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-4">
+          <div className="p-3 border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400 font-mono text-xs rounded">
+            ✓ {collabJoinSuccess}
+          </div>
         </div>
       )}
 
       {/* ===================== PLAYLIST HERO HEADER ===================== */}
-      <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
-          {/* Mosaic / Artwork Container */}
-          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-canvas-deep border border-line shadow-md overflow-hidden relative">
-            <PlaylistCover
-              coverImageUrl={playlist.coverImageUrl}
-              mosaicCovers={playlist.mosaicCovers}
-              title={playlist.title}
-              className="w-full h-full"
+      <section className="relative overflow-hidden border-b border-line bg-canvas">
+        {/* Ambient / Atmospheric Banner */}
+        <div className="relative h-44 overflow-hidden bg-canvas-deep">
+          {playlist.coverImageUrl ? (
+            <img
+              src={playlist.coverImageUrl}
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover blur-3xl scale-125 opacity-25 dark:opacity-20 select-none pointer-events-none"
             />
+          ) : mosaicCovers.length > 0 ? (
+            <img
+              src={mosaicCovers[0]}
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover blur-3xl scale-125 opacity-25 dark:opacity-20 select-none pointer-events-none"
+            />
+          ) : (
+            <div className="w-full h-full relative flex items-center justify-center">
+              <SvgArtworkSpiral />
+              <span className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-ink-soft/10 select-none">
+                {playlist.title}
+              </span>
+            </div>
+          )}
+
+          {/* Editorial gradient overlay */}
+          <div className="absolute inset-0 bg-linear-to-t from-canvas via-canvas/40 to-transparent" />
+
+          {/* Top-Right Floating Share Button */}
+          <div className="absolute top-4 left-4 right-4 flex justify-end pointer-events-none">
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
+            >
+              {copiedLink ? '✓ Copied' : 'Share'}
+            </button>
           </div>
+        </div>
 
-          {/* Details & Actions */}
-          <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
-            {/* Badges */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-[9px] uppercase tracking-[0.16em]">
-              <span className="px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
-                Playlist
-              </span>
-              <span className="px-2 py-0.5 border border-line text-ink-soft">
-                {playlist.visibility}
-              </span>
-              {playlist.isCollaborative && (
-                <span className="px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold">
-                  🤝 Collaborative
-                </span>
-              )}
-              {playlist.allowDuplicates && (
-                <span className="px-2 py-0.5 border border-stone/50 text-ink-soft">
-                  Duplicates Allowed
-                </span>
+        {/* Identity & Metadata Container */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-8">
+          <div className="relative -mt-16 sm:-mt-24 md:-mt-28 pb-6 sm:pb-8 flex flex-col md:flex-row md:items-end gap-6 sm:gap-8">
+            {/* Cover Art Container with Pencil Overlay */}
+            <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-md bg-canvas-deep border border-line shadow-md overflow-hidden shrink-0 relative group mx-auto md:mx-0">
+              <PlaylistCover
+                coverImageUrl={playlist.coverImageUrl}
+                mosaicCovers={mosaicCovers}
+                title={playlist.title}
+                className="w-full h-full"
+              />
+
+              {/* Pencil Edit Icon Button on Hero Artwork */}
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => artworkFileInputRef.current?.click()}
+                  className="absolute bottom-2.5 right-2.5 p-2 rounded-full bg-black/75 hover:bg-black text-white backdrop-blur-xs transition-all opacity-85 group-hover:opacity-100 shadow-md cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
+                  title="Change playlist artwork"
+                  aria-label="Change playlist artwork"
+                >
+                  <EditIconSVG className="w-4 h-4" />
+                </button>
               )}
             </div>
 
-            {/* Title */}
-            <h1 className="font-serif italic text-3xl sm:text-5xl text-ink tracking-tight leading-tight truncate">
-              {playlist.title}
-            </h1>
+            {/* Playlist Identity & Details */}
+            <div className="min-w-0 flex-1 flex flex-col justify-end text-center md:text-left">
+              {/* Badges / Eyebrow */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-blue font-semibold rounded">
+                  Playlist
+                </span>
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line text-ink-soft rounded">
+                  {playlist.visibility}
+                </span>
+                {playlist.isCollaborative && (
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1 rounded">
+                    <span>🤝</span>
+                    <span>Collaborative</span>
+                  </span>
+                )}
+                {playlist.allowDuplicates && (
+                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-stone/50 text-ink-soft rounded">
+                    Duplicates Allowed
+                  </span>
+                )}
+              </div>
 
-            {/* Description */}
-            {playlist.description && (
-              <p className="font-sans text-xs text-ink-soft max-w-2xl leading-relaxed">
-                {playlist.description}
-              </p>
-            )}
+              {/* Title */}
+              <h1 className="font-serif italic text-3xl sm:text-5xl md:text-6xl leading-[0.95] tracking-[-0.03em] text-ink wrap-break-words">
+                {playlist.title}
+              </h1>
 
-            {/* Curator Attribution & Counts */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-xs text-ink-soft pt-1">
-              <span className="text-ink font-serif italic text-sm">
-                Curated by {playlist.ownerDisplayName || 'Anonymous Curator'}
-              </span>
-              <span>&bull;</span>
-              <span>
-                {playlist.tracksCount ?? (playlist.tracks ?? []).length} Cuts
-              </span>
-              <span>&bull;</span>
-              <span>{formatDuration(playlist.totalDurationSeconds ?? 0)}</span>
-              <span>&bull;</span>
-              <span>{playlist.savesCount ?? 0} Saves</span>
-            </div>
+              {/* Curator Attribution & Aggregate Stats */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1.5 mt-3 font-mono text-[10px] sm:text-[11px] text-ink-soft">
+                {playlist.ownerId ? (
+                  <Link
+                    to="/users/$id"
+                    params={{ id: playlist.ownerId }}
+                    className="font-serif italic text-base sm:text-lg text-ink hover:text-blue transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <span>
+                      Curated by {playlist.ownerDisplayName || 'Curator'}
+                    </span>
+                  </Link>
+                ) : (
+                  <span className="font-serif italic text-base sm:text-lg text-ink">
+                    Curated by {playlist.ownerDisplayName || 'Curator'}
+                  </span>
+                )}
 
-            {/* Action Bar */}
-            <div className="flex items-center gap-3 pt-3 flex-wrap">
-              {/* Play First Track */}
-              {(playlist.tracks ?? []).length > 0 &&
-                (playlist.tracks[0].song || playlist.tracks[0]).isStreamable !==
-                  false && (
+                <span className="text-ink-soft/50">&bull;</span>
+
+                <span>
+                  {(playlist.tracks ?? []).length}{' '}
+                  {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
+                </span>
+
+                <span className="text-ink-soft/50">&bull;</span>
+
+                <span>
+                  {formatDuration(playlist.totalDurationSeconds ?? 0)}
+                </span>
+
+                <span className="text-ink-soft/50">&bull;</span>
+
+                <span>
+                  {(playlist.savesCount ?? 0).toLocaleString()}{' '}
+                  {(playlist.savesCount ?? 0) === 1 ? 'save' : 'saves'}
+                </span>
+              </div>
+
+              {playlist.description && (
+                <p className="font-sans text-xs text-ink-soft leading-relaxed mt-2.5 max-w-2xl mx-auto md:mx-0">
+                  {playlist.description}
+                </p>
+              )}
+
+              {/* Actions Bar */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-center md:justify-start gap-2 pt-4">
+                {/* 1. Play Button */}
+                {(playlist.tracks ?? []).length > 0 && (
                   <button
                     type="button"
                     onClick={handlePlayPlaylistFromStart}
-                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[10px] uppercase tracking-[0.12em] font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
-                    <span>Play</span>
+                    <span>Play Playlist</span>
                   </button>
                 )}
 
-              {/* 0ms Optimistic Save Bookmark */}
-              <button
-                type="button"
-                onClick={handleToggleSave}
-                className={`font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-5 border transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
-                  saved
-                    ? 'border-blue bg-blue/10 text-blue font-semibold'
-                    : 'border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink'
-                }`}
-              >
-                <HeartIconSVG className="w-3.5 h-3.5" filled={saved} />
-                <span>{saved ? 'Saved' : 'Save'}</span>
-              </button>
-
-              {/* Clone Playlist Button */}
-              <button
-                type="button"
-                disabled={isCloning}
-                onClick={handleClonePlaylist}
-                className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer shadow-2xs"
-              >
-                <span>{isCloning ? 'Cloning...' : '✦ Clone to Library'}</span>
-              </button>
-
-              {/* Share Link (if Unlisted) */}
-              {playlist.shareToken && (
+                {/* 2. Save / Like Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    const url = `${window.location.origin}/playlists/${playlist.id}?shareToken=${playlist.shareToken}`
-                    navigator.clipboard.writeText(url)
-                    setCopiedLink(true)
-                    setTimeout(() => setCopiedLink(false), 2000)
-                  }}
-                  className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer"
+                  onClick={handleToggleSave}
+                  className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-4 sm:px-5 font-mono text-[10px] uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+                    saved
+                      ? 'border border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-400'
+                      : 'border border-line bg-panel text-ink hover:border-ink'
+                  }`}
                 >
-                  <span>{copiedLink ? '✓ Link Copied!' : '🔗 Share Link'}</span>
+                  <HeartIconSVG
+                    filled={saved}
+                    className={`w-3.5 h-3.5 ${saved ? 'text-red-500' : 'text-ink-soft'}`}
+                  />
+                  <span>{(playlist.savesCount ?? 0).toLocaleString()}</span>
                 </button>
-              )}
 
-              {/* Collaboration Hub */}
-              {(isOwner || playlist.isCollaborative) && (
-                <button
-                  type="button"
-                  onClick={() => setIsCollabModalOpen(true)}
-                  className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer"
-                >
-                  <span>
-                    👥 Collaborators ({(playlist.collaborators ?? []).length})
-                  </span>
-                </button>
-              )}
-
-              {/* Settings / Edit (Owner only) */}
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-canvas hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer"
-                >
-                  <EditIconSVG className="w-3.5 h-3.5" />
-                  <span>Settings</span>
-                </button>
-              )}
-
-              {/* Delete (Owner only) */}
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={handleDeletePlaylist}
-                  className="font-mono text-xs uppercase tracking-[0.14em] p-2.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-500 transition-colors cursor-pointer ml-auto"
-                  title="Delete playlist"
-                >
-                  <TrashIconSVG className="w-3.5 h-3.5" />
-                </button>
-              )}
+                {/* 3. Add Songs Trigger (if canEdit) */}
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddTracksModalOpen(true)}
+                    className="rounded inline-flex items-center justify-center gap-1.5 min-h-10 px-4 sm:px-5 font-mono text-[10px] uppercase tracking-[0.12em] border border-line bg-panel text-ink hover:border-ink transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <PlusIconSVG className="w-3.5 h-3.5 text-ink-soft" />
+                    <span>Add Songs</span>
+                  </button>
+                )}
+                {/* 5. Action Menu (3-dot menu with Clone to Library, Queueing, Sharing, etc.) */}
+                <PlaylistActionMenu
+                  playlist={playlist}
+                  tracks={(playlist.tracks || []).map(toPlayerTrack)}
+                  isOwner={isOwner}
+                  canEdit={canEdit}
+                  onClone={handleClonePlaylist}
+                  onOpenSettings={() => setIsSettingsModalOpen(true)}
+                  onDeleteRequest={handleDeletePlaylist}
+                  buttonClassName="rounded inline-flex items-center justify-center min-h-10 min-w-10 px-3 border border-line bg-panel hover:bg-canvas text-ink transition-colors shadow-2xs cursor-pointer"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ===================== TRACKLIST SECTION ===================== */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-baseline border-b border-line pb-3">
-          <div className="flex items-center gap-3">
-            <h2 className="font-serif italic font-medium text-xl text-ink">
-              Tracklist
-            </h2>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
+      {/* ===================== MAIN CONTENT ===================== */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-8 sm:mt-10 space-y-8">
+        {/* ===================== TRACKLIST SECTION ===================== */}
+        <div className="space-y-3 px-1">
+          <div className="flex justify-between items-baseline border-b border-line pb-2">
+            <div className="flex items-center gap-2">
+              <h2 className="font-serif italic text-xl sm:text-2xl text-ink font-semibold">
+                Master Tracklist
+              </h2>
+            </div>
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
               {(playlist.tracks ?? []).length}{' '}
               {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
           </div>
 
-          {/* Add tracks trigger */}
-          {canEdit && (
-            <button
-              type="button"
-              onClick={() => setIsAddTracksModalOpen(true)}
-              className="inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-panel text-ink hover:border-ink transition-colors cursor-pointer"
-            >
-              <PlusIconSVG className="w-3 h-3" />
-              <span>Add Songs</span>
-            </button>
+          {(playlist.tracks ?? []).length === 0 ? (
+            <div className="p-12 border border-dashed border-line bg-panel/30 text-center rounded-md">
+              <p className="font-serif italic text-base text-ink">
+                This playlist is currently empty.
+              </p>
+              {canEdit ? (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddTracksModalOpen(true)}
+                    className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas rounded hover:opacity-90 transition-opacity cursor-pointer font-medium"
+                  >
+                    + Add Songs
+                  </button>
+                </div>
+              ) : (
+                <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+                  Check back soon as the curator adds more cuts.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="border border-line rounded-md overflow-hidden bg-panel divide-y divide-line/60 shadow-2xs">
+              {/* Desktop Tracklist Column Header */}
+              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/40 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <span className="w-6 text-center">#</span>
+                  <span>Title &amp; Artist</span>
+                </div>
+                <div className="w-32 text-left hidden md:block">Added By</div>
+                <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 min-w-[100px] pr-2">
+                  <span>Duration</span>
+                </div>
+              </div>
+
+              <PlaylistTrackReorderList
+                tracks={playlist.tracks ?? []}
+                canEdit={canEdit}
+                toPlayerTrack={toPlayerTrack}
+                onReorder={handleReorderTracks}
+                onPlayTrack={handlePlayTrack}
+                onRemoveTrack={handleRemoveTrack}
+              />
+            </div>
           )}
         </div>
 
-        {(playlist.tracks ?? []).length === 0 ? (
-          <div className="p-16 border border-dashed border-line bg-panel text-center">
-            <p className="font-serif italic text-base text-ink">
-              This playlist is currently empty.
-            </p>
-            {canEdit && (
-              <p className="font-mono text-[10.5px] text-ink-soft mt-1">
-                Click 'Add Songs' above to build your tracklist.
-              </p>
-            )}
-          </div>
-        ) : (
-          <PlaylistTrackReorderList
-            tracks={playlist.tracks ?? []}
-            canEdit={canEdit}
-            toPlayerTrack={toPlayerTrack}
-            onReorder={handleReorderTracks}
-            onPlayTrack={handlePlayTrack}
-            onRemoveTrack={handleRemoveTrack}
+        {/* ===================== COMMENTS SUBSYSTEM ===================== */}
+        <div className="pt-4">
+          <CommentSection
+            targetType="playlist"
+            targetId={playlist.id}
+            allowComments={playlist.allowComments ?? true}
+            isCreatorOrOwner={isOwner}
           />
-        )}
+        </div>
       </div>
 
-      {/* Nested Comments Subsystem */}
-      <CommentSection
-        targetType="playlist"
-        targetId={playlist.id}
-        allowComments={playlist.allowComments ?? true}
-        isCreatorOrOwner={isOwner}
+      {/* ===================== SINGLE SCROLLABLE SETTINGS MODAL ===================== */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-xl border border-line bg-panel rounded-2xl shadow-2xl relative flex flex-col max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Sticky Modal Header */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-line bg-panel shrink-0">
+              <div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue block mb-1 font-semibold">
+                  Playlist Settings
+                </span>
+                <h3 className="font-serif italic text-2xl sm:text-3xl text-ink font-semibold">
+                  Settings &amp; Curation
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="p-1.5 text-ink-soft hover:text-ink rounded-full hover:bg-canvas-soft transition-colors cursor-pointer text-base"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Modal Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7">
+              {/* SECTION 1: ARTWORK STUDIO */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft font-semibold">
+                    Playlist Artwork
+                  </label>
+                  <span className="font-mono text-[9px] uppercase px-2 py-0.5 rounded-full border border-line bg-canvas text-ink-soft">
+                    {editCoverUrl ? 'Custom Cover' : 'Dynamic 2x2 Mosaic'}
+                  </span>
+                </div>
+
+                <div className="p-4 border border-line rounded-xl bg-canvas flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  {/* Artwork Preview */}
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-canvas-deep border border-line overflow-hidden shrink-0 relative shadow-sm">
+                    <PlaylistCover
+                      coverImageUrl={editCoverUrl}
+                      mosaicCovers={mosaicCovers}
+                      title={editTitle || playlist.title}
+                      className="w-full h-full"
+                    />
+                    {isUploadingArtwork && (
+                      <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-[9px] text-ink animate-pulse text-center p-1">
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions & Specs */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        disabled={isUploadingArtwork}
+                        onClick={() => artworkFileInputRef.current?.click()}
+                        className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-2 px-3.5 bg-ink text-canvas rounded-xl hover:opacity-90 transition-opacity cursor-pointer font-medium flex items-center gap-2 shadow-2xs"
+                      >
+                        <UploadCloudSVG className="w-3.5 h-3.5" />
+                        <span>
+                          {editCoverUrl
+                            ? 'Change Artwork'
+                            : 'Upload Custom Artwork'}
+                        </span>
+                      </button>
+
+                      {editCoverUrl && (
+                        <button
+                          type="button"
+                          disabled={isUploadingArtwork}
+                          onClick={handleRemoveArtwork}
+                          className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-2 px-3 border border-line bg-panel hover:bg-canvas-soft text-ink-soft hover:text-ink rounded-xl transition-colors cursor-pointer"
+                        >
+                          Revert to Mosaic
+                        </button>
+                      )}
+                    </div>
+                    <p className="font-sans text-xs text-ink-soft leading-relaxed">
+                      Recommended: 1000 × 1000px square image (JPG, PNG, WEBP).
+                      An interactive 1:1 cropper will guide you before upload.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: NAME & DESCRIPTION */}
+              <div className="space-y-4 pt-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft font-semibold block">
+                  Curation Details
+                </label>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                    Playlist Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="e.g. Late Night Synthwave"
+                    className="w-full font-sans text-sm p-3 border border-line bg-canvas rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Add an optional description or notes about this curation..."
+                    className="w-full font-sans text-xs p-3 border border-line bg-canvas rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* SECTION 3: ACCESS & RULES */}
+              <div className="space-y-4 pt-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft font-semibold block">
+                  Access &amp; Rules
+                </label>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+                    Visibility Mode
+                  </label>
+                  <select
+                    value={editVisibility}
+                    onChange={(e: any) => setEditVisibility(e.target.value)}
+                    className="w-full font-mono text-xs p-3 border border-line bg-canvas rounded-xl text-ink cursor-pointer focus:outline-none focus:border-ink"
+                  >
+                    <option value="PUBLIC">
+                      Public &bull; Discoverable by all listeners on /playlists
+                    </option>
+                    <option value="UNLISTED">
+                      Unlisted &bull; Accessible only via direct share link
+                    </option>
+                    <option value="PRIVATE">
+                      Private &bull; Accessible only to you and collaborators
+                    </option>
+                  </select>
+                </div>
+
+                <div className="space-y-2.5">
+                  <label className="flex items-start gap-3 p-3.5 border border-line bg-canvas rounded-xl cursor-pointer hover:border-ink/60 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editAllowDuplicates}
+                      onChange={(e) => setEditAllowDuplicates(e.target.checked)}
+                      className="accent-blue mt-0.5"
+                    />
+                    <div>
+                      <span className="font-mono text-xs text-ink font-semibold block">
+                        Allow Duplicate Songs
+                      </span>
+                      <span className="font-sans text-xs text-ink-soft mt-0.5 block">
+                        Permit adding the same cut multiple times to this
+                        playlist.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3.5 border border-line bg-canvas rounded-xl cursor-pointer hover:border-ink/60 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editAllowComments}
+                      onChange={(e) => setEditAllowComments(e.target.checked)}
+                      className="accent-blue mt-0.5"
+                    />
+                    <div>
+                      <span className="font-mono text-xs text-ink font-semibold block">
+                        Allow Discussion &amp; Comments
+                      </span>
+                      <span className="font-sans text-xs text-ink-soft mt-0.5 block">
+                        Enable community listeners and collaborators to leave
+                        comments.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* SECTION 4: COLLABORATION */}
+              <div className="space-y-4 pt-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft font-semibold block">
+                  Collaboration
+                </label>
+
+                {/* Toggle Collaboration (Owner only) */}
+                {isOwner && (
+                  <div className="flex items-center justify-between p-4 border border-line bg-canvas rounded-xl gap-4">
+                    <div>
+                      <h4 className="font-serif italic text-base text-ink font-medium">
+                        Collaborative Curation
+                      </h4>
+                      <p className="font-mono text-[10.5px] text-ink-soft mt-0.5">
+                        When enabled, invited users can add, remove, and reorder
+                        tracks.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isUpdatingCollab}
+                      onClick={handleToggleCollabSetting}
+                      className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border rounded-full transition-colors cursor-pointer shrink-0 font-medium ${
+                        playlist.isCollaborative
+                          ? 'border-blue bg-blue text-canvas'
+                          : 'border-line bg-panel text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      {playlist.isCollaborative ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Invite Link Section */}
+                {playlist.isCollaborative && playlist.collaborationToken && (
+                  <div className="space-y-2 p-4 border border-line rounded-xl bg-canvas/40">
+                    <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
+                      Collaboration Invite Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={`${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`}
+                        className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink select-all rounded-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = `${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`
+                          navigator.clipboard.writeText(url)
+                          showToast(
+                            'Invite link copied to clipboard!',
+                            'success',
+                          )
+                        }}
+                        className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas shrink-0 cursor-pointer rounded-xl font-medium"
+                      >
+                        Copy
+                      </button>
+                    </div>
+
+                    {isOwner && (
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          disabled={isUpdatingCollab}
+                          onClick={handleRegenerateCollabToken}
+                          className="font-mono text-[10px] uppercase tracking-[0.14em] text-red-500 hover:underline cursor-pointer"
+                        >
+                          Regenerate Link (Revoke Old Invitations)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Active Collaborators */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
+                      Active Collaborators (
+                      {(playlist.collaborators ?? []).length})
+                    </span>
+                  </div>
+
+                  {(playlist.collaborators ?? []).length === 0 ? (
+                    <div className="p-4 border border-dashed border-line rounded-xl text-center font-mono text-xs text-ink-soft">
+                      No collaborators have joined this playlist yet.
+                    </div>
+                  ) : (
+                    <div className="border border-line rounded-xl overflow-hidden divide-y divide-line/60 bg-canvas">
+                      {(playlist.collaborators ?? []).map((collab: any) => (
+                        <div
+                          key={collab.userId}
+                          className="p-3 flex items-center justify-between gap-3"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-panel border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft overflow-hidden shrink-0">
+                              {collab.user?.avatarUrl ? (
+                                <img
+                                  src={collab.user.avatarUrl}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                (collab.user?.displayName ||
+                                  'C')[0].toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-serif italic text-sm text-ink truncate font-medium">
+                                {collab.user?.displayName || 'Collaborator'}
+                              </div>
+                              <div className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                                Joined{' '}
+                                {new Date(collab.joinedAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+
+                          {isOwner && collab.userId !== user?.id && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleKickCollaborator(collab.userId)
+                              }
+                              className="font-mono text-[10px] uppercase tracking-wider text-red-500 hover:text-red-600 px-2.5 py-1 border border-red-500/20 hover:border-red-500/40 rounded transition-colors cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* SECTION 5: DANGER ZONE (Owner only) */}
+              {isOwner && (
+                <div className="space-y-3 pt-2">
+                  <label className="font-mono text-[10px] uppercase tracking-[0.14em] text-red-500 font-semibold block">
+                    Danger Zone
+                  </label>
+
+                  <div className="p-4 sm:p-5 border border-red-500/30 bg-red-500/5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-serif italic text-base text-red-600 dark:text-red-400 font-semibold">
+                        Delete this Playlist
+                      </h4>
+                      <p className="font-sans text-xs text-ink-soft mt-0.5">
+                        Permanently remove this playlist, track listings, and
+                        collaborator permissions.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSettingsModalOpen(false)
+                        handleDeletePlaylist()
+                      }}
+                      className="font-mono text-xs uppercase tracking-[0.14em] py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold shadow-xs cursor-pointer flex items-center gap-2 shrink-0"
+                    >
+                      <TrashIconSVG className="w-3.5 h-3.5" />
+                      <span>Delete Playlist</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sticky Modal Actions Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-line bg-panel shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-5 border border-line text-ink-soft hover:text-ink rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSavingSettings}
+                onClick={() => handleSaveSettings()}
+                className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-ink text-canvas font-semibold hover:opacity-90 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isSavingSettings ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ARTWORK CROP MODAL ===================== */}
+      <ImageCropModal
+        isOpen={isCropModalOpen}
+        onClose={() => {
+          setIsCropModalOpen(false)
+          setCropImageFile(null)
+        }}
+        imageFile={cropImageFile}
+        title="Crop Playlist Artwork"
+        subtitle="1:1 Square High-Resolution Artwork"
+        aspectRatio={1}
+        isCircularMask={false}
+        targetMaxWidth={1200}
+        targetMaxHeight={1200}
+        isSubmitting={isUploadingArtwork}
+        onCropComplete={handleArtworkCropComplete}
       />
 
       {/* ===================== ADD SONGS MODAL ===================== */}
       {isAddTracksModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg border border-line bg-panel p-6 rounded-2xl shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
             <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
-              <h3 className="font-serif italic text-xl text-ink">
+              <h3 className="font-serif italic text-xl text-ink font-semibold">
                 Add Tracks to Playlist
               </h3>
               <button
@@ -809,7 +1384,7 @@ function PlaylistDetailComponent() {
             </div>
 
             {addTrackError && (
-              <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[10.5px]">
+              <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[10.5px] rounded">
                 {addTrackError}
               </div>
             )}
@@ -819,13 +1394,13 @@ function PlaylistDetailComponent() {
                 type="text"
                 value={songSearchQuery}
                 onChange={(e) => setSongSearchQuery(e.target.value)}
-                placeholder="Search catalog by song title or lyrics..."
-                className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                placeholder="Search catalog by song title or artist..."
+                className="w-full font-mono text-xs p-2.5 border border-line bg-canvas rounded-xl text-ink focus:outline-none focus:border-ink"
                 autoFocus
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-line/60 border border-line mb-4 min-h-[160px]">
+            <div className="flex-1 overflow-y-auto divide-y divide-line/60 border border-line rounded-xl mb-4 min-h-[160px] bg-canvas">
               {isSearchingSongs ? (
                 <div className="p-8 text-center font-mono text-xs text-ink-soft">
                   Searching cuts...
@@ -845,16 +1420,16 @@ function PlaylistDetailComponent() {
                       onClick={() => {
                         setSelectedSongIds((prev) =>
                           isSelected
-                            ? prev.filter((id) => id !== s.id)
+                            ? prev.filter((songId) => songId !== s.id)
                             : [...prev, s.id],
                         )
                       }}
-                      className={`p-3 flex items-center justify-between cursor-pointer hover:bg-canvas-deep transition-colors ${
+                      className={`p-3 flex items-center justify-between cursor-pointer hover:bg-canvas-soft transition-colors ${
                         isSelected ? 'bg-blue/10' : ''
                       }`}
                     >
                       <div className="min-w-0 pr-3">
-                        <div className="font-serif text-sm text-ink truncate">
+                        <div className="font-serif italic text-sm text-ink truncate font-medium">
                           {s.title}
                         </div>
                         <div className="font-mono text-[10px] text-ink-soft">
@@ -881,7 +1456,7 @@ function PlaylistDetailComponent() {
                 <button
                   type="button"
                   onClick={() => setIsAddTracksModalOpen(false)}
-                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft"
+                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -889,7 +1464,7 @@ function PlaylistDetailComponent() {
                   type="button"
                   disabled={selectedSongIds.length === 0 || isAddingTracks}
                   onClick={handleAddTracksSubmit}
-                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 disabled:opacity-50"
+                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 disabled:opacity-50 rounded-xl cursor-pointer"
                 >
                   {isAddingTracks ? 'Adding...' : 'Add to Tracklist'}
                 </button>
@@ -899,296 +1474,33 @@ function PlaylistDetailComponent() {
         </div>
       )}
 
-      {/* ===================== EDIT SETTINGS MODAL ===================== */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
-          <div className="w-full max-w-md border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-line pb-3 mb-5">
-              <h3 className="font-serif italic text-xl text-ink">
-                Playlist Settings
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveSettings} className="space-y-4">
-              <div>
-                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  rows={2}
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                  Visibility
-                </label>
-                <select
-                  value={editVisibility}
-                  onChange={(e: any) => setEditVisibility(e.target.value)}
-                  className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink"
-                >
-                  <option value="PUBLIC">Public</option>
-                  <option value="UNLISTED">Unlisted</option>
-                  <option value="PRIVATE">Private</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Duplicate Songs
-                  </label>
-                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={editAllowDuplicates}
-                      onChange={(e) => setEditAllowDuplicates(e.target.checked)}
-                      className="accent-blue"
-                    />
-                    <span className="font-mono text-[10.5px] text-ink">
-                      Allow Dups
-                    </span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
-                    Discussion & Comments
-                  </label>
-                  <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={editAllowComments}
-                      onChange={(e) => setEditAllowComments(e.target.checked)}
-                      className="accent-blue"
-                    />
-                    <span className="font-mono text-[10.5px] text-ink">
-                      Allow Comments
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-line mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ===================== COLLABORATION HUB MODAL ===================== */}
-      {isCollabModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 space-y-6">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="font-serif italic text-xl text-ink">
-                Collaboration Manager
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsCollabModalOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Toggle Collaboration (Owner only) */}
-            {isOwner && (
-              <div className="flex items-center justify-between p-4 border border-line bg-canvas">
-                <div>
-                  <h4 className="font-serif text-sm text-ink">
-                    Allow Collaboration
-                  </h4>
-                  <p className="font-mono text-[10px] text-ink-soft mt-0.5">
-                    When enabled, users with the invite link can contribute
-                    tracks.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={isUpdatingCollab}
-                  onClick={handleToggleCollabSetting}
-                  className={`font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 border transition-colors ${
-                    playlist.isCollaborative
-                      ? 'border-blue bg-blue text-canvas'
-                      : 'border-line bg-panel text-ink-soft hover:text-ink'
-                  }`}
-                >
-                  {playlist.isCollaborative ? 'Enabled' : 'Disabled'}
-                </button>
-              </div>
-            )}
-
-            {/* Invite Link */}
-            {playlist.isCollaborative && playlist.collaborationToken && (
-              <div className="space-y-2">
-                <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
-                  Collaboration Invite Link
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`}
-                    className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink select-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const url = `${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`
-                      navigator.clipboard.writeText(url)
-                      showToast('Invite link copied to clipboard!', 'success')
-                    }}
-                    className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas shrink-0 cursor-pointer"
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                {isOwner && (
-                  <button
-                    type="button"
-                    disabled={isUpdatingCollab}
-                    onClick={handleRegenerateCollabToken}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-red-500 hover:underline pt-1 cursor-pointer"
-                  >
-                    Regenerate Token (Revoke Old Links)
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Collaborators List */}
-            {playlist.isCollaborative && (
-              <div className="space-y-2 pt-2 border-t border-line">
-                <h4 className="font-serif text-sm text-ink">
-                  Active Collaborators
-                </h4>
-                {(playlist.collaborators ?? []).length === 0 ? (
-                  <p className="font-mono text-[10.5px] text-ink-soft italic">
-                    No collaborators have joined yet. Share the invite link
-                    above!
-                  </p>
-                ) : (
-                  <div className="divide-y divide-line/60 border border-line max-h-48 overflow-y-auto">
-                    {(playlist.collaborators ?? []).map((c) => (
-                      <div
-                        key={c.userId}
-                        className="p-3 flex items-center justify-between font-mono text-xs text-ink"
-                      >
-                        <div>
-                          <div className="font-serif flex items-center gap-1.5">
-                            <span>
-                              {c.user?.displayName ||
-                                (c as any).displayName ||
-                                'Collaborator'}
-                            </span>
-                            {user && c.userId === user.id && (
-                              <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-bold">
-                                You
-                              </span>
-                            )}
-                          </div>
-                          <div className="font-mono text-[10px] text-ink-soft">
-                            Joined {new Date(c.joinedAt).toLocaleDateString()}
-                          </div>
-                        </div>
-
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => handleKickCollaborator(c.userId)}
-                            className="font-mono text-[10px] uppercase text-red-500 hover:underline cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end pt-3 border-t border-line">
-              <button
-                type="button"
-                onClick={() => setIsCollabModalOpen(false)}
-                className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===================== CONFIRMATION MODAL ===================== */}
+      {/* Confirmation Modal */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
-            <h3 className="font-serif italic text-xl text-ink font-semibold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm border border-line bg-panel p-6 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="font-serif italic text-xl text-ink font-semibold mb-2">
               {confirmModal.title}
             </h3>
-            <p className="font-mono text-xs text-ink-soft leading-relaxed">
+            <p className="font-sans text-xs text-ink-soft leading-relaxed mb-6">
               {confirmModal.description}
             </p>
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+            <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmModal(null)}
-                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  const action = confirmModal.onConfirm
+                  confirmModal.onConfirm()
                   setConfirmModal(null)
-                  action()
                 }}
-                className={`font-mono text-xs uppercase tracking-wider px-4 py-2 transition-colors cursor-pointer font-semibold shadow-xs ${
+                className={`font-mono text-xs uppercase tracking-wider py-2 px-5 rounded-xl font-semibold cursor-pointer ${
                   confirmModal.isDestructive
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-ink text-canvas hover:opacity-90'
                 }`}
               >
@@ -1199,22 +1511,9 @@ function PlaylistDetailComponent() {
         </div>
       )}
 
-      {/* ===================== TOAST FEEDBACK NOTIFICATION ===================== */}
+      {/* Floating Toast Notification */}
       {toastNotice && (
-        <div
-          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 shadow-2xl rounded-xs pointer-events-none animate-in fade-in duration-150 border ${
-            toastNotice.type === 'error'
-              ? 'bg-red-950 text-red-100 border-red-500/40'
-              : toastNotice.type === 'success'
-                ? 'bg-emerald-950 text-emerald-100 border-emerald-500/40'
-                : 'bg-ink text-canvas border-line'
-          }`}
-        >
-          {toastNotice.type === 'error'
-            ? '✕ '
-            : toastNotice.type === 'success'
-              ? '✓ '
-              : 'ℹ '}
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-xs px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
           {toastNotice.message}
         </div>
       )}

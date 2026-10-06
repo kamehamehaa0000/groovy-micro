@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface PlaylistCoverProps {
   coverImageUrl?: string | null;
@@ -13,14 +13,17 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
   title,
   className = "w-full h-full",
 }) => {
+  const [imageError, setImageError] = useState(false);
+
   // 1. Explicit curator-uploaded cover artwork
-  if (coverImageUrl) {
+  if (coverImageUrl && !imageError) {
     return (
       <img
         src={coverImageUrl}
         alt={title}
-        className={`object-cover ${className}`}
+        className={`w-full h-full object-cover ${className}`}
         loading="lazy"
+        onError={() => setImageError(true)}
       />
     );
   }
@@ -28,7 +31,7 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
   // 2. Client-side dynamic 2x2 CSS grid mosaic cover
   if (mosaicCovers && mosaicCovers.length >= 4) {
     return (
-      <div className={`grid grid-cols-2 grid-rows-2 overflow-hidden bg-stone/20 ${className}`}>
+      <div className={`w-full h-full grid grid-cols-2 grid-rows-2 overflow-hidden bg-canvas-deep ${className}`}>
         {mosaicCovers.slice(0, 4).map((imgUrl, index) => (
           <img
             key={index}
@@ -48,7 +51,7 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
       <img
         src={mosaicCovers[0]}
         alt={title}
-        className={`object-cover ${className}`}
+        className={`w-full h-full object-cover ${className}`}
         loading="lazy"
       />
     );
@@ -57,10 +60,10 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
   // 4. Fallback placeholder (Vinyl record / playlist groove icon)
   return (
     <div
-      className={`flex items-center justify-center bg-gradient-to-br from-stone/30 via-canvas to-stone/20 border border-line ${className}`}
+      className={`w-full h-full flex items-center justify-center bg-canvas-deep border border-line ${className}`}
     >
       <svg
-        className="w-1/3 h-1/3 text-ink-soft/40"
+        className="w-8 h-8 sm:w-10 sm:h-10 text-ink-soft/40"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

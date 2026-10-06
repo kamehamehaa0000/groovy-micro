@@ -109,13 +109,17 @@ export interface ReorderTracksInput {
 
 export interface SearchPlaylistsQuery {
   search?: string;
+  sort?: "popular" | "recent" | "tracks";
   page?: number;
   limit?: number;
 }
 
 export interface SearchPlaylistsResponse {
   data: Playlist[];
-  pagination: {
+  total: number;
+  page: number;
+  limit: number;
+  pagination?: {
     page: number;
     limit: number;
     total: number;

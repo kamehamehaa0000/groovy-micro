@@ -50,7 +50,11 @@ export function SongActionMenu({
   onRemoveFromPlaylist,
   customActions,
 }: SongActionMenuProps) {
-  const isPersonal = Boolean(propIsPersonal || track.scope === 'PERSONAL')
+  const isPersonal = Boolean(
+    propIsPersonal ||
+    track.scope?.toUpperCase() === 'PERSONAL' ||
+    (track as any).isPersonal
+  )
   const shouldHideShare = Boolean(hideShare || isPersonal)
   const isScheduled = Boolean(
     propIsScheduled ||

@@ -19,6 +19,7 @@ export const playlistsApi = {
   async searchPlaylists(query: SearchPlaylistsQuery = {}): Promise<SearchPlaylistsResponse> {
     const params = new URLSearchParams();
     if (query.search) params.append("search", query.search);
+    if (query.sort) params.append("sort", query.sort);
     if (query.page) params.append("page", String(query.page));
     if (query.limit) params.append("limit", String(query.limit));
 
@@ -83,6 +84,42 @@ export const playlistsApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     });
+  },
+
+  /**
+   * Upload custom playlist cover art image directly to Cloudflare R2 storage.
+   */
+  async uploadPlaylistCover(playlistId: string, file: File): Promise<string> {
+    const ext = file.name.split(".").pop() || "webp";
+
+    const presigned = await apiFetch<{
+      uploadUrl: string;
+      storageKey: string;
+      publicUrl: string;
+    }>("/api/v1/storage/presigned-url", {
+      method: "POST",
+      body: JSON.stringify({
+        category: "PLAYLIST_COVER",
+        resourceId: playlistId,
+        mimeType: file.type || "image/jpeg",
+        fileExtension: ext,
+        fileSizeBytes: file.size,
+      }),
+    });
+
+    const uploadRes = await fetch(presigned.uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "image/jpeg",
+      },
+      body: file,
+    });
+
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload playlist artwork to R2 (Status: ${uploadRes.status})`);
+    }
+
+    return presigned.publicUrl;
   },
 
   /**

@@ -110,7 +110,7 @@ export function LikedSongsPage() {
       rawAudioKey: s.rawAudioKey,
       isExplicit: s.isExplicit,
       isLiked: true,
-      scope: 'GLOBAL',
+      scope: s.scope || 'GLOBAL',
       credits: s.credits,
     }
   }, [])

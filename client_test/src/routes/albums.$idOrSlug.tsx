@@ -257,6 +257,7 @@ function AlbumDetailComponent() {
     rawAudioKey: song.rawAudioKey,
     isExplicit: song.isExplicit,
     credits: song.credits,
+    scope: song.scope || album?.scope || 'GLOBAL',
     isStreamable: isCreator
       ? true
       : song.isStreamable !== false && !album?.isUpcoming,
@@ -399,16 +400,18 @@ function AlbumDetailComponent() {
           {/* Editorial gradient */}
           <div className="absolute inset-0 bg-linear-to-t from-canvas via-canvas/40 to-transparent" />
 
-          {/* Top-Right Floating Share Button */}
-          <div className="absolute top-4 left-4 right-4 flex justify-end pointer-events-none">
-            <button
-              type="button"
-              onClick={handleCopyShareLink}
-              className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
-            >
-              {copiedLink ? '✓ Copied' : 'Share'}
-            </button>
-          </div>
+          {/* Top-Right Floating Share Button (Hidden for personal collection releases) */}
+          {album.scope !== 'PERSONAL' && (
+            <div className="absolute top-4 left-4 right-4 flex justify-end pointer-events-none">
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
+              >
+                {copiedLink ? '✓ Copied' : 'Share'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Identity & Metadata Container */}
@@ -718,6 +721,7 @@ function AlbumDetailComponent() {
                           ? album.scheduledReleaseAt
                           : undefined
                       }
+                      isPersonal={album.scope === 'PERSONAL' || track.scope === 'PERSONAL'}
                       onPlay={() => handlePlaySong(track, idx)}
                       hideGoToAlbum={true}
                     />

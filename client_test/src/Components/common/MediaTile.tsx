@@ -8,6 +8,7 @@ export interface MediaTileProps {
   title: string;
   subtitle?: React.ReactNode;
   imageUrl?: string | null;
+  customCover?: React.ReactNode;
   artistName?: string | null;
   badge?: React.ReactNode;
   isRoundImage?: boolean;
@@ -22,6 +23,7 @@ export function MediaTile({
   title,
   subtitle,
   imageUrl,
+  customCover,
   artistName,
   badge,
   isRoundImage = false,
@@ -43,25 +45,31 @@ export function MediaTile({
       >
         {/* Artwork wrapper with aspect square and optional badge indicator */}
         <div
-          className={`relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden ${roundedClass}`}
+          className={`relative aspect-square w-full mb-2.5 overflow-hidden ${roundedClass} bg-canvas-deep`}
         >
-          {imageUrl ? (
+          {customCover ? (
+            <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+              {customCover}
+            </div>
+          ) : imageUrl ? (
             <img
               src={imageUrl}
               alt={title}
               loading="lazy"
-              className={`w-full h-full object-cover shadow-sm shrink-0 bg-panel ${roundedClass}`}
+              className={`absolute inset-0 w-full h-full object-cover shadow-xs ${roundedClass}`}
             />
           ) : artistName ? (
-            <ProceduralCover
-              size="lg"
-              title={title}
-              artistName={artistName}
-              className={`w-full h-full ${roundedClass}`}
-            />
+            <div className="absolute inset-0 w-full h-full">
+              <ProceduralCover
+                size="lg"
+                title={title}
+                artistName={artistName}
+                className={`w-full h-full ${roundedClass}`}
+              />
+            </div>
           ) : (
             <div
-              className={`w-full h-full bg-canvas-soft border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft select-none shrink-0 ${roundedClass}`}
+              className={`absolute inset-0 w-full h-full border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft select-none ${roundedClass}`}
             >
               {fallbackInitials || title.slice(0, 2).toUpperCase()}
             </div>

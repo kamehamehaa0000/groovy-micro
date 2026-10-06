@@ -727,8 +727,8 @@ export const SongRow = memo(function SongRow({
               hideGoToArtist={hideGoToArtist}
               hideGoToAlbum={hideGoToAlbum}
               hideAddToPlaylist={hideAddToPlaylist}
-              isPersonal={isPersonal || track.scope === 'PERSONAL'}
-              hideShare={isPersonal || track.scope === 'PERSONAL'}
+              isPersonal={Boolean(isPersonal || track.scope?.toUpperCase() === 'PERSONAL')}
+              hideShare={Boolean(isPersonal || track.scope?.toUpperCase() === 'PERSONAL')}
               onRemoveFromPlaylist={onRemoveFromPlaylist}
               customActions={customActions}
             />

@@ -156,6 +156,7 @@ export interface Song {
   likesCount: number;
   allowComments?: boolean;
   isStreamable?: boolean;
+  scope?: "GLOBAL" | "PERSONAL";
   deletedAt?: string | null;
   createdAt: string;
   updatedAt?: string;
@@ -198,6 +199,7 @@ export interface Album {
   totalTracks: number;
   totalDurationSeconds: number;
   totalPlays?: number;
+  scope?: "GLOBAL" | "PERSONAL";
   deletedAt?: string | null;
   createdAt: string;
   updatedAt?: string;

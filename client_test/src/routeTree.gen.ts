@@ -30,8 +30,11 @@ import { Route as AdminVerificationRouteImport } from './routes/admin.verificati
 import { Route as AlbumsIdOrSlugRouteImport } from './routes/albums.$idOrSlug'
 import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
 import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
+import { Route as CollectionIndexRouteImport } from './routes/collection.index'
+import { Route as CollectionManageRouteImport } from './routes/collection.manage'
 import { Route as JamCodeRouteImport } from './routes/jam.$code'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
+import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 
@@ -140,6 +143,16 @@ const ArtistsIdOrSlugRoute = ArtistsIdOrSlugRouteImport.update({
   path: '/artists/$idOrSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CollectionIndexRoute = CollectionIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CollectionRoute,
+} as any)
+const CollectionManageRoute = CollectionManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => CollectionRoute,
+} as any)
 const JamCodeRoute = JamCodeRouteImport.update({
   id: '/jam/$code',
   path: '/jam/$code',
@@ -148,6 +161,11 @@ const JamCodeRoute = JamCodeRouteImport.update({
 const OauthCallbackRoute = OauthCallbackRouteImport.update({
   id: '/oauth/callback',
   path: '/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistsIndexRoute = PlaylistsIndexRouteImport.update({
+  id: '/playlists/',
+  path: '/playlists/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
@@ -164,7 +182,7 @@ const UsersIdRoute = UsersIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/collection': typeof CollectionRoute
+  '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/library': typeof LibraryRoute
@@ -182,16 +200,18 @@ export interface FileRoutesByFullPath {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
+  '/collection/': typeof CollectionIndexRoute
+  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/collection': typeof CollectionRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/library': typeof LibraryRoute
@@ -209,17 +229,20 @@ export interface FileRoutesByTo {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists': typeof ArtistsIndexRoute
+  '/collection': typeof CollectionIndexRoute
+  '/playlists': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/collection': typeof CollectionRoute
+  '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/library': typeof LibraryRoute
@@ -237,11 +260,14 @@ export interface FileRoutesById {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
+  '/collection/': typeof CollectionIndexRoute
+  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,16 +292,18 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/users/$id'
     | '/artists/'
+    | '/collection/'
+    | '/playlists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activity'
-    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/library'
@@ -293,11 +321,14 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/users/$id'
     | '/artists'
+    | '/collection'
+    | '/playlists'
   id:
     | '__root__'
     | '/'
@@ -320,17 +351,20 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/users/$id'
     | '/artists/'
+    | '/collection/'
+    | '/playlists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
-  CollectionRoute: typeof CollectionRoute
+  CollectionRoute: typeof CollectionRouteWithChildren
   FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LibraryRoute: typeof LibraryRoute
@@ -353,6 +387,7 @@ export interface RootRouteChildren {
   PlaylistsIdRoute: typeof PlaylistsIdRoute
   UsersIdRoute: typeof UsersIdRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
+  PlaylistsIndexRoute: typeof PlaylistsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -504,6 +539,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArtistsIdOrSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/collection/': {
+      id: '/collection/'
+      path: '/'
+      fullPath: '/collection/'
+      preLoaderRoute: typeof CollectionIndexRouteImport
+      parentRoute: typeof CollectionRoute
+    }
+    '/collection/manage': {
+      id: '/collection/manage'
+      path: '/manage'
+      fullPath: '/collection/manage'
+      preLoaderRoute: typeof CollectionManageRouteImport
+      parentRoute: typeof CollectionRoute
+    }
     '/jam/$code': {
       id: '/jam/$code'
       path: '/jam/$code'
@@ -516,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/oauth/callback'
       fullPath: '/oauth/callback'
       preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlists/': {
+      id: '/playlists/'
+      path: '/playlists'
+      fullPath: '/playlists/'
+      preLoaderRoute: typeof PlaylistsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playlists/$id': {
@@ -535,10 +591,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CollectionRouteChildren {
+  CollectionManageRoute: typeof CollectionManageRoute
+  CollectionIndexRoute: typeof CollectionIndexRoute
+}
+
+const CollectionRouteChildren: CollectionRouteChildren = {
+  CollectionManageRoute: CollectionManageRoute,
+  CollectionIndexRoute: CollectionIndexRoute,
+}
+
+const CollectionRouteWithChildren = CollectionRoute._addFileChildren(
+  CollectionRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
-  CollectionRoute: CollectionRoute,
+  CollectionRoute: CollectionRouteWithChildren,
   FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LibraryRoute: LibraryRoute,
@@ -561,6 +631,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlaylistsIdRoute: PlaylistsIdRoute,
   UsersIdRoute: UsersIdRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
+  PlaylistsIndexRoute: PlaylistsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

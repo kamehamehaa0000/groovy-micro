@@ -17,12 +17,11 @@ import {
   HeartIconSVG,
   VerifiedBadgeSVG,
   LockIconSVG,
-  MusicIconSVG,
-  DiscIconSVG,
 } from '../components/icons'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { MediaTile } from '../components/common/MediaTile'
 import { SongRow } from '../components/common/SongRow'
+import { PlaylistCover } from '../components/PlaylistCover'
 
 interface SearchPageParams {
   q?: string
@@ -75,7 +74,7 @@ function SearchPageComponent() {
   const { isAuthenticated } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
-  // Sync internal state when URL search params change (e.g. back/forward navigation)
+  // Sync internal state when URL search params change
   useEffect(() => {
     if (searchParams.q !== undefined && searchParams.q !== query) {
       setQuery(searchParams.q)
@@ -96,7 +95,6 @@ function SearchPageComponent() {
   useEffect(() => {
     const trimmed = query.trim()
 
-    // Sync query into URL params without adding duplicate history entries
     const timer = setTimeout(async () => {
       navigate({
         to: '/search',
@@ -137,7 +135,7 @@ function SearchPageComponent() {
               bannerUrl: a.bannerUrl,
               verified: a.verified,
               monthlyListeners: a.monthlyListeners,
-            }))
+            })),
           )
         }
       } catch (err) {
@@ -150,11 +148,26 @@ function SearchPageComponent() {
     return () => clearTimeout(timer)
   }, [query, activeCategory, navigate])
 
+  const toPlayerTrackFromSearch = (song: SearchSongItem): PlayerTrack => ({
+    id: song.id,
+    title: song.title,
+    artistId: song.artistId,
+    artistName: song.artistName,
+    artistSlug: song.artistSlug,
+    albumId: song.albumId || '',
+    albumTitle: song.albumTitle || '',
+    coverImageUrl: song.coverImageUrl,
+    durationSeconds: song.durationSeconds,
+    audioUrl: song.audioUrl,
+    isExplicit: song.isExplicit,
+    scope: song.isPersonal ? 'PERSONAL' : 'GLOBAL',
+  })
+
   // Play a song from search results
   const handlePlaySong = (
     song: SearchSongItem,
     allSongs: SearchSongItem[],
-    index: number
+    index: number,
   ) => {
     const isThisPlaying = currentTrack?.id === song.id
     if (isThisPlaying) {
@@ -162,26 +175,14 @@ function SearchPageComponent() {
       return
     }
 
-    const playerTrackList: PlayerTrack[] = allSongs.map((t) => ({
-      id: t.id,
-      title: t.title,
-      artistId: t.artistId,
-      artistName: t.artistName,
-      artistSlug: t.artistSlug,
-      albumId: t.albumId || '',
-      albumTitle: t.albumTitle || '',
-      coverImageUrl: t.coverImageUrl,
-      durationSeconds: t.durationSeconds,
-      audioUrl: t.audioUrl,
-      isExplicit: t.isExplicit,
-    }))
+    const playerTrackList: PlayerTrack[] = allSongs.map(toPlayerTrackFromSearch)
 
     playTrack(
       playerTrackList[index],
       playerTrackList,
       index,
       `search:${query}`,
-      `Search: "${query}"`
+      `Search: "${query}"`,
     )
   }
 
@@ -217,33 +218,48 @@ function SearchPageComponent() {
       results.playlists.length > 0 ||
       results.users.length > 0)
 
-  return (
-    <div className="w-full space-y-10">
-      {/* ===================== HERO SEARCH HEADER ===================== */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-line pb-4">
-          <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-blue-deep dark:text-blue-400 mb-1">
-              Groovy Music Exploration
-            </div>
-            <h1 className="font-serif italic text-3xl sm:text-4xl font-bold tracking-tight text-ink">
-              Search Catalog
-            </h1>
-          </div>
-          <p className="font-mono text-xs text-ink-soft sm:text-right">
-            Tracks • Artists • Albums • Playlists • Curators
-          </p>
-        </div>
+  const categoryPills = [
+    { id: 'all' as const, label: 'All Results', count: undefined },
+    {
+      id: 'songs' as const,
+      label: 'Tracks',
+      count: results?.songs.length,
+    },
+    {
+      id: 'artists' as const,
+      label: 'Artists',
+      count: results?.artists.length,
+    },
+    {
+      id: 'albums' as const,
+      label: 'Albums',
+      count: results?.albums.length,
+    },
+    {
+      id: 'playlists' as const,
+      label: 'Playlists',
+      count: results?.playlists.length,
+    },
+    {
+      id: 'users' as const,
+      label: 'Community',
+      count: results?.users.length,
+    },
+  ]
 
+  return (
+    <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
+      {/* ===================== STICKY SEARCH HEADER & PILLS ===================== */}
+      <header className="sticky top-12 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2 pb-2.5 transition-colors">
         {/* Search Input Box */}
-        <div className="relative flex items-center bg-panel border border-line focus-within:border-ink transition-colors shadow-xs">
-          <div className="pl-4 sm:pl-5 pr-3 text-ink-soft shrink-0">
+        <div className="relative flex items-center bg-panel border border-line rounded-xl focus-within:border-blue transition-colors shadow-xs">
+          <div className="pl-3.5 pr-2.5 text-ink-soft shrink-0">
             <svg
-              className="w-5 h-5 text-ink-soft"
+              className="w-4 h-4 text-ink-soft"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -257,13 +273,13 @@ function SearchPageComponent() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tracks, artists, albums, playlists, or listeners..."
-            className="w-full py-4 text-base sm:text-lg bg-transparent text-ink placeholder:text-ink-soft/60 focus:outline-hidden font-sans"
+            placeholder="Search tracks, artists, albums, playlists..."
+            className="w-full py-2.5 sm:py-3 text-sm sm:text-base bg-transparent text-ink placeholder:text-ink-soft/60 focus:outline-none font-sans"
           />
 
           {isSearching && (
-            <div className="pr-4 shrink-0">
-              <div className="w-5 h-5 rounded-full border-2 border-ink-soft/30 border-t-ink animate-spin" />
+            <div className="pr-3.5 shrink-0">
+              <div className="w-4 h-4 rounded-full border-2 border-ink-soft/30 border-t-blue animate-spin" />
             </div>
           )}
 
@@ -274,83 +290,59 @@ function SearchPageComponent() {
                 setQuery('')
                 inputRef.current?.focus()
               }}
-              className="mr-3 font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink px-2 py-1 border border-line hover:border-ink transition-colors cursor-pointer bg-canvas"
+              className="mr-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
+              title="Clear search"
             >
-              Clear
+              ✕
             </button>
           )}
         </div>
 
-        {/* Category Pills Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 text-xs font-mono uppercase tracking-wider scrollbar-none">
-          {([
-            { id: 'all' as const, label: 'All Results', count: undefined },
-            {
-              id: 'songs' as const,
-              label: 'Tracks',
-              count: results?.songs.length,
-            },
-            {
-              id: 'artists' as const,
-              label: 'Artists',
-              count: results?.artists.length,
-            },
-            {
-              id: 'albums' as const,
-              label: 'Albums',
-              count: results?.albums.length,
-            },
-            {
-              id: 'playlists' as const,
-              label: 'Playlists',
-              count: results?.playlists.length,
-            },
-            {
-              id: 'users' as const,
-              label: 'Community',
-              count: results?.users.length,
-            },
-          ] as Array<{
-            id: 'all' | 'songs' | 'albums' | 'artists' | 'playlists' | 'users'
-            label: string
-            count?: number
-          }>).map((cat) => {
+        {/* Category Pills Bar (Uniform with /library and /collection) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pt-2.5 pb-0.5 select-none -mx-1">
+          {/* Active Filter Clear Chip (✕) */}
+          {activeCategory !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setActiveCategory('all')}
+              aria-label="Clear category filter"
+              className="shrink-0 w-7 h-7 rounded-full bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-xs font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
+
+          {categoryPills.map((cat) => {
             const isActive = activeCategory === cat.id
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-full border transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-[11px] ${
+                className={`shrink-0 px-3.5 py-1 rounded-full text-xs transition-all duration-150 font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-ink text-canvas border-ink font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft border-line hover:text-ink hover:border-ink/60'
+                    ? 'bg-ink text-canvas shadow-xs font-semibold'
+                    : 'bg-panel border border-line text-ink hover:bg-canvas-soft'
                 }`}
               >
                 <span>{cat.label}</span>
                 {cat.count !== undefined && cat.count > 0 && (
-                  <span
-                    className={`font-mono text-[9px] px-1.5 py-0.2 rounded-full ${
-                      isActive
-                        ? 'bg-canvas text-ink'
-                        : 'bg-canvas-deep text-ink-soft border border-line'
-                    }`}
-                  >
-                    {cat.count}
+                  <span className="font-mono text-[9.5px] opacity-70">
+                    ({cat.count})
                   </span>
                 )}
               </button>
             )
           })}
         </div>
-      </div>
+      </header>
 
       {/* ===================== EMPTY QUERY STATE: DISCOVERY HUB ===================== */}
       {!query.trim() && (
-        <div className="space-y-10 py-6 animate-fade-in">
-          {/* Genre & Tag Suggestions */}
+        <div className="space-y-8 py-6 animate-in fade-in duration-150">
+          {/* Genre & Style Pills */}
           <div>
-            <h3 className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft mb-3">
+            <h3 className="font-serif italic font-semibold text-lg text-ink mb-3">
               Explore by Style &amp; Genre
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -359,7 +351,7 @@ function SearchPageComponent() {
                   key={genre}
                   type="button"
                   onClick={() => setQuery(genre)}
-                  className="font-sans text-xs px-3.5 py-2 border border-line bg-panel hover:bg-canvas-deep hover:border-ink text-ink transition-colors cursor-pointer shadow-2xs"
+                  className="px-3.5 py-1.5 rounded-full text-xs font-medium bg-panel border border-line text-ink hover:bg-canvas-soft hover:border-ink/50 transition-colors cursor-pointer shadow-2xs"
                 >
                   ✦ {genre}
                 </button>
@@ -369,26 +361,47 @@ function SearchPageComponent() {
 
           {/* Catalog Hub Portals */}
           <div>
-            <h3 className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-ink-soft mb-3">
-              Browse the Groovy Collection
+            <h3 className="font-serif italic font-semibold text-lg text-ink mb-3">
+              Browse the Catalog
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4">
               <Link
-                to="/artists"
-                className="group border border-line bg-panel p-5 hover:border-ink transition-all flex flex-col justify-between h-40 shadow-xs"
+                to="/playlists"
+                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
               >
                 <div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-blue bg-blue/10 px-2 py-0.5 rounded-full inline-block mb-2">
-                    Musicians
+                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
+                    Curations
                   </span>
-                  <h4 className="font-serif italic text-lg font-bold text-ink group-hover:text-blue transition-colors">
-                    Artists Roster
+                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
+                    Public Playlists
                   </h4>
-                  <p className="font-sans text-xs text-ink-soft mt-1 line-clamp-2">
-                    Official verified artists, monthly listeners, and public discographies.
+                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
+                    Community-curated sets, mixtapes, and public mixes.
                   </p>
                 </div>
-                <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
+                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
+                  <span>Browse Playlists</span>
+                  <span>&rarr;</span>
+                </span>
+              </Link>
+
+              <Link
+                to="/artists"
+                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
+              >
+                <div>
+                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-blue bg-blue/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
+                    Roster
+                  </span>
+                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
+                    Artists Index
+                  </h4>
+                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
+                    Verified recording artists and official discographies.
+                  </p>
+                </div>
+                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
                   <span>Browse Roster</span>
                   <span>&rarr;</span>
                 </span>
@@ -396,62 +409,62 @@ function SearchPageComponent() {
 
               <Link
                 to="/library"
-                className="group border border-line bg-panel p-5 hover:border-ink transition-all flex flex-col justify-between h-40 shadow-xs"
+                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
               >
                 <div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block mb-2">
+                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
                     Curations
                   </span>
-                  <h4 className="font-serif italic text-lg font-bold text-ink group-hover:text-blue transition-colors">
-                    Public Playlists
+                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
+                    Your Library
                   </h4>
-                  <p className="font-sans text-xs text-ink-soft mt-1 line-clamp-2">
-                    Listener-made mixtapes, collaborative rooms, and sonic journeys.
+                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
+                    Pinned playlists, saved albums, and followed creators.
                   </p>
                 </div>
-                <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
-                  <span>Explore Playlists</span>
+                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
+                  <span>Open Library</span>
                   <span>&rarr;</span>
                 </span>
               </Link>
 
               <Link
                 to="/"
-                className="group border border-line bg-panel p-5 hover:border-ink transition-all flex flex-col justify-between h-40 shadow-xs"
+                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
               >
                 <div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block mb-2">
-                    Releases
+                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
+                    Catalog
                   </span>
-                  <h4 className="font-serif italic text-lg font-bold text-ink group-hover:text-blue transition-colors">
-                    Catalog Releases
+                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
+                    New Releases
                   </h4>
-                  <p className="font-sans text-xs text-ink-soft mt-1 line-clamp-2">
-                    New singles, full-length LPs, and scheduled upcoming pre-saves.
+                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
+                    Featured drops, latest master singles, and upcoming drops.
                   </p>
                 </div>
-                <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
-                  <span>Open Catalog</span>
+                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
+                  <span>Explore Drops</span>
                   <span>&rarr;</span>
                 </span>
               </Link>
 
               <Link
                 to="/collection"
-                className="group border border-line bg-panel p-5 hover:border-ink transition-all flex flex-col justify-between h-40 shadow-xs"
+                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline col-span-2 md:col-span-1"
               >
                 <div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full inline-block mb-2">
-                    Locker
+                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
+                    Vault
                   </span>
-                  <h4 className="font-serif italic text-lg font-bold text-ink group-hover:text-blue transition-colors">
+                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
                     Personal Collection
                   </h4>
-                  <p className="font-sans text-xs text-ink-soft mt-1 line-clamp-2">
-                    Private lossless master uploads and personal metadata tags.
+                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
+                    Private lossless audio locker and personal cuts.
                   </p>
                 </div>
-                <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1">
+                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
                   <span>View Vault</span>
                   <span>&rarr;</span>
                 </span>
@@ -463,20 +476,20 @@ function SearchPageComponent() {
 
       {/* ===================== NO RESULTS STATE ===================== */}
       {query.trim() && !isSearching && !hasAnyResults && (
-        <div className="py-20 text-center border border-dashed border-line bg-panel/40">
-          <div className="font-serif italic text-2xl text-ink mb-2">
+        <div className="py-16 text-center border border-dashed border-line bg-panel/30 rounded-xl my-6">
+          <div className="font-serif italic text-xl text-ink mb-1.5">
             No results found for &ldquo;{query}&rdquo;
           </div>
-          <p className="font-sans text-xs text-ink-soft max-w-md mx-auto leading-relaxed">
-            Please check your spelling or search by an artist name, song title, album title, or curator handle.
+          <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto leading-relaxed">
+            Please check your spelling or search by an artist name, song title, album title, or curator.
           </p>
-          <div className="mt-6">
+          <div className="mt-4">
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="font-mono text-xs uppercase tracking-wider px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer"
+              className="font-mono text-[10.5px] uppercase tracking-wider px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer rounded-full"
             >
-              Clear Search Query
+              Clear Query
             </button>
           </div>
         </div>
@@ -484,22 +497,24 @@ function SearchPageComponent() {
 
       {/* ===================== SEARCH RESULTS SECTION ===================== */}
       {hasAnyResults && (
-        <div className="space-y-12 animate-fade-in">
+        <div className="space-y-8 pt-2 animate-in fade-in duration-150">
           {/* 1. TOP RESULT CARD */}
           {results.topResult && activeCategory === 'all' && (
-            <div className="space-y-3">
-              <h3 className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400">
+            <div className="space-y-2.5">
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue font-semibold">
                 Top Result
-              </h3>
+              </span>
 
-              <div className="border border-line bg-panel p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:border-ink transition-colors group">
+              <div className="border border-line bg-panel p-4 sm:p-5 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-ink/50 transition-colors group">
                 {/* Artist Top Result */}
                 {results.topResult.type === 'artist' && (
-                  <div className="flex items-center gap-5 flex-1 min-w-0">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <Link
                       to="/artists/$idOrSlug"
-                      params={{ idOrSlug: (results.topResult.item as any).slug }}
-                      className="w-20 h-20 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden"
+                      params={{
+                        idOrSlug: (results.topResult.item as any).slug,
+                      }}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-canvas-deep border border-line shrink-0 overflow-hidden shadow-xs"
                     >
                       {(results.topResult.item as any).avatarUrl ? (
                         <img
@@ -508,41 +523,49 @@ function SearchPageComponent() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-ink">
+                        <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-blue bg-blue/10">
                           {(results.topResult.item as any).stageName[0]}
                         </div>
                       )}
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-blue bg-blue/10 px-2 py-0.5 rounded-full inline-block font-semibold">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-blue font-semibold">
                           Artist
                         </span>
                         {(results.topResult.item as any).verified && (
-                          <VerifiedBadgeSVG className="w-4 h-4 text-blue" />
+                          <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
                         )}
                       </div>
                       <Link
                         to="/artists/$idOrSlug"
-                        params={{ idOrSlug: (results.topResult.item as any).slug }}
-                        className="font-serif italic text-2xl sm:text-3xl font-bold text-ink hover:text-blue transition-colors truncate block"
+                        params={{
+                          idOrSlug: (results.topResult.item as any).slug,
+                        }}
+                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).stageName}
                       </Link>
-                      <p className="font-mono text-xs text-ink-soft mt-1">
-                        {(results.topResult.item as any).monthlyListeners.toLocaleString()}{' '}
+                      <p className="font-mono text-xs text-ink-soft mt-0.5">
+                        {(
+                          results.topResult.item as any
+                        ).monthlyListeners.toLocaleString()}{' '}
                         monthly listeners
                       </p>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => handleToggleArtistFollow((results.topResult!.item as any).id)}
-                      className={`shrink-0 font-mono text-[10px] uppercase tracking-wider px-4 py-2 border transition-all cursor-pointer ${
+                      onClick={() =>
+                        handleToggleArtistFollow(
+                          (results.topResult!.item as any).id,
+                        )
+                      }
+                      className={`shrink-0 font-mono text-[10px] uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer font-semibold ${
                         isFollowing((results.topResult.item as any).id)
-                          ? 'bg-panel text-ink border-line hover:border-ink'
-                          : 'bg-ink text-canvas border-ink hover:bg-canvas hover:text-ink'
+                          ? 'bg-panel text-ink border-line hover:border-red-400 hover:text-red-500'
+                          : 'bg-ink text-canvas border-ink hover:opacity-90'
                       }`}
                     >
                       {isFollowing((results.topResult.item as any).id)
@@ -554,8 +577,8 @@ function SearchPageComponent() {
 
                 {/* Song Top Result */}
                 {results.topResult.type === 'song' && (
-                  <div className="flex items-center gap-5 flex-1 min-w-0">
-                    <div className="w-20 h-20 bg-stone/20 border border-line shrink-0 overflow-hidden relative shadow-xs">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
                       {(results.topResult.item as any).coverImageUrl ? (
                         <img
                           src={(results.topResult.item as any).coverImageUrl}
@@ -566,45 +589,53 @@ function SearchPageComponent() {
                         <ProceduralCover
                           size="md"
                           title={(results.topResult.item as any).title}
-                          artistName={(results.topResult.item as any).artistName}
+                          artistName={
+                            (results.topResult.item as any).artistName
+                          }
                           className="w-full h-full rounded-none"
                         />
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block font-semibold">
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
                           Track
                         </span>
                         {(results.topResult.item as any).isPersonal && (
                           <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
-                            Personal Collection
+                            Personal
                           </span>
                         )}
                         {(results.topResult.item as any).isExplicit && (
-                          <span className="font-mono text-[8.5px] uppercase border border-line px-1.5 py-0.2 rounded text-ink-soft">
+                          <span className="font-mono text-[8px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
                             E
                           </span>
                         )}
                       </div>
-                      <h3 className="font-serif italic text-2xl font-bold text-ink truncate">
+                      <h3 className="font-serif italic text-xl sm:text-2xl font-semibold text-ink truncate">
                         {(results.topResult.item as any).title}
                       </h3>
                       <Link
                         to="/artists/$idOrSlug"
-                        params={{ idOrSlug: (results.topResult.item as any).artistSlug }}
-                        className="font-sans text-sm text-ink-soft hover:text-blue transition-colors truncate block mt-0.5"
+                        params={{
+                          idOrSlug: (results.topResult.item as any).artistSlug,
+                        }}
+                        className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block mt-0.5"
                       >
                         {(results.topResult.item as any).artistName}
                       </Link>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0">
                       <button
                         type="button"
-                        onClick={() => handleToggleSongLike((results.topResult!.item as any).id)}
-                        className="w-10 h-10 rounded-full border border-line bg-panel hover:border-ink flex items-center justify-center text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
+                        onClick={() =>
+                          handleToggleSongLike(
+                            (results.topResult!.item as any).id,
+                          )
+                        }
+                        className="w-9 h-9 rounded-full border border-line bg-panel hover:border-ink flex items-center justify-center text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
                         title="Like Track"
                       >
                         <HeartIconSVG
@@ -619,17 +650,18 @@ function SearchPageComponent() {
                           handlePlaySong(
                             results.topResult!.item as SearchSongItem,
                             results.songs,
-                            0
+                            0,
                           )
                         }
-                        className="w-12 h-12 rounded-full bg-ink text-canvas hover:scale-105 flex items-center justify-center transition-all cursor-pointer shadow-md"
+                        className="w-10 h-10 rounded-full bg-blue text-canvas hover:scale-105 flex items-center justify-center transition-all cursor-pointer shadow-md"
                         title="Play Track"
                       >
-                        {currentTrack?.id === (results.topResult.item as any).id &&
+                        {currentTrack?.id ===
+                          (results.topResult.item as any).id &&
                         playbackStatus === 'playing' ? (
-                          <PauseIconSVG className="w-5 h-5" />
+                          <PauseIconSVG className="w-4 h-4 text-canvas" />
                         ) : (
-                          <PlayIconSVG className="w-5 h-5 ml-0.5" />
+                          <PlayIconSVG className="w-4 h-4 text-canvas ml-0.5" />
                         )}
                       </button>
                     </div>
@@ -638,11 +670,13 @@ function SearchPageComponent() {
 
                 {/* Album Top Result */}
                 {results.topResult.type === 'album' && (
-                  <div className="flex items-center gap-5 flex-1 min-w-0">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <Link
                       to="/albums/$idOrSlug"
-                      params={{ idOrSlug: (results.topResult.item as any).slug }}
-                      className="w-20 h-20 bg-stone/20 border border-line shrink-0 overflow-hidden shadow-xs"
+                      params={{
+                        idOrSlug: (results.topResult.item as any).slug,
+                      }}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden shadow-xs"
                     >
                       {(results.topResult.item as any).coverImageUrl ? (
                         <img
@@ -654,58 +688,72 @@ function SearchPageComponent() {
                         <ProceduralCover
                           size="md"
                           title={(results.topResult.item as any).title}
-                          artistName={(results.topResult.item as any).artistName}
+                          artistName={
+                            (results.topResult.item as any).artistName
+                          }
                           className="w-full h-full rounded-none"
                         />
                       )}
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block font-semibold">
-                          {(results.topResult.item as any).albumType || 'Album'}
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+                          Release
                         </span>
                         {(results.topResult.item as any).isPersonal && (
                           <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
-                            Personal Collection
+                            Personal
                           </span>
                         )}
                       </div>
                       <Link
                         to="/albums/$idOrSlug"
-                        params={{ idOrSlug: (results.topResult.item as any).slug }}
-                        className="font-serif italic text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
+                        params={{
+                          idOrSlug: (results.topResult.item as any).slug,
+                        }}
+                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
                       <Link
                         to="/artists/$idOrSlug"
-                        params={{ idOrSlug: (results.topResult.item as any).artistSlug }}
-                        className="font-sans text-sm text-ink-soft hover:text-blue transition-colors truncate block mt-0.5"
+                        params={{
+                          idOrSlug: (results.topResult.item as any).artistSlug,
+                        }}
+                        className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block mt-0.5"
                       >
                         {(results.topResult.item as any).artistName}
                       </Link>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0">
                       <button
                         type="button"
-                        onClick={() => handleToggleAlbumLike((results.topResult!.item as any).id)}
-                        className="w-10 h-10 rounded-full border border-line bg-panel hover:border-ink flex items-center justify-center text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
+                        onClick={() =>
+                          handleToggleAlbumLike(
+                            (results.topResult!.item as any).id,
+                          )
+                        }
+                        className="w-9 h-9 rounded-full border border-line bg-panel hover:border-ink flex items-center justify-center text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
                         title="Like Album"
                       >
                         <HeartIconSVG
                           className="w-4 h-4"
-                          filled={isAlbumLiked((results.topResult.item as any).id)}
+                          filled={isAlbumLiked(
+                            (results.topResult.item as any).id,
+                          )}
                         />
                       </button>
 
                       <Link
                         to="/albums/$idOrSlug"
-                        params={{ idOrSlug: (results.topResult.item as any).slug }}
-                        className="font-mono text-[10px] uppercase tracking-wider px-4 py-2 border border-line bg-canvas hover:border-ink text-ink transition-colors"
+                        params={{
+                          idOrSlug: (results.topResult.item as any).slug,
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors font-medium shadow-2xs"
                       >
-                        View Album &rarr;
+                        View &rarr;
                       </Link>
                     </div>
                   </div>
@@ -713,11 +761,11 @@ function SearchPageComponent() {
 
                 {/* Playlist Top Result */}
                 {results.topResult.type === 'playlist' && (
-                  <div className="flex items-center gap-5 flex-1 min-w-0">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <Link
                       to="/playlists/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="w-20 h-20 bg-stone/20 border border-line shrink-0 overflow-hidden shadow-xs flex items-center justify-center"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden shadow-xs flex items-center justify-center"
                     >
                       {(results.topResult.item as any).coverImageUrl ? (
                         <img
@@ -726,23 +774,25 @@ function SearchPageComponent() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
-                        <span className="font-serif italic text-2xl text-ink-soft">♫</span>
+                        <span className="font-serif italic text-2xl text-ink-soft">
+                          ♫
+                        </span>
                       )}
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block font-semibold mb-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5 block">
                         Playlist
                       </span>
                       <Link
                         to="/playlists/$id"
                         params={{ id: (results.topResult.item as any).id }}
-                        className="font-serif italic text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
+                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
-                      <p className="font-mono text-xs text-ink-soft mt-1">
-                        Curated by {(results.topResult.item as any).ownerName} •{' '}
+                      <p className="font-mono text-xs text-ink-soft mt-0.5">
+                        By {(results.topResult.item as any).ownerName} &bull;{' '}
                         {(results.topResult.item as any).tracksCount} tracks
                       </p>
                     </div>
@@ -750,20 +800,20 @@ function SearchPageComponent() {
                     <Link
                       to="/playlists/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-mono text-[10px] uppercase tracking-wider px-4 py-2 border border-line bg-canvas hover:border-ink text-ink transition-colors shrink-0"
+                      className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
                     >
-                      Open Playlist &rarr;
+                      Open &rarr;
                     </Link>
                   </div>
                 )}
 
                 {/* User Top Result */}
                 {results.topResult.type === 'user' && (
-                  <div className="flex items-center gap-5 flex-1 min-w-0">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <Link
                       to="/users/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="w-20 h-20 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden flex items-center justify-center font-serif italic text-2xl text-ink"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-canvas-deep border border-line shrink-0 overflow-hidden flex items-center justify-center font-serif italic text-2xl text-ink shadow-xs"
                     >
                       {(results.topResult.item as any).avatarUrl ? (
                         <img
@@ -777,14 +827,14 @@ function SearchPageComponent() {
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-stone/80 bg-stone/20 px-2 py-0.5 rounded-full inline-block font-semibold mb-1.5">
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft font-semibold mb-0.5 block">
                         {(results.topResult.item as any).role}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Link
                           to="/users/$id"
                           params={{ id: (results.topResult.item as any).id }}
-                          className="font-serif italic text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
+                          className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
                         >
                           {(results.topResult.item as any).displayName}
                         </Link>
@@ -797,9 +847,9 @@ function SearchPageComponent() {
                     <Link
                       to="/users/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-mono text-[10px] uppercase tracking-wider px-4 py-2 border border-line bg-canvas hover:border-ink text-ink transition-colors shrink-0"
+                      className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
                     >
-                      View Profile &rarr;
+                      Profile &rarr;
                     </Link>
                   </div>
                 )}
@@ -807,143 +857,110 @@ function SearchPageComponent() {
             </div>
           )}
 
-          {/* 2. TRACKS / SONGS SECTION */}
+          {/* 2. TRACKS / SONGS SECTION (Artist Page List Style) */}
           {results.songs.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-line pb-2">
-                <div className="flex items-center gap-3">
-                  <MusicIconSVG className="w-4 h-4 text-ink-soft" />
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink font-semibold">
-                    Tracks ({results.songs.length})
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
+                    Tracks
                   </h3>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    ({results.songs.length})
+                  </span>
                 </div>
                 {activeCategory === 'all' && results.songs.length >= 6 && (
                   <button
                     type="button"
                     onClick={() => setActiveCategory('songs')}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
                   >
-                    View all tracks &rarr;
+                    View all &rarr;
                   </button>
                 )}
               </div>
 
-              <div className="border border-line bg-panel divide-y divide-line shadow-xs">
-                {results.songs.map((song, idx) => {
-                  const playerTrackData: PlayerTrack = {
-                    id: song.id,
-                    title: song.title,
-                    artistId: song.artistId,
-                    artistName: song.artistName,
-                    artistSlug: song.artistSlug,
-                    albumId: song.albumId || '',
-                    albumTitle: song.albumTitle || '',
-                    coverImageUrl: song.coverImageUrl,
-                    durationSeconds: song.durationSeconds,
-                    audioUrl: song.audioUrl,
-                    isExplicit: song.isExplicit,
-                    scope: song.isPersonal ? 'PERSONAL' : 'GLOBAL',
-                  }
-
-                  return (
-                    <SongRow
-                      key={song.id}
-                      track={playerTrackData}
-                      index={idx}
-                      variant="search"
-                      albumTitleOverride={song.albumTitle}
-                      albumSlugOverride={song.slug || song.albumId}
-                      onPlay={() => handlePlaySong(song, results.songs, idx)}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 3. ARTISTS SECTION */}
-          {results.artists.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-line pb-2">
-                <div className="flex items-center gap-3">
-                  <VerifiedBadgeSVG className="w-4 h-4 text-ink-soft" />
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink font-semibold">
-                    Artists ({results.artists.length})
-                  </h3>
-                </div>
-                {activeCategory === 'all' && results.artists.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('artists')}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
-                  >
-                    View all artists &rarr;
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {results.artists.map((artist) => (
-                  <Link
-                    key={artist.id}
-                    to="/artists/$idOrSlug"
-                    params={{ idOrSlug: artist.slug }}
-                    className="border border-line bg-panel p-4 shadow-2xs hover:border-ink transition-all group flex flex-col items-center text-center"
-                  >
-                    <div className="w-20 h-20 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden mb-3 shadow-2xs">
-                      {artist.avatarUrl ? (
-                        <img
-                          src={artist.avatarUrl}
-                          alt={artist.stageName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-ink">
-                          {artist.stageName[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="w-full min-w-0">
-                      <div className="flex items-center justify-center gap-1">
-                        <h4 className="font-serif italic text-sm font-bold text-ink truncate group-hover:text-blue transition-colors">
-                          {artist.stageName}
-                        </h4>
-                        {artist.verified && (
-                          <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue shrink-0" />
-                        )}
-                      </div>
-                      <span className="font-mono text-[9px] text-ink-soft block mt-0.5">
-                        {artist.monthlyListeners.toLocaleString()} listeners
-                      </span>
-                    </div>
-                  </Link>
+              <div className="border border-line rounded-md overflow-hidden bg-panel divide-y divide-line/60 shadow-2xs">
+                {results.songs.map((song, idx) => (
+                  <SongRow
+                    key={song.id}
+                    track={toPlayerTrackFromSearch(song)}
+                    index={idx}
+                    variant="search"
+                    albumTitleOverride={song.albumTitle}
+                    albumSlugOverride={song.slug || song.albumId}
+                    isPersonal={song.isPersonal}
+                    onPlay={() => handlePlaySong(song, results.songs, idx)}
+                  />
                 ))}
               </div>
             </div>
           )}
 
-          {/* 4. ALBUMS SECTION */}
-          {results.albums.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-line pb-2">
-                <div className="flex items-center gap-3">
-                  <DiscIconSVG className="w-4 h-4 text-ink-soft" />
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink font-semibold">
-                    Albums &amp; Releases ({results.albums.length})
+          {/* 3. ARTISTS SECTION (MediaTile Grid Style) */}
+          {results.artists.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
+                    Artists
                   </h3>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    ({results.artists.length})
+                  </span>
+                </div>
+                {activeCategory === 'all' && results.artists.length >= 6 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('artists')}
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                  >
+                    View all &rarr;
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+                {results.artists.map((artist) => (
+                  <MediaTile
+                    key={artist.id}
+                    to="/artists/$idOrSlug"
+                    params={{ idOrSlug: artist.slug }}
+                    title={artist.stageName}
+                    subtitle={`${artist.monthlyListeners ? artist.monthlyListeners.toLocaleString() : 0} listeners`}
+                    imageUrl={artist.avatarUrl}
+                    artistName={artist.stageName}
+                    isRoundImage={true}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 4. ALBUMS / RELEASES SECTION (MediaTile Grid Style) */}
+          {results.albums.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
+                    Releases
+                  </h3>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    ({results.albums.length})
+                  </span>
                 </div>
                 {activeCategory === 'all' && results.albums.length >= 6 && (
                   <button
                     type="button"
                     onClick={() => setActiveCategory('albums')}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
                   >
-                    View all releases &rarr;
+                    View all &rarr;
                   </button>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.albums.map((album) => (
                   <MediaTile
                     key={album.id}
@@ -952,120 +969,114 @@ function SearchPageComponent() {
                     title={album.title}
                     subtitle={
                       album.artistName
-                        ? `${album.artistName} · ${album.albumType || 'Album'}`
-                        : album.albumType || 'Album'
+                        ? `${album.artistName}${album.releaseDate ? ` · ${new Date(album.releaseDate).getFullYear()}` : ''}`
+                        : album.releaseDate
+                          ? `${new Date(album.releaseDate).getFullYear()}`
+                          : 'Release'
                     }
                     imageUrl={album.coverImageUrl}
                     artistName={album.artistName}
-                    badge={
-                      album.isPersonal ? (
-                        <span className="bg-panel/90 backdrop-blur-md text-indigo-500 text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
-                          Personal
-                        </span>
-                      ) : undefined
-                    }
                   />
                 ))}
               </div>
             </div>
           )}
 
-          {/* 5. PLAYLISTS SECTION */}
+          {/* 5. PLAYLISTS SECTION (MediaTile Grid Style) */}
           {results.playlists.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-line pb-2">
-                <div className="flex items-center gap-3">
-                  <span className="font-serif italic text-sm text-ink-soft">♫</span>
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink font-semibold">
-                    Playlists ({results.playlists.length})
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
+                    Playlists
                   </h3>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    ({results.playlists.length})
+                  </span>
                 </div>
-                {activeCategory === 'all' && results.playlists.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('playlists')}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                <div className="flex items-center gap-3">
+                  {activeCategory === 'all' && results.playlists.length >= 6 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveCategory('playlists')}
+                      className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                    >
+                      Filter tracks &rarr;
+                    </button>
+                  )}
+                  <Link
+                    to="/playlists"
+                    search={{ search: query.trim() || undefined }}
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-blue transition-colors cursor-pointer"
                   >
-                    View all playlists &rarr;
-                  </button>
-                )}
+                    Browse all &rarr;
+                  </Link>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
-                {results.playlists.map((playlist) => (
-                  <MediaTile
-                    key={playlist.id}
-                    to="/playlists/$id"
-                    params={{ id: playlist.id }}
-                    title={playlist.title}
-                    subtitle={`By ${playlist.ownerName} • ${playlist.tracksCount} tracks`}
-                    imageUrl={playlist.coverImageUrl}
-                    fallbackInitials="♫"
-                    badge={
-                      <span className="bg-panel/90 backdrop-blur-md text-amber-600 dark:text-amber-400 text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
-                        Playlist
-                      </span>
-                    }
-                  />
-                ))}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+                {results.playlists.map((playlist) => {
+                  const mosaicCovers =
+                    (playlist as any).mosaicCoverUrls || (playlist as any).mosaicCovers
+                  return (
+                    <MediaTile
+                      key={playlist.id}
+                      to="/playlists/$id"
+                      params={{ id: playlist.id }}
+                      title={playlist.title}
+                      subtitle={`${playlist.ownerName} · ${playlist.tracksCount} tracks`}
+                      imageUrl={playlist.coverImageUrl}
+                      customCover={
+                        <PlaylistCover
+                          coverImageUrl={playlist.coverImageUrl}
+                          mosaicCovers={mosaicCovers}
+                          title={playlist.title}
+                          className="w-full h-full"
+                        />
+                      }
+                      fallbackInitials="♫"
+                    />
+                  )
+                })}
               </div>
             </div>
           )}
 
-          {/* 6. COMMUNITY / USERS SECTION */}
+          {/* 6. COMMUNITY / USERS SECTION (MediaTile Grid Style) */}
           {results.users.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-line pb-2">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-ink-soft">✦</span>
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink font-semibold">
-                    Community Members ({results.users.length})
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
+                    Community
                   </h3>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                    ({results.users.length})
+                  </span>
                 </div>
                 {activeCategory === 'all' && results.users.length >= 6 && (
                   <button
                     type="button"
                     onClick={() => setActiveCategory('users')}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
                   >
-                    View all members &rarr;
+                    View all &rarr;
                   </button>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.users.map((user) => (
-                  <Link
+                  <MediaTile
                     key={user.id}
                     to="/users/$id"
                     params={{ id: user.id }}
-                    className="border border-line bg-panel p-4 shadow-2xs hover:border-ink transition-all group flex flex-col items-center text-center"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden mb-3 shadow-2xs flex items-center justify-center font-serif italic text-lg text-ink">
-                      {user.avatarUrl ? (
-                        <img
-                          src={user.avatarUrl}
-                          alt={user.displayName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        user.displayName[0]?.toUpperCase() || 'U'
-                      )}
-                    </div>
-                    <div className="w-full min-w-0">
-                      <div className="flex items-center justify-center gap-1">
-                        <h4 className="font-semibold text-xs text-ink truncate group-hover:text-blue transition-colors">
-                          {user.displayName}
-                        </h4>
-                        {user.isPrivateAccount && (
-                          <LockIconSVG className="w-2.5 h-2.5 text-ink-soft shrink-0" />
-                        )}
-                      </div>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block mt-0.5">
-                        {user.role}
-                      </span>
-                    </div>
-                  </Link>
+                    title={user.displayName}
+                    subtitle={user.role}
+                    imageUrl={user.avatarUrl}
+                    fallbackInitials={user.displayName.slice(0, 2).toUpperCase()}
+                    isRoundImage={true}
+                  />
                 ))}
               </div>
             </div>
