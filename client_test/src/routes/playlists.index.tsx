@@ -10,7 +10,6 @@ import { PlaylistCover } from '../components/PlaylistCover'
 import {
   SearchIconSVG,
   PlusIconSVG,
-  HeartIconSVG,
   ChevronDownIconSVG,
 } from '../components/icons'
 
@@ -309,7 +308,6 @@ function PlaylistsDirectoryComponent() {
             {playlists.map((playlist) => {
               const mosaicCovers =
                 (playlist as any).mosaicCoverUrls || playlist.mosaicCovers
-              const saves = playlist.savesCount ?? 0
 
               return (
                 <MediaTile

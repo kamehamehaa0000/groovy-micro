@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import {
@@ -30,19 +30,55 @@ import {
   ChevronDownIconSVG,
   PlusIconSVG,
   ExternalLinkSVG,
+  SearchIconSVG,
 } from '../components/icons'
+
+interface CollectionManageSearchParams {
+  tab?: 'import' | 'collection' | 'artists' | 'trash'
+}
 
 export const Route = createFileRoute('/collection/manage')({
   component: PersonalCollectionManagePage,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): CollectionManageSearchParams => {
+    const rawTab = search.tab as string
+    const validTabs = ['import', 'collection', 'artists', 'trash']
+    return {
+      tab: validTabs.includes(rawTab)
+        ? (rawTab as CollectionManageSearchParams['tab'])
+        : undefined,
+    }
+  },
 })
 
 function PersonalCollectionManagePage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
+  const searchParams = Route.useSearch()
+  const navigate = useNavigate()
 
-  // Navigation Tabs: "import" vs "collection" vs "artists" vs "trash"
+  // Navigation Tabs: default to "import"
   const [activeTab, setActiveTab] = useState<
-    'collection' | 'artists' | 'trash' | 'import'
-  >('import')
+    'import' | 'collection' | 'artists' | 'trash'
+  >(searchParams.tab || 'import')
+
+  // Keep synced if searchParam changes
+  useEffect(() => {
+    if (searchParams.tab && searchParams.tab !== activeTab) {
+      setActiveTab(searchParams.tab)
+    }
+  }, [searchParams.tab])
+
+  const handleTabChange = (
+    tab: 'import' | 'collection' | 'artists' | 'trash',
+  ) => {
+    setActiveTab(tab)
+    navigate({
+      to: '/collection/manage',
+      search: tab === 'import' ? {} : { tab },
+      replace: true,
+    })
+  }
 
   // Trash State
   const [trashedSongs, setTrashedSongs] = useState<TrashedSong[]>([])
@@ -64,7 +100,9 @@ function PersonalCollectionManagePage() {
   const [newArtistName, setNewArtistName] = useState('')
   const [newArtistBio, setNewArtistBio] = useState('')
   const [isSubmittingArtist, setIsSubmittingArtist] = useState(false)
-  const [selectedArtistFilter, setSelectedArtistFilter] = useState<string | null>(null)
+  const [selectedArtistFilter, setSelectedArtistFilter] = useState<
+    string | null
+  >(null)
 
   // Collection State
   const [personalReleases, setPersonalReleases] = useState<PersonalRelease[]>(
@@ -175,7 +213,12 @@ function PersonalCollectionManagePage() {
       setErrorMessage(null)
       await storageApi.restorePersonalSong(songId)
       setSuccessMessage('Song restored to your personal collection')
-      await Promise.all([loadQuota(), loadCollection(), loadTrash(), loadPersonalArtists()])
+      await Promise.all([
+        loadQuota(),
+        loadCollection(),
+        loadTrash(),
+        loadPersonalArtists(),
+      ])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore song')
@@ -190,7 +233,12 @@ function PersonalCollectionManagePage() {
       setErrorMessage(null)
       await storageApi.restorePersonalRelease(releaseId)
       setSuccessMessage('Release restored to your personal collection')
-      await Promise.all([loadQuota(), loadCollection(), loadTrash(), loadPersonalArtists()])
+      await Promise.all([
+        loadQuota(),
+        loadCollection(),
+        loadTrash(),
+        loadPersonalArtists(),
+      ])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore release')
@@ -259,7 +307,7 @@ function PersonalCollectionManagePage() {
           stageName: a.stageName,
           slug: a.slug,
           scope: 'PERSONAL',
-        }))
+        })),
       )
     } catch (err: any) {
       console.error('Failed to load personal artists:', err)
@@ -363,9 +411,6 @@ function PersonalCollectionManagePage() {
       // Expand first release by default if available
       if (releases.length > 0) {
         setExpandedReleaseIds(new Set([releases[0].id]))
-      } else {
-        // If collection is empty and no staged imports, default to import tab
-        setActiveTab('import')
       }
     } catch (err: any) {
       console.error('Failed to load personal collection releases:', err)
@@ -647,7 +692,10 @@ function PersonalCollectionManagePage() {
   }
 
   // 2. Detach Track as Standalone Single
-  const handleDetachTrackAsSingle = (sourceReleaseId: string, trackId: string) => {
+  const handleDetachTrackAsSingle = (
+    sourceReleaseId: string,
+    trackId: string,
+  ) => {
     setImportReleases((prev) => {
       const source = prev.find((r) => r.id === sourceReleaseId)
       if (!source) return prev
@@ -681,7 +729,10 @@ function PersonalCollectionManagePage() {
             const remaining = r.tracks.filter((t) => t.id !== trackId)
             return {
               ...r,
-              tracks: remaining.map((t, idx) => ({ ...t, trackNumber: idx + 1 })),
+              tracks: remaining.map((t, idx) => ({
+                ...t,
+                trackNumber: idx + 1,
+              })),
             }
           })
           .filter((r) => r.tracks.length > 0),
@@ -718,7 +769,10 @@ function PersonalCollectionManagePage() {
           if (r.id === sourceReleaseId) {
             return {
               ...r,
-              tracks: updatedSourceTracks.map((t, idx) => ({ ...t, trackNumber: idx + 1 })),
+              tracks: updatedSourceTracks.map((t, idx) => ({
+                ...t,
+                trackNumber: idx + 1,
+              })),
             }
           }
           return r
@@ -738,7 +792,9 @@ function PersonalCollectionManagePage() {
     if (!existingAlbum) return
 
     setImportReleases((prev) => {
-      let container = prev.find((r) => r.targetExistingAlbumId === existingAlbumId)
+      let container = prev.find(
+        (r) => r.targetExistingAlbumId === existingAlbumId,
+      )
       let isNewContainer = false
 
       if (!container) {
@@ -749,7 +805,8 @@ function PersonalCollectionManagePage() {
           albumTitle: existingAlbum.title,
           albumType: (existingAlbum.albumType as any) || 'ALBUM',
           genre: existingAlbum.genre || null,
-          releaseDate: existingAlbum.releaseDate || new Date().toISOString().split('T')[0],
+          releaseDate:
+            existingAlbum.releaseDate || new Date().toISOString().split('T')[0],
           coverFile: null,
           coverPreviewUrl: existingAlbum.coverImageUrl || null,
           tracks: [],
@@ -758,7 +815,9 @@ function PersonalCollectionManagePage() {
       }
 
       const source = prev.find((r) => r.id === sourceReleaseId)
-      const updatedSourceTracks = source ? source.tracks.filter((t) => t.id !== track.id) : []
+      const updatedSourceTracks = source
+        ? source.tracks.filter((t) => t.id !== track.id)
+        : []
 
       const updatedContainerTracks = [
         ...container.tracks,
@@ -779,7 +838,10 @@ function PersonalCollectionManagePage() {
           if (r.id === sourceReleaseId) {
             return {
               ...r,
-              tracks: updatedSourceTracks.map((t, idx) => ({ ...t, trackNumber: idx + 1 })),
+              tracks: updatedSourceTracks.map((t, idx) => ({
+                ...t,
+                trackNumber: idx + 1,
+              })),
             }
           }
           return r
@@ -790,7 +852,10 @@ function PersonalCollectionManagePage() {
   }
 
   // 5. Remove Track from Staged Release
-  const handleRemoveTrackFromStagedRelease = (releaseId: string, trackId: string) => {
+  const handleRemoveTrackFromStagedRelease = (
+    releaseId: string,
+    trackId: string,
+  ) => {
     setImportReleases((prev) =>
       prev
         .map((r) => {
@@ -926,7 +991,8 @@ function PersonalCollectionManagePage() {
           albumType: release.albumType,
           genre: release.genre,
           releaseDate: release.releaseDate,
-          coverImageUrl: coverUrlInfo?.publicUrl || release.coverPreviewUrl || null,
+          coverImageUrl:
+            coverUrlInfo?.publicUrl || release.coverPreviewUrl || null,
           existingAlbumId: release.targetExistingAlbumId || null,
           tracks: tracksPayload,
         })
@@ -946,7 +1012,7 @@ function PersonalCollectionManagePage() {
       // Refresh collection and quota, trigger global refresh, and switch to collection tab
       await loadInitialData()
       triggerRefresh()
-      setActiveTab('collection')
+      handleTabChange('collection')
       setSuccessMessage(
         'Music successfully imported into your Personal Collection!',
       )
@@ -963,8 +1029,7 @@ function PersonalCollectionManagePage() {
     if (selectedArtistFilter) {
       const filterLower = selectedArtistFilter.toLowerCase()
       list = list.filter((r) => {
-        const matchesReleaseArtist =
-          r.artistName?.toLowerCase() === filterLower
+        const matchesReleaseArtist = r.artistName?.toLowerCase() === filterLower
         const matchesTrackArtist = r.tracks?.some(
           (t) =>
             t.artistName?.toLowerCase().includes(filterLower) ||
@@ -1050,13 +1115,13 @@ function PersonalCollectionManagePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 w-full space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 w-full select-none pb-24 md:pb-16">
       {/* Deletion Confirmation Modal Overlay */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+          <div className="w-full max-w-md border border-line bg-panel p-6 shadow-2xl space-y-4 rounded-2xl">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-10 h-10 border border-line bg-canvas rounded-xl flex items-center justify-center text-red-500 shrink-0 shadow-2xs">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
@@ -1092,7 +1157,7 @@ function PersonalCollectionManagePage() {
                 type="button"
                 disabled={deletingItemId !== null}
                 onClick={() => setDeleteConfirm(null)}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1109,7 +1174,7 @@ function PersonalCollectionManagePage() {
                     confirmDeleteRelease(deleteConfirm.id)
                   }
                 }}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1.5 rounded-md shadow-xs"
               >
                 {deletingItemId !== null ? 'Deleting...' : 'Move to Trash'}
               </button>
@@ -1121,9 +1186,9 @@ function PersonalCollectionManagePage() {
       {/* Permanent Delete / Empty Trash Confirmation Modal */}
       {trashConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+          <div className="w-full max-w-md border border-line bg-panel p-6 shadow-2xl space-y-4 rounded-2xl">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-10 h-10 border border-line bg-canvas rounded-xl flex items-center justify-center text-red-500 shrink-0 shadow-2xs">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
@@ -1149,7 +1214,7 @@ function PersonalCollectionManagePage() {
                 type="button"
                 disabled={isPurging}
                 onClick={() => setTrashConfirm(null)}
-                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-canvas rounded-md transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1171,7 +1236,7 @@ function PersonalCollectionManagePage() {
                     handlePermanentDeleteSong(trashConfirm.id)
                   }
                 }}
-                className="font-mono text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs"
+                className="font-mono text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs rounded-md"
               >
                 {isPurging ? 'Deleting...' : 'Delete Forever'}
               </button>
@@ -1183,7 +1248,7 @@ function PersonalCollectionManagePage() {
       {/* Track Move / Attach Modal Overlay */}
       {movingTrackInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-lg border border-line bg-canvas p-6 shadow-2xl space-y-5 rounded-xs max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-lg border border-line bg-panel p-6 shadow-2xl space-y-5 rounded-2xl max-h-[85vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 border-b border-line pb-3">
               <div>
@@ -1216,7 +1281,7 @@ function PersonalCollectionManagePage() {
                 <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink font-semibold">
                   1. Detach as Standalone Single
                 </div>
-                <div className="p-3 border border-line bg-panel flex items-center justify-between gap-3 hover:border-ink transition-colors">
+                <div className="p-3 border border-line bg-canvas flex items-center justify-between gap-3 hover:border-ink transition-colors rounded-xl shadow-2xs">
                   <div>
                     <div className="font-serif italic text-xs text-ink">
                       Create Standalone Single Release
@@ -1234,7 +1299,7 @@ function PersonalCollectionManagePage() {
                       )
                       setMovingTrackInfo(null)
                     }}
-                    className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer shrink-0 font-semibold"
+                    className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-line bg-panel hover:border-ink text-ink transition-colors cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
                   >
                     Detach Single
                   </button>
@@ -1249,7 +1314,7 @@ function PersonalCollectionManagePage() {
                 {importReleases.filter(
                   (r) => r.id !== movingTrackInfo.sourceReleaseId,
                 ).length === 0 ? (
-                  <div className="p-3 border border-dashed border-line bg-panel/50 text-center font-mono text-[11px] text-ink-soft">
+                  <div className="p-3 border border-dashed border-line bg-canvas/50 rounded-xl text-center font-mono text-[11px] text-ink-soft">
                     No other staged release cards in upload queue. Use "+ New
                     Release / Mixtape" on desk to create one.
                   </div>
@@ -1260,14 +1325,14 @@ function PersonalCollectionManagePage() {
                       .map((targetRel) => (
                         <div
                           key={targetRel.id}
-                          className="p-2.5 border border-line bg-panel flex items-center justify-between gap-3 hover:border-blue transition-colors"
+                          className="p-2.5 border border-line bg-canvas rounded-xl flex items-center justify-between gap-3 hover:border-blue transition-colors shadow-2xs"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-serif italic text-xs text-ink truncate">
                                 {targetRel.albumTitle}
                               </span>
-                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-canvas text-blue font-semibold shrink-0">
+                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
                                 {targetRel.albumType}
                               </span>
                             </div>
@@ -1288,7 +1353,7 @@ function PersonalCollectionManagePage() {
                                 movingTrackInfo.track,
                               )
                             }
-                            className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 bg-blue text-canvas hover:opacity-90 transition-opacity cursor-pointer shrink-0 font-semibold"
+                            className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 bg-blue text-canvas hover:opacity-90 transition-opacity cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
                           >
                             Move Here
                           </button>
@@ -1304,7 +1369,7 @@ function PersonalCollectionManagePage() {
                   3. Attach to Existing Album in Your Personal Collection
                 </div>
                 {personalReleases.length === 0 ? (
-                  <div className="p-3 border border-dashed border-line bg-panel/50 text-center font-mono text-[11px] text-ink-soft">
+                  <div className="p-3 border border-dashed border-line bg-canvas/50 rounded-xl text-center font-mono text-[11px] text-ink-soft">
                     No active releases in your personal library yet.
                   </div>
                 ) : (
@@ -1312,10 +1377,10 @@ function PersonalCollectionManagePage() {
                     {personalReleases.map((libRel) => (
                       <div
                         key={libRel.id}
-                        className="p-2.5 border border-line bg-panel flex items-center justify-between gap-3 hover:border-blue transition-colors"
+                        className="p-2.5 border border-line bg-canvas rounded-xl flex items-center justify-between gap-3 hover:border-blue transition-colors shadow-2xs"
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <div className="w-8 h-8 border border-line bg-canvas shrink-0 overflow-hidden">
+                          <div className="w-8 h-8 border border-line bg-panel shrink-0 overflow-hidden rounded">
                             {libRel.coverImageUrl ? (
                               <img
                                 src={libRel.coverImageUrl}
@@ -1333,7 +1398,7 @@ function PersonalCollectionManagePage() {
                               <span className="font-serif italic text-xs text-ink truncate">
                                 {libRel.title}
                               </span>
-                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-canvas text-blue font-semibold shrink-0">
+                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
                                 {libRel.albumType || 'ALBUM'}
                               </span>
                             </div>
@@ -1352,7 +1417,7 @@ function PersonalCollectionManagePage() {
                               movingTrackInfo.track,
                             )
                           }
-                          className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-blue text-blue hover:bg-blue hover:text-canvas transition-colors cursor-pointer shrink-0 font-semibold"
+                          className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-blue text-blue hover:bg-blue hover:text-canvas transition-colors cursor-pointer shrink-0 font-semibold rounded-md"
                         >
                           Attach
                         </button>
@@ -1368,7 +1433,7 @@ function PersonalCollectionManagePage() {
               <button
                 type="button"
                 onClick={() => setMovingTrackInfo(null)}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -1378,135 +1443,145 @@ function PersonalCollectionManagePage() {
       )}
 
       {/* ===================== HERO BANNER ===================== */}
-      <div className="border-b border-line pb-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="border-b border-line pb-6 sm:pb-8 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-2 font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue">
-              <span>Curator Locker</span>
-              <span className="text-line">/</span>
-              <span>Ingestion &amp; Storage Workspace</span>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap">
-              <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal tracking-tight">
-                Locker Management
-              </h1>
-              <Link
-                to="/collection"
-                className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink transition-colors flex items-center gap-1.5 shadow-2xs rounded-xs"
-              >
-                <span>♫ View Vault Catalog</span>
-              </Link>
-            </div>
-            <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
-              Stage and import audio files &bull; Organize tracks and releases &bull;
-              Monitor storage limits &bull; 30-day recycle bin and permanent purge.
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2 font-medium">
+              Groovy Personal Vault
+            </span>
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight font-semibold">
+              Locker Management
+            </h1>
+            <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-xl mt-2 leading-relaxed">
+              Stage and import audio files, organize private releases and artist
+              rosters, and monitor your personal storage allocation.
             </p>
           </div>
 
-          {/* Quota Progress & Details */}
-          {quotaLoading ? (
-            <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft animate-pulse py-2">
-              Checking quota...
-            </div>
-          ) : quota ? (
-            <div className="bg-panel border border-line p-4 sm:min-w-67.5 space-y-2 shrink-0 shadow-xs">
-              <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
-                <span className="text-ink-soft">Storage Quota</span>
-                <span className="text-ink font-bold font-mono">
-                  {quota.usedSongs} / {quota.maxSongs} Songs
-                </span>
+          {/* Right Header Actions & Storage Quota */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {quotaLoading ? (
+              <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft animate-pulse py-2">
+                Checking quota...
               </div>
-              <div className="w-full h-1.5 bg-canvas border border-line overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    quota.usedSongs >= quota.maxSongs ? 'bg-red-500' : 'bg-ink'
-                  }`}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.round((quota.usedSongs / quota.maxSongs) * 100),
-                    )}%`,
-                  }}
-                />
+            ) : quota ? (
+              <div className="bg-panel border border-line rounded-xl p-3 sm:p-3.5 min-w-[210px] shadow-2xs space-y-2">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
+                  <span className="text-ink-soft">Storage Quota</span>
+                  <span className="text-ink font-semibold font-mono">
+                    {quota.usedSongs} / {quota.maxSongs} Songs
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-canvas border border-line rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      quota.usedSongs >= quota.maxSongs
+                        ? 'bg-red-500'
+                        : 'bg-ink'
+                    }`}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round((quota.usedSongs / quota.maxSongs) * 100),
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between font-mono text-[9px]">
+                  <span className="text-ink-soft">
+                    {quota.remainingSongs} slot
+                    {quota.remainingSongs === 1 ? '' : 's'} left
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      quota.remainingSongs === 0 ? 'text-red-500' : 'text-blue'
+                    }`}
+                  >
+                    {Math.round((quota.usedSongs / quota.maxSongs) * 100)}% Used
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center justify-between font-mono text-[9px]">
-                <span className="text-ink-soft">
-                  {quota.remainingSongs} slots left
-                </span>
-                <span
-                  className={`font-semibold ${
-                    quota.remainingSongs === 0 ? 'text-red-500' : 'text-blue'
-                  }`}
-                >
-                  {Math.round((quota.usedSongs / quota.maxSongs) * 100)}% Used
-                </span>
-              </div>
-            </div>
-          ) : null}
+            ) : null}
+
+            <Link
+              to="/collection"
+              className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-panel hover:bg-canvas text-ink rounded-md transition-all shadow-2xs cursor-pointer font-medium shrink-0 self-start sm:self-center"
+            >
+              <span>♫ View Vault</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="mt-8 flex items-center gap-6 border-b border-line pb-px font-mono text-xs uppercase tracking-[0.14em]">
+        {/* Scope Filter Tabs */}
+        <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-2 border-b border-line pb-4">
           <button
             type="button"
-            onClick={() => setActiveTab('collection')}
-            className={`pb-2.5 transition-colors cursor-pointer border-b-2 ${
-              activeTab === 'collection'
-                ? 'border-blue text-ink font-semibold'
-                : 'border-transparent text-ink-soft hover:text-ink'
-            }`}
-          >
-            Releases ({filteredReleases.length !== personalReleases.length ? `${filteredReleases.length}/${personalReleases.length}` : personalReleases.length}) &bull; {totalPersonalSongs} Tracks
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('artists')
-              loadPersonalArtists()
-            }}
-            className={`pb-2.5 transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${
-              activeTab === 'artists'
-                ? 'border-blue text-ink font-semibold'
-                : 'border-transparent text-ink-soft hover:text-ink'
-            }`}
-          >
-            <span>Artists</span>
-            <span>({personalArtists.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('trash')
-              loadTrash()
-            }}
-            className={`pb-2.5 transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${
-              activeTab === 'trash'
-                ? 'border-blue text-ink font-semibold'
-                : 'border-transparent text-ink-soft hover:text-ink'
-            }`}
-          >
-            <span>Trash</span>
-            {trashedSongs.length + trashedReleases.length > 0 && (
-              <span className="font-mono text-[9px] px-1.5 py-0.2 bg-panel border border-line text-ink-soft">
-                {trashedSongs.length + trashedReleases.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('import')}
-            className={`pb-2.5 transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${
+            onClick={() => handleTabChange('import')}
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
               activeTab === 'import'
-                ? 'border-blue text-ink font-semibold'
-                : 'border-transparent text-ink-soft hover:text-ink'
+                ? 'bg-ink text-canvas font-semibold shadow-xs'
+                : 'bg-panel text-ink-soft hover:text-ink border border-line'
             }`}
           >
-            <span>+ Import Music</span>
+            <span>Import Music</span>
             {importReleases.length > 0 && (
               <span className="font-bold">({totalSelectedTracks})</span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('collection')}
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+              activeTab === 'collection'
+                ? 'bg-ink text-canvas font-semibold shadow-xs'
+                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+            }`}
+          >
+            Releases (
+            {filteredReleases.length !== personalReleases.length
+              ? `${filteredReleases.length}/${personalReleases.length}`
+              : personalReleases.length}
+            ) &bull; {totalPersonalSongs} Tracks
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleTabChange('artists')
+              loadPersonalArtists()
+            }}
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+              activeTab === 'artists'
+                ? 'bg-ink text-canvas font-semibold shadow-xs'
+                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+            }`}
+          >
+            Artists ({personalArtists.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleTabChange('trash')
+              loadTrash()
+            }}
+            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
+              activeTab === 'trash'
+                ? 'bg-ink text-canvas font-semibold shadow-xs'
+                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+            }`}
+          >
+            <span>Recycle Bin</span>
+            {trashedSongs.length + trashedReleases.length > 0 && (
+              <span
+                className={`font-mono text-[9px] px-1.5 py-0.2 rounded-full ${
+                  activeTab === 'trash'
+                    ? 'bg-canvas text-ink'
+                    : 'bg-canvas border border-line text-ink-soft'
+                }`}
+              >
+                {trashedSongs.length + trashedReleases.length}
+              </span>
             )}
           </button>
         </div>
@@ -1543,15 +1618,582 @@ function PersonalCollectionManagePage() {
         </div>
       )}
 
-      {/* ==================== TAB 1: MY COLLECTION ==================== */}
+      {/* ==================== TAB 1: IMPORT MUSIC ==================== */}
+      {activeTab === 'import' && (
+        <div className="space-y-6">
+          {/* Parsing progress indicator */}
+          {isParsing && (
+            <div className="p-4 bg-panel border border-line text-xs text-ink flex items-center gap-3 font-mono shadow-xs rounded-xl">
+              <div className="w-4 h-4 border-2 border-line-soft border-t-ink rounded-full animate-spin shrink-0" />
+              <span>
+                Extracting ID3 tags, duration &amp; artwork in browser (
+                {parsingProgress.current} / {parsingProgress.total} files)...
+              </span>
+            </div>
+          )}
+
+          {/* Upload Progress Indicator */}
+          {isUploading && (
+            <div className="p-5 border border-line bg-panel space-y-3 shadow-xs rounded-xl">
+              <div className="flex justify-between font-mono text-[11px] uppercase tracking-wider text-ink">
+                <span>{uploadStatusText}</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full h-2 bg-canvas border border-line rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-ink transition-all duration-200 rounded-full"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Duplicate Detection Alert Banner */}
+          {duplicateNotice && duplicateNotice.count > 0 && (
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-xs flex flex-col gap-2 shadow-xs rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">⚡</span>
+                  <span>
+                    <strong>{duplicateNotice.count}</strong> duplicate track(s)
+                    were automatically detected and excluded from the upload
+                    queue.
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDuplicateDetails((v) => !v)}
+                    className="underline hover:opacity-80 text-[10px] uppercase tracking-wider cursor-pointer font-bold"
+                  >
+                    {showDuplicateDetails ? 'Hide details' : 'View skipped'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateNotice(null)}
+                    className="cursor-pointer font-bold text-sm leading-none"
+                    title="Dismiss notification"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {showDuplicateDetails && (
+                <div className="mt-2 border-t border-blue-500/20 pt-2 space-y-1.5 max-h-44 overflow-y-auto">
+                  {duplicateNotice.details.map((d, i) => (
+                    <div
+                      key={i}
+                      className="text-[11px] text-ink-soft flex items-center justify-between font-sans px-1"
+                    >
+                      <span className="truncate">
+                        <strong>{d.artistName}</strong> &mdash; {d.title}{' '}
+                        <span className="text-ink-soft/60">
+                          ({d.albumTitle})
+                        </span>
+                      </span>
+                      <span className="font-mono text-[9px] uppercase tracking-wider shrink-0 text-blue-500 ml-3">
+                        {d.reason === 'already_in_collection'
+                          ? 'In Library'
+                          : 'Batch Duplicate'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Review Desk / Release List */}
+          {importReleases.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
+                <div>
+                  <h3 className="font-serif italic text-xl sm:text-2xl text-ink font-semibold">
+                    Import Staging Desk
+                  </h3>
+                  <p className="font-sans text-xs sm:text-sm text-ink-soft mt-0.5">
+                    Review and refine release tags before uploading to your
+                    private storage vault.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingContainer((v) => !v)}
+                    disabled={isUploading}
+                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer font-semibold"
+                  >
+                    + New Release / Mixtape
+                  </button>
+                  <span className="text-line">&bull;</span>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                  >
+                    + Add More Files
+                  </button>
+                  <span className="text-line">&bull;</span>
+                  <button
+                    type="button"
+                    onClick={() => setImportReleases([])}
+                    disabled={isUploading}
+                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Create Staged Container Form */}
+              {isCreatingContainer && (
+                <form
+                  onSubmit={handleCreateStagedContainer}
+                  className="p-5 border border-blue-500/30 bg-blue-500/5 space-y-3 shadow-xs rounded-xl"
+                >
+                  <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-blue font-bold">
+                    <span>Create Empty Staged Release / Mixtape Container</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingContainer(false)}
+                      className="text-ink-soft hover:text-ink cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                        Release Title *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Summer Mixtape Vol. 1"
+                        required
+                        value={newContainerForm.title}
+                        onChange={(e) =>
+                          setNewContainerForm((f) => ({
+                            ...f,
+                            title: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                        Artist Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Various Artists"
+                        value={newContainerForm.artistName}
+                        onChange={(e) =>
+                          setNewContainerForm((f) => ({
+                            ...f,
+                            artistName: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                        Release Type
+                      </label>
+                      <select
+                        value={newContainerForm.albumType}
+                        onChange={(e) =>
+                          setNewContainerForm((f) => ({
+                            ...f,
+                            albumType: e.target.value as any,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans rounded-md cursor-pointer"
+                      >
+                        <option value="MIXTAPE">Mixtape</option>
+                        <option value="EP">EP</option>
+                        <option value="ALBUM">Album</option>
+                        <option value="LP">LP</option>
+                        <option value="SINGLE">Single</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingContainer(false)}
+                      className="px-3 py-1.5 border border-line font-mono text-[10px] uppercase text-ink-soft hover:text-ink cursor-pointer bg-canvas rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-3.5 py-1.5 bg-ink text-canvas font-mono text-[10px] uppercase font-semibold hover:opacity-90 cursor-pointer rounded-md shadow-xs transition-opacity"
+                    >
+                      Create Container
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {importReleases.map((release, relIdx) => (
+                <div
+                  key={release.id}
+                  className="border border-line bg-panel p-5 space-y-4 shadow-xs rounded-xl"
+                >
+                  {release.targetExistingAlbumId && (
+                    <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue font-mono text-[9.5px] uppercase tracking-wider font-semibold rounded-md">
+                      <span>
+                        ↳ Appending new track(s) to existing library album
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-4">
+                    {/* Cover Art Preview */}
+                    <div className="w-20 h-20 bg-canvas border border-line shrink-0 overflow-hidden relative shadow-2xs rounded-lg">
+                      {release.coverPreviewUrl ? (
+                        <img
+                          src={release.coverPreviewUrl}
+                          alt={release.albumTitle}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ProceduralCover
+                          title={release.albumTitle}
+                          artistName={release.artistName}
+                          size="md"
+                          className="w-full h-full rounded-none"
+                        />
+                      )}
+                    </div>
+
+                    {/* Release metadata editor */}
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                          Album Title
+                        </label>
+                        <input
+                          type="text"
+                          value={release.albumTitle}
+                          disabled={
+                            isUploading || !!release.targetExistingAlbumId
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setImportReleases((prev) =>
+                              prev.map((r, i) =>
+                                i === relIdx ? { ...r, albumTitle: val } : r,
+                              ),
+                            )
+                          }}
+                          className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70 rounded-md"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                          Artist Name
+                        </label>
+                        <input
+                          type="text"
+                          value={release.artistName}
+                          disabled={
+                            isUploading || !!release.targetExistingAlbumId
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setImportReleases((prev) =>
+                              prev.map((r, i) =>
+                                i === relIdx ? { ...r, artistName: val } : r,
+                              ),
+                            )
+                          }}
+                          className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70 rounded-md"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                            Release Type
+                          </label>
+                          <select
+                            value={release.albumType}
+                            disabled={
+                              isUploading || !!release.targetExistingAlbumId
+                            }
+                            onChange={(e) => {
+                              const val = e.target.value as any
+                              setImportReleases((prev) =>
+                                prev.map((r, i) =>
+                                  i === relIdx ? { ...r, albumType: val } : r,
+                                ),
+                              )
+                            }}
+                            className="w-full px-3 py-2 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70 rounded-md cursor-pointer"
+                          >
+                            <option value="ALBUM">Album</option>
+                            <option value="EP">EP</option>
+                            <option value="MIXTAPE">Mixtape</option>
+                            <option value="LP">LP</option>
+                            <option value="SINGLE">Single</option>
+                          </select>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImportReleases((prev) =>
+                              prev.filter((_, i) => i !== relIdx),
+                            )
+                          }}
+                          disabled={isUploading}
+                          className="mt-4 p-2 text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
+                          title="Remove release container"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tracks list */}
+                  <div className="border border-line/60 bg-canvas-deep/20 divide-y divide-line/40 p-2 text-xs rounded-lg">
+                    {release.tracks.map((track) => (
+                      <div
+                        key={track.id}
+                        className="py-1.5 px-2 flex items-center justify-between hover:bg-canvas transition-colors gap-2 rounded"
+                      >
+                        <div className="flex items-center gap-2.5 truncate min-w-0">
+                          <span className="font-mono text-[10px] text-ink-soft w-4 text-right shrink-0">
+                            {track.trackNumber}
+                          </span>
+                          <span className="font-serif italic text-xs text-ink truncate">
+                            {track.title}
+                          </span>
+                          {track.artistName !== release.artistName && (
+                            <span className="font-sans text-ink-soft text-[11px] truncate shrink-0">
+                              ({track.artistName})
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <span className="font-mono text-[10px] text-ink-soft mr-1">
+                            {Math.floor(track.durationSeconds / 60)}:
+                            {(track.durationSeconds % 60)
+                              .toString()
+                              .padStart(2, '0')}
+                          </span>
+
+                          {/* Detach as Single */}
+                          {(release.tracks.length > 1 ||
+                            release.albumType !== 'SINGLE') && (
+                            <button
+                              type="button"
+                              disabled={isUploading}
+                              onClick={() =>
+                                handleDetachTrackAsSingle(release.id, track.id)
+                              }
+                              className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer rounded"
+                              title="Extract this song into its own Single release"
+                            >
+                              Detach
+                            </button>
+                          )}
+
+                          {/* Move / Attach to Release */}
+                          <button
+                            type="button"
+                            disabled={isUploading}
+                            onClick={() =>
+                              setMovingTrackInfo({
+                                sourceReleaseId: release.id,
+                                track,
+                              })
+                            }
+                            className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-blue hover:border-blue bg-panel transition-colors cursor-pointer rounded"
+                            title="Move track to another staged release or attach to library album"
+                          >
+                            Move / Attach
+                          </button>
+
+                          {/* Remove Track */}
+                          <button
+                            type="button"
+                            disabled={isUploading}
+                            onClick={() =>
+                              handleRemoveTrackFromStagedRelease(
+                                release.id,
+                                track.id,
+                              )
+                            }
+                            className="text-ink-soft hover:text-red-500 font-mono text-xs cursor-pointer p-0.5 ml-1"
+                            title="Remove this track from upload"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {release.tracks.length === 0 && (
+                      <div className="py-4 text-center font-mono text-[10px] uppercase tracking-wider text-ink-soft/60">
+                        Container is empty. Move tracks into this container or
+                        remove it.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Action Bar */}
+              <div className="p-4 border border-line bg-panel flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs rounded-xl">
+                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
+                  <span>
+                    Staged:{' '}
+                    <strong className="text-ink font-bold font-mono">
+                      {totalSelectedTracks}
+                    </strong>{' '}
+                    track(s) across{' '}
+                    <strong className="text-ink font-bold font-mono">
+                      {importReleases.length}
+                    </strong>{' '}
+                    release(s)
+                  </span>
+                  {isOverQuota && (
+                    <span className="ml-2 text-red-500 font-semibold">
+                      (Exceeds remaining quota: {quota?.remainingSongs} slots
+                      available)
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (personalReleases.length > 0) {
+                        handleTabChange('collection')
+                      }
+                    }}
+                    disabled={isUploading}
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md"
+                  >
+                    Back to Collection
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartImport}
+                    disabled={
+                      importReleases.length === 0 || isUploading || isOverQuota
+                    }
+                    className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 font-semibold transition-all cursor-pointer rounded-md ${
+                      importReleases.length === 0 || isUploading || isOverQuota
+                        ? 'bg-canvas-deep text-ink-soft/50 border border-line cursor-not-allowed'
+                        : 'bg-ink text-canvas hover:opacity-90 shadow-xs'
+                    }`}
+                  >
+                    {isUploading
+                      ? 'Importing...'
+                      : isOverQuota
+                        ? 'Quota Exceeded'
+                        : `Import ${totalSelectedTracks} Track${
+                            totalSelectedTracks === 1 ? '' : 's'
+                          } to Collection`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Empty Drop Zone */
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                if (e.dataTransfer.files) {
+                  handleFilesSelected(e.dataTransfer.files)
+                }
+              }}
+              className="border-2 border-dashed border-line bg-panel hover:border-ink/50 p-10 sm:p-14 text-center space-y-4 shadow-xs rounded-2xl transition-colors"
+            >
+              <div className="w-14 h-14 bg-canvas border border-line text-blue flex items-center justify-center mx-auto text-2xl rounded-xl shadow-2xs">
+                <UploadCloudSVG className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-serif italic text-2xl text-ink font-normal">
+                  Drop audio files or whole music folders here
+                </h3>
+                <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-lg mx-auto leading-relaxed">
+                  Supports MP3, FLAC, WAV, AAC, M4A, OGG. Tags and embedded
+                  cover art are extracted in-browser using zero-copy streaming
+                  tokens, automatically grouping albums and singles.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs rounded-md"
+                >
+                  Choose Audio Files
+                </button>
+                <button
+                  type="button"
+                  onClick={() => folderInputRef.current?.click()}
+                  className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-2.5 px-5 border border-line text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md shadow-2xs"
+                >
+                  Choose Folder
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Hidden File Inputs */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".mp3,.flac,.wav,.m4a,.aac,.ogg,audio/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) handleFilesSelected(e.target.files)
+              e.target.value = ''
+            }}
+          />
+          <input
+            ref={folderInputRef}
+            type="file"
+            multiple
+            // @ts-ignore
+            webkitdirectory="true"
+            directory="true"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) handleFilesSelected(e.target.files)
+              e.target.value = ''
+            }}
+          />
+        </div>
+      )}
+
+      {/* ==================== TAB 2: MY COLLECTION (RELEASES) ==================== */}
       {activeTab === 'collection' && (
         <div className="space-y-6">
           {/* Active Artist Filter Banner */}
           {selectedArtistFilter && (
-            <div className="p-3 bg-blue/10 border border-blue/20 flex items-center justify-between font-mono text-xs text-blue">
+            <div className="p-3 bg-blue/10 border border-blue/20 rounded-xl flex items-center justify-between font-mono text-xs text-blue">
               <div className="flex items-center gap-2">
                 <span>Filtering collection by artist:</span>
-                <strong className="text-ink font-bold">"{selectedArtistFilter}"</strong>
+                <strong className="text-ink font-bold">
+                  "{selectedArtistFilter}"
+                </strong>
               </div>
               <button
                 type="button"
@@ -1564,36 +2206,40 @@ function PersonalCollectionManagePage() {
           )}
 
           {/* Search & Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="relative w-full sm:max-w-md">
               <input
                 type="text"
                 placeholder="Search releases, artists, or songs in collection..."
                 value={collectionSearch}
                 onChange={(e) => setCollectionSearch(e.target.value)}
-                className="w-full pl-8 pr-8 py-2 border border-line bg-panel text-xs text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors font-sans shadow-2xs"
+                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
               />
-              <span className="absolute left-2.5 top-2.5 text-ink-soft text-xs">
-                🔍
-              </span>
+              <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               {collectionSearch && (
                 <button
+                  type="button"
                   onClick={() => setCollectionSearch('')}
-                  className="absolute right-2.5 top-2 text-ink-soft hover:text-ink text-xs cursor-pointer font-mono"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
                 >
                   ✕
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
               <button
                 type="button"
-                onClick={() => setActiveTab('import')}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs"
+                onClick={() => handleTabChange('import')}
+                className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium"
               >
-                + Import Music
+                <PlusIconSVG className="w-3.5 h-3.5" />
+                <span>Import Music</span>
               </button>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft shrink-0 border-l border-line pl-3">
+                {filteredReleases.length}{' '}
+                {filteredReleases.length === 1 ? 'Release' : 'Releases'}
+              </span>
             </div>
           </div>
 
@@ -1604,8 +2250,8 @@ function PersonalCollectionManagePage() {
             </div>
           ) : personalReleases.length === 0 ? (
             /* Empty Collection State */
-            <div className="p-12 border border-dashed border-line bg-canvas-deep/20 text-center space-y-4 my-4">
-              <div className="w-14 h-14 bg-panel border border-line text-blue flex items-center justify-center mx-auto text-2xl">
+            <div className="p-12 border border-dashed border-line bg-panel/40 rounded-2xl text-center space-y-4 my-4">
+              <div className="w-14 h-14 bg-canvas border border-line text-blue rounded-xl flex items-center justify-center mx-auto text-2xl shadow-2xs">
                 <UploadCloudSVG className="w-7 h-7" />
               </div>
               <div className="space-y-1">
@@ -1620,26 +2266,20 @@ function PersonalCollectionManagePage() {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab('import')}
-                className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs"
+                onClick={() => handleTabChange('import')}
+                className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 rounded-md transition-all font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Start Importing Music</span>
               </button>
             </div>
           ) : filteredReleases.length === 0 ? (
-            <div className="p-12 text-center text-ink-soft text-xs font-mono border border-line bg-panel">
+            <div className="p-12 text-center text-ink-soft text-xs font-mono border border-line bg-panel rounded-xl">
               No releases match "{collectionSearch}".
             </div>
           ) : (
             /* Releases Cards List */
             <div className="space-y-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft">
-                {filteredReleases.length}{' '}
-                {filteredReleases.length === 1 ? 'Release' : 'Releases'} in
-                Vault
-              </div>
-
               {filteredReleases.map((release) => {
                 const isExpanded = expandedReleaseIds.has(release.id)
                 const isDeletingRelease = deletingItemId === release.id
@@ -1647,7 +2287,7 @@ function PersonalCollectionManagePage() {
                 return (
                   <div
                     key={release.id}
-                    className="border border-line bg-panel shadow-xs overflow-hidden transition-all rounded-xs"
+                    className="border border-line bg-panel shadow-xs overflow-hidden transition-all rounded-xl hover:border-ink/40"
                   >
                     {/* Release Header */}
                     <div className="p-3.5 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1657,7 +2297,7 @@ function PersonalCollectionManagePage() {
                         <Link
                           to="/albums/$idOrSlug"
                           params={{ idOrSlug: release.slug || release.id }}
-                          className="relative w-14 h-14 sm:w-16 sm:h-16 bg-canvas border border-line shrink-0 overflow-hidden shadow-2xs group/cover block rounded-xs"
+                          className="relative w-14 h-14 sm:w-16 sm:h-16 bg-canvas border border-line shrink-0 overflow-hidden shadow-2xs group/cover block rounded-lg"
                           title={`View "${release.title}" album page`}
                         >
                           {release.coverImageUrl ? (
@@ -1690,11 +2330,11 @@ function PersonalCollectionManagePage() {
                             >
                               {release.title}
                             </Link>
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1.5 py-0.5 font-semibold shrink-0">
+                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1.5 py-0.5 font-semibold shrink-0 rounded">
                               {release.albumType || 'Album'}
                             </span>
                             {release.genre && (
-                              <span className="hidden sm:inline-block font-mono text-[8.5px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-1.5 py-0.5 shrink-0">
+                              <span className="hidden sm:inline-block font-mono text-[8.5px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-1.5 py-0.5 shrink-0 rounded">
                                 {release.genre}
                               </span>
                             )}
@@ -1704,7 +2344,10 @@ function PersonalCollectionManagePage() {
                           <p className="font-sans text-xs text-ink-soft truncate mt-0.5 flex items-center gap-1.5 flex-wrap">
                             <Link
                               to="/artists/$idOrSlug"
-                              params={{ idOrSlug: release.artistSlug || release.artistId }}
+                              params={{
+                                idOrSlug:
+                                  release.artistSlug || release.artistId,
+                              }}
                               className="text-ink-soft hover:text-ink hover:underline transition-colors font-medium truncate"
                               title={`View ${release.artistName}'s profile`}
                             >
@@ -1713,14 +2356,16 @@ function PersonalCollectionManagePage() {
                             <span className="opacity-60">&bull;</span>
                             <span className="font-mono text-[10.5px]">
                               {release.totalTracks}{' '}
-                              {release.totalTracks === 1 ? 'cut' : 'cuts'}
+                              {release.totalTracks === 1 ? 'track' : 'tracks'}
                             </span>
                             {release.totalDurationSeconds > 0 && (
                               <>
                                 <span className="opacity-60">&bull;</span>
                                 <span className="font-mono text-[10.5px]">
-                                  {Math.floor(release.totalDurationSeconds / 60)}m{' '}
-                                  {release.totalDurationSeconds % 60}s
+                                  {Math.floor(
+                                    release.totalDurationSeconds / 60,
+                                  )}
+                                  m {release.totalDurationSeconds % 60}s
                                 </span>
                               </>
                             )}
@@ -1742,7 +2387,7 @@ function PersonalCollectionManagePage() {
                                   0,
                                 )
                               }
-                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-xs"
+                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-md"
                               title="Play Release from Beginning"
                             >
                               <PlayIconSVG className="w-3.5 h-3.5 text-blue ml-0.5" />
@@ -1754,8 +2399,10 @@ function PersonalCollectionManagePage() {
                           {release.tracks?.length > 0 && (
                             <button
                               type="button"
-                              onClick={() => handleQueuePersonalRelease(release)}
-                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-xs"
+                              onClick={() =>
+                                handleQueuePersonalRelease(release)
+                              }
+                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-md"
                               title="Add all tracks from this release to Queue"
                             >
                               <PlusIconSVG className="w-3 h-3 text-ink-soft" />
@@ -1769,15 +2416,23 @@ function PersonalCollectionManagePage() {
                           <button
                             type="button"
                             onClick={() => toggleExpandRelease(release.id)}
-                            className={`h-8 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors cursor-pointer font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5 rounded-xs ${
+                            className={`h-8 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors cursor-pointer font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5 rounded-md ${
                               isExpanded ? 'bg-panel border-ink-soft' : ''
                             }`}
-                            title={isExpanded ? 'Hide tracklist' : 'View all tracks'}
+                            title={
+                              isExpanded ? 'Hide tracklist' : 'View all tracks'
+                            }
                           >
-                            <span>{isExpanded ? 'Hide' : `Cuts (${release.totalTracks})`}</span>
+                            <span>
+                              {isExpanded
+                                ? 'Hide'
+                                : `Tracklist (${release.totalTracks})`}
+                            </span>
                             <ChevronDownIconSVG
                               className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                isExpanded ? 'rotate-180 text-blue' : 'text-ink-soft'
+                                isExpanded
+                                  ? 'rotate-180 text-blue'
+                                  : 'text-ink-soft'
                               }`}
                             />
                           </button>
@@ -1794,7 +2449,7 @@ function PersonalCollectionManagePage() {
                                 trackCount: release.totalTracks,
                               })
                             }
-                            className="w-8 h-8 border border-line bg-canvas hover:border-red-400 hover:text-red-500 text-ink-soft flex items-center justify-center transition-colors cursor-pointer shadow-2xs rounded-xs"
+                            className="w-8 h-8 border border-line bg-canvas hover:border-red-400 hover:text-red-500 text-ink-soft flex items-center justify-center transition-colors cursor-pointer shadow-2xs rounded-md"
                             title="Delete Release from Personal Collection"
                           >
                             {isDeletingRelease ? (
@@ -1849,12 +2504,16 @@ function PersonalCollectionManagePage() {
                               isPersonal={true}
                               primaryCredits={primaryCredits}
                               featuredCredits={featuredCredits}
-                              onPlay={() => handlePlayPersonalTrack(release, track, tIdx)}
+                              onPlay={() =>
+                                handlePlayPersonalTrack(release, track, tIdx)
+                              }
                               customActions={[
                                 {
                                   label: 'Delete Track from Vault',
                                   danger: true,
-                                  icon: <TrashIconSVG className="w-3.5 h-3.5" />,
+                                  icon: (
+                                    <TrashIconSVG className="w-3.5 h-3.5" />
+                                  ),
                                   onClick: () => {
                                     setDeleteConfirm({
                                       type: 'song',
@@ -1902,16 +2561,6 @@ function PersonalCollectionManagePage() {
                   ✕
                 </button>
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsCreatingArtist((v) => !v)}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs"
-              >
-                {isCreatingArtist ? 'Close Form' : '+ New Personal Artist'}
-              </button>
             </div>
           </div>
 
@@ -1990,8 +2639,9 @@ function PersonalCollectionManagePage() {
                 No Personal Artists Yet
               </h3>
               <p className="font-sans text-xs text-ink-soft max-w-md mx-auto">
-                When you import audio files, artists are automatically identified
-                and cataloged in your private roster with collaborator links.
+                When you import audio files, artists are automatically
+                identified and cataloged in your private roster with
+                collaborator links.
               </p>
               <button
                 type="button"
@@ -2040,11 +2690,13 @@ function PersonalCollectionManagePage() {
                   <div className="pt-3 border-t border-line flex items-center justify-between">
                     <div className="font-mono text-[10px] text-ink-soft flex items-center gap-2">
                       <span>
-                        <strong>{artist.releaseCount}</strong> {artist.releaseCount === 1 ? 'Release' : 'Releases'}
+                        <strong>{artist.releaseCount}</strong>{' '}
+                        {artist.releaseCount === 1 ? 'Release' : 'Releases'}
                       </span>
                       <span>&bull;</span>
                       <span>
-                        <strong>{artist.trackCount}</strong> {artist.trackCount === 1 ? 'Track' : 'Tracks'}
+                        <strong>{artist.trackCount}</strong>{' '}
+                        {artist.trackCount === 1 ? 'Track' : 'Tracks'}
                       </span>
                     </div>
 
@@ -2052,7 +2704,7 @@ function PersonalCollectionManagePage() {
                       type="button"
                       onClick={() => {
                         setSelectedArtistFilter(artist.stageName)
-                        setActiveTab('collection')
+                        handleTabChange('collection')
                       }}
                       className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 border border-line bg-canvas hover:border-blue hover:text-blue transition-colors cursor-pointer font-semibold"
                     >
@@ -2071,9 +2723,12 @@ function PersonalCollectionManagePage() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-line bg-panel/60">
             <div>
-              <h2 className="font-serif italic text-xl text-ink">Recycle Bin</h2>
+              <h2 className="font-serif italic text-xl text-ink">
+                Recycle Bin
+              </h2>
               <p className="font-sans text-xs text-ink-soft mt-1">
-                Soft-deleted songs and releases do not consume personal quota. You can restore them or permanently purge them.
+                Soft-deleted songs and releases do not consume personal quota.
+                You can restore them or permanently purge them.
               </p>
             </div>
             {(trashedSongs.length > 0 || trashedReleases.length > 0) && (
@@ -2098,7 +2753,9 @@ function PersonalCollectionManagePage() {
                 Recycle Bin is Empty
               </h3>
               <p className="font-sans text-xs text-ink-soft max-w-md mx-auto">
-                No soft-deleted songs or releases found. When you delete items from your collection, they will appear here before being permanently purged.
+                No soft-deleted songs or releases found. When you delete items
+                from your collection, they will appear here before being
+                permanently purged.
               </p>
             </div>
           ) : (
@@ -2201,8 +2858,8 @@ function PersonalCollectionManagePage() {
                           </div>
                           <div className="font-sans text-xs text-ink-soft truncate mt-0.5">
                             {song.artistName}{' '}
-                            {song.albumTitle ? `— ${song.albumTitle}` : ''} &bull;{' '}
-                            {Math.floor(song.durationSeconds / 60)}:
+                            {song.albumTitle ? `— ${song.albumTitle}` : ''}{' '}
+                            &bull; {Math.floor(song.durationSeconds / 60)}:
                             {(song.durationSeconds % 60)
                               .toString()
                               .padStart(2, '0')}
@@ -2244,551 +2901,6 @@ function PersonalCollectionManagePage() {
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {/* ==================== TAB 3: IMPORT MUSIC ==================== */}
-      {activeTab === 'import' && (
-        <div className="space-y-6">
-          {/* Parsing progress indicator */}
-          {isParsing && (
-            <div className="p-4 bg-canvas border border-line text-xs text-ink flex items-center gap-3 font-mono shadow-xs">
-              <div className="w-4 h-4 border-2 border-line-soft border-t-ink rounded-full animate-spin" />
-              <span>
-                Extracting ID3 tags, duration &amp; artwork in browser (
-                {parsingProgress.current} / {parsingProgress.total} files)...
-              </span>
-            </div>
-          )}
-
-          {/* Upload Progress Indicator */}
-          {isUploading && (
-            <div className="p-5 border border-line bg-panel space-y-3 shadow-xs">
-              <div className="flex justify-between font-mono text-[11px] uppercase tracking-wider text-ink">
-                <span>{uploadStatusText}</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="w-full h-2 bg-canvas border border-line overflow-hidden">
-                <div
-                  className="h-full bg-ink transition-all duration-200"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Duplicate Detection Alert Banner */}
-          {duplicateNotice && duplicateNotice.count > 0 && (
-            <div className="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-xs flex flex-col gap-2 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">⚡</span>
-                  <span>
-                    <strong>{duplicateNotice.count}</strong> duplicate track(s) were automatically detected and excluded from the upload queue.
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowDuplicateDetails((v) => !v)}
-                    className="underline hover:opacity-80 text-[10px] uppercase tracking-wider cursor-pointer font-bold"
-                  >
-                    {showDuplicateDetails ? 'Hide details' : 'View skipped'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDuplicateNotice(null)}
-                    className="cursor-pointer font-bold text-sm leading-none"
-                    title="Dismiss notification"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              {showDuplicateDetails && (
-                <div className="mt-2 border-t border-blue-500/20 pt-2 space-y-1.5 max-h-44 overflow-y-auto">
-                  {duplicateNotice.details.map((d, i) => (
-                    <div
-                      key={i}
-                      className="text-[11px] text-ink-soft flex items-center justify-between font-sans px-1"
-                    >
-                      <span className="truncate">
-                        <strong>{d.artistName}</strong> &mdash; {d.title}{' '}
-                        <span className="text-ink-soft/60">({d.albumTitle})</span>
-                      </span>
-                      <span className="font-mono text-[9px] uppercase tracking-wider shrink-0 text-blue-500 ml-3">
-                        {d.reason === 'already_in_collection'
-                          ? 'In Library'
-                          : 'Batch Duplicate'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Review Desk / Release List */}
-          {importReleases.length > 0 ? (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
-                <div>
-                  <h3 className="font-serif italic text-xl text-ink font-normal">
-                    Import Staging Desk
-                  </h3>
-                  <p className="font-sans text-xs text-ink-soft">
-                    Review and refine release tags before uploading to your
-                    private storage vault.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreatingContainer((v) => !v)}
-                    disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer font-semibold"
-                  >
-                    + New Release / Mixtape
-                  </button>
-                  <span className="text-line">&bull;</span>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
-                  >
-                    + Add More Files
-                  </button>
-                  <span className="text-line">&bull;</span>
-                  <button
-                    type="button"
-                    onClick={() => setImportReleases([])}
-                    disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-
-              {/* Create Staged Container Form */}
-              {isCreatingContainer && (
-                <form
-                  onSubmit={handleCreateStagedContainer}
-                  className="p-4 border border-blue-500/30 bg-blue-500/5 space-y-3 shadow-xs"
-                >
-                  <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-blue font-bold">
-                    <span>Create Empty Staged Release / Mixtape Container</span>
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingContainer(false)}
-                      className="text-ink-soft hover:text-ink cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                        Release Title *
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Summer Mixtape Vol. 1"
-                        required
-                        value={newContainerForm.title}
-                        onChange={(e) =>
-                          setNewContainerForm((f) => ({ ...f, title: e.target.value }))
-                        }
-                        className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                        Artist Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Various Artists"
-                        value={newContainerForm.artistName}
-                        onChange={(e) =>
-                          setNewContainerForm((f) => ({ ...f, artistName: e.target.value }))
-                        }
-                        className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                        Release Type
-                      </label>
-                      <select
-                        value={newContainerForm.albumType}
-                        onChange={(e) =>
-                          setNewContainerForm((f) => ({
-                            ...f,
-                            albumType: e.target.value as any,
-                          }))
-                        }
-                        className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink font-sans"
-                      >
-                        <option value="MIXTAPE">Mixtape</option>
-                        <option value="EP">EP</option>
-                        <option value="ALBUM">Album</option>
-                        <option value="LP">LP</option>
-                        <option value="SINGLE">Single</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingContainer(false)}
-                      className="px-3 py-1.5 border border-line font-mono text-[10px] uppercase text-ink-soft hover:text-ink cursor-pointer bg-canvas"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-3 py-1.5 bg-ink text-canvas font-mono text-[10px] uppercase font-semibold hover:opacity-90 cursor-pointer"
-                    >
-                      Create Container
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {importReleases.map((release, relIdx) => (
-                <div
-                  key={release.id}
-                  className="border border-line bg-panel p-5 space-y-4 shadow-xs"
-                >
-                  {release.targetExistingAlbumId && (
-                    <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue font-mono text-[9.5px] uppercase tracking-wider font-semibold">
-                      <span>↳ Appending new track(s) to existing library album</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-4">
-                    {/* Cover Art Preview */}
-                    <div className="w-20 h-20 bg-canvas border border-line shrink-0 overflow-hidden relative shadow-2xs">
-                      {release.coverPreviewUrl ? (
-                        <img
-                          src={release.coverPreviewUrl}
-                          alt={release.albumTitle}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <ProceduralCover
-                          title={release.albumTitle}
-                          artistName={release.artistName}
-                          size="md"
-                          className="w-full h-full rounded-none"
-                        />
-                      )}
-                    </div>
-
-                    {/* Release metadata editor */}
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                          Album Title
-                        </label>
-                        <input
-                          type="text"
-                          value={release.albumTitle}
-                          disabled={isUploading || !!release.targetExistingAlbumId}
-                          onChange={(e) => {
-                            const val = e.target.value
-                            setImportReleases((prev) =>
-                              prev.map((r, i) =>
-                                i === relIdx ? { ...r, albumTitle: val } : r,
-                              ),
-                            )
-                          }}
-                          className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                          Artist Name
-                        </label>
-                        <input
-                          type="text"
-                          value={release.artistName}
-                          disabled={isUploading || !!release.targetExistingAlbumId}
-                          onChange={(e) => {
-                            const val = e.target.value
-                            setImportReleases((prev) =>
-                              prev.map((r, i) =>
-                                i === relIdx ? { ...r, artistName: val } : r,
-                              ),
-                            )
-                          }}
-                          className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70"
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                          <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
-                            Release Type
-                          </label>
-                          <select
-                            value={release.albumType}
-                            disabled={isUploading || !!release.targetExistingAlbumId}
-                            onChange={(e) => {
-                              const val = e.target.value as any
-                              setImportReleases((prev) =>
-                                prev.map((r, i) =>
-                                  i === relIdx ? { ...r, albumType: val } : r,
-                                ),
-                              )
-                            }}
-                            className="w-full px-3 py-1.5 border border-line bg-canvas text-ink text-xs focus:outline-none focus:border-ink transition-colors font-sans disabled:opacity-70"
-                          >
-                            <option value="ALBUM">Album</option>
-                            <option value="EP">EP</option>
-                            <option value="MIXTAPE">Mixtape</option>
-                            <option value="LP">LP</option>
-                            <option value="SINGLE">Single</option>
-                          </select>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImportReleases((prev) =>
-                              prev.filter((_, i) => i !== relIdx),
-                            )
-                          }}
-                          disabled={isUploading}
-                          className="mt-4 p-2 text-ink-soft hover:text-red-500 transition-colors cursor-pointer"
-                          title="Remove release container"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tracks list */}
-                  <div className="border border-line/60 bg-canvas-deep/20 divide-y divide-line/40 p-2 text-xs">
-                    {release.tracks.map((track) => (
-                      <div
-                        key={track.id}
-                        className="py-1.5 px-2 flex items-center justify-between hover:bg-canvas transition-colors gap-2"
-                      >
-                        <div className="flex items-center gap-2.5 truncate min-w-0">
-                          <span className="font-mono text-[10px] text-ink-soft w-4 text-right shrink-0">
-                            {track.trackNumber}
-                          </span>
-                          <span className="font-serif italic text-xs text-ink truncate">
-                            {track.title}
-                          </span>
-                          {track.artistName !== release.artistName && (
-                            <span className="font-sans text-ink-soft text-[11px] truncate shrink-0">
-                              ({track.artistName})
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2.5 shrink-0">
-                          <span className="font-mono text-[10px] text-ink-soft mr-1">
-                            {Math.floor(track.durationSeconds / 60)}:
-                            {(track.durationSeconds % 60)
-                              .toString()
-                              .padStart(2, '0')}
-                          </span>
-
-                          {/* Detach as Single */}
-                          {(release.tracks.length > 1 || release.albumType !== 'SINGLE') && (
-                            <button
-                              type="button"
-                              disabled={isUploading}
-                              onClick={() =>
-                                handleDetachTrackAsSingle(release.id, track.id)
-                              }
-                              className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer"
-                              title="Extract this song into its own Single release"
-                            >
-                              Detach
-                            </button>
-                          )}
-
-                          {/* Move / Attach to Release */}
-                          <button
-                            type="button"
-                            disabled={isUploading}
-                            onClick={() =>
-                              setMovingTrackInfo({
-                                sourceReleaseId: release.id,
-                                track,
-                              })
-                            }
-                            className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-blue hover:border-blue bg-panel transition-colors cursor-pointer"
-                            title="Move track to another staged release or attach to library album"
-                          >
-                            Move / Attach
-                          </button>
-
-                          {/* Remove Track */}
-                          <button
-                            type="button"
-                            disabled={isUploading}
-                            onClick={() =>
-                              handleRemoveTrackFromStagedRelease(
-                                release.id,
-                                track.id,
-                              )
-                            }
-                            className="text-ink-soft hover:text-red-500 font-mono text-xs cursor-pointer p-0.5 ml-1"
-                            title="Remove this track from upload"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {release.tracks.length === 0 && (
-                      <div className="py-4 text-center font-mono text-[10px] uppercase tracking-wider text-ink-soft/60">
-                        Container is empty. Move tracks into this container or remove it.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {/* Action Bar */}
-              <div className="p-4 border border-line bg-panel flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
-                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
-                  <span>
-                    Staged:{' '}
-                    <strong className="text-ink font-bold font-mono">
-                      {totalSelectedTracks}
-                    </strong>{' '}
-                    track(s) across{' '}
-                    <strong className="text-ink font-bold font-mono">
-                      {importReleases.length}
-                    </strong>{' '}
-                    release(s)
-                  </span>
-                  {isOverQuota && (
-                    <span className="ml-2 text-red-500 font-semibold">
-                      (Exceeds remaining quota: {quota?.remainingSongs} slots
-                      available)
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (personalReleases.length > 0) {
-                        setActiveTab('collection')
-                      }
-                    }}
-                    disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas transition-colors cursor-pointer"
-                  >
-                    Back to Collection
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleStartImport}
-                    disabled={
-                      importReleases.length === 0 || isUploading || isOverQuota
-                    }
-                    className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 font-semibold transition-all cursor-pointer ${
-                      importReleases.length === 0 || isUploading || isOverQuota
-                        ? 'bg-canvas-deep text-ink-soft/50 border border-line cursor-not-allowed'
-                        : 'bg-ink text-canvas hover:opacity-90 shadow-xs'
-                    }`}
-                  >
-                    {isUploading
-                      ? 'Importing...'
-                      : isOverQuota
-                        ? 'Quota Exceeded'
-                        : `Import ${totalSelectedTracks} Track${
-                            totalSelectedTracks === 1 ? '' : 's'
-                          } to Collection`}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Empty Drop Zone */
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault()
-                if (e.dataTransfer.files) {
-                  handleFilesSelected(e.dataTransfer.files)
-                }
-              }}
-              className="border-2 border-dashed border-line bg-panel p-14 text-center space-y-4 shadow-xs"
-            >
-              <div className="w-14 h-14 bg-canvas border border-line text-blue flex items-center justify-center mx-auto text-2xl">
-                <UploadCloudSVG className="w-7 h-7" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-serif italic text-2xl text-ink font-normal">
-                  Drop audio files or whole music folders here
-                </h3>
-                <p className="font-sans text-xs text-ink-soft max-w-lg mx-auto leading-relaxed">
-                  Supports MP3, FLAC, WAV, AAC, M4A, OGG. Tags and embedded
-                  cover art are extracted in-browser using zero-copy streaming
-                  tokens, automatically grouping albums and singles.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs"
-                >
-                  Choose Audio Files
-                </button>
-                <button
-                  type="button"
-                  onClick={() => folderInputRef.current?.click()}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-2.5 px-5 border border-line text-ink hover:border-ink bg-canvas transition-colors cursor-pointer"
-                >
-                  Choose Folder
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Hidden File Inputs */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".mp3,.flac,.wav,.m4a,.aac,.ogg,audio/*"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files) handleFilesSelected(e.target.files)
-              e.target.value = ''
-            }}
-          />
-          <input
-            ref={folderInputRef}
-            type="file"
-            multiple
-            // @ts-ignore
-            webkitdirectory="true"
-            directory="true"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files) handleFilesSelected(e.target.files)
-              e.target.value = ''
-            }}
-          />
         </div>
       )}
     </div>

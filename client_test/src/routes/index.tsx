@@ -139,7 +139,7 @@ function HomeComponent() {
       )}
 
       {/* Recently Played History Shelf (Authenticated) */}
-      <RecentlyPlayedShelf />
+      <RecentlyPlayedShelf limit={12} />
 
       {/* Featured Master Releases Row */}
       <section className="space-y-4">
@@ -148,9 +148,6 @@ function HomeComponent() {
             <h2 className="font-serif italic font-medium text-xl text-ink">
               Featured Master Releases
             </h2>
-            <span className="font-mono text-[9px] uppercase tracking-[0.16em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              Lossless Master Architecture
-            </span>
           </div>
           <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
             Archive MMXXVI

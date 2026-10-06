@@ -14,7 +14,12 @@ import type {
 } from '../types/library'
 import { LibraryItemCard } from '../components/library/LibraryItemCard'
 import { LibrarySortSheet } from '../components/library/LibrarySortSheet'
-import { GridIconSVG, ListIconSVG, SortIconSVG } from '../components/icons'
+import {
+  GridIconSVG,
+  ListIconSVG,
+  SortIconSVG,
+  SearchIconSVG,
+} from '../components/icons'
 
 export const Route = createFileRoute('/library')({
   component: LibraryPageComponent,
@@ -260,7 +265,7 @@ function LibraryPageComponent() {
               }
             }}
             aria-label="Search in library"
-            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 ${
+            className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
               isSearchActive
                 ? 'bg-ink text-canvas shadow-xs'
                 : 'bg-panel border border-line text-ink-soft hover:text-ink hover:bg-canvas-soft'
@@ -286,7 +291,7 @@ function LibraryPageComponent() {
               type="button"
               onClick={() => setActiveFilter('all')}
               aria-label="Clear active filter"
-              className="shrink-0 w-7 h-7 rounded-full bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-xs font-bold"
+              className="shrink-0 w-7 h-7 rounded-md bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors font-mono text-xs font-bold cursor-pointer"
             >
               ✕
             </button>
@@ -300,10 +305,10 @@ function LibraryPageComponent() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 px-3.5 py-1 rounded-full text-xs transition-all duration-150 font-medium ${
+                className={`shrink-0 font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
-                    ? 'bg-ink text-canvas shadow-xs font-semibold'
-                    : 'bg-panel border border-line text-ink hover:bg-canvas-soft'
+                    ? 'bg-ink text-canvas font-semibold shadow-xs'
+                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
                 }`}
               >
                 {pill.label}
@@ -321,25 +326,17 @@ function LibraryPageComponent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Find in Your Library"
-                className="w-full bg-canvas border border-line rounded-lg pl-8 pr-8 py-1.5 text-xs text-ink placeholder:text-ink-soft focus:outline-none focus:border-blue transition-colors shadow-xs"
+                placeholder="Find in Your Library..."
+                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
               />
-              <svg
-                className="w-3.5 h-3.5 text-ink-soft absolute left-2.5 top-2.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-2 text-ink-soft hover:text-ink text-xs font-bold"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+                  title="Clear search"
                 >
                   ✕
                 </button>
@@ -351,7 +348,7 @@ function LibraryPageComponent() {
                 setIsSearchOpen(false)
                 setSearchQuery('')
               }}
-              className="text-xs text-ink-soft hover:text-ink px-1.5 py-1 transition-colors"
+              className="font-mono text-xs text-ink-soft hover:text-ink px-2 py-1.5 transition-colors cursor-pointer"
             >
               Cancel
             </button>

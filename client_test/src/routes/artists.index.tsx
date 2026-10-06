@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistProfile } from '../types/artist'
-import { VerifiedBadgeSVG } from '../components/icons'
+import { VerifiedBadgeSVG, SearchIconSVG } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useFollowsStore } from '../stores/follows.store'
 
@@ -143,8 +143,9 @@ function ArtistsDirectoryComponent() {
                 setPage(1)
               }}
               placeholder="Search by artist name or vanity handle..."
-              className="w-full font-mono rounded-xl text-xs py-2.5 pl-3 pr-8 border border-line bg-panel text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors"
+              className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
             />
+            <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             {search && (
               <button
                 type="button"
@@ -152,9 +153,10 @@ function ArtistsDirectoryComponent() {
                   setSearch('')
                   setPage(1)
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+                title="Clear search"
               >
-                ×
+                ✕
               </button>
             )}
           </div>
@@ -233,7 +235,7 @@ function ArtistsDirectoryComponent() {
                 key={artist.id}
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: artist.slug }}
-                className="group block border border-line bg-panel hover:border-ink transition-all duration-200 overflow-hidden text-inherit no-underline shadow-2xs hover:shadow-sm"
+                className="group block rounded-md overflow-clip border border-line bg-panel hover:border-ink transition-all duration-200  text-inherit no-underline shadow-2xs hover:shadow-sm"
               >
                 {/* Card Banner Preview */}
                 <div className="h-28 w-full bg-canvas-deep relative overflow-hidden border-b border-line-soft">

@@ -260,9 +260,6 @@ function RootComponent() {
                 <span className="font-serif italic text-lg tracking-tight text-ink">
                   Groovy
                 </span>
-                <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-ink-soft border-l border-line pl-2 ml-0.5 hidden sm:inline-block">
-                  High-Fidelity Streaming
-                </span>
               </Link>
 
               {/* Top Route Navigation Links */}
@@ -871,9 +868,6 @@ function RootComponent() {
                 <div className="flex-1 min-w-0">
                   <div className="font-serif italic text-base font-bold text-ink">
                     Groovy Guest
-                  </div>
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
-                    Welcome to High-Fidelity Streaming
                   </div>
                 </div>
               )}

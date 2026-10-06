@@ -301,16 +301,15 @@ export function LikedSongsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter liked tracks by title, artist..."
-            className="w-full pl-9 pr-4 py-2 border border-line bg-canvas text-ink placeholder:text-ink-soft/60 font-mono text-xs focus:outline-none focus:border-ink transition-colors"
+            className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
           />
-          <div className="absolute left-3 top-2.5 text-ink-soft pointer-events-none">
-            <SearchIconSVG className="w-4 h-4" />
-          </div>
+          <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-2.5 text-ink-soft hover:text-ink font-mono text-xs cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+              title="Clear search"
             >
               ✕
             </button>
