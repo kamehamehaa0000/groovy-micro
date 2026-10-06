@@ -1,4 +1,4 @@
-import { eq, desc, sql, and, or, isNull } from "drizzle-orm";
+import { eq, desc, sql, and, or, isNull, lt } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
 import { listeningHistory, songs, albums, artistProfiles, users, userFollows } from "../../db/schema";
@@ -284,6 +284,103 @@ export class PlayerService {
     }
 
     return uniqueHistory;
+  }
+
+  /**
+   * Retrieves paginated chronological listening history for the user.
+   * Efficient keyset cursor pagination on (userId, playedAt).
+   */
+  async getHistory(
+    userId: string,
+    options: {
+      cursor?: string;
+      limit?: number;
+      filter?: "all" | "completed" | "personal";
+    } = {}
+  ) {
+    const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+    const cursor = options.cursor ? new Date(options.cursor) : null;
+    const filter = options.filter ?? "all";
+
+    const [userRecord] = await db
+      .select({ lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const includePersonal = userRecord?.lockerIncludeInRecentlyPlayed ?? true;
+
+    const rows = await db
+      .select({
+        historyId: listeningHistory.id,
+        playedAt: listeningHistory.playedAt,
+        durationListenedSeconds: listeningHistory.durationListenedSeconds,
+        completed: listeningHistory.completed,
+        song: {
+          id: songs.id,
+          title: songs.title,
+          slug: songs.slug,
+          genre: songs.genre,
+          primaryGenre: songs.primaryGenre,
+          subGenre: songs.subGenre,
+          durationSeconds: songs.durationSeconds,
+          isExplicit: songs.isExplicit,
+          coverImageUrl: songs.coverImageUrl,
+          audioUrl: songs.audioUrl,
+          hlsManifestUrl: songs.hlsManifestUrl,
+          rawAudioKey: songs.rawAudioKey,
+          scope: songs.scope,
+          artistId: artistProfiles.id,
+          artistName: artistProfiles.stageName,
+          artistSlug: artistProfiles.slug,
+          albumId: albums.id,
+          albumTitle: albums.title,
+          albumSlug: albums.slug,
+          albumType: albums.albumType,
+          albumCoverImageUrl: albums.coverImageUrl,
+          albumReleaseDate: albums.releaseDate,
+        },
+      })
+      .from(listeningHistory)
+      .innerJoin(songs, eq(listeningHistory.songId, songs.id))
+      .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+      .leftJoin(albums, eq(songs.albumId, albums.id))
+      .where(
+        and(
+          eq(listeningHistory.userId, userId),
+          eq(listeningHistory.skipped, false),
+          isNull(songs.deletedAt),
+          cursor && !isNaN(cursor.getTime())
+            ? lt(listeningHistory.playedAt, cursor)
+            : undefined,
+          filter === "completed"
+            ? eq(listeningHistory.completed, true)
+            : undefined,
+          filter === "personal"
+            ? and(eq(songs.scope, "PERSONAL"), eq(songs.uploaderUserId, userId))
+            : includePersonal
+              ? or(
+                  eq(songs.scope, "GLOBAL"),
+                  and(eq(songs.scope, "PERSONAL"), eq(songs.uploaderUserId, userId))
+                )
+              : eq(songs.scope, "GLOBAL")
+        )
+      )
+      .orderBy(desc(listeningHistory.playedAt))
+      .limit(limit + 1);
+
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
+    const nextCursor =
+      hasMore && items.length > 0
+        ? items[items.length - 1].playedAt.toISOString()
+        : null;
+
+    return {
+      items,
+      nextCursor,
+      hasMore,
+    };
   }
 
   /**

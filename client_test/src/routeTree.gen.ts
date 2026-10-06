@@ -14,6 +14,7 @@ import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LikedRouteImport } from './routes/liked'
 import { Route as LoginRouteImport } from './routes/login'
@@ -62,6 +63,11 @@ const FeedRoute = FeedRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/activity': typeof ActivityRoute
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/feed'
     | '/forgot-password'
+    | '/history'
     | '/library'
     | '/liked'
     | '/login'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/feed'
     | '/forgot-password'
+    | '/history'
     | '/library'
     | '/liked'
     | '/login'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/feed'
     | '/forgot-password'
+    | '/history'
     | '/library'
     | '/liked'
     | '/login'
@@ -379,6 +391,7 @@ export interface RootRouteChildren {
   CollectionRoute: typeof CollectionRouteWithChildren
   FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HistoryRoute: typeof HistoryRoute
   LibraryRoute: typeof LibraryRoute
   LikedRoute: typeof LikedRoute
   LoginRoute: typeof LoginRoute
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -631,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionRoute: CollectionRouteWithChildren,
   FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HistoryRoute: HistoryRoute,
   LibraryRoute: LibraryRoute,
   LikedRoute: LikedRoute,
   LoginRoute: LoginRoute,

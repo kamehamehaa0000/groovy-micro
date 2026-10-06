@@ -31,6 +31,45 @@ export interface TelemetryPayload {
   skipDurationSeconds?: number | null;
 }
 
+export interface HistorySong {
+  id: string;
+  title: string;
+  slug: string;
+  genre: string | null;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  durationSeconds: number;
+  isExplicit: boolean;
+  coverImageUrl: string | null;
+  audioUrl: string | null;
+  hlsManifestUrl: string | null;
+  rawAudioKey: string | null;
+  scope: string;
+  artistId: string;
+  artistName: string;
+  artistSlug: string;
+  albumId: string | null;
+  albumTitle: string | null;
+  albumSlug?: string | null;
+  albumType?: 'ALBUM' | 'SINGLE' | 'EP' | 'MIXTAPE' | 'LP' | null;
+  albumCoverImageUrl?: string | null;
+  albumReleaseDate?: string | null;
+}
+
+export interface HistoryItem {
+  historyId: string;
+  playedAt: string;
+  durationListenedSeconds: number;
+  completed: boolean;
+  song: HistorySong;
+}
+
+export interface GetHistoryResponse {
+  items: HistoryItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export interface RecentHistoryItem {
   historyId: string;
   playedAt: string;
@@ -121,6 +160,22 @@ export const playerApi = {
    */
   async getRecentHistory(): Promise<{ history: RecentHistoryItem[] }> {
     return apiFetch<{ history: RecentHistoryItem[] }>("/api/v1/player/history/recent");
+  },
+
+  /**
+   * Retrieves paginated chronological listening history.
+   */
+  async getHistory(params: {
+    cursor?: string;
+    limit?: number;
+    filter?: 'all' | 'completed' | 'personal';
+  } = {}): Promise<GetHistoryResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.cursor) searchParams.set('cursor', params.cursor);
+    if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.filter && params.filter !== 'all') searchParams.set('filter', params.filter);
+    const qs = searchParams.toString();
+    return apiFetch<GetHistoryResponse>(`/api/v1/player/history${qs ? `?${qs}` : ''}`);
   },
 
   /**

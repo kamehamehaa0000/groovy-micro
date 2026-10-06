@@ -1,95 +1,97 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   searchApi,
   type GlobalSearchResponse,
   type SearchSongItem,
-} from "../../lib/search.api";
-import { usePlayerStore } from "../../stores/player.store";
-import type { PlayerTrack } from "../../types/player";
-import {
-  PlayIconSVG,
-  PauseIconSVG,
-  LockIconSVG,
-} from "../icons";
-import { ProceduralCover } from "../common/ProceduralCover";
+} from '../../lib/search.api'
+import { usePlayerStore } from '../../stores/player.store'
+import type { PlayerTrack } from '../../types/player'
+import { PlayIconSVG, PauseIconSVG, LockIconSVG } from '../icons'
+import { ProceduralCover } from '../common/ProceduralCover'
 
 interface GlobalSearchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
-type SearchCategory = "all" | "songs" | "albums" | "artists" | "playlists" | "users";
+type SearchCategory =
+  'all' | 'songs' | 'albums' | 'artists' | 'playlists' | 'users'
 
 function formatDuration(totalSeconds: number) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  const mins = Math.floor(totalSeconds / 60)
+  const secs = totalSeconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
 export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
-  const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<SearchCategory>("all");
-  const [results, setResults] = useState<GlobalSearchResponse | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [queuedSongId, setQueuedSongId] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState<SearchCategory>('all')
+  const [results, setResults] = useState<GlobalSearchResponse | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [queuedSongId, setQueuedSongId] = useState<string | null>(null)
 
-  const { currentTrack, playbackStatus, playTrack, togglePlay, addToQueue } = usePlayerStore();
+  const { currentTrack, playbackStatus, playTrack, togglePlay, addToQueue } =
+    usePlayerStore()
 
   // Focus input on open
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
-        inputRef.current?.focus();
-      }, 50);
+        inputRef.current?.focus()
+      }, 50)
     } else {
-      setQuery("");
-      setResults(null);
+      setQuery('')
+      setResults(null)
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   // Handle ESC to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
       }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   // Debounced live search
   useEffect(() => {
     if (!query.trim()) {
-      setResults(null);
-      setIsSearching(false);
-      return;
+      setResults(null)
+      setIsSearching(false)
+      return
     }
 
-    setIsSearching(true);
+    setIsSearching(true)
     const timer = setTimeout(async () => {
       try {
-        const res = await searchApi.search(query, 6, activeCategory);
-        setResults(res);
+        const res = await searchApi.search(query, 6, activeCategory)
+        setResults(res)
       } catch (err) {
-        console.warn("[GlobalSearch] Search failed:", err);
+        console.warn('[GlobalSearch] Search failed:', err)
       } finally {
-        setIsSearching(false);
+        setIsSearching(false)
       }
-    }, 150);
+    }, 150)
 
-    return () => clearTimeout(timer);
-  }, [query, activeCategory]);
+    return () => clearTimeout(timer)
+  }, [query, activeCategory])
 
   // Play a song from search results
-  const handlePlaySong = (song: SearchSongItem, allSongs: SearchSongItem[], index: number) => {
-    const isThisPlaying = currentTrack?.id === song.id;
+  const handlePlaySong = (
+    song: SearchSongItem,
+    allSongs: SearchSongItem[],
+    index: number,
+  ) => {
+    const isThisPlaying = currentTrack?.id === song.id
     if (isThisPlaying) {
-      togglePlay();
-      return;
+      togglePlay()
+      return
     }
 
     const playerTrackList: PlayerTrack[] = allSongs.map((t) => ({
@@ -98,24 +100,24 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
       artistId: t.artistId,
       artistName: t.artistName,
       artistSlug: t.artistSlug,
-      albumId: t.albumId || "",
-      albumTitle: t.albumTitle || "",
+      albumId: t.albumId || '',
+      albumTitle: t.albumTitle || '',
       coverImageUrl: t.coverImageUrl,
       durationSeconds: t.durationSeconds,
       audioUrl: t.audioUrl,
       isExplicit: t.isExplicit,
-    }));
+    }))
 
     playTrack(
       playerTrackList[index],
       playerTrackList,
       index,
       `search:${query}`,
-      `Search: "${query}"`
-    );
-  };
+      `Search: "${query}"`,
+    )
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const hasAnyResults =
     results &&
@@ -123,7 +125,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
       results.albums.length > 0 ||
       results.artists.length > 0 ||
       results.playlists.length > 0 ||
-      results.users.length > 0);
+      results.users.length > 0)
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-canvas/80 backdrop-blur-md animate-fade-in select-none">
@@ -131,7 +133,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-3xl border border-line bg-panel shadow-2xl overflow-hidden flex flex-col max-h-[80vh] z-10">
+      <div className="relative w-full rounded-md max-w-3xl border border-line bg-panel shadow-2xl overflow-hidden flex flex-col max-h-[80vh] z-10">
         {/* Header Search Input */}
         <div className="flex items-center px-4 sm:px-6 py-4 border-b border-line bg-panel gap-3">
           {/* Search Lens SVG */}
@@ -154,12 +156,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && query.trim()) {
-                onClose();
+              if (e.key === 'Enter' && query.trim()) {
+                onClose()
                 navigate({
-                  to: "/search",
+                  to: '/search',
                   search: { q: query.trim(), type: activeCategory },
-                });
+                })
               }
             }}
             placeholder="Search tracks, artists, albums, playlists, or listeners..."
@@ -173,7 +175,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           {query && !isSearching && (
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={() => setQuery('')}
               className="text-ink-soft hover:text-ink text-xs font-mono px-1.5 py-0.5 border border-line hover:border-ink transition-colors cursor-pointer"
             >
               Clear
@@ -189,12 +191,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/50 overflow-x-auto text-xs font-mono uppercase tracking-wider">
           {(
             [
-              { id: "all", label: "All" },
-              { id: "songs", label: "Tracks" },
-              { id: "artists", label: "Artists" },
-              { id: "albums", label: "Albums" },
-              { id: "playlists", label: "Playlists" },
-              { id: "users", label: "Community" },
+              { id: 'all', label: 'All' },
+              { id: 'songs', label: 'Tracks' },
+              { id: 'artists', label: 'Artists' },
+              { id: 'albums', label: 'Albums' },
+              { id: 'playlists', label: 'Playlists' },
+              { id: 'users', label: 'Community' },
             ] as const
           ).map((cat) => (
             <button
@@ -203,8 +205,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-3 py-1 rounded-full border transition-all cursor-pointer text-[10px] whitespace-nowrap ${
                 activeCategory === cat.id
-                  ? "bg-ink text-canvas border-ink font-semibold shadow-xs"
-                  : "bg-panel text-ink-soft border-line hover:text-ink hover:border-ink/50"
+                  ? 'bg-ink text-canvas border-ink font-semibold shadow-xs'
+                  : 'bg-panel text-ink-soft border-line hover:text-ink hover:border-ink/50'
               }`}
             >
               {cat.label}
@@ -221,7 +223,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 What do you want to play?
               </div>
               <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto leading-relaxed">
-                Discover new releases from verified musicians, curated public playlists, or find fellow music enthusiasts in the Groovy community.
+                Discover new releases from verified musicians, curated public
+                playlists, or find fellow music enthusiasts in the Groovy
+                community.
               </p>
             </div>
           )}
@@ -233,7 +237,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 No results found for "{query}"
               </div>
               <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto">
-                Please double check your spelling or search by an artist name, song title, or curator.
+                Please double check your spelling or search by an artist name,
+                song title, or curator.
               </p>
             </div>
           )}
@@ -242,22 +247,24 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           {hasAnyResults && (
             <div className="space-y-8">
               {/* TOP RESULT CARD */}
-              {results.topResult && activeCategory === "all" && (
+              {results.topResult && activeCategory === 'all' && (
                 <div>
                   <h4 className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400 mb-3">
                     Top Result
                   </h4>
                   <div className="border border-line bg-canvas p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group hover:border-ink transition-colors">
                     {/* Top Result: Artist */}
-                    {results.topResult.type === "artist" && (
+                    {results.topResult.type === 'artist' && (
                       <div
                         className="flex items-center gap-4 cursor-pointer flex-1 min-w-0"
                         onClick={() => {
-                          onClose();
+                          onClose()
                           navigate({
-                            to: "/artists/$idOrSlug",
-                            params: { idOrSlug: (results.topResult!.item as any).slug },
-                          });
+                            to: '/artists/$idOrSlug',
+                            params: {
+                              idOrSlug: (results.topResult!.item as any).slug,
+                            },
+                          })
                         }}
                       >
                         <div className="w-16 h-16 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden">
@@ -281,7 +288,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             {(results.topResult.item as any).stageName}
                           </h3>
                           <p className="font-mono text-[10px] text-ink-soft">
-                            {(results.topResult.item as any).monthlyListeners.toLocaleString()}{" "}
+                            {(
+                              results.topResult.item as any
+                            ).monthlyListeners.toLocaleString()}{' '}
                             monthly listeners
                           </p>
                         </div>
@@ -289,12 +298,14 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     )}
 
                     {/* Top Result: Song */}
-                    {results.topResult.type === "song" && (
+                    {results.topResult.type === 'song' && (
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-16 h-16 bg-stone/20 border border-line shrink-0 overflow-hidden relative">
                           {(results.topResult.item as any).coverImageUrl ? (
                             <img
-                              src={(results.topResult.item as any).coverImageUrl}
+                              src={
+                                (results.topResult.item as any).coverImageUrl
+                              }
                               alt={(results.topResult.item as any).title}
                               className="w-full h-full object-cover"
                             />
@@ -302,7 +313,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             <ProceduralCover
                               size="md"
                               title={(results.topResult.item as any).title}
-                              artistName={(results.topResult.item as any).artistName}
+                              artistName={
+                                (results.topResult.item as any).artistName
+                              }
                               className="w-full h-full rounded-none"
                             />
                           )}
@@ -323,7 +336,10 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           </h3>
                           <Link
                             to="/artists/$idOrSlug"
-                            params={{ idOrSlug: (results.topResult.item as any).artistSlug }}
+                            params={{
+                              idOrSlug: (results.topResult.item as any)
+                                .artistSlug,
+                            }}
                             onClick={onClose}
                             className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block"
                           >
@@ -334,21 +350,25 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     )}
 
                     {/* Top Result: Album */}
-                    {results.topResult.type === "album" && (
+                    {results.topResult.type === 'album' && (
                       <div
                         className="flex items-center gap-4 cursor-pointer flex-1 min-w-0"
                         onClick={() => {
-                          onClose();
+                          onClose()
                           navigate({
-                            to: "/albums/$idOrSlug",
-                            params: { idOrSlug: (results.topResult!.item as any).slug },
-                          });
+                            to: '/albums/$idOrSlug',
+                            params: {
+                              idOrSlug: (results.topResult!.item as any).slug,
+                            },
+                          })
                         }}
                       >
                         <div className="w-16 h-16 bg-stone/20 border border-line shrink-0 overflow-hidden">
                           {(results.topResult.item as any).coverImageUrl ? (
                             <img
-                              src={(results.topResult.item as any).coverImageUrl}
+                              src={
+                                (results.topResult.item as any).coverImageUrl
+                              }
                               alt={(results.topResult.item as any).title}
                               className="w-full h-full object-cover"
                             />
@@ -356,7 +376,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             <ProceduralCover
                               size="md"
                               title={(results.topResult.item as any).title}
-                              artistName={(results.topResult.item as any).artistName}
+                              artistName={
+                                (results.topResult.item as any).artistName
+                              }
                               className="w-full h-full rounded-none"
                             />
                           )}
@@ -364,7 +386,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                             <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">
-                              {(results.topResult.item as any).albumType || "Album"}
+                              {(results.topResult.item as any).albumType ||
+                                'Album'}
                             </span>
                             {(results.topResult.item as any).isPersonal && (
                               <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
@@ -383,21 +406,23 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     )}
 
                     {/* Top Result: Playlist */}
-                    {results.topResult.type === "playlist" && (
+                    {results.topResult.type === 'playlist' && (
                       <div
                         className="flex items-center gap-4 cursor-pointer flex-1 min-w-0"
                         onClick={() => {
-                          onClose();
+                          onClose()
                           navigate({
-                            to: "/playlists/$id",
+                            to: '/playlists/$id',
                             params: { id: (results.topResult!.item as any).id },
-                          });
+                          })
                         }}
                       >
                         <div className="w-16 h-16 bg-stone/20 border border-line shrink-0 overflow-hidden">
                           {(results.topResult.item as any).coverImageUrl ? (
                             <img
-                              src={(results.topResult.item as any).coverImageUrl}
+                              src={
+                                (results.topResult.item as any).coverImageUrl
+                              }
                               alt={(results.topResult.item as any).title}
                               className="w-full h-full object-cover"
                             />
@@ -415,7 +440,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             {(results.topResult.item as any).title}
                           </h3>
                           <p className="font-mono text-[10px] text-ink-soft">
-                            By {(results.topResult.item as any).ownerName} •{" "}
+                            By {(results.topResult.item as any).ownerName} •{' '}
                             {(results.topResult.item as any).tracksCount} tracks
                           </p>
                         </div>
@@ -423,15 +448,15 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     )}
 
                     {/* Top Result: User */}
-                    {results.topResult.type === "user" && (
+                    {results.topResult.type === 'user' && (
                       <div
                         className="flex items-center gap-4 cursor-pointer flex-1 min-w-0"
                         onClick={() => {
-                          onClose();
+                          onClose()
                           navigate({
-                            to: "/users/$id",
+                            to: '/users/$id',
                             params: { id: (results.topResult!.item as any).id },
-                          });
+                          })
                         }}
                       >
                         <div className="w-16 h-16 rounded-full bg-stone/20 border border-line shrink-0 overflow-hidden">
@@ -459,14 +484,14 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     )}
 
                     {/* Quick 1-Click Action for Songs */}
-                    {results.topResult.type === "song" && (
+                    {results.topResult.type === 'song' && (
                       <button
                         type="button"
                         onClick={() =>
                           handlePlaySong(
                             results.topResult!.item as SearchSongItem,
                             results.songs,
-                            0
+                            0,
                           )
                         }
                         className="shrink-0 w-11 h-11 rounded-full bg-ink text-canvas hover:bg-ink/80 flex items-center justify-center transition-transform hover:scale-105 cursor-pointer shadow-md"
@@ -492,7 +517,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     {results.songs.map((song, idx) => {
                       const isPlaying =
                         currentTrack?.id === song.id &&
-                        playbackStatus === "playing";
+                        playbackStatus === 'playing'
 
                       return (
                         <div
@@ -502,7 +527,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                             <button
                               type="button"
-                              onClick={() => handlePlaySong(song, results.songs, idx)}
+                              onClick={() =>
+                                handlePlaySong(song, results.songs, idx)
+                              }
                               className="w-7 h-7 rounded-full border border-line flex items-center justify-center font-mono text-xs text-ink-soft hover:border-ink hover:text-ink transition-colors shrink-0 cursor-pointer bg-canvas"
                             >
                               {isPlaying ? (
@@ -569,17 +596,19 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   artistId: song.artistId,
                                   artistName: song.artistName,
                                   artistSlug: song.artistSlug,
-                                  albumId: song.albumId || "",
-                                  albumTitle: song.albumTitle || "",
+                                  albumId: song.albumId || '',
+                                  albumTitle: song.albumTitle || '',
                                   coverImageUrl: song.coverImageUrl,
                                   durationSeconds: song.durationSeconds,
                                   audioUrl: song.audioUrl,
                                   isExplicit: song.isExplicit,
-                                });
-                                setQueuedSongId(song.id);
+                                })
+                                setQueuedSongId(song.id)
                                 setTimeout(() => {
-                                  setQueuedSongId((prev) => (prev === song.id ? null : prev));
-                                }, 1500);
+                                  setQueuedSongId((prev) =>
+                                    prev === song.id ? null : prev,
+                                  )
+                                }, 1500)
                               }}
                               className="w-7 h-7 flex items-center justify-center rounded-xs border border-line bg-canvas hover:border-ink text-ink-soft hover:text-ink transition-all cursor-pointer group/q shadow-2xs hover:bg-canvas-deep active:scale-95 shrink-0"
                               title="Add to queue"
@@ -602,17 +631,47 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   <line x1="8" y1="6" x2="21" y2="6" />
                                   <line x1="8" y1="12" x2="21" y2="12" />
                                   <line x1="8" y1="18" x2="16" y2="18" />
-                                  <line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="2.5" />
-                                  <line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="2.5" />
-                                  <line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="2.5" />
-                                  <line x1="19" y1="15" x2="19" y2="21" strokeWidth="2" />
-                                  <line x1="16" y1="18" x2="22" y2="18" strokeWidth="2" />
+                                  <line
+                                    x1="3"
+                                    y1="6"
+                                    x2="3.01"
+                                    y2="6"
+                                    strokeWidth="2.5"
+                                  />
+                                  <line
+                                    x1="3"
+                                    y1="12"
+                                    x2="3.01"
+                                    y2="12"
+                                    strokeWidth="2.5"
+                                  />
+                                  <line
+                                    x1="3"
+                                    y1="18"
+                                    x2="3.01"
+                                    y2="18"
+                                    strokeWidth="2.5"
+                                  />
+                                  <line
+                                    x1="19"
+                                    y1="15"
+                                    x2="19"
+                                    y2="21"
+                                    strokeWidth="2"
+                                  />
+                                  <line
+                                    x1="16"
+                                    y1="18"
+                                    x2="22"
+                                    y2="18"
+                                    strokeWidth="2"
+                                  />
                                 </svg>
                               )}
                             </button>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -754,7 +813,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             {playlist.title}
                           </h4>
                           <span className="font-mono text-[9px] text-ink-soft block truncate">
-                            By {playlist.ownerName} • {playlist.tracksCount} tracks
+                            By {playlist.ownerName} • {playlist.tracksCount}{' '}
+                            tracks
                           </span>
                         </div>
                       </Link>
@@ -789,7 +849,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            user.displayName[0]?.toUpperCase() || "U"
+                            user.displayName[0]?.toUpperCase() || 'U'
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -819,11 +879,11 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           <button
             type="button"
             onClick={() => {
-              onClose();
+              onClose()
               navigate({
-                to: "/search",
+                to: '/search',
                 search: { q: query.trim() || undefined, type: activeCategory },
-              });
+              })
             }}
             className="text-ink hover:text-blue transition-colors flex items-center gap-1 cursor-pointer font-semibold"
           >
@@ -832,11 +892,13 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           </button>
           <div className="flex items-center gap-2">
             <span>Navigation:</span>
-            <kbd className="px-1.5 py-0.5 border border-line bg-panel rounded">ESC</kbd>
+            <kbd className="px-1.5 py-0.5 border border-line bg-panel rounded">
+              ESC
+            </kbd>
             <span>Close</span>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

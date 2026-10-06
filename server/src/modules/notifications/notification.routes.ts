@@ -11,40 +11,6 @@ import { redis } from "../../index";
 export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
   const notificationService = new NotificationService();
 
-  /**
-   * Helper guard for SSE endpoint supporting Bearer auth, cookie, or ?token= query parameter
-   */
-  async function authenticateSse(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<boolean> {
-    try {
-      // 1. Try standard header / cookie auth
-      if (request.headers.authorization || request.cookies?.access_token) {
-        await requireAuth(request, reply);
-        if (request.user?.id) return true;
-      }
-
-      // 2. Try query parameter ?token=
-      const queryToken = (request.query as any)?.token;
-      if (queryToken && typeof queryToken === "string") {
-        const decoded = (await fastify.jwt.verify(queryToken)) as any;
-        if (decoded?.id) {
-          request.user = decoded;
-          return true;
-        }
-      }
-    } catch (err) {
-      // Auth failed
-    }
-
-    reply.status(401).send({
-      statusCode: 401,
-      error: "Unauthorized",
-      message: "Authentication required to open notification stream",
-    });
-    return false;
-  }
 
   /**
    * GET /api/v1/notifications
@@ -164,11 +130,11 @@ export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /api/v1/notifications/stream
    * Real-time Server-Sent Events (SSE) notification stream
    */
-  fastify.get("/stream", async (request, reply) => {
-    const isAuthed = await authenticateSse(request, reply);
-    if (!isAuthed) return;
-
-    const userId = request.user.id;
+  fastify.get(
+    "/stream",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const userId = request.user.id;
     const channelName = `notifications:events:${userId}`;
 
     // Set SSE headers

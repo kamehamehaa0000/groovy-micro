@@ -41,6 +41,8 @@ export async function requireAuth(
     token = authHeader.substring(7)
   } else if (request.cookies?.access_token) {
     token = request.cookies.access_token
+  } else if (typeof (request.query as any)?.token === 'string') {
+    token = (request.query as any).token
   }
 
   if (!token) {
@@ -172,6 +174,8 @@ export async function optionalAuth(
     token = authHeader.substring(7)
   } else if (request.cookies?.access_token) {
     token = request.cookies.access_token
+  } else if (typeof (request.query as any)?.token === 'string') {
+    token = (request.query as any).token
   }
 
   if (!token) {

@@ -136,6 +136,31 @@ export const playerRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /history
+   * Retrieves paginated chronological listening history for the authenticated user.
+   */
+  fastify.get(
+    "/history",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const query = request.query as {
+        cursor?: string;
+        limit?: string;
+        filter?: "all" | "completed" | "personal";
+      };
+
+      const limit = query.limit ? parseInt(query.limit, 10) : 50;
+      const history = await playerService.getHistory(request.user.id, {
+        cursor: query.cursor,
+        limit,
+        filter: query.filter,
+      });
+
+      return reply.status(200).send(history);
+    }
+  );
+
+  /**
    * GET /friends-activity
    * Retrieves live playback presence for mutual friends and followed users.
    */
