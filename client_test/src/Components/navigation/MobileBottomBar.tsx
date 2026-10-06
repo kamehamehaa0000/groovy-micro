@@ -78,7 +78,7 @@ export function MobileBottomBar() {
         </span>
       </Link>
 
-      {/* 3. Library / Playlists */}
+      {/* 4. Library / Playlists */}
       <Link
         to="/library"
         className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${

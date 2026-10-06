@@ -17,6 +17,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LikedRouteImport } from './routes/liked'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PersonalCollectionRouteImport } from './routes/personal-collection'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -76,6 +77,11 @@ const LikedRoute = LikedRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PersonalCollectionRoute = PersonalCollectionRouteImport.update({
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/login'
+    | '/notifications'
     | '/personal-collection'
     | '/profile'
     | '/register'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/login'
+    | '/notifications'
     | '/personal-collection'
     | '/profile'
     | '/register'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/login'
+    | '/notifications'
     | '/personal-collection'
     | '/profile'
     | '/register'
@@ -370,6 +382,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   LikedRoute: typeof LikedRoute
   LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
   PersonalCollectionRoute: typeof PersonalCollectionRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/personal-collection': {
@@ -614,6 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   LikedRoute: LikedRoute,
   LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
   PersonalCollectionRoute: PersonalCollectionRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,

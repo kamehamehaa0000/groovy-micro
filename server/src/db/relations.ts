@@ -19,6 +19,8 @@ import {
   releasePresaves,
   userFollows,
   userLibraryPins,
+  notifications,
+  notificationPreferences,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -41,6 +43,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   pins: many(userLibraryPins),
   followers: many(userFollows, { relationName: "userFollowers" }),
   following: many(userFollows, { relationName: "userFollowing" }),
+  notifications: many(notifications, { relationName: "userNotifications" }),
+  notificationPreferences: one(notificationPreferences),
   uploadedAlbums: many(albums, { relationName: "uploadedAlbums" }),
   uploadedSongs: many(songs, { relationName: "uploadedSongs" }),
 }));
@@ -299,3 +303,26 @@ export const userLibraryPinsRelations = relations(userLibraryPins, ({ one }) => 
     references: [users.id],
   }),
 }));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  recipient: one(users, {
+    fields: [notifications.recipientId],
+    references: [users.id],
+    relationName: "userNotifications",
+  }),
+  actor: one(users, {
+    fields: [notifications.actorId],
+    references: [users.id],
+    relationName: "sentNotifications",
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notificationPreferences.userId],
+      references: [users.id],
+    }),
+  })
+);

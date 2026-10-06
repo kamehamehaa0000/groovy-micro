@@ -1465,7 +1465,7 @@ function PersonalCollectionManagePage() {
                 Checking quota...
               </div>
             ) : quota ? (
-              <div className="bg-panel border border-line rounded-xl p-3 sm:p-3.5 min-w-[210px] shadow-2xs space-y-2">
+              <div className="bg-panel border border-line rounded-xl p-3 sm:p-3.5 min-w-52.5 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
                   <span className="text-ink-soft">Storage Quota</span>
                   <span className="text-ink font-semibold font-mono">

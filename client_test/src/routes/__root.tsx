@@ -28,6 +28,8 @@ import { LiveJamModal } from '../components/jam/LiveJamModal'
 import { useJamStore } from '../stores/jam.store'
 import { MobileBottomBar } from '../components/navigation/MobileBottomBar'
 import { MobileActionDrawer } from '../components/navigation/MobileActionDrawer'
+import { NotificationBell } from '../components/navigation/NotificationBell'
+import { useNotificationsStore } from '../stores/notifications.store'
 import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal'
 import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
 
@@ -94,6 +96,11 @@ function RootComponent() {
       usePlaylistsStore.getState().initializePlaylists()
       usePlayerStore.getState().initializeSync(true)
       useJamStore.getState().reconnectActiveRoom()
+      useNotificationsStore.getState().fetchUnreadCount()
+      const cleanupSSE = useNotificationsStore.getState().connectSSE()
+      return () => {
+        cleanupSSE()
+      }
     } else {
       useLikesStore.getState().clearLikes()
       useFollowsStore.getState().clearFollows()
@@ -238,15 +245,18 @@ function RootComponent() {
                 Feed
               </Link>
             </div>
-            {/* Right: Plus (+) Icon (Quick Action Drawer) */}
-            <button
-              type="button"
-              onClick={() => setRightActionDrawerOpen(true)}
-              aria-label="Create and quick actions"
-              className="w-8 h-8 rounded-full   hover:border-ink hover:text-ink text-ink-soft flex items-center justify-center cursor-pointer  transition-colors shrink-0"
-            >
-              <PlusIconSVG className="w-7 h-7" />
-            </button>
+            {/* Right: Notifications & Plus (+) Icon */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isAuthenticated && <NotificationBell />}
+              <button
+                type="button"
+                onClick={() => setRightActionDrawerOpen(true)}
+                aria-label="Create and quick actions"
+                className="w-8 h-8 rounded-full hover:border-ink hover:text-ink text-ink-soft flex items-center justify-center cursor-pointer transition-colors shrink-0"
+              >
+                <PlusIconSVG className="w-7 h-7" />
+              </button>
+            </div>
           </div>
 
           {/* ---------------- DESKTOP TOP BAR (>= md) ---------------- */}
@@ -344,19 +354,6 @@ function RootComponent() {
                       className="transition-colors"
                     >
                       Feed
-                    </Link>
-                    <Link
-                      to="/activity"
-                      activeProps={{
-                        className:
-                          'text-ink font-semibold border-b border-blue pb-0.5',
-                      }}
-                      inactiveProps={{
-                        className: 'text-ink-soft hover:text-ink pb-0.5',
-                      }}
-                      className="transition-colors"
-                    >
-                      Activity
                     </Link>
                     {/* <button
                       type="button"
@@ -579,6 +576,9 @@ function RootComponent() {
                   </div>
                 )}
               </div>
+
+              {/* Notification Bell */}
+              {isAuthenticated && <NotificationBell />}
 
               {/* Theme Switcher Toggle */}
               <button
@@ -967,15 +967,7 @@ function RootComponent() {
                       onClick={() => setLeftSidebarOpen(false)}
                       className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
                     >
-                      <span>Social Feed</span>
-                      <span className="text-ink-soft">&rarr;</span>
-                    </Link>
-                    <Link
-                      to="/activity"
-                      onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
-                    >
-                      <span>Social &amp; Activity</span>
+                      <span>Community Feed</span>
                       <span className="text-ink-soft">&rarr;</span>
                     </Link>
                     <Link

@@ -6,6 +6,10 @@ import { api } from '../lib/api'
 import { catalogApi } from '../lib/catalog.api'
 import { subscriptionsApi } from '../lib/subscriptions.api'
 import { socialApi } from '../lib/social.api'
+import {
+  notificationsApi,
+  type NotificationPreferences,
+} from '../lib/notifications.api'
 import type { PreSavedRelease } from '../types/catalog'
 import type {
   SubscriptionPlan,
@@ -98,6 +102,19 @@ function ProfileComponent() {
     type: 'success' | 'error'
   } | null>(null)
 
+  // Notification Delivery Preferences State
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>({
+    emailReleases: true,
+    emailComments: true,
+    pushSocial: true,
+    pushJams: true,
+  })
+  const [isSavingNotifPrefs, setIsSavingNotifPrefs] = useState(false)
+  const [notifPrefsMsg, setNotifPrefsMsg] = useState<{
+    text: string
+    type: 'success' | 'error'
+  } | null>(null)
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate({ to: '/login' })
@@ -129,6 +146,15 @@ function ProfileComponent() {
         .then((res) => setPreSaves(res.presaves))
         .catch((err) => console.warn('Could not load pre-saves:', err))
         .finally(() => setIsLoadingPreSaves(false))
+
+      notificationsApi
+        .getPreferences()
+        .then((res) => {
+          if (res.preferences) setNotifPrefs(res.preferences)
+        })
+        .catch((err) =>
+          console.warn('Could not load notification preferences:', err),
+        )
 
       useEntitlementsStore.getState().initializeEntitlements()
     }
@@ -271,6 +297,29 @@ function ProfileComponent() {
       })
     } finally {
       setIsSavingPrivacy(false)
+    }
+  }
+
+  // --- Notification Preferences Update ---
+  const handleUpdateNotifPrefs = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNotifPrefsMsg(null)
+    setIsSavingNotifPrefs(true)
+
+    try {
+      const res = await notificationsApi.updatePreferences(notifPrefs)
+      if (res.preferences) setNotifPrefs(res.preferences)
+      setNotifPrefsMsg({
+        text: 'Notification channels and delivery preferences updated successfully.',
+        type: 'success',
+      })
+    } catch (err: any) {
+      setNotifPrefsMsg({
+        text: err.message || 'Failed to update notification preferences',
+        type: 'error',
+      })
+    } finally {
+      setIsSavingNotifPrefs(false)
     }
   }
 
@@ -1099,6 +1148,155 @@ function ProfileComponent() {
               {isSavingPrivacy
                 ? 'Saving Privacy...'
                 : 'Save Privacy Preferences'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Notification Channels & Alerts Form */}
+      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="border-b border-line pb-4">
+          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+            Dispatch Channels · Real-Time Alerts
+          </div>
+          <h3 className="font-serif italic text-2xl text-ink font-normal">
+            Notification Delivery
+          </h3>
+          <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+            Configure how and when Groovy reaches out for new releases, social circle invites, and community discussions.
+          </p>
+        </div>
+
+        {notifPrefsMsg && (
+          <div
+            className={`p-3.5 border font-mono text-xs ${
+              notifPrefsMsg.type === 'success'
+                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
+                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+            }`}
+          >
+            {notifPrefsMsg.text}
+          </div>
+        )}
+
+        <form onSubmit={handleUpdateNotifPrefs} className="space-y-6">
+          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-4">
+            <div className="space-y-3 divide-y divide-line/60">
+              {/* Toggle 1: Catalog Drops & Releases */}
+              <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Catalog Drops &amp; New Releases
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Receive inbox notifications when followed artists publish new albums, singles, or EPs.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={notifPrefs.emailReleases}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({
+                        ...prev,
+                        emailReleases: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 2: Discussion Replies & Mentions */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Discussion Replies &amp; Mentions
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Get alerted when curators reply to your comments on tracks and public playlists.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={notifPrefs.emailComments}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({
+                        ...prev,
+                        emailComments: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 3: Social Network & Follow Requests */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Social Circles &amp; Follow Requests
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Instant alerts for incoming follow requests on private accounts and newly joined followers.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={notifPrefs.pushSocial}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({
+                        ...prev,
+                        pushSocial: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+
+              {/* Toggle 4: Live Jam Room Invites */}
+              <div className="pt-3 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    Live Jam Session Invites
+                  </div>
+                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    Real-time pulses when friends invite you to synchronize playback in a shared listening room.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={notifPrefs.pushJams}
+                    onChange={(e) =>
+                      setNotifPrefs((prev) => ({
+                        ...prev,
+                        pushJams: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingNotifPrefs}
+              className="bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+            >
+              {isSavingNotifPrefs
+                ? 'Saving Preferences...'
+                : 'Save Notification Preferences'}
             </button>
           </div>
         </form>

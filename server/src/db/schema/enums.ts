@@ -74,3 +74,17 @@ export const catalogScopeEnum = pgEnum("catalog_scope", [
   "GLOBAL",
   "PERSONAL",
 ]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "FOLLOW_REQUEST",
+  "FOLLOW_ACCEPTED",
+  "NEW_FOLLOWER",
+  "COMMENT_REPLY",
+  "COMMENT_MENTION",
+  "PLAYLIST_COMMENT",
+  "ARTIST_RELEASE",
+  "JAM_INVITE",
+  "TRANSCODE_COMPLETE",
+  "TRANSCODE_FAILED",
+  "SYSTEM_ALERT",
+]);

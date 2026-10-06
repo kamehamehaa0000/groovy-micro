@@ -19,8 +19,10 @@ import type {
   SocialFeedResponse,
   FeedItem,
 } from "./social.schemas";
+import { NotificationService } from "../notifications/notification.service";
 
 export class SocialService {
+  private notificationService = new NotificationService();
   /**
    * Follows a user. If the target user has isPrivateAccount = true,
    * creates a PENDING follow request. Otherwise, creates an ACCEPTED follow immediately.
@@ -77,6 +79,52 @@ export class SocialService {
       await redis.sadd(cacheKeys.social.userFollowers(targetUserId), followerId);
     } else {
       await redis.sadd(cacheKeys.social.incomingRequests(targetUserId), followerId);
+    }
+
+    // 5. Dispatch notification to target user
+    try {
+      const [followerUser] = await db
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(users)
+        .where(eq(users.id, followerId));
+
+      if (initialStatus === "PENDING") {
+        await this.notificationService.createNotification({
+          recipientId: targetUserId,
+          actorId: followerId,
+          type: "FOLLOW_REQUEST",
+          entityType: "user",
+          entityId: followerId,
+          title: "Follow Request",
+          body: `${followerUser?.displayName || "A user"} requested to follow you`,
+          metadata: {
+            requesterId: followerId,
+            actorName: followerUser?.displayName,
+            avatarUrl: followerUser?.avatarUrl,
+          },
+        });
+      } else {
+        await this.notificationService.createNotification({
+          recipientId: targetUserId,
+          actorId: followerId,
+          type: "NEW_FOLLOWER",
+          entityType: "user",
+          entityId: followerId,
+          title: "New Follower",
+          body: `${followerUser?.displayName || "A user"} started following you`,
+          metadata: {
+            followerId,
+            actorName: followerUser?.displayName,
+            avatarUrl: followerUser?.avatarUrl,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("[SocialService] Failed to dispatch follow notification:", notifErr);
     }
 
     const isMutual = initialStatus === "ACCEPTED" ? await this.isMutualFriend(followerId, targetUserId) : false;
@@ -140,6 +188,34 @@ export class SocialService {
     await redis.srem(cacheKeys.social.incomingRequests(targetUserId), requesterId);
     await redis.sadd(cacheKeys.social.userFollowing(requesterId), targetUserId);
     await redis.sadd(cacheKeys.social.userFollowers(targetUserId), requesterId);
+
+    // Dispatch notification to requester
+    try {
+      const [targetUser] = await db
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(users)
+        .where(eq(users.id, targetUserId));
+
+      await this.notificationService.createNotification({
+        recipientId: requesterId,
+        actorId: targetUserId,
+        type: "FOLLOW_ACCEPTED",
+        entityType: "user",
+        entityId: targetUserId,
+        title: "Follow Request Accepted",
+        body: `${targetUser?.displayName || "A user"} accepted your follow request`,
+        metadata: {
+          actorName: targetUser?.displayName,
+          avatarUrl: targetUser?.avatarUrl,
+        },
+      });
+    } catch (notifErr) {
+      console.warn("[SocialService] Failed to dispatch accept follow notification:", notifErr);
+    }
 
     const isMutual = await this.isMutualFriend(targetUserId, requesterId);
 

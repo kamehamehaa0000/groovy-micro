@@ -19,8 +19,10 @@ import type {
   VoteCommentInput,
   EnrichedComment,
 } from "./comments.schemas";
+import { NotificationService } from "../notifications/notification.service";
 
 export class CommentsService {
+  private notificationService = new NotificationService();
   /**
    * Resolves the target entity, verifying its existence, creator ownership, and comments permission.
    */
@@ -573,6 +575,79 @@ export class CommentsService {
 
       return newComment;
     });
+
+    // Asynchronously dispatch notifications
+    try {
+      if (resolvedParentId) {
+        const [parentComment] = await db
+          .select({ id: comments.id, userId: comments.userId })
+          .from(comments)
+          .where(eq(comments.id, resolvedParentId))
+          .limit(1);
+
+        if (parentComment && parentComment.userId !== userId) {
+          await this.notificationService.createNotification({
+            recipientId: parentComment.userId,
+            actorId: userId,
+            type: "COMMENT_REPLY",
+            entityType: targetInfo.targetType.toLowerCase(),
+            entityId: targetInfo.targetId,
+            title: "New Reply",
+            body: `${user?.displayName || "Someone"} replied: "${created.content.slice(0, 80)}"`,
+            metadata: {
+              commentId: created.id,
+              parentId: resolvedParentId,
+              actorName: user?.displayName,
+              avatarUrl: user?.avatarUrl,
+              targetType: targetInfo.targetType,
+              targetId: targetInfo.targetId,
+            },
+          });
+        }
+
+        if (
+          resolvedReplyToUserId &&
+          resolvedReplyToUserId !== userId &&
+          (!parentComment || resolvedReplyToUserId !== parentComment.userId)
+        ) {
+          await this.notificationService.createNotification({
+            recipientId: resolvedReplyToUserId,
+            actorId: userId,
+            type: "COMMENT_MENTION",
+            entityType: targetInfo.targetType.toLowerCase(),
+            entityId: targetInfo.targetId,
+            title: "Mentioned in Comment",
+            body: `${user?.displayName || "Someone"} mentioned you in a comment: "${created.content.slice(0, 80)}"`,
+            metadata: {
+              commentId: created.id,
+              parentId: resolvedParentId,
+              actorName: user?.displayName,
+              avatarUrl: user?.avatarUrl,
+              targetType: targetInfo.targetType,
+              targetId: targetInfo.targetId,
+            },
+          });
+        }
+      } else if (input.playlistId && targetInfo.ownerUserId && targetInfo.ownerUserId !== userId) {
+        await this.notificationService.createNotification({
+          recipientId: targetInfo.ownerUserId,
+          actorId: userId,
+          type: "PLAYLIST_COMMENT",
+          entityType: "playlist",
+          entityId: input.playlistId,
+          title: "New Comment on Playlist",
+          body: `${user?.displayName || "Someone"} commented on your playlist: "${created.content.slice(0, 80)}"`,
+          metadata: {
+            commentId: created.id,
+            playlistId: input.playlistId,
+            actorName: user?.displayName,
+            avatarUrl: user?.avatarUrl,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.warn("[CommentsService] Failed to dispatch comment notification:", notifErr);
+    }
 
     return {
       id: created.id,

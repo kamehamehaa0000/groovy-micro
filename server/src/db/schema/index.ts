@@ -9,3 +9,4 @@ export * from "./history";
 export * from "./outbox";
 export * from "./comments";
 export * from "./library";
+export * from "./notifications";

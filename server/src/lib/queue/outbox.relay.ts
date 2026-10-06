@@ -1,7 +1,10 @@
-import { isNull, sql, and, lt } from "drizzle-orm";
+import { isNull, sql, and, lt, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { outboxEvents } from "../../db/schema";
+import { outboxEvents, artistFollowers, albums, artistProfiles } from "../../db/schema";
 import { enqueueTranscodeJob, type TranscodeJobData } from "./transcode.queue";
+import { NotificationService } from "../../modules/notifications/notification.service";
+
+const notificationService = new NotificationService();
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let isProcessing = false;
@@ -37,6 +40,54 @@ export async function sweepOutboxEvents(): Promise<number> {
           const payload = event.payload as TranscodeJobData;
           if (payload && payload.songId && payload.rawAudioKey) {
             await enqueueTranscodeJob(payload);
+          }
+        } else if (event.eventType === "album.released") {
+          const payload = event.payload as any;
+          if (payload && payload.albumId && payload.artistId) {
+            // 1. Fetch artist and album info
+            const [[artist], [album]] = await Promise.all([
+              db
+                .select({ stageName: artistProfiles.stageName, avatarUrl: artistProfiles.avatarUrl })
+                .from(artistProfiles)
+                .where(eq(artistProfiles.id, payload.artistId))
+                .limit(1),
+              db
+                .select({ title: albums.title, slug: albums.slug, coverImageUrl: albums.coverImageUrl })
+                .from(albums)
+                .where(eq(albums.id, payload.albumId))
+                .limit(1),
+            ]);
+
+            // 2. Fetch all followers of the artist
+            const followers = await db
+              .select({ userId: artistFollowers.userId })
+              .from(artistFollowers)
+              .where(eq(artistFollowers.artistId, payload.artistId));
+
+            if (followers.length > 0) {
+              const notificationsToCreate = followers.map((f) => ({
+                recipientId: f.userId,
+                actorId: null,
+                type: "ARTIST_RELEASE" as const,
+                entityType: "album",
+                entityId: payload.albumId,
+                title: "New Release Drop",
+                body: `${artist?.stageName || "An artist you follow"} released "${album?.title || "a new project"}"`,
+                metadata: {
+                  albumId: payload.albumId,
+                  slug: payload.slug || album?.slug,
+                  coverImageUrl: album?.coverImageUrl,
+                  artistName: artist?.stageName,
+                },
+              }));
+
+              // Fan-out in chunks of 500
+              for (let i = 0; i < notificationsToCreate.length; i += 500) {
+                await notificationService.bulkCreateNotifications(
+                  notificationsToCreate.slice(i, i + 500)
+                );
+              }
+            }
           }
         }
 

@@ -232,7 +232,7 @@ function UserProfileComponent() {
       {/* Back breadcrumb */}
       <div className="mb-6">
         <Link
-          to="/activity"
+          to="/feed"
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors"
         >
           <span>← Back to Community</span>
