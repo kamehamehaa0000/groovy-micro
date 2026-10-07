@@ -204,6 +204,31 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /following/releases
+   * Retrieves releases published in the past 6 months by artists followed by current user.
+   */
+  fastify.get(
+    "/following/releases",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const query = request.query as {
+        page?: string;
+        limit?: string;
+      };
+
+      const page = query.page ? parseInt(query.page, 10) : 1;
+      const limit = query.limit ? parseInt(query.limit, 10) : 40;
+
+      const result = await artistsService.getFollowedArtistsReleases(
+        request.user.id,
+        { page, limit }
+      );
+
+      return reply.status(200).send(result);
+    }
+  );
+
+  /**
    * GET /:idOrSlug
    * Retrieves an artist profile by either UUID or custom slug.
    * Public endpoint; enriches with isFollowing if authenticated.

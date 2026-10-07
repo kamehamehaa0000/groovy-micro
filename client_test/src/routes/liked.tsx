@@ -35,7 +35,7 @@ function formatTotalDuration(seconds: number): string {
   return `${secs} sec`
 }
 
-export function LikedSongsPage() {
+function LikedSongsPage() {
   const { isAuthenticated, user, isLoading: isAuthLoading } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 

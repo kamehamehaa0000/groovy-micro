@@ -17,10 +17,10 @@ export const Route = createFileRoute('/history')({
   component: HistoryPageComponent,
 })
 
-export type GroupByInterval = 'day' | 'week' | 'month' | 'year'
-export type ViewMode = 'grid' | 'list'
+type GroupByInterval = 'day' | 'week' | 'month' | 'year'
+type ViewMode = 'grid' | 'list'
 
-export interface PlayedRelease {
+interface PlayedRelease {
   releaseKey: string
   albumId: string | null
   title: string
@@ -35,7 +35,7 @@ export interface PlayedRelease {
   tracksPlayed: HistoryItem[]
 }
 
-export interface ReleaseGroup {
+interface ReleaseGroup {
   key: string
   label: string
   totalPlays: number
@@ -61,7 +61,7 @@ function formatDurationSeconds(sec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function HistoryPageComponent() {
+function HistoryPageComponent() {
   const { isAuthenticated } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
@@ -619,11 +619,7 @@ export function HistoryPageComponent() {
                     return (
                       <div
                         key={release.releaseKey}
-                        className={`group relative flex flex-col p-2.5 rounded-xl border transition-all duration-200 ${
-                          isCurrentReleasePlaying
-                            ? 'bg-blue/5 border-blue/40 shadow-xs'
-                            : 'bg-panel/40 hover:bg-canvas-soft/80 border-line hover:border-ink/20 shadow-2xs'
-                        }`}
+                        className="group relative flex flex-col p-2.5 rounded-xl border border-line bg-panel/40 hover:bg-canvas-soft/80 hover:border-ink/20 shadow-2xs transition-all duration-200"
                       >
                         {/* Album Artwork with Quick Play Overlay */}
                         <div className="aspect-square bg-canvas-deep border border-line relative overflow-hidden rounded-lg mb-2.5 shadow-2xs">
@@ -647,11 +643,7 @@ export function HistoryPageComponent() {
                             type="button"
                             onClick={() => handlePlayRelease(release)}
                             aria-label={isCurrentReleasePlaying ? 'Pause release' : 'Play release'}
-                            className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center transition-opacity cursor-pointer ${
-                              isCurrentReleasePlaying
-                                ? 'opacity-100'
-                                : 'opacity-0 group-hover:opacity-100'
-                            }`}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           >
                             <div className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95">
                               {isCurrentReleasePlaying ? (
@@ -661,14 +653,6 @@ export function HistoryPageComponent() {
                               )}
                             </div>
                           </button>
-
-                          {/* Playing Pulse Dot */}
-                          {isCurrentReleasePlaying && (
-                            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/75 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue" />
-                            </div>
-                          )}
 
                           {/* Release Type Badge (ALBUM, EP, SINGLE, VAULT) */}
                           <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[8px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
@@ -786,11 +770,7 @@ export function HistoryPageComponent() {
                   return (
                     <div
                       key={release.releaseKey}
-                      className={`group flex flex-col rounded-xl border transition-all duration-200 overflow-hidden ${
-                        isCurrentReleasePlaying
-                          ? 'bg-blue/5 border-blue/40 shadow-xs'
-                          : 'bg-panel/40 hover:bg-canvas-soft/80 border-line hover:border-ink/20 shadow-2xs'
-                      }`}
+                      className="group flex flex-col rounded-xl border border-line bg-panel/40 hover:bg-canvas-soft/80 hover:border-ink/20 shadow-2xs transition-all duration-200 overflow-hidden"
                     >
                       {/* Row Bar */}
                       <div className="flex items-center gap-3.5 p-2.5 sm:px-4">
@@ -816,11 +796,7 @@ export function HistoryPageComponent() {
                             type="button"
                             onClick={() => handlePlayRelease(release)}
                             aria-label={isCurrentReleasePlaying ? 'Pause release' : 'Play release'}
-                            className={`absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center transition-opacity cursor-pointer ${
-                              isCurrentReleasePlaying
-                                ? 'opacity-100'
-                                : 'opacity-0 group-hover/cover:opacity-100'
-                            }`}
+                            className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity cursor-pointer"
                           >
                             <div className="w-7 h-7 rounded-full bg-ink text-canvas flex items-center justify-center shadow-md">
                               {isCurrentReleasePlaying ? (
@@ -830,14 +806,6 @@ export function HistoryPageComponent() {
                               )}
                             </div>
                           </button>
-
-                          {/* Pulse dot */}
-                          {isCurrentReleasePlaying && (
-                            <div className="absolute top-1 right-1 flex items-center gap-1 bg-black/75 px-1 py-0.5 rounded-full backdrop-blur-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue" />
-                            </div>
-                          )}
                         </div>
 
                         {/* Release Title, Artist & Badge */}

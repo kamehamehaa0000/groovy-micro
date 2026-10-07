@@ -98,6 +98,9 @@ export interface RecentHistoryItem {
     artistSlug: string;
     albumId: string | null;
     albumTitle: string | null;
+    albumSlug?: string | null;
+    albumType?: 'ALBUM' | 'SINGLE' | 'EP' | 'MIXTAPE' | 'LP' | null;
+    albumCoverImageUrl?: string | null;
   };
 }
 

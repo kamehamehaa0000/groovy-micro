@@ -1,4 +1,4 @@
-import { eq, sql, and, or, ilike, desc, asc, count } from "drizzle-orm";
+import { eq, sql, and, or, ilike, desc, asc, count, isNull, gte, lte } from "drizzle-orm";
 import { db } from "../../db";
 import { artistProfiles, artistFollowers, users, albums } from "../../db/schema";
 import type {
@@ -428,6 +428,77 @@ export class ArtistsService {
   async getUserFollowingArtistIds(userId: string): Promise<string[]> {
     const set = await followsCacheService.getUserFollowingArtistIds(userId);
     return Array.from(set);
+  }
+
+  /**
+   * Retrieves releases published in the past 6 months by artists followed by the user.
+   * Ordered by recency (newest releaseDate and createdAt first).
+   */
+  async getFollowedArtistsReleases(
+    userId: string,
+    options: {
+      page?: number;
+      limit?: number;
+    } = {}
+  ) {
+    const page = Math.max(1, options.page ?? 1);
+    const limit = Math.min(Math.max(1, options.limit ?? 40), 100);
+    const offset = (page - 1) * limit;
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const sixMonthsAgoStr = sixMonthsAgo.toISOString().split("T")[0]; // YYYY-MM-DD
+
+    const conditions = [
+      eq(artistFollowers.userId, userId),
+      isNull(albums.deletedAt),
+      eq(albums.scope, "GLOBAL"),
+      eq(albums.visibility, "PUBLIC"),
+      or(
+        eq(albums.status, "PUBLISHED"),
+        and(
+          eq(albums.status, "SCHEDULED"),
+          lte(albums.scheduledReleaseAt, sql`NOW()`)
+        )
+      )!,
+      gte(albums.releaseDate, sixMonthsAgoStr),
+      lte(albums.releaseDate, sql`CURRENT_DATE`),
+    ];
+
+    const rows = await db
+      .select({
+        id: albums.id,
+        title: albums.title,
+        slug: albums.slug,
+        albumType: albums.albumType,
+        coverImageUrl: albums.coverImageUrl,
+        releaseDate: albums.releaseDate,
+        totalTracks: albums.totalTracks,
+        totalDurationSeconds: albums.totalDurationSeconds,
+        artist: {
+          id: artistProfiles.id,
+          name: artistProfiles.stageName,
+          slug: artistProfiles.slug,
+          avatarUrl: artistProfiles.avatarUrl,
+          verified: artistProfiles.verified,
+        },
+      })
+      .from(artistFollowers)
+      .innerJoin(albums, eq(artistFollowers.artistId, albums.artistId))
+      .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+      .where(and(...conditions))
+      .orderBy(desc(albums.releaseDate), desc(albums.createdAt))
+      .limit(limit + 1)
+      .offset(offset);
+
+    const hasMore = rows.length > limit;
+    const releases = hasMore ? rows.slice(0, limit) : rows;
+
+    return {
+      releases,
+      page,
+      hasMore,
+    };
   }
 
   /**

@@ -249,6 +249,9 @@ export class PlayerService {
           artistSlug: artistProfiles.slug,
           albumId: albums.id,
           albumTitle: albums.title,
+          albumSlug: albums.slug,
+          albumType: albums.albumType,
+          albumCoverImageUrl: albums.coverImageUrl,
         },
       })
       .from(listeningHistory)
@@ -269,15 +272,19 @@ export class PlayerService {
         )
       )
       .orderBy(desc(listeningHistory.playedAt))
-      .limit(limit * 2);
+      .limit(limit * 5);
 
-    // Deduplicate so recent tracks shelf features unique songs
-    const seenSongs = new Set<string>();
+    // Deduplicate by release (album if associated, otherwise standalone song)
+    const seenReleases = new Set<string>();
     const uniqueHistory = [];
 
     for (const row of rows) {
-      if (!seenSongs.has(row.song.id)) {
-        seenSongs.add(row.song.id);
+      const releaseKey = row.song.albumId
+        ? `album:${row.song.albumId}`
+        : `song:${row.song.id}`;
+
+      if (!seenReleases.has(releaseKey)) {
+        seenReleases.add(releaseKey);
         uniqueHistory.push(row);
       }
       if (uniqueHistory.length >= limit) break;

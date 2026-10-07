@@ -24,6 +24,30 @@ export function slugifyText(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+export interface FollowedArtistRelease {
+  id: string;
+  title: string;
+  slug: string;
+  albumType: string;
+  coverImageUrl: string | null;
+  releaseDate: string;
+  totalTracks: number;
+  totalDurationSeconds: number;
+  artist: {
+    id: string;
+    name: string;
+    slug: string;
+    avatarUrl: string | null;
+    verified: boolean;
+  };
+}
+
+export interface FollowedReleasesResponse {
+  releases: FollowedArtistRelease[];
+  hasMore: boolean;
+  page: number;
+}
+
 export const artistsApi = {
   /**
    * Instantly upgrades listener to ARTIST and establishes profile.
@@ -136,6 +160,22 @@ export const artistsApi = {
    */
   async getFollowingArtistIds(): Promise<{ artistIds: string[] }> {
     return await api.get<{ artistIds: string[] }>("/api/v1/artists/following/ids");
+  },
+
+  /**
+   * Retrieves releases published in the past 6 months by followed artists.
+   */
+  async getFollowedReleases(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<FollowedReleasesResponse> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return await api.get<FollowedReleasesResponse>(
+      `/api/v1/artists/following/releases${qs ? `?${qs}` : ""}`
+    );
   },
 
   /**

@@ -1,30 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { playerApi, type RecentHistoryItem } from '../../lib/player.api'
-import { usePlayerStore } from '../../stores/player.store'
 import { useAuthStore } from '../../stores/auth.store'
-import type { PlayerTrack } from '../../types/player'
-
-function formatRelativeTime(isoDate: string): string {
-  try {
-    const diff = Date.now() - new Date(isoDate).getTime()
-    const sec = Math.floor(diff / 1000)
-    if (sec < 60) return 'Just now'
-    const min = Math.floor(sec / 60)
-    if (min < 60) return `${min}m ago`
-    const hrs = Math.floor(min / 60)
-    if (hrs < 24) return `${hrs}h ago`
-    const days = Math.floor(hrs / 24)
-    if (days === 1) return 'Yesterday'
-    if (days < 7) return `${days}d ago`
-    return new Date(isoDate).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    })
-  } catch {
-    return ''
-  }
-}
+import { MediaTile } from '../common/MediaTile'
+import { ProceduralCover } from '../common/ProceduralCover'
 
 interface RecentlyPlayedShelfProps {
   title?: string
@@ -35,15 +14,11 @@ interface RecentlyPlayedShelfProps {
 
 export function RecentlyPlayedShelf({
   title = 'Recently Played',
+  subtitle,
   limit = 12,
   className = '',
 }: RecentlyPlayedShelfProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const currentTrack = usePlayerStore((s) => s.currentTrack)
-  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const playTrack = usePlayerStore((s) => s.playTrack)
-  const togglePlay = usePlayerStore((s) => s.togglePlay)
-
   const [history, setHistory] = useState<RecentHistoryItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -75,202 +50,138 @@ export function RecentlyPlayedShelf({
     return null
   }
 
-  const handlePlaySong = (
-    item: RecentHistoryItem,
-    allItems: RecentHistoryItem[],
-  ) => {
-    const song = item.song
-    const isCurrent = currentTrack?.id === song.id
-
-    if (isCurrent) {
-      togglePlay()
-      return
-    }
-
-    const playerTrack: PlayerTrack = {
-      id: song.id,
-      title: song.title,
-      artistId: song.artistId,
-      artistName: song.artistName,
-      artistSlug: song.artistSlug,
-      albumId: song.albumId || undefined,
-      albumTitle: song.albumTitle || undefined,
-      durationSeconds: song.durationSeconds,
-      coverImageUrl: song.coverImageUrl || undefined,
-      audioUrl: song.audioUrl || undefined,
-      hlsManifestUrl: song.hlsManifestUrl || undefined,
-      rawAudioKey: song.rawAudioKey || undefined,
-    }
-
-    const contextQueue: PlayerTrack[] = allItems.map((h) => ({
-      id: h.song.id,
-      title: h.song.title,
-      artistId: h.song.artistId,
-      artistName: h.song.artistName,
-      artistSlug: h.song.artistSlug,
-      albumId: h.song.albumId || undefined,
-      albumTitle: h.song.albumTitle || undefined,
-      durationSeconds: h.song.durationSeconds,
-      coverImageUrl: h.song.coverImageUrl || undefined,
-      audioUrl: h.song.audioUrl || undefined,
-      hlsManifestUrl: h.song.hlsManifestUrl || undefined,
-      rawAudioKey: h.song.rawAudioKey || undefined,
-    }))
-
-    const trackIndex = allItems.findIndex((h) => h.historyId === item.historyId)
-    playTrack(
-      playerTrack,
-      contextQueue,
-      trackIndex >= 0 ? trackIndex : 0,
-      'history:recent',
-      'Recently Played',
-    )
-  }
-
   const displayedItems = history.slice(0, limit)
 
   return (
     <section className={`space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex justify-between items-baseline border-b border-line pb-3">
-        <div className="flex items-center gap-3">
+        <div>
           <h2 className="font-serif italic font-medium text-xl text-ink">
             {title}
           </h2>
+          {subtitle && (
+            <p className="font-sans text-xs text-ink-soft mt-0.5">{subtitle}</p>
+          )}
         </div>
         <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
-          {history.length} {history.length === 1 ? 'track' : 'tracks'}
+          {displayedItems.length}{' '}
+          {displayedItems.length === 1 ? 'release' : 'releases'}
         </span>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
-          {Array.from({ length: limit }).map((_, i) => (
-            <div
-              key={i}
-              className="p-2.5 rounded-xl bg-panel/40 animate-pulse space-y-2.5"
-            >
-              <div className="aspect-square bg-line/40 rounded-md" />
-              <div className="h-3 bg-line/50 rounded-xs w-3/4" />
-              <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
-          {displayedItems.map((item) => {
-            const isThisTrack = currentTrack?.id === item.song.id
-            const isPlayingThis = isThisTrack && playbackStatus === 'playing'
-
-            return (
+        <>
+          {/* Mobile Loading Skeleton: 2-column horizontal tiles */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:hidden">
+            {Array.from({ length: Math.min(limit, 6) }).map((_, i) => (
               <div
-                key={item.historyId}
-                className={`group relative flex flex-col p-2.5 rounded-xl select-none transition-all duration-150 active:scale-[0.98] ${
-                  isThisTrack
-                    ? 'bg-blue/10 dark:bg-blue/15'
-                    : 'hover:bg-canvas-soft/70'
-                }`}
+                key={i}
+                className="flex items-center h-13 sm:h-14 rounded-md bg-panel/40 border border-line/40 animate-pulse overflow-hidden"
               >
-                {/* Artwork with Quick Play Hover Button */}
-                <div className="aspect-square bg-canvas-deep border border-line relative overflow-hidden rounded-md mb-2.5">
-                  {item.song.coverImageUrl ? (
-                    <img
-                      src={item.song.coverImageUrl}
-                      alt={item.song.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-ink-soft text-2xl">
-                      ♪
-                    </div>
-                  )}
-
-                  {/* Play/Pause Overlay */}
-                  <button
-                    type="button"
-                    onClick={() => handlePlaySong(item, displayedItems)}
-                    aria-label={isPlayingThis ? 'Pause' : 'Play'}
-                    className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center transition-opacity cursor-pointer ${
-                      isPlayingThis
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover:opacity-100'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95">
-                      {isPlayingThis ? (
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          className="w-4 h-4 text-canvas"
-                        >
-                          <rect x="6" y="4" width="4" height="16" rx="1" />
-                          <rect x="14" y="4" width="4" height="16" rx="1" />
-                        </svg>
-                      ) : (
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          className="w-4 h-4 text-canvas ml-0.5"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Live Pulse Indicator if currently active */}
-                  {isPlayingThis && (
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Metadata */}
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span
-                    className={`text-xs font-semibold truncate tracking-tight transition-colors ${
-                      isThisTrack
-                        ? 'text-blue'
-                        : 'text-ink group-hover:text-blue'
-                    }`}
-                    title={item.song.title}
-                  >
-                    {item.song.title}
-                  </span>
-
-                  {item.song.artistSlug ? (
-                    <Link
-                      to="/artists/$idOrSlug"
-                      params={{ idOrSlug: item.song.artistSlug }}
-                      className="text-[11px] text-ink-soft hover:text-ink truncate transition-colors mt-0.5 block"
-                    >
-                      {item.song.artistName}
-                    </Link>
-                  ) : (
-                    <span className="text-[11px] text-ink-soft truncate mt-0.5">
-                      {item.song.artistName}
-                    </span>
-                  )}
-
-                  <div className="flex items-center justify-between font-mono text-[9px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
-                    <span>{formatRelativeTime(item.playedAt)}</span>
-                    {item.song.durationSeconds > 0 && (
-                      <span>
-                        {Math.floor(item.song.durationSeconds / 60)}:
-                        {String(
-                          Math.floor(item.song.durationSeconds % 60),
-                        ).padStart(2, '0')}
-                      </span>
-                    )}
-                  </div>
+                <div className="w-13 h-13 sm:w-14 sm:h-14 bg-line/40 shrink-0" />
+                <div className="flex-1 min-w-0 px-2.5 space-y-1.5">
+                  <div className="h-3 bg-line/50 rounded-xs w-3/4" />
+                  <div className="h-2 bg-line/30 rounded-xs w-1/2" />
                 </div>
               </div>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+
+          {/* Desktop Loading Skeleton: 6-column MediaTile vertical cards */}
+          <div className="hidden md:grid md:grid-cols-6 gap-3">
+            {Array.from({ length: limit }).map((_, i) => (
+              <div
+                key={i}
+                className="p-2.5 rounded-xl bg-panel/40 animate-pulse space-y-2.5"
+              >
+                <div className="aspect-square bg-line/40 rounded-md" />
+                <div className="h-3 bg-line/50 rounded-xs w-3/4" />
+                <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ===================== MOBILE VIEW (< md) ===================== */}
+          {/* Spotify-style 2-column compact horizontal release tiles */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:hidden">
+            {displayedItems.map((item) => {
+              const releaseTitle = item.song.albumTitle || item.song.title
+              const releaseCover =
+                item.song.albumCoverImageUrl || item.song.coverImageUrl
+              const releaseSlug =
+                item.song.albumSlug || item.song.albumId || item.song.slug
+              const releaseType = item.song.albumType || 'Release'
+
+              return (
+                <Link
+                  key={item.historyId}
+                  to="/albums/$idOrSlug"
+                  params={{ idOrSlug: releaseSlug }}
+                  className="group flex items-center h-13 sm:h-14 rounded-md overflow-hidden bg-panel/70 hover:bg-canvas-soft border border-line/50 active:scale-[0.98] transition-all duration-150 text-inherit no-underline select-none cursor-pointer"
+                >
+                  {/* Square Cover Flush Left */}
+                  <div className="relative w-13 h-13 sm:w-14 sm:h-14 bg-canvas-deep shrink-0 overflow-hidden">
+                    {releaseCover ? (
+                      <img
+                        src={releaseCover}
+                        alt={releaseTitle}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <ProceduralCover
+                        title={releaseTitle}
+                        artistName={item.song.artistName}
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+
+                  {/* Title & Artist */}
+                  <div className="flex flex-col justify-center min-w-0 flex-1 px-2.5 py-1">
+                    <span
+                      className="text-xs font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
+                      title={releaseTitle}
+                    >
+                      {releaseTitle}
+                    </span>
+                    <span className="text-[10.5px] text-ink-soft truncate mt-0.5 leading-tight">
+                      {item.song.artistName} · {releaseType}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* ===================== DESKTOP VIEW (>= md) ===================== */}
+          {/* 6-column MediaTile vertical release cards */}
+          <div className="hidden md:grid md:grid-cols-6 gap-3">
+            {displayedItems.map((item) => {
+              const releaseTitle = item.song.albumTitle || item.song.title
+              const releaseCover =
+                item.song.albumCoverImageUrl || item.song.coverImageUrl
+              const releaseSlug =
+                item.song.albumSlug || item.song.albumId || item.song.slug
+              const releaseType = item.song.albumType || 'Release'
+
+              return (
+                <MediaTile
+                  key={item.historyId}
+                  to="/albums/$idOrSlug"
+                  params={{ idOrSlug: releaseSlug }}
+                  title={releaseTitle}
+                  subtitle={`${item.song.artistName} · ${releaseType}`}
+                  imageUrl={releaseCover}
+                  artistName={item.song.artistName}
+                />
+              )
+            })}
+          </div>
+        </>
       )}
     </section>
   )

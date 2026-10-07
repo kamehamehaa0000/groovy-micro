@@ -22,6 +22,7 @@ import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PersonalCollectionRouteImport } from './routes/personal-collection'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ReleasesRouteImport } from './routes/releases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -103,6 +104,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReleasesRoute = ReleasesRouteImport.update({
+  id: '/releases',
+  path: '/releases',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByTo {
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/personal-collection'
     | '/profile'
     | '/register'
+    | '/releases'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/personal-collection'
     | '/profile'
     | '/register'
+    | '/releases'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/personal-collection'
     | '/profile'
     | '/register'
+    | '/releases'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -399,6 +411,7 @@ export interface RootRouteChildren {
   PersonalCollectionRoute: typeof PersonalCollectionRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  ReleasesRoute: typeof ReleasesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
@@ -507,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/releases': {
+      id: '/releases'
+      path: '/releases'
+      fullPath: '/releases'
+      preLoaderRoute: typeof ReleasesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -659,6 +679,7 @@ const rootRouteChildren: RootRouteChildren = {
   PersonalCollectionRoute: PersonalCollectionRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  ReleasesRoute: ReleasesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,

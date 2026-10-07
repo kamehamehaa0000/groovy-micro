@@ -230,19 +230,27 @@ function RootComponent() {
               )}
             </button>
 
-            {/* Center: Brand Monogram / Title */}
-            <div className="flex items-start w-full gap-2">
+            {/* Center: Spotify-style dual pill navigation (Home & Following) */}
+            <div className="flex items-center gap-2 ml-2 flex-1 min-w-0">
               <Link
                 to="/"
-                className="font-robo text-sm tracking-tight mx-1  ml-2 text-ink hover:opacity-80 transition-opacity"
+                className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
+                  pathname === '/'
+                    ? 'bg-[#1ed760] text-black shadow-xs font-bold'
+                    : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
+                }`}
               >
                 Home
               </Link>
               <Link
-                to="/feed"
-                className="font-robo text-sm tracking-tight mx-1 text-ink hover:opacity-80 transition-opacity"
+                to="/releases"
+                className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
+                  pathname.startsWith('/releases')
+                    ? 'bg-[#1ed760] text-black shadow-xs font-bold'
+                    : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
+                }`}
               >
-                Feed
+                Following
               </Link>
             </div>
             {/* Right: Notifications & Plus (+) Icon */}
@@ -287,19 +295,6 @@ function RootComponent() {
                 >
                   Catalog
                 </Link>
-                {/* <Link
-                  to="/search"
-                  activeProps={{
-                    className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
-                  }}
-                  inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
-                  }}
-                  className="transition-colors"
-                >
-                  Search
-                </Link> */}
                 <Link
                   to="/artists"
                   activeProps={{
@@ -355,15 +350,6 @@ function RootComponent() {
                     >
                       Feed
                     </Link>
-                    {/* <button
-                      type="button"
-                      onClick={() => useJamStore.getState().openModal()}
-                      className="flex items-center gap-1.5 text-ink-soft hover:text-emerald-400 pb-0.5 transition-colors cursor-pointer"
-                      title="Start or Join Live Jam"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Live Jam</span>
-                    </button> */}
                     <Link
                       to="/collection"
                       activeProps={{
@@ -671,7 +657,7 @@ function RootComponent() {
                         onClick={() => setUserMenuOpen(false)}
                         className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -694,7 +680,69 @@ function RootComponent() {
                           </p>
                         </div>
                       </Link>
+                      {/* Recents */}
+                      <Link
+                        to="/history"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                      >
+                        <div className="w-7 h-7 rounded-full  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                            Recents
+                          </span>
+                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                            Listening History
+                          </p>
+                        </div>
+                      </Link>
 
+                      {/* Releases / Artist Radar */}
+                      <Link
+                        to="/releases"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                      >
+                        <div className="w-7 h-7 flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
+                            <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
+                            <circle cx="12" cy="12" r="2" />
+                            <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" />
+                            <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                            Releases
+                          </span>
+                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                            New from followed artists
+                          </p>
+                        </div>
+                      </Link>
                       {/* Studio */}
                       <Link
                         to="/studio"
@@ -702,7 +750,7 @@ function RootComponent() {
                         onClick={() => setUserMenuOpen(false)}
                         className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -733,7 +781,7 @@ function RootComponent() {
                           onClick={() => setUserMenuOpen(false)}
                           className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
                         >
-                          <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-blue group-hover:border-blue/50 transition-colors shrink-0">
+                          <div className="w-7 h-7  flex items-center justify-center text-blue group-hover:border-blue/50 transition-colors shrink-0">
                             <svg
                               className="w-3.5 h-3.5"
                               viewBox="0 0 24 24"
@@ -962,6 +1010,22 @@ function RootComponent() {
                     <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400 mt-4 mb-2">
                       Your Vault
                     </div>
+                    <Link
+                      to="/releases"
+                      onClick={() => setLeftSidebarOpen(false)}
+                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                    >
+                      <span>Artist Radar / Releases</span>
+                      <span className="text-ink-soft">&rarr;</span>
+                    </Link>
+                    <Link
+                      to="/history"
+                      onClick={() => setLeftSidebarOpen(false)}
+                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                    >
+                      <span>Listening History</span>
+                      <span className="text-ink-soft">&rarr;</span>
+                    </Link>
                     <Link
                       to="/feed"
                       onClick={() => setLeftSidebarOpen(false)}

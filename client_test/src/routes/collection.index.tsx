@@ -641,9 +641,6 @@ function PersonalCollectionExplorePage() {
             /* ===================== RELEASES LIST VIEW (Clean & Minimal, Artist Page Styling) ===================== */
             <div className="flex flex-col gap-1.5">
               {filteredReleases.map((release) => {
-                const isPlayingThisRelease =
-                  currentTrack?.albumId === release.id &&
-                  playbackStatus === 'playing'
                 const releaseYear = release.releaseDate
                   ? new Date(release.releaseDate).getFullYear()
                   : release.createdAt
@@ -676,11 +673,6 @@ function PersonalCollectionExplorePage() {
                             artistName={release.artistName}
                             className="w-full h-full rounded-none"
                           />
-                        )}
-                        {isPlayingThisRelease && (
-                          <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
-                            <span className="w-2.5 h-2.5 rounded-full bg-blue animate-ping" />
-                          </div>
                         )}
                       </div>
 
