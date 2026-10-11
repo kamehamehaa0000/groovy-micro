@@ -233,6 +233,107 @@ export class ArtistsService {
   }
 
   /**
+   * Retrieves unified artist overview (Profile + Discography + Similar Artists) in a single high-performance operation.
+   * Public core is cached in Redis (10 min TTL). Viewer-specific personalization is layered on top.
+   */
+  async getArtistOverview(
+    idOrSlug: string,
+    currentUserId?: string,
+    catalogService?: any,
+    recommendationsService?: any
+  ) {
+    const isUUID = UUID_REGEX.test(idOrSlug);
+    const cacheKey = isUUID
+      ? cacheKeys.catalog.artistOverview(idOrSlug)
+      : cacheKeys.catalog.artistOverviewSlug(idOrSlug);
+
+    // 1. Check Redis cache first for the public core
+    const publicCached = await cacheManager.get<{
+      profile: any;
+      discography: any;
+      similarArtists: any[];
+    }>(cacheKey);
+
+    if (publicCached) {
+      if (publicCached.profile.scope === "PERSONAL") {
+        if (!currentUserId || publicCached.profile.ownerUserId !== currentUserId) {
+          await cacheManager.invalidate(cacheKey);
+          return null;
+        }
+      }
+
+      // Layer viewer personalization
+      const isFollowing = currentUserId
+        ? await followsCacheService.isFollowingArtist(currentUserId, publicCached.profile.id)
+        : false;
+
+      // Personalize discography if authenticated
+      let personalizedDiscography = publicCached.discography;
+      if (currentUserId && catalogService) {
+        personalizedDiscography = await catalogService.getArtistDiscography(
+          publicCached.profile.id,
+          currentUserId
+        );
+      }
+
+      return {
+        profile: {
+          ...publicCached.profile,
+          isFollowing,
+        },
+        discography: personalizedDiscography,
+        similarArtists: publicCached.similarArtists,
+      };
+    }
+
+    // 2. Cache miss: Fetch artist profile first
+    const profile = await this.getArtistByIdOrSlug(idOrSlug, currentUserId);
+    if (!profile) {
+      return null;
+    }
+
+    // 3. Concurrently fetch discography and similar artists using the resolved artist ID
+    const [discography, similarResult] = await Promise.all([
+      catalogService
+        ? catalogService.getArtistDiscography(profile.id, currentUserId)
+        : Promise.resolve(null),
+      recommendationsService
+        ? recommendationsService.getSimilarArtistsForArtist(profile.id, 8)
+        : Promise.resolve(null),
+    ]);
+
+    const similarArtists = similarResult?.artists || [];
+
+    // 4. Cache public core in Redis if GLOBAL artist (600s TTL)
+    if (profile.scope === "GLOBAL" && discography) {
+      const publicCore = {
+        profile: {
+          ...profile,
+          isFollowing: false,
+        },
+        discography: {
+          ...discography,
+          inYourCollection: [],
+        },
+        similarArtists,
+      };
+
+      await cacheManager.set(cacheKey, publicCore, 600);
+      if (isUUID && profile.slug) {
+        await cacheManager.set(cacheKeys.catalog.artistOverviewSlug(profile.slug), publicCore, 600);
+      } else if (!isUUID && profile.id) {
+        await cacheManager.set(cacheKeys.catalog.artistOverview(profile.id), publicCore, 600);
+      }
+    }
+
+    return {
+      profile,
+      discography,
+      similarArtists,
+    };
+  }
+
+  /**
    * Retrieves logged-in artist's own profile and studio telemetry.
    */
   async getMyArtistProfile(userId: string) {

@@ -28,6 +28,8 @@ export const cacheKeys = {
     song: (songId: string) => `groovy:catalog:song:${songId}`,
     artist: (id: string) => `groovy:catalog:artist:${id}`,
     artistSlug: (slug: string) => `groovy:catalog:artist:slug:${slug}`,
+    artistOverview: (id: string) => `groovy:catalog:artist:overview:${id}`,
+    artistOverviewSlug: (slug: string) => `groovy:catalog:artist:overview:slug:${slug}`,
     artistAlbumsTag: (artistId: string) =>
       `groovy:catalog:tag:artist:${artistId}:albums`,
   },

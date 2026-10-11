@@ -1,6 +1,7 @@
 import { api } from "./api";
 import { useAuthStore } from "../stores/auth.store";
 import type { SimilarArtistCard } from "./recommendations.api";
+import type { DiscographyResponse } from "../types/catalog";
 import type {
   ArtistProfile,
   CreateArtistInput,
@@ -10,6 +11,12 @@ import type {
   SearchArtistsResponse,
   AdminListArtistsResponse,
 } from "../types/artist";
+
+export interface ArtistOverviewResponse {
+  profile: ArtistProfile;
+  discography: DiscographyResponse;
+  similarArtists: SimilarArtistCard[];
+}
 
 /**
  * Normalizes stage name into a URL-friendly slug for live form previews.
@@ -116,6 +123,13 @@ export const artistsApi = {
     artists: SimilarArtistCard[];
   }> {
     return await api.get(`/api/v1/artists/${encodeURIComponent(idOrSlug)}/similar?limit=${limit}`);
+  },
+
+  /**
+   * Consolidated single-request artist page bundle (Profile + Discography + Similar Artists).
+   */
+  async getArtistOverview(idOrSlug: string): Promise<ArtistOverviewResponse> {
+    return await api.get<ArtistOverviewResponse>(`/api/v1/artists/${encodeURIComponent(idOrSlug)}/overview`);
   },
 
   /**

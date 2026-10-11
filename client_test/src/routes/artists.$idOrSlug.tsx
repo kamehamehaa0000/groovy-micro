@@ -1,15 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo } from 'react'
-import { artistsApi } from '../lib/artists.api'
-import { catalogApi, formatDuration } from '../lib/catalog.api'
-import type { ArtistProfile } from '../types/artist'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { artistsApi, type ArtistOverviewResponse } from '../lib/artists.api'
+import { formatDuration } from '../lib/catalog.api'
 import type {
-  DiscographyResponse,
   EnrichedSong,
   PersonalCollectionTrack,
 } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
-import type { SimilarArtistCard } from '../lib/recommendations.api'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { MediaTile } from '../components/common/MediaTile'
 import {
@@ -52,13 +50,25 @@ function ArtistPublicProfileComponent() {
   const hydratePreSavedAlbums = usePreSavesStore((s) => s.hydrateAlbums)
   const [preSavingAlbumId, setPreSavingAlbumId] = useState<string | null>(null)
 
-  const [artist, setArtist] = useState<ArtistProfile | null>(null)
-  const [discography, setDiscography] = useState<DiscographyResponse | null>(
-    null,
+  const queryClient = useQueryClient()
+  const queryKey = useMemo(
+    () => ['artist-overview', idOrSlug, user?.id],
+    [idOrSlug, user?.id],
   )
-  const [similarArtists, setSimilarArtists] = useState<SimilarArtistCard[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const {
+    data: overview,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: () => artistsApi.getArtistOverview(idOrSlug),
+    staleTime: 60 * 1000,
+  })
+
+  const artist = overview?.profile || null
+  const discography = overview?.discography || null
+  const similarArtists = overview?.similarArtists || []
   const [showAllTopTracks, setShowAllTopTracks] = useState(false)
 
   // Discography tabs & pagination
@@ -73,59 +83,39 @@ function ArtistPublicProfileComponent() {
   const [followersCount, setFollowersCount] = useState(0)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
 
+  // Sync followersCount when overview.profile loads or changes
+  useEffect(() => {
+    if (overview?.profile) {
+      setFollowersCount(overview.profile.followersCount ?? 0)
+    }
+  }, [overview?.profile?.id, overview?.profile?.followersCount])
+
   // Copy link feedback
   const [copiedLink, setCopiedLink] = useState(false)
 
+  // Hydrate global Zustand stores (follows, likes, pre-saves)
   useEffect(() => {
-    let isMounted = true
-    setIsLoading(true)
-    setErrorMsg(null)
+    if (!overview) return
 
-    Promise.all([
-      artistsApi.getByIdOrSlug(idOrSlug),
-      catalogApi.getArtistDiscography(idOrSlug).catch(() => null),
-      artistsApi.getSimilarArtists(idOrSlug).catch(() => null),
-    ])
-      .then(([artistData, discoData, similarData]) => {
-        if (!isMounted) return
-        setArtist(artistData)
-        setDiscography(discoData)
-        setFollowersCount(artistData.followersCount ?? 0)
-        if (similarData?.artists) {
-          setSimilarArtists(similarData.artists)
-        }
-
-        // Hydrate follows store
-        if (artistData.isFollowing) {
-          hydrateArtists([{ id: artistData.id, isFollowing: true }])
-        }
-
-        // Hydrate likes store from popular tracks
-        if (discoData?.topTracks?.length) {
-          hydrateSongs(discoData.topTracks)
-        }
-
-        // Hydrate pre-saves store from upcoming releases
-        if (discoData?.upcoming?.length) {
-          hydratePreSavedAlbums(
-            discoData.upcoming
-              .filter((u: any) => u.isPreSaved)
-              .map((u: any) => ({ id: u.id, isPreSaved: true })),
-          )
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return
-        setErrorMsg(err.message || 'Failed to load artist profile')
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false)
-      })
-
-    return () => {
-      isMounted = false
+    // Hydrate follows store
+    if (overview.profile.isFollowing) {
+      hydrateArtists([{ id: overview.profile.id, isFollowing: true }])
     }
-  }, [idOrSlug, user?.id, hydrateSongs, hydrateArtists, hydratePreSavedAlbums])
+
+    // Hydrate likes store from popular tracks
+    if (overview.discography?.topTracks?.length) {
+      hydrateSongs(overview.discography.topTracks)
+    }
+
+    // Hydrate pre-saves store from upcoming releases
+    if (overview.discography?.upcoming?.length) {
+      hydratePreSavedAlbums(
+        overview.discography.upcoming
+          .filter((u: any) => u.isPreSaved)
+          .map((u: any) => ({ id: u.id, isPreSaved: true })),
+      )
+    }
+  }, [overview, hydrateSongs, hydrateArtists, hydratePreSavedAlbums])
 
   const handleTogglePreSave = async (album: any) => {
     if (!isAuthenticated) {
@@ -145,44 +135,55 @@ function ArtistPublicProfileComponent() {
     const isCurrentlyPreSaved = preSavedAlbumIds.has(album.id)
     const prevCount = album.preSavesCount ?? 0
 
-    // Optimistic count update in discography state
-    setDiscography((prev) => {
-      if (!prev || !prev.upcoming) return prev
+    // Optimistic count update in React Query cache
+    queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+      if (!old || !old.discography?.upcoming) return old
       return {
-        ...prev,
-        upcoming: prev.upcoming.map((u) =>
-          u.id === album.id
-            ? {
-                ...u,
-                preSavesCount: isCurrentlyPreSaved
-                  ? Math.max(0, prevCount - 1)
-                  : prevCount + 1,
-              }
-            : u,
-        ),
+        ...old,
+        discography: {
+          ...old.discography,
+          upcoming: old.discography.upcoming.map((u) =>
+            u.id === album.id
+              ? {
+                  ...u,
+                  preSavesCount: isCurrentlyPreSaved
+                    ? Math.max(0, prevCount - 1)
+                    : prevCount + 1,
+                }
+              : u,
+          ),
+        },
       }
     })
 
     try {
       const res = await togglePreSaveStore(album.id)
-      setDiscography((prev) => {
-        if (!prev || !prev.upcoming) return prev
+      queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+        if (!old || !old.discography?.upcoming) return old
         return {
-          ...prev,
-          upcoming: prev.upcoming.map((u) =>
-            u.id === album.id ? { ...u, preSavesCount: res.preSavesCount } : u,
-          ),
+          ...old,
+          discography: {
+            ...old.discography,
+            upcoming: old.discography.upcoming.map((u) =>
+              u.id === album.id
+                ? { ...u, preSavesCount: res.preSavesCount }
+                : u,
+            ),
+          },
         }
       })
     } catch (err: any) {
       // Rollback count on error
-      setDiscography((prev) => {
-        if (!prev || !prev.upcoming) return prev
+      queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+        if (!old || !old.discography?.upcoming) return old
         return {
-          ...prev,
-          upcoming: prev.upcoming.map((u) =>
-            u.id === album.id ? { ...u, preSavesCount: prevCount } : u,
-          ),
+          ...old,
+          discography: {
+            ...old.discography,
+            upcoming: old.discography.upcoming.map((u) =>
+              u.id === album.id ? { ...u, preSavesCount: prevCount } : u,
+            ),
+          },
         }
       })
       alert(err.message || 'Could not update pre-save status')
@@ -207,18 +208,50 @@ function ArtistPublicProfileComponent() {
     setIsFollowLoading(true)
     const prevFollowing = isFollowing
     const prevCount = followersCount
+    const nextCount = prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1
 
     // Optimistically update count
-    setFollowersCount(
-      prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1,
-    )
+    setFollowersCount(nextCount)
+    queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+      if (!old) return old
+      return {
+        ...old,
+        profile: {
+          ...old.profile,
+          followersCount: nextCount,
+          isFollowing: !prevFollowing,
+        },
+      }
+    })
 
     try {
       const res = await toggleFollow(artist.id)
       setFollowersCount(res.followersCount)
+      queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          profile: {
+            ...old.profile,
+            followersCount: res.followersCount,
+            isFollowing: res.following,
+          },
+        }
+      })
     } catch (err: any) {
       // Rollback count on failure
       setFollowersCount(prevCount)
+      queryClient.setQueryData<ArtistOverviewResponse>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          profile: {
+            ...old.profile,
+            followersCount: prevCount,
+            isFollowing: prevFollowing,
+          },
+        }
+      })
       alert(err.message || 'Could not update follow status')
     } finally {
       setIsFollowLoading(false)
@@ -460,7 +493,7 @@ function ArtistPublicProfileComponent() {
     )
   }
 
-  if (errorMsg || !artist) {
+  if (queryError || !artist) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">

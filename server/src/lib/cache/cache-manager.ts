@@ -176,10 +176,16 @@ export class CacheManager {
     id: string;
     slug?: string | null;
   }): Promise<void> {
-    const keysToDelete: string[] = [cacheKeys.catalog.artist(input.id)];
+    const keysToDelete: string[] = [
+      cacheKeys.catalog.artist(input.id),
+      cacheKeys.catalog.artistOverview(input.id),
+    ];
 
     if (input.slug) {
-      keysToDelete.push(cacheKeys.catalog.artistSlug(input.slug));
+      keysToDelete.push(
+        cacheKeys.catalog.artistSlug(input.slug),
+        cacheKeys.catalog.artistOverviewSlug(input.slug)
+      );
     }
 
     await this.invalidate(...keysToDelete);

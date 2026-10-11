@@ -258,6 +258,35 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /:idOrSlug/overview
+   * Consolidated single-request payload for artist profile, discography, and similar artists.
+   * Serves public core from Redis cache; enriches viewer-specific states dynamically.
+   */
+  fastify.get(
+    "/:idOrSlug/overview",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const { idOrSlug } = request.params as { idOrSlug: string };
+      const overview = await artistsService.getArtistOverview(
+        idOrSlug,
+        request.user?.id,
+        catalogService,
+        recommendationsService
+      );
+
+      if (!overview) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Artist not found",
+        });
+      }
+
+      return reply.status(200).send(overview);
+    }
+  );
+
+  /**
    * GET /:idOrSlug/discography
    * Retrieves artist's complete discography (Albums, EPs, Singles, Top Tracks, Appears On).
    */
