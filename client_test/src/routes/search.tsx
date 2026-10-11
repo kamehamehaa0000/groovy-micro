@@ -46,16 +46,137 @@ export const Route = createFileRoute('/search')({
   },
 })
 
-const GENRE_SUGGESTIONS = [
-  'Electronic',
-  'Ambient',
-  'Synthwave',
-  'Jazz',
-  'Indie Rock',
-  'Hip-Hop',
-  'Classical',
-  'Lofi Beats',
-  'Dream Pop',
+interface BrowseCategory {
+  id: string
+  name: string
+  query: string
+  gradient: string
+  discGradient: string
+}
+
+const BROWSE_CATEGORIES: BrowseCategory[] = [
+  {
+    id: 'electronic',
+    name: 'Electronic & Dance',
+    query: 'Electronic',
+    gradient: 'from-violet-600 to-indigo-800',
+    discGradient: 'from-violet-400 to-indigo-900',
+  },
+  {
+    id: 'hiphop',
+    name: 'Hip-Hop & Rap',
+    query: 'Hip-Hop',
+    gradient: 'from-amber-600 to-orange-800',
+    discGradient: 'from-amber-400 to-orange-900',
+  },
+  {
+    id: 'synthwave',
+    name: 'Synthwave & Retro',
+    query: 'Synthwave',
+    gradient: 'from-fuchsia-600 to-pink-800',
+    discGradient: 'from-fuchsia-400 to-pink-900',
+  },
+  {
+    id: 'lofi',
+    name: 'Lo-Fi & Chill',
+    query: 'Lofi Beats',
+    gradient: 'from-emerald-600 to-teal-800',
+    discGradient: 'from-emerald-400 to-teal-900',
+  },
+  {
+    id: 'rock',
+    name: 'Rock & Alt',
+    query: 'Indie Rock',
+    gradient: 'from-rose-600 to-red-800',
+    discGradient: 'from-rose-400 to-red-900',
+  },
+  {
+    id: 'ambient',
+    name: 'Ambient & Space',
+    query: 'Ambient',
+    gradient: 'from-sky-600 to-blue-800',
+    discGradient: 'from-sky-400 to-blue-900',
+  },
+  {
+    id: 'jazz',
+    name: 'Jazz & Soul',
+    query: 'Jazz',
+    gradient: 'from-yellow-700 to-amber-900',
+    discGradient: 'from-yellow-500 to-amber-950',
+  },
+  {
+    id: 'pop',
+    name: 'Pop & Chart',
+    query: 'Dream Pop',
+    gradient: 'from-pink-500 to-rose-700',
+    discGradient: 'from-pink-300 to-rose-900',
+  },
+  {
+    id: 'indie',
+    name: 'Indie & Folk',
+    query: 'Indie',
+    gradient: 'from-teal-600 to-emerald-900',
+    discGradient: 'from-teal-400 to-emerald-950',
+  },
+  {
+    id: 'classical',
+    name: 'Classical & Piano',
+    query: 'Classical',
+    gradient: 'from-slate-600 to-zinc-800',
+    discGradient: 'from-slate-400 to-zinc-900',
+  },
+  {
+    id: 'rnb',
+    name: 'R&B & Urban',
+    query: 'R&B',
+    gradient: 'from-purple-600 to-indigo-900',
+    discGradient: 'from-purple-400 to-indigo-950',
+  },
+  {
+    id: 'metal',
+    name: 'Metal & Heavy',
+    query: 'Metal',
+    gradient: 'from-stone-800 to-neutral-950',
+    discGradient: 'from-stone-600 to-neutral-950',
+  },
+]
+
+const COLLECTION_HUBS = [
+  {
+    to: '/playlists',
+    label: 'Public Playlists',
+    tag: 'Curations',
+    tagColor:
+      'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    description: 'Community-curated sets, mixtapes, and public mixes',
+    iconType: 'music',
+  },
+  {
+    to: '/artists',
+    label: 'Artists Index',
+    tag: 'Roster',
+    tagColor: 'text-blue bg-blue/10 border-blue/20',
+    description: 'Verified recording artists and discographies',
+    iconType: 'artist',
+  },
+  {
+    to: '/',
+    label: 'New Releases',
+    tag: 'Featured',
+    tagColor:
+      'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
+    description: 'Fresh master drops, singles, and projects',
+    iconType: 'star',
+  },
+  {
+    to: '/collection',
+    label: 'Personal Vault',
+    tag: 'Locker',
+    tagColor:
+      'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+    description: 'Private lossless audio locker and personal cuts',
+    iconType: 'lock',
+  },
 ]
 
 function SearchPageComponent() {
@@ -90,9 +211,56 @@ function SearchPageComponent() {
     }
   }, [searchParams.q, searchParams.type])
 
-  // Focus input on mount if no query provided
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('groovy_recent_searches')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) return parsed.slice(0, 8)
+      }
+    } catch {}
+    return []
+  })
+
+  const addRecentSearch = (term: string) => {
+    const trimmed = term.trim()
+    if (!trimmed || trimmed.length < 2) return
+    setRecentSearches((prev) => {
+      const next = [
+        trimmed,
+        ...prev.filter((t) => t.toLowerCase() !== trimmed.toLowerCase()),
+      ].slice(0, 8)
+      try {
+        localStorage.setItem('groovy_recent_searches', JSON.stringify(next))
+      } catch {}
+      return next
+    })
+  }
+
+  const removeRecentSearch = (term: string) => {
+    setRecentSearches((prev) => {
+      const next = prev.filter((t) => t !== term)
+      try {
+        localStorage.setItem('groovy_recent_searches', JSON.stringify(next))
+      } catch {}
+      return next
+    })
+  }
+
+  const clearRecentSearches = () => {
+    setRecentSearches([])
+    try {
+      localStorage.removeItem('groovy_recent_searches')
+    } catch {}
+  }
+
+  // Focus input on mount if no query provided (desktop only to prevent mobile keyboard auto-open)
   useEffect(() => {
-    if (!searchParams.q) {
+    if (
+      !searchParams.q &&
+      typeof window !== 'undefined' &&
+      window.innerWidth >= 768
+    ) {
       inputRef.current?.focus()
     }
   }, [])
@@ -174,6 +342,9 @@ function SearchPageComponent() {
     allSongs: SearchSongItem[],
     index: number,
   ) => {
+    if (query.trim()) {
+      addRecentSearch(query.trim())
+    }
     const isThisPlaying = currentTrack?.id === song.id
     if (isThisPlaying) {
       togglePlay()
@@ -253,11 +424,28 @@ function SearchPageComponent() {
   ]
 
   return (
-    <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-2 pb-28 md:pb-16 select-none">
       {/* ===================== STICKY SEARCH HEADER & PILLS ===================== */}
-      <header className="sticky top-12 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2 pb-2.5 transition-colors">
+      <header className="sticky top-12 sm:top-14 z-30 bg-canvas/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
+        {!query.trim() && (
+          <div className="pt-1 pb-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink font-sans">
+              Search
+            </h1>
+          </div>
+        )}
+
         {/* Search Input Box */}
-        <div className="relative flex items-center bg-panel border border-line rounded-xl focus-within:border-blue transition-colors shadow-xs">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (query.trim()) {
+              addRecentSearch(query.trim())
+              inputRef.current?.blur()
+            }
+          }}
+          className="relative flex items-center bg-panel border border-line rounded-xl sm:rounded-2xl focus-within:border-blue transition-colors shadow-xs h-11 sm:h-12"
+        >
           <div className="pl-3.5 pr-2.5 text-ink-soft shrink-0">
             <svg
               className="w-4 h-4 text-ink-soft"
@@ -276,10 +464,11 @@ function SearchPageComponent() {
           <input
             ref={inputRef}
             type="text"
+            enterKeyHint="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tracks, artists, albums, playlists..."
-            className="w-full py-2.5 sm:py-3 text-sm sm:text-base bg-transparent text-ink placeholder:text-ink-soft/60 focus:outline-none font-sans"
+            placeholder="What do you want to listen to?"
+            className="w-full h-full py-2.5 sm:py-3 pr-2 text-sm sm:text-base bg-transparent text-ink placeholder:text-ink-soft/70 focus:outline-none font-sans"
           />
 
           {isSearching && (
@@ -296,187 +485,196 @@ function SearchPageComponent() {
                 setDebouncedQuery('')
                 inputRef.current?.focus()
               }}
-              className="mr-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
+              className="mr-2 sm:mr-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
               title="Clear search"
             >
               ✕
             </button>
           )}
-        </div>
+        </form>
 
-        {/* Category Pills Bar (Uniform with /library and /collection) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pt-2.5 pb-0.5 select-none -mx-1">
-          {/* Active Filter Clear Chip (✕) */}
-          {activeCategory !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setActiveCategory('all')}
-              aria-label="Clear category filter"
-              className="shrink-0 w-7 h-7 rounded-full bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-xs font-bold cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-
-          {categoryPills.map((cat) => {
-            const isActive = activeCategory === cat.id
-            return (
+        {/* Category Pills Bar (Only shown when a query is present) */}
+        {!!query.trim() && (
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pt-2.5 pb-0.5 select-none -mx-1 animate-in fade-in duration-150">
+            {/* Active Filter Clear Chip (✕) */}
+            {activeCategory !== 'all' && (
               <button
-                key={cat.id}
                 type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`shrink-0 px-3.5 py-1 rounded-full text-xs transition-all duration-150 font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-ink text-canvas shadow-xs font-semibold'
-                    : 'bg-panel border border-line text-ink hover:bg-canvas-soft'
-                }`}
+                onClick={() => setActiveCategory('all')}
+                aria-label="Clear category filter"
+                className="shrink-0 w-7 h-7 rounded-full bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-xs font-bold cursor-pointer"
               >
-                <span>{cat.label}</span>
-                {cat.count !== undefined && cat.count > 0 && (
-                  <span className="font-mono text-[9.5px] opacity-70">
-                    ({cat.count})
-                  </span>
-                )}
+                ✕
               </button>
-            )
-          })}
-        </div>
+            )}
+
+            {categoryPills.map((cat) => {
+              const isActive = activeCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`shrink-0 px-3.5 py-1 rounded-full text-xs transition-all duration-150 font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-ink text-canvas shadow-xs font-semibold'
+                      : 'bg-panel border border-line text-ink hover:bg-canvas-soft'
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  {cat.count !== undefined && cat.count > 0 && (
+                    <span className="font-mono text-[9.5px] opacity-70">
+                      ({cat.count})
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </header>
 
-      {/* ===================== EMPTY QUERY STATE: DISCOVERY HUB ===================== */}
+      {/* ===================== EMPTY QUERY STATE: SPOTIFY-STYLE DISCOVERY HUB ===================== */}
       {!query.trim() && (
-        <div className="space-y-8 py-6 animate-in fade-in duration-150">
-          {/* Genre & Style Pills
-          <div>
-            <h3 className="font-serif italic font-semibold text-lg text-ink mb-3">
-              Explore by Style &amp; Genre
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {GENRE_SUGGESTIONS.map((genre) => (
+        <div className="space-y-7 sm:space-y-9 py-5 animate-in fade-in duration-150">
+          {/* Recent Searches */}
+          {recentSearches.length > 0 && (
+            <section className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm sm:text-base font-bold text-ink tracking-tight font-sans">
+                  Recent searches
+                </h2>
                 <button
-                  key={genre}
                   type="button"
-                  onClick={() => setQuery(genre)}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-medium bg-panel border border-line text-ink hover:bg-canvas-soft hover:border-ink/50 transition-colors cursor-pointer shadow-2xs"
+                  onClick={clearRecentSearches}
+                  className="text-xs text-ink-soft hover:text-ink font-medium transition-colors cursor-pointer py-1 px-1.5"
                 >
-                  ✦ {genre}
+                  Clear all
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {recentSearches.map((term) => (
+                  <div
+                    key={term}
+                    className="group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full bg-panel border border-line hover:border-ink/40 transition-colors shadow-2xs"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery(term)
+                        setDebouncedQuery(term)
+                        addRecentSearch(term)
+                      }}
+                      className="text-xs font-medium text-ink hover:text-blue transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <span>{term}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeRecentSearch(term)
+                      }}
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          {/* Explore Collections / Catalog Hubs */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm sm:text-base font-bold text-ink tracking-tight font-sans">
+                Explore collections
+              </h2>
+              <span className="text-[11px] font-mono text-ink-soft uppercase tracking-wider">
+                Catalog hubs
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+              {COLLECTION_HUBS.map((hub) => (
+                <Link
+                  key={hub.to}
+                  to={hub.to}
+                  className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl bg-panel border border-${hub.tagColor} hover:border-ink/40 hover:bg-canvas-soft/60 transition-all shadow-2xs no-underline text-inherit`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center text-[9px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${hub.tagColor}`}
+                    >
+                      {hub.tag}
+                    </span>
+                  </div>
+                  <div className="mt-3">
+                    <h4 className="text-xs sm:text-sm font-bold text-ink group-hover:text-blue transition-colors truncate font-sans">
+                      {hub.label}
+                    </h4>
+                    <p className="text-[11px] text-ink-soft line-clamp-1 mt-0.5 leading-snug">
+                      {hub.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+          {/* Browse All: Genres & Moods */}
+          <section>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-ink tracking-tight font-sans">
+                Browse all
+              </h2>
+              <span className="text-[11px] font-mono text-ink-soft uppercase tracking-wider">
+                Genres &amp; Moods
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+              {BROWSE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setQuery(cat.query)
+                    setDebouncedQuery(cat.query)
+                    addRecentSearch(cat.query)
+                  }}
+                  className={`group relative h-24 sm:h-28 border border-ink-soft rounded-xl overflow-hidden p-3 sm:p-4 text-left shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue/50`}
+                >
+                  <span className="text-sm sm:text-base font-bold tracking-tight text-white leading-tight max-w-[65%] line-clamp-2 block drop-shadow-xs">
+                    {cat.name}
+                  </span>
+
+                  {/* Angled vinyl artwork motif */}
+                  <div className="absolute -right-3 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 rotate-24 shadow-xl rounded-md overflow-hidden bg-black/40 border border-white/15 flex items-center justify-center pointer-events-none group-hover:rotate-[18deg] group-hover:scale-105 transition-all duration-200">
+                    <div
+                      className={`w-full h-full relative flex items-center justify-center bg-linear-to-br ${cat.discGradient}`}
+                    >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/25 flex items-center justify-center bg-black/50 shadow-inner">
+                        <div className="w-4 h-4 rounded-full bg-white/40 border border-white/50" />
+                      </div>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
-          </div> */}
-
-          {/* Catalog Hub Portals */}
-          <div>
-            <h3 className="font-serif italic font-semibold text-lg text-ink mb-3">
-              Browse the Catalog
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4">
-              <Link
-                to="/playlists"
-                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
-              >
-                <div>
-                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
-                    Curations
-                  </span>
-                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
-                    Public Playlists
-                  </h4>
-                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
-                    Community-curated sets, mixtapes, and public mixes.
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
-                  <span>Browse Playlists</span>
-                  <span>&rarr;</span>
-                </span>
-              </Link>
-
-              <Link
-                to="/artists"
-                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
-              >
-                <div>
-                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-blue bg-blue/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
-                    Roster
-                  </span>
-                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
-                    Artists Index
-                  </h4>
-                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
-                    Verified recording artists and official discographies.
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
-                  <span>Browse Roster</span>
-                  <span>&rarr;</span>
-                </span>
-              </Link>
-
-              <Link
-                to="/library"
-                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
-              >
-                <div>
-                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
-                    Curations
-                  </span>
-                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
-                    Your Library
-                  </h4>
-                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
-                    Pinned playlists, saved albums, and followed creators.
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
-                  <span>Open Library</span>
-                  <span>&rarr;</span>
-                </span>
-              </Link>
-
-              <Link
-                to="/"
-                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline"
-              >
-                <div>
-                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
-                    Catalog
-                  </span>
-                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
-                    New Releases
-                  </h4>
-                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
-                    Featured drops, latest master singles, and upcoming drops.
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
-                  <span>Explore Drops</span>
-                  <span>&rarr;</span>
-                </span>
-              </Link>
-
-              <Link
-                to="/collection"
-                className="group border border-line bg-panel p-3.5 sm:p-5 rounded-xl hover:border-ink/60 hover:bg-canvas-soft/40 transition-all flex flex-col justify-between min-h-[135px] sm:min-h-[160px] shadow-xs text-inherit no-underline col-span-2 md:col-span-1"
-              >
-                <div>
-                  <span className="font-mono text-[8.5px] sm:text-[9px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full inline-block mb-1.5 sm:mb-2 font-semibold">
-                    Vault
-                  </span>
-                  <h4 className="font-serif italic text-sm sm:text-lg font-semibold text-ink group-hover:text-blue transition-colors truncate">
-                    Personal Collection
-                  </h4>
-                  <p className="font-sans text-[11px] sm:text-xs text-ink-soft mt-1 line-clamp-2 leading-snug">
-                    Private lossless audio locker and personal cuts.
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] sm:text-[10px] text-ink-soft group-hover:text-ink transition-colors flex items-center gap-1 mt-2">
-                  <span>View Vault</span>
-                  <span>&rarr;</span>
-                </span>
-              </Link>
-            </div>
-          </div>
+          </section>
         </div>
       )}
 
