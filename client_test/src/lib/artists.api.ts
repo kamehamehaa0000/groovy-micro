@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { useAuthStore } from "../stores/auth.store";
+import type { SimilarArtistCard } from "./recommendations.api";
 import type {
   ArtistProfile,
   CreateArtistInput,
@@ -105,6 +106,16 @@ export const artistsApi = {
    */
   async getByIdOrSlug(idOrSlug: string): Promise<ArtistProfile> {
     return await api.get<ArtistProfile>(`/api/v1/artists/${encodeURIComponent(idOrSlug)}`);
+  },
+
+  /**
+   * Retrieves similar artists (strictly global variant) for an artist page.
+   */
+  async getSimilarArtists(idOrSlug: string, limit: number = 8): Promise<{
+    seedArtist: { id: string; stageName: string; slug: string; avatarUrl: string | null } | null;
+    artists: SimilarArtistCard[];
+  }> {
+    return await api.get(`/api/v1/artists/${encodeURIComponent(idOrSlug)}/similar?limit=${limit}`);
   },
 
   /**

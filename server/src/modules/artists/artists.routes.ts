@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { ArtistsService } from "./artists.service";
 import { CatalogService } from "../catalog/catalog.service";
 import { AuthService } from "../auth/auth.service";
+import { RecommendationsService } from "../recommendations/recommendations.service";
 import {
   requireAuth,
   requireRole,
@@ -21,6 +22,7 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
   const artistsService = new ArtistsService();
   const catalogService = new CatalogService();
   const authService = new AuthService(fastify);
+  const recommendationsService = new RecommendationsService();
 
   /**
    * POST /
@@ -278,6 +280,35 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return reply.status(200).send(discography);
+    }
+  );
+
+  /**
+   * GET /:idOrSlug/similar
+   * Retrieves similar artists for this artist (strictly global variant).
+   */
+  fastify.get(
+    "/:idOrSlug/similar",
+    { preHandler: [optionalAuth] },
+    async (request, reply) => {
+      const { idOrSlug } = request.params as { idOrSlug: string };
+      const query = request.query as { limit?: string };
+      const limit = query.limit ? parseInt(query.limit, 10) : 8;
+
+      const result = await recommendationsService.getSimilarArtistsForArtist(
+        idOrSlug,
+        limit
+      );
+
+      if (!result) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Artist not found",
+        });
+      }
+
+      return reply.status(200).send(result);
     }
   );
 

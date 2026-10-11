@@ -2,10 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
-import {
-  artistsApi,
-  type FollowedArtistRelease,
-} from '../lib/artists.api'
+import { artistsApi, type FollowedArtistRelease } from '../lib/artists.api'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { GridIconSVG, ListIconSVG } from '../components/icons'
 
@@ -185,7 +182,8 @@ function FollowedReleasesComponent() {
           Artist Radar
         </h1>
         <p className="font-sans text-xs text-ink-soft mb-8 leading-relaxed max-w-sm mx-auto">
-          Sign in to view new releases dropped in the past 6 months by artists you follow.
+          Sign in to view new releases dropped in the past 6 months by artists
+          you follow.
         </p>
         <button
           type="button"
@@ -201,47 +199,33 @@ function FollowedReleasesComponent() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 w-full select-none">
       {/* ===================== EDITORIAL HEADER ===================== */}
-      <div className="border-b border-line pb-6 mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <div className="border-b border-line pb-6 ">
+        <div className="flex  sm:flex-row sm:items-end justify-between gap-6">
           <div>
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
+              Latest releases
+            </h1>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2">
               ✦ Artist Radar
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
-              New from Followed Artists
-            </h1>
-            <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
-              Recent albums, EPs, and singles dropped in the past 6 months by artists you follow.
-            </p>
           </div>
-
           {/* Controls Bar: Only View Mode (Grid / List) */}
-          <div className="flex items-center p-1 bg-panel border border-line rounded-lg self-start sm:self-auto shrink-0 shadow-2xs">
+          <div className="flex w-fit items-center p-1 bg-panel  rounded-lg self-start sm:self-auto shrink-0 shadow-2xs">
             <button
               type="button"
-              onClick={() => setViewMode('grid')}
+              onClick={() => {
+                if (viewMode !== 'list') setViewMode('list')
+                if (viewMode === 'list') setViewMode('grid')
+              }}
               title="Grid View"
               aria-label="Grid View"
-              className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                viewMode === 'grid'
-                  ? 'bg-ink text-canvas shadow-xs'
-                  : 'text-ink-soft hover:text-ink hover:bg-canvas'
-              }`}
+              className={`p-1.5 rounded-md transition-all cursor-pointer`}
             >
-              <GridIconSVG className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              title="List View"
-              aria-label="List View"
-              className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                viewMode === 'list'
-                  ? 'bg-ink text-canvas shadow-xs'
-                  : 'text-ink-soft hover:text-ink hover:bg-canvas'
-              }`}
-            >
-              <ListIconSVG className="w-3.5 h-3.5" />
+              {viewMode === 'grid' ? (
+                <ListIconSVG className="w-5 h-5" />
+              ) : (
+                <GridIconSVG className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -305,7 +289,8 @@ function FollowedReleasesComponent() {
             No recent releases found
           </h2>
           <p className="font-sans text-xs text-ink-soft mt-1.5 max-w-sm mx-auto">
-            None of your followed artists have released music in the past 6 months, or you aren't following any artists yet.
+            None of your followed artists have released music in the past 6
+            months, or you aren't following any artists yet.
           </p>
           <Link
             to="/artists"
@@ -316,7 +301,7 @@ function FollowedReleasesComponent() {
         </div>
       ) : (
         /* Month Grouped Release Sections */
-        <div className="space-y-12">
+        <div className="space-y-1">
           {monthGroups.map((group) => (
             <section key={group.key} className="space-y-4">
               {/* Group Section Header */}
@@ -442,7 +427,9 @@ function FollowedReleasesComponent() {
                       <div className="flex items-center gap-4 shrink-0 font-mono text-[9.5px] text-ink-soft">
                         {release.totalDurationSeconds > 0 && (
                           <span className="hidden sm:inline-block">
-                            {formatDurationSeconds(release.totalDurationSeconds)}
+                            {formatDurationSeconds(
+                              release.totalDurationSeconds,
+                            )}
                           </span>
                         )}
                         <span className="min-w-20 text-right">
@@ -459,18 +446,13 @@ function FollowedReleasesComponent() {
           {/* ===================== INFINITE SCROLL SENTINEL ===================== */}
           <div
             ref={sentinelRef}
-            className="py-8 flex flex-col items-center justify-center"
+            className="py-2 flex flex-col items-center justify-center"
           >
             {isLoadingMore && (
               <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>
-            )}
-            {!hasMore && releases.length > 0 && (
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/60">
-                ✦ Showing all releases from the past 6 months
-              </p>
             )}
           </div>
         </div>

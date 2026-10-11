@@ -196,7 +196,7 @@ function RootComponent() {
         </header>
       ) : (
         /* ===================== TOP NAVIGATION HEADER ===================== */
-        <header className="sticky top-0 z-40 w-full h-12 border-b border-line bg-canvas/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
+        <header className="sticky top-0 z-40 w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
           {/* ---------------- MOBILE TOP BAR (< md) ---------------- */}
           <div className="md:hidden flex items-center justify-between w-full">
             {/* Left: Profile Icon (Left Sidebar Toggle) */}
@@ -234,7 +234,7 @@ function RootComponent() {
             <div className="flex items-center gap-2 ml-2 flex-1 min-w-0">
               <Link
                 to="/"
-                className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
+                className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
                   pathname === '/'
                     ? 'bg-[#1ed760] text-black shadow-xs font-bold'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
@@ -244,7 +244,7 @@ function RootComponent() {
               </Link>
               <Link
                 to="/releases"
-                className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
+                className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
                   pathname.startsWith('/releases')
                     ? 'bg-[#1ed760] text-black shadow-xs font-bold'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
@@ -1123,22 +1123,6 @@ function RootComponent() {
             <main className="flex-1 max-w-5xl w-full mx-auto px-2.5 sm:px-12 sm:py-10">
               <Outlet />
             </main>
-
-            {/* Editorial Maison Footnote */}
-            <footer className="border-t border-line py-8 px-6 text-center">
-              <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-soft">
-                Groovy Streaming @ 2026 • All Rights Reserved • Made with ❤️ by
-                &nbsp;
-                <a
-                  href="https://github.com/kamehamehaa0000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ink hover:text-ink-soft "
-                >
-                  Aayush Gupta
-                </a>
-              </p>
-            </footer>
           </div>
 
           {/* Desktop Right Sidebar (Now Playing & Queue Docked Panel) */}

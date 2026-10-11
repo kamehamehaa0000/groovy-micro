@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ProceduralCover } from "./ProceduralCover";
 
 export interface MediaTileProps {
-  to: string;
+  to?: string;
   params?: Record<string, string>;
   title: string;
   subtitle?: React.ReactNode;
@@ -15,6 +15,7 @@ export interface MediaTileProps {
   className?: string;
   fallbackInitials?: string;
   onClick?: () => void;
+  onPlay?: () => void;
 }
 
 export function MediaTile({
@@ -30,19 +31,13 @@ export function MediaTile({
   className = "",
   fallbackInitials,
   onClick,
+  onPlay,
 }: MediaTileProps) {
   const roundedClass = isRoundImage ? "rounded-full" : "rounded-md";
 
-  return (
-    <div
-      className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
-    >
-      <Link
-        to={to as any}
-        params={params as any}
-        onClick={onClick}
-        className="flex flex-col w-full text-inherit no-underline"
-      >
+  const content = (
+    <>
+
         {/* Artwork wrapper with aspect square and optional badge indicator */}
         <div
           className={`relative aspect-square w-full mb-2.5 overflow-hidden ${roundedClass} bg-canvas-deep`}
@@ -80,7 +75,25 @@ export function MediaTile({
               {badge}
             </div>
           )}
+
+          {onPlay && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPlay();
+              }}
+              className="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-full bg-blue text-white shadow-md flex items-center justify-center opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hover:scale-105 active:scale-95 z-20 cursor-pointer"
+              aria-label="Play"
+            >
+              <svg className="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+          )}
         </div>
+
 
         {/* Text information */}
         <div className="w-full">
@@ -93,7 +106,39 @@ export function MediaTile({
             </div>
           )}
         </div>
-      </Link>
-    </div>
-  );
-}
+      </>
+    );
+
+    return (
+      <div
+        className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
+      >
+        {to ? (
+          <Link
+            to={to as any}
+            params={params as any}
+            onClick={onClick}
+            className="flex flex-col w-full text-inherit no-underline"
+          >
+            {content}
+          </Link>
+        ) : (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={onClick || onPlay}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (onClick || onPlay)?.();
+              }
+            }}
+            className="flex flex-col w-full text-inherit no-underline cursor-pointer"
+          >
+            {content}
+          </div>
+        )}
+      </div>
+    );
+  }
+

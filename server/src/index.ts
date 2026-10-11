@@ -38,6 +38,7 @@ import {
 import { socialRoutes } from './modules/social'
 import { searchRoutes } from './modules/search'
 import { notificationRoutes } from './modules/notifications'
+import { recommendationRoutes } from './modules/recommendations'
 
 dotenv.config()
 
@@ -117,6 +118,7 @@ export async function bootstrap(
   await app.register(socialRoutes, { prefix: '/api/v1/social' })
   await app.register(searchRoutes, { prefix: '/api/v1/search' })
   await app.register(notificationRoutes, { prefix: '/api/v1/notifications' })
+  await app.register(recommendationRoutes, { prefix: '/api/v1/recommendations' })
 
   // 3. Health & Diagnostic Check
   app.get('/healthz', async (req, reply) => {

@@ -21,6 +21,7 @@ import { usePlayerStore } from '../stores/player.store'
 import type { PlayerTrack } from '../types/player'
 import { seedArtistCache } from '../lib/artist-resolver'
 import { useLockerStore } from '../stores/locker.store'
+import { socialApi } from '../lib/social.api'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { SongRow } from '../components/common/SongRow'
 import {
@@ -53,9 +54,35 @@ export const Route = createFileRoute('/collection/manage')({
 })
 
 function PersonalCollectionManagePage() {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
+  const { isAuthenticated, isLoading: isAuthLoading, user, refreshProfile } = useAuthStore()
   const searchParams = Route.useSearch()
   const navigate = useNavigate()
+
+  // Quick Home & Recommendations Scope Toggle
+  const [lockerIncludeInHome, setLockerIncludeInHome] = useState<boolean>(
+    user?.lockerIncludeInHome ?? false,
+  )
+  const [isUpdatingHomeSetting, setIsUpdatingHomeSetting] = useState(false)
+
+  useEffect(() => {
+    if (user?.lockerIncludeInHome !== undefined) {
+      setLockerIncludeInHome(user.lockerIncludeInHome)
+    }
+  }, [user?.lockerIncludeInHome])
+
+  const handleToggleLockerInHome = async (enabled: boolean) => {
+    setLockerIncludeInHome(enabled)
+    setIsUpdatingHomeSetting(true)
+    try {
+      await socialApi.updatePrivacySettings({ lockerIncludeInHome: enabled })
+      await refreshProfile()
+    } catch (err) {
+      console.error('Failed to update locker recommendation setting', err)
+      setLockerIncludeInHome(!enabled)
+    } finally {
+      setIsUpdatingHomeSetting(false)
+    }
+  }
 
   // Navigation Tabs: default to "import"
   const [activeTab, setActiveTab] = useState<
@@ -1508,6 +1535,49 @@ function PersonalCollectionManagePage() {
               className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-panel hover:bg-canvas text-ink rounded-md transition-all shadow-2xs cursor-pointer font-medium shrink-0 self-start sm:self-center"
             >
               <span>♫ View Vault</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Quick Personal Collection Recommendation Setting */}
+        <div className="mt-5 p-3.5 border border-line bg-panel/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider text-blue font-semibold">
+                Recommendation Scope
+              </span>
+              <span
+                className={`px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider ${
+                  lockerIncludeInHome
+                    ? 'bg-blue/15 text-blue font-semibold'
+                    : 'bg-canvas text-ink-soft border border-line'
+                }`}
+              >
+                {lockerIncludeInHome ? 'Mixed (Personal + Global)' : 'Global Only (Default)'}
+              </span>
+            </div>
+            <p className="text-ink-soft text-[11px] leading-snug">
+              {lockerIncludeInHome
+                ? 'Your personal uploads are blended into your personalized home shelves and recommendations.'
+                : 'Personal uploads are isolated from your home shelves. Recommendations strictly surface global artists and releases.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={lockerIncludeInHome}
+                disabled={isUpdatingHomeSetting}
+                onChange={(e) => handleToggleLockerInHome(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-10 h-5.5 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-ink"></div>
+            </label>
+            <Link
+              to="/profile"
+              className="text-ink-soft hover:text-ink font-mono text-[10px] uppercase tracking-wider underline decoration-line/80 hover:decoration-ink"
+            >
+              Preferences &rarr;
             </Link>
           </div>
         </div>

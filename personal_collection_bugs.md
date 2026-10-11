@@ -49,17 +49,11 @@
 1. update the player bar to include artist name also.
 2. have total streams/plays of release (aggregated if more than one song)
 3. more responsive UI/UX
-4.
-
-# song row
-
-1. animation time for gesture operation
 
 # player
 
 1. play here option does not appear on phone.
-2. artist pick on artist page.
-3. library page creation
+
 
 
   ## 3. Recommended Non-Performance-Taxing Features

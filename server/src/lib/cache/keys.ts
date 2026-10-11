@@ -60,4 +60,31 @@ export const cacheKeys = {
   telemetry: {
     songPlaysBuffer: () => `groovy:telemetry:song_plays`,
   },
+  recommendations: {
+    tasteProfile: (userId: string) => `groovy:rec:taste:${userId}`,
+    heavyRotation: (userId: string, mode = "global") => `groovy:rec:heavy_rot:${userId}:${mode}`,
+    forYou: (userId: string, mode = "global") => `groovy:rec:for_you:${userId}:${mode}`,
+    radar: (userId: string, mode = "global") => `groovy:rec:radar:${userId}:${mode}`,
+    radio: (songId: string, userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:radio:${songId}:${userId}:${mode}` : `groovy:rec:visitor:radio:${songId}`,
+    playlistAssisted: (userId: string) => `groovy:rec:pl_assist:${userId}`,
+    playlistEnhance: (playlistId: string) => `groovy:rec:pl_enhance:${playlistId}`,
+    homeFeed: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:home:${userId}:${mode}` : `groovy:rec:visitor:home`,
+    newReleases: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:new_rel:${userId}:${mode}` : `groovy:rec:visitor:new_rel`,
+    globalHits: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:hits:${userId}:${mode}` : `groovy:rec:visitor:hits`,
+    similarArtists: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:sim_art:${userId}:${mode}` : `groovy:rec:visitor:sim_art`,
+    moreLikeArtist: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:more_art:${userId}:${mode}` : `groovy:rec:visitor:more_art`,
+    moreLikeSong: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:more_song:${userId}:${mode}` : `groovy:rec:visitor:more_song`,
+    radioMixes: (userId?: string | null, mode = "global") =>
+      userId ? `groovy:rec:mixes:${userId}:${mode}` : `groovy:rec:visitor:mixes`,
+    userPlaylists: (userId: string) => `groovy:rec:playlists:${userId}`,
+    artistSimilar: (artistId: string) => `groovy:rec:art_sim:${artistId}`,
+  },
 } as const;
+

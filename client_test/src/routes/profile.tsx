@@ -1094,11 +1094,12 @@ function ProfileComponent() {
               <div className="pt-3 flex items-center justify-between gap-4">
                 <div>
                   <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Include on Home &amp; Discovery Deck
+                    Mix Personal Collection with Discovery &amp; Recommendations
                   </div>
                   <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Blend your personal collection releases into your personal
-                    home recommendation shelves.
+                    Blend your personal collection uploads into home discovery shelves
+                    and recommendations. When disabled, recommendations strictly surface
+                    global releases and artists.
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer shrink-0">

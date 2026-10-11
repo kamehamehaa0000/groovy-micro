@@ -41,7 +41,7 @@ export const users = pgTable(
     lockerIncludeInHome: boolean("locker_include_in_home").notNull().default(false),
     lockerIncludeInRecentlyPlayed: boolean("locker_include_in_recently_played").notNull().default(true),
     lockerLinkToGlobalArtists: boolean("locker_link_to_global_artists").notNull().default(true),
-
+    
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -9,6 +9,7 @@ import type {
   PersonalCollectionTrack,
 } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
+import type { SimilarArtistCard } from '../lib/recommendations.api'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { MediaTile } from '../components/common/MediaTile'
 import {
@@ -55,6 +56,7 @@ function ArtistPublicProfileComponent() {
   const [discography, setDiscography] = useState<DiscographyResponse | null>(
     null,
   )
+  const [similarArtists, setSimilarArtists] = useState<SimilarArtistCard[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showAllTopTracks, setShowAllTopTracks] = useState(false)
@@ -82,12 +84,16 @@ function ArtistPublicProfileComponent() {
     Promise.all([
       artistsApi.getByIdOrSlug(idOrSlug),
       catalogApi.getArtistDiscography(idOrSlug).catch(() => null),
+      artistsApi.getSimilarArtists(idOrSlug).catch(() => null),
     ])
-      .then(([artistData, discoData]) => {
+      .then(([artistData, discoData, similarData]) => {
         if (!isMounted) return
         setArtist(artistData)
         setDiscography(discoData)
         setFollowersCount(artistData.followersCount ?? 0)
+        if (similarData?.artists) {
+          setSimilarArtists(similarData.artists)
+        }
 
         // Hydrate follows store
         if (artistData.isFollowing) {
@@ -1198,12 +1204,57 @@ function ArtistPublicProfileComponent() {
             </div>
           )}
 
+          {/* Similar Artists Shelf (Fans Also Like) - Strictly Global Variant */}
+          {similarArtists.length > 0 && (
+            <div className="space-y-3 px-1">
+              <div className="flex justify-between items-baseline border-b border-line pb-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
+                    Fans Also Like
+                  </h2>
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
+                    Similar Artists
+                  </span>
+                </div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  {similarArtists.length}{' '}
+                  {similarArtists.length === 1 ? 'Artist' : 'Artists'}
+                </span>
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                {similarArtists.map((simArtist) => (
+                  <div key={simArtist.id} className="w-[140px] sm:w-[160px] shrink-0 text-center">
+                    <MediaTile
+                      to="/artists/$idOrSlug"
+                      params={{ idOrSlug: simArtist.slug }}
+                      title={simArtist.stageName}
+                      subtitle={
+                        <span className="flex items-center justify-center gap-1">
+                          <span>{simArtist.primaryGenre || 'Artist'}</span>
+                          {simArtist.verified && (
+                            <span className="text-blue font-bold text-[10px]" title="Verified Artist">✓</span>
+                          )}
+                        </span>
+                      }
+                      imageUrl={simArtist.avatarUrl}
+                      artistName={simArtist.stageName}
+                      isRoundImage={true}
+                      fallbackInitials={simArtist.stageName.slice(0, 2).toUpperCase()}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* If no discography yet */}
           {!hasAnyDiscography &&
             !hasTopTracks &&
             !hasInYourCollection &&
             !hasUpcoming &&
-            collaboratedArtists.length === 0 && (
+            collaboratedArtists.length === 0 &&
+            similarArtists.length === 0 && (
               <div className="p-8 border border-dashed border-line bg-panel/30 text-center">
                 <p className="font-serif italic text-base text-ink">
                   Master Tracks & Albums In Preparation

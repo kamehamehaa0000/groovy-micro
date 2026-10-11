@@ -39,6 +39,7 @@ import { Route as JamCodeRouteImport } from './routes/jam.$code'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
+import { Route as RadioSongIdRouteImport } from './routes/radio.$songId'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -191,6 +192,11 @@ const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
   path: '/playlists/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RadioSongIdRoute = RadioSongIdRouteImport.update({
+  id: '/radio/$songId',
+  path: '/radio/$songId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersIdRoute = UsersIdRouteImport.update({
   id: '/users/$id',
   path: '/users/$id',
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
   '/collection/': typeof CollectionIndexRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists': typeof ArtistsIndexRoute
   '/collection': typeof CollectionIndexRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
+  '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
   '/artists/': typeof ArtistsIndexRoute
   '/collection/': typeof CollectionIndexRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/radio/$songId'
     | '/users/$id'
     | '/artists/'
     | '/collection/'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/radio/$songId'
     | '/users/$id'
     | '/artists'
     | '/collection'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
+    | '/radio/$songId'
     | '/users/$id'
     | '/artists/'
     | '/collection/'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   JamCodeRoute: typeof JamCodeRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   PlaylistsIdRoute: typeof PlaylistsIdRoute
+  RadioSongIdRoute: typeof RadioSongIdRoute
   UsersIdRoute: typeof UsersIdRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
   PlaylistsIndexRoute: typeof PlaylistsIndexRoute
@@ -641,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaylistsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/radio/$songId': {
+      id: '/radio/$songId'
+      path: '/radio/$songId'
+      fullPath: '/radio/$songId'
+      preLoaderRoute: typeof RadioSongIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users/$id': {
       id: '/users/$id'
       path: '/users/$id'
@@ -692,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   JamCodeRoute: JamCodeRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   PlaylistsIdRoute: PlaylistsIdRoute,
+  RadioSongIdRoute: RadioSongIdRoute,
   UsersIdRoute: UsersIdRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
   PlaylistsIndexRoute: PlaylistsIndexRoute,
