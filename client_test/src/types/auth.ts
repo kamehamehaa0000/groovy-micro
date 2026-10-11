@@ -36,6 +36,12 @@ export interface UserProfile {
     name: string;
     features: SubscriptionFeatures;
   };
+  artistProfile?: {
+    id: string;
+    stageName: string;
+    slug: string;
+    verified?: boolean;
+  } | null;
 }
 
 export interface AuthSuccessResponse {

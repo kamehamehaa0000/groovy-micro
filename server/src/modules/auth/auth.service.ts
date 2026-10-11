@@ -7,6 +7,7 @@ import {
   userSubscriptions,
   subscriptionPlans,
   outboxEvents,
+  artistProfiles,
   type User,
 } from '../../db/schema'
 import { redis } from '../../index'
@@ -937,6 +938,10 @@ export class AuthService {
         lockerIncludeInRecentlyPlayed: users.lockerIncludeInRecentlyPlayed,
         lockerLinkToGlobalArtists: users.lockerLinkToGlobalArtists,
         createdAt: users.createdAt,
+        artistProfileId: artistProfiles.id,
+        artistStageName: artistProfiles.stageName,
+        artistSlug: artistProfiles.slug,
+        artistVerified: artistProfiles.verified,
         subscription: {
           planId: userSubscriptions.planId,
           status: userSubscriptions.status,
@@ -949,6 +954,7 @@ export class AuthService {
         },
       })
       .from(users)
+      .leftJoin(artistProfiles, eq(artistProfiles.userId, users.id))
       .leftJoin(userSubscriptions, eq(userSubscriptions.userId, users.id))
       .leftJoin(
         subscriptionPlans,
@@ -961,6 +967,38 @@ export class AuthService {
       throw this.fastify.httpErrors.notFound('User not found')
     }
 
-    return user
+    let effectiveRole = user.role
+    if (user.artistProfileId && user.role === 'LISTENER') {
+      effectiveRole = 'ARTIST'
+      // Auto-heal role in database if out-of-sync
+      await db.update(users).set({ role: 'ARTIST' }).where(eq(users.id, userId))
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+      role: effectiveRole,
+      isEmailVerified: user.isEmailVerified,
+      isPrivateAccount: user.isPrivateAccount,
+      listeningActivityPrivacy: user.listeningActivityPrivacy,
+      libraryPrivacy: user.libraryPrivacy,
+      lockerIncludeInSearch: user.lockerIncludeInSearch,
+      lockerIncludeInHome: user.lockerIncludeInHome,
+      lockerIncludeInRecentlyPlayed: user.lockerIncludeInRecentlyPlayed,
+      lockerLinkToGlobalArtists: user.lockerLinkToGlobalArtists,
+      createdAt: user.createdAt,
+      subscription: user.subscription,
+      plan: user.plan,
+      artistProfile: user.artistProfileId
+        ? {
+            id: user.artistProfileId,
+            stageName: user.artistStageName,
+            slug: user.artistSlug,
+            verified: user.artistVerified ?? false,
+          }
+        : null,
+    }
   }
 }

@@ -76,7 +76,7 @@ function ArtistsDirectoryComponent() {
           </div>
 
           {/* Upgrade CTA for listeners */}
-          {user?.role === 'LISTENER' && (
+          {user?.role === 'LISTENER' && !user?.artistProfile && (
             <Link
               to="/studio"
               className="inline-flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity shrink-0"

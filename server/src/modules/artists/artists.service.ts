@@ -347,6 +347,12 @@ export class ArtistsService {
       return null;
     }
 
+    // Auto-heal user role if out-of-sync
+    await db
+      .update(users)
+      .set({ role: "ARTIST" })
+      .where(and(eq(users.id, userId), eq(users.role, "LISTENER")));
+
     const [followerCountRes] = await db
       .select({ total: count() })
       .from(artistFollowers)

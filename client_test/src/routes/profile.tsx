@@ -6,6 +6,8 @@ import { api } from '../lib/api'
 import { catalogApi } from '../lib/catalog.api'
 import { subscriptionsApi } from '../lib/subscriptions.api'
 import { socialApi } from '../lib/social.api'
+import { artistsApi } from '../lib/artists.api'
+import type { ArtistProfile } from '../types/artist'
 import {
   notificationsApi,
   type NotificationPreferences,
@@ -15,15 +17,48 @@ import type {
   SubscriptionPlan,
   PlanFeatureDefinition,
 } from '../types/subscriptions'
-import {
-  DiscIconSVG,
-  CalendarIconSVG,
-} from '../components/icons'
-import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
 })
+
+interface ToggleSwitchProps {
+  id?: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+  disabled?: boolean
+  'aria-label'?: string
+}
+
+function ToggleSwitch({
+  id,
+  checked,
+  onChange,
+  disabled = false,
+  'aria-label': ariaLabel,
+}: ToggleSwitchProps) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-line transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 ${
+        checked ? 'bg-ink' : 'bg-canvas-deep'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-canvas shadow-xs transition duration-200 ease-in-out border border-line/40 ${
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        } mt-0.2`}
+      />
+    </button>
+  )
+}
 
 function ProfileComponent() {
   const navigate = useNavigate()
@@ -42,6 +77,14 @@ function ProfileComponent() {
     (s) => s.cancelSubscription,
   )
   const isLoadingEntitlements = useEntitlementsStore((s) => s.isLoading)
+
+  type ProfileTab =
+    | 'account'
+    | 'subscription'
+    | 'privacy'
+    | 'notifications'
+    | 'security'
+  const [activeTab, setActiveTab] = useState<ProfileTab>('account')
 
   const [displayName, setDisplayName] = useState('')
   const [profileMsg, setProfileMsg] = useState<{
@@ -115,6 +158,12 @@ function ProfileComponent() {
     type: 'success' | 'error'
   } | null>(null)
 
+  // Artist Profile State
+  const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(
+    (user as any)?.artistProfile || null,
+  )
+  const [isLoadingArtistProfile, setIsLoadingArtistProfile] = useState(false)
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate({ to: '/login' })
@@ -156,6 +205,13 @@ function ProfileComponent() {
           console.warn('Could not load notification preferences:', err),
         )
 
+      setIsLoadingArtistProfile(true)
+      artistsApi
+        .getMyProfile()
+        .then((res) => setArtistProfile(res))
+        .catch(() => setArtistProfile(null))
+        .finally(() => setIsLoadingArtistProfile(false))
+
       useEntitlementsStore.getState().initializeEntitlements()
     }
   }, [isAuthenticated])
@@ -167,6 +223,12 @@ function ProfileComponent() {
       </div>
     )
   }
+
+  const isArtist =
+    user.role === 'ARTIST' ||
+    user.role === 'ADMIN' ||
+    !!artistProfile ||
+    !!(user as any)?.artistProfile
 
   // --- Profile Update (Display Name) ---
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -390,1096 +452,920 @@ function ProfileComponent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Header */}
-      <div>
-        <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue-deep mb-2">
-          Curator Identity &amp; Account
-        </div>
-        <h1 className="font-serif italic text-3xl sm:text-4xl text-ink leading-tight font-normal">
-          User Profile &amp; Account
-        </h1>
-        <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
-          Manage member identity, high-fidelity storage uploads, and
-          cryptographic credentials.
-        </p>
-      </div>
-
-      {/* User Identity Card */}
-      <div className="border border-line bg-panel p-8 shadow-xs flex flex-col sm:flex-row items-center gap-8">
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full overflow-hidden border border-line bg-canvas-deep flex items-center justify-center relative shadow-xs">
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="font-serif italic text-3xl font-semibold text-ink">
-                {user.displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleAvatarFileChange}
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingAvatar}
-            className="mt-3 font-mono text-[9.5px] uppercase tracking-widest px-3 py-1.5 border border-line bg-canvas hover:bg-canvas-deep text-ink transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {isUploadingAvatar ? 'Transferring...' : 'Upload to R2'}
-          </button>
-        </div>
-
-        <div className="flex-1 text-center sm:text-left space-y-2">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-            <h2 className="font-serif italic text-2xl font-medium text-ink">
-              {user.displayName}
-            </h2>
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
-              {user.role}
-            </span>
-            {user.isEmailVerified ? (
-              <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400">
-                Verified ✓
-              </span>
-            ) : (
-              <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-amber-800/30 bg-amber-900/10 text-amber-600 dark:text-amber-400">
-                Unverified
-              </span>
-            )}
-          </div>
-
-          <p className="font-sans text-xs text-ink-soft">{user.email}</p>
-
-          <div className="pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
-            Active Tier:{' '}
-            <span className="text-blue font-medium">
-              {entitlements?.planName || user.plan?.name || 'Groovy Free'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Membership & Subscription Tier Card */}
-      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4">
-          <div>
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
-              Membership &bull; Entitlements Engine
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-2 pb-24 md:pb-16 select-none space-y-6">
+      {/* ===================== HERO PROFILE BANNER ===================== */}
+      <div className="bg-panel border border-line rounded-2xl p-5 sm:p-7 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
+          {/* Avatar with Camera Overlay */}
+          <div className="relative group shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-line bg-canvas-deep flex items-center justify-center shadow-xs">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-serif italic text-2xl sm:text-3xl font-semibold text-ink">
+                  {user.displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <h3 className="font-serif italic text-2xl text-ink font-normal">
-                {entitlements?.planName || user.plan?.name || 'Groovy Free'}
-              </h3>
-              <span
-                className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 border ${
-                  isLoadingEntitlements
-                    ? 'border-line bg-canvas text-ink-soft animate-pulse'
-                    : entitlements?.status === 'active'
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                      : entitlements?.cancelAtPeriodEnd
-                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                        : 'border-line bg-canvas text-ink-soft'
-                }`}
-              >
-                {isLoadingEntitlements
-                  ? 'Verifying...'
-                  : entitlements?.cancelAtPeriodEnd
-                    ? 'Cancels at Period End'
-                    : entitlements?.status?.toUpperCase() || 'ACTIVE'}
-              </span>
-            </div>
-            {entitlements?.currentPeriodEnd && (
-              <p className="font-mono text-[10px] text-ink-soft mt-1">
-                Current billing period ends:{' '}
-                {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
-              </p>
-            )}
-          </div>
 
-          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarFileChange}
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+            />
             <button
               type="button"
-              onClick={handleOpenUpgradeModal}
-              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-ink text-canvas border-2 border-panel flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-xs disabled:opacity-50"
+              title="Change Avatar"
+              aria-label="Change Avatar"
             >
-              ✦ Change Plan / Upgrade
+              {isUploadingAvatar ? (
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-canvas/30 border-t-canvas animate-spin" />
+              ) : (
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              )}
             </button>
-            {entitlements &&
-              entitlements.planId !== 'free' &&
-              !entitlements.cancelAtPeriodEnd && (
+          </div>
+
+          {/* Identity & Status */}
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold font-sans text-ink tracking-tight truncate">
+                {user.displayName}
+              </h1>
+              {user.isEmailVerified ? (
+                <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <span>Verified</span>
+                  <span>✓</span>
+                </span>
+              ) : (
+                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
+                  Unverified
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-ink-soft font-sans truncate mb-3">
+              {user.email}
+            </p>
+
+            {/* Quick Status Badges & CTAs */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line bg-canvas text-ink-soft">
+                Role: <strong className="text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
+              </span>
+              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue/30 bg-blue/10 text-blue font-semibold">
+                {entitlements?.planName || user.plan?.name || 'Groovy Free'}
+              </span>
+              {user.id && (
+                <Link
+                  to="/users/$id"
+                  params={{ id: user.id }}
+                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/50 bg-canvas text-ink transition-colors no-underline"
+                >
+                  <span>Public Profile</span>
+                  <span className="text-[10px]">↗</span>
+                </Link>
+              )}
+              {isArtist ? (
+                <Link
+                  to="/studio"
+                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:opacity-90 font-semibold transition-opacity no-underline"
+                >
+                  <span>Studio Desk</span>
+                  <span>→</span>
+                </Link>
+              ) : (
+                <Link
+                  to="/studio"
+                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/40 bg-canvas text-ink-soft hover:text-ink transition-colors no-underline"
+                >
+                  <span>Become Artist</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===================== STICKY TAB NAVIGATION ===================== */}
+      <div className="sticky top-12 z-30 bg-canvas/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-line/40">
+        <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
+          {[
+            { id: 'account' as const, label: 'Account' },
+            { id: 'subscription' as const, label: 'Subscription' },
+            { id: 'privacy' as const, label: 'Privacy' },
+            { id: 'notifications' as const, label: 'Notifications' },
+            { id: 'security' as const, label: 'Security' },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`shrink-0 font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium whitespace-nowrap ${
+                  isActive
+                    ? 'bg-ink text-canvas font-semibold shadow-xs'
+                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                }`}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+
+      {/* ===================== TAB PANELS ===================== */}
+
+      {/* 1. ACCOUNT & IDENTITY */}
+      {activeTab === 'account' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {profileMsg && (
+            <div
+              className={`p-3.5 rounded-xl border font-mono text-xs ${
+                profileMsg.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {profileMsg.text}
+            </div>
+          )}
+
+          {/* Edit Display Name */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+                Curator Display Name
+              </h3>
+              <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                Public Identity
+              </span>
+            </div>
+            <p className="font-sans text-xs text-ink-soft mb-5">
+              This name will be displayed across your public playlists, comments, and community interactions.
+            </p>
+
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="edit-display-name"
+                  className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                >
+                  Name
+                </label>
+                <input
+                  id="edit-display-name"
+                  type="text"
+                  required
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors placeholder:text-ink-soft/50 font-sans"
+                  placeholder="Your curator name"
+                />
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                >
+                  {isUpdatingProfile ? 'Saving...' : 'Save Identity'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Musician or Recording Artist Card (Moved to Account View) */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+                Maison Artist Presence
+              </div>
+              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+                {isArtist
+                  ? 'Artist Studio Suite Active'
+                  : 'Musician or Recording Artist?'}
+              </h3>
+              <p className="font-sans text-xs text-ink-soft mt-0.5 max-w-xl leading-relaxed">
+                {isArtist
+                  ? artistProfile
+                    ? `Publishing as "${artistProfile.stageName}". Manage stage identity, discographies, verification badge, and listener telemetry.`
+                    : 'Manage stage identity, discographies, verification badge, and listener telemetry.'
+                  : 'Upgrade to an Artist account to upload music, build your discography, and release albums to the world.'}
+              </p>
+              {isArtist && artistProfile?.slug && (
+                <div className="mt-2.5">
+                  <Link
+                    to="/artists/$idOrSlug"
+                    params={{ idOrSlug: artistProfile.slug || artistProfile.id }}
+                    className="font-mono text-[10.5px] text-blue hover:underline inline-flex items-center gap-1.5"
+                  >
+                    <span>View Public Artist Page</span>
+                    <span className="text-xs">↗</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <Link
+              to="/studio"
+              className="self-start sm:self-auto shrink-0 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 rounded-full bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
+            >
+              {isArtist ? 'Open Artist Studio →' : '✦ Become an Artist'}
+            </Link>
+          </div>
+
+          {/* Account Overview Card */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
+            <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+              Account Overview
+            </h3>
+
+            <div className="divide-y divide-line/60 font-sans text-xs">
+              <div className="py-3 flex items-center justify-between gap-4">
+                <span className="text-ink-soft">Email Address</span>
+                <span className="text-ink font-medium">{user.email}</span>
+              </div>
+              <div className="py-3 flex items-center justify-between gap-4">
+                <span className="text-ink-soft">Email Verification</span>
+                <span className={user.isEmailVerified ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-amber-600 dark:text-amber-400 font-semibold"}>
+                  {user.isEmailVerified ? "Verified" : "Unverified"}
+                </span>
+              </div>
+              <div className="py-3 flex items-center justify-between gap-4">
+                <span className="text-ink-soft">Role</span>
+                <span className="font-mono text-[11px] uppercase text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</span>
+              </div>
+              {isArtist && (
+                <div className="py-3 flex items-center justify-between gap-4">
+                  <span className="text-ink-soft">Artist Profile</span>
+                  <span className="font-mono text-[11px] text-purple-600 dark:text-purple-400 font-semibold">
+                    {isLoadingArtistProfile
+                      ? 'Verifying...'
+                      : artistProfile
+                        ? `${artistProfile.stageName}${artistProfile.verified ? ' ✓' : ''}`
+                        : 'Studio Active'}
+                  </span>
+                </div>
+              )}
+              <div className="py-3 flex items-center justify-between gap-4">
+                <span className="text-ink-soft">Active Plan</span>
+                <span className="font-mono text-[11px] uppercase text-blue font-semibold">
+                  {entitlements?.planName || user.plan?.name || 'Groovy Free'}
+                </span>
+              </div>
+              <div className="py-3 flex items-center justify-between gap-4">
+                <span className="text-ink-soft">Pre-Saved Releases</span>
+                <span className="font-mono text-[11px] text-ink font-medium">
+                  {isLoadingPreSaves ? 'Loading...' : `${preSaves.length} drops scheduled`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. SUBSCRIPTION & MEMBERSHIP */}
+      {activeTab === 'subscription' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {subNotice && (
+            <div
+              className={`p-3.5 rounded-xl border font-mono text-xs ${
+                subNotice.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {subNotice.text}
+            </div>
+          )}
+
+          {/* Active Plan Card */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+              <div>
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue block mb-1">
+                  Active Subscription Tier
+                </span>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
+                    {entitlements?.planName || user.plan?.name || 'Groovy Free'}
+                  </h3>
+                  <span
+                    className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                      isLoadingEntitlements
+                        ? 'border-line bg-canvas text-ink-soft animate-pulse'
+                        : entitlements?.status === 'active'
+                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          : entitlements?.cancelAtPeriodEnd
+                            ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : 'border-line bg-canvas text-ink-soft'
+                    }`}
+                  >
+                    {isLoadingEntitlements
+                      ? 'Verifying...'
+                      : entitlements?.cancelAtPeriodEnd
+                        ? 'Cancels at Period End'
+                        : entitlements?.status?.toUpperCase() || 'ACTIVE'}
+                  </span>
+                </div>
+                {entitlements?.currentPeriodEnd && (
+                  <p className="font-mono text-[10px] text-ink-soft mt-1">
+                    Current billing period ends:{' '}
+                    {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={handleCancelSubscription}
-                  className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
+                  onClick={handleOpenUpgradeModal}
+                  className="bg-ink text-canvas font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
                 >
-                  Cancel Plan
+                  ✦ Change Plan / Upgrade
                 </button>
-              )}
-          </div>
-        </div>
-
-        {subNotice && (
-          <div
-            className={`p-3 border font-mono text-xs ${
-              subNotice.type === 'success'
-                ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200'
-                : 'border-red-300 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300'
-            }`}
-          >
-            {subNotice.text}
-          </div>
-        )}
-
-        {/* Resolved Capabilities Matrix */}
-        <div className="space-y-3">
-          <div className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
-            Active Capability Matrix (Enforced by Entitlement Guard)
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Audio Bitrate */}
-            <div className="border border-line bg-canvas p-3.5 space-y-1">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
-                Audio Bitrate
-              </span>
-              <div className="font-mono text-base font-semibold text-ink">
-                {entitlements?.features.max_bitrate_kbps ?? 128} kbps
+                {entitlements &&
+                  entitlements.planId !== 'free' &&
+                  !entitlements.cancelAtPeriodEnd && (
+                    <button
+                      type="button"
+                      onClick={handleCancelSubscription}
+                      className="font-mono text-[10px] uppercase tracking-[0.12em] py-2.5 px-3.5 rounded-full border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
+                    >
+                      Cancel Plan
+                    </button>
+                  )}
               </div>
-              <p className="font-sans text-[11px] text-ink-soft">
-                {Number(entitlements?.features.max_bitrate_kbps ?? 128) >= 320
-                  ? 'High-Fidelity 320kbps MP3/AAC stream'
-                  : 'Standard 128kbps AAC stream'}
-              </p>
             </div>
 
-            {/* Lossless Audio */}
-            <div className="border border-line bg-canvas p-3.5 space-y-1">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
-                Lossless Audio
-              </span>
-              <div
-                className={`font-mono text-base font-semibold ${
-                  entitlements?.features.lossless
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-ink-soft'
-                }`}
-              >
-                {entitlements?.features.lossless
-                  ? '✓ FLAC Unlocked'
-                  : '✕ Standard Only'}
-              </div>
-              <p className="font-sans text-[11px] text-ink-soft">
-                {entitlements?.features.lossless
-                  ? 'Studio Master 1411kbps uncompressed'
-                  : 'Upgrade to stream lossless FLAC'}
-              </p>
-            </div>
-
-            {/* Live Jam Hosting */}
-            <div className="border border-line bg-canvas p-3.5 space-y-1">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
-                Live Jam Hosting
-              </span>
-              <div
-                className={`font-mono text-base font-semibold ${
-                  entitlements?.features.can_host_jam
-                    ? 'text-blue'
-                    : 'text-ink-soft'
-                }`}
-              >
-                {entitlements?.features.can_host_jam
-                  ? '✓ Jam Host'
-                  : '✕ Listener Only'}
-              </div>
-              <p className="font-sans text-[11px] text-ink-soft">
-                {entitlements?.features.can_host_jam
-                  ? `Host rooms up to ${entitlements.features.max_jam_participants} listeners`
-                  : `Can join jams up to ${entitlements?.features.max_jam_participants ?? 3} listeners`}
-              </p>
-            </div>
-
-            {/* Ad Experience */}
-            <div className="border border-line bg-canvas p-3.5 space-y-1">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
-                Ad Experience
-              </span>
-              <div
-                className={`font-mono text-base font-semibold ${
-                  entitlements?.features.ad_free
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-ink-soft'
-                }`}
-              >
-                {entitlements?.features.ad_free
-                  ? '✓ Ad-Free'
-                  : 'Sponsored Audio'}
-              </div>
-              <p className="font-sans text-[11px] text-ink-soft">
-                {entitlements?.features.ad_free
-                  ? 'Zero interruptions or audio spots'
-                  : 'Occasional promotional inserts'}
-              </p>
-            </div>
-          </div>
-
-          {/* Dynamic Extra Features from Catalog */}
-          {entitlements &&
-            Object.keys(entitlements.features).some(
-              (k) =>
-                ![
-                  'max_bitrate_kbps',
-                  'lossless',
-                  'can_host_jam',
-                  'max_jam_participants',
-                  'ad_free',
-                ].includes(k),
-            ) && (
-              <div className="pt-2 border-t border-line-soft">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-2">
-                  Additional Entitled Perks
+            {/* Audio & Perks Checklist */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div className="p-3 rounded-xl bg-canvas border border-line">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                  Audio Quality
                 </span>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(entitlements.features)
-                    .filter(
-                      ([k]) =>
-                        ![
-                          'max_bitrate_kbps',
-                          'lossless',
-                          'can_host_jam',
-                          'max_jam_participants',
-                          'ad_free',
-                        ].includes(k),
-                    )
-                    .map(([k, v]) => (
-                      <span
-                        key={k}
-                        className="font-mono text-[9.5px] px-2.5 py-1 border border-line bg-canvas flex items-center gap-1.5"
-                      >
-                        <span className="text-ink-soft">{k}:</span>
-                        <span className="font-semibold text-ink">
-                          {typeof v === 'boolean'
-                            ? v
-                              ? '✓ Enabled'
-                              : '✕ Disabled'
-                            : String(v)}
-                        </span>
-                      </span>
-                    ))}
-                </div>
+                <span className="font-mono text-sm font-bold text-ink mt-0.5 block">
+                  {entitlements?.features?.max_bitrate_kbps ?? 128} kbps
+                </span>
               </div>
-            )}
-        </div>
-      </div>
-
-      {/* Artist Studio Card */}
-      <div className="border border-line bg-panel p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
-            Artist Presence · Maison Studio
-          </div>
-          <h3 className="font-serif italic text-lg text-ink">
-            {user.role === 'ARTIST'
-              ? 'Artist Studio Suite Active'
-              : 'Musician or Recording Artist?'}
-          </h3>
-          <p className="font-sans text-xs text-ink-soft mt-0.5">
-            {user.role === 'ARTIST'
-              ? 'Manage your stage name, Cloudflare R2 banner, verification desk, and telemetry.'
-              : 'Upgrade to an Artist account in seconds. Create your identity, upload banners, and release tracks.'}
-          </p>
-        </div>
-
-        <Link
-          to="/studio"
-          className="self-start sm:self-auto shrink-0 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity"
-        >
-          {user.role === 'ARTIST'
-            ? 'Open Artist Studio →'
-            : '✦ Become an Artist'}
-        </Link>
-      </div>
-
-      {/* Pre-Saved Releases Card */}
-      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-line pb-3">
-          <div>
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
-              Library · Upcoming Vault
+              <div className="p-3 rounded-xl bg-canvas border border-line">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                  Lossless FLAC
+                </span>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                  {entitlements?.features?.lossless ? 'Enabled ✓' : 'Standard'}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-canvas border border-line">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                  Live Jam Rooms
+                </span>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                  {entitlements?.features?.can_host_jam ? `Host (${entitlements.features.max_jam_participants ?? 3})` : 'Listener'}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-canvas border border-line">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                  Ad-Free Audio
+                </span>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                  {entitlements?.features?.ad_free ? 'Ad-Free ✓' : 'Sponsored'}
+                </span>
+              </div>
             </div>
-            <h3 className="font-serif italic text-xl text-ink font-normal">
-              Pre-Saved Releases ({preSaves.length})
-            </h3>
           </div>
-          <span className="font-mono text-[10px] text-ink-soft uppercase tracking-wider">
-            Auto-Library Add On Drop
-          </span>
         </div>
+      )}
 
-        {isLoadingPreSaves ? (
-          <div className="font-mono text-xs text-ink-soft animate-pulse py-4 text-center">
-            Checking upcoming releases...
-          </div>
-        ) : preSaves.length === 0 ? (
-          <div className="p-8 border border-dashed border-line bg-canvas text-center space-y-2">
-            <DiscIconSVG className="w-8 h-8 text-ink-soft/40 mx-auto" />
-            <p className="font-serif italic text-sm text-ink">
-              No pre-saved releases yet
-            </p>
-            <p className="font-sans text-xs text-ink-soft">
-              When artists schedule upcoming drops, click "Pre-Save" on their
-              release page to have them appear here and unlock automatically in
-              your library.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {preSaves.map((item) => (
-              <div
-                key={item.albumId}
-                className="border border-line bg-canvas p-4 flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-14 h-14 bg-canvas-deep border border-line shrink-0 overflow-hidden">
-                    {item.coverImageUrl ? (
-                      <img
-                        src={item.coverImageUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+      {/* 3. PRIVACY & SOCIAL CIRCLES */}
+      {activeTab === 'privacy' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {privacyMsg && (
+            <div
+              className={`p-3.5 rounded-xl border font-mono text-xs ${
+                privacyMsg.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {privacyMsg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdatePrivacy} className="space-y-6">
+            {/* Account Privacy Toggle */}
+            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs flex items-center justify-between gap-3 min-w-0">
+              <div className="min-w-0 flex-1 pr-2 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-sans text-sm sm:text-base font-bold text-ink">
+                    Private Account
+                  </span>
+                  <span
+                    className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                      isPrivateAccount
+                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        : 'border-line bg-canvas text-ink-soft'
+                    }`}
+                  >
+                    {isPrivateAccount ? 'Gated Approval' : 'Open / Public'}
+                  </span>
+                </div>
+                <p className="font-sans text-xs text-ink-soft max-w-xl leading-relaxed">
+                  When your account is private, other curators must request to follow you. You review each follow request in your Activity desk before they gain access to your follower-only library.
+                </p>
+              </div>
+
+              <ToggleSwitch
+                id="private-account-toggle"
+                checked={isPrivateAccount}
+                onChange={setIsPrivateAccount}
+                aria-label="Toggle private account"
+              />
+            </div>
+
+            {/* Live Listening Presence Tier */}
+            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
+              <div>
+                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                  Live Turntable &bull; Listening Activity
+                </span>
+                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                  Choose who can see your real-time playback in the &quot;What Friends Are Listening To&quot; live deck.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                {[
+                  {
+                    id: 'FRIENDS_ONLY' as const,
+                    title: 'Mutual Friends',
+                    desc: 'Only curators you both follow back can see your live vinyl turntable.',
+                  },
+                  {
+                    id: 'FOLLOWERS' as const,
+                    title: 'All Followers',
+                    desc: 'Any member following your profile can see your live playback session.',
+                  },
+                  {
+                    id: 'OFF' as const,
+                    title: 'Incognito / Off',
+                    desc: 'Never broadcast live playback. Listening history stays completely private.',
+                  },
+                ].map((opt) => {
+                  const isSelected = listeningActivityPrivacy === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setListeningActivityPrivacy(opt.id)}
+                      className={`p-3.5 text-left rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-ink bg-canvas shadow-xs font-medium'
+                          : 'border-line bg-canvas/40 hover:border-ink/40'
+                      }`}
+                    >
+                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                        <span>{opt.title}</span>
+                        {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                       </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-panel text-blue font-semibold">
-                        {item.albumType}
-                      </span>
-                      {item.scheduledReleaseAt && (
-                        <span className="font-mono text-[9px] text-ink-soft flex items-center gap-1">
-                          <CalendarIconSVG className="w-2.5 h-2.5" />
-                          <span>
-                            {new Date(
-                              item.scheduledReleaseAt,
-                            ).toLocaleDateString()}
-                          </span>
-                        </span>
-                      )}
+                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                        {opt.desc}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Library Privacy Tier */}
+            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
+              <div>
+                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                  Library &amp; Presaves Visibility
+                </span>
+                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                  Choose who can browse your public playlists, liked songs, and pre-saved releases.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                {[
+                  {
+                    id: 'PUBLIC' as const,
+                    title: 'Public',
+                    desc: 'Anyone in the community can discover your public playlists and drops.',
+                  },
+                  {
+                    id: 'FOLLOWERS_ONLY' as const,
+                    title: 'Followers Only',
+                    desc: 'Only approved followers can view your saved playlists and collections.',
+                  },
+                  {
+                    id: 'PRIVATE' as const,
+                    title: 'Private / Only Me',
+                    desc: 'Hidden from all outside visitors. Only accessible to your authenticated session.',
+                  },
+                ].map((opt) => {
+                  const isSelected = libraryPrivacy === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setLibraryPrivacy(opt.id)}
+                      className={`p-3.5 text-left rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-ink bg-canvas shadow-xs font-medium'
+                          : 'border-line bg-canvas/40 hover:border-ink/40'
+                      }`}
+                    >
+                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                        <span>{opt.title}</span>
+                        {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
+                      </div>
+                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                        {opt.desc}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Personal Audio Locker & Offline Music Controls */}
+            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-sans text-sm sm:text-base font-bold text-ink">
+                    Personal Collection &amp; Audio Vault
+                  </span>
+                  <span className="font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
+                    Sandboxed Storage
+                  </span>
+                </div>
+                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                  Granularly control where your privately uploaded audio collection surfaces throughout Groovy.
+                </p>
+              </div>
+
+              <div className="space-y-3 divide-y divide-line/60">
+                {/* Toggle 1: Search */}
+                <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Include in Global Search
                     </div>
-                    <h4 className="font-serif italic text-base text-ink truncate mt-0.5">
-                      {item.title}
-                    </h4>
-                    <p className="font-sans text-xs text-ink-soft truncate">
-                      {item.artistStageName}
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Surface personal collection tracks in your own search bar (never visible to other curators).
                     </p>
                   </div>
-                </div>
-
-                <Link
-                  to="/albums/$idOrSlug"
-                  params={{ idOrSlug: item.slug }}
-                  className="font-mono text-[10px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink shrink-0 transition-colors"
-                >
-                  View Drop
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Listening History Shelf */}
-      <RecentlyPlayedShelf
-        title="Listening History"
-        subtitle="Your Past Qualified Plays"
-        limit={12}
-      />
-
-      {/* Privacy & Social Circles Card */}
-      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
-        <div>
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
-            Audience &bull; Privacy &bull; Social Circles
-          </div>
-          <h3 className="font-serif italic text-2xl text-ink font-normal">
-            Privacy &amp; Community Visibility
-          </h3>
-          <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
-            Control how other curators interact with your library, follow your
-            profile, and see your live listening activity.
-          </p>
-        </div>
-
-        {privacyMsg && (
-          <div
-            className={`p-3.5 border text-xs font-mono ${
-              privacyMsg.type === 'success'
-                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
-            }`}
-          >
-            {privacyMsg.text}
-          </div>
-        )}
-
-        <form onSubmit={handleUpdatePrivacy} className="space-y-6">
-          {/* Account Privacy Toggle */}
-          <div className="border border-line bg-canvas p-4 sm:p-5 flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
-                  Private Account
-                </span>
-                <span
-                  className={`font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border ${
-                    isPrivateAccount
-                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                      : 'border-line bg-panel text-ink-soft'
-                  }`}
-                >
-                  {isPrivateAccount ? 'Gated Approval' : 'Open / Public'}
-                </span>
-              </div>
-              <p className="font-sans text-xs text-ink-soft max-w-xl leading-relaxed">
-                When your account is private, curators must request to follow
-                you. You review each follow request in your Activity desk before
-                they gain access to your follower-only library.
-              </p>
-            </div>
-
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
-              <input
-                type="checkbox"
-                checked={isPrivateAccount}
-                onChange={(e) => setIsPrivateAccount(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-            </label>
-          </div>
-
-          {/* Live Listening Presence Tier */}
-          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-3">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
-                Live Turntable &bull; Listening Activity
-              </div>
-              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
-                Choose who can see your real-time playback in the "What Friends
-                Are Listening To" live vinyl deck.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setListeningActivityPrivacy('FRIENDS_ONLY')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  listeningActivityPrivacy === 'FRIENDS_ONLY'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>Mutual Friends</span>
-                  {listeningActivityPrivacy === 'FRIENDS_ONLY' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Only curators you both follow back can see your live vinyl
-                  turntable. (Recommended)
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setListeningActivityPrivacy('FOLLOWERS')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  listeningActivityPrivacy === 'FOLLOWERS'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>All Followers</span>
-                  {listeningActivityPrivacy === 'FOLLOWERS' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Any member following your profile can see your live listening
-                  session.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setListeningActivityPrivacy('OFF')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  listeningActivityPrivacy === 'OFF'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>Incognito / Off</span>
-                  {listeningActivityPrivacy === 'OFF' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Never broadcast live playback. Your personal listening history
-                  is preserved privately.
-                </p>
-              </button>
-            </div>
-          </div>
-
-          {/* Library Privacy Tier */}
-          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-3">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
-                Library &amp; Presaves Visibility
-              </div>
-              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
-                Choose who can browse your public playlists, liked songs, and
-                pre-saved releases.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setLibraryPrivacy('PUBLIC')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  libraryPrivacy === 'PUBLIC'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>Public</span>
-                  {libraryPrivacy === 'PUBLIC' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Anyone in the Groovy community can discover your public
-                  playlists and library drops.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setLibraryPrivacy('FOLLOWERS_ONLY')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  libraryPrivacy === 'FOLLOWERS_ONLY'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>Followers &amp; Friends</span>
-                  {libraryPrivacy === 'FOLLOWERS_ONLY' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Only approved followers can view your saved playlists and
-                  collections.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setLibraryPrivacy('PRIVATE')}
-                className={`p-3 text-left border transition-all cursor-pointer ${
-                  libraryPrivacy === 'PRIVATE'
-                    ? 'border-ink bg-panel shadow-xs'
-                    : 'border-line bg-canvas-deep/40 hover:border-ink/40'
-                }`}
-              >
-                <div className="font-mono text-[10px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
-                  <span>Private / Only Me</span>
-                  {libraryPrivacy === 'PRIVATE' && (
-                    <span className="text-emerald-600 font-bold">✓</span>
-                  )}
-                </div>
-                <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
-                  Hidden from all outside visitors. Only accessible to your
-                  authenticated session.
-                </p>
-              </button>
-            </div>
-          </div>
-
-          {/* Personal Collection & Offline Music Controls */}
-          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-4">
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold flex items-center gap-2">
-                <span>Personal Collection &amp; Offline Music</span>
-                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                  Sandboxed Storage
-                </span>
-              </div>
-              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
-                Granularly control where your privately uploaded offline audio
-                collection surfaces throughout the Groovy experience.
-              </p>
-            </div>
-
-            <div className="space-y-3 divide-y divide-line/60">
-              {/* Toggle 1: Search */}
-              <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Include in Global Search
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Surface your personal collection songs and albums in your
-                    own search bar results with a &quot;Personal
-                    Collection&quot; badge. (Never visible to other curators).
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+                  <ToggleSwitch
                     checked={lockerIncludeInSearch}
-                    onChange={(e) => setLockerIncludeInSearch(e.target.checked)}
-                    className="sr-only peer"
+                    onChange={setLockerIncludeInSearch}
+                    aria-label="Include personal collection in search"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
-              </div>
-
-              {/* Toggle 2: Recently Played & Activity */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Include in Recently Played &amp; Activity
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Record personal collection listening history on your Recent
-                    tracks shelf. When disabled, personal tracks are omitted
-                    from listening history and friend feeds.
-                  </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+
+                {/* Toggle 2: Recently Played */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Include in Recently Played &amp; Activity
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Record personal collection playback on your Recent shelf and listening history.
+                    </p>
+                  </div>
+                  <ToggleSwitch
                     checked={lockerIncludeInRecentlyPlayed}
-                    onChange={(e) =>
-                      setLockerIncludeInRecentlyPlayed(e.target.checked)
-                    }
-                    className="sr-only peer"
+                    onChange={setLockerIncludeInRecentlyPlayed}
+                    aria-label="Include in recently played"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
-              </div>
-
-              {/* Toggle 3: Home Feed */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Mix Personal Collection with Discovery &amp; Recommendations
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Blend your personal collection uploads into home discovery shelves
-                    and recommendations. When disabled, recommendations strictly surface
-                    global releases and artists.
-                  </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+
+                {/* Toggle 3: Home Feed */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Mix with Home Feed &amp; Recommendations
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Blend your personal collection uploads into home discovery shelves and mixes.
+                    </p>
+                  </div>
+                  <ToggleSwitch
                     checked={lockerIncludeInHome}
-                    onChange={(e) => setLockerIncludeInHome(e.target.checked)}
-                    className="sr-only peer"
+                    onChange={setLockerIncludeInHome}
+                    aria-label="Mix with home feed"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
-              </div>
-
-              {/* Toggle 4: Verified Artists Link */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Link to Verified Global Artists
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Display an &quot;In Your Collection&quot; shelf on verified
-                    artist pages when your personal collection contains matching
-                    tracks by that artist.
-                  </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+
+                {/* Toggle 4: Verified Artists Link */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Link to Verified Global Artists
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Show an &quot;In Your Collection&quot; shelf on verified artist pages when you have personal tracks matching that artist.
+                    </p>
+                  </div>
+                  <ToggleSwitch
                     checked={lockerLinkToGlobalArtists}
-                    onChange={(e) =>
-                      setLockerLinkToGlobalArtists(e.target.checked)
-                    }
-                    className="sr-only peer"
+                    onChange={setLockerLinkToGlobalArtists}
+                    aria-label="Link to verified global artists"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="pt-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSavingPrivacy}
-              className="bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
-            >
-              {isSavingPrivacy
-                ? 'Saving Privacy...'
-                : 'Save Privacy Preferences'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Notification Channels & Alerts Form */}
-      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs space-y-6">
-        <div className="border-b border-line pb-4">
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
-            Dispatch Channels · Real-Time Alerts
-          </div>
-          <h3 className="font-serif italic text-2xl text-ink font-normal">
-            Notification Delivery
-          </h3>
-          <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
-            Configure how and when Groovy reaches out for new releases, social circle invites, and community discussions.
-          </p>
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={isSavingPrivacy}
+                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+              >
+                {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
+              </button>
+            </div>
+          </form>
         </div>
+      )}
 
-        {notifPrefsMsg && (
-          <div
-            className={`p-3.5 border font-mono text-xs ${
-              notifPrefsMsg.type === 'success'
-                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
-            }`}
-          >
-            {notifPrefsMsg.text}
-          </div>
-        )}
+      {/* 4. NOTIFICATION DELIVERY */}
+      {activeTab === 'notifications' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {notifPrefsMsg && (
+            <div
+              className={`p-3.5 rounded-xl border font-mono text-xs ${
+                notifPrefsMsg.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {notifPrefsMsg.text}
+            </div>
+          )}
 
-        <form onSubmit={handleUpdateNotifPrefs} className="space-y-6">
-          <div className="border border-line bg-canvas p-4 sm:p-5 space-y-4">
-            <div className="space-y-3 divide-y divide-line/60">
-              {/* Toggle 1: Catalog Drops & Releases */}
-              <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Catalog Drops &amp; New Releases
+          <form onSubmit={handleUpdateNotifPrefs} className="space-y-6">
+            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
+              <div>
+                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                  Notification Channels &amp; Delivery
+                </span>
+                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                  Configure real-time alerts for release drops, social interactions, and community jams.
+                </p>
+              </div>
+
+              <div className="space-y-3 divide-y divide-line/60">
+                {/* Toggle 1: Catalog Drops */}
+                <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Catalog Drops &amp; New Releases
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Alerts when followed artists publish new albums, singles, or EPs.
+                    </p>
                   </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Receive inbox notifications when followed artists publish new albums, singles, or EPs.
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+                  <ToggleSwitch
                     checked={notifPrefs.emailReleases}
-                    onChange={(e) =>
-                      setNotifPrefs((prev) => ({
-                        ...prev,
-                        emailReleases: e.target.checked,
-                      }))
+                    onChange={(val) =>
+                      setNotifPrefs((prev) => ({ ...prev, emailReleases: val }))
                     }
-                    className="sr-only peer"
+                    aria-label="Alerts for catalog drops and releases"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
-              </div>
-
-              {/* Toggle 2: Discussion Replies & Mentions */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Discussion Replies &amp; Mentions
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Get alerted when curators reply to your comments on tracks and public playlists.
-                  </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+
+                {/* Toggle 2: Discussion Replies */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Discussion Replies &amp; Mentions
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Alerts when curators reply to your comments on tracks and public playlists.
+                    </p>
+                  </div>
+                  <ToggleSwitch
                     checked={notifPrefs.emailComments}
-                    onChange={(e) =>
-                      setNotifPrefs((prev) => ({
-                        ...prev,
-                        emailComments: e.target.checked,
-                      }))
+                    onChange={(val) =>
+                      setNotifPrefs((prev) => ({ ...prev, emailComments: val }))
                     }
-                    className="sr-only peer"
+                    aria-label="Alerts for discussion replies"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
-              </div>
-
-              {/* Toggle 3: Social Network & Follow Requests */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Social Circles &amp; Follow Requests
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Instant alerts for incoming follow requests on private accounts and newly joined followers.
-                  </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
+
+                {/* Toggle 3: Social Circles */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Social Circles &amp; Follow Requests
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Alerts for incoming follow requests on private accounts and newly joined followers.
+                    </p>
+                  </div>
+                  <ToggleSwitch
                     checked={notifPrefs.pushSocial}
-                    onChange={(e) =>
-                      setNotifPrefs((prev) => ({
-                        ...prev,
-                        pushSocial: e.target.checked,
-                      }))
+                    onChange={(val) =>
+                      setNotifPrefs((prev) => ({ ...prev, pushSocial: val }))
                     }
-                    className="sr-only peer"
+                    aria-label="Alerts for social circles and requests"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
-                </label>
+                </div>
+
+                {/* Toggle 4: Jam Invites */}
+                <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                      Live Jam Session Invites
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                      Real-time pulses when friends invite you to synchronize playback in a shared listening room.
+                    </p>
+                  </div>
+                  <ToggleSwitch
+                    checked={notifPrefs.pushJams}
+                    onChange={(val) =>
+                      setNotifPrefs((prev) => ({ ...prev, pushJams: val }))
+                    }
+                    aria-label="Alerts for live jam session invites"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={isSavingNotifPrefs}
+                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+              >
+                {isSavingNotifPrefs
+                  ? 'Saving Preferences...'
+                  : 'Save Notification Preferences'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 5. SECURITY & SESSIONS */}
+      {activeTab === 'security' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {passwordMsg && (
+            <div
+              className={`p-3.5 rounded-xl border font-mono text-xs ${
+                passwordMsg.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {passwordMsg.text}
+            </div>
+          )}
+
+          {/* Change Password */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs">
+            <h3 className="font-sans font-bold text-base sm:text-lg text-ink mb-1">
+              Change Password
+            </h3>
+            <p className="font-sans text-xs text-ink-soft mb-5">
+              Update your account credentials to keep your session and collection safe.
+            </p>
+
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="curr-pass"
+                    className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                  >
+                    Current Password
+                  </label>
+                  <input
+                    id="curr-pass"
+                    type={showPasswords ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors font-sans"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="new-pass"
+                    className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                  >
+                    New Password
+                  </label>
+                  <input
+                    id="new-pass"
+                    type={showPasswords ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors font-sans"
+                  />
+                </div>
               </div>
 
-              {/* Toggle 4: Live Jam Room Invites */}
-              <div className="pt-3 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
-                    Live Jam Session Invites
-                  </div>
-                  <p className="font-sans text-[11px] text-ink-soft leading-snug">
-                    Real-time pulses when friends invite you to synchronize playback in a shared listening room.
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    checked={notifPrefs.pushJams}
-                    onChange={(e) =>
-                      setNotifPrefs((prev) => ({
-                        ...prev,
-                        pushJams: e.target.checked,
-                      }))
-                    }
-                    className="sr-only peer"
+                    checked={revokeOthers}
+                    onChange={(e) => setRevokeOthers(e.target.checked)}
+                    className="accent-ink w-4 h-4 rounded cursor-pointer"
                   />
-                  <div className="w-11 h-6 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink"></div>
+                  <span className="font-sans text-xs text-ink-soft">
+                    Revoke all other active sessions across devices
+                  </span>
                 </label>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords(!showPasswords)}
+                  className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer self-start sm:self-auto"
+                >
+                  {showPasswords ? 'Hide Passwords' : 'Show Passwords'}
+                </button>
               </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword}
+                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                >
+                  {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Session & Device Controls */}
+          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
+            <div>
+              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+                Session &amp; Device Controls
+              </h3>
+              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                Manage active authentication tokens and sign out of remote browsers.
+              </p>
             </div>
-          </div>
 
-          <div className="pt-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSavingNotifPrefs}
-              className="bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
-            >
-              {isSavingNotifPrefs
-                ? 'Saving Preferences...'
-                : 'Save Notification Preferences'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Display Name Form */}
-      <div className="border border-line bg-panel p-8 shadow-xs">
-        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
-          Identity · Display
-        </div>
-        <h3 className="font-serif italic text-xl text-ink mb-4 font-normal">
-          Curator Name
-        </h3>
-
-        {profileMsg && (
-          <div
-            className={`mb-5 p-3.5 border text-xs ${
-              profileMsg.type === 'success'
-                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
-            }`}
-          >
-            {profileMsg.text}
-          </div>
-        )}
-
-        <form
-          onSubmit={handleUpdateProfile}
-          className="flex flex-col sm:flex-row gap-4 items-end"
-        >
-          <div className="flex-1 w-full flex flex-col gap-1.5">
-            <label
-              htmlFor="edit-display-name"
-              className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
-            >
-              Address As
-            </label>
-            <input
-              id="edit-display-name"
-              type="text"
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isUpdatingProfile}
-            className="w-full sm:w-auto bg-ink text-canvas border border-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
-          >
-            {isUpdatingProfile ? 'Recording...' : 'Save Identity'}
-          </button>
-        </form>
-      </div>
-
-      {/* Password Update Form */}
-      <div className="border border-line bg-panel p-8 shadow-xs">
-        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
-          Security
-        </div>
-        <h3 className="font-serif italic text-xl text-ink mb-4 font-normal">
-          Change Password
-        </h3>
-
-        {passwordMsg && (
-          <div
-            className={`mb-5 p-3.5 border text-xs ${
-              passwordMsg.type === 'success'
-                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
-            }`}
-          >
-            {passwordMsg.text}
-          </div>
-        )}
-
-        <form onSubmit={handleUpdatePassword} className="flex flex-col gap-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="curr-pass"
-                className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="font-mono text-[10.5px] uppercase tracking-widest border border-line bg-canvas hover:bg-canvas-soft text-ink px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
               >
-                Current Password
-              </label>
-              <input
-                id="curr-pass"
-                type={showPasswords ? 'text' : 'password'}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="new-pass"
-                className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+                Sign Out This Device
+              </button>
+              <button
+                type="button"
+                onClick={() => revokeAll()}
+                className="font-mono text-[10.5px] uppercase tracking-widest border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
               >
-                New Password
-              </label>
-              <input
-                id="new-pass"
-                type={showPasswords ? 'text' : 'password'}
-                required
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
-              />
+                Revoke All Sessions Everywhere
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={revokeOthers}
-                onChange={(e) => setRevokeOthers(e.target.checked)}
-                className="accent-ink w-3.5 h-3.5"
-              />
-              <span className="font-sans text-xs text-ink-soft">
-                Revoke all other active sessions across devices
-              </span>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setShowPasswords(!showPasswords)}
-              className="font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-soft hover:text-ink cursor-pointer"
-            >
-              {showPasswords ? 'Hide Passwords' : 'Show Passwords'}
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isUpdatingPassword}
-            className="w-full sm:w-auto self-start mt-2 border border-line bg-panel hover:bg-canvas-deep text-ink py-2.5 px-6 font-mono text-[11px] uppercase tracking-[0.12em] transition-all disabled:opacity-50 cursor-pointer"
-          >
-            {isUpdatingPassword ? 'Updating...' : 'Update Password'}
-          </button>
-        </form>
-      </div>
-
-      {/* Session & Device Controls */}
-      <div className="border border-line bg-panel p-8 shadow-xs">
-        <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep mb-1">
-          Session Management
         </div>
-        <h3 className="font-serif italic text-xl text-ink mb-1 font-normal">
-          Session &amp; Device Controls
-        </h3>
-        <p className="font-sans text-xs text-ink-soft mb-6 leading-relaxed">
-          Manage active sessions and revoke access for all other devices.
-        </p>
+      )}
 
-        <div className="flex flex-wrap gap-4">
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="font-mono text-[10.5px] uppercase tracking-widest border border-line bg-canvas hover:bg-canvas-deep text-ink px-5 py-2.5 transition-colors cursor-pointer"
-          >
-            Sign Out This Device
-          </button>
-          <button
-            type="button"
-            onClick={() => revokeAll()}
-            className="font-mono text-[10.5px] uppercase tracking-widest border border-red-800/40 bg-red-900/10 hover:bg-red-900/20 text-red-600 dark:text-red-400 px-5 py-2.5 transition-colors cursor-pointer"
-          >
-            Revoke All Sessions Everywhere
-          </button>
-        </div>
-      </div>
-
-      {/* Upgrade / Change Plan Modal (Dev Mock Checkout) */}
+      {/* ===================== UPGRADE / CHANGE PLAN MODAL ===================== */}
       {isUpgradeModalOpen && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="max-w-4xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="max-w-4xl w-full bg-panel border border-line rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
                 <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue block mb-1">
@@ -1492,9 +1378,9 @@ function ProfileComponent() {
               <button
                 type="button"
                 onClick={() => setIsUpgradeModalOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-sm font-bold cursor-pointer"
               >
-                ✕ Close
+                ✕
               </button>
             </div>
 
@@ -1503,13 +1389,13 @@ function ProfileComponent() {
                 Querying active subscription tiers and feature catalog...
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 {availablePlans.map((plan) => {
                   const isCurrent = entitlements?.planId === plan.id
                   return (
                     <div
                       key={plan.id}
-                      className={`p-5 border flex flex-col justify-between space-y-5 transition-all ${
+                      className={`p-5 rounded-2xl border flex flex-col justify-between space-y-5 transition-all ${
                         isCurrent
                           ? 'border-ink bg-canvas shadow-xs'
                           : 'border-line bg-panel hover:border-ink/50'
@@ -1517,11 +1403,11 @@ function ProfileComponent() {
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line bg-panel font-semibold text-blue">
+                          <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-blue">
                             {plan.id}
                           </span>
                           {isCurrent && (
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
+                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
                               Current Plan
                             </span>
                           )}
@@ -1548,7 +1434,7 @@ function ProfileComponent() {
                         {/* Feature comparison checklist */}
                         <div className="pt-3 border-t border-line-soft space-y-2 font-sans text-xs">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-emerald-600 font-bold">
+                            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                               ✓
                             </span>
                             <span>
@@ -1562,7 +1448,7 @@ function ProfileComponent() {
                             <span
                               className={`font-mono font-bold ${
                                 plan.features.lossless
-                                  ? 'text-emerald-600'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
                                   : 'text-ink-soft/40'
                               }`}
                             >
@@ -1582,7 +1468,7 @@ function ProfileComponent() {
                             <span
                               className={`font-mono font-bold ${
                                 plan.features.can_host_jam
-                                  ? 'text-emerald-600'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
                                   : 'text-ink-soft/40'
                               }`}
                             >
@@ -1595,16 +1481,14 @@ function ProfileComponent() {
                                   : 'text-ink-soft line-through'
                               }
                             >
-                              Host Live Jams (
-                              {plan.features.max_jam_participants ?? 3}{' '}
-                              listeners)
+                              Host Live Jams ({plan.features.max_jam_participants ?? 3} listeners)
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span
                               className={`font-mono font-bold ${
                                 plan.features.ad_free
-                                  ? 'text-emerald-600'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
                                   : 'text-ink-soft/40'
                               }`}
                             >
@@ -1644,7 +1528,7 @@ function ProfileComponent() {
                                   key={k}
                                   className="flex items-center gap-2"
                                 >
-                                  <span className="font-mono text-emerald-600 font-bold">
+                                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                                     ✓
                                   </span>
                                   <span className="font-mono text-[11px] text-ink">
@@ -1666,7 +1550,7 @@ function ProfileComponent() {
                           type="button"
                           disabled={isCurrent || isUpgradingPlan}
                           onClick={() => handleSwitchPlan(plan.id)}
-                          className={`w-full font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 transition-all cursor-pointer font-semibold ${
+                          className={`w-full font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 rounded-full transition-all cursor-pointer font-semibold ${
                             isCurrent
                               ? 'bg-line/40 text-ink-soft cursor-not-allowed border border-line'
                               : 'bg-ink text-canvas hover:opacity-90'

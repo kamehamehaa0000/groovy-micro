@@ -250,9 +250,9 @@ function StudioComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  // Fetch Artist Profile if user has ARTIST or ADMIN role
+  // Fetch Artist Profile if authenticated
   useEffect(() => {
-    if (user && (user.role === 'ARTIST' || user.role === 'ADMIN')) {
+    if (user) {
       setIsLoadingProfile(true)
       artistsApi
         .getMyProfile()
@@ -270,6 +270,7 @@ function StudioComponent() {
         })
         .catch((err) => {
           console.warn('Could not load artist profile:', err)
+          setArtistProfile(null)
         })
         .finally(() => {
           setIsLoadingProfile(false)
@@ -1499,10 +1500,18 @@ function StudioComponent() {
 
   if (!user) return null
 
+  if (isLoadingProfile) {
+    return (
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+        Retrieving artist credentials &amp; studio workspace...
+      </div>
+    )
+  }
+
   // =========================================================================
   // STATE A: LISTENER UPGRADE EXPERIENCE
   // =========================================================================
-  if (user.role === 'LISTENER' && !artistProfile) {
+  if ((user.role === 'LISTENER' || !user.role) && !artistProfile) {
     const previewSlug = customSlug.trim()
       ? slugifyText(customSlug)
       : slugifyText(stageName) || 'your-stage-name'

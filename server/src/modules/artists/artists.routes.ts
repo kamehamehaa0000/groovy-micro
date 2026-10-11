@@ -76,7 +76,7 @@ export const artistsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get(
     "/me",
-    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    { preHandler: [requireAuth] },
     async (request, reply) => {
       const profile = await artistsService.getMyArtistProfile(request.user.id);
       if (!profile) {
