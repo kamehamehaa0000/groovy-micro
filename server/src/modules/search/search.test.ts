@@ -60,6 +60,9 @@ async function runTests() {
         releaseDate: "2026-09-01",
         visibility: "PUBLIC",
         status: "PUBLISHED",
+        primaryGenre: "Electronic / Dance",
+        subGenre: "Synthwave",
+        tags: [`cyberpunk_${timestamp}`, "retro_future"],
       })
       .returning();
     albumId = album.id;
@@ -75,6 +78,9 @@ async function runTests() {
         audioUrl: "https://r2.groovy.test/starlight.mp3",
         processingStatus: "READY",
         playsCount: 1500,
+        primaryGenre: "Electronic / Dance",
+        subGenre: "Synthwave",
+        tags: [`cyberpunk_${timestamp}`, "nightdrive"],
       })
       .returning();
     songId = song.id;
@@ -222,6 +228,72 @@ async function runTests() {
       throw new Error("Other categories should be empty when filtering by type=songs");
     }
     console.log("   ✅ Status 200 OK: Filtered search returned only songs\n");
+
+    // 9. Test Subgenre Search
+    console.log("9️⃣ Testing Subgenre Search ('Synthwave')...");
+    const subgenreRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/search?q=Synthwave`,
+    });
+    if (subgenreRes.statusCode !== 200) {
+      throw new Error(`Subgenre search failed: ${subgenreRes.body}`);
+    }
+    const subgenreData = JSON.parse(subgenreRes.body);
+    if (!subgenreData.songs.some((s: any) => s.id === songId)) {
+      throw new Error("Target song not found in subgenre search");
+    }
+    if (!subgenreData.albums.some((a: any) => a.id === albumId)) {
+      throw new Error("Target album not found in subgenre search");
+    }
+    console.log("   ✅ Status 200 OK: Songs & albums successfully matched by subgenre\n");
+
+    // 10. Test Tag Search
+    console.log("🔟 Testing Tag Search without hashtag prefix...");
+    const tagRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/search?q=cyberpunk_${timestamp}`,
+    });
+    if (tagRes.statusCode !== 200) {
+      throw new Error(`Tag search failed: ${tagRes.body}`);
+    }
+    const tagData = JSON.parse(tagRes.body);
+    if (!tagData.songs.some((s: any) => s.id === songId)) {
+      throw new Error("Target song not found in tag search");
+    }
+    if (!tagData.albums.some((a: any) => a.id === albumId)) {
+      throw new Error("Target album not found in tag search");
+    }
+    console.log("   ✅ Status 200 OK: Songs & albums successfully matched by JSONB tag\n");
+
+    // 11. Test Hashtag Prefix Search (#cyberpunk)
+    console.log("1️⃣1️⃣ Testing Tag Search with hashtag prefix ('#tag')...");
+    const hashTagRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/search?q=%23cyberpunk_${timestamp}`,
+    });
+    if (hashTagRes.statusCode !== 200) {
+      throw new Error(`Hashtag search failed: ${hashTagRes.body}`);
+    }
+    const hashTagData = JSON.parse(hashTagRes.body);
+    if (!hashTagData.songs.some((s: any) => s.id === songId)) {
+      throw new Error("Target song not found in hashtag search");
+    }
+    console.log("   ✅ Status 200 OK: Hashtag query normalized and matched successfully\n");
+
+    // 12. Test Artist matching by release genre
+    console.log("1️⃣2️⃣ Testing Artist matched by release genre ('Synthwave')...");
+    const artistGenreRes = await app.inject({
+      method: "GET",
+      url: `/api/v1/search?q=Synthwave&type=artists`,
+    });
+    if (artistGenreRes.statusCode !== 200) {
+      throw new Error(`Artist genre search failed: ${artistGenreRes.body}`);
+    }
+    const artistGenreData = JSON.parse(artistGenreRes.body);
+    if (!artistGenreData.artists.some((a: any) => a.id === artistId)) {
+      throw new Error("Artist not found in release genre search");
+    }
+    console.log("   ✅ Status 200 OK: Artist found via release genre matching\n");
 
     console.log("🎉 ALL UNIFIED GLOBAL SEARCH INTEGRATION TESTS PASSED! 🚀");
   } finally {

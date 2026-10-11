@@ -30,6 +30,9 @@ export interface SearchSongItem {
   playsCount: number;
   scope?: "GLOBAL" | "PERSONAL";
   isPersonal?: boolean;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  tags?: string[] | null;
 }
 
 export interface SearchAlbumItem {
@@ -46,6 +49,9 @@ export interface SearchAlbumItem {
   likesCount: number;
   scope?: "GLOBAL" | "PERSONAL";
   isPersonal?: boolean;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  tags?: string[] | null;
 }
 
 export interface SearchArtistItem {

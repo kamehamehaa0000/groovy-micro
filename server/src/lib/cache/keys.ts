@@ -88,5 +88,9 @@ export const cacheKeys = {
     userPlaylists: (userId: string) => `groovy:rec:playlists:${userId}`,
     artistSimilar: (artistId: string) => `groovy:rec:art_sim:${artistId}`,
   },
+  users: {
+    lockerSearchPref: (userId: string) =>
+      `groovy:user:${userId}:locker_search_pref`,
+  },
 } as const;
 

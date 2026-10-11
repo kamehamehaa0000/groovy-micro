@@ -1,5 +1,7 @@
 import { ilike, or, and, isNull, desc, count, sql, eq, lte } from "drizzle-orm";
 import { db } from "../../db";
+import { redis } from "../../db/redis";
+import { cacheKeys } from "../../lib/cache/keys";
 import {
   songs,
   albums,
@@ -25,9 +27,21 @@ export class SearchService {
     _requesterId?: string
   ): Promise<GlobalSearchResponse> {
     const rawQuery = input.q.trim();
+    const cleanQuery = rawQuery.replace(/^#+/, "").trim();
+    if (!cleanQuery) {
+      return {
+        query: rawQuery,
+        topResult: null,
+        songs: [],
+        albums: [],
+        artists: [],
+        playlists: [],
+        users: [],
+      };
+    }
     const limit = input.limit || 5;
     const type = input.type || "all";
-    const pattern = `%${rawQuery}%`;
+    const pattern = `%${cleanQuery}%`;
 
     const searchAll = type === "all";
     const shouldSearchSongs = searchAll || type === "songs";
@@ -38,13 +52,22 @@ export class SearchService {
 
     let includePersonal = false;
     if (_requesterId) {
-      const [userRecord] = await db
-        .select({ lockerIncludeInSearch: users.lockerIncludeInSearch })
-        .from(users)
-        .where(eq(users.id, _requesterId))
-        .limit(1);
+      const cacheKey = cacheKeys.users.lockerSearchPref(_requesterId);
+      const cached = await redis.get(cacheKey).catch(() => null);
+      if (cached !== null) {
+        includePersonal = cached === "1";
+      } else {
+        const [userRecord] = await db
+          .select({ lockerIncludeInSearch: users.lockerIncludeInSearch })
+          .from(users)
+          .where(eq(users.id, _requesterId))
+          .limit(1);
 
-      includePersonal = userRecord?.lockerIncludeInSearch ?? true;
+        includePersonal = userRecord?.lockerIncludeInSearch ?? true;
+        await redis
+          .set(cacheKey, includePersonal ? "1" : "0", "EX", 3600)
+          .catch(() => null);
+      }
     }
 
     const [
@@ -72,6 +95,9 @@ export class SearchService {
               albumTitle: albums.title,
               playsCount: songs.playsCount,
               scope: songs.scope,
+              primaryGenre: songs.primaryGenre,
+              subGenre: songs.subGenre,
+              tags: songs.tags,
             })
             .from(songs)
             .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
@@ -116,8 +142,18 @@ export class SearchService {
                     ),
                 or(
                   ilike(songs.title, pattern),
+                  ilike(artistProfiles.stageName, pattern),
                   ilike(songs.slug, pattern),
-                  ilike(artistProfiles.stageName, pattern)
+                  ilike(songs.primaryGenre, pattern),
+                  ilike(songs.subGenre, pattern),
+                  ilike(songs.genre, pattern),
+                  ilike(albums.primaryGenre, pattern),
+                  ilike(albums.subGenre, pattern),
+                  ilike(albums.genre, pattern),
+                  sql`${songs.tags}::text ILIKE ${pattern}`,
+                  sql`${songs.moods}::text ILIKE ${pattern}`,
+                  sql`${albums.tags}::text ILIKE ${pattern}`,
+                  sql`${albums.moods}::text ILIKE ${pattern}`
                 )
               )
             )
@@ -140,6 +176,9 @@ export class SearchService {
               artistSlug: artistProfiles.slug,
               likesCount: albums.likesCount,
               scope: albums.scope,
+              primaryGenre: albums.primaryGenre,
+              subGenre: albums.subGenre,
+              tags: albums.tags,
             })
             .from(albums)
             .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
@@ -181,8 +220,13 @@ export class SearchService {
                     ),
                 or(
                   ilike(albums.title, pattern),
+                  ilike(artistProfiles.stageName, pattern),
                   ilike(albums.slug, pattern),
-                  ilike(artistProfiles.stageName, pattern)
+                  ilike(albums.primaryGenre, pattern),
+                  ilike(albums.subGenre, pattern),
+                  ilike(albums.genre, pattern),
+                  sql`${albums.tags}::text ILIKE ${pattern}`,
+                  sql`${albums.moods}::text ILIKE ${pattern}`
                 )
               )
             )
@@ -224,7 +268,20 @@ export class SearchService {
                     ),
                 or(
                   ilike(artistProfiles.stageName, pattern),
-                  ilike(artistProfiles.slug, pattern)
+                  ilike(artistProfiles.slug, pattern),
+                  ilike(artistProfiles.bio, pattern),
+                  sql`EXISTS (
+                    SELECT 1 FROM albums
+                    WHERE albums.artist_id = ${artistProfiles.id}
+                      AND albums.deleted_at IS NULL
+                      AND (
+                        albums.primary_genre ILIKE ${pattern}
+                        OR albums.sub_genre ILIKE ${pattern}
+                        OR albums.genre ILIKE ${pattern}
+                        OR albums.tags::text ILIKE ${pattern}
+                        OR albums.moods::text ILIKE ${pattern}
+                      )
+                  )`
                 )
               )
             )
@@ -246,11 +303,10 @@ export class SearchService {
               savesCount: playlists.savesCount,
               ownerId: playlists.ownerId,
               ownerName: users.displayName,
-              tracksCount: count(playlistSongs.id),
+              tracksCount: sql<number>`(SELECT count(*)::int FROM playlist_songs WHERE playlist_songs.playlist_id = ${playlists.id})`,
             })
             .from(playlists)
             .innerJoin(users, eq(playlists.ownerId, users.id))
-            .leftJoin(playlistSongs, eq(playlists.id, playlistSongs.playlistId))
             .where(
               and(
                 eq(playlists.visibility, "PUBLIC"),
@@ -260,7 +316,6 @@ export class SearchService {
                 )
               )
             )
-            .groupBy(playlists.id, users.displayName)
             .orderBy(desc(playlists.savesCount))
             .limit(limit)
         : Promise.resolve([]),
@@ -316,7 +371,7 @@ export class SearchService {
 
     // Determine Top Result
     let topResult: TopSearchResult | null = null;
-    const lowerQuery = rawQuery.toLowerCase();
+    const lowerQuery = cleanQuery.toLowerCase();
 
     // Priority 1: Exact Artist Match
     const exactArtist = mappedArtists.find(

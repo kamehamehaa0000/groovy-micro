@@ -16,6 +16,9 @@ export interface SearchSongItem {
   playsCount: number;
   scope?: "GLOBAL" | "PERSONAL";
   isPersonal?: boolean;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  tags?: string[] | null;
 }
 
 export interface SearchAlbumItem {
@@ -32,6 +35,9 @@ export interface SearchAlbumItem {
   likesCount: number;
   scope?: "GLOBAL" | "PERSONAL";
   isPersonal?: boolean;
+  primaryGenre?: string | null;
+  subGenre?: string | null;
+  tags?: string[] | null;
 }
 
 export interface SearchArtistItem {
@@ -89,13 +95,16 @@ export const searchApi = {
   async search(
     query: string,
     limit = 5,
-    type: "all" | "songs" | "albums" | "artists" | "playlists" | "users" = "all"
+    type: "all" | "songs" | "albums" | "artists" | "playlists" | "users" = "all",
+    signal?: AbortSignal
   ): Promise<GlobalSearchResponse> {
     const params = new URLSearchParams({
       q: query.trim(),
       limit: limit.toString(),
       type,
     });
-    return apiFetch<GlobalSearchResponse>(`/api/v1/search?${params.toString()}`);
+    return apiFetch<GlobalSearchResponse>(`/api/v1/search?${params.toString()}`, {
+      signal,
+    });
   },
 };

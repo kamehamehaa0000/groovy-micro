@@ -262,6 +262,12 @@ export class UsersService {
         .catch(() => null);
     }
 
+    if (input.lockerIncludeInSearch !== undefined) {
+      await redis
+        .del(cacheKeys.users.lockerSearchPref(userId))
+        .catch(() => null);
+    }
+
     return updatedUser
   }
 

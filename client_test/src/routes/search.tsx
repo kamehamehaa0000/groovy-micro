@@ -1,10 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
-import {
-  searchApi,
-  type GlobalSearchResponse,
-  type SearchSongItem,
-} from '../lib/search.api'
+import { useQuery } from '@tanstack/react-query'
+import { searchApi, type SearchSongItem } from '../lib/search.api'
 import { usePlayerStore } from '../stores/player.store'
 import { useLikesStore } from '../stores/likes.store'
 import { useFollowsStore } from '../stores/follows.store'
@@ -32,7 +29,14 @@ export const Route = createFileRoute('/search')({
   component: SearchPageComponent,
   validateSearch: (search: Record<string, unknown>): SearchPageParams => {
     const rawType = typeof search.type === 'string' ? search.type : 'all'
-    const validTypes = ['all', 'songs', 'albums', 'artists', 'playlists', 'users']
+    const validTypes = [
+      'all',
+      'songs',
+      'albums',
+      'artists',
+      'playlists',
+      'users',
+    ]
     return {
       q: typeof search.q === 'string' ? search.q : undefined,
       type: validTypes.includes(rawType)
@@ -60,24 +64,26 @@ function SearchPageComponent() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [query, setQuery] = useState(searchParams.q || '')
+  const [debouncedQuery, setDebouncedQuery] = useState(
+    (searchParams.q || '').trim(),
+  )
   const [activeCategory, setActiveCategory] = useState<
     'all' | 'songs' | 'albums' | 'artists' | 'playlists' | 'users'
   >(searchParams.type || 'all')
-  const [results, setResults] = useState<GlobalSearchResponse | null>(null)
-  const [isSearching, setIsSearching] = useState(false)
 
   const { currentTrack, playbackStatus, playTrack, togglePlay } =
     usePlayerStore()
   const { isSongLiked, toggleSongLike, isAlbumLiked, toggleAlbumLike } =
     useLikesStore()
   const { isFollowing, toggleFollow } = useFollowsStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
   // Sync internal state when URL search params change
   useEffect(() => {
     if (searchParams.q !== undefined && searchParams.q !== query) {
       setQuery(searchParams.q)
+      setDebouncedQuery(searchParams.q.trim())
     }
     if (searchParams.type && searchParams.type !== activeCategory) {
       setActiveCategory(searchParams.type)
@@ -93,9 +99,9 @@ function SearchPageComponent() {
 
   // Debounced search query & URL synchronization
   useEffect(() => {
-    const trimmed = query.trim()
-
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
+      const trimmed = query.trim()
+      setDebouncedQuery(trimmed)
       navigate({
         to: '/search',
         search: {
@@ -104,49 +110,48 @@ function SearchPageComponent() {
         },
         replace: true,
       })
-
-      if (!trimmed) {
-        setResults(null)
-        setIsSearching(false)
-        return
-      }
-
-      setIsSearching(true)
-      try {
-        const fetchLimit = activeCategory === 'all' ? 8 : 24
-        const res = await searchApi.search(trimmed, fetchLimit, activeCategory)
-        setResults(res)
-
-        // Hydrate stores for likes and follows
-        if (res.songs.length > 0) {
-          useLikesStore.getState().hydrateSongs(res.songs)
-        }
-        if (res.albums.length > 0) {
-          useLikesStore.getState().hydrateAlbums(res.albums)
-        }
-        if (res.artists.length > 0) {
-          useFollowsStore.getState().hydrateArtists(
-            res.artists.map((a) => ({
-              id: a.id,
-              userId: '',
-              stageName: a.stageName,
-              slug: a.slug,
-              avatarUrl: a.avatarUrl,
-              bannerUrl: a.bannerUrl,
-              verified: a.verified,
-              monthlyListeners: a.monthlyListeners,
-            })),
-          )
-        }
-      } catch (err) {
-        console.warn('[SearchPage] Search failed:', err)
-      } finally {
-        setIsSearching(false)
-      }
     }, 200)
 
     return () => clearTimeout(timer)
   }, [query, activeCategory, navigate])
+
+  const fetchLimit = activeCategory === 'all' ? 8 : 24
+
+  const { data: results, isFetching } = useQuery({
+    queryKey: ['search', debouncedQuery, activeCategory, fetchLimit, user?.id],
+    queryFn: ({ signal }) =>
+      searchApi.search(debouncedQuery, fetchLimit, activeCategory, signal),
+    enabled: !!debouncedQuery,
+    staleTime: 60 * 1000,
+  })
+
+  const isSearching =
+    (query.trim() !== '' && query.trim() !== debouncedQuery) || isFetching
+
+  // Hydrate stores for likes and follows when search results arrive
+  useEffect(() => {
+    if (!results) return
+    if (results.songs.length > 0) {
+      useLikesStore.getState().hydrateSongs(results.songs)
+    }
+    if (results.albums.length > 0) {
+      useLikesStore.getState().hydrateAlbums(results.albums)
+    }
+    if (results.artists.length > 0) {
+      useFollowsStore.getState().hydrateArtists(
+        results.artists.map((a) => ({
+          id: a.id,
+          userId: '',
+          stageName: a.stageName,
+          slug: a.slug,
+          avatarUrl: a.avatarUrl,
+          bannerUrl: a.bannerUrl,
+          verified: a.verified,
+          monthlyListeners: a.monthlyListeners,
+        })),
+      )
+    }
+  }, [results])
 
   const toPlayerTrackFromSearch = (song: SearchSongItem): PlayerTrack => ({
     id: song.id,
@@ -288,6 +293,7 @@ function SearchPageComponent() {
               type="button"
               onClick={() => {
                 setQuery('')
+                setDebouncedQuery('')
                 inputRef.current?.focus()
               }}
               className="mr-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
@@ -340,7 +346,7 @@ function SearchPageComponent() {
       {/* ===================== EMPTY QUERY STATE: DISCOVERY HUB ===================== */}
       {!query.trim() && (
         <div className="space-y-8 py-6 animate-in fade-in duration-150">
-          {/* Genre & Style Pills */}
+          {/* Genre & Style Pills
           <div>
             <h3 className="font-serif italic font-semibold text-lg text-ink mb-3">
               Explore by Style &amp; Genre
@@ -357,7 +363,7 @@ function SearchPageComponent() {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Catalog Hub Portals */}
           <div>
@@ -481,12 +487,16 @@ function SearchPageComponent() {
             No results found for &ldquo;{query}&rdquo;
           </div>
           <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto leading-relaxed">
-            Please check your spelling or search by an artist name, song title, album title, or curator.
+            Please check your spelling or search by an artist name, song title,
+            album title, or curator.
           </p>
           <div className="mt-4">
             <button
               type="button"
-              onClick={() => setQuery('')}
+              onClick={() => {
+                setQuery('')
+                setDebouncedQuery('')
+              }}
               className="font-mono text-[10.5px] uppercase tracking-wider px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer rounded-full"
             >
               Clear Query
@@ -640,7 +650,9 @@ function SearchPageComponent() {
                       >
                         <HeartIconSVG
                           className="w-4 h-4"
-                          filled={isSongLiked((results.topResult.item as any).id)}
+                          filled={isSongLiked(
+                            (results.topResult.item as any).id,
+                          )}
                         />
                       </button>
 
@@ -822,7 +834,9 @@ function SearchPageComponent() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
-                        (results.topResult.item as any).displayName[0]?.toUpperCase()
+                        (
+                          results.topResult.item as any
+                        ).displayName[0]?.toUpperCase()
                       )}
                     </Link>
 
@@ -995,15 +1009,16 @@ function SearchPageComponent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  {activeCategory === 'all' && results.playlists.length >= 6 && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveCategory('playlists')}
-                      className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
-                    >
-                      Filter tracks &rarr;
-                    </button>
-                  )}
+                  {activeCategory === 'all' &&
+                    results.playlists.length >= 6 && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveCategory('playlists')}
+                        className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                      >
+                        Filter tracks &rarr;
+                      </button>
+                    )}
                   <Link
                     to="/playlists"
                     search={{ search: query.trim() || undefined }}
@@ -1017,7 +1032,8 @@ function SearchPageComponent() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.playlists.map((playlist) => {
                   const mosaicCovers =
-                    (playlist as any).mosaicCoverUrls || (playlist as any).mosaicCovers
+                    (playlist as any).mosaicCoverUrls ||
+                    (playlist as any).mosaicCovers
                   return (
                     <MediaTile
                       key={playlist.id}
@@ -1074,7 +1090,9 @@ function SearchPageComponent() {
                     title={user.displayName}
                     subtitle={user.role}
                     imageUrl={user.avatarUrl}
-                    fallbackInitials={user.displayName.slice(0, 2).toUpperCase()}
+                    fallbackInitials={user.displayName
+                      .slice(0, 2)
+                      .toUpperCase()}
                     isRoundImage={true}
                   />
                 ))}
