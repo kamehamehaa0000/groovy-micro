@@ -138,7 +138,8 @@ export class CacheManager {
     if (input.artistId) {
       keysToDelete.push(
         cacheKeys.catalog.artist(input.artistId),
-        cacheKeys.catalog.artistAlbumsTag(input.artistId)
+        cacheKeys.catalog.artistAlbumsTag(input.artistId),
+        cacheKeys.catalog.artistOverview(input.artistId)
       );
     }
 
@@ -163,7 +164,10 @@ export class CacheManager {
       keysToDelete.push(cacheKeys.catalog.albumSlug(input.albumSlug));
     }
     if (input.artistId) {
-      keysToDelete.push(cacheKeys.catalog.artist(input.artistId));
+      keysToDelete.push(
+        cacheKeys.catalog.artist(input.artistId),
+        cacheKeys.catalog.artistOverview(input.artistId)
+      );
     }
 
     await this.invalidate(...keysToDelete);

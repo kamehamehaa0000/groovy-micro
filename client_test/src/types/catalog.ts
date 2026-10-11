@@ -205,15 +205,32 @@ export interface Album {
   updatedAt?: string;
 }
 
+export interface SiblingRelease {
+  id: string;
+  title: string;
+  slug: string;
+  albumType: AlbumType;
+  coverImageUrl: string;
+  releaseDate: string;
+  totalTracks: number;
+  artistStageName: string;
+  artistSlug: string;
+}
+
 export interface AlbumDetail extends Album {
+  artistUserId?: string;
+  uploaderUserId?: string;
   artistStageName: string;
   artistSlug: string;
   artistVerified: boolean;
   artistBannerUrl?: string | null;
+  artistAvatarUrl?: string | null;
+  isOwner?: boolean;
   isLiked?: boolean;
   isUpcoming?: boolean;
   isPreSaved?: boolean;
   tracks: EnrichedSong[];
+  moreByArtist?: SiblingRelease[];
 }
 
 export interface PreSavedRelease {

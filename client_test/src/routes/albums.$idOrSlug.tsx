@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
-import { artistsApi } from '../lib/artists.api'
 import type { AlbumDetail, EnrichedSong } from '../types/catalog'
 import {
   VerifiedBadgeSVG,
@@ -34,6 +34,25 @@ function AlbumDetailComponent() {
   const { shareToken } = Route.useSearch()
   const { isAuthenticated, user } = useAuthStore()
 
+  const queryClient = useQueryClient()
+  const queryKey = useMemo(
+    () => ['album', idOrSlug, shareToken, user?.id],
+    [idOrSlug, shareToken, user?.id],
+  )
+
+  const {
+    data: album,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: () => catalogApi.getAlbum(idOrSlug, shareToken),
+    staleTime: 60 * 1000,
+  })
+
+  // Fast ownership check directly from album payload: 0 extra network calls!
+  const isCreator = user?.role === 'ADMIN' || Boolean(album?.isOwner)
+
   // High-performance client-side likes store
   const likedAlbumIds = useLikesStore((s) => s.likedAlbumIds)
   const toggleAlbumLike = useLikesStore((s) => s.toggleAlbumLike)
@@ -44,11 +63,6 @@ function AlbumDetailComponent() {
   const preSavedAlbumIds = usePreSavesStore((s) => s.preSavedAlbumIds)
   const togglePreSaveStore = usePreSavesStore((s) => s.togglePreSave)
   const hydratePreSavedAlbums = usePreSavesStore((s) => s.hydrateAlbums)
-
-  const [album, setAlbum] = useState<AlbumDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [isCreator, setIsCreator] = useState(false)
 
   // Likes state
   const isLiked = album ? likedAlbumIds.has(album.id) : false
@@ -67,6 +81,24 @@ function AlbumDetailComponent() {
 
   // Share feedback
   const [copiedLink, setCopiedLink] = useState(false)
+
+  // Sync likes and pre-saves count & hydrate global stores when album updates
+  useEffect(() => {
+    if (!album) return
+
+    setLikesCount(album.likesCount ?? 0)
+    setPreSavesCount(album.preSavesCount ?? 0)
+
+    if (album.isLiked) {
+      hydrateAlbums([{ id: album.id, isLiked: true }])
+    }
+    if (album.isPreSaved) {
+      hydratePreSavedAlbums([{ id: album.id, isPreSaved: true }])
+    }
+    if (album.tracks?.length) {
+      hydrateSongs(album.tracks)
+    }
+  }, [album, hydrateAlbums, hydratePreSavedAlbums, hydrateSongs])
 
   // Live drop countdown timer
   const [timeLeft, setTimeLeft] = useState<{
@@ -90,17 +122,7 @@ function AlbumDetailComponent() {
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, totalMs: 0 })
         // Auto-refresh album to unlock playback upon drop
-        catalogApi
-          .getAlbum(idOrSlug, shareToken)
-          .then((data) => {
-            setAlbum(data)
-            setLikesCount(data.likesCount ?? 0)
-            setPreSavesCount(data.preSavesCount ?? 0)
-            if (data.isLiked) {
-              hydrateAlbums([{ id: data.id, isLiked: true }])
-            }
-          })
-          .catch(() => {})
+        queryClient.invalidateQueries({ queryKey })
         return
       }
 
@@ -114,66 +136,7 @@ function AlbumDetailComponent() {
     updateTimer()
     const interval = setInterval(updateTimer, 1000)
     return () => clearInterval(interval)
-  }, [album?.isUpcoming, album?.scheduledReleaseAt, idOrSlug, shareToken])
-
-  // Check creator / artist privileges for governance
-  useEffect(() => {
-    if (!isAuthenticated || !user || !album) {
-      setIsCreator(false)
-      return
-    }
-    if (user.role === 'ADMIN') {
-      setIsCreator(true)
-      return
-    }
-    if (user.role === 'ARTIST') {
-      artistsApi
-        .getMyProfile()
-        .then((p) => {
-          if (p && p.id === album.artistId) {
-            setIsCreator(true)
-          }
-        })
-        .catch(() => setIsCreator(false))
-    }
-  }, [user, album, isAuthenticated])
-
-  useEffect(() => {
-    let isMounted = true
-    setIsLoading(true)
-    setErrorMsg(null)
-
-    catalogApi
-      .getAlbum(idOrSlug, shareToken)
-      .then((data) => {
-        if (!isMounted) return
-        setAlbum(data)
-        setLikesCount(data.likesCount ?? 0)
-        setPreSavesCount(data.preSavesCount ?? 0)
-
-        // Hydrate global likes store
-        if (data.isLiked) {
-          hydrateAlbums([{ id: data.id, isLiked: true }])
-        }
-        if (data.isPreSaved) {
-          hydratePreSavedAlbums([{ id: data.id, isPreSaved: true }])
-        }
-        if (data.tracks?.length) {
-          hydrateSongs(data.tracks)
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return
-        setErrorMsg(err.message || 'Failed to load album details')
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false)
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [idOrSlug, shareToken, hydrateAlbums, hydrateSongs])
+  }, [album?.isUpcoming, album?.scheduledReleaseAt, queryClient, queryKey])
 
   const handleToggleAlbumLike = async () => {
     if (!isAuthenticated) {
@@ -191,16 +154,41 @@ function AlbumDetailComponent() {
     setIsLikeLoading(true)
     const prevLiked = isLiked
     const prevCount = likesCount
+    const nextCount = prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1
 
-    // Optimistically update count
-    setLikesCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1)
+    // Optimistically update count in local state and React Query cache
+    setLikesCount(nextCount)
+    queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+      if (!old) return old
+      return {
+        ...old,
+        likesCount: nextCount,
+        isLiked: !prevLiked,
+      }
+    })
 
     try {
       const res = await toggleAlbumLike(album.id)
       setLikesCount(res.likesCount)
+      queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          likesCount: res.likesCount,
+          isLiked: res.liked,
+        }
+      })
     } catch (err: any) {
       // Revert count on error
       setLikesCount(prevCount)
+      queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          likesCount: prevCount,
+          isLiked: prevLiked,
+        }
+      })
       alert(err.message || 'Could not update like status')
     } finally {
       setIsLikeLoading(false)
@@ -223,18 +211,41 @@ function AlbumDetailComponent() {
     setIsPreSaveLoading(true)
     const prevCount = preSavesCount
     const willBePreSaved = !isPreSaved
+    const nextCount = willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1)
 
-    // Optimistic count update (Zustand store instantly updates preSavedAlbumIds Set)
-    setPreSavesCount(
-      willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1),
-    )
+    // Optimistic count update in local state and React Query cache
+    setPreSavesCount(nextCount)
+    queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+      if (!old) return old
+      return {
+        ...old,
+        preSavesCount: nextCount,
+        isPreSaved: willBePreSaved,
+      }
+    })
 
     try {
       const res = await togglePreSaveStore(album.id)
       setPreSavesCount(res.preSavesCount)
+      queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          preSavesCount: res.preSavesCount,
+          isPreSaved: res.preSaved,
+        }
+      })
     } catch (err: any) {
-      // Rollback count (store handles preSavedAlbumIds rollback)
+      // Rollback count on error
       setPreSavesCount(prevCount)
+      queryClient.setQueryData<AlbumDetail>(queryKey, (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          preSavesCount: prevCount,
+          isPreSaved: !willBePreSaved,
+        }
+      })
       alert(err.message || 'Could not update pre-save status')
     } finally {
       setIsPreSaveLoading(false)
@@ -343,7 +354,7 @@ function AlbumDetailComponent() {
     )
   }
 
-  if (errorMsg || !album) {
+  if (queryError || !album) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">
@@ -731,6 +742,65 @@ function AlbumDetailComponent() {
             </div>
           )}
         </div>
+
+        {/* Sibling Releases: More by this Artist */}
+        {album.moreByArtist && album.moreByArtist.length > 0 && (
+          <div className="space-y-4 px-1 mt-10 pt-8 border-t border-line">
+            <div className="flex justify-between items-baseline border-b border-line pb-2">
+              <h2 className="font-serif italic text-xl sm:text-2xl text-ink font-semibold">
+                More by {album.artistStageName}
+              </h2>
+              <Link
+                to="/artists/$idOrSlug"
+                params={{ idOrSlug: album.artistSlug || album.artistId }}
+                className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-blue hover:underline"
+              >
+                View Discography &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+              {album.moreByArtist.map((sibling) => (
+                <Link
+                  key={sibling.id}
+                  to="/albums/$idOrSlug"
+                  params={{ idOrSlug: sibling.slug || sibling.id }}
+                  className="group block space-y-2"
+                >
+                  <div className="aspect-square w-full rounded bg-canvas-deep border border-line overflow-hidden relative shadow-2xs group-hover:border-blue/50 transition-colors">
+                    {sibling.coverImageUrl ? (
+                      <img
+                        src={sibling.coverImageUrl}
+                        alt={sibling.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <ProceduralCover
+                        size="md"
+                        title={sibling.title}
+                        artistName={sibling.artistStageName}
+                        className="w-full h-full text-lg"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-serif text-xs font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                      {sibling.title}
+                    </h4>
+                    <div className="flex items-center gap-1.5 font-mono text-[9px] text-ink-soft uppercase tracking-wider mt-0.5">
+                      <span>{sibling.albumType}</span>
+                      {sibling.releaseDate && (
+                        <>
+                          <span>&bull;</span>
+                          <span>{new Date(sibling.releaseDate).getFullYear()}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Nested Comments Subsystem */}
         <CommentSection

@@ -1,5 +1,6 @@
 import {
   eq,
+  ne,
   sql,
   and,
   or,
@@ -593,10 +594,41 @@ export class CatalogService {
           0
         );
 
+        let moreByArtist: any[] = [];
+        if (album.scope === "GLOBAL" && album.artistId) {
+          moreByArtist = await db
+            .select({
+              id: albums.id,
+              title: albums.title,
+              slug: albums.slug,
+              albumType: albums.albumType,
+              coverImageUrl: albums.coverImageUrl,
+              releaseDate: albums.releaseDate,
+              totalTracks: albums.totalTracks,
+              artistStageName: artistProfiles.stageName,
+              artistSlug: artistProfiles.slug,
+            })
+            .from(albums)
+            .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+            .where(
+              and(
+                eq(albums.artistId, album.artistId),
+                ne(albums.id, album.id),
+                eq(albums.scope, "GLOBAL"),
+                eq(albums.visibility, "PUBLIC"),
+                eq(albums.status, "PUBLISHED"),
+                isNull(albums.deletedAt)
+              )
+            )
+            .orderBy(desc(albums.releaseDate), desc(albums.createdAt))
+            .limit(6);
+        }
+
         const result = {
           ...album,
           totalPlays,
           tracks: tracksWithCredits,
+          moreByArtist,
         };
 
         // Warm secondary lookup key (if queried by slug, warm ID; if queried by ID, warm slug)
@@ -693,6 +725,7 @@ export class CatalogService {
       isUpcoming,
       isLiked,
       isPreSaved,
+      isOwner,
       tracks: enrichedTracks,
     };
   }

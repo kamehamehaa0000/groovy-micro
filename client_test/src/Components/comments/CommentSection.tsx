@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { CommentSort, EnrichedComment } from "../../types/comment";
 import { commentsApi } from "../../lib/comments.api";
 import { useAuthStore } from "../../stores/auth.store";
@@ -26,6 +26,9 @@ export function CommentSection({
   targetId,
   allowComments: initialAllowComments = true,
 }: CommentSectionProps) {
+  const containerRef = useRef<HTMLElement>(null);
+  const [hasEnteredViewport, setHasEnteredViewport] = useState(false);
+
   const { isAuthenticated } = useAuthStore();
   const hydrateVotes = useCommentVotesStore((s) => s.hydrateVotes);
   const fetchMyVotes = useCommentVotesStore((s) => s.fetchMyVotes);
@@ -41,6 +44,31 @@ export function CommentSection({
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Viewport intersection observer: delays network fetch until near viewport (350px margin)
+  useEffect(() => {
+    if (hasEnteredViewport) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setHasEnteredViewport(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasEnteredViewport(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "350px" }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasEnteredViewport]);
 
   // Fetch comments
   const loadComments = useCallback(
@@ -88,17 +116,19 @@ export function CommentSection({
     [targetType, targetId, hydrateVotes]
   );
 
-  // Initial load or targetId / sort change
+  // Initial load or targetId / sort change (only when entered viewport)
   useEffect(() => {
+    if (!hasEnteredViewport) return;
     loadComments(sort, 1, false);
-  }, [targetId, sort, loadComments]);
+  }, [targetId, sort, loadComments, hasEnteredViewport]);
 
-  // Sync current user's votes from Redis hash (<1ms) if authenticated
+  // Sync current user's votes from Redis hash (<1ms) if authenticated (only when entered viewport)
   useEffect(() => {
+    if (!hasEnteredViewport) return;
     if (isAuthenticated && !isVotesInitialized) {
       fetchMyVotes();
     }
-  }, [isAuthenticated, isVotesInitialized, fetchMyVotes]);
+  }, [isAuthenticated, isVotesInitialized, fetchMyVotes, hasEnteredViewport]);
 
   // Handle Sort Change
   const handleSortChange = (newSort: CommentSort) => {
@@ -173,7 +203,7 @@ export function CommentSection({
   };
 
   return (
-    <section aria-label="Comments" className="w-full mt-10 pt-8 border-t border-line">
+    <section ref={containerRef} aria-label="Comments" className="w-full mt-10 pt-8 border-t border-line">
       {/* Section Header: Title, Count, and Sort Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-3">
