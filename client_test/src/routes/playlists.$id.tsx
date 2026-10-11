@@ -4,7 +4,8 @@ import {
   useNavigate,
   useSearch,
 } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { playlistsApi } from '../lib/playlists.api'
 import { catalogApi } from '../lib/catalog.api'
 import type { PlaylistDetail, PlaylistTrack } from '../types/playlist'
@@ -63,9 +64,6 @@ function PlaylistDetailComponent() {
     usePlaylistsStore()
   const { currentTrack, playTrack, togglePlay } = usePlayerStore()
 
-  const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Interaction feedback states
   const [copiedLink, setCopiedLink] = useState(false)
@@ -130,39 +128,39 @@ function PlaylistDetailComponent() {
   // Collaboration management
   const [isUpdatingCollab, setIsUpdatingCollab] = useState(false)
 
-  // Load Playlist details
-  const fetchPlaylist = async () => {
-    setIsLoading(true)
-    setErrorMsg(null)
-    try {
-      if (id === 'liked') {
-        navigate({ to: '/liked', replace: true })
-        return
-      }
-
-      const data = await playlistsApi.getPlaylistById(
-        id,
-        shareToken,
-        collabToken,
-      )
-      setPlaylist(data)
-      setEditTitle(data.title)
-      setEditDescription(data.description || '')
-      setEditCoverUrl(data.coverImageUrl || null)
-      setEditVisibility(data.visibility)
-      setEditAllowDuplicates(data.allowDuplicates)
-      setEditAllowComments(data.allowComments ?? true)
-      hydratePlaylists([data])
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to load playlist')
-    } finally {
-      setIsLoading(false)
+  useEffect(() => {
+    if (id === 'liked') {
+      navigate({ to: '/liked', replace: true })
     }
-  }
+  }, [id, navigate])
+
+  const queryClient = useQueryClient()
+  const queryKey = useMemo(
+    () => ['playlist', id, shareToken, collabToken, user?.id],
+    [id, shareToken, collabToken, user?.id],
+  )
+
+  const {
+    data: playlist,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: () => playlistsApi.getPlaylistById(id, shareToken, collabToken),
+    enabled: id !== 'liked',
+    staleTime: 60 * 1000,
+  })
 
   useEffect(() => {
-    fetchPlaylist()
-  }, [id, shareToken, collabToken, isAuthenticated])
+    if (!playlist) return
+    setEditTitle(playlist.title)
+    setEditDescription(playlist.description || '')
+    setEditCoverUrl(playlist.coverImageUrl || null)
+    setEditVisibility(playlist.visibility)
+    setEditAllowDuplicates(playlist.allowDuplicates)
+    setEditAllowComments(playlist.allowComments ?? true)
+    hydratePlaylists([playlist])
+  }, [playlist, hydratePlaylists])
 
   const toPlayerTrack = (track: PlaylistTrack): PlayerTrack => {
     const song = track.song || (track as any)
@@ -250,10 +248,10 @@ function PlaylistDetailComponent() {
 
     try {
       const res = await toggleSavePlaylist(playlist.id)
-      setPlaylist((prev) =>
+      queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
         prev
           ? { ...prev, savesCount: res.savesCount, isSaved: res.saved }
-          : null,
+          : prev,
       )
     } catch (err) {
       console.error('Failed to toggle playlist save:', err)
@@ -339,7 +337,7 @@ function PlaylistDetailComponent() {
         'success',
       )
       hydratePlaylists([{ id, isSaved: true }])
-      await fetchPlaylist()
+      await queryClient.invalidateQueries({ queryKey })
     } catch (err: any) {
       showToast(err.message || 'Failed to join collaboration', 'error')
     } finally {
@@ -359,7 +357,7 @@ function PlaylistDetailComponent() {
         await playlistsApi.enableCollaboration(playlist.id)
         showToast('Collaboration enabled', 'success')
       }
-      await fetchPlaylist()
+      await queryClient.invalidateQueries({ queryKey })
     } catch (err: any) {
       showToast(err.message || 'Failed to update collaboration', 'error')
     } finally {
@@ -380,7 +378,7 @@ function PlaylistDetailComponent() {
         setIsUpdatingCollab(true)
         try {
           await playlistsApi.regenerateCollaborationToken(playlist.id)
-          await fetchPlaylist()
+          await queryClient.invalidateQueries({ queryKey })
           showToast('Invite link regenerated', 'success')
         } catch (err: any) {
           showToast(err.message || 'Failed to regenerate invite link', 'error')
@@ -396,7 +394,7 @@ function PlaylistDetailComponent() {
     if (!playlist) return
     try {
       await playlistsApi.removeCollaborator(playlist.id, collaboratorUserId)
-      await fetchPlaylist()
+      await queryClient.invalidateQueries({ queryKey })
       showToast('Collaborator removed', 'info')
     } catch (err: any) {
       showToast(err.message || 'Failed to remove collaborator', 'error')
@@ -408,10 +406,10 @@ function PlaylistDetailComponent() {
     if (!playlist) return
     try {
       await playlistsApi.removeTrack(playlist.id, entryId)
-      setPlaylist((prev) =>
+      queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
         prev
           ? { ...prev, tracks: prev.tracks.filter((t) => t.id !== entryId) }
-          : null,
+          : prev,
       )
       showToast('Track removed from playlist', 'info')
     } catch (err: any) {
@@ -431,7 +429,9 @@ function PlaylistDetailComponent() {
 
     // Optimistic sequential position update
     const reorderedTracks = newTracks.map((t, idx) => ({ ...t, position: idx }))
-    setPlaylist((prev) => (prev ? { ...prev, tracks: reorderedTracks } : null))
+    queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
+      prev ? { ...prev, tracks: reorderedTracks } : prev,
+    )
 
     try {
       const orderedEntryIds = reorderedTracks.map(
@@ -440,7 +440,7 @@ function PlaylistDetailComponent() {
       await playlistsApi.reorderTracks(playlist.id, orderedEntryIds)
     } catch (err: any) {
       showToast(err.message || 'Failed to reorder tracks', 'error')
-      await fetchPlaylist()
+      await queryClient.invalidateQueries({ queryKey })
     }
   }
 
@@ -480,7 +480,7 @@ function PlaylistDetailComponent() {
       setIsAddTracksModalOpen(false)
       setSelectedSongIds([])
       setSongSearchQuery('')
-      await fetchPlaylist()
+      await queryClient.invalidateQueries({ queryKey })
       showToast('Track(s) added successfully', 'success')
     } catch (err: any) {
       setAddTrackError(err.message || 'Failed to add tracks')
@@ -510,8 +510,8 @@ function PlaylistDetailComponent() {
       await playlistsApi.updatePlaylist(playlist.id, {
         coverImageUrl: publicUrl,
       })
-      setPlaylist((prev) =>
-        prev ? { ...prev, coverImageUrl: publicUrl } : null,
+      queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
+        prev ? { ...prev, coverImageUrl: publicUrl } : prev,
       )
       setEditCoverUrl(publicUrl)
       showToast('Playlist artwork updated!', 'success')
@@ -529,7 +529,9 @@ function PlaylistDetailComponent() {
     if (!playlist) return
     try {
       await playlistsApi.updatePlaylist(playlist.id, { coverImageUrl: null })
-      setPlaylist((prev) => (prev ? { ...prev, coverImageUrl: null } : null))
+      queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
+        prev ? { ...prev, coverImageUrl: null } : prev,
+      )
       setEditCoverUrl(null)
       showToast('Reverted to dynamic track mosaic', 'info')
     } catch (err: any) {
@@ -552,7 +554,9 @@ function PlaylistDetailComponent() {
         allowDuplicates: editAllowDuplicates,
         allowComments: editAllowComments,
       })
-      setPlaylist((prev) => (prev ? { ...prev, ...updated } : null))
+      queryClient.setQueryData<PlaylistDetail>(queryKey, (prev) =>
+        prev ? { ...prev, ...updated } : prev,
+      )
       setIsSettingsModalOpen(false)
       showToast('Playlist settings updated', 'success')
     } catch (err: any) {
@@ -576,6 +580,7 @@ function PlaylistDetailComponent() {
           await playlistsApi.deletePlaylist(playlist.id)
           useLibraryStore.getState().removePlaylist(playlist.id)
           useLibraryStore.getState().invalidate()
+          queryClient.removeQueries({ queryKey })
           navigate({ to: '/library' })
         } catch (err: any) {
           showToast(err.message || 'Failed to delete playlist', 'error')
@@ -583,6 +588,8 @@ function PlaylistDetailComponent() {
       },
     })
   }
+
+  const errorMessage = queryError instanceof Error ? queryError.message : null
 
   if (isLoading) {
     return (
@@ -592,7 +599,7 @@ function PlaylistDetailComponent() {
     )
   }
 
-  if (errorMsg || !playlist) {
+  if (errorMessage || !playlist) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">
@@ -602,7 +609,7 @@ function PlaylistDetailComponent() {
           Playlist Not Found
         </h1>
         <p className="font-sans text-xs text-ink-soft mt-3 leading-relaxed">
-          {errorMsg ||
+          {errorMessage ||
             'The requested playlist could not be located in the archive.'}
         </p>
         <Link

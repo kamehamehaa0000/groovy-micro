@@ -305,24 +305,10 @@ export class PlaylistsService {
     const { playlist, trackRows, collaborators } = cachedData;
 
     const isOwner = currentUserId === playlist.ownerId;
-    let isCollaborator = false;
-
-    if (currentUserId && !isOwner) {
-      isCollaborator = (collaborators ?? []).some((c: any) => c.userId === currentUserId);
-      if (!isCollaborator) {
-        const [collab] = await db
-          .select()
-          .from(playlistCollaborators)
-          .where(
-            and(
-              eq(playlistCollaborators.playlistId, playlistId),
-              eq(playlistCollaborators.userId, currentUserId)
-            )
-          )
-          .limit(1);
-        isCollaborator = !!collab;
-      }
-    }
+    const isCollaborator =
+      !isOwner && !!currentUserId
+        ? (collaborators ?? []).some((c: any) => c.userId === currentUserId)
+        : false;
 
     const hasValidCollabToken = !!(
       playlist.isCollaborative &&
