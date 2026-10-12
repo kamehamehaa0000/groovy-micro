@@ -324,7 +324,7 @@ export function ImageCropModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-line pb-2.5 sm:pb-3">
           <div className="pr-2 min-w-0">
-            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue block mb-0.5 truncate">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-0.5 truncate">
               {subtitle}
             </span>
             <h2 className="font-serif italic text-lg sm:text-xl text-ink truncate">
@@ -343,7 +343,7 @@ export function ImageCropModal({
         </div>
 
         {cropError && (
-          <div className="p-2.5 sm:p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[10.5px]">
+          <div className="p-2.5 sm:p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[11px]">
             {cropError}
           </div>
         )}
@@ -419,7 +419,7 @@ export function ImageCropModal({
         {/* Controls: Zoom & Reset */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 border-t border-line-soft">
           <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft shrink-0">
               Zoom:
             </span>
             <button
@@ -449,7 +449,7 @@ export function ImageCropModal({
             >
               +
             </button>
-            <span className="font-mono text-[10px] text-ink-soft w-8 text-right shrink-0">
+            <span className="font-mono text-[11px] text-ink-soft w-8 text-right shrink-0">
               {zoom.toFixed(1)}x
             </span>
           </div>
@@ -460,7 +460,7 @@ export function ImageCropModal({
               setZoom(1)
               setOffset({ x: 0, y: 0 })
             }}
-            className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-soft hover:text-ink border border-line py-1.5 px-3 bg-canvas hover:bg-canvas-deep cursor-pointer text-center shrink-0 self-end sm:self-auto"
+            className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink border border-line py-1.5 px-3 bg-canvas hover:bg-canvas-deep cursor-pointer text-center shrink-0 self-end sm:self-auto"
           >
             Reset Framing
           </button>
@@ -472,7 +472,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 sm:py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50 text-center"
+            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50 text-center"
           >
             Cancel
           </button>
@@ -480,7 +480,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting || !imageSize}
             onClick={handleConfirmCrop}
-            className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 sm:py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             {isSubmitting ? (
               <>

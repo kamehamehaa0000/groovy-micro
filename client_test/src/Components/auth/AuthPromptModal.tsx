@@ -66,7 +66,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
       >
         {/* Top rule / close */}
         <div className="flex items-center justify-between border-b border-line px-6 py-4 sm:px-8">
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
             Groovy / {activeSubtitle}
           </span>
 
@@ -96,14 +96,14 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
             <div className="font-serif text-[29px] italic leading-none tracking-[-0.04em] text-ink">
               Groovy
             </div>
-            <div className="mt-2 font-mono text-[8px] uppercase tracking-[0.26em] text-ink-soft">
+            <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
               Sound Atelier
             </div>
           </div>
 
           {/* Heading */}
           <div className="mb-7">
-            <div className="mb-4 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.2em] text-blue">
+            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-blue">
               <span className="h-px w-7 bg-blue"></span>
               {activeCategory}
             </div>
@@ -128,7 +128,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                 handleClose();
                 navigate({ to: "/login" });
               }}
-              className="group flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-canvas transition hover:bg-blue hover:border-blue cursor-pointer shadow-xs"
+              className="group flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-canvas transition hover:bg-blue hover:border-blue cursor-pointer shadow-xs"
             >
               <span>Log in</span>
               <svg
@@ -150,7 +150,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                 handleClose();
                 navigate({ to: "/register" });
               }}
-              className="group flex w-full items-center justify-between border border-line bg-transparent px-5 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-ink transition hover:border-blue hover:text-blue cursor-pointer"
+              className="group flex w-full items-center justify-between border border-line bg-transparent px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-ink transition hover:border-blue hover:text-blue cursor-pointer"
             >
               <span>Create account</span>
               <svg
@@ -169,7 +169,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
           {/* Fine print */}
           <div className="mt-7 border-t border-line pt-5">
-            <p className="font-mono text-[8px] uppercase leading-5 tracking-[0.12em] text-ink-soft">
+            <p className="font-mono text-[11px] uppercase leading-5 tracking-wider text-ink-soft">
               Free to join · High-fidelity streaming · Your library, everywhere
             </p>
           </div>
@@ -177,7 +177,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
         {/* Bottom metadata */}
         <div className="border-t border-line px-6 py-4 sm:px-8">
-          <div className="flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.16em] text-ink-soft">
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-ink-soft">
             <span>Authentication</span>
             <span>Groovy Music</span>
           </div>

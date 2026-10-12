@@ -202,10 +202,10 @@ export function MobileMiniPlayer() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-xs sm:text-[13px] text-ink dark:text-white truncate leading-tight">
+          <div className="font-semibold text-xs sm:text-sm text-ink dark:text-white truncate leading-tight">
             {currentTrack.title}
           </div>
-          <div className="text-[11px] text-ink-soft dark:text-neutral-400 truncate mt-0.5 leading-tight">
+          <div className="text-xs text-ink-soft dark:text-neutral-400 truncate mt-0.5 leading-tight">
             {currentTrack.artistName}
           </div>
         </div>

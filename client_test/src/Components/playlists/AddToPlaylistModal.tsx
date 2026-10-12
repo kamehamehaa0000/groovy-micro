@@ -117,11 +117,11 @@ export function AddToPlaylistModal() {
         <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
           <div>
             <h4 className="font-serif italic font-medium text-lg text-ink">Add to Playlist</h4>
-            <p className="font-mono text-[10px] text-ink-soft truncate max-w-[220px]">
+            <p className="font-mono text-[11px] text-ink-soft truncate max-w-[220px]">
               {track.title}
             </p>
             {isPersonalCut && (
-              <p className="mt-1 font-mono text-[9px] text-amber-600 dark:text-amber-400">
+              <p className="mt-1 font-mono text-[11px] text-amber-600 dark:text-amber-400">
                 🔒 Personal cut: private playlists only
               </p>
             )}
@@ -155,7 +155,7 @@ export function AddToPlaylistModal() {
                   closeModal();
                   openCreatePlaylistModal(trackIdToAdd);
                 }}
-                className="mt-3 font-mono text-[10px] uppercase tracking-wider py-1.5 px-3.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
+                className="mt-3 font-mono text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
               >
                 Create Playlist
               </button>
@@ -174,11 +174,11 @@ export function AddToPlaylistModal() {
                     <p className="font-medium text-xs text-ink group-hover:text-blue truncate">
                       {pl.title}
                     </p>
-                    <p className="font-mono text-[9.5px] text-ink-soft">
+                    <p className="font-mono text-[11px] text-ink-soft">
                       {pl.savesCount ?? 0} saves &bull; {pl.tracksCount ?? 0} tracks
                     </p>
                   </div>
-                  <span className="font-mono text-[10px] text-ink-soft group-hover:text-ink shrink-0">
+                  <span className="font-mono text-[11px] text-ink-soft group-hover:text-ink shrink-0">
                     {addingToPlaylistId === pl.id ? "Adding..." : "+ Add"}
                   </span>
                 </button>
@@ -191,7 +191,7 @@ export function AddToPlaylistModal() {
                     closeModal();
                     openCreatePlaylistModal(trackIdToAdd);
                   }}
-                  className="w-full font-mono text-[10px] uppercase tracking-wider py-2 px-3 border border-dashed border-line bg-canvas hover:border-ink text-ink cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
+                  className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-line bg-canvas hover:border-ink text-ink cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
                 >
                   <span>+</span>
                   <span>New Playlist</span>

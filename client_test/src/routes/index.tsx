@@ -73,7 +73,9 @@ function HomeComponent() {
       setIsLoadingCatalog(true)
       Promise.all([
         catalogApi.searchAlbums({ limit: 8 }).catch(() => null),
-        catalogApi.searchSongs({ orderBy: 'plays', limit: 10 }).catch(() => null),
+        catalogApi
+          .searchSongs({ orderBy: 'plays', limit: 10 })
+          .catch(() => null),
       ])
         .then(([albumRes, songRes]) => {
           if (!isMounted) return
@@ -133,7 +135,7 @@ function HomeComponent() {
     song: ScoredRecommendationTrack,
     contextTrackList: ScoredRecommendationTrack[],
     contextUri: string,
-    contextTitle: string
+    contextTitle: string,
   ) => {
     if (currentTrack?.id === song.id) {
       togglePlay()
@@ -149,7 +151,7 @@ function HomeComponent() {
       contextTracks,
       targetIdx >= 0 ? targetIdx : 0,
       contextUri,
-      contextTitle
+      contextTitle,
     )
   }
 
@@ -168,7 +170,7 @@ function HomeComponent() {
       contextTracks,
       0,
       `home:mix:${mix.seedSongId}`,
-      mix.title
+      mix.title,
     )
   }
 
@@ -193,18 +195,18 @@ function HomeComponent() {
       contextTracks,
       targetIdx >= 0 ? targetIdx : (index ?? 0),
       'home:curated',
-      'Curated Master Cuts'
+      'Curated Master Cuts',
     )
   }
 
   return (
-    <div className="space-y-10 px-4 py-4 max-w-7xl mx-auto">
+    <div className="space-y-6 px-2 py-4 max-w-7xl mx-auto">
       {/* ------------------------------------------------------------ */}
       {/* Editorial Hero Section (Unauthenticated Visitors)             */}
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
         <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-deep mb-3">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-3">
             Introduction · Meaning of groove
           </div>
           <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
@@ -219,13 +221,13 @@ function HomeComponent() {
           <div className="flex flex-wrap items-center gap-4 relative z-10">
             <Link
               to="/login"
-              className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
+              className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
             >
               Enter the collective &rarr;
             </Link>
             <Link
               to="/register"
-              className="border border-line bg-panel hover:bg-canvas-deep text-ink py-3 px-6 font-mono text-[11px] uppercase tracking-[0.12em] transition-all shadow-2xs"
+              className="border border-line bg-panel hover:bg-canvas-deep text-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider transition-all shadow-2xs"
             >
               Join the Collective
             </Link>
@@ -242,6 +244,59 @@ function HomeComponent() {
         <>
           {/* 1. Recently Played Shelf (Current one, kept untouched) */}
           <RecentlyPlayedShelf limit={12} />
+          {/* 4. Global Hits Matching Your Taste */}
+          {feed?.globalHits && feed.globalHits.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+                <div>
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                    Global Hits For You
+                  </h2>
+                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                    Trending cuts in your favorite genres
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                {feed.globalHits.map((track) => (
+                  <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
+                    <MediaTile
+                      to={track.albumSlug ? '/albums/$idOrSlug' : undefined}
+                      params={
+                        track.albumSlug
+                          ? { idOrSlug: track.albumSlug }
+                          : undefined
+                      }
+                      title={track.title}
+                      subtitle={track.artistStageName}
+                      imageUrl={track.coverImageUrl}
+                      artistName={track.artistStageName}
+                      onClick={
+                        !track.albumSlug
+                          ? () =>
+                              handlePlayScoredSong(
+                                track,
+                                feed.globalHits,
+                                'home:hits',
+                                'Global Hits For You',
+                              )
+                          : undefined
+                      }
+                      onPlay={() =>
+                        handlePlayScoredSong(
+                          track,
+                          feed.globalHits,
+                          'home:hits',
+                          'Global Hits For You',
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* 2. New Releases For You */}
           {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
@@ -255,14 +310,11 @@ function HomeComponent() {
                     Fresh albums & singles matching your sonic profile
                   </p>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
-                  New Drops
-                </span>
               </div>
 
               <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.newReleasesForYou.map((album) => (
-                  <div key={album.id} className="w-[140px] sm:w-[170px] shrink-0">
+                  <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: album.slug }}
@@ -277,7 +329,7 @@ function HomeComponent() {
             </section>
           )}
 
-          {/* 3. New Releases From Followed Artists (Release Radar) */}
+          {/* 2. New Releases From Followed Artists (Release Radar) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
             <section className="space-y-3">
               <div className="flex justify-between items-baseline border-b border-line pb-2.5">
@@ -289,14 +341,17 @@ function HomeComponent() {
                     New drops from artists you follow
                   </p>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-blue font-semibold shrink-0">
-                  Followed Roster
-                </span>
+                <Link
+                  to="/releases"
+                  className="font-mono text-[11px] hover:underline uppercase tracking-wider text-ink-soft shrink-0"
+                >
+                  Release Archive
+                </Link>
               </div>
 
               <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.artistRadar.map((album) => (
-                  <div key={album.id} className="w-[140px] sm:w-[170px] shrink-0">
+                  <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: album.slug }}
@@ -304,55 +359,6 @@ function HomeComponent() {
                       subtitle={`${album.artistStageName || 'Groovy Artist'} · ${album.albumType}`}
                       imageUrl={album.coverImageUrl}
                       artistName={album.artistStageName}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* 4. Global Hits Matching Your Taste */}
-          {feed?.globalHits && feed.globalHits.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
-                    Global Hits For You
-                  </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
-                    Trending cuts in your favorite genres
-                  </p>
-                </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
-                  Top Charts
-                </span>
-              </div>
-
-              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {feed.globalHits.map((track) => (
-                  <div key={track.id} className="w-[140px] sm:w-[170px] shrink-0">
-                    <MediaTile
-                      to={track.albumSlug ? "/albums/$idOrSlug" : undefined}
-                      params={track.albumSlug ? { idOrSlug: track.albumSlug } : undefined}
-                      title={track.title}
-                      subtitle={track.artistStageName}
-                      imageUrl={track.coverImageUrl}
-                      artistName={track.artistStageName}
-                      onClick={!track.albumSlug ? () =>
-                        handlePlayScoredSong(
-                          track,
-                          feed.globalHits,
-                          'home:hits',
-                          'Global Hits For You'
-                        ) : undefined}
-                      onPlay={() =>
-                        handlePlayScoredSong(
-                          track,
-                          feed.globalHits,
-                          'home:hits',
-                          'Global Hits For You'
-                        )
-                      }
                     />
                   </div>
                 ))}
@@ -371,17 +377,24 @@ function HomeComponent() {
                       Similar to {feed.similarArtists.seedArtist.stageName}
                     </h2>
                     <p className="font-sans text-xs text-ink-soft mt-0.5">
-                      Curated artists sharing soundscapes, energy, and subculture
+                      Curated artists sharing soundscapes, energy, and
+                      subculture
                     </p>
                   </div>
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
-                    Similar Artists
-                  </span>
+                  <Link
+                    to="/artists"
+                    className="font-mono hover:underline text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
+                  >
+                    Explore Artists
+                  </Link>
                 </div>
 
                 <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {feed.similarArtists.artists.map((artist) => (
-                    <div key={artist.id} className="w-[140px] sm:w-[170px] shrink-0 text-center">
+                    <div
+                      key={artist.id}
+                      className="w-35 sm:w-42.5 shrink-0 text-center"
+                    >
                       <MediaTile
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: artist.slug }}
@@ -390,14 +403,21 @@ function HomeComponent() {
                           <span className="flex items-center justify-center gap-1">
                             <span>{artist.primaryGenre || 'Artist'}</span>
                             {artist.verified && (
-                              <span className="text-blue font-bold text-[10px]" title="Verified Artist">✓</span>
+                              <span
+                                className="text-blue font-bold text-[11px]"
+                                title="Verified Artist"
+                              >
+                                ✓
+                              </span>
                             )}
                           </span>
                         }
                         imageUrl={artist.avatarUrl}
                         artistName={artist.stageName}
                         isRoundImage={true}
-                        fallbackInitials={artist.stageName.slice(0, 2).toUpperCase()}
+                        fallbackInitials={artist.stageName
+                          .slice(0, 2)
+                          .toUpperCase()}
                       />
                     </div>
                   ))}
@@ -419,34 +439,45 @@ function HomeComponent() {
                       Harmonic continuity matching your repeat spin
                     </p>
                   </div>
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
-                    Sonic Match
-                  </span>
+                  <Link
+                    to="/search"
+                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
+                  >
+                    Explore more
+                  </Link>
                 </div>
 
                 <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {feed.moreLikeSong.tracks.map((track) => (
-                    <div key={track.id} className="w-[140px] sm:w-[170px] shrink-0">
+                    <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
                       <MediaTile
-                        to={track.albumSlug ? "/albums/$idOrSlug" : undefined}
-                        params={track.albumSlug ? { idOrSlug: track.albumSlug } : undefined}
+                        to={track.albumSlug ? '/albums/$idOrSlug' : undefined}
+                        params={
+                          track.albumSlug
+                            ? { idOrSlug: track.albumSlug }
+                            : undefined
+                        }
                         title={track.title}
                         subtitle={track.artistStageName}
                         imageUrl={track.coverImageUrl}
                         artistName={track.artistStageName}
-                        onClick={!track.albumSlug ? () =>
-                          handlePlayScoredSong(
-                            track,
-                            feed.moreLikeSong!.tracks,
-                            `home:song:${feed.moreLikeSong!.seedSong!.id}`,
-                            `More Like "${feed.moreLikeSong!.seedSong!.title}"`
-                          ) : undefined}
+                        onClick={
+                          !track.albumSlug
+                            ? () =>
+                                handlePlayScoredSong(
+                                  track,
+                                  feed.moreLikeSong!.tracks,
+                                  `home:song:${feed.moreLikeSong!.seedSong!.id}`,
+                                  `More Like "${feed.moreLikeSong!.seedSong!.title}"`,
+                                )
+                            : undefined
+                        }
                         onPlay={() =>
                           handlePlayScoredSong(
                             track,
                             feed.moreLikeSong!.tracks,
                             `home:song:${feed.moreLikeSong!.seedSong!.id}`,
-                            `More Like "${feed.moreLikeSong!.seedSong!.title}"`
+                            `More Like "${feed.moreLikeSong!.seedSong!.title}"`,
                           )
                         }
                       />
@@ -455,7 +486,6 @@ function HomeComponent() {
                 </div>
               </section>
             )}
-
 
           {/* 7. My Saved or Created Playlists */}
           {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
@@ -469,14 +499,14 @@ function HomeComponent() {
                     Jump back into your personal and saved playlists
                   </p>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft shrink-0">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0">
                   Library
                 </span>
               </div>
 
               <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.userPlaylists.map((pl) => (
-                  <div key={pl.id} className="w-[140px] sm:w-[170px] shrink-0">
+                  <div key={pl.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
                       to="/playlists/$id"
                       params={{ id: pl.id }}
@@ -503,14 +533,11 @@ function HomeComponent() {
                     Infinite flow seeded from 5 diverse songs in your rotation
                   </p>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-blue font-semibold shrink-0">
-                  Infinite Mixes
-                </span>
               </div>
 
               <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.radioMixes.map((mix) => (
-                  <div key={mix.id} className="w-[160px] sm:w-[190px] shrink-0">
+                  <div key={mix.id} className="w-40 sm:w-47.5 shrink-0">
                     <MediaTile
                       to="/radio/$songId"
                       params={{ songId: mix.seedSongId }}
@@ -519,7 +546,7 @@ function HomeComponent() {
                       imageUrl={mix.coverImageUrl}
                       artistName={mix.seedArtistName}
                       badge={
-                        <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono tracking-wider uppercase bg-blue text-white font-bold shadow-xs">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono tracking-wider uppercase bg-ink/40 text-accent font-bold shadow-xs">
                           RADIO
                         </span>
                       }
@@ -553,7 +580,7 @@ function HomeComponent() {
                   Featured Master Releases
                 </h2>
               </div>
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                 Archive MMXXVI
               </span>
             </div>
@@ -591,7 +618,7 @@ function HomeComponent() {
               <h2 className="font-serif italic font-medium text-xl text-ink">
                 Correspondence Slip &bull; Master Recordings
               </h2>
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                 {liveSongs.length > 0
                   ? `${liveSongs.length} Master Works`
                   : '6 Showcase Works'}

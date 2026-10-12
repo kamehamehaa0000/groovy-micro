@@ -233,7 +233,7 @@ function UserProfileComponent() {
       <div className="mb-6">
         <Link
           to="/feed"
-          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors"
+          className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors"
         >
           <span>← Back to Community</span>
         </Link>
@@ -258,17 +258,17 @@ function UserProfileComponent() {
           {/* User Bio & Actions */}
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
-              <span className="bg-canvas border border-line text-ink-soft font-mono text-[9.5px] uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+              <span className="bg-canvas border border-line text-ink-soft font-mono text-[11px] uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                 {profile.role}
               </span>
               {profile.isPrivateAccount && (
-                <span className="flex items-center gap-1 bg-stone/20 text-ink-soft font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 bg-stone/20 text-ink-soft font-mono text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                   <LockIconSVG className="w-2.5 h-2.5" />
                   Private Account
                 </span>
               )}
               {relationship === "FRIENDS" && (
-                <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Mutual Friends
                 </span>
@@ -289,7 +289,7 @@ function UserProfileComponent() {
                 <span className="font-mono text-base sm:text-lg font-bold text-ink block">
                   {profile.followersCount}
                 </span>
-                <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   Followers
                 </span>
               </div>
@@ -298,7 +298,7 @@ function UserProfileComponent() {
                 <span className="font-mono text-base sm:text-lg font-bold text-ink block">
                   {profile.followingCount}
                 </span>
-                <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   Following
                 </span>
               </div>
@@ -307,7 +307,7 @@ function UserProfileComponent() {
                 <span className="font-mono text-base sm:text-lg font-bold text-ink block">
                   {profile.publicPlaylistsCount}
                 </span>
-                <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   Playlists
                 </span>
               </div>
@@ -466,7 +466,7 @@ function UserProfileComponent() {
               <div className="space-y-10">
                 {/* Created Playlists */}
                 <div>
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft mb-4">
+                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
                     Created by {profile.displayName} ({createdCount})
                   </h3>
 
@@ -494,7 +494,7 @@ function UserProfileComponent() {
                 {/* Saved Playlists */}
                 {savedPlaylistsCount > 0 && (
                   <div>
-                    <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft mb-4">
+                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
                       Saved Playlists ({savedPlaylistsCount})
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -521,7 +521,7 @@ function UserProfileComponent() {
                 {/* Upcoming Pre-saved Releases */}
                 {library.presavedReleases?.length > 0 && (
                   <div>
-                    <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-blue-deep dark:text-blue-400 mb-4">
+                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-4">
                       Pre-Saved Drops ({library.presavedReleases.length})
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -535,7 +535,7 @@ function UserProfileComponent() {
                           imageUrl={album.coverImageUrl}
                           artistName={album.artistName}
                           badge={
-                            <span className="bg-panel/90 backdrop-blur-md text-blue text-[8.5px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
+                            <span className="bg-panel/90 backdrop-blur-md text-blue text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
                               Pre-Saved
                             </span>
                           }
@@ -547,7 +547,7 @@ function UserProfileComponent() {
 
                 {/* Saved Albums */}
                 <div>
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft mb-4">
+                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
                     Saved Albums ({library.savedAlbums?.length || 0})
                   </h3>
 
@@ -577,7 +577,7 @@ function UserProfileComponent() {
             {/* TAB 3: LIKED SONGS */}
             {activeTab === "liked" && (
               <div>
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft mb-4">
+                <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
                   Recent Liked Songs ({library.likedSongs?.items?.length || 0})
                 </h3>
 

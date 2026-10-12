@@ -81,7 +81,7 @@ function AdminSubscriptionsDeskComponent() {
 
   if (isAuthLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
         Checking administrative clearance...
       </div>
     )
@@ -90,7 +90,7 @@ function AdminSubscriptionsDeskComponent() {
   if (user?.role !== 'ADMIN') {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-500 block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-red-500 block mb-2">
           403 Access Restricted
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -102,7 +102,7 @@ function AdminSubscriptionsDeskComponent() {
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
         >
           &larr; Return to Catalog
         </Link>
@@ -249,7 +249,7 @@ function AdminSubscriptionsDeskComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
               Groovy Administration
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -263,7 +263,7 @@ function AdminSubscriptionsDeskComponent() {
 
           <Link
             to="/admin/verification"
-            className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
+            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
           >
             Artist Verifications &rarr;
           </Link>
@@ -314,7 +314,7 @@ function AdminSubscriptionsDeskComponent() {
               <button
                 type="button"
                 onClick={handleOpenCreatePlan}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
               >
                 + New Subscription Plan
               </button>
@@ -322,7 +322,7 @@ function AdminSubscriptionsDeskComponent() {
               <button
                 type="button"
                 onClick={() => setIsCreateFeatureOpen(true)}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
               >
                 + Register New Feature
               </button>
@@ -360,11 +360,11 @@ function AdminSubscriptionsDeskComponent() {
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-blue font-semibold">
+                      <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-blue font-semibold">
                         {plan.id}
                       </span>
                       <span
-                        className={`font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border ${
+                        className={`font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border ${
                           plan.isActive
                             ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                             : 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
@@ -391,7 +391,7 @@ function AdminSubscriptionsDeskComponent() {
 
                     {/* Feature Matrix Breakdown */}
                     <div className="pt-3 border-t border-line-soft space-y-2">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
                         Assigned Capabilities
                       </span>
                       <div className="space-y-1.5 font-sans text-xs text-ink">
@@ -400,10 +400,10 @@ function AdminSubscriptionsDeskComponent() {
                             key={fKey}
                             className="flex items-center justify-between gap-2 py-0.5 border-b border-line-soft/40"
                           >
-                            <span className="font-mono text-[10.5px] text-ink-soft">
+                            <span className="font-mono text-[11px] text-ink-soft">
                               {fKey}
                             </span>
-                            <span className="font-mono text-[10.5px] font-semibold text-ink">
+                            <span className="font-mono text-[11px] font-semibold text-ink">
                               {typeof fVal === 'boolean'
                                 ? fVal
                                   ? '✓ Yes'
@@ -420,7 +420,7 @@ function AdminSubscriptionsDeskComponent() {
                     <button
                       type="button"
                       onClick={() => handleOpenEditPlan(plan)}
-                      className="w-full font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer text-center"
+                      className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer text-center"
                     >
                       Edit Plan &amp; Features
                     </button>
@@ -451,7 +451,7 @@ function AdminSubscriptionsDeskComponent() {
             <div className="overflow-x-auto">
               <table className="w-full text-left font-sans text-xs">
                 <thead>
-                  <tr className="border-b border-line font-mono text-[9.5px] uppercase tracking-wider text-ink-soft">
+                  <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                     <th className="py-2.5 px-3">Feature Key</th>
                     <th className="py-2.5 px-3">Display Name</th>
                     <th className="py-2.5 px-3">Type</th>
@@ -476,7 +476,7 @@ function AdminSubscriptionsDeskComponent() {
                         )}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 border border-line bg-canvas">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas">
                           {feat.valueType}
                         </span>
                       </td>
@@ -488,7 +488,7 @@ function AdminSubscriptionsDeskComponent() {
                       </td>
                       <td className="py-3 px-3">
                         <span
-                          className={`font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border ${
+                          className={`font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border ${
                             feat.isActive
                               ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                               : 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
@@ -501,7 +501,7 @@ function AdminSubscriptionsDeskComponent() {
                         <button
                           type="button"
                           onClick={() => handleToggleFeatureActive(feat)}
-                          className="font-mono text-[9.5px] uppercase tracking-wider py-1 px-2.5 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-line text-ink-soft hover:text-ink cursor-pointer"
                         >
                           {feat.isActive ? 'Deactivate' : 'Activate'}
                         </button>
@@ -521,7 +521,7 @@ function AdminSubscriptionsDeskComponent() {
           <div className="max-w-lg w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-5 my-auto">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
                   Catalog Registry
                 </span>
                 <h3 className="font-serif italic text-2xl text-ink">
@@ -539,7 +539,7 @@ function AdminSubscriptionsDeskComponent() {
 
             <form onSubmit={handleCreateFeature} className="space-y-4">
               <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                   Feature Key <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -550,13 +550,13 @@ function AdminSubscriptionsDeskComponent() {
                   placeholder="e.g. stems_download, spatial_audio"
                   className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
                 />
-                <p className="font-mono text-[9px] text-ink-soft mt-1">
+                <p className="font-mono text-[11px] text-ink-soft mt-1">
                   Unique programmatic identifier checked by requireEntitlement(key).
                 </p>
               </div>
 
               <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                   Display Label <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -570,7 +570,7 @@ function AdminSubscriptionsDeskComponent() {
               </div>
 
               <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                   Description / Marketing Copy
                 </label>
                 <textarea
@@ -584,7 +584,7 @@ function AdminSubscriptionsDeskComponent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Value Type
                   </label>
                   <select
@@ -598,7 +598,7 @@ function AdminSubscriptionsDeskComponent() {
                 </div>
 
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Category
                   </label>
                   <input
@@ -612,7 +612,7 @@ function AdminSubscriptionsDeskComponent() {
               </div>
 
               <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                   Default Value (Fallback for Unassigned Plans)
                 </label>
                 {newFeatureType === 'BOOLEAN' ? (
@@ -640,14 +640,14 @@ function AdminSubscriptionsDeskComponent() {
                 <button
                   type="button"
                   onClick={() => setIsCreateFeatureOpen(false)}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeature}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
                 >
                   {isSubmittingFeature ? 'Registering...' : '✦ Register Feature'}
                 </button>
@@ -663,7 +663,7 @@ function AdminSubscriptionsDeskComponent() {
           <div className="max-w-2xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-5 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
                   Plan Configuration
                 </span>
                 <h3 className="font-serif italic text-2xl text-ink">
@@ -682,7 +682,7 @@ function AdminSubscriptionsDeskComponent() {
             <form onSubmit={handleSavePlan} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Plan ID <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -697,7 +697,7 @@ function AdminSubscriptionsDeskComponent() {
                 </div>
 
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Plan Display Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -713,7 +713,7 @@ function AdminSubscriptionsDeskComponent() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Price (USD)
                   </label>
                   <input
@@ -727,7 +727,7 @@ function AdminSubscriptionsDeskComponent() {
                 </div>
 
                 <div>
-                  <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
                     Billing Interval
                   </label>
                   <select
@@ -744,7 +744,7 @@ function AdminSubscriptionsDeskComponent() {
 
               {/* Dynamic Feature Assignment Checkboxes */}
               <div className="pt-3 border-t border-line-soft space-y-3">
-                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink block">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink block">
                   Assign Dynamic Feature Entitlements
                 </span>
                 <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
@@ -757,7 +757,7 @@ function AdminSubscriptionsDeskComponent() {
                         <div className="font-serif italic text-sm text-ink">
                           {feat.name}
                         </div>
-                        <div className="font-mono text-[9px] text-ink-soft">
+                        <div className="font-mono text-[11px] text-ink-soft">
                           key: {feat.key} &bull; category: {feat.category}
                         </div>
                       </div>
@@ -770,7 +770,7 @@ function AdminSubscriptionsDeskComponent() {
                               checked={Boolean(planFormFeatures[feat.key])}
                               onChange={(e) =>
                                 setPlanFormFeatures({
-                                  ...planFormFeatures,
+                                   ...planFormFeatures,
                                   [feat.key]: e.target.checked,
                                 })
                               }
@@ -779,7 +779,7 @@ function AdminSubscriptionsDeskComponent() {
                           </label>
                         ) : (
                           <div className="flex items-center gap-1.5 font-mono text-xs">
-                            <span className="text-ink-soft text-[10px]">Limit:</span>
+                            <span className="text-ink-soft text-[11px]">Limit:</span>
                             <input
                               type="number"
                               value={Number(planFormFeatures[feat.key] ?? feat.defaultValue)}
@@ -803,14 +803,14 @@ function AdminSubscriptionsDeskComponent() {
                 <button
                   type="button"
                   onClick={() => setIsPlanModalOpen(false)}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPlan}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
                 >
                   {isSubmittingPlan ? 'Saving Plan...' : '✦ Save Plan'}
                 </button>

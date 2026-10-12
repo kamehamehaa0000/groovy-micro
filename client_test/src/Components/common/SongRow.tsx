@@ -357,7 +357,7 @@ export const SongRow = memo(function SongRow({
       {/* Swipe Left: Reveal "Add to Queue" (Blue accent on the right) */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-blue flex items-center justify-center gap-1.5 text-white font-mono text-[10px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 right-0 w-24 bg-blue flex items-center justify-center gap-1.5 text-white font-mono text-[11px] uppercase tracking-wider transition-opacity ${
             swipeOffset < -20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -382,7 +382,7 @@ export const SongRow = memo(function SongRow({
       {/* Swipe Right: Reveal "Add to Playlist" (Emerald accent on the left) */}
       {canSwipeRight && (
         <div
-          className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-mono text-[10px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-mono text-[11px] uppercase tracking-wider transition-opacity ${
             swipeOffset > 20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -459,7 +459,7 @@ export const SongRow = memo(function SongRow({
                   size="sm"
                   title={track.title}
                   artistName={track.artistName}
-                  className="w-full h-full text-[10px]"
+                  className="w-full h-full text-[11px]"
                 />
               )}
 
@@ -520,7 +520,7 @@ export const SongRow = memo(function SongRow({
             <div className="flex items-center gap-1.5 min-w-0">
               <MarqueeText
                 className="min-w-0"
-                innerClassName={`font-serif text-sm font-medium ${
+                innerClassName={`font-sans text-sm font-semibold ${
                   isCurrentPlaying
                     ? 'text-blue'
                     : isCurrentLoaded
@@ -534,7 +534,7 @@ export const SongRow = memo(function SongRow({
               {isLocked && (
                 <span
                   title="Locked track"
-                  className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.5 border border-line text-ink-soft bg-canvas shrink-0 flex items-center gap-1"
+                  className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-ink-soft bg-canvas shrink-0 flex items-center gap-1"
                 >
                   <LockIconSVG className="w-2.5 h-2.5" />
                   <span>
@@ -548,7 +548,7 @@ export const SongRow = memo(function SongRow({
               {track.isExplicit && (
                 <span
                   title="Explicit Content"
-                  className="font-mono text-[8px] font-semibold uppercase tracking-widest px-1 py-0.2 border border-line text-ink-soft bg-canvas shrink-0"
+                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-line text-ink-soft bg-canvas shrink-0 leading-none"
                 >
                   E
                 </span>
@@ -557,7 +557,7 @@ export const SongRow = memo(function SongRow({
               {(isPersonal || track.scope === 'PERSONAL') && (
                 <span
                   title="Personal Collection (Vault)"
-                  className="font-mono text-[8px] font-semibold uppercase tracking-widest px-1 py-0.2 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs"
+                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs leading-none"
                 >
                   V
                 </span>
@@ -567,7 +567,7 @@ export const SongRow = memo(function SongRow({
             {/* Subtitle / Artist Credits Line */}
             {variant === 'album' ? (
               <MarqueeText
-                className="min-w-0 text-[11px] text-ink-soft"
+                className="min-w-0 text-xs text-ink-soft"
                 innerClassName="inline-flex items-center gap-1"
               >
                 {/* Primary Artist(s) */}
@@ -605,7 +605,7 @@ export const SongRow = memo(function SongRow({
                 {/* Featured Credits */}
                 {featuredCredits.length > 0 && (
                   <>
-                    <span className="text-ink-soft/70 font-mono text-[10px] ml-1">
+                    <span className="text-ink-soft/70 font-mono text-[11px] ml-1">
                       feat.
                     </span>
                     {featuredCredits.map((c, i) => (
@@ -631,7 +631,7 @@ export const SongRow = memo(function SongRow({
                 {/* Producer Credits */}
                 {producerCredits.length > 0 && (
                   <>
-                    <span className="text-ink-soft/70 font-mono text-[10px] ml-1">
+                    <span className="text-ink-soft/70 font-mono text-[11px] ml-1">
                       prod.
                     </span>
                     {producerCredits.map((c, i) => (
@@ -656,7 +656,7 @@ export const SongRow = memo(function SongRow({
               </MarqueeText>
             ) : (
               /* Standard / Playlist / Search / Artist Artist Subtitle */
-              <div className="font-mono text-[10.5px] text-ink-soft truncate flex items-center gap-1.5">
+              <div className="font-sans text-xs text-ink-soft truncate flex items-center gap-1.5">
                 {track.artistSlug ? (
                   <Link
                     to="/artists/$idOrSlug"
@@ -706,7 +706,7 @@ export const SongRow = memo(function SongRow({
 
         {/* Added by (for Collaborative Playlists) */}
         {addedByDisplayName && (
-          <div className="hidden md:block text-right font-mono text-[10.5px] text-ink-soft/70 shrink-0 max-w-35 truncate">
+          <div className="hidden md:block text-right font-mono text-[11px] text-ink-soft/70 shrink-0 max-w-35 truncate">
             Added by {addedByDisplayName}
           </div>
         )}
@@ -714,7 +714,7 @@ export const SongRow = memo(function SongRow({
         {/* ==================== RIGHT SECTION ==================== */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-3 shrink-0">
           {/* Duration (Hidden on extra small mobile screens for compact density) */}
-          <span className="hidden sm:inline-block font-mono text-[10.5px] text-ink-soft text-right w-11">
+          <span className="hidden sm:inline-block font-mono text-[11px] text-ink-soft text-right w-11">
             {formatDuration(track.durationSeconds || 0)}
           </span>
 

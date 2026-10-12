@@ -218,7 +218,7 @@ function LikedSongsPage() {
               description: 'Sign in to access your personal collection of liked tracks.',
             })
           }
-          className="font-mono text-xs uppercase tracking-[0.14em] py-3 px-8 bg-ink text-canvas hover:opacity-90 font-semibold cursor-pointer shadow-sm"
+          className="font-mono text-xs uppercase tracking-wider py-3 px-8 bg-ink text-canvas hover:opacity-90 font-semibold cursor-pointer shadow-sm"
         >
           Sign In / Register
         </button>
@@ -241,7 +241,7 @@ function LikedSongsPage() {
           {/* Details & Actions */}
           <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
             {/* Badges */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-[9px] uppercase tracking-[0.16em]">
+            <div className="flex items-center gap-2.5 flex-wrap font-mono text-[11px] uppercase tracking-wider">
               <span className="px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
                 Collection
               </span>
@@ -276,7 +276,7 @@ function LikedSongsPage() {
                   <button
                     type="button"
                     onClick={handlePlayAll}
-                    className="font-mono text-xs uppercase tracking-[0.14em] py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
                   >
                     {isPlayingThisContext ? (
                       <PauseIconSVG className="w-4 h-4" />
@@ -318,7 +318,7 @@ function LikedSongsPage() {
 
         {/* Sort Options */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-ink-soft flex items-center gap-1">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft flex items-center gap-1">
             <SortIconSVG className="w-3.5 h-3.5" />
             Sort:
           </span>
@@ -351,7 +351,7 @@ function LikedSongsPage() {
             <h2 className="font-serif italic font-medium text-xl text-ink">
               Tracklist
             </h2>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
               {filteredAndSortedSongs.length}{' '}
               {filteredAndSortedSongs.length === 1 ? 'Cut' : 'Cuts'}
             </span>
@@ -402,7 +402,7 @@ function LikedSongsPage() {
                 </p>
                 <Link
                   to="/search"
-                  className="inline-block mt-2 font-mono text-xs uppercase tracking-[0.14em] py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
+                  className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
                 >
                   Explore Music
                 </Link>

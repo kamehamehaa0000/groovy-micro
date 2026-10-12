@@ -117,7 +117,7 @@ export function ArtistCreditPicker({
           {credits.map((c) => (
             <div
               key={c.artistId}
-              className="inline-flex items-center gap-2 py-1 px-2.5 border border-line bg-canvas font-mono text-[10.5px] shadow-2xs"
+              className="inline-flex items-center gap-2 py-1 px-2.5 border border-line bg-canvas font-mono text-[11px] shadow-2xs"
             >
               <span className="font-serif italic font-medium text-ink flex items-center gap-1">
                 {c.stageName}
@@ -126,7 +126,7 @@ export function ArtistCreditPicker({
                 )}
               </span>
 
-              <span className="text-ink-soft text-[9px]">@{c.slug}</span>
+              <span className="text-ink-soft text-[11px]">@{c.slug}</span>
 
               {/* Role Select Dropdown */}
               <select
@@ -134,7 +134,7 @@ export function ArtistCreditPicker({
                 onChange={(e) =>
                   handleRoleChange(c.artistId, e.target.value as CreditRole)
                 }
-                className="bg-panel border border-line-soft text-ink font-mono text-[9px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
+                className="bg-panel border border-line-soft text-ink font-mono text-[11px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
               >
                 <option value="FEATURED">Featured</option>
                 <option value="PRODUCER">Producer</option>
@@ -163,14 +163,14 @@ export function ArtistCreditPicker({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="font-mono text-[9.5px] uppercase tracking-[0.12em] py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer inline-flex items-center gap-1"
+          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer inline-flex items-center gap-1"
         >
           <span>+ Add Collaborator / Credit</span>
         </button>
       ) : (
         <div className="relative max-w-md">
           <div className="flex items-center gap-1.5 border border-line bg-canvas px-2.5 py-1.5 shadow-2xs">
-            <span className="font-mono text-[10px] text-ink-soft">Search:</span>
+            <span className="font-mono text-[11px] text-ink-soft">Search:</span>
             <input
               type="text"
               autoFocus
@@ -180,7 +180,7 @@ export function ArtistCreditPicker({
               className="flex-1 font-sans text-xs bg-transparent text-ink focus:outline-none"
             />
             {isSearching ? (
-              <span className="font-mono text-[9px] text-ink-soft animate-pulse">
+              <span className="font-mono text-[11px] text-ink-soft animate-pulse">
                 ...
               </span>
             ) : (
@@ -190,7 +190,7 @@ export function ArtistCreditPicker({
                   setIsOpen(false)
                   setQuery('')
                 }}
-                className="font-mono text-[10px] text-ink-soft hover:text-ink cursor-pointer px-1"
+                className="font-mono text-[11px] text-ink-soft hover:text-ink cursor-pointer px-1"
               >
                 ✕
               </button>
@@ -228,23 +228,23 @@ export function ArtistCreditPicker({
                             <VerifiedBadgeSVG className="w-3 h-3 text-blue shrink-0" />
                           )}
                         </div>
-                        <span className="font-mono text-[9px] text-ink-soft">
+                        <span className="font-mono text-[11px] text-ink-soft">
                           @{artist.slug}
                         </span>
                       </div>
                     </div>
 
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-blue shrink-0 pl-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-blue shrink-0 pl-2">
                       + Credit
                     </span>
                   </button>
                 ))
               ) : hasSearched && !isSearching ? (
                 <div className="p-3 text-left">
-                  <div className="font-mono text-[10px] text-ink flex items-center gap-1">
+                  <div className="font-mono text-[11px] text-ink flex items-center gap-1">
                     <span>Artist not found on Groovy</span>
                   </div>
-                  <p className="font-sans text-[10.5px] text-ink-soft mt-1 leading-relaxed">
+                  <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
                     No registered artist matches "
                     <span className="font-mono text-ink">{query}</span>". To
                     receive discography credits, collaborators must have an

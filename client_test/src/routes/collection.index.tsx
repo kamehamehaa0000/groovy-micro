@@ -27,13 +27,7 @@ export const Route = createFileRoute('/collection/')({
 })
 
 type FilterPill =
-  | 'all'
-  | 'singles'
-  | 'albums'
-  | 'mixtapes'
-  | 'eps'
-  | 'lps'
-  | 'artists'
+  'all' | 'singles' | 'albums' | 'mixtapes' | 'eps' | 'lps' | 'artists'
 
 type ViewMode = 'grid' | 'list'
 
@@ -42,7 +36,9 @@ function PersonalCollectionExplorePage() {
   const navigate = useNavigate()
 
   // Data states
-  const [personalReleases, setPersonalReleases] = useState<PersonalRelease[]>([])
+  const [personalReleases, setPersonalReleases] = useState<PersonalRelease[]>(
+    [],
+  )
   const [isLoadingReleases, setIsLoadingReleases] = useState(false)
   const [personalArtists, setPersonalArtists] = useState<PersonalArtist[]>([])
   const [isLoadingArtists, setIsLoadingArtists] = useState(false)
@@ -320,7 +316,7 @@ function PersonalCollectionExplorePage() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActivePill(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -423,7 +419,7 @@ function PersonalCollectionExplorePage() {
 
         {/* Right: Count and View Switcher */}
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hidden sm:inline">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden sm:inline">
             {activePill === 'artists'
               ? `${filteredArtists.length} ${filteredArtists.length === 1 ? 'Artist' : 'Artists'}`
               : `${filteredReleases.length} ${filteredReleases.length === 1 ? 'Release' : 'Releases'}`}
@@ -451,7 +447,7 @@ function PersonalCollectionExplorePage() {
         /* ===================== ARTISTS VIEW (Clean & Minimal) ===================== */
         <div>
           {isLoadingArtists ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
               Loading vault artists...
             </div>
           ) : filteredArtists.length === 0 ? (
@@ -500,7 +496,7 @@ function PersonalCollectionExplorePage() {
         /* ===================== RELEASES VIEW ===================== */
         <div>
           {isLoadingReleases ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
               Loading personal vault...
             </div>
           ) : personalReleases.length === 0 ? (
@@ -520,7 +516,7 @@ function PersonalCollectionExplorePage() {
               </div>
               <Link
                 to="/collection/manage"
-                className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
+                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Go to Locker Manager</span>
@@ -528,7 +524,8 @@ function PersonalCollectionExplorePage() {
             </div>
           ) : filteredReleases.length === 0 ? (
             <div className="p-12 text-center text-ink-soft text-xs font-mono border border-line bg-panel rounded-xl">
-              No releases match "{searchQuery}" under {activePill.toUpperCase()}.
+              No releases match "{searchQuery}" under {activePill.toUpperCase()}
+              .
             </div>
           ) : viewMode === 'grid' ? (
             /* ===================== RELEASES GRID VIEW (Clean & Minimal, Artist Page Styling) ===================== */
@@ -537,11 +534,6 @@ function PersonalCollectionExplorePage() {
                 const isPlayingThisRelease =
                   currentTrack?.albumId === release.id &&
                   playbackStatus === 'playing'
-                const releaseYear = release.releaseDate
-                  ? new Date(release.releaseDate).getFullYear()
-                  : release.createdAt
-                    ? new Date(release.createdAt).getFullYear()
-                    : null
 
                 return (
                   <div
@@ -609,7 +601,7 @@ function PersonalCollectionExplorePage() {
                       <Link
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: release.slug || release.id }}
-                        className="font-semibold text-sm text-ink truncate group-hover:text-blue transition-colors block text-inherit no-underline"
+                        className="font-semibold text-sm truncate group-hover:text-blue transition-colors block text-inherit no-underline"
                         title={release.title}
                       >
                         {release.title}
@@ -625,12 +617,6 @@ function PersonalCollectionExplorePage() {
                         >
                           {release.artistName}
                         </Link>
-                        {releaseYear && (
-                          <>
-                            <span className="opacity-40">·</span>
-                            <span>{releaseYear}</span>
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -732,8 +718,8 @@ function PersonalCollectionExplorePage() {
               <strong className="text-ink font-semibold">
                 "{deleteConfirm.title}"
               </strong>{' '}
-              to the 30-day recycle bin? You can restore it anytime within 30 days
-              from Locker Manager.
+              to the 30-day recycle bin? You can restore it anytime within 30
+              days from Locker Manager.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button

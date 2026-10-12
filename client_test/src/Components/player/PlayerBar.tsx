@@ -106,7 +106,7 @@ const RepeatIcon = ({
       <path d="M21 13v2a4 4 0 0 1-4 4H3" />
     </svg>
     {mode === 'one' && (
-      <span className="absolute -top-1.5 -right-2 text-[9px] font-mono font-bold text-blue bg-panel px-0.5 rounded">
+      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-blue bg-panel px-0.5 rounded">
         1
       </span>
     )}
@@ -218,8 +218,6 @@ export function PlayerBar() {
   const isMuted = usePlayerStore((s) => s.isMuted)
   const isShuffle = usePlayerStore((s) => s.isShuffle)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
-  const streamQuality = usePlayerStore((s) => s.streamQuality)
-  const streamFormat = usePlayerStore((s) => s.streamFormat)
   const isQueueOpen = usePlayerStore((s) => s.isQueueOpen)
   const desktopRightSidebarView = usePlayerStore(
     (s) => s.desktopRightSidebarView,
@@ -287,7 +285,7 @@ export function PlayerBar() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue"></span>
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
               Listening on
             </span>
             <strong className="font-semibold text-ink truncate">
@@ -299,7 +297,7 @@ export function PlayerBar() {
             <button
               type="button"
               onClick={() => takeoverPlayback()}
-              className="bg-ink text-canvas hover:bg-blue hover:text-white px-3 py-1 font-mono text-[9.5px] uppercase tracking-[0.12em] transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+              className="bg-ink text-canvas hover:bg-blue hover:text-white px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
             >
               Play here instead
             </button>
@@ -417,7 +415,7 @@ export function PlayerBar() {
               </span>
             )}
 
-            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-ink-soft truncate mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate mt-0.5">
               {currentTrack.artistId ? (
                 <Link
                   to="/artists/$idOrSlug"
@@ -433,7 +431,7 @@ export function PlayerBar() {
               )}
               {currentTrack.albumTitle && (
                 <>
-                  <span className="text-[10px] text-ink-soft/40 hidden sm:inline">
+                  <span className="text-xs text-ink-soft/40 hidden sm:inline">
                     •
                   </span>
                   <Link
@@ -599,28 +597,28 @@ export function PlayerBar() {
         {/* DESKTOP RIGHT: Quality Badge, Volume Slider & Queue Drawer Toggle */}
         <div className="hidden sm:flex items-center justify-end gap-3.5 w-1/4">
           {/* Stream Quality Tag */}
-          {streamQuality === 'lossless' ? (
+          {/* {streamQuality === 'lossless' ? (
             <span
               title="Hi-Res Lossless FLAC Quality Stream"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-blue text-blue bg-blue/10"
+              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-blue text-blue bg-blue/10"
             >
               Hi-Fi FLAC
             </span>
           ) : streamFormat === 'hls' ? (
             <span
               title="Adaptive Bitrate HLS Stream (up to 320 kbps AAC)"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[9px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
+              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
             >
               HLS ABR
             </span>
           ) : (
             <span
               title="Direct Progressive Audio Stream (MP3 320k)"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[9px] uppercase text-ink-soft/70 px-1.5 py-0.5 rounded border border-line"
+              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase text-ink-soft/70 px-1.5 py-0.5 rounded border border-line"
             >
               MP3 320K
             </span>
-          )}
+          )} */}
 
           {/* Volume Control */}
           <div className="hidden sm:flex items-center gap-2">

@@ -487,7 +487,7 @@ function ArtistPublicProfileComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
         Retrieving artist catalog & recordings...
       </div>
     )
@@ -496,7 +496,7 @@ function ArtistPublicProfileComponent() {
   if (queryError || !artist) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-blue block mb-2">
           404 Archive Notice
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -509,7 +509,7 @@ function ArtistPublicProfileComponent() {
         </p>
         <Link
           to="/artists"
-          className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
         >
           &larr; Return to Roster
         </Link>
@@ -554,8 +554,8 @@ function ArtistPublicProfileComponent() {
             border border-line
             bg-canvas/80
             backdrop-blur-xs
-            font-mono text-[10px]
-            uppercase tracking-[0.12em]
+            font-mono text-[11px]
+            uppercase tracking-wider
             text-ink
             hover:bg-canvas
             transition-colors
@@ -584,8 +584,8 @@ function ArtistPublicProfileComponent() {
                     className="
                   inline-flex items-center gap-1.5
                   text-blue
-                  font-mono text-[9px]
-                  uppercase tracking-[0.12em]
+                  font-mono text-[11px]
+                  uppercase tracking-wider
                   font-semibold
                 "
                   >
@@ -621,8 +621,7 @@ function ArtistPublicProfileComponent() {
               gap-y-1.5
               mt-3
               font-mono
-              text-[10px]
-              sm:text-[11px]
+              text-[11px]
               text-ink-soft
             "
               >
@@ -655,7 +654,7 @@ function ArtistPublicProfileComponent() {
                 <button
                   type="button"
                   onClick={handlePlayArtistFromStart}
-                  className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[10px] uppercase tracking-[0.12em] font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer
+                  className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer
               "
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
@@ -665,7 +664,7 @@ function ArtistPublicProfileComponent() {
               {isOwner ? (
                 <Link
                   to="/studio"
-                  className="rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-5 bg-ink text-canvas font-mono text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity whitespace-nowrap
+                  className="rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-5 bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider hover:opacity-90 transition-opacity whitespace-nowrap
               "
                 >
                   <span className="sm:hidden">Studio</span>
@@ -676,7 +675,7 @@ function ArtistPublicProfileComponent() {
                   type="button"
                   disabled={isFollowLoading}
                   onClick={handleToggleFollow}
-                  className={`rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-6 font-mono text-[10px] uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap
+                  className={`rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-6 font-mono text-[11px] uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap
                 ${
                   isFollowing
                     ? ` border border-line bg-panel text-ink hover:border-red-400 hover:text-red-500`
@@ -707,7 +706,7 @@ function ArtistPublicProfileComponent() {
                 <h2 className="font-serif font-semibold  italic text-xl text-ink">
                   Popular Tracks
                 </h2>
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                   Ranked by Plays
                 </span>
               </div>
@@ -732,7 +731,7 @@ function ArtistPublicProfileComponent() {
                 <button
                   type="button"
                   onClick={() => setShowAllTopTracks((showAll) => !showAll)}
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                 >
                   {showAllTopTracks ? 'Show less' : 'Show more'}
                 </button>
@@ -748,11 +747,11 @@ function ArtistPublicProfileComponent() {
                   <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
                     Upcoming Releases
                   </h2>
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-blue/10 text-blue border border-blue/20 rounded-full font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 bg-blue/10 text-blue border border-blue/20 rounded-full font-semibold">
                     Pre-Save
                   </span>
                 </div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                   {discography!.upcoming!.length}{' '}
                   {discography!.upcoming!.length === 1
                     ? 'Scheduled Drop'
@@ -799,20 +798,20 @@ function ArtistPublicProfileComponent() {
                               className="w-full h-full rounded-none"
                             />
                           )}
-                          <div className="absolute top-0.5 left-0.5 font-mono text-[7.5px] uppercase tracking-wider px-1 py-0.2 bg-canvas/90 backdrop-blur-xs border border-line text-blue font-semibold rounded-xs">
+                          <div className="absolute top-0.5 left-0.5 font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas/90 backdrop-blur-xs border border-line text-blue font-semibold rounded-xs">
                             {up.albumType}
                           </div>
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue font-semibold flex items-center gap-1.5 mb-0.5">
+                          <div className="font-mono text-[11px] uppercase tracking-wider text-blue font-semibold flex items-center gap-1.5 mb-0.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
                             <span>Drops {dropDateStr}</span>
                           </div>
-                          <h3 className="font-serif italic font-medium text-base text-ink group-hover:text-blue transition-colors truncate">
+                          <h3 className="font-sans font-semibold text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
                             {up.title}
                           </h3>
-                          <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                          <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
                             {up.totalTracks}{' '}
                             {up.totalTracks === 1 ? 'Cut' : 'Cuts'} &bull; Master
                             Audio Locked
@@ -829,7 +828,7 @@ function ArtistPublicProfileComponent() {
                             e.stopPropagation()
                             handleTogglePreSave(up)
                           }}
-                          className={`font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3.5 rounded border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs whitespace-nowrap ${
+                          className={`font-mono text-[11px] uppercase tracking-wider py-1.5 px-3.5 rounded border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs whitespace-nowrap ${
                             isPreSaved
                               ? 'border-blue bg-blue text-canvas hover:opacity-90'
                               : 'border-ink bg-ink text-canvas hover:opacity-90'
@@ -838,7 +837,7 @@ function ArtistPublicProfileComponent() {
                           <span>
                             {isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save'}
                           </span>
-                          <span className="opacity-80 font-mono text-[9px]">
+                          <span className="opacity-80 font-mono text-[11px]">
                             ({up.preSavesCount ?? 0})
                           </span>
                         </button>
@@ -856,7 +855,7 @@ function ArtistPublicProfileComponent() {
               {/* Header with Title & View Mode Toggle */}
               <div className="flex items-end justify-between border-b border-line pb-3">
                 <div>
-                  <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-ink-soft">
+                  <p className="mb-1 text-[11px] font-mono uppercase tracking-widest text-ink-soft">
                     Catalog
                   </p>
                   <h2 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
@@ -918,14 +917,14 @@ function ArtistPublicProfileComponent() {
                         setActiveTab(tab.id as any)
                         setVisibleCount(8)
                       }}
-                      className={`font-mono text-[10.5px] uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                      className={`font-mono text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                         activeTab === tab.id
                           ? 'bg-ink text-canvas font-semibold shadow-xs'
                           : 'bg-canvas-deep border border-line text-ink-soft hover:text-ink hover:border-ink-soft/40'
                       }`}
                     >
                       {tab.label}
-                      <span className="ml-1.5 opacity-60 text-[9.5px]">
+                      <span className="ml-1.5 opacity-60 text-[11px]">
                         ({tab.count})
                       </span>
                     </button>
@@ -994,14 +993,14 @@ function ArtistPublicProfileComponent() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                            <h3 className="font-sans font-semibold text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
                               {item.songTitle}
                             </h3>
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-blue/30 bg-blue/10 text-blue shrink-0 font-semibold">
+                            <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-blue/30 bg-blue/10 text-blue shrink-0 font-semibold">
                               {item.role}
                             </span>
                           </div>
-                          <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                          <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
                             {item.albumTitle ? `${item.albumTitle} · ` : ''}with{' '}
                             {item.primaryArtistName} &bull;{' '}
                             {formatDuration(item.songDuration)}
@@ -1064,16 +1063,16 @@ function ArtistPublicProfileComponent() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                              <h3 className="font-sans font-semibold text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
                                 {album.title}
                               </h3>
                               {album.albumType && (
-                                <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft shrink-0">
+                                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft shrink-0">
                                   {album.albumType}
                                 </span>
                               )}
                             </div>
-                            <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                            <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
                               {album.releaseDate
                                 ? new Date(album.releaseDate).getFullYear()
                                 : 'Recent'}
@@ -1107,7 +1106,7 @@ function ArtistPublicProfileComponent() {
                       <button
                         type="button"
                         onClick={() => setVisibleCount((prev) => prev + 8)}
-                        className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors cursor-pointer rounded-md font-medium"
+                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors cursor-pointer rounded-md font-medium"
                       >
                         See More ({totalInActiveTab - visibleCount} remaining)
                       </button>
@@ -1121,7 +1120,7 @@ function ArtistPublicProfileComponent() {
                       <button
                         type="button"
                         onClick={() => setVisibleCount(8)}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors cursor-pointer"
                       >
                         Show Less
                       </button>
@@ -1142,12 +1141,12 @@ function ArtistPublicProfileComponent() {
                   <h2 className="font-serif italic text-xl text-ink font-semibold">
                     In Your Personal Collection
                   </h2>
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
                     Personal Vault
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     {discography!.inYourCollection!.length}{' '}
                     {discography!.inYourCollection!.length === 1
                       ? 'Track'
@@ -1155,7 +1154,7 @@ function ArtistPublicProfileComponent() {
                   </span>
                   <Link
                     to="/collection"
-                    className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue hover:underline"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
                   >
                     Vault &rarr;
                   </Link>
@@ -1188,11 +1187,11 @@ function ArtistPublicProfileComponent() {
                   <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
                     Collaborators &amp; Features
                   </h2>
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
                     Cross-Artist
                   </span>
                 </div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                   {collaboratedArtists.length}{' '}
                   {collaboratedArtists.length === 1 ? 'Artist' : 'Artists'}
                 </span>
@@ -1221,10 +1220,10 @@ function ArtistPublicProfileComponent() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-serif italic font-medium text-sm text-ink group-hover:text-blue transition-colors truncate">
+                      <h4 className="font-sans font-semibold text-sm text-ink group-hover:text-blue transition-colors truncate">
                         {collab.name}
                       </h4>
-                      <p className="font-mono text-[9.5px] text-ink-soft truncate mt-0.5">
+                      <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
                         {collab.count}{' '}
                         {collab.count === 1
                           ? 'collaboration'
@@ -1245,11 +1244,11 @@ function ArtistPublicProfileComponent() {
                   <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
                     Fans Also Like
                   </h2>
-                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 bg-canvas-deep text-ink-soft border border-line rounded-full font-semibold">
                     Similar Artists
                   </span>
                 </div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                   {similarArtists.length}{' '}
                   {similarArtists.length === 1 ? 'Artist' : 'Artists'}
                 </span>
@@ -1266,7 +1265,7 @@ function ArtistPublicProfileComponent() {
                         <span className="flex items-center justify-center gap-1">
                           <span>{simArtist.primaryGenre || 'Artist'}</span>
                           {simArtist.verified && (
-                            <span className="text-blue font-bold text-[10px]" title="Verified Artist">✓</span>
+                            <span className="text-blue font-bold text-[11px]" title="Verified Artist">✓</span>
                           )}
                         </span>
                       }
@@ -1292,7 +1291,7 @@ function ArtistPublicProfileComponent() {
                 <p className="font-serif italic text-base text-ink">
                   Master Tracks & Albums In Preparation
                 </p>
-                <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+                <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1">
                   No public releases have been published to this catalog yet.
                 </p>
               </div>
@@ -1315,12 +1314,12 @@ function ArtistPublicProfileComponent() {
                       />
                     </div>
                   )}
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue font-semibold flex items-center gap-1.5">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-semibold flex items-center gap-1.5">
                     <span>{isCustomPick ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
                   </span>
                 </div>
                 {pinnedRelease.albumType && (
-                  <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft">
                     {pinnedRelease.albumType}
                   </span>
                 )}
@@ -1354,10 +1353,10 @@ function ArtistPublicProfileComponent() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-serif italic font-medium text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
+                  <h3 className="font-sans font-semibold text-sm sm:text-base text-ink group-hover:text-blue transition-colors truncate">
                     {pinnedRelease.title}
                   </h3>
-                  <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                  <p className="font-sans text-xs text-ink-soft truncate mt-0.5">
                     {pinnedRelease.releaseDate
                       ? new Date(pinnedRelease.releaseDate).getFullYear()
                       : 'Recent'}{' '}
@@ -1375,7 +1374,7 @@ function ArtistPublicProfileComponent() {
             {/* About Blurb */}
             {artist.bio && (
               <div className="mb-5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-2">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-2">
                   About Artist
                 </span>
                 <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line">
@@ -1384,7 +1383,7 @@ function ArtistPublicProfileComponent() {
               </div>
             )}
 
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft block mb-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-3">
               Official Links & Press
             </span>
 
@@ -1412,7 +1411,7 @@ function ArtistPublicProfileComponent() {
           </div>
 
           {/* Registration Metadata */}
-          <div className="p-5 border border-line-soft bg-canvas-deep/50 text-ink-soft font-mono text-[10px] flex flex-col gap-1.5">
+          <div className="p-5 border border-line-soft bg-canvas-deep/50 text-ink-soft font-mono text-[11px] flex flex-col gap-1.5">
             <div className="flex justify-between">
               <span>Member Since:</span>
               <span className="text-ink">

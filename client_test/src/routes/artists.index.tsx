@@ -63,7 +63,7 @@ function ArtistsDirectoryComponent() {
       <div className="border-b border-line pb-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
               Groovy Artists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -79,7 +79,7 @@ function ArtistsDirectoryComponent() {
           {user?.role === 'LISTENER' && !user?.artistProfile && (
             <Link
               to="/studio"
-              className="inline-flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity shrink-0"
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity shrink-0"
             >
               <span>✦ Become an Artist</span>
             </Link>
@@ -94,7 +94,7 @@ function ArtistsDirectoryComponent() {
               setScope('GLOBAL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'GLOBAL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -108,7 +108,7 @@ function ArtistsDirectoryComponent() {
               setScope('PERSONAL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'PERSONAL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -122,7 +122,7 @@ function ArtistsDirectoryComponent() {
               setScope('ALL')
               setPage(1)
             }}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'ALL'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -165,7 +165,7 @@ function ArtistsDirectoryComponent() {
             <div className="flex items-center gap-2">
               <label
                 htmlFor="artist-sort"
-                className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft shrink-0"
+                className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
               >
                 Sort:
               </label>
@@ -185,7 +185,7 @@ function ArtistsDirectoryComponent() {
               </select>
             </div>
 
-            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft ml-2 shrink-0 border-l border-line pl-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft ml-2 shrink-0 border-l border-line pl-3">
               {totalCount} {totalCount === 1 ? 'Artist' : 'Artists'}
             </span>
           </div>
@@ -194,13 +194,13 @@ function ArtistsDirectoryComponent() {
 
       {/* Grid of Artists */}
       {isLoading ? (
-        <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+        <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
           Fetching curated roster...
         </div>
       ) : artists.length === 0 ? (
         <div className="py-20 text-center border border-dashed border-line p-10 bg-panel/40">
           <p className="font-serif italic text-lg text-ink">No artists found</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1">
             {search
               ? 'Try adjusting your search query'
               : scope === 'PERSONAL' && !user
@@ -212,7 +212,7 @@ function ArtistsDirectoryComponent() {
           {scope === 'PERSONAL' && user ? (
             <Link
               to="/collection"
-              className="inline-block mt-4 font-mono text-xs uppercase tracking-[0.12em] text-blue hover:underline"
+              className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
             >
               Go to Personal Collection &rarr;
             </Link>
@@ -220,7 +220,7 @@ function ArtistsDirectoryComponent() {
             user?.role === 'LISTENER' && (
               <Link
                 to="/studio"
-                className="inline-block mt-4 font-mono text-xs uppercase tracking-[0.12em] text-blue hover:underline"
+                className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
               >
                 Launch Your Artist Studio &rarr;
               </Link>
@@ -257,7 +257,7 @@ function ArtistsDirectoryComponent() {
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-serif italic text-lg text-ink group-hover:text-blue transition-colors">
+                      <h3 className="font-sans font-semibold text-base sm:text-lg text-ink group-hover:text-blue transition-colors">
                         {artist.stageName}
                       </h3>
                       {artist.verified && (
@@ -266,19 +266,19 @@ function ArtistsDirectoryComponent() {
                     </div>
                     <div className="flex items-center gap-1">
                       {artist.scope === 'PERSONAL' && (
-                        <span className="font-mono text-[8.5px] uppercase tracking-widest px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
                           Personal
                         </span>
                       )}
                       {followedArtistIds.has(artist.id) && (
-                        <span className="font-mono text-[8.5px] uppercase tracking-widest px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold">
                           ✓ Following
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mt-0.5">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft mt-0.5">
                     @{artist.slug}
                   </div>
 
@@ -294,7 +294,7 @@ function ArtistsDirectoryComponent() {
                     </p>
                   )}
 
-                  <div className="mt-4 pt-3 border-t border-line-soft flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft">
+                  <div className="mt-4 pt-3 border-t border-line-soft flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                     <span>
                       {artist.scope === 'PERSONAL'
                         ? 'Personal Artist'
@@ -316,7 +316,7 @@ function ArtistsDirectoryComponent() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="font-mono text-xs uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
               >
                 &larr; Previous
               </button>
@@ -327,7 +327,7 @@ function ArtistsDirectoryComponent() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="font-mono text-xs uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
               >
                 Next &rarr;
               </button>

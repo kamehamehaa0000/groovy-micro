@@ -218,7 +218,7 @@ function ProfileComponent() {
 
   if (isLoading || !user) {
     return (
-      <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
         Retrieving member records...
       </div>
     )
@@ -513,12 +513,12 @@ function ProfileComponent() {
                 {user.displayName}
               </h1>
               {user.isEmailVerified ? (
-                <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
                   <span>Verified</span>
                   <span>✓</span>
                 </span>
               ) : (
-                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
+                <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
                   Unverified
                 </span>
               )}
@@ -530,26 +530,26 @@ function ProfileComponent() {
 
             {/* Quick Status Badges & CTAs */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line bg-canvas text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line bg-canvas text-ink-soft">
                 Role: <strong className="text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
               </span>
-              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue/30 bg-blue/10 text-blue font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue/30 bg-blue/10 text-blue font-semibold">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
               </span>
               {user.id && (
                 <Link
                   to="/users/$id"
                   params={{ id: user.id }}
-                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/50 bg-canvas text-ink transition-colors no-underline"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/50 bg-canvas text-ink transition-colors no-underline"
                 >
                   <span>Public Profile</span>
-                  <span className="text-[10px]">↗</span>
+                  <span className="text-[11px]">↗</span>
                 </Link>
               )}
               {isArtist ? (
                 <Link
                   to="/studio"
-                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:opacity-90 font-semibold transition-opacity no-underline"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:opacity-90 font-semibold transition-opacity no-underline"
                 >
                   <span>Studio Desk</span>
                   <span>→</span>
@@ -557,7 +557,7 @@ function ProfileComponent() {
               ) : (
                 <Link
                   to="/studio"
-                  className="inline-flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/40 bg-canvas text-ink-soft hover:text-ink transition-colors no-underline"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/40 bg-canvas text-ink-soft hover:text-ink transition-colors no-underline"
                 >
                   <span>Become Artist</span>
                 </Link>
@@ -583,7 +583,7 @@ function ProfileComponent() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`shrink-0 font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium whitespace-nowrap ${
+                className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium whitespace-nowrap ${
                   isActive
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -619,7 +619,7 @@ function ProfileComponent() {
               <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
                 Curator Display Name
               </h3>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                 Public Identity
               </span>
             </div>
@@ -631,7 +631,7 @@ function ProfileComponent() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="edit-display-name"
-                  className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                  className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
                 >
                   Name
                 </label>
@@ -650,7 +650,7 @@ function ProfileComponent() {
                 <button
                   type="submit"
                   disabled={isUpdatingProfile}
-                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
                 >
                   {isUpdatingProfile ? 'Saving...' : 'Save Identity'}
                 </button>
@@ -661,7 +661,7 @@ function ProfileComponent() {
           {/* Musician or Recording Artist Card (Moved to Account View) */}
           <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue mb-1">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1">
                 Maison Artist Presence
               </div>
               <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
@@ -681,7 +681,7 @@ function ProfileComponent() {
                   <Link
                     to="/artists/$idOrSlug"
                     params={{ idOrSlug: artistProfile.slug || artistProfile.id }}
-                    className="font-mono text-[10.5px] text-blue hover:underline inline-flex items-center gap-1.5"
+                    className="font-mono text-[11px] text-blue hover:underline inline-flex items-center gap-1.5"
                   >
                     <span>View Public Artist Page</span>
                     <span className="text-xs">↗</span>
@@ -692,7 +692,7 @@ function ProfileComponent() {
 
             <Link
               to="/studio"
-              className="self-start sm:self-auto shrink-0 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 rounded-full bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
+              className="self-start sm:self-auto shrink-0 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 rounded-full bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
             >
               {isArtist ? 'Open Artist Studio →' : '✦ Become an Artist'}
             </Link>
@@ -767,7 +767,7 @@ function ProfileComponent() {
           <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
               <div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-blue block mb-1">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
                   Active Subscription Tier
                 </span>
                 <div className="flex items-center gap-2.5">
@@ -775,7 +775,7 @@ function ProfileComponent() {
                     {entitlements?.planName || user.plan?.name || 'Groovy Free'}
                   </h3>
                   <span
-                    className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                    className={`font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                       isLoadingEntitlements
                         ? 'border-line bg-canvas text-ink-soft animate-pulse'
                         : entitlements?.status === 'active'
@@ -793,7 +793,7 @@ function ProfileComponent() {
                   </span>
                 </div>
                 {entitlements?.currentPeriodEnd && (
-                  <p className="font-mono text-[10px] text-ink-soft mt-1">
+                  <p className="font-mono text-[11px] text-ink-soft mt-1">
                     Current billing period ends:{' '}
                     {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
                   </p>
@@ -804,7 +804,7 @@ function ProfileComponent() {
                 <button
                   type="button"
                   onClick={handleOpenUpgradeModal}
-                  className="bg-ink text-canvas font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
+                  className="bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
                 >
                   ✦ Change Plan / Upgrade
                 </button>
@@ -814,7 +814,7 @@ function ProfileComponent() {
                     <button
                       type="button"
                       onClick={handleCancelSubscription}
-                      className="font-mono text-[10px] uppercase tracking-[0.12em] py-2.5 px-3.5 rounded-full border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
+                      className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
                     >
                       Cancel Plan
                     </button>
@@ -825,7 +825,7 @@ function ProfileComponent() {
             {/* Audio & Perks Checklist */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
               <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                   Audio Quality
                 </span>
                 <span className="font-mono text-sm font-bold text-ink mt-0.5 block">
@@ -833,7 +833,7 @@ function ProfileComponent() {
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                   Lossless FLAC
                 </span>
                 <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
@@ -841,7 +841,7 @@ function ProfileComponent() {
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                   Live Jam Rooms
                 </span>
                 <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
@@ -849,7 +849,7 @@ function ProfileComponent() {
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                   Ad-Free Audio
                 </span>
                 <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
@@ -885,7 +885,7 @@ function ProfileComponent() {
                     Private Account
                   </span>
                   <span
-                    className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                    className={`font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                       isPrivateAccount
                         ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
                         : 'border-line bg-canvas text-ink-soft'
@@ -948,7 +948,7 @@ function ProfileComponent() {
                           : 'border-line bg-canvas/40 hover:border-ink/40'
                       }`}
                     >
-                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
                         <span>{opt.title}</span>
                         {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                       </div>
@@ -1002,7 +1002,7 @@ function ProfileComponent() {
                           : 'border-line bg-canvas/40 hover:border-ink/40'
                       }`}
                     >
-                      <div className="font-mono text-[10.5px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
                         <span>{opt.title}</span>
                         {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                       </div>
@@ -1022,7 +1022,7 @@ function ProfileComponent() {
                   <span className="font-sans text-sm sm:text-base font-bold text-ink">
                     Personal Collection &amp; Audio Vault
                   </span>
-                  <span className="font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
                     Sandboxed Storage
                   </span>
                 </div>
@@ -1035,7 +1035,7 @@ function ProfileComponent() {
                 {/* Toggle 1: Search */}
                 <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Include in Global Search
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1052,7 +1052,7 @@ function ProfileComponent() {
                 {/* Toggle 2: Recently Played */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Include in Recently Played &amp; Activity
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1069,7 +1069,7 @@ function ProfileComponent() {
                 {/* Toggle 3: Home Feed */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Mix with Home Feed &amp; Recommendations
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1086,7 +1086,7 @@ function ProfileComponent() {
                 {/* Toggle 4: Verified Artists Link */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Link to Verified Global Artists
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1106,7 +1106,7 @@ function ProfileComponent() {
               <button
                 type="submit"
                 disabled={isSavingPrivacy}
-                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
               </button>
@@ -1145,7 +1145,7 @@ function ProfileComponent() {
                 {/* Toggle 1: Catalog Drops */}
                 <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Catalog Drops &amp; New Releases
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1164,7 +1164,7 @@ function ProfileComponent() {
                 {/* Toggle 2: Discussion Replies */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Discussion Replies &amp; Mentions
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1183,7 +1183,7 @@ function ProfileComponent() {
                 {/* Toggle 3: Social Circles */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Social Circles &amp; Follow Requests
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1202,7 +1202,7 @@ function ProfileComponent() {
                 {/* Toggle 4: Jam Invites */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[10.5px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
                       Live Jam Session Invites
                     </div>
                     <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -1224,7 +1224,7 @@ function ProfileComponent() {
               <button
                 type="submit"
                 disabled={isSavingNotifPrefs}
-                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {isSavingNotifPrefs
                   ? 'Saving Preferences...'
@@ -1264,7 +1264,7 @@ function ProfileComponent() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="curr-pass"
-                    className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
                   >
                     Current Password
                   </label>
@@ -1281,7 +1281,7 @@ function ProfileComponent() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="new-pass"
-                    className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft block"
+                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
                   >
                     New Password
                   </label>
@@ -1313,7 +1313,7 @@ function ProfileComponent() {
                 <button
                   type="button"
                   onClick={() => setShowPasswords(!showPasswords)}
-                  className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer self-start sm:self-auto"
+                  className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer self-start sm:self-auto"
                 >
                   {showPasswords ? 'Hide Passwords' : 'Show Passwords'}
                 </button>
@@ -1323,7 +1323,7 @@ function ProfileComponent() {
                 <button
                   type="submit"
                   disabled={isUpdatingPassword}
-                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-[0.12em] font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
                 >
                   {isUpdatingPassword ? 'Updating...' : 'Update Password'}
                 </button>
@@ -1346,14 +1346,14 @@ function ProfileComponent() {
               <button
                 type="button"
                 onClick={() => logout()}
-                className="font-mono text-[10.5px] uppercase tracking-widest border border-line bg-canvas hover:bg-canvas-soft text-ink px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
+                className="font-mono text-[11px] uppercase tracking-wider border border-line bg-canvas hover:bg-canvas-soft text-ink px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
               >
                 Sign Out This Device
               </button>
               <button
                 type="button"
                 onClick={() => revokeAll()}
-                className="font-mono text-[10.5px] uppercase tracking-widest border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
+                className="font-mono text-[11px] uppercase tracking-wider border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
               >
                 Revoke All Sessions Everywhere
               </button>
@@ -1368,7 +1368,7 @@ function ProfileComponent() {
           <div className="max-w-4xl w-full bg-panel border border-line rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-blue block mb-1">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
                   Maison Sound Tiers &bull; Dev Mock Checkout
                 </span>
                 <h3 className="font-serif italic text-2xl sm:text-3xl text-ink">
@@ -1403,11 +1403,11 @@ function ProfileComponent() {
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-blue">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-blue">
                             {plan.id}
                           </span>
                           {isCurrent && (
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
+                            <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
                               Current Plan
                             </span>
                           )}
@@ -1550,7 +1550,7 @@ function ProfileComponent() {
                           type="button"
                           disabled={isCurrent || isUpgradingPlan}
                           onClick={() => handleSwitchPlan(plan.id)}
-                          className={`w-full font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 rounded-full transition-all cursor-pointer font-semibold ${
+                          className={`w-full font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 rounded-full transition-all cursor-pointer font-semibold ${
                             isCurrent
                               ? 'bg-line/40 text-ink-soft cursor-not-allowed border border-line'
                               : 'bg-ink text-canvas hover:opacity-90'

@@ -125,7 +125,7 @@ function NotificationsPageComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
         <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-blue">
             Inbox &nbsp;·&nbsp; Activity Pulse
           </div>
           <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
@@ -138,7 +138,7 @@ function NotificationsPageComponent() {
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-[0.14em] px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
+              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In &rarr;
             </Link>
@@ -163,7 +163,7 @@ function NotificationsPageComponent() {
       <section className=" shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue mb-1.5">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1.5">
               Inbox &nbsp;·&nbsp; Activity Pulse
             </div>
             <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ function NotificationsPageComponent() {
               type="button"
               onClick={handleMarkAll}
               disabled={(!hasUnread && !justMarkedAll) || isMarkingAll}
-              className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border rounded-xl shadow-2xs transition-all cursor-pointer flex items-center gap-2 ${
+              className={`font-mono text-[11px] uppercase tracking-wider py-2 px-4 border rounded-xl shadow-2xs transition-all cursor-pointer flex items-center gap-2 ${
                 justMarkedAll
                   ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold'
                   : hasUnread
@@ -226,7 +226,7 @@ function NotificationsPageComponent() {
               key={tab.id}
               type="button"
               onClick={() => setFilter(tab.id)}
-              className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer shrink-0 ${
+              className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer shrink-0 ${
                 filter === tab.id
                   ? 'bg-ink text-canvas font-semibold shadow-xs'
                   : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -242,7 +242,7 @@ function NotificationsPageComponent() {
             type="button"
             onClick={handleMarkAll}
             disabled={isMarkingAll}
-            className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
+            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
           >
             <svg
               className="w-3 h-3 text-blue"
@@ -324,11 +324,11 @@ function NotificationsPageComponent() {
                     )}
 
                     <div className="min-w-0">
-                      <span className="font-serif italic text-base text-ink font-medium block truncate">
+                      <span className="font-sans font-semibold text-sm text-ink block truncate">
                         {item.title}
                       </span>
                       {item.actor && (
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                           {item.actor.displayName}
                         </span>
                       )}
@@ -336,7 +336,7 @@ function NotificationsPageComponent() {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-mono text-[10px] text-ink-soft">
+                    <span className="font-mono text-[11px] text-ink-soft">
                       {formatRelativeTime(item.createdAt)}
                     </span>
                     {!item.isRead && (
@@ -346,7 +346,7 @@ function NotificationsPageComponent() {
                           e.stopPropagation()
                           markAsRead(item.id)
                         }}
-                        className="font-mono text-[9px] uppercase tracking-wider text-ink-soft hover:text-ink px-2 py-1 border border-line rounded-md hover:bg-canvas transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink px-2 py-1 border border-line rounded-md hover:bg-canvas transition-colors cursor-pointer"
                         title="Mark as read"
                       >
                         Read
@@ -370,7 +370,7 @@ function NotificationsPageComponent() {
                       type="button"
                       disabled={isActing}
                       onClick={() => handleAcceptRequest(item)}
-                      className="bg-ink text-canvas hover:bg-blue px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
+                      className="bg-ink text-canvas hover:bg-blue px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
                     >
                       Accept Request
                     </button>
@@ -378,7 +378,7 @@ function NotificationsPageComponent() {
                       type="button"
                       disabled={isActing}
                       onClick={() => handleDeclineRequest(item)}
-                      className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                      className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                     >
                       Decline
                     </button>
@@ -391,7 +391,7 @@ function NotificationsPageComponent() {
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: item.metadata.slug }}
                       onClick={() => markAsRead(item.id)}
-                      className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-blue hover:underline"
+                      className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
                     >
                       <span>View Album Details</span>
                       <span>&rarr;</span>
@@ -401,7 +401,7 @@ function NotificationsPageComponent() {
 
                 {item.type === 'JAM_INVITE' && (
                   <div className="pt-1 pl-5 sm:pl-6">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                       <span>Live Session Ready</span>
                     </span>

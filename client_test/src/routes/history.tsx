@@ -466,7 +466,7 @@ function HistoryPageComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
               ✦ Activity &amp; Listening Telemetry
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -481,7 +481,7 @@ function HistoryPageComponent() {
           <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
             {/* Grouping Interval Tabs */}
             <div className="flex items-center gap-1 p-1 bg-panel border border-line rounded-lg shadow-2xs">
-              <span className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft/70 px-2 hidden sm:inline-block">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft/70 px-2 hidden sm:inline-block">
                 Group by
               </span>
               {(['day', 'week', 'month', 'year'] as GroupByInterval[]).map((mode) => {
@@ -491,7 +491,7 @@ function HistoryPageComponent() {
                     key={mode}
                     type="button"
                     onClick={() => setGroupBy(mode)}
-                    className={`font-mono text-[10.5px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                    className={`font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-ink text-canvas font-semibold shadow-xs'
                         : 'text-ink-soft hover:text-ink hover:bg-canvas'
@@ -601,7 +601,7 @@ function HistoryPageComponent() {
                     {group.label}
                   </h2>
                 </div>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   {group.releases.length} {group.releases.length === 1 ? 'release' : 'releases'} • {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
                 </span>
               </div>
@@ -655,7 +655,7 @@ function HistoryPageComponent() {
                           </button>
 
                           {/* Release Type Badge (ALBUM, EP, SINGLE, VAULT) */}
-                          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[8px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
+                          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
                             {release.albumType}
                           </span>
                         </div>
@@ -666,14 +666,14 @@ function HistoryPageComponent() {
                             <Link
                               to="/albums/$idOrSlug"
                               params={{ idOrSlug: release.slug || release.albumId }}
-                              className="text-xs font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
+                              className="text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
                               title={release.title}
                             >
                               {release.title}
                             </Link>
                           ) : (
                             <span
-                              className="text-xs font-semibold text-ink truncate tracking-tight"
+                              className="text-sm font-semibold text-ink truncate tracking-tight"
                               title={release.title}
                             >
                               {release.title}
@@ -695,7 +695,7 @@ function HistoryPageComponent() {
                           )}
 
                           {/* Sub-bar: Track Count & Expand Toggle */}
-                          <div className="flex items-center justify-between font-mono text-[9px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
+                          <div className="flex items-center justify-between font-mono text-[11px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
                             <button
                               type="button"
                               onClick={() =>
@@ -709,7 +709,7 @@ function HistoryPageComponent() {
                               <span>
                                 {release.playCount} {release.playCount === 1 ? 'play' : 'plays'}
                               </span>
-                              <span className="text-[8px] opacity-70">
+                              <span className="text-[11px] opacity-70">
                                 {isExpanded ? '▲' : '▼'}
                               </span>
                             </button>
@@ -721,7 +721,7 @@ function HistoryPageComponent() {
                         {/* Expandable Track List Accordion */}
                         {isExpanded && (
                           <div className="mt-2.5 pt-2 border-t border-line space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <span className="font-mono text-[8px] uppercase tracking-wider text-ink-soft block mb-1">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                               Tracks played:
                             </span>
                             {release.tracksPlayed.map((t) => {
@@ -733,19 +733,19 @@ function HistoryPageComponent() {
                                 key={t.historyId}
                                 type="button"
                                 onClick={() => handlePlaySingleTrack(t, release.tracksPlayed)}
-                                className={`w-full flex items-center justify-between text-left py-1 px-1.5 rounded-xs text-[10px] transition-colors cursor-pointer ${
+                                className={`w-full flex items-center justify-between text-left py-1 px-1.5 rounded-xs text-[11px] transition-colors cursor-pointer ${
                                   isPlayingThisTrack
                                     ? 'bg-blue/10 text-blue font-medium'
                                     : 'hover:bg-canvas text-ink-soft hover:text-ink'
                                 }`}
                               >
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
-                                  <span className="shrink-0 text-[8.5px] opacity-60">
+                                  <span className="shrink-0 text-[11px] opacity-60">
                                     {isPlayingThisTrack ? '▶' : '♪'}
                                   </span>
                                   <span className="truncate">{t.song.title}</span>
                                 </div>
-                                <span className="font-mono text-[8.5px] shrink-0 opacity-70">
+                                <span className="font-mono text-[11px] shrink-0 opacity-70">
                                   {formatDurationSeconds(t.song.durationSeconds)}
                                 </span>
                               </button>
@@ -829,7 +829,7 @@ function HistoryPageComponent() {
                               </span>
                             )}
 
-                            <span className="shrink-0 px-1.5 py-0.2 rounded-xs font-mono text-[7.5px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                            <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
                               {release.albumType}
                             </span>
                           </div>
@@ -850,7 +850,7 @@ function HistoryPageComponent() {
                         </div>
 
                         {/* Right Metadata: Play count toggle & Timestamp */}
-                        <div className="flex items-center gap-4 shrink-0 font-mono text-[9.5px] text-ink-soft">
+                        <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-ink-soft">
                           <button
                             type="button"
                             onClick={() =>
@@ -866,7 +866,7 @@ function HistoryPageComponent() {
                             <span>
                               {release.playCount} {release.playCount === 1 ? 'play' : 'plays'}
                             </span>
-                            <span className="text-[8px] opacity-70">
+                            <span className="text-[11px] opacity-70">
                               {isExpanded ? '▲' : '▼'}
                             </span>
                           </button>
@@ -880,7 +880,7 @@ function HistoryPageComponent() {
                       {/* Expandable Tracks Accordion in List View */}
                       {isExpanded && (
                         <div className="bg-canvas-soft/40 border-t border-line px-4 py-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                          <span className="font-mono text-[8px] uppercase tracking-wider text-ink-soft block mb-1">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                             Tracks played:
                           </span>
                           {release.tracksPlayed.map((t, idx) => {
@@ -899,15 +899,15 @@ function HistoryPageComponent() {
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
-                                  <span className="font-mono text-[9px] text-ink-soft/60 w-4 text-right shrink-0">
+                                  <span className="font-mono text-[11px] text-ink-soft/60 w-4 text-right shrink-0">
                                     {idx + 1}
                                   </span>
-                                  <span className="shrink-0 text-[9px]">
+                                  <span className="shrink-0 text-[11px]">
                                     {isPlayingThisTrack ? '▶' : '♪'}
                                   </span>
                                   <span className="truncate">{t.song.title}</span>
                                 </div>
-                                <div className="flex items-center gap-3 shrink-0 font-mono text-[9px] opacity-70">
+                                <div className="flex items-center gap-3 shrink-0 font-mono text-[11px] opacity-70">
                                   <span>{formatPlayTime(t.playedAt)}</span>
                                   <span>{formatDurationSeconds(t.song.durationSeconds)}</span>
                                 </div>
@@ -933,7 +933,7 @@ function HistoryPageComponent() {
             </div>
           )}
           {!hasMore && items.length > 0 && (
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft/60">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/60">
               ✦ Beginning of recorded history reached
             </p>
           )}

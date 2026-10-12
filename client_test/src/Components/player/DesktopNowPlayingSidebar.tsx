@@ -27,8 +27,6 @@ export function DesktopNowPlayingSidebar({
 }: DesktopNowPlayingSidebarProps) {
   const navigate = useNavigate()
   const currentTrack = usePlayerStore((s) => s.currentTrack)
-  const streamQuality = usePlayerStore((s) => s.streamQuality)
-  const streamFormat = usePlayerStore((s) => s.streamFormat)
   const contextTitle = usePlayerStore((s) => s.contextTitle)
   const userQueue = usePlayerStore((s) => s.userQueue)
   const contextQueue = usePlayerStore((s) => s.contextQueue)
@@ -148,7 +146,7 @@ export function DesktopNowPlayingSidebar({
           onClick={() => navigateToRelease(currentTrack, navigate)}
           className="min-w-0 flex-1 pr-3 text-left cursor-pointer group"
         >
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft block truncate group-hover:text-ink transition-colors">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block truncate group-hover:text-ink transition-colors">
             {contextTitle ? `From ${contextTitle}` : 'Now Playing'}
           </span>
           <span className="font-serif italic font-semibold text-sm text-ink block truncate mt-0.5 group-hover:underline">
@@ -229,12 +227,12 @@ export function DesktopNowPlayingSidebar({
                         id: currentTrack.artistId,
                         slug: currentTrack.artistSlug,
                       },
-                      navigate
+                      navigate,
                     )
                   }
                   className="hover:text-ink hover:underline transition-colors cursor-pointer text-left"
                 >
-                  {currentTrack.artistName || "Unknown Artist"}
+                  {currentTrack.artistName || 'Unknown Artist'}
                 </button>
               )}
             </div>
@@ -262,11 +260,11 @@ export function DesktopNowPlayingSidebar({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-400 font-semibold">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
                   Live Jam Active
                 </span>
               </div>
-              <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                 {activeRoom.privacy.replace('_', ' ')}
               </span>
             </div>
@@ -274,7 +272,7 @@ export function DesktopNowPlayingSidebar({
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-panel border border-line">
                 <div className="min-w-0">
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                     Invite Code
                   </span>
                   <span className="font-mono font-bold text-sm text-ink tracking-wider">
@@ -284,7 +282,7 @@ export function DesktopNowPlayingSidebar({
                 <button
                   type="button"
                   onClick={handleCopyJamLink}
-                  className="px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider font-semibold border border-line hover:border-emerald-500 bg-canvas text-ink transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-line hover:border-emerald-500 bg-canvas text-ink transition-colors cursor-pointer"
                 >
                   {jamCopied ? 'Copied!' : 'Copy Link'}
                 </button>
@@ -310,7 +308,7 @@ export function DesktopNowPlayingSidebar({
                     <div
                       key={m.userId}
                       title={`${m.displayName}${m.role === 'HOST' ? ' (DJ)' : ''}`}
-                      className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 overflow-hidden"
+                      className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[11px] shrink-0 overflow-hidden"
                     >
                       {m.avatarUrl ? (
                         <img
@@ -330,14 +328,14 @@ export function DesktopNowPlayingSidebar({
                 <Link
                   to="/jam/$code"
                   params={{ code: activeRoom.roomCode }}
-                  className="flex-1 py-1.5 rounded-lg border border-line bg-panel hover:bg-canvas text-center font-mono text-[10px] uppercase tracking-wider text-ink font-semibold transition-colors"
+                  className="flex-1 py-1.5 rounded-lg border border-line bg-panel hover:bg-canvas text-center font-mono text-[11px] uppercase tracking-wider text-ink font-semibold transition-colors"
                 >
                   Jam Page &rarr;
                 </Link>
                 <button
                   type="button"
                   onClick={leaveRoom}
-                  className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[10px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                 >
                   Leave
                 </button>
@@ -350,7 +348,7 @@ export function DesktopNowPlayingSidebar({
         {artistDetails && (
           <div className="rounded-xl overflow-hidden bg-canvas border border-line p-4 space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
                 About The Artist
               </span>
               <button
@@ -365,7 +363,7 @@ export function DesktopNowPlayingSidebar({
                     navigate,
                   )
                 }
-                className="font-mono text-[9.5px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
               >
                 Profile &rarr;
               </button>
@@ -403,7 +401,7 @@ export function DesktopNowPlayingSidebar({
                   )}
                 </div>
                 {artistDetails.monthlyListeners !== undefined && (
-                  <p className="font-mono text-[10px] text-ink-soft mt-0.5">
+                  <p className="font-mono text-[11px] text-ink-soft mt-0.5">
                     {artistDetails.monthlyListeners.toLocaleString()} monthly
                     listeners
                   </p>
@@ -414,7 +412,7 @@ export function DesktopNowPlayingSidebar({
                 type="button"
                 onClick={handleToggleFollow}
                 disabled={isFollowLoading}
-                className={`font-mono text-[9.5px] uppercase tracking-wider px-3.5 py-1.5 rounded-full border transition-all cursor-pointer font-semibold ${
+                className={`font-mono text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-full border transition-all cursor-pointer font-semibold ${
                   isFollowing
                     ? 'border-line bg-panel text-ink hover:border-red-400 hover:text-red-500'
                     : 'border-ink bg-ink text-canvas hover:opacity-90'
@@ -435,7 +433,7 @@ export function DesktopNowPlayingSidebar({
         {/* ===================== COLLABORATORS & FEATURED ARTISTS CARD ===================== */}
         {parsedCredits.collaborators.length > 0 && (
           <div className="rounded-xl overflow-hidden bg-canvas border border-line p-4 space-y-3 shadow-xs">
-            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft font-semibold block">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
               Featured &amp; Collaborators
             </span>
 
@@ -471,7 +469,7 @@ export function DesktopNowPlayingSidebar({
                             <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
                           )}
                         </div>
-                        <span className="font-mono text-[9px] text-ink-soft block uppercase tracking-wider">
+                        <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider">
                           {collab.role}
                         </span>
                       </div>
@@ -481,7 +479,7 @@ export function DesktopNowPlayingSidebar({
                       <button
                         type="button"
                         onClick={() => handleToggleArtistFollow(collab.id!)}
-                        className={`font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                        className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                           isCollabFollowing
                             ? 'border-line bg-canvas text-ink hover:text-red-500 hover:border-red-400'
                             : 'border-ink bg-ink text-canvas hover:opacity-90'
@@ -501,13 +499,13 @@ export function DesktopNowPlayingSidebar({
         {nextTrack && (
           <div className="rounded-xl bg-canvas border border-line p-3.5 space-y-2 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
                 Next In Queue
               </span>
               <button
                 type="button"
                 onClick={onSwitchToQueue}
-                className="font-mono text-[9.5px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
               >
                 Open Queue &rarr;
               </button>
@@ -541,7 +539,7 @@ export function DesktopNowPlayingSidebar({
 
         {/* ===================== CREDITS & FORMAT CARD ===================== */}
         <div className="rounded-xl bg-canvas border border-line p-4 space-y-2.5 text-xs shadow-xs">
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft font-semibold block mb-1">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block mb-1">
             Release &amp; Audio Specs
           </span>
 
@@ -607,20 +605,20 @@ export function DesktopNowPlayingSidebar({
             </div>
           )}
 
-          <div className="flex items-center justify-between py-1 border-b border-line/40">
+          {/* <div className="flex items-center justify-between py-1 border-b border-line/40">
             <span className="text-ink-soft">Stream Quality:</span>
-            <span className="font-mono text-[10px] uppercase font-bold text-blue">
+            <span className="font-mono text-[11px] uppercase font-bold text-blue">
               {streamQuality === 'lossless'
                 ? 'Hi-Fi FLAC Lossless'
                 : streamFormat === 'hls'
                   ? '320 kbps AAC HLS'
                   : '320 kbps MP3'}
             </span>
-          </div>
+          </div> */}
 
           <div className="flex items-center justify-between py-1">
             <span className="text-ink-soft">Audio Architecture:</span>
-            <span className="font-mono text-[10px] text-ink-soft uppercase tracking-wider">
+            <span className="font-mono text-[11px] text-ink-soft uppercase tracking-wider">
               Studio Master Lock
             </span>
           </div>

@@ -223,7 +223,7 @@ function RadioMixPage() {
               />
             )}
             <div className="absolute top-3 right-3 z-10">
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-blue text-white font-bold shadow-xs">
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono tracking-wider uppercase bg-blue text-white font-bold shadow-xs">
                 RADIO
               </span>
             </div>
@@ -231,7 +231,7 @@ function RadioMixPage() {
 
           {/* Meta Info */}
           <div className="space-y-3 flex-1 min-w-0">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-deep font-semibold">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep font-semibold">
               Personalized Dynamic Mix &bull; Continuous Flow
             </div>
 
@@ -326,7 +326,7 @@ function RadioMixPage() {
           </p>
           <Link
             to="/"
-            className="inline-block mt-2 font-mono text-xs uppercase tracking-[0.14em] py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
+            className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
           >
             Return to Home
           </Link>

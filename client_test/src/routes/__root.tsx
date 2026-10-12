@@ -168,7 +168,7 @@ function RootComponent() {
         <header className="w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition-colors group"
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
@@ -281,7 +281,7 @@ function RootComponent() {
               </Link>
 
               {/* Top Route Navigation Links */}
-              <nav className="flex items-center gap-5 pl-4 border-l border-line font-mono text-[10px] uppercase tracking-[0.14em]">
+              <nav className="flex items-center gap-5 pl-4 border-l border-line font-mono text-[11px] uppercase tracking-wider">
                 <Link
                   to="/"
                   activeProps={{
@@ -389,7 +389,7 @@ function RootComponent() {
                 <span className="truncate text-[11px] font-sans">
                   Search...
                 </span>
-                <kbd className="ml-auto font-mono text-[9px] border border-line bg-canvas px-1.5 py-0.5 rounded text-ink-soft/80">
+                <kbd className="ml-auto font-mono text-[11px] border border-line bg-canvas px-1.5 py-0.5 rounded text-ink-soft/80">
                   ⌘K
                 </kbd>
               </button>
@@ -433,7 +433,7 @@ function RootComponent() {
                   {!createMenuOpen && (
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
+                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
                     >
                       Create
                     </span>
@@ -454,18 +454,18 @@ function RootComponent() {
                             <span className="font-serif italic text-xs font-semibold text-ink truncate">
                               Creation Desk
                             </span>{' '}
-                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[8px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
                               Quick Actions
                             </span>
                           </div>
-                          <div className="font-mono text-[9px] text-ink-soft truncate">
+                          <div className="font-mono text-[11px] text-ink-soft truncate">
                             Create &amp; broadcast
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {activeJamRoom && (
-                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             Jam Active
                           </span>
@@ -503,7 +503,7 @@ function RootComponent() {
                             Live Jam
                           </span>
                           {activeJamRoom && (
-                            <span className="flex items-center gap-1 px-1 py-0.2 bg-emerald-500/10 text-emerald-500 text-[8px] font-mono uppercase tracking-wider border border-emerald-500/30 rounded">
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[11px] font-mono uppercase tracking-wider border border-emerald-500/30 rounded">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                               Live
                             </span>
@@ -579,7 +579,7 @@ function RootComponent() {
 
               {/* User Auth Section */}
               {isLoading ? (
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft animate-pulse px-2">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft animate-pulse px-2">
                   Authenticating...
                 </span>
               ) : isAuthenticated && user ? (
@@ -633,17 +633,17 @@ function RootComponent() {
                             <div className="font-serif italic text-xs font-semibold text-ink truncate">
                               {user.displayName}
                             </div>
-                            <div className="font-mono text-[9px] text-ink-soft truncate">
+                            <div className="font-mono text-[11px] text-ink-soft truncate">
                               {user.email}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                          <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
                             {user.role}
                           </span>
                           {user.isEmailVerified && (
-                            <span className="px-1.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                               Verified
                             </span>
                           )}
@@ -849,13 +849,13 @@ function RootComponent() {
                 <div className="flex items-center gap-2">
                   <Link
                     to="/login"
-                    className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
-                    className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-1.5 px-3 bg-ink text-canvas border border-ink hover:bg-canvas hover:text-ink font-medium transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 bg-ink text-canvas border border-ink hover:bg-canvas hover:text-ink font-medium transition-colors"
                   >
                     Join
                   </Link>
@@ -904,17 +904,17 @@ function RootComponent() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-serif italic text-sm font-bold text-ink truncate group-hover:text-blue transition-colors">
+                    <div className="font-sans text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
                       {user.displayName}
                     </div>
-                    <div className="font-mono text-[9px] uppercase tracking-wider text-ink-soft truncate">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft truncate">
                       {user.role} • View Profile &rarr;
                     </div>
                   </div>
                 </Link>
               ) : (
                 <div className="flex-1 min-w-0">
-                  <div className="font-serif italic text-base font-bold text-ink">
+                  <div className="font-sans text-base font-semibold text-ink">
                     Groovy Guest
                   </div>
                 </div>
@@ -960,10 +960,10 @@ function RootComponent() {
 
             {/* Navigation Directory */}
             <div className="space-y-1">
-              <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400 mb-2">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-2">
                 Catalog &amp; Discovery
               </div>
-              <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-[0.14em]">
+              <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider">
                 <Link
                   to="/"
                   onClick={() => setLeftSidebarOpen(false)}
@@ -1007,7 +1007,7 @@ function RootComponent() {
 
                 {isAuthenticated && (
                   <>
-                    <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-deep dark:text-blue-400 mt-4 mb-2">
+                    <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mt-4 mb-2">
                       Your Vault
                     </div>
                     <Link
@@ -1079,13 +1079,13 @@ function RootComponent() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between p-2 font-mono text-xs uppercase tracking-[0.14em] text-ink hover:bg-canvas rounded border border-line cursor-pointer"
+              className="w-full flex items-center justify-between p-2 font-mono text-xs uppercase tracking-wider text-ink hover:bg-canvas rounded border border-line cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 {theme === 'dark' ? <LightModeSVG /> : <DarkModeSVG />}
                 <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
               </span>
-              <span className="text-[10px] text-ink-soft font-sans">
+              <span className="text-[11px] text-ink-soft font-sans">
                 Toggle
               </span>
             </button>
@@ -1110,7 +1110,7 @@ function RootComponent() {
       {isAuthPage ? (
         /* Dedicated Auth Content Outside Main Layout Outlet */
         <div
-          className={`flex-1 flex items-center justify-center p-4 sm:p-8 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
+          className={`flex-1 flex items-center justify-center p-2 sm:p-8 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
         >
           <Outlet />
         </div>
@@ -1120,7 +1120,7 @@ function RootComponent() {
           <div
             className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
           >
-            <main className="flex-1 max-w-5xl w-full mx-auto px-2.5 sm:px-12 sm:py-10">
+            <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-12 sm:py-10">
               <Outlet />
             </main>
           </div>

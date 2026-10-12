@@ -110,7 +110,7 @@ function LoginComponent() {
           </Link>
           <Link
             to="/"
-            className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group"
+            className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
             <span>Back to home</span>
@@ -118,7 +118,7 @@ function LoginComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-blue-deep mb-4">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-ink leading-[1.1] mb-4 font-normal">
@@ -133,7 +133,7 @@ function LoginComponent() {
         {/* Decorative Geometric Vinyl Record SVG Art */}
         <SvgArtworkSpiral />
 
-        <div className="flex justify-between items-center font-mono text-[10px] uppercase tracking-[0.12em] text-ink-soft relative z-10">
+        <div className="flex justify-between items-center font-mono text-[11px] uppercase tracking-widest text-ink-soft relative z-10">
           <span>© 2026 Groovy </span>
           <span>Est. MMXXVI</span>
         </div>
@@ -146,7 +146,7 @@ function LoginComponent() {
           <div className="lg:hidden mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors group"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
               <span>Back to home</span>
@@ -155,12 +155,12 @@ function LoginComponent() {
 
           {/* Navigation Tabs */}
           <div className="flex gap-7 mb-8 border-b border-line">
-            <span className="font-mono text-xs uppercase tracking-[0.08em] pb-3 border-b-2 border-blue text-ink font-medium">
+            <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-blue text-ink font-medium">
               Sign In
             </span>
             <Link
               to="/register"
-              className="font-mono text-xs uppercase tracking-[0.08em] pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
+              className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
             >
               Create Account
             </Link>
@@ -187,7 +187,7 @@ function LoginComponent() {
                     type="button"
                     onClick={handleResend}
                     disabled={isResending || cooldown > 0}
-                    className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-blue hover:underline disabled:opacity-50 transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline disabled:opacity-50 transition-colors"
                   >
                     {cooldown > 0
                       ? `Resend in ${cooldown}s`
@@ -224,7 +224,7 @@ function LoginComponent() {
 
           {/* Divider */}
           <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-line after:content-[''] after:flex-1 after:h-px after:bg-line">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
               Or with email
             </span>
           </div>
@@ -234,7 +234,7 @@ function LoginComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="si-email"
-                className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+                className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
               >
                 Email Address
               </label>
@@ -254,13 +254,13 @@ function LoginComponent() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="si-password"
-                  className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+                  className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
                 >
                   Password
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="font-mono text-[9.5px] uppercase tracking-widest text-blue hover:underline"
+                  className="font-mono text-[11px] uppercase tracking-widest text-blue hover:underline"
                 >
                   Forgot?
                 </Link>
@@ -279,7 +279,7 @@ function LoginComponent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-2.5 font-mono text-[9px] uppercase tracking-[0.08em] text-ink-soft hover:text-ink cursor-pointer"
+                  className="absolute right-0 top-2.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -289,7 +289,7 @@ function LoginComponent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+              className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Entering...' : 'Enter the Maison'}
             </button>

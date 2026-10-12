@@ -184,7 +184,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
           </svg>
-          <span className="font-mono text-[9px] uppercase tracking-wider font-semibold">
+          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">
             Remove
           </span>
         </div>
@@ -210,7 +210,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
           </svg>
-          <span className="font-mono text-[9px] uppercase tracking-wider font-semibold">
+          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">
             Playlist
           </span>
         </div>
@@ -280,7 +280,7 @@ export const QueueSongRow = memo(function QueueSongRow({
               </svg>
             </div>
           ) : isContextQueue ? (
-            <span className="font-mono text-[10px] text-ink-soft/60 w-4 text-center shrink-0">
+            <span className="font-mono text-[11px] text-ink-soft/60 w-4 text-center shrink-0">
               {index + 1}
             </span>
           ) : null}
@@ -306,7 +306,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 <span className="w-0.5 h-2 bg-canvas rounded-full animate-pulse delay-150" />
               </div>
             ) : (
-              <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-canvas text-[9px]">
+              <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-canvas text-[11px]">
                 ▶
               </div>
             )}
@@ -315,16 +315,16 @@ export const QueueSongRow = memo(function QueueSongRow({
           {/* Title & Artist info */}
           <div className="flex flex-col min-w-0">
             <span
-              className={`text-xs font-serif italic truncate transition-colors leading-tight ${
+              className={`text-xs font-sans font-medium truncate transition-colors leading-tight ${
                 isNowPlaying ? 'text-blue font-semibold' : 'text-ink group-hover:text-blue'
               }`}
             >
               {track.title}
             </span>
-            <div className="flex items-center gap-1.5 text-[10.5px] text-ink-soft truncate font-sans">
+            <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate font-sans">
               <span className="truncate">{track.artistName}</span>
               {isJamQueue && addedByDisplayName && (
-                <span className="text-emerald-700 dark:text-emerald-400 font-mono text-[9px] shrink-0">
+                <span className="text-emerald-700 dark:text-emerald-400 font-mono text-[11px] shrink-0">
                   • by {addedByDisplayName}
                 </span>
               )}
@@ -339,7 +339,7 @@ export const QueueSongRow = memo(function QueueSongRow({
         >
           <SongActionMenu track={track} align="right" />
 
-          <span className="font-mono text-[10.5px] text-ink-soft shrink-0 select-none">
+          <span className="font-mono text-[11px] text-ink-soft shrink-0 select-none">
             {formatSeconds(track.durationSeconds)}
           </span>
 

@@ -205,7 +205,7 @@ function FollowedReleasesComponent() {
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
               Latest releases
             </h1>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
               ✦ Artist Radar
             </span>
           </div>
@@ -309,7 +309,7 @@ function FollowedReleasesComponent() {
                 <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
                   {group.label}
                 </h2>
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'}
                 </span>
@@ -343,7 +343,7 @@ function FollowedReleasesComponent() {
                         )}
 
                         {/* Release Type Badge (ALBUM, EP, SINGLE) */}
-                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[8px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
+                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
                           {release.albumType}
                         </span>
                       </div>
@@ -351,7 +351,7 @@ function FollowedReleasesComponent() {
                       {/* Release Title & Artist */}
                       <div className="flex flex-col min-w-0 flex-1">
                         <span
-                          className="text-xs font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
+                          className="text-sm font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
                           title={release.title}
                         >
                           {release.title}
@@ -362,7 +362,7 @@ function FollowedReleasesComponent() {
                         </span>
 
                         {/* Sub-bar: Release Date & Tracks Count */}
-                        <div className="flex items-center justify-between font-mono text-[9px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
+                        <div className="flex items-center justify-between font-mono text-[11px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
                           <span>{formatReleaseDate(release.releaseDate)}</span>
                           {release.totalTracks > 0 && (
                             <span>
@@ -413,7 +413,7 @@ function FollowedReleasesComponent() {
                             {release.title}
                           </span>
 
-                          <span className="shrink-0 px-1.5 py-0.2 rounded-xs font-mono text-[7.5px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
                             {release.albumType}
                           </span>
                         </div>
@@ -424,7 +424,7 @@ function FollowedReleasesComponent() {
                       </div>
 
                       {/* Right Metadata: Duration & Release Date */}
-                      <div className="flex items-center gap-4 shrink-0 font-mono text-[9.5px] text-ink-soft">
+                      <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-ink-soft">
                         {release.totalDurationSeconds > 0 && (
                           <span className="hidden sm:inline-block">
                             {formatDurationSeconds(

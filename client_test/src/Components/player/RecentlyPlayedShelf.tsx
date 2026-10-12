@@ -64,7 +64,7 @@ export function RecentlyPlayedShelf({
             <p className="font-sans text-xs text-ink-soft mt-0.5">{subtitle}</p>
           )}
         </div>
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+        <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
           {displayedItems.length}{' '}
           {displayedItems.length === 1 ? 'release' : 'releases'}
         </span>
@@ -148,7 +148,7 @@ export function RecentlyPlayedShelf({
                     >
                       {releaseTitle}
                     </span>
-                    <span className="text-[10.5px] text-ink-soft truncate mt-0.5 leading-tight">
+                    <span className="text-xs text-ink-soft truncate mt-0.5 leading-tight">
                       {item.song.artistName} · {releaseType}
                     </span>
                   </div>

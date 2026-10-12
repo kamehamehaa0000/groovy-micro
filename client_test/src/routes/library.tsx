@@ -305,7 +305,7 @@ function LibraryPageComponent() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'

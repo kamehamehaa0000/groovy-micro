@@ -109,7 +109,7 @@ export function LiveJamModal() {
       >
         {/* Top rule / Subtitle */}
         <div className="flex items-center justify-between border-b border-line px-5 py-3 sm:px-6">
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-soft">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
             Groovy / Live Jam
           </span>
 
@@ -140,14 +140,14 @@ export function LiveJamModal() {
               <span>Live Jam</span>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block mb-1" />
             </div>
-            <div className="mt-1.5 font-mono text-[8.5px] uppercase tracking-[0.22em] text-ink-soft">
+            <div className="mt-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
               Real-time synchronized group listening
             </div>
           </div>
 
           {/* Error Banner */}
           {(errorMessage || localError) && (
-            <div className="mb-4 p-3 rounded-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center justify-between font-mono text-[11px]">
+            <div className="mb-4 p-3 rounded-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-between font-mono text-[11px]">
               <span>{localError || errorMessage}</span>
               <button
                 type="button"
@@ -164,7 +164,7 @@ export function LiveJamModal() {
             <div className="space-y-4">
               <div className="p-4 rounded-xs bg-panel border border-line space-y-3 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     Active Room
                   </span>
                   <span className="font-mono text-sm font-bold text-ink bg-stone/20 dark:bg-stone/40 px-2.5 py-0.5 rounded-xs border border-line">
@@ -173,7 +173,7 @@ export function LiveJamModal() {
                 </div>
 
                 <div>
-                  <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                     Shareable Invite Link
                   </label>
                   <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export function LiveJamModal() {
                     <button
                       type="button"
                       onClick={handleCopyLink}
-                      className="px-3 py-1.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-[10px] uppercase tracking-wider font-semibold transition-colors shrink-0 cursor-pointer shadow-2xs"
+                      className="px-3 py-1.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors shrink-0 cursor-pointer shadow-2xs"
                     >
                       {copied ? "Copied!" : "Copy"}
                     </button>
@@ -193,10 +193,10 @@ export function LiveJamModal() {
                 </div>
 
                 <div className="pt-2 border-t border-line flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                     Privacy:
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink font-semibold">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
                     {activeRoom.privacy.replace("_", " ")}
                   </span>
                 </div>
@@ -215,7 +215,7 @@ export function LiveJamModal() {
 
               {/* Connected Listeners */}
               <div>
-                <h3 className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft mb-2">
+                <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-2">
                   Connected Listeners ({members.length})
                 </h3>
                 <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
@@ -225,20 +225,20 @@ export function LiveJamModal() {
                       className="flex items-center justify-between p-2 rounded-xs bg-panel border border-line text-xs"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[9px] shrink-0 overflow-hidden">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[11px] shrink-0 overflow-hidden">
                           {m.displayName.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-ink font-medium truncate text-[11px]">
                           {m.displayName}{" "}
                           {m.userId === currentUser?.id && (
-                            <span className="text-ink-soft text-[10px]">(You)</span>
+                            <span className="text-ink-soft text-[11px]">(You)</span>
                           )}
                         </span>
                       </div>
 
                       <div>
                         {m.role === "HOST" ? (
-                          <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.2 rounded-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.2 rounded-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
                             DJ Host
                           </span>
                         ) : (
@@ -246,7 +246,7 @@ export function LiveJamModal() {
                             <button
                               type="button"
                               onClick={() => transferHost(m.userId)}
-                              className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-line hover:border-emerald-500 bg-canvas hover:bg-emerald-500 hover:text-white text-ink-soft transition cursor-pointer"
+                              className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-line hover:border-emerald-500 bg-canvas hover:bg-emerald-500 hover:text-white text-ink-soft transition cursor-pointer"
                               title="Pass the DJ control to this listener"
                             >
                               Pass Aux
@@ -264,7 +264,7 @@ export function LiveJamModal() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-1.5 rounded-xs border border-line hover:border-ink/40 text-ink-soft hover:text-ink font-mono text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
+                  className="px-4 py-1.5 rounded-xs border border-line hover:border-ink/40 text-ink-soft hover:text-ink font-mono text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Close
                 </button>
@@ -274,7 +274,7 @@ export function LiveJamModal() {
                     leaveRoom();
                     closeModal();
                   }}
-                  className="px-4 py-1.5 rounded-xs border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[10px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  className="px-4 py-1.5 rounded-xs border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                 >
                   Leave Session
                 </button>
@@ -287,7 +287,7 @@ export function LiveJamModal() {
                 <button
                   type="button"
                   onClick={() => setTab("create")}
-                  className={`flex-1 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] font-medium rounded-xs transition-colors cursor-pointer ${
+                  className={`flex-1 py-1.5 font-mono text-[11px] uppercase tracking-wider font-medium rounded-xs transition-colors cursor-pointer ${
                     tab === "create"
                       ? "bg-ink text-canvas shadow-2xs"
                       : "text-ink-soft hover:text-ink"
@@ -298,7 +298,7 @@ export function LiveJamModal() {
                 <button
                   type="button"
                   onClick={() => setTab("join")}
-                  className={`flex-1 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] font-medium rounded-xs transition-colors cursor-pointer ${
+                  className={`flex-1 py-1.5 font-mono text-[11px] uppercase tracking-wider font-medium rounded-xs transition-colors cursor-pointer ${
                     tab === "join"
                       ? "bg-ink text-canvas shadow-2xs"
                       : "text-ink-soft hover:text-ink"
@@ -312,7 +312,7 @@ export function LiveJamModal() {
                 <div className="space-y-4">
                   {/* Privacy Radio Options */}
                   <div>
-                    <label className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft block mb-2 font-semibold">
+                    <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-2 font-semibold">
                       Room Privacy
                     </label>
                     <div className="space-y-2">
@@ -407,7 +407,7 @@ export function LiveJamModal() {
                     type="button"
                     disabled={loading}
                     onClick={handleCreate}
-                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-[0.14em] font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer mt-2"
+                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer mt-2"
                   >
                     {loading ? "Starting Session..." : "Start Live Jam"}
                   </button>
@@ -416,7 +416,7 @@ export function LiveJamModal() {
                 /* Join Tab */
                 <div className="space-y-4">
                   <div>
-                    <label className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-soft block mb-2 font-semibold">
+                    <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-2 font-semibold">
                       Enter 6-Character Room Code
                     </label>
                     <input
@@ -432,7 +432,7 @@ export function LiveJamModal() {
                     />
                   </div>
 
-                  <p className="font-mono text-[10px] text-ink-soft text-center leading-relaxed">
+                  <p className="font-mono text-[11px] text-ink-soft text-center leading-relaxed">
                     Paste the invite code sent by your host to join the synchronized stream.
                   </p>
 
@@ -440,7 +440,7 @@ export function LiveJamModal() {
                     type="button"
                     disabled={loading || !joinCode.trim()}
                     onClick={handleJoin}
-                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-[0.14em] font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                   >
                     {loading ? "Joining..." : "Join Jam"}
                   </button>

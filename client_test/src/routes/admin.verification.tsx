@@ -105,7 +105,7 @@ function AdminVerificationDeskComponent() {
 
   if (isAuthLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
         Checking administrative clearance...
       </div>
     )
@@ -114,7 +114,7 @@ function AdminVerificationDeskComponent() {
   if (user?.role !== 'ADMIN') {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-500 block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-red-500 block mb-2">
           403 Access Restricted
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -126,7 +126,7 @@ function AdminVerificationDeskComponent() {
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
         >
           &larr; Return to Catalog
         </Link>
@@ -140,7 +140,7 @@ function AdminVerificationDeskComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
               Groovy Administration
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -154,7 +154,7 @@ function AdminVerificationDeskComponent() {
 
           <Link
             to="/studio"
-            className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
+            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
           >
             My Studio &rarr;
           </Link>
@@ -197,7 +197,7 @@ function AdminVerificationDeskComponent() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`py-1.5 px-3 uppercase tracking-[0.14em] transition-colors cursor-pointer ${
+                  className={`py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer ${
                     activeTab === tab
                       ? 'border-b-2 border-blue text-ink font-semibold'
                       : 'text-ink-soft hover:text-ink'
@@ -223,7 +223,7 @@ function AdminVerificationDeskComponent() {
 
       {/* Applications List */}
       {isLoading ? (
-        <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+        <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
           Loading applications...
         </div>
       ) : applications.length === 0 ? (
@@ -271,7 +271,7 @@ function AdminVerificationDeskComponent() {
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`font-mono text-[10px] uppercase tracking-[0.14em] py-1 px-2.5 border ${
+                      className={`font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border ${
                         app.verificationStatus === 'VERIFIED'
                           ? 'border-blue/30 bg-blue/10 text-blue font-semibold'
                           : app.verificationStatus === 'PENDING'
@@ -289,7 +289,7 @@ function AdminVerificationDeskComponent() {
                 {/* Pitch Statement */}
                 {details?.message && (
                   <div>
-                    <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-1">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-1">
                       Artist Pitch / Background
                     </span>
                     <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line p-3 border border-line-soft bg-canvas">
@@ -300,7 +300,7 @@ function AdminVerificationDeskComponent() {
 
                 {/* Contact Telemetry */}
                 {(details?.contactEmail || details?.contactPhone) && (
-                  <div className="flex items-center gap-4 font-mono text-[10.5px] text-ink-soft">
+                  <div className="flex items-center gap-4 font-mono text-[11px] text-ink-soft">
                     {details.contactEmail && (
                       <span>
                         Email:{' '}
@@ -323,8 +323,8 @@ function AdminVerificationDeskComponent() {
                 {/* Proof Links */}
                 {details?.links && details.links.length > 0 && (
                   <div>
-                    <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft block mb-1.5">
-                      Proof & Verification Links ({details.links.length})
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-1.5">
+                      Proof &amp; Verification Links ({details.links.length})
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {details.links.map((link, idx) => (
@@ -333,7 +333,7 @@ function AdminVerificationDeskComponent() {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-[10px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink flex items-center gap-1.5 max-w-sm truncate"
+                          className="font-mono text-[11px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink flex items-center gap-1.5 max-w-sm truncate"
                         >
                           <span className="truncate">{link}</span>
                           <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft shrink-0" />
@@ -355,7 +355,7 @@ function AdminVerificationDeskComponent() {
 
                 {/* Admin Actions Bar */}
                 <div className="pt-3 border-t border-line-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                     Registered:{' '}
                     {new Date(app.createdAt).toLocaleString(undefined, {
                       dateStyle: 'medium',
@@ -369,7 +369,7 @@ function AdminVerificationDeskComponent() {
                         type="button"
                         disabled={isApprovingId === app.id}
                         onClick={() => handleApprove(app.id)}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
                       >
                         {isApprovingId === app.id
                           ? 'Approving...'
@@ -384,7 +384,7 @@ function AdminVerificationDeskComponent() {
                           setRejectingArtistId(app.id)
                           setRejectReason('')
                         }}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line text-red-600 hover:border-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line text-red-600 hover:border-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
                       >
                         {app.verificationStatus === 'VERIFIED'
                           ? 'Revoke / Reject'
@@ -397,7 +397,7 @@ function AdminVerificationDeskComponent() {
                 {/* Inline Rejection Reason Form */}
                 {isRejectingThis && (
                   <div className="p-4 border border-red-300 bg-red-50/30 dark:bg-red-950/10 flex flex-col gap-3">
-                    <label className="font-mono text-[10px] uppercase tracking-[0.12em] text-red-700 dark:text-red-300 block">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-red-700 dark:text-red-300 block">
                       Provide Required Rejection Reason (Visible to Artist):
                     </label>
                     <textarea
@@ -413,14 +413,14 @@ function AdminVerificationDeskComponent() {
                         type="button"
                         disabled={isRejecting || rejectReason.trim().length < 5}
                         onClick={handleConfirmReject}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-4 bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-4 bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setRejectingArtistId(null)}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] py-1.5 px-3 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-ink cursor-pointer"
                       >
                         Cancel
                       </button>

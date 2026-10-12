@@ -352,7 +352,7 @@ function UnifiedFeedComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
         <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-blue">
             Community &nbsp;·&nbsp; Social Circle
           </div>
           <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
@@ -366,7 +366,7 @@ function UnifiedFeedComponent() {
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-[0.14em] px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
+              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In to Social Hub &rarr;
             </Link>
@@ -382,7 +382,7 @@ function UnifiedFeedComponent() {
       <section className="shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue mb-1.5">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1.5">
               Community &nbsp;·&nbsp; Socials &amp; Friends
             </div>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal leading-tight">
@@ -402,7 +402,7 @@ function UnifiedFeedComponent() {
                 fetchLiveActivities()
                 fetchRequests()
               }}
-              className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-3.5 border border-line bg-canvas hover:bg-canvas-deep text-ink transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-2xs"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 border border-line bg-canvas hover:bg-canvas-deep text-ink transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-2xs"
             >
               <span>Refresh Pulse</span>
             </button>
@@ -415,7 +415,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('stream')}
-          className={`font-mono  bg-canvas-deep border border-line text-[10.5px] uppercase tracking-[0.12em] px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'stream'
               ? 'bg-ink text-canvas font-semibold shadow-xs'
               : 'text-ink-soft hover:text-ink'
@@ -427,7 +427,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('live')}
-          className={`font-mono  bg-canvas-deep border border-line text-[10.5px] uppercase tracking-[0.12em] px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'live'
               ? 'bg-ink text-canvas font-semibold shadow-xs'
               : 'text-ink-soft hover:text-ink'
@@ -439,7 +439,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('network')}
-          className={`font-mono  bg-canvas-deep border border-line text-[10.5px] uppercase tracking-[0.12em] px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'network'
               ? 'bg-ink text-canvas font-semibold shadow-xs'
               : 'text-ink-soft hover:text-ink'
@@ -447,7 +447,7 @@ function UnifiedFeedComponent() {
         >
           <span>Requests</span>
           {incomingRequests.length > 0 && (
-            <span className="bg-blue text-white text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold">
+            <span className="bg-blue text-white text-[11px] font-mono px-1.5 py-0.5 rounded-full font-bold">
               {incomingRequests.length}
             </span>
           )}
@@ -468,7 +468,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('all')}
-                className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'all'
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -479,7 +479,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('releases')}
-                className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'releases'
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -490,7 +490,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('playlists')}
-                className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'playlists'
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -501,7 +501,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('friends')}
-                className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'friends'
                     ? 'bg-ink text-canvas font-semibold shadow-xs'
                     : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -511,7 +511,7 @@ function UnifiedFeedComponent() {
               </button>
             </div>
 
-            <div className="font-mono text-[10px] text-ink-soft uppercase tracking-wider hidden sm:block">
+            <div className="font-mono text-[11px] text-ink-soft uppercase tracking-wider hidden sm:block">
               {feedItems.length} drops cached
             </div>
           </div>
@@ -546,14 +546,14 @@ function UnifiedFeedComponent() {
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   to="/"
-                  className="bg-ink text-canvas font-mono text-[10.5px] uppercase tracking-wider px-4 py-2 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl"
+                  className="bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl"
                 >
                   Explore Catalog
                 </Link>
                 <button
                   type="button"
                   onClick={() => setMobileTab('network')}
-                  className="bg-panel text-ink font-mono text-[10.5px] uppercase tracking-wider px-4 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-xl cursor-pointer"
+                  className="bg-panel text-ink font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-xl cursor-pointer"
                 >
                   Discover Listeners
                 </button>
@@ -646,7 +646,7 @@ function UnifiedFeedComponent() {
                       </div>
 
                       {/* Relative Timestamp */}
-                      <span className="font-mono text-[10px] text-ink-soft shrink-0 ml-2">
+                      <span className="font-mono text-[11px] text-ink-soft shrink-0 ml-2">
                         {formatRelativeTime(item.timestamp)}
                       </span>
                     </div>
@@ -695,17 +695,17 @@ function UnifiedFeedComponent() {
                       {/* Metadata */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas-deep border border-line rounded text-ink-soft">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas-deep border border-line rounded text-ink-soft">
                             {item.target.type}
                           </span>
                           {item.target.isExplicit && (
-                            <span className="font-mono text-[8.5px] uppercase font-bold px-1 py-0.5 bg-ink text-canvas rounded">
+                            <span className="font-mono text-[11px] uppercase font-bold px-1 py-0.5 bg-ink text-canvas rounded">
                               E
                             </span>
                           )}
                         </div>
 
-                        <div className="font-serif text-base text-ink truncate mt-1">
+                        <div className="font-sans font-semibold text-sm sm:text-base text-ink truncate mt-1">
                           {item.target.type === 'album' && item.target.slug ? (
                             <Link
                               to="/albums/$idOrSlug"
@@ -763,7 +763,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/albums/$idOrSlug"
                             params={{ idOrSlug: item.target.slug }}
-                            className="font-mono text-[10px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
+                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
                           >
                             View
                           </Link>
@@ -773,7 +773,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/playlists/$id"
                             params={{ id: item.target.id }}
-                            className="font-mono text-[10px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
+                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
                           >
                             Listen
                           </Link>
@@ -814,7 +814,7 @@ function UnifiedFeedComponent() {
             <div className="border border-line bg-panel p-5 rounded-2xl shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-blue mb-0.5">
+                  <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5">
                     Private Vault Requests
                   </div>
                   <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -822,7 +822,7 @@ function UnifiedFeedComponent() {
                   </h3>
                 </div>
                 {incomingRequests.length > 0 && (
-                  <span className="bg-blue/15 text-blue text-[10px] font-mono px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-blue/15 text-blue text-[11px] font-mono px-2 py-0.5 rounded-full font-bold">
                     Action Needed
                   </span>
                 )}
@@ -858,7 +858,7 @@ function UnifiedFeedComponent() {
                             <span className="font-semibold text-xs text-ink block truncate">
                               {req.displayName}
                             </span>
-                            <span className="font-mono text-[9px] text-ink-soft">
+                            <span className="font-mono text-[11px] text-ink-soft">
                               {formatRelativeTime(req.createdAt)}
                             </span>
                           </div>
@@ -869,7 +869,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleAcceptRequest(req.requesterId)}
-                            className="bg-ink text-canvas hover:bg-blue px-2.5 py-1.5 font-mono text-[9.5px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="bg-ink text-canvas hover:bg-blue px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Accept
                           </button>
@@ -877,7 +877,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleRejectRequest(req.requesterId)}
-                            className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-2.5 py-1.5 font-mono text-[9.5px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Decline
                           </button>
@@ -898,7 +898,7 @@ function UnifiedFeedComponent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className=" font-mono text-[9px] uppercase tracking-[0.18em] text-blue mb-0.5 flex items-center gap-1.5">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5 flex items-center gap-1.5">
                   <span>Real-Time Presence</span>
                 </div>
                 <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -908,7 +908,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={fetchLiveActivities}
-                className="font-mono text-[9px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
               >
                 Pulse
               </button>
@@ -963,7 +963,7 @@ function UnifiedFeedComponent() {
                           params={{ id: item.user.id }}
                           className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
                         >
-                          <div className="w-7 h-7 rounded-full bg-stone/30 border border-line flex items-center justify-center font-mono text-[10px] font-semibold text-ink overflow-hidden uppercase shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-stone/30 border border-line flex items-center justify-center font-mono text-[11px] font-semibold text-ink overflow-hidden uppercase shrink-0">
                             {item.user.avatarUrl ? (
                               <img
                                 src={item.user.avatarUrl}
@@ -978,7 +978,7 @@ function UnifiedFeedComponent() {
                             <span className="font-semibold text-xs text-ink block truncate hover:text-blue transition-colors">
                               {item.user.displayName}
                             </span>
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                               {item.user.isMutualFriend
                                 ? 'Mutual Friend'
                                 : 'Followed'}
@@ -986,7 +986,7 @@ function UnifiedFeedComponent() {
                           </div>
                         </Link>
 
-                        <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono text-[8.5px] uppercase tracking-wider shrink-0">
+                        <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono text-[11px] uppercase tracking-wider shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           <span>Streaming</span>
                         </div>
@@ -1010,7 +1010,7 @@ function UnifiedFeedComponent() {
 
                         <div className="flex-1 min-w-0">
                           <h4
-                            className="font-serif italic text-sm text-ink truncate font-medium"
+                            className="font-sans font-semibold text-sm text-ink truncate"
                             title={item.activity.trackTitle}
                           >
                             {item.activity.trackTitle}
@@ -1027,7 +1027,7 @@ function UnifiedFeedComponent() {
                                 style={{ width: `${progressPercent}%` }}
                               />
                             </div>
-                            <div className="flex justify-between font-mono text-[8px] text-ink-soft/80">
+                            <div className="flex justify-between font-mono text-[11px] text-ink-soft/80">
                               <span>
                                 {formatElapsed(item.activity.progressMs)}
                               </span>
@@ -1044,7 +1044,7 @@ function UnifiedFeedComponent() {
                         <button
                           type="button"
                           onClick={() => handleListenAlong(item)}
-                          className={`shrink-0 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] font-semibold border transition-all cursor-pointer rounded-lg shadow-2xs ${
+                          className={`shrink-0 px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-2xs ${
                             isPlayingThis
                               ? 'border-blue bg-blue text-white'
                               : 'border-line bg-canvas hover:bg-ink hover:text-canvas hover:border-ink text-ink'
@@ -1067,7 +1067,7 @@ function UnifiedFeedComponent() {
             }`}
           >
             <div>
-              <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-blue mb-0.5">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5">
                 Directory &nbsp;·&nbsp; Network
               </div>
               <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -1160,7 +1160,7 @@ function UnifiedFeedComponent() {
                           <span className="font-semibold text-xs text-ink block truncate hover:text-blue transition-colors">
                             {member.displayName}
                           </span>
-                          <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
                             {member.relationship === 'FRIENDS'
                               ? 'Mutual Friend'
                               : member.relationship === 'FOLLOWING'
@@ -1179,7 +1179,7 @@ function UnifiedFeedComponent() {
                         type="button"
                         disabled={isActing}
                         onClick={() => handleToggleFollow(member)}
-                        className={`font-mono text-[9px] uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
+                        className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
                           member.relationship === 'FRIENDS' ||
                           member.relationship === 'FOLLOWING'
                             ? 'border-line bg-canvas hover:border-red-500 hover:text-red-500 text-ink-soft'

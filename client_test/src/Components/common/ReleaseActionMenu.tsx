@@ -511,7 +511,7 @@ export function ReleaseActionMenu({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-serif italic text-base text-ink font-medium truncate">
+                  <p className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
                     {release.title}
                   </p>
                   <p className="font-sans text-xs text-ink-soft truncate">

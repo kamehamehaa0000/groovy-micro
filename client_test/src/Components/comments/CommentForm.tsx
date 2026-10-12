@@ -77,7 +77,7 @@ export function CommentForm({
         <div className="flex items-center justify-between px-3 py-2 border-t border-line-soft bg-canvas/40">
           <div className="flex items-center gap-2">
             <span
-              className={`font-mono text-[10.5px] ${
+              className={`font-mono text-[11px] ${
                 isOverLimit
                   ? "text-red-500 font-semibold"
                   : charCount > 1800

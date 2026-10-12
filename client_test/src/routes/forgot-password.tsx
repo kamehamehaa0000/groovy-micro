@@ -86,7 +86,7 @@ function ForgotPasswordComponent() {
           >
             Groov<span className="not-italic text-blue font-serif">y</span>
           </Link>
-          <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-blue-deep dark:text-blue-400 mt-2">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mt-2">
             Security &nbsp;·&nbsp; Password Recovery
           </div>
         </div>
@@ -117,7 +117,7 @@ function ForgotPasswordComponent() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="fp-email"
-              className="font-mono text-[9.5px] uppercase tracking-widest text-ink-soft"
+              className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
             >
               Email Address
             </label>
@@ -136,7 +136,7 @@ function ForgotPasswordComponent() {
           <button
             type="submit"
             disabled={isSubmitting || cooldown > 0 || !email}
-            className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-[0.12em] font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting
               ? 'Dispatching...'

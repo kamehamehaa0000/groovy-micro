@@ -122,21 +122,21 @@ export function CreatePlaylistModal() {
         </div>
 
         {initialTrackIds.length > 0 && (
-          <div className="font-mono text-[9.5px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
             <span>Saving Active Queue</span>
             <span>{initialTrackIds.length} tracks</span>
           </div>
         )}
 
         {modalError && (
-          <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[10.5px]">
+          <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[11px]">
             {modalError}
           </div>
         )}
 
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
               Title *
             </label>
             <input
@@ -152,7 +152,7 @@ export function CreatePlaylistModal() {
           </div>
 
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
               Description
             </label>
             <textarea
@@ -166,7 +166,7 @@ export function CreatePlaylistModal() {
           </div>
 
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
               Visibility
             </label>
             <select
@@ -182,7 +182,7 @@ export function CreatePlaylistModal() {
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+              <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
                 Duplicate Songs
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
@@ -192,14 +192,14 @@ export function CreatePlaylistModal() {
                   onChange={(e) => setNewAllowDuplicates(e.target.checked)}
                   className="accent-blue"
                 />
-                <span className="font-mono text-[10.5px] text-ink">
+                <span className="font-mono text-[11px] text-ink">
                   Allow Dups
                 </span>
               </label>
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft mb-1.5">
+              <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
                 Discussion &amp; Comments
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
@@ -209,7 +209,7 @@ export function CreatePlaylistModal() {
                   onChange={(e) => setNewAllowComments(e.target.checked)}
                   className="accent-blue"
                 />
-                <span className="font-mono text-[10.5px] text-ink">
+                <span className="font-mono text-[11px] text-ink">
                   Allow Comments
                 </span>
               </label>
@@ -220,14 +220,14 @@ export function CreatePlaylistModal() {
             <button
               type="button"
               onClick={closeModal}
-              className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !newTitle.trim()}
-              className="font-mono text-[11px] uppercase tracking-[0.14em] py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Creating...' : 'Create Playlist'}
             </button>

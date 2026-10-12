@@ -178,7 +178,7 @@ function PlaylistsDirectoryComponent() {
       <div className="border-b border-line pb-6 sm:pb-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2 font-medium">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2 font-medium">
               Groovy Playlists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight font-semibold">
@@ -194,7 +194,7 @@ function PlaylistsDirectoryComponent() {
           <button
             type="button"
             onClick={handleCreatePlaylistClick}
-            className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
+            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-ink text-canvas hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
           >
             <PlusIconSVG className="w-3.5 h-3.5" />
             <span>New Playlist</span>
@@ -234,7 +234,7 @@ function PlaylistsDirectoryComponent() {
                 onClick={() => setIsSortDropdownOpen((prev) => !prev)}
                 className="inline-flex items-center gap-2 font-mono text-xs py-2 px-3.5 border border-line bg-panel hover:bg-canvas-soft text-ink rounded-xl focus:outline-none focus:border-ink/60 transition-all cursor-pointer shadow-2xs font-medium"
               >
-                <span className="text-ink-soft text-[10px] uppercase tracking-wider">
+                <span className="text-ink-soft text-[11px] uppercase tracking-wider">
                   Sort:
                 </span>
                 <span>{SORT_LABELS[sort]}</span>
@@ -281,7 +281,7 @@ function PlaylistsDirectoryComponent() {
             </div>
 
             {/* Total Results Count */}
-            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft shrink-0 border-l border-line pl-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft shrink-0 border-l border-line pl-3">
               {totalCount} {totalCount === 1 ? 'Playlist' : 'Playlists'}
             </span>
           </div>
@@ -344,7 +344,7 @@ function PlaylistsDirectoryComponent() {
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="font-mono text-[11px] uppercase tracking-[0.14em] py-2.5 px-6 border border-line bg-panel hover:bg-canvas text-ink transition-all rounded-full shadow-2xs cursor-pointer disabled:opacity-50"
+                className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 border border-line bg-panel hover:bg-canvas text-ink transition-all rounded-full shadow-2xs cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? 'Loading Playlists...' : 'Load More Playlists ↓'}
               </button>

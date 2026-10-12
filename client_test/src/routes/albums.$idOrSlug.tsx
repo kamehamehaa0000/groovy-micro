@@ -348,7 +348,7 @@ function AlbumDetailComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
         Retrieving master recording & liner notes...
       </div>
     )
@@ -357,7 +357,7 @@ function AlbumDetailComponent() {
   if (queryError || !album) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-blue block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-blue block mb-2">
           404 Catalog Notice
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -370,7 +370,7 @@ function AlbumDetailComponent() {
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors rounded"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors rounded"
         >
           &larr; Return to Catalog
         </Link>
@@ -417,7 +417,7 @@ function AlbumDetailComponent() {
               <button
                 type="button"
                 onClick={handleCopyShareLink}
-                className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[10px] uppercase tracking-[0.12em] text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
+                className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[11px] uppercase tracking-wider text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
               >
                 {copiedLink ? '✓ Copied' : 'Share'}
               </button>
@@ -450,26 +450,26 @@ function AlbumDetailComponent() {
             <div className="min-w-0 flex-1 flex flex-col justify-end text-center md:text-left">
               {/* Badges / Eyebrow */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-line bg-canvas text-blue font-semibold rounded">
+                <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-blue font-semibold rounded">
                   {album.albumType}
                 </span>
                 {(album as any).scope === 'PERSONAL' && (
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold rounded">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold rounded">
                     Personal Collection
                   </span>
                 )}
                 {album.isUpcoming && (
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-blue/30 bg-blue/10 text-blue font-semibold flex items-center gap-1 rounded">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-blue/30 bg-blue/10 text-blue font-semibold flex items-center gap-1 rounded">
                     <CalendarIconSVG className="w-2.5 h-2.5" />
                     <span>Upcoming Drop</span>
                   </span>
                 )}
                 {album.visibility === 'UNLISTED' && (
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 border border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold rounded">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold rounded">
                     🔗 Unlisted Link
                   </span>
                 )}
-                <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                   Master Recording &bull; {releaseYear}
                 </span>
               </div>
@@ -480,7 +480,7 @@ function AlbumDetailComponent() {
               </h1>
 
               {/* Artist Attribution & Aggregate Stats */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1.5 mt-3 font-mono text-[10px] sm:text-[11px] text-ink-soft">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1.5 mt-3 font-mono text-[11px] text-ink-soft">
                 <Link
                   to="/artists/$idOrSlug"
                   params={{ idOrSlug: album.artistSlug }}
@@ -524,7 +524,7 @@ function AlbumDetailComponent() {
                     type="button"
                     disabled={isPreSaveLoading}
                     onClick={handleTogglePreSave}
-                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 font-mono text-[10px] uppercase tracking-[0.12em] font-semibold transition-all shadow-2xs cursor-pointer ${
+                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all shadow-2xs cursor-pointer ${
                       isPreSaved
                         ? 'border border-blue bg-blue text-canvas hover:opacity-90'
                         : 'bg-ink text-canvas hover:opacity-90'
@@ -533,7 +533,7 @@ function AlbumDetailComponent() {
                     <span>
                       {isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save Release'}
                     </span>
-                    <span className="opacity-80 font-mono text-[9px]">
+                    <span className="opacity-80 font-mono text-[11px]">
                       ({preSavesCount})
                     </span>
                   </button>
@@ -541,7 +541,7 @@ function AlbumDetailComponent() {
                   <button
                     type="button"
                     onClick={handlePlayAlbumFromStart}
-                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[10px] uppercase tracking-[0.12em] font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
                     <span>
@@ -557,7 +557,7 @@ function AlbumDetailComponent() {
                     type="button"
                     disabled={isLikeLoading}
                     onClick={handleToggleAlbumLike}
-                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-4 sm:px-5 font-mono text-[10px] uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-4 sm:px-5 font-mono text-[11px] uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
                       isLiked
                         ? 'border border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-400'
                         : 'border border-line bg-panel text-ink hover:border-ink'
@@ -582,7 +582,7 @@ function AlbumDetailComponent() {
         {album.isUpcoming && (
           <div className="border border-blue/30 bg-blue/5 hover:border-blue/60 transition-colors rounded-lg p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xs">
             <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.14em] text-blue font-semibold">
+              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-blue font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
                 <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
               </div>
@@ -610,7 +610,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
                         {timeLeft.days}
                       </span>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Days
                       </span>
                     </div>
@@ -618,7 +618,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
                         {String(timeLeft.hours).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Hours
                       </span>
                     </div>
@@ -626,7 +626,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
                         {String(timeLeft.minutes).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Mins
                       </span>
                     </div>
@@ -634,14 +634,14 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
                         {String(timeLeft.seconds).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-ink-soft">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Secs
                       </span>
                     </div>
                   </div>
                 </div>
               )}
-              <p className="font-mono text-[10px] text-ink-soft leading-relaxed max-w-xl">
+              <p className="font-sans text-xs text-ink-soft leading-relaxed max-w-xl">
                 Lossless master audio streams unlock automatically on release
                 date. Pre-save now to add this {album.albumType.toLowerCase()}{' '}
                 to your library immediately upon drop.
@@ -653,7 +653,7 @@ function AlbumDetailComponent() {
                 type="button"
                 disabled={isPreSaveLoading}
                 onClick={handleTogglePreSave}
-                className={`w-full md:w-auto rounded font-mono text-[10px] uppercase tracking-[0.14em] py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
+                className={`w-full md:w-auto rounded font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
                   isPreSaved
                     ? 'border-blue bg-blue text-canvas hover:opacity-90'
                     : 'border-ink bg-ink text-canvas hover:opacity-90'
@@ -662,7 +662,7 @@ function AlbumDetailComponent() {
                 <span>
                   {isPreSaved ? '✓ Pre-Saved to Library' : '✦ Pre-Save Release'}
                 </span>
-                <span className="opacity-75 font-mono text-[10px]">
+                <span className="opacity-75 font-mono text-[11px]">
                   ({preSavesCount})
                 </span>
               </button>
@@ -678,7 +678,7 @@ function AlbumDetailComponent() {
                 Master Tracklist
               </h2>
             </div>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
               {(album.tracks ?? []).length}{' '}
               {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
@@ -689,20 +689,20 @@ function AlbumDetailComponent() {
               <p className="font-serif italic text-base text-ink">
                 No tracks uploaded to this release yet.
               </p>
-              <p className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-soft mt-1">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1">
                 Check back soon as the master tape transfers complete.
               </p>
             </div>
           ) : (
             <div className="border border-line rounded-md overflow-clip bg-panel divide-y divide-line/60 shadow-2xs">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/40 font-mono text-[9px] uppercase tracking-[0.16em] text-ink-soft">
+              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/40 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <span className="w-6 text-center">#</span>
                   <span>Title &amp; Credits</span>
                 </div>
                 <div className="w-24 text-right">Streams</div>
-                <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 min-w-[120px] pr-2">
+                <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 min-w-30 pr-2">
                   <span>Duration</span>
                 </div>
               </div>
@@ -753,7 +753,7 @@ function AlbumDetailComponent() {
               <Link
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: album.artistSlug || album.artistId }}
-                className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-blue hover:underline"
+                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
               >
                 View Discography &rarr;
               </Link>
@@ -783,10 +783,10 @@ function AlbumDetailComponent() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-serif text-xs font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                    <h4 className="font-sans font-semibold text-sm text-ink truncate group-hover:text-blue transition-colors">
                       {sibling.title}
                     </h4>
-                    <div className="flex items-center gap-1.5 font-mono text-[9px] text-ink-soft uppercase tracking-wider mt-0.5">
+                    <div className="flex items-center gap-1.5 font-sans text-xs text-ink-soft truncate mt-0.5">
                       <span>{sibling.albumType}</span>
                       {sibling.releaseDate && (
                         <>

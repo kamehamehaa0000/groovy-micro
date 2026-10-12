@@ -523,7 +523,7 @@ function SearchPageComponent() {
                 >
                   <span>{cat.label}</span>
                   {cat.count !== undefined && cat.count > 0 && (
-                    <span className="font-mono text-[9.5px] opacity-70">
+                    <span className="font-mono text-[11px] opacity-70">
                       ({cat.count})
                     </span>
                   )}
@@ -587,7 +587,7 @@ function SearchPageComponent() {
                         e.stopPropagation()
                         removeRecentSearch(term)
                       }}
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[11px] text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
                       title="Remove"
                     >
                       ✕
@@ -617,7 +617,7 @@ function SearchPageComponent() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`inline-flex items-center text-[9px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${hub.tagColor}`}
+                      className={`inline-flex items-center text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${hub.tagColor}`}
                     >
                       {hub.tag}
                     </span>
@@ -662,7 +662,7 @@ function SearchPageComponent() {
                   </span>
 
                   {/* Angled vinyl artwork motif */}
-                  <div className="absolute -right-3 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 rotate-24 shadow-xl rounded-md overflow-hidden bg-black/40 border border-white/15 flex items-center justify-center pointer-events-none group-hover:rotate-[18deg] group-hover:scale-105 transition-all duration-200">
+                  <div className="absolute -right-3 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 rotate-24 shadow-xl rounded-md overflow-hidden bg-black/40 border border-white/15 flex items-center justify-center pointer-events-none group-hover:rotate-18 group-hover:scale-105 transition-all duration-200">
                     <div
                       className={`w-full h-full relative flex items-center justify-center bg-linear-to-br ${cat.discGradient}`}
                     >
@@ -695,7 +695,7 @@ function SearchPageComponent() {
                 setQuery('')
                 setDebouncedQuery('')
               }}
-              className="font-mono text-[10.5px] uppercase tracking-wider px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer rounded-full"
+              className="font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink transition-colors cursor-pointer rounded-full"
             >
               Clear Query
             </button>
@@ -709,7 +709,7 @@ function SearchPageComponent() {
           {/* 1. TOP RESULT CARD */}
           {results.topResult && activeCategory === 'all' && (
             <div className="space-y-2.5">
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-blue font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-semibold">
                 Top Result
               </span>
 
@@ -739,7 +739,7 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-blue font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-blue font-semibold">
                           Artist
                         </span>
                         {(results.topResult.item as any).verified && (
@@ -751,7 +751,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
+                        className="font-sans text-xl sm:text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).stageName}
                       </Link>
@@ -770,7 +770,7 @@ function SearchPageComponent() {
                           (results.topResult!.item as any).id,
                         )
                       }
-                      className={`shrink-0 font-mono text-[10px] uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer font-semibold ${
+                      className={`shrink-0 font-mono text-[11px] uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer font-semibold ${
                         isFollowing((results.topResult.item as any).id)
                           ? 'bg-panel text-ink border-line hover:border-red-400 hover:text-red-500'
                           : 'bg-ink text-canvas border-ink hover:opacity-90'
@@ -807,21 +807,21 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
                           Track
                         </span>
                         {(results.topResult.item as any).isPersonal && (
-                          <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                             Personal
                           </span>
                         )}
                         {(results.topResult.item as any).isExplicit && (
-                          <span className="font-mono text-[8px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
+                          <span className="font-mono text-[11px] uppercase border border-line px-1 py-0.2 rounded text-ink-soft">
                             E
                           </span>
                         )}
                       </div>
-                      <h3 className="font-serif italic text-xl sm:text-2xl font-semibold text-ink truncate">
+                      <h3 className="font-sans text-xl sm:text-2xl font-bold text-ink truncate">
                         {(results.topResult.item as any).title}
                       </h3>
                       <Link
@@ -908,11 +908,11 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
                           Release
                         </span>
                         {(results.topResult.item as any).isPersonal && (
-                          <span className="font-mono text-[8.5px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                             Personal
                           </span>
                         )}
@@ -922,7 +922,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
+                        className="font-sans text-xl sm:text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
@@ -961,7 +961,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors font-medium shadow-2xs"
+                        className="font-mono text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors font-medium shadow-2xs"
                       >
                         View &rarr;
                       </Link>
@@ -991,13 +991,13 @@ function SearchPageComponent() {
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5 block">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5 block">
                         Playlist
                       </span>
                       <Link
                         to="/playlists/$id"
                         params={{ id: (results.topResult.item as any).id }}
-                        className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
+                        className="font-sans text-xl sm:text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
@@ -1010,7 +1010,7 @@ function SearchPageComponent() {
                     <Link
                       to="/playlists/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
+                      className="font-mono text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
                     >
                       Open &rarr;
                     </Link>
@@ -1039,14 +1039,14 @@ function SearchPageComponent() {
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-ink-soft font-semibold mb-0.5 block">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft font-semibold mb-0.5 block">
                         {(results.topResult.item as any).role}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <Link
                           to="/users/$id"
                           params={{ id: (results.topResult.item as any).id }}
-                          className="font-serif italic text-xl sm:text-2xl font-semibold text-ink hover:text-blue transition-colors truncate block"
+                          className="font-sans text-xl sm:text-2xl font-bold text-ink hover:text-blue transition-colors truncate block"
                         >
                           {(results.topResult.item as any).displayName}
                         </Link>
@@ -1059,7 +1059,7 @@ function SearchPageComponent() {
                     <Link
                       to="/users/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-mono text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
+                      className="font-mono text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-line bg-panel hover:bg-canvas text-ink transition-colors shrink-0 font-medium shadow-2xs"
                     >
                       Profile &rarr;
                     </Link>
@@ -1077,7 +1077,7 @@ function SearchPageComponent() {
                   <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
                     Tracks
                   </h3>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     ({results.songs.length})
                   </span>
                 </div>
@@ -1085,7 +1085,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('songs')}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
@@ -1117,7 +1117,7 @@ function SearchPageComponent() {
                   <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
                     Artists
                   </h3>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     ({results.artists.length})
                   </span>
                 </div>
@@ -1125,7 +1125,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('artists')}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
@@ -1157,7 +1157,7 @@ function SearchPageComponent() {
                   <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
                     Releases
                   </h3>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     ({results.albums.length})
                   </span>
                 </div>
@@ -1165,7 +1165,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('albums')}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
@@ -1202,7 +1202,7 @@ function SearchPageComponent() {
                   <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
                     Playlists
                   </h3>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     ({results.playlists.length})
                   </span>
                 </div>
@@ -1212,7 +1212,7 @@ function SearchPageComponent() {
                       <button
                         type="button"
                         onClick={() => setActiveCategory('playlists')}
-                        className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                       >
                         Filter tracks &rarr;
                       </button>
@@ -1220,7 +1220,7 @@ function SearchPageComponent() {
                   <Link
                     to="/playlists"
                     search={{ search: query.trim() || undefined }}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft hover:text-blue transition-colors cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-blue transition-colors cursor-pointer"
                   >
                     Browse all &rarr;
                   </Link>
@@ -1264,7 +1264,7 @@ function SearchPageComponent() {
                   <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-ink">
                     Community
                   </h3>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
                     ({results.users.length})
                   </span>
                 </div>
@@ -1272,7 +1272,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('users')}
-                    className="font-mono text-[10px] uppercase tracking-[0.14em] text-blue hover:text-ink transition-colors cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:text-ink transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>

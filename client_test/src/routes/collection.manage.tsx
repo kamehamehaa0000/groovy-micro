@@ -1096,7 +1096,7 @@ function PersonalCollectionManagePage() {
 
   if (isAuthLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
         Initializing Personal Vault...
       </div>
     )
@@ -1110,7 +1110,7 @@ function PersonalCollectionManagePage() {
             <UploadCloudSVG className="w-7 h-7" />
           </div>
           <div className="space-y-2">
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-blue">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-blue">
               Private Audio Vault
             </div>
             <h2 className="font-serif italic text-3xl text-ink font-normal">
@@ -1125,13 +1125,13 @@ function PersonalCollectionManagePage() {
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
               to="/login"
-              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold"
+              className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold"
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
+              className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
             >
               Create Account
             </Link>
@@ -1184,7 +1184,7 @@ function PersonalCollectionManagePage() {
                 type="button"
                 disabled={deletingItemId !== null}
                 onClick={() => setDeleteConfirm(null)}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1201,7 +1201,7 @@ function PersonalCollectionManagePage() {
                     confirmDeleteRelease(deleteConfirm.id)
                   }
                 }}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1.5 rounded-md shadow-xs"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1.5 rounded-md shadow-xs"
               >
                 {deletingItemId !== null ? 'Deleting...' : 'Move to Trash'}
               </button>
@@ -1279,7 +1279,7 @@ function PersonalCollectionManagePage() {
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 border-b border-line pb-3">
               <div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-blue font-bold">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-blue font-bold">
                   Staging Workspace &bull; Move or Attach
                 </div>
                 <h4 className="font-serif italic text-lg text-ink font-normal mt-0.5">
@@ -1305,7 +1305,7 @@ function PersonalCollectionManagePage() {
             <div className="overflow-y-auto space-y-5 flex-1 pr-1">
               {/* Option A: Extract as Standalone Single */}
               <div className="space-y-2">
-                <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink font-semibold">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
                   1. Detach as Standalone Single
                 </div>
                 <div className="p-3 border border-line bg-canvas flex items-center justify-between gap-3 hover:border-ink transition-colors rounded-xl shadow-2xs">
@@ -1326,7 +1326,7 @@ function PersonalCollectionManagePage() {
                       )
                       setMovingTrackInfo(null)
                     }}
-                    className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-line bg-panel hover:border-ink text-ink transition-colors cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
+                    className="font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 border border-line bg-panel hover:border-ink text-ink transition-colors cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
                   >
                     Detach Single
                   </button>
@@ -1335,7 +1335,7 @@ function PersonalCollectionManagePage() {
 
               {/* Option B: Move to Another Staged Release */}
               <div className="space-y-2">
-                <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink font-semibold">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
                   2. Move to Another Staged Release
                 </div>
                 {importReleases.filter(
@@ -1359,7 +1359,7 @@ function PersonalCollectionManagePage() {
                               <span className="font-serif italic text-xs text-ink truncate">
                                 {targetRel.albumTitle}
                               </span>
-                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
                                 {targetRel.albumType}
                               </span>
                             </div>
@@ -1380,7 +1380,7 @@ function PersonalCollectionManagePage() {
                                 movingTrackInfo.track,
                               )
                             }
-                            className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 bg-blue text-canvas hover:opacity-90 transition-opacity cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
+                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 bg-blue text-canvas hover:opacity-90 transition-opacity cursor-pointer shrink-0 font-semibold rounded-md shadow-2xs"
                           >
                             Move Here
                           </button>
@@ -1392,7 +1392,7 @@ function PersonalCollectionManagePage() {
 
               {/* Option C: Attach to Existing Library Album */}
               <div className="space-y-2">
-                <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink font-semibold">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
                   3. Attach to Existing Album in Your Personal Collection
                 </div>
                 {personalReleases.length === 0 ? (
@@ -1415,7 +1415,7 @@ function PersonalCollectionManagePage() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center font-serif text-[10px] text-ink-soft">
+                              <div className="w-full h-full flex items-center justify-center font-serif text-[11px] text-ink-soft">
                                 🎵
                               </div>
                             )}
@@ -1425,7 +1425,7 @@ function PersonalCollectionManagePage() {
                               <span className="font-serif italic text-xs text-ink truncate">
                                 {libRel.title}
                               </span>
-                              <span className="font-mono text-[8px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1 py-0.2 border border-line bg-panel text-blue font-semibold shrink-0 rounded">
                                 {libRel.albumType || 'ALBUM'}
                               </span>
                             </div>
@@ -1444,7 +1444,7 @@ function PersonalCollectionManagePage() {
                               movingTrackInfo.track,
                             )
                           }
-                          className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 border border-blue text-blue hover:bg-blue hover:text-canvas transition-colors cursor-pointer shrink-0 font-semibold rounded-md"
+                          className="font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 border border-blue text-blue hover:bg-blue hover:text-canvas transition-colors cursor-pointer shrink-0 font-semibold rounded-md"
                         >
                           Attach
                         </button>
@@ -1460,7 +1460,7 @@ function PersonalCollectionManagePage() {
               <button
                 type="button"
                 onClick={() => setMovingTrackInfo(null)}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas rounded-md transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -1473,7 +1473,7 @@ function PersonalCollectionManagePage() {
       <div className="border-b border-line pb-6 sm:pb-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue block mb-2 font-medium">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2 font-medium">
               Groovy Personal Vault
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight font-semibold">
@@ -1488,12 +1488,12 @@ function PersonalCollectionManagePage() {
           {/* Right Header Actions & Storage Quota */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             {quotaLoading ? (
-              <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft animate-pulse py-2">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft animate-pulse py-2">
                 Checking quota...
               </div>
             ) : quota ? (
               <div className="bg-panel border border-line rounded-xl p-3 sm:p-3.5 min-w-52.5 shadow-2xs space-y-2">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
+                <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider">
                   <span className="text-ink-soft">Storage Quota</span>
                   <span className="text-ink font-semibold font-mono">
                     {quota.usedSongs} / {quota.maxSongs} Songs
@@ -1514,7 +1514,7 @@ function PersonalCollectionManagePage() {
                     }}
                   />
                 </div>
-                <div className="flex items-center justify-between font-mono text-[9px]">
+                <div className="flex items-center justify-between font-mono text-[11px]">
                   <span className="text-ink-soft">
                     {quota.remainingSongs} slot
                     {quota.remainingSongs === 1 ? '' : 's'} left
@@ -1532,7 +1532,7 @@ function PersonalCollectionManagePage() {
 
             <Link
               to="/collection"
-              className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 border border-line bg-panel hover:bg-canvas text-ink rounded-md transition-all shadow-2xs cursor-pointer font-medium shrink-0 self-start sm:self-center"
+              className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 border border-line bg-panel hover:bg-canvas text-ink rounded-md transition-all shadow-2xs cursor-pointer font-medium shrink-0 self-start sm:self-center"
             >
               <span>♫ View Vault</span>
             </Link>
@@ -1543,11 +1543,11 @@ function PersonalCollectionManagePage() {
         <div className="mt-5 p-3.5 border border-line bg-panel/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[9.5px] uppercase tracking-wider text-blue font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-blue font-semibold">
                 Recommendation Scope
               </span>
               <span
-                className={`px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider ${
+                className={`px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider ${
                   lockerIncludeInHome
                     ? 'bg-blue/15 text-blue font-semibold'
                     : 'bg-canvas text-ink-soft border border-line'
@@ -1571,11 +1571,11 @@ function PersonalCollectionManagePage() {
                 onChange={(e) => handleToggleLockerInHome(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-10 h-5.5 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-ink"></div>
+              <div className="w-10 h-5.5 bg-canvas-deep border border-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-ink-soft peer-checked:after:bg-canvas after:border-line after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-ink"></div>
             </label>
             <Link
               to="/profile"
-              className="text-ink-soft hover:text-ink font-mono text-[10px] uppercase tracking-wider underline decoration-line/80 hover:decoration-ink"
+              className="text-ink-soft hover:text-ink font-mono text-[11px] uppercase tracking-wider underline decoration-line/80 hover:decoration-ink"
             >
               Preferences &rarr;
             </Link>
@@ -1587,7 +1587,7 @@ function PersonalCollectionManagePage() {
           <button
             type="button"
             onClick={() => handleTabChange('import')}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
               activeTab === 'import'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -1601,7 +1601,7 @@ function PersonalCollectionManagePage() {
           <button
             type="button"
             onClick={() => handleTabChange('collection')}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
               activeTab === 'collection'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -1620,7 +1620,7 @@ function PersonalCollectionManagePage() {
               handleTabChange('artists')
               loadPersonalArtists()
             }}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
               activeTab === 'artists'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -1635,7 +1635,7 @@ function PersonalCollectionManagePage() {
               handleTabChange('trash')
               loadTrash()
             }}
-            className={`font-mono text-[10.5px] rounded-md uppercase tracking-[0.14em] px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
+            className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
               activeTab === 'trash'
                 ? 'bg-ink text-canvas font-semibold shadow-xs'
                 : 'bg-panel text-ink-soft hover:text-ink border border-line'
@@ -1644,7 +1644,7 @@ function PersonalCollectionManagePage() {
             <span>Recycle Bin</span>
             {trashedSongs.length + trashedReleases.length > 0 && (
               <span
-                className={`font-mono text-[9px] px-1.5 py-0.2 rounded-full ${
+                className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
                   activeTab === 'trash'
                     ? 'bg-canvas text-ink'
                     : 'bg-canvas border border-line text-ink-soft'
@@ -1734,7 +1734,7 @@ function PersonalCollectionManagePage() {
                   <button
                     type="button"
                     onClick={() => setShowDuplicateDetails((v) => !v)}
-                    className="underline hover:opacity-80 text-[10px] uppercase tracking-wider cursor-pointer font-bold"
+                    className="underline hover:opacity-80 text-[11px] uppercase tracking-wider cursor-pointer font-bold"
                   >
                     {showDuplicateDetails ? 'Hide details' : 'View skipped'}
                   </button>
@@ -1762,7 +1762,7 @@ function PersonalCollectionManagePage() {
                           ({d.albumTitle})
                         </span>
                       </span>
-                      <span className="font-mono text-[9px] uppercase tracking-wider shrink-0 text-blue-500 ml-3">
+                      <span className="font-mono text-[11px] uppercase tracking-wider shrink-0 text-blue-500 ml-3">
                         {d.reason === 'already_in_collection'
                           ? 'In Library'
                           : 'Batch Duplicate'}
@@ -1792,7 +1792,7 @@ function PersonalCollectionManagePage() {
                     type="button"
                     onClick={() => setIsCreatingContainer((v) => !v)}
                     disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-blue hover:underline cursor-pointer font-semibold"
+                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer font-semibold"
                   >
                     + New Release / Mixtape
                   </button>
@@ -1801,7 +1801,7 @@ function PersonalCollectionManagePage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
                   >
                     + Add More Files
                   </button>
@@ -1810,7 +1810,7 @@ function PersonalCollectionManagePage() {
                     type="button"
                     onClick={() => setImportReleases([])}
                     disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer"
                   >
                     Clear All
                   </button>
@@ -1835,7 +1835,7 @@ function PersonalCollectionManagePage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                         Release Title *
                       </label>
                       <input
@@ -1853,7 +1853,7 @@ function PersonalCollectionManagePage() {
                       />
                     </div>
                     <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                         Artist Name
                       </label>
                       <input
@@ -1870,7 +1870,7 @@ function PersonalCollectionManagePage() {
                       />
                     </div>
                     <div>
-                      <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                         Release Type
                       </label>
                       <select
@@ -1895,13 +1895,13 @@ function PersonalCollectionManagePage() {
                     <button
                       type="button"
                       onClick={() => setIsCreatingContainer(false)}
-                      className="px-3 py-1.5 border border-line font-mono text-[10px] uppercase text-ink-soft hover:text-ink cursor-pointer bg-canvas rounded-md transition-colors"
+                      className="px-3 py-1.5 border border-line font-mono text-[11px] uppercase text-ink-soft hover:text-ink cursor-pointer bg-canvas rounded-md transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-3.5 py-1.5 bg-ink text-canvas font-mono text-[10px] uppercase font-semibold hover:opacity-90 cursor-pointer rounded-md shadow-xs transition-opacity"
+                      className="px-3.5 py-1.5 bg-ink text-canvas font-mono text-[11px] uppercase font-semibold hover:opacity-90 cursor-pointer rounded-md shadow-xs transition-opacity"
                     >
                       Create Container
                     </button>
@@ -1915,7 +1915,7 @@ function PersonalCollectionManagePage() {
                   className="border border-line bg-panel p-5 space-y-4 shadow-xs rounded-xl"
                 >
                   {release.targetExistingAlbumId && (
-                    <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue font-mono text-[9.5px] uppercase tracking-wider font-semibold rounded-md">
+                    <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue font-mono text-[11px] uppercase tracking-wider font-semibold rounded-md">
                       <span>
                         ↳ Appending new track(s) to existing library album
                       </span>
@@ -1944,7 +1944,7 @@ function PersonalCollectionManagePage() {
                     {/* Release metadata editor */}
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                           Album Title
                         </label>
                         <input
@@ -1966,7 +1966,7 @@ function PersonalCollectionManagePage() {
                       </div>
 
                       <div>
-                        <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                           Artist Name
                         </label>
                         <input
@@ -1989,7 +1989,7 @@ function PersonalCollectionManagePage() {
 
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
-                          <label className="font-mono text-[9px] uppercase tracking-wider text-ink-soft block mb-1">
+                          <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                             Release Type
                           </label>
                           <select
@@ -2040,7 +2040,7 @@ function PersonalCollectionManagePage() {
                         className="py-1.5 px-2 flex items-center justify-between hover:bg-canvas transition-colors gap-2 rounded"
                       >
                         <div className="flex items-center gap-2.5 truncate min-w-0">
-                          <span className="font-mono text-[10px] text-ink-soft w-4 text-right shrink-0">
+                          <span className="font-mono text-[11px] text-ink-soft w-4 text-right shrink-0">
                             {track.trackNumber}
                           </span>
                           <span className="font-serif italic text-xs text-ink truncate">
@@ -2054,7 +2054,7 @@ function PersonalCollectionManagePage() {
                         </div>
 
                         <div className="flex items-center gap-2.5 shrink-0">
-                          <span className="font-mono text-[10px] text-ink-soft mr-1">
+                          <span className="font-mono text-[11px] text-ink-soft mr-1">
                             {Math.floor(track.durationSeconds / 60)}:
                             {(track.durationSeconds % 60)
                               .toString()
@@ -2070,7 +2070,7 @@ function PersonalCollectionManagePage() {
                               onClick={() =>
                                 handleDetachTrackAsSingle(release.id, track.id)
                               }
-                              className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer rounded"
+                              className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line text-ink-soft hover:text-ink hover:border-ink bg-panel transition-colors cursor-pointer rounded"
                               title="Extract this song into its own Single release"
                             >
                               Detach
@@ -2087,7 +2087,7 @@ function PersonalCollectionManagePage() {
                                 track,
                               })
                             }
-                            className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-line text-blue hover:border-blue bg-panel transition-colors cursor-pointer rounded"
+                            className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line text-blue hover:border-blue bg-panel transition-colors cursor-pointer rounded"
                             title="Move track to another staged release or attach to library album"
                           >
                             Move / Attach
@@ -2113,7 +2113,7 @@ function PersonalCollectionManagePage() {
                     ))}
 
                     {release.tracks.length === 0 && (
-                      <div className="py-4 text-center font-mono text-[10px] uppercase tracking-wider text-ink-soft/60">
+                      <div className="py-4 text-center font-mono text-[11px] uppercase tracking-wider text-ink-soft/60">
                         Container is empty. Move tracks into this container or
                         remove it.
                       </div>
@@ -2124,7 +2124,7 @@ function PersonalCollectionManagePage() {
 
               {/* Action Bar */}
               <div className="p-4 border border-line bg-panel flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs rounded-xl">
-                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-soft">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                   <span>
                     Staged:{' '}
                     <strong className="text-ink font-bold font-mono">
@@ -2153,7 +2153,7 @@ function PersonalCollectionManagePage() {
                       }
                     }}
                     disabled={isUploading}
-                    className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md"
                   >
                     Back to Collection
                   </button>
@@ -2163,7 +2163,7 @@ function PersonalCollectionManagePage() {
                     disabled={
                       importReleases.length === 0 || isUploading || isOverQuota
                     }
-                    className={`font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-5 font-semibold transition-all cursor-pointer rounded-md ${
+                    className={`font-mono text-[11px] uppercase tracking-wider py-2 px-5 font-semibold transition-all cursor-pointer rounded-md ${
                       importReleases.length === 0 || isUploading || isOverQuota
                         ? 'bg-canvas-deep text-ink-soft/50 border border-line cursor-not-allowed'
                         : 'bg-ink text-canvas hover:opacity-90 shadow-xs'
@@ -2210,14 +2210,14 @@ function PersonalCollectionManagePage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs rounded-md"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer shadow-xs rounded-md"
                 >
                   Choose Audio Files
                 </button>
                 <button
                   type="button"
                   onClick={() => folderInputRef.current?.click()}
-                  className="font-mono text-[10.5px] uppercase tracking-[0.12em] py-2.5 px-5 border border-line text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md shadow-2xs"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 border border-line text-ink hover:border-ink bg-canvas transition-colors cursor-pointer rounded-md shadow-2xs"
                 >
                   Choose Folder
                 </button>
@@ -2301,12 +2301,12 @@ function PersonalCollectionManagePage() {
               <button
                 type="button"
                 onClick={() => handleTabChange('import')}
-                className="inline-flex items-center justify-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-4 bg-ink text-canvas hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium"
+                className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-ink text-canvas hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium"
               >
                 <PlusIconSVG className="w-3.5 h-3.5" />
                 <span>Import Music</span>
               </button>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft shrink-0 border-l border-line pl-3">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft shrink-0 border-l border-line pl-3">
                 {filteredReleases.length}{' '}
                 {filteredReleases.length === 1 ? 'Release' : 'Releases'}
               </span>
@@ -2315,7 +2315,7 @@ function PersonalCollectionManagePage() {
 
           {/* Releases Content */}
           {isLoadingReleases ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
               Loading personal collection...
             </div>
           ) : personalReleases.length === 0 ? (
@@ -2337,7 +2337,7 @@ function PersonalCollectionManagePage() {
               <button
                 type="button"
                 onClick={() => handleTabChange('import')}
-                className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] py-2.5 px-5 bg-ink text-canvas hover:opacity-90 rounded-md transition-all font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs"
+                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 rounded-md transition-all font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Start Importing Music</span>
@@ -2400,11 +2400,11 @@ function PersonalCollectionManagePage() {
                             >
                               {release.title}
                             </Link>
-                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1.5 py-0.5 font-semibold shrink-0 rounded">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1.5 py-0.5 font-semibold shrink-0 rounded">
                               {release.albumType || 'Album'}
                             </span>
                             {release.genre && (
-                              <span className="hidden sm:inline-block font-mono text-[8.5px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-1.5 py-0.5 shrink-0 rounded">
+                              <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-1.5 py-0.5 shrink-0 rounded">
                                 {release.genre}
                               </span>
                             )}
@@ -2424,14 +2424,14 @@ function PersonalCollectionManagePage() {
                               {release.artistName}
                             </Link>
                             <span className="opacity-60">&bull;</span>
-                            <span className="font-mono text-[10.5px]">
+                            <span className="font-mono text-[11px]">
                               {release.totalTracks}{' '}
                               {release.totalTracks === 1 ? 'track' : 'tracks'}
                             </span>
                             {release.totalDurationSeconds > 0 && (
                               <>
                                 <span className="opacity-60">&bull;</span>
-                                <span className="font-mono text-[10.5px]">
+                                <span className="font-mono text-[11px]">
                                   {Math.floor(
                                     release.totalDurationSeconds / 60,
                                   )}
@@ -2457,7 +2457,7 @@ function PersonalCollectionManagePage() {
                                   0,
                                 )
                               }
-                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-md"
+                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[11px] uppercase tracking-wider rounded-md"
                               title="Play Release from Beginning"
                             >
                               <PlayIconSVG className="w-3.5 h-3.5 text-blue ml-0.5" />
@@ -2472,7 +2472,7 @@ function PersonalCollectionManagePage() {
                               onClick={() =>
                                 handleQueuePersonalRelease(release)
                               }
-                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[10px] uppercase tracking-wider rounded-md"
+                              className="h-8 px-2.5 sm:px-3 border border-line bg-canvas hover:bg-panel flex items-center gap-1.5 text-ink transition-colors cursor-pointer shadow-2xs font-mono text-[11px] uppercase tracking-wider rounded-md"
                               title="Add all tracks from this release to Queue"
                             >
                               <PlusIconSVG className="w-3 h-3 text-ink-soft" />
@@ -2486,7 +2486,7 @@ function PersonalCollectionManagePage() {
                           <button
                             type="button"
                             onClick={() => toggleExpandRelease(release.id)}
-                            className={`h-8 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors cursor-pointer font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5 rounded-md ${
+                            className={`h-8 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors cursor-pointer font-mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 rounded-md ${
                               isExpanded ? 'bg-panel border-ink-soft' : ''
                             }`}
                             title={
@@ -2536,7 +2536,7 @@ function PersonalCollectionManagePage() {
                     {isExpanded && release.tracks && (
                       <div className="border-t border-line bg-canvas-deep/20 divide-y divide-line/60">
                         {/* Tracklist Sub-header (Desktop) */}
-                        <div className="hidden sm:flex items-center justify-between gap-4 px-4 py-2 border-b border-line/60 bg-canvas/30 font-mono text-[9px] uppercase tracking-[0.14em] text-ink-soft">
+                        <div className="hidden sm:flex items-center justify-between gap-4 px-4 py-2 border-b border-line/60 bg-canvas/30 font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                           <div className="flex items-center gap-4 flex-1 min-w-0">
                             <span className="w-7 text-center">#</span>
                             <span>Cut Title &amp; Collaborators</span>
@@ -2653,7 +2653,7 @@ function PersonalCollectionManagePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                     Stage / Artist Name *
                   </label>
                   <input
@@ -2666,7 +2666,7 @@ function PersonalCollectionManagePage() {
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-[9.5px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
                     Bio / Notes (Optional)
                   </label>
                   <input
@@ -2683,14 +2683,14 @@ function PersonalCollectionManagePage() {
                 <button
                   type="button"
                   onClick={() => setIsCreatingArtist(false)}
-                  className="font-mono text-[10px] uppercase tracking-[0.12em] py-2 px-3 border border-line text-ink-soft hover:text-ink bg-canvas cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line text-ink-soft hover:text-ink bg-canvas cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingArtist || !newArtistName.trim()}
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingArtist ? 'Creating...' : 'Save Artist'}
                 </button>
@@ -2700,7 +2700,7 @@ function PersonalCollectionManagePage() {
 
           {/* Artists Cards Grid */}
           {isLoadingArtists ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
               Loading personal artists...
             </div>
           ) : personalArtists.length === 0 ? (
@@ -2716,7 +2716,7 @@ function PersonalCollectionManagePage() {
               <button
                 type="button"
                 onClick={() => setIsCreatingArtist(true)}
-                className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] py-2 px-4 bg-ink text-canvas font-semibold cursor-pointer"
+                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas font-semibold cursor-pointer"
               >
                 + Create Artist Manually
               </button>
@@ -2741,7 +2741,7 @@ function PersonalCollectionManagePage() {
                         <h4 className="font-serif italic text-lg text-ink font-medium truncate">
                           {artist.stageName}
                         </h4>
-                        <span className="font-mono text-[8px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1 py-0.2 shrink-0 font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-1 py-0.2 shrink-0 font-semibold">
                           Personal
                         </span>
                       </div>
@@ -2750,7 +2750,7 @@ function PersonalCollectionManagePage() {
                           {artist.bio}
                         </p>
                       ) : (
-                        <p className="font-mono text-[10px] text-ink-soft/60 mt-1">
+                        <p className="font-mono text-[11px] text-ink-soft/60 mt-1">
                           Personal Vault Artist
                         </p>
                       )}
@@ -2758,7 +2758,7 @@ function PersonalCollectionManagePage() {
                   </div>
 
                   <div className="pt-3 border-t border-line flex items-center justify-between">
-                    <div className="font-mono text-[10px] text-ink-soft flex items-center gap-2">
+                    <div className="font-mono text-[11px] text-ink-soft flex items-center gap-2">
                       <span>
                         <strong>{artist.releaseCount}</strong>{' '}
                         {artist.releaseCount === 1 ? 'Release' : 'Releases'}
@@ -2776,7 +2776,7 @@ function PersonalCollectionManagePage() {
                         setSelectedArtistFilter(artist.stageName)
                         handleTabChange('collection')
                       }}
-                      className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-1 border border-line bg-canvas hover:border-blue hover:text-blue transition-colors cursor-pointer font-semibold"
+                      className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border border-line bg-canvas hover:border-blue hover:text-blue transition-colors cursor-pointer font-semibold"
                     >
                       View Music
                     </button>
@@ -2806,7 +2806,7 @@ function PersonalCollectionManagePage() {
                 type="button"
                 disabled={isPurging}
                 onClick={() => setTrashConfirm({ type: 'empty' })}
-                className="font-mono text-[10.5px] uppercase tracking-[0.14em] py-2 px-4 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors font-semibold cursor-pointer shrink-0"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors font-semibold cursor-pointer shrink-0"
               >
                 {isPurging ? 'Emptying...' : 'Empty Recycle Bin'}
               </button>
@@ -2814,7 +2814,7 @@ function PersonalCollectionManagePage() {
           </div>
 
           {isLoadingTrash ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-[0.16em] text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
               Loading recycle bin...
             </div>
           ) : trashedSongs.length === 0 && trashedReleases.length === 0 ? (
@@ -2862,7 +2862,7 @@ function PersonalCollectionManagePage() {
                               <span className="font-serif italic text-base text-ink truncate">
                                 {rel.title}
                               </span>
-                              <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-ink-soft font-semibold">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-ink-soft font-semibold">
                                 {rel.albumType}
                               </span>
                             </div>
@@ -2870,7 +2870,7 @@ function PersonalCollectionManagePage() {
                               {rel.artistName} &bull; {rel.totalTracks}{' '}
                               {rel.totalTracks === 1 ? 'track' : 'tracks'}
                             </div>
-                            <div className="font-mono text-[9.5px] text-ink-soft/70 mt-1">
+                            <div className="font-mono text-[11px] text-ink-soft/70 mt-1">
                               Deleted on{' '}
                               {new Date(rel.deletedAt).toLocaleDateString()}
                             </div>
@@ -2882,7 +2882,7 @@ function PersonalCollectionManagePage() {
                             type="button"
                             disabled={isRestoring}
                             onClick={() => handleRestoreRelease(rel.id)}
-                            className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-blue/40 bg-blue/10 hover:bg-blue/20 text-blue font-semibold transition-colors cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-blue/40 bg-blue/10 hover:bg-blue/20 text-blue font-semibold transition-colors cursor-pointer"
                           >
                             Restore Release
                           </button>
@@ -2896,7 +2896,7 @@ function PersonalCollectionManagePage() {
                                 title: rel.title,
                               })
                             }
-                            className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold transition-colors cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold transition-colors cursor-pointer"
                           >
                             Delete Forever
                           </button>
@@ -2934,7 +2934,7 @@ function PersonalCollectionManagePage() {
                               .toString()
                               .padStart(2, '0')}
                           </div>
-                          <div className="font-mono text-[9.5px] text-ink-soft/70 mt-1">
+                          <div className="font-mono text-[11px] text-ink-soft/70 mt-1">
                             Deleted on{' '}
                             {new Date(song.deletedAt).toLocaleDateString()}
                           </div>
@@ -2945,7 +2945,7 @@ function PersonalCollectionManagePage() {
                             type="button"
                             disabled={isRestoring}
                             onClick={() => handleRestoreSong(song.id)}
-                            className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-blue/40 bg-blue/10 hover:bg-blue/20 text-blue font-semibold transition-colors cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-blue/40 bg-blue/10 hover:bg-blue/20 text-blue font-semibold transition-colors cursor-pointer"
                           >
                             Restore Song
                           </button>
@@ -2959,7 +2959,7 @@ function PersonalCollectionManagePage() {
                                 title: song.title,
                               })
                             }
-                            className="font-mono text-[10px] uppercase tracking-wider py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold transition-colors cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold transition-colors cursor-pointer"
                           >
                             Delete Forever
                           </button>

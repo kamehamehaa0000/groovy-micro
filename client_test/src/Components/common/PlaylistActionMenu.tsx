@@ -487,10 +487,10 @@ export function PlaylistActionMenu({
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-serif italic text-base font-semibold text-ink truncate">
+                      <h4 className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
                         {playlist.title}
                       </h4>
-                      <p className="font-mono text-[10px] text-ink-soft truncate mt-0.5">
+                      <p className="font-mono text-[11px] text-ink-soft truncate mt-0.5">
                         {playlist.tracksCount ?? tracks.length} tracks &bull;{' '}
                         {playlist.visibility || 'PUBLIC'}
                       </p>
