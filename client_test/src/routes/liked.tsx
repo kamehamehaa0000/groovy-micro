@@ -43,7 +43,9 @@ function LikedSongsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'recent' | 'title' | 'artist' | 'album' | 'duration'>('recent')
+  const [sortBy, setSortBy] = useState<
+    'recent' | 'title' | 'artist' | 'album' | 'duration'
+  >('recent')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [unlikedIds, setUnlikedIds] = useState<Set<string>>(new Set())
 
@@ -119,7 +121,9 @@ function LikedSongsPage() {
   const filteredAndSortedSongs = useMemo(() => {
     // 1. Exclude locally unliked tracks
     let list = songs.filter(
-      (s) => !unlikedIds.has(s.id) && (likedSongIds.size === 0 || likedSongIds.has(s.id))
+      (s) =>
+        !unlikedIds.has(s.id) &&
+        (likedSongIds.size === 0 || likedSongIds.has(s.id)),
     )
 
     // 2. Filter by search query
@@ -129,7 +133,7 @@ function LikedSongsPage() {
         (s) =>
           s.title.toLowerCase().includes(q) ||
           (s.artistStageName && s.artistStageName.toLowerCase().includes(q)) ||
-          (s.albumTitle && s.albumTitle.toLowerCase().includes(q))
+          (s.albumTitle && s.albumTitle.toLowerCase().includes(q)),
       )
     }
 
@@ -163,7 +167,7 @@ function LikedSongsPage() {
   const totalDurationSeconds = useMemo(() => {
     return filteredAndSortedSongs.reduce(
       (acc, s) => acc + (s.durationSeconds || 0),
-      0
+      0,
     )
   }, [filteredAndSortedSongs])
 
@@ -187,7 +191,13 @@ function LikedSongsPage() {
     }
 
     const playerTracks = filteredAndSortedSongs.map(toPlayerTrack)
-    playTrack(playerTracks[index], playerTracks, index, 'library:liked', 'Liked Songs')
+    playTrack(
+      playerTracks[index],
+      playerTracks,
+      index,
+      'library:liked',
+      'Liked Songs',
+    )
   }
 
   // If user unlikes track via SongRow, remove it from list
@@ -199,14 +209,15 @@ function LikedSongsPage() {
   if (!isAuthenticated && !isAuthLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center select-none">
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
+        <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-indigo-700 via-indigo-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
           <HeartIconSVG filled={true} className="w-10 h-10" />
         </div>
         <h1 className="font-serif italic text-3xl sm:text-4xl text-ink mb-3">
           Your Liked Songs
         </h1>
         <p className="font-sans text-sm text-ink-soft max-w-md mx-auto mb-8 leading-relaxed">
-          Sign in or create an account to view and play all tracks you've saved across your listening sessions.
+          Sign in or create an account to view and play all tracks you've saved
+          across your listening sessions.
         </p>
         <button
           type="button"
@@ -215,7 +226,8 @@ function LikedSongsPage() {
               category: 'Favorites & Library',
               title: 'Access your Liked Songs',
               subtitle: 'Authentication Required',
-              description: 'Sign in to access your personal collection of liked tracks.',
+              description:
+                'Sign in to access your personal collection of liked tracks.',
             })
           }
           className="font-mono text-xs uppercase tracking-wider py-3 px-8 bg-ink text-canvas hover:opacity-90 font-semibold cursor-pointer shadow-sm"
@@ -232,9 +244,12 @@ function LikedSongsPage() {
       <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
           {/* Gradient Cover Container */}
-          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-gradient-to-br from-indigo-800 via-indigo-600 to-blue-500 border border-line shadow-md overflow-hidden relative flex items-center justify-center select-none shadow-inner">
+          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-linear-to-br from-indigo-800 via-indigo-600 to-blue-500 border border-line shadow-md overflow-hidden relative flex items-center justify-center select-none shadow-inner">
             <div className="text-white scale-125 transform hover:scale-135 transition-transform duration-200">
-              <HeartIconSVG filled={true} className="w-16 h-16 drop-shadow-md" />
+              <HeartIconSVG
+                filled={true}
+                className="w-16 h-16 drop-shadow-md"
+              />
             </div>
           </div>
 
@@ -335,7 +350,9 @@ function LikedSongsPage() {
           </select>
           <button
             type="button"
-            onClick={() => setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+            onClick={() =>
+              setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+            }
             className="font-mono text-xs border border-line bg-canvas hover:bg-canvas-deep px-2.5 py-1.5 text-ink-soft hover:text-ink cursor-pointer"
             title={`Toggle order (${sortOrder === 'asc' ? 'Ascending' : 'Descending'})`}
           >
@@ -398,7 +415,8 @@ function LikedSongsPage() {
                   Songs you like will appear here
                 </h3>
                 <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto">
-                  Save songs by tapping the heart icon on any release, album, or player cut across Groovy.
+                  Save songs by tapping the heart icon on any release, album, or
+                  player cut across Groovy.
                 </p>
                 <Link
                   to="/search"
@@ -437,7 +455,12 @@ function LikedSongsPage() {
                     customActions={[
                       {
                         label: 'Remove from Liked Songs',
-                        icon: <HeartIconSVG filled={false} className="w-3.5 h-3.5 text-red-500" />,
+                        icon: (
+                          <HeartIconSVG
+                            filled={false}
+                            className="w-3.5 h-3.5 text-red-500"
+                          />
+                        ),
                         danger: true,
                         onClick: () => handleTrackUnlike(song.id),
                       },

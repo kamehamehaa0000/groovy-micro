@@ -246,7 +246,7 @@ function StudioComponent() {
   // Authentication check
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/studio' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 

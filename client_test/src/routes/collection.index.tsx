@@ -69,7 +69,7 @@ function PersonalCollectionExplorePage() {
   // Auth gate
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/collection' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 

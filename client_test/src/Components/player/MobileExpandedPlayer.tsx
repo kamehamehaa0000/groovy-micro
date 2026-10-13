@@ -294,7 +294,7 @@ export function MobileExpandedPlayer() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Dynamic Ambient Background Tint */}
-      <div className="absolute inset-0 bg-gradient-to-b from-panel via-canvas to-canvas pointer-events-none opacity-60" />
+      <div className="absolute inset-0 bg-linear-to-b from-panel via-canvas to-canvas pointer-events-none opacity-60" />
 
       {/* ===================== TOP HEADER & DRAG HANDLE ===================== */}
       <div className="relative z-10 shrink-0 px-4 pt-3 pb-2 flex flex-col items-center">
@@ -346,32 +346,10 @@ export function MobileExpandedPlayer() {
         ref={scrollContainerRef}
         className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-6 pt-2 pb-12 space-y-6 no-scrollbar"
       >
-        {/* Large 1:1 Album Artwork */}
-        <button
-          type="button"
-          onClick={() =>
-            navigateToRelease(currentTrack, navigate, () =>
-              setNowPlayingExpanded(false),
-            )
-          }
-          className="w-full max-w-10 aspect-square mx-auto rounded-2xl overflow-hidden shadow-2xl bg-panel border border-line/60 relative flex items-center justify-center cursor-pointer group hover:opacity-95 transition-opacity"
-        >
-          {currentTrack.coverImageUrl ? (
-            <img
-              src={currentTrack.coverImageUrl}
-              alt={currentTrack.title}
-              className="w-full h-full object-cover select-none"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center font-serif italic text-6xl text-ink-soft/40">
-              ♪
-            </div>
-          )}
-        </button>
-
-        {/* Track Title, Artist & Like Button */}
-        <div className="w-full max-w-[340px] mx-auto flex items-center justify-between gap-4 pt-1">
-          <div className="min-w-0 flex-1">
+        {/* ===================== PRIMARY NOW PLAYING PLAYER ===================== */}
+        <div className="flex flex-col space-y-3.5 sm:space-y-4 shrink-0 pb-1">
+          {/* Responsive 1:1 Album Artwork */}
+          <div className="w-full flex items-center justify-center pt-1">
             <button
               type="button"
               onClick={() =>
@@ -379,263 +357,272 @@ export function MobileExpandedPlayer() {
                   setNowPlayingExpanded(false),
                 )
               }
-              className="font-serif italic font-semibold text-2xl text-ink truncate leading-tight hover:underline cursor-pointer text-left block max-w-full"
+              className="w-full aspect-square mx-auto rounded-2xl overflow-hidden shadow-2xl bg-panel border border-line/60 relative flex items-center justify-center cursor-pointer group hover:opacity-95 transition-opacity"
+              style={{ maxWidth: 'min(280px, 74vw, 34dvh)' }}
             >
-              {currentTrack.title}
-            </button>
-            <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-sm text-ink-soft mt-1">
-              {parsedCredits.all.length > 0 ? (
-                parsedCredits.all.map((artist, idx) => {
-                  const isPrimary = idx === 0
-                  return (
-                    <span
-                      key={artist.name + idx}
-                      className="inline-flex items-center"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigateToArtist(artist, navigate, () =>
-                            setNowPlayingExpanded(false),
-                          )
-                        }
-                        className={`hover:text-ink hover:underline transition-colors truncate cursor-pointer text-left ${
-                          isPrimary ? 'font-medium text-ink' : 'text-ink-soft'
-                        }`}
-                      >
-                        {artist.name}
-                      </button>
-                      {idx < parsedCredits.all.length - 1 && (
-                        <span className="text-ink-soft/60 mx-1 text-xs select-none">
-                          {idx === 0 ? 'feat.' : '&'}
-                        </span>
-                      )}
-                    </span>
-                  )
-                })
+              {currentTrack.coverImageUrl ? (
+                <img
+                  src={currentTrack.coverImageUrl}
+                  alt={currentTrack.title}
+                  className="w-full h-full object-cover select-none"
+                />
               ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigateToArtist(
-                      {
-                        name: currentTrack.artistName,
-                        id: currentTrack.artistId,
-                        slug: currentTrack.artistSlug,
-                      },
-                      navigate,
-                      () => setNowPlayingExpanded(false),
-                    )
-                  }
-                  className="font-medium text-ink hover:underline transition-colors truncate cursor-pointer text-left"
-                >
-                  {currentTrack.artistName || 'Unknown Artist'}
-                </button>
+                <div className="w-full h-full flex items-center justify-center font-serif italic text-6xl text-ink-soft/40">
+                  ♪
+                </div>
               )}
-            </div>
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleToggleLike}
-            aria-label={isLiked ? 'Unlike song' : 'Like song'}
-            className="w-11 h-11 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-125 transition-transform shrink-0 cursor-pointer"
-          >
-            <HeartIconSVG
-              filled={isLiked}
-              className={`w-6 h-6 ${isLiked ? 'text-red-500 dark:text-red-400' : ''}`}
-            />
-          </button>
-        </div>
-
-        {/* Interactive Touch Scrubber */}
-        <div className="w-full max-w-[340px] mx-auto space-y-1.5 pt-1">
-          <div
-            ref={scrubBarRef}
-            className="relative h-6 flex items-center cursor-pointer touch-none"
-            onMouseDown={(e) => handleScrubStart(e.clientX)}
-            onMouseMove={(e) => isScrubbing && handleScrubMove(e.clientX)}
-            onMouseUp={handleScrubEnd}
-            onTouchStart={(e) => handleScrubStart(e.touches[0].clientX)}
-            onTouchMove={(e) => handleScrubMove(e.touches[0].clientX)}
-            onTouchEnd={handleScrubEnd}
-          >
-            {/* Scrubber Track */}
-            <div className="w-full h-1.5 bg-line/40 rounded-full overflow-hidden relative">
-              <div
-                className="h-full bg-blue rounded-full relative"
-                style={{ width: `${progressPercent}%` }}
-              />
+          {/* Track Title, Artist & Like Button */}
+          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() =>
+                  navigateToRelease(currentTrack, navigate, () =>
+                    setNowPlayingExpanded(false),
+                  )
+                }
+                className="font-serif italic font-semibold text-2xl text-ink truncate leading-tight hover:underline cursor-pointer text-left block max-w-full"
+              >
+                {currentTrack.title}
+              </button>
+              <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-sm text-ink-soft mt-1">
+                {parsedCredits.all.length > 0 ? (
+                  parsedCredits.all.map((artist, idx) => {
+                    const isPrimary = idx === 0
+                    return (
+                      <span
+                        key={artist.name + idx}
+                        className="inline-flex items-center"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigateToArtist(artist, navigate, () =>
+                              setNowPlayingExpanded(false),
+                            )
+                          }
+                          className={`hover:text-ink hover:underline transition-colors truncate cursor-pointer text-left ${
+                            isPrimary ? 'font-medium text-ink' : 'text-ink-soft'
+                          }`}
+                        >
+                          {artist.name}
+                        </button>
+                        {idx < parsedCredits.all.length - 1 && (
+                          <span className="text-ink-soft/60 mx-1 text-xs select-none">
+                            {idx === 0 ? 'feat.' : '&'}
+                          </span>
+                        )}
+                      </span>
+                    )
+                  })
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigateToArtist(
+                        {
+                          name: currentTrack.artistName,
+                          id: currentTrack.artistId,
+                          slug: currentTrack.artistSlug,
+                        },
+                        navigate,
+                        () => setNowPlayingExpanded(false),
+                      )
+                    }
+                    className="font-medium text-ink hover:underline transition-colors truncate cursor-pointer text-left"
+                  >
+                    {currentTrack.artistName || 'Unknown Artist'}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Draggable Knob */}
+            <button
+              type="button"
+              onClick={handleToggleLike}
+              aria-label={isLiked ? 'Unlike song' : 'Like song'}
+              className="w-11 h-11 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-125 transition-transform shrink-0 cursor-pointer"
+            >
+              <HeartIconSVG
+                filled={isLiked}
+                className={`w-6 h-6 ${isLiked ? 'text-red-500 dark:text-red-400' : ''}`}
+              />
+            </button>
+          </div>
+
+          {/* Interactive Touch Scrubber */}
+          <div className="w-full max-w-[340px] mx-auto space-y-1.5">
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-ink rounded-full shadow-md pointer-events-none transition-transform"
-              style={{ left: `calc(${progressPercent}% - 8px)` }}
-            />
+              ref={scrubBarRef}
+              className="relative h-6 flex items-center cursor-pointer touch-none"
+              onMouseDown={(e) => handleScrubStart(e.clientX)}
+              onMouseMove={(e) => isScrubbing && handleScrubMove(e.clientX)}
+              onMouseUp={handleScrubEnd}
+              onTouchStart={(e) => handleScrubStart(e.touches[0].clientX)}
+              onTouchMove={(e) => handleScrubMove(e.touches[0].clientX)}
+              onTouchEnd={handleScrubEnd}
+            >
+              {/* Scrubber Track */}
+              <div className="w-full h-1.5 bg-line/40 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full bg-blue rounded-full relative"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+
+              {/* Draggable Knob */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-ink rounded-full shadow-md pointer-events-none transition-transform"
+                style={{ left: `calc(${progressPercent}% - 8px)` }}
+              />
+            </div>
+
+            {/* Timestamps */}
+            <div className="flex items-center justify-between text-[11px] font-mono text-ink-soft">
+              <span>{formatTime(displayTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
           </div>
 
-          {/* Timestamps */}
-          <div className="flex items-center justify-between text-[11px] font-mono text-ink-soft">
-            <span>{formatTime(displayTime)}</span>
-            <span>{formatTime(duration)}</span>
+          {/* Main Transport Controls */}
+          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between px-2">
+            {/* Shuffle Button */}
+            <button
+              type="button"
+              onClick={toggleShuffle}
+              title={isShuffle ? 'Shuffle On' : 'Shuffle Off'}
+              className={`p-2 transition-colors active:scale-90 cursor-pointer ${
+                isShuffle ? 'text-blue' : 'text-ink-soft'
+              }`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                className="w-5 h-5"
+              >
+                <polyline points="16 3 21 3 21 8" />
+                <line x1="4" y1="20" x2="21" y2="3" />
+                <polyline points="21 16 21 21 16 21" />
+                <line x1="15" y1="15" x2="21" y2="21" />
+                <line x1="4" y1="4" x2="9" y2="9" />
+              </svg>
+            </button>
+
+            {/* Previous Track */}
+            <button
+              type="button"
+              onClick={previous}
+              title="Previous track"
+              className="p-2 text-ink active:scale-90 transition-transform cursor-pointer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                <polygon points="19 20 9 12 19 4 19 20" />
+                <line
+                  x1="5"
+                  y1="4"
+                  x2="5"
+                  y2="20"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                />
+              </svg>
+            </button>
+
+            {/* Big Play/Pause Button */}
+            <button
+              type="button"
+              onClick={togglePlay}
+              disabled={isLoading}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+              className="w-16 h-16 rounded-full bg-ink text-canvas flex items-center justify-center shadow-xl active:scale-95 transition-transform cursor-pointer"
+            >
+              {isLoading ? (
+                <div className="w-6 h-6 border-3 border-canvas border-t-transparent rounded-full animate-spin" />
+              ) : isPlaying ? (
+                <PauseIconSVG className="w-7 h-7 text-canvas" />
+              ) : (
+                <PlayIconSVG className="w-7 h-7 text-canvas ml-1" />
+              )}
+            </button>
+
+            {/* Next Track */}
+            <button
+              type="button"
+              onClick={next}
+              title="Next track"
+              className="p-2 text-ink active:scale-90 transition-transform cursor-pointer"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                <polygon points="5 4 15 12 5 20 5 4" />
+                <line
+                  x1="19"
+                  y1="4"
+                  x2="19"
+                  y2="20"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                />
+              </svg>
+            </button>
+
+            {/* Repeat Button */}
+            <button
+              type="button"
+              onClick={toggleRepeat}
+              title={`Repeat mode: ${repeatMode}`}
+              className={`p-2 transition-colors active:scale-90 relative cursor-pointer ${
+                repeatMode !== 'off' ? 'text-blue' : 'text-ink-soft'
+              }`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                className="w-5 h-5"
+              >
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+              </svg>
+              {repeatMode === 'one' && (
+                <span className="absolute -top-1 -right-1 text-[11px] leading-none font-mono font-bold bg-blue text-canvas px-1 rounded-full">
+                  1
+                </span>
+              )}
+            </button>
           </div>
-        </div>
 
-        {/* Main Transport Controls */}
-        <div className="w-full max-w-[340px] mx-auto flex items-center justify-between px-2 pt-1">
-          {/* Shuffle Button */}
-          <button
-            type="button"
-            onClick={toggleShuffle}
-            title={isShuffle ? 'Shuffle On' : 'Shuffle Off'}
-            className={`p-2 transition-colors active:scale-90 ${
-              isShuffle ? 'text-blue' : 'text-ink-soft'
-            }`}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              className="w-5 h-5"
-            >
-              <polyline points="16 3 21 3 21 8" />
-              <line x1="4" y1="20" x2="21" y2="3" />
-              <polyline points="21 16 21 21 16 21" />
-              <line x1="15" y1="15" x2="21" y2="21" />
-              <line x1="4" y1="4" x2="9" y2="9" />
-            </svg>
-          </button>
-
-          {/* Previous Track */}
-          <button
-            type="button"
-            onClick={previous}
-            title="Previous track"
-            className="p-2 text-ink active:scale-90 transition-transform"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-              <polygon points="19 20 9 12 19 4 19 20" />
-              <line
-                x1="5"
-                y1="4"
-                x2="5"
-                y2="20"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              />
-            </svg>
-          </button>
-
-          {/* Big Play/Pause Button */}
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={isLoading}
-            aria-label={isPlaying ? 'Pause' : 'Play'}
-            className="w-16 h-16 rounded-full bg-ink text-canvas flex items-center justify-center shadow-xl active:scale-95 transition-transform cursor-pointer"
-          >
-            {isLoading ? (
-              <div className="w-6 h-6 border-3 border-canvas border-t-transparent rounded-full animate-spin" />
-            ) : isPlaying ? (
-              <PauseIconSVG className="w-7 h-7 text-canvas" />
-            ) : (
-              <PlayIconSVG className="w-7 h-7 text-canvas ml-1" />
-            )}
-          </button>
-
-          {/* Next Track */}
-          <button
-            type="button"
-            onClick={next}
-            title="Next track"
-            className="p-2 text-ink active:scale-90 transition-transform"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-              <polygon points="5 4 15 12 5 20 5 4" />
-              <line
-                x1="19"
-                y1="4"
-                x2="19"
-                y2="20"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              />
-            </svg>
-          </button>
-
-          {/* Repeat Button */}
-          <button
-            type="button"
-            onClick={toggleRepeat}
-            title={`Repeat mode: ${repeatMode}`}
-            className={`p-2 transition-colors active:scale-90 relative ${
-              repeatMode !== 'off' ? 'text-blue' : 'text-ink-soft'
-            }`}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              className="w-5 h-5"
-            >
-              <polyline points="17 1 21 5 17 9" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <polyline points="7 23 3 19 7 15" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-            </svg>
-            {repeatMode === 'one' && (
-              <span className="absolute -top-1 -right-1 text-[11px] leading-none font-mono font-bold bg-blue text-canvas px-1 rounded-full">
-                1
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Secondary Utility Row (Quality, Jam, Share, Queue) */}
-        <div className="w-full max-w-[340px] mx-auto flex items-center justify-between pt-1 border-t border-line/40">
-          {/* Audio Quality Badge */}
-          {/* <div className="flex items-center gap-1.5">
-            {streamQuality === "lossless" ? (
-              <span className="font-mono text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-blue text-blue bg-blue/10">
-                Hi-Fi FLAC
-              </span>
-            ) : streamFormat === "hls" ? (
-              <span className="font-mono text-[11px] uppercase font-bold text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10">
-                HLS 320K
-              </span>
-            ) : (
-              <span className="font-mono text-[11px] uppercase text-ink-soft px-2 py-0.5 rounded border border-line">
-                MP3 320K
-              </span>
-            )}
-          </div> */}
-
-          <div className="flex items-center gap-3">
-            {/* Live Jam Shortcut */}
+          {/* Secondary Utility Row (Jam on Left & Queue on Right - Justified Between like Spotify) */}
+          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between pt-1 border-t border-line/40">
+            {/* Live Jam Shortcut (Left) */}
             <button
               type="button"
               onClick={openJamModal}
               title={
                 activeRoom ? `Live Jam: ${activeRoom.roomCode}` : 'Live Jam'
               }
-              className={`p-2 rounded-full transition-colors active:scale-90 ${
+              className={`p-2 rounded-full transition-colors active:scale-90 cursor-pointer ${
                 activeRoom
                   ? 'text-emerald-500 bg-emerald-500/10'
                   : 'text-ink-soft hover:text-ink'
               }`}
             >
-              <span className="text-base">🎧</span>
+              <span className="text-base leading-none">🎧</span>
             </button>
 
-            {/* Queue Toggle */}
+            {/* Queue Toggle (Right) */}
             <button
               type="button"
               onClick={toggleQueueDrawer}
               title="Open Queue"
-              className="p-2 text-ink-soft hover:text-ink active:scale-90 transition-transform"
+              className="p-2 text-ink-soft hover:text-ink active:scale-90 transition-transform cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"

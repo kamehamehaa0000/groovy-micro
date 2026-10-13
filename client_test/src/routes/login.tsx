@@ -1,10 +1,25 @@
-import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  redirect,
+} from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
 import { GoogleIcon, SvgArtworkSpiral } from '../components/icons'
+import {
+  resolveRedirectTarget,
+  saveAuthRedirect,
+} from '../lib/auth-redirect'
+
+const loginSearchSchema = z.object({
+  redirect: z.string().optional(),
+})
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: async () => {
+  validateSearch: (search) => loginSearchSchema.parse(search),
+  beforeLoad: async ({ search }) => {
     const { isLoading, checkAuth } = useAuthStore.getState()
     if (isLoading) {
       try {
@@ -14,21 +29,23 @@ export const Route = createFileRoute('/login')({
       }
     }
     if (useAuthStore.getState().isAuthenticated) {
-      throw redirect({ to: '/' })
+      throw redirect({ to: resolveRedirectTarget(search?.redirect) })
     }
   },
   component: LoginComponent,
 })
 
 function LoginComponent() {
+  const { redirect: redirectParam } = Route.useSearch()
   const navigate = useNavigate()
-  const { login, resendVerification, isAuthenticated, isLoading } = useAuthStore()
+  const { login, resendVerification, isAuthenticated, isLoading } =
+    useAuthStore()
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: '/', replace: true })
+      navigate({ to: resolveRedirectTarget(redirectParam), replace: true })
     }
-  }, [isLoading, isAuthenticated, navigate])
+  }, [isLoading, isAuthenticated, navigate, redirectParam])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,7 +77,8 @@ function LoginComponent() {
 
     try {
       await login(email, password)
-      navigate({ to: '/profile' })
+      const destination = resolveRedirectTarget(redirectParam)
+      navigate({ to: destination })
     } catch (err: any) {
       setError(err.message || 'Login failed')
     } finally {
@@ -101,20 +119,22 @@ function LoginComponent() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[640px] overflow-hidden">
+    <div className="rounded-lg  w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-160 overflow-hidden">
       {/* ===================== BRAND PANEL ===================== */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
+      <div className="hidden  lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
         <div className="flex items-center justify-between z-10">
-          <Link to="/" className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity">
-            Groovy
-          </Link>
           <Link
             to="/"
-            className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group"
+            className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity"
           >
-            <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
-            <span>Back to home</span>
+            Groovy
           </Link>
+          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group">
+            <span className="transition-transform duration-200 group-hover:-translate-x-1">
+              &larr;
+            </span>
+            <span>Catalog that grooves</span>
+          </span>
         </div>
 
         <div className="max-w-md my-auto relative z-10">
@@ -148,7 +168,9 @@ function LoginComponent() {
               to="/"
               className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
             >
-              <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+              <span className="transition-transform duration-200 group-hover:-translate-x-1">
+                &larr;
+              </span>
               <span>Back to home</span>
             </Link>
           </div>
@@ -160,6 +182,7 @@ function LoginComponent() {
             </span>
             <Link
               to="/register"
+              search={redirectParam ? { redirect: redirectParam } : undefined}
               className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
             >
               Create Account
@@ -216,7 +239,11 @@ function LoginComponent() {
           {/* Google OAuth Button */}
           <a
             href="/api/v1/auth/google"
-            className="w-full flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+            onClick={() => {
+              const destination = resolveRedirectTarget(redirectParam)
+              saveAuthRedirect(destination)
+            }}
+            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
           >
             <GoogleIcon />
             Continue with Google
@@ -289,7 +316,7 @@ function LoginComponent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+              className="mt-2 rounded-lg w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Entering...' : 'Enter the Maison'}
             </button>
@@ -299,6 +326,7 @@ function LoginComponent() {
             New here?{' '}
             <Link
               to="/register"
+              search={redirectParam ? { redirect: redirectParam } : undefined}
               className="text-blue hover:underline transition-colors"
             >
               Create an account

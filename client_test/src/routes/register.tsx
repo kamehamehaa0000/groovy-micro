@@ -1,10 +1,22 @@
-import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  redirect,
+} from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
 import { GoogleIcon, SvgArtworkSpiral } from '../components/icons'
+import { resolveRedirectTarget } from '../lib/auth-redirect'
+
+const registerSearchSchema = z.object({
+  redirect: z.string().optional(),
+})
 
 export const Route = createFileRoute('/register')({
-  beforeLoad: async () => {
+  validateSearch: (search) => registerSearchSchema.parse(search),
+  beforeLoad: async ({ search }) => {
     const { isLoading, checkAuth } = useAuthStore.getState()
     if (isLoading) {
       try {
@@ -14,21 +26,23 @@ export const Route = createFileRoute('/register')({
       }
     }
     if (useAuthStore.getState().isAuthenticated) {
-      throw redirect({ to: '/' })
+      throw redirect({ to: resolveRedirectTarget(search?.redirect) })
     }
   },
   component: RegisterComponent,
 })
 
 function RegisterComponent() {
+  const { redirect: redirectParam } = Route.useSearch()
   const navigate = useNavigate()
-  const { register, resendVerification, isAuthenticated, isLoading } = useAuthStore()
+  const { register, resendVerification, isAuthenticated, isLoading } =
+    useAuthStore()
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: '/', replace: true })
+      navigate({ to: resolveRedirectTarget(redirectParam), replace: true })
     }
-  }, [isLoading, isAuthenticated, navigate])
+  }, [isLoading, isAuthenticated, navigate, redirectParam])
 
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -101,14 +115,19 @@ function RegisterComponent() {
       {/* ===================== BRAND PANEL ===================== */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
         <div className="flex items-center justify-between z-10">
-          <Link to="/" className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity"
+          >
             Groovy
           </Link>
           <Link
             to="/"
             className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group"
           >
-            <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+            <span className="transition-transform duration-200 group-hover:-translate-x-1">
+              &larr;
+            </span>
             <span>Back to home</span>
           </Link>
         </div>
@@ -143,7 +162,9 @@ function RegisterComponent() {
               to="/"
               className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
             >
-              <span className="transition-transform duration-200 group-hover:-translate-x-1">&larr;</span>
+              <span className="transition-transform duration-200 group-hover:-translate-x-1">
+                &larr;
+              </span>
               <span>Back to home</span>
             </Link>
           </div>
@@ -191,6 +212,7 @@ function RegisterComponent() {
               <div className="flex flex-col gap-3 pt-4 border-t border-line">
                 <Link
                   to="/login"
+                  search={redirectParam ? { redirect: redirectParam } : undefined}
                   className="w-full text-center bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink"
                 >
                   Go to Sign In &rarr;
@@ -228,6 +250,7 @@ function RegisterComponent() {
               <div className="flex gap-7 mb-8 border-b border-line">
                 <Link
                   to="/login"
+                  search={redirectParam ? { redirect: redirectParam } : undefined}
                   className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
                 >
                   Sign In
@@ -255,7 +278,7 @@ function RegisterComponent() {
               {/* Google OAuth Button */}
               <a
                 href="/api/v1/auth/google"
-                className="w-full flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+                className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
               >
                 <GoogleIcon />
                 Continue with Google
@@ -342,7 +365,7 @@ function RegisterComponent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+                  className="mt-2 rounded-lg w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Account'}
                 </button>
@@ -352,6 +375,7 @@ function RegisterComponent() {
                 Already a member?{' '}
                 <Link
                   to="/login"
+                  search={redirectParam ? { redirect: redirectParam } : undefined}
                   className="text-blue hover:underline transition-colors"
                 >
                   Sign in

@@ -32,7 +32,7 @@ function AdminVerificationDeskComponent() {
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/admin/verification' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 

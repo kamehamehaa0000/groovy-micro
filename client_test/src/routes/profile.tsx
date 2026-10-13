@@ -166,7 +166,7 @@ function ProfileComponent() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/profile' } })
     }
   }, [isLoading, isAuthenticated, navigate])
 

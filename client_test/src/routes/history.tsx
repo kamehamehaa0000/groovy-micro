@@ -77,7 +77,9 @@ function HistoryPageComponent() {
   const [hasMore, setHasMore] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [expandedReleaseKey, setExpandedReleaseKey] = useState<string | null>(null)
+  const [expandedReleaseKey, setExpandedReleaseKey] = useState<string | null>(
+    null,
+  )
 
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -159,7 +161,9 @@ function HistoryPageComponent() {
     const now = new Date()
 
     // Helper functions for date bucketing
-    const getBucket = (d: Date): { key: string; label: string; sortTimestamp: number } => {
+    const getBucket = (
+      d: Date,
+    ): { key: string; label: string; sortTimestamp: number } => {
       if (groupBy === 'day') {
         const y = d.getFullYear()
         const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -192,7 +196,11 @@ function HistoryPageComponent() {
           })
         }
 
-        const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+        const startOfDay = new Date(
+          d.getFullYear(),
+          d.getMonth(),
+          d.getDate(),
+        ).getTime()
         return { key, label, sortTimestamp: startOfDay }
       }
 
@@ -235,7 +243,11 @@ function HistoryPageComponent() {
           month: 'long',
           year: 'numeric',
         })
-        const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getTime()
+        const startOfMonth = new Date(
+          d.getFullYear(),
+          d.getMonth(),
+          1,
+        ).getTime()
         return { key, label, sortTimestamp: startOfMonth }
       }
 
@@ -279,7 +291,9 @@ function HistoryPageComponent() {
       bucket.totalPlays += 1
 
       // Release key: albumId if exists, otherwise single track
-      const releaseKey = item.song.albumId ? `album:${item.song.albumId}` : `single:${item.song.id}`
+      const releaseKey = item.song.albumId
+        ? `album:${item.song.albumId}`
+        : `single:${item.song.id}`
       let release = bucket.releasesMap.get(releaseKey)
 
       if (!release) {
@@ -292,7 +306,8 @@ function HistoryPageComponent() {
           title: item.song.albumTitle || item.song.title,
           slug: item.song.albumSlug || item.song.slug,
           albumType: rawType,
-          coverImageUrl: item.song.albumCoverImageUrl || item.song.coverImageUrl,
+          coverImageUrl:
+            item.song.albumCoverImageUrl || item.song.coverImageUrl,
           artistId: item.song.artistId,
           artistName: item.song.artistName,
           artistSlug: item.song.artistSlug,
@@ -304,7 +319,10 @@ function HistoryPageComponent() {
       } else {
         release.playCount += 1
         release.tracksPlayed.push(item)
-        if (new Date(item.playedAt).getTime() > new Date(release.latestPlayedAt).getTime()) {
+        if (
+          new Date(item.playedAt).getTime() >
+          new Date(release.latestPlayedAt).getTime()
+        ) {
           release.latestPlayedAt = item.playedAt
         }
       }
@@ -318,7 +336,9 @@ function HistoryPageComponent() {
     // Build final output with releases sorted by latest played
     return sortedBuckets.map((bucket) => {
       const releases = Array.from(bucket.releasesMap.values()).sort(
-        (a, b) => new Date(b.latestPlayedAt).getTime() - new Date(a.latestPlayedAt).getTime(),
+        (a, b) =>
+          new Date(b.latestPlayedAt).getTime() -
+          new Date(a.latestPlayedAt).getTime(),
       )
       return {
         key: bucket.key,
@@ -334,7 +354,9 @@ function HistoryPageComponent() {
     if (release.tracksPlayed.length === 0) return
 
     // Check if current playing track belongs to this release
-    const isPlayingThisRelease = release.tracksPlayed.some((t) => t.song.id === currentTrack?.id)
+    const isPlayingThisRelease = release.tracksPlayed.some(
+      (t) => t.song.id === currentTrack?.id,
+    )
     if (isPlayingThisRelease) {
       togglePlay()
       return
@@ -351,7 +373,10 @@ function HistoryPageComponent() {
       albumTitle: firstItem.song.albumTitle || undefined,
       albumSlug: firstItem.song.albumSlug || undefined,
       durationSeconds: firstItem.song.durationSeconds,
-      coverImageUrl: firstItem.song.coverImageUrl || firstItem.song.albumCoverImageUrl || undefined,
+      coverImageUrl:
+        firstItem.song.coverImageUrl ||
+        firstItem.song.albumCoverImageUrl ||
+        undefined,
       audioUrl: firstItem.song.audioUrl || undefined,
       hlsManifestUrl: firstItem.song.hlsManifestUrl || undefined,
       rawAudioKey: firstItem.song.rawAudioKey || undefined,
@@ -369,7 +394,8 @@ function HistoryPageComponent() {
       albumTitle: t.song.albumTitle || undefined,
       albumSlug: t.song.albumSlug || undefined,
       durationSeconds: t.song.durationSeconds,
-      coverImageUrl: t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
+      coverImageUrl:
+        t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
       audioUrl: t.song.audioUrl || undefined,
       hlsManifestUrl: t.song.hlsManifestUrl || undefined,
       rawAudioKey: t.song.rawAudioKey || undefined,
@@ -377,11 +403,20 @@ function HistoryPageComponent() {
       scope: (t.song.scope as any) || 'GLOBAL',
     }))
 
-    playTrack(playerTrack, queue, 0, `history:${release.releaseKey}`, release.title)
+    playTrack(
+      playerTrack,
+      queue,
+      0,
+      `history:${release.releaseKey}`,
+      release.title,
+    )
   }
 
   // Play an individual track inside a release
-  const handlePlaySingleTrack = (item: HistoryItem, allReleaseItems: HistoryItem[]) => {
+  const handlePlaySingleTrack = (
+    item: HistoryItem,
+    allReleaseItems: HistoryItem[],
+  ) => {
     if (currentTrack?.id === item.song.id) {
       togglePlay()
       return
@@ -397,7 +432,8 @@ function HistoryPageComponent() {
       albumTitle: item.song.albumTitle || undefined,
       albumSlug: item.song.albumSlug || undefined,
       durationSeconds: item.song.durationSeconds,
-      coverImageUrl: item.song.coverImageUrl || item.song.albumCoverImageUrl || undefined,
+      coverImageUrl:
+        item.song.coverImageUrl || item.song.albumCoverImageUrl || undefined,
       audioUrl: item.song.audioUrl || undefined,
       hlsManifestUrl: item.song.hlsManifestUrl || undefined,
       rawAudioKey: item.song.rawAudioKey || undefined,
@@ -415,7 +451,8 @@ function HistoryPageComponent() {
       albumTitle: t.song.albumTitle || undefined,
       albumSlug: t.song.albumSlug || undefined,
       durationSeconds: t.song.durationSeconds,
-      coverImageUrl: t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
+      coverImageUrl:
+        t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
       audioUrl: t.song.audioUrl || undefined,
       hlsManifestUrl: t.song.hlsManifestUrl || undefined,
       rawAudioKey: t.song.rawAudioKey || undefined,
@@ -423,7 +460,9 @@ function HistoryPageComponent() {
       scope: (t.song.scope as any) || 'GLOBAL',
     }))
 
-    const trackIndex = allReleaseItems.findIndex((t) => t.historyId === item.historyId)
+    const trackIndex = allReleaseItems.findIndex(
+      (t) => t.historyId === item.historyId,
+    )
     playTrack(
       playerTrack,
       queue,
@@ -438,7 +477,13 @@ function HistoryPageComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center select-none">
         <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-blue shadow-md">
-          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            className="w-8 h-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -447,7 +492,8 @@ function HistoryPageComponent() {
           Listening History
         </h1>
         <p className="font-sans text-xs text-ink-soft mb-8 leading-relaxed max-w-sm mx-auto">
-          Sign in to view every record and release spun across all your connected devices.
+          Sign in to view every record and release spun across all your
+          connected devices.
         </p>
         <button
           type="button"
@@ -473,7 +519,8 @@ function HistoryPageComponent() {
               Releases Played
             </h1>
             <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
-              A minimal archive of every record and release spun on your account, grouped chronologically.
+              A minimal archive of every record and release spun on your
+              account, grouped chronologically.
             </p>
           </div>
 
@@ -484,23 +531,31 @@ function HistoryPageComponent() {
               <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft/70 px-2 hidden sm:inline-block">
                 Group by
               </span>
-              {(['day', 'week', 'month', 'year'] as GroupByInterval[]).map((mode) => {
-                const isSelected = groupBy === mode
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setGroupBy(mode)}
-                    className={`font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-ink text-canvas font-semibold shadow-xs'
-                        : 'text-ink-soft hover:text-ink hover:bg-canvas'
-                    }`}
-                  >
-                    {mode === 'day' ? 'Day' : mode === 'week' ? 'Week' : mode === 'month' ? 'Month' : 'Year'}
-                  </button>
-                )
-              })}
+              {(['day', 'week', 'month', 'year'] as GroupByInterval[]).map(
+                (mode) => {
+                  const isSelected = groupBy === mode
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setGroupBy(mode)}
+                      className={`font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-ink text-canvas font-semibold shadow-xs'
+                          : 'text-ink-soft hover:text-ink hover:bg-canvas'
+                      }`}
+                    >
+                      {mode === 'day'
+                        ? 'Day'
+                        : mode === 'week'
+                          ? 'Week'
+                          : mode === 'month'
+                            ? 'Month'
+                            : 'Year'}
+                    </button>
+                  )
+                },
+              )}
             </div>
 
             {/* View Mode Toggle (Grid / List) */}
@@ -546,7 +601,10 @@ function HistoryPageComponent() {
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse space-y-2.5">
+                    <div
+                      key={i}
+                      className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse space-y-2.5"
+                    >
                       <div className="aspect-square bg-line/30 rounded-lg" />
                       <div className="h-3.5 bg-line/50 rounded-xs w-4/5" />
                       <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
@@ -556,7 +614,10 @@ function HistoryPageComponent() {
               ) : (
                 <div className="space-y-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse flex items-center gap-3.5">
+                    <div
+                      key={i}
+                      className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse flex items-center gap-3.5"
+                    >
                       <div className="w-12 h-12 bg-line/30 rounded-lg shrink-0" />
                       <div className="space-y-1.5 flex-1">
                         <div className="h-3.5 bg-line/50 rounded-xs w-1/3" />
@@ -573,14 +634,23 @@ function HistoryPageComponent() {
         /* Empty State */
         <div className="py-20 text-center">
           <div className="w-14 h-14 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-4 text-ink-soft">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
-          <h2 className="font-serif italic text-xl text-ink font-medium">No listening history recorded yet</h2>
+          <h2 className="font-serif italic text-xl text-ink font-medium">
+            No listening history recorded yet
+          </h2>
           <p className="font-sans text-xs text-ink-soft mt-1.5 max-w-sm mx-auto">
-            Start playing records from the catalog or personal vault to see your releases organized here.
+            Start playing records from the catalog or personal vault to see your
+            releases organized here.
           </p>
           <Link
             to="/"
@@ -602,7 +672,9 @@ function HistoryPageComponent() {
                   </h2>
                 </div>
                 <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
-                  {group.releases.length} {group.releases.length === 1 ? 'release' : 'releases'} • {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
+                  {group.releases.length}{' '}
+                  {group.releases.length === 1 ? 'release' : 'releases'} •{' '}
+                  {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
                 </span>
               </div>
 
@@ -611,10 +683,13 @@ function HistoryPageComponent() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                   {group.releases.map((release) => {
                     const isCurrentReleasePlaying =
-                      release.tracksPlayed.some((t) => t.song.id === currentTrack?.id) &&
-                      playbackStatus === 'playing'
+                      release.tracksPlayed.some(
+                        (t) => t.song.id === currentTrack?.id,
+                      ) && playbackStatus === 'playing'
 
-                    const isExpanded = expandedReleaseKey === `${group.key}:${release.releaseKey}`
+                    const isExpanded =
+                      expandedReleaseKey ===
+                      `${group.key}:${release.releaseKey}`
 
                     return (
                       <div
@@ -642,7 +717,11 @@ function HistoryPageComponent() {
                           <button
                             type="button"
                             onClick={() => handlePlayRelease(release)}
-                            aria-label={isCurrentReleasePlaying ? 'Pause release' : 'Play release'}
+                            aria-label={
+                              isCurrentReleasePlaying
+                                ? 'Pause release'
+                                : 'Play release'
+                            }
                             className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           >
                             <div className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95">
@@ -665,7 +744,9 @@ function HistoryPageComponent() {
                           {release.albumId ? (
                             <Link
                               to="/albums/$idOrSlug"
-                              params={{ idOrSlug: release.slug || release.albumId }}
+                              params={{
+                                idOrSlug: release.slug || release.albumId,
+                              }}
                               className="text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
                               title={release.title}
                             >
@@ -700,21 +781,22 @@ function HistoryPageComponent() {
                               type="button"
                               onClick={() =>
                                 setExpandedReleaseKey((curr) =>
-                                  curr === `${group.key}:${release.releaseKey}` ? null : `${group.key}:${release.releaseKey}`,
+                                  curr === `${group.key}:${release.releaseKey}`
+                                    ? null
+                                    : `${group.key}:${release.releaseKey}`,
                                 )
                               }
                               className="hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
                               title="Toggle tracks played"
                             >
-                              <span>
-                                {release.playCount} {release.playCount === 1 ? 'play' : 'plays'}
-                              </span>
                               <span className="text-[11px] opacity-70">
                                 {isExpanded ? '▲' : '▼'}
                               </span>
                             </button>
 
-                            <span>{formatPlayTime(release.latestPlayedAt)}</span>
+                            <span>
+                              {formatPlayTime(release.latestPlayedAt)}
+                            </span>
                           </div>
                         </div>
 
@@ -726,220 +808,255 @@ function HistoryPageComponent() {
                             </span>
                             {release.tracksPlayed.map((t) => {
                               const isPlayingThisTrack =
-                                currentTrack?.id === t.song.id && playbackStatus === 'playing'
+                                currentTrack?.id === t.song.id &&
+                                playbackStatus === 'playing'
 
                               return (
                                 <button
-                                key={t.historyId}
-                                type="button"
-                                onClick={() => handlePlaySingleTrack(t, release.tracksPlayed)}
-                                className={`w-full flex items-center justify-between text-left py-1 px-1.5 rounded-xs text-[11px] transition-colors cursor-pointer ${
-                                  isPlayingThisTrack
-                                    ? 'bg-blue/10 text-blue font-medium'
-                                    : 'hover:bg-canvas text-ink-soft hover:text-ink'
-                                }`}
-                              >
-                                <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
-                                  <span className="shrink-0 text-[11px] opacity-60">
-                                    {isPlayingThisTrack ? '▶' : '♪'}
+                                  key={t.historyId}
+                                  type="button"
+                                  onClick={() =>
+                                    handlePlaySingleTrack(
+                                      t,
+                                      release.tracksPlayed,
+                                    )
+                                  }
+                                  className={`w-full flex items-center justify-between text-left py-1 px-1.5 rounded-xs text-[11px] transition-colors cursor-pointer ${
+                                    isPlayingThisTrack
+                                      ? 'bg-blue/10 text-blue font-medium'
+                                      : 'hover:bg-canvas text-ink-soft hover:text-ink'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+                                    <span className="shrink-0 text-[11px] opacity-60">
+                                      {isPlayingThisTrack ? '▶' : '♪'}
+                                    </span>
+                                    <span className="truncate">
+                                      {t.song.title}
+                                    </span>
+                                  </div>
+                                  <span className="font-mono text-[11px] shrink-0 opacity-70">
+                                    {formatDurationSeconds(
+                                      t.song.durationSeconds,
+                                    )}
                                   </span>
-                                  <span className="truncate">{t.song.title}</span>
-                                </div>
-                                <span className="font-mono text-[11px] shrink-0 opacity-70">
-                                  {formatDurationSeconds(t.song.durationSeconds)}
-                                </span>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              /* View Mode: List View */
-              <div className="space-y-2">
-                {group.releases.map((release) => {
-                  const isCurrentReleasePlaying =
-                    release.tracksPlayed.some((t) => t.song.id === currentTrack?.id) &&
-                    playbackStatus === 'playing'
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                /* View Mode: List View */
+                <div className="space-y-2">
+                  {group.releases.map((release) => {
+                    const isCurrentReleasePlaying =
+                      release.tracksPlayed.some(
+                        (t) => t.song.id === currentTrack?.id,
+                      ) && playbackStatus === 'playing'
 
-                  const isExpanded = expandedReleaseKey === `${group.key}:${release.releaseKey}`
+                    const isExpanded =
+                      expandedReleaseKey ===
+                      `${group.key}:${release.releaseKey}`
 
-                  return (
-                    <div
-                      key={release.releaseKey}
-                      className="group flex flex-col rounded-xl border border-line bg-panel/40 hover:bg-canvas-soft/80 hover:border-ink/20 shadow-2xs transition-all duration-200 overflow-hidden"
-                    >
-                      {/* Row Bar */}
-                      <div className="flex items-center gap-3.5 p-2.5 sm:px-4">
-                        {/* Thumbnail Cover with Play button */}
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-canvas-deep border border-line shrink-0 group/cover shadow-2xs">
-                          {release.coverImageUrl ? (
-                            <img
-                              src={release.coverImageUrl}
-                              alt={release.title}
-                              className="w-full h-full object-cover transition-transform duration-200 group-hover/cover:scale-105"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <ProceduralCover
-                              title={release.title}
-                              artistName={release.artistName}
-                              className="w-full h-full"
-                            />
-                          )}
-
-                          {/* Quick Play/Pause button */}
-                          <button
-                            type="button"
-                            onClick={() => handlePlayRelease(release)}
-                            aria-label={isCurrentReleasePlaying ? 'Pause release' : 'Play release'}
-                            className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity cursor-pointer"
-                          >
-                            <div className="w-7 h-7 rounded-full bg-ink text-canvas flex items-center justify-center shadow-md">
-                              {isCurrentReleasePlaying ? (
-                                <PauseIconSVG className="w-3.5 h-3.5 text-canvas" />
-                              ) : (
-                                <PlayIconSVG className="w-3.5 h-3.5 text-canvas ml-0.5" />
-                              )}
-                            </div>
-                          </button>
-                        </div>
-
-                        {/* Release Title, Artist & Badge */}
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            {release.albumId ? (
-                              <Link
-                                to="/albums/$idOrSlug"
-                                params={{ idOrSlug: release.slug || release.albumId }}
-                                className="text-xs sm:text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
-                                title={release.title}
-                              >
-                                {release.title}
-                              </Link>
+                    return (
+                      <div
+                        key={release.releaseKey}
+                        className="group flex flex-col rounded-xl border border-line bg-panel/40 hover:bg-canvas-soft/80 hover:border-ink/20 shadow-2xs transition-all duration-200 overflow-hidden"
+                      >
+                        {/* Row Bar */}
+                        <div className="flex items-center gap-3.5 p-2.5 sm:px-4">
+                          {/* Thumbnail Cover with Play button */}
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-canvas-deep border border-line shrink-0 group/cover shadow-2xs">
+                            {release.coverImageUrl ? (
+                              <img
+                                src={release.coverImageUrl}
+                                alt={release.title}
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover/cover:scale-105"
+                                loading="lazy"
+                              />
                             ) : (
-                              <span
-                                className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight"
+                              <ProceduralCover
                                 title={release.title}
-                              >
-                                {release.title}
-                              </span>
+                                artistName={release.artistName}
+                                className="w-full h-full"
+                              />
                             )}
 
-                            <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
-                              {release.albumType}
-                            </span>
+                            {/* Quick Play/Pause button */}
+                            <button
+                              type="button"
+                              onClick={() => handlePlayRelease(release)}
+                              aria-label={
+                                isCurrentReleasePlaying
+                                  ? 'Pause release'
+                                  : 'Play release'
+                              }
+                              className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                              <div className="w-7 h-7 rounded-full bg-ink text-canvas flex items-center justify-center shadow-md">
+                                {isCurrentReleasePlaying ? (
+                                  <PauseIconSVG className="w-3.5 h-3.5 text-canvas" />
+                                ) : (
+                                  <PlayIconSVG className="w-3.5 h-3.5 text-canvas ml-0.5" />
+                                )}
+                              </div>
+                            </button>
                           </div>
 
-                          {release.artistSlug ? (
-                            <Link
-                              to="/artists/$idOrSlug"
-                              params={{ idOrSlug: release.artistSlug }}
-                              className="text-[11px] text-ink-soft hover:text-ink truncate transition-colors mt-0.5"
-                            >
-                              {release.artistName}
-                            </Link>
-                          ) : (
-                            <span className="text-[11px] text-ink-soft truncate mt-0.5">
-                              {release.artistName}
-                            </span>
-                          )}
-                        </div>
+                          {/* Release Title, Artist & Badge */}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              {release.albumId ? (
+                                <Link
+                                  to="/albums/$idOrSlug"
+                                  params={{
+                                    idOrSlug: release.slug || release.albumId,
+                                  }}
+                                  className="text-xs sm:text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
+                                  title={release.title}
+                                >
+                                  {release.title}
+                                </Link>
+                              ) : (
+                                <span
+                                  className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight"
+                                  title={release.title}
+                                >
+                                  {release.title}
+                                </span>
+                              )}
 
-                        {/* Right Metadata: Play count toggle & Timestamp */}
-                        <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-ink-soft">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setExpandedReleaseKey((curr) =>
-                                curr === `${group.key}:${release.releaseKey}`
-                                  ? null
-                                  : `${group.key}:${release.releaseKey}`,
-                              )
-                            }
-                            className="hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded bg-canvas border border-line"
-                            title="View tracks played"
-                          >
-                            <span>
-                              {release.playCount} {release.playCount === 1 ? 'play' : 'plays'}
-                            </span>
-                            <span className="text-[11px] opacity-70">
-                              {isExpanded ? '▲' : '▼'}
-                            </span>
-                          </button>
+                              <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                                {release.albumType}
+                              </span>
+                            </div>
 
-                          <span className="hidden sm:inline-block min-w-16 text-right">
-                            {formatPlayTime(release.latestPlayedAt)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Expandable Tracks Accordion in List View */}
-                      {isExpanded && (
-                        <div className="bg-canvas-soft/40 border-t border-line px-4 py-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
-                            Tracks played:
-                          </span>
-                          {release.tracksPlayed.map((t, idx) => {
-                            const isPlayingThisTrack =
-                              currentTrack?.id === t.song.id && playbackStatus === 'playing'
-
-                            return (
-                              <button
-                                key={t.historyId}
-                                type="button"
-                                onClick={() => handlePlaySingleTrack(t, release.tracksPlayed)}
-                                className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-[11px] transition-colors cursor-pointer ${
-                                  isPlayingThisTrack
-                                    ? 'bg-blue/10 text-blue font-medium'
-                                    : 'hover:bg-canvas text-ink-soft hover:text-ink'
-                                }`}
+                            {release.artistSlug ? (
+                              <Link
+                                to="/artists/$idOrSlug"
+                                params={{ idOrSlug: release.artistSlug }}
+                                className="text-[11px] text-ink-soft hover:text-ink truncate transition-colors mt-0.5"
                               >
-                                <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
-                                  <span className="font-mono text-[11px] text-ink-soft/60 w-4 text-right shrink-0">
-                                    {idx + 1}
-                                  </span>
-                                  <span className="shrink-0 text-[11px]">
-                                    {isPlayingThisTrack ? '▶' : '♪'}
-                                  </span>
-                                  <span className="truncate">{t.song.title}</span>
-                                </div>
-                                <div className="flex items-center gap-3 shrink-0 font-mono text-[11px] opacity-70">
-                                  <span>{formatPlayTime(t.playedAt)}</span>
-                                  <span>{formatDurationSeconds(t.song.durationSeconds)}</span>
-                                </div>
-                              </button>
-                            )
-                          })}
+                                {release.artistName}
+                              </Link>
+                            ) : (
+                              <span className="text-[11px] text-ink-soft truncate mt-0.5">
+                                {release.artistName}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Right Metadata: Play count toggle & Timestamp */}
+                          <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-ink-soft">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedReleaseKey((curr) =>
+                                  curr === `${group.key}:${release.releaseKey}`
+                                    ? null
+                                    : `${group.key}:${release.releaseKey}`,
+                                )
+                              }
+                              className="hover:text-ink transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded bg-canvas border border-line"
+                              title="View tracks played"
+                            >
+                              <span>
+                                {release.playCount}{' '}
+                                {release.playCount === 1 ? 'play' : 'plays'}
+                              </span>
+                              <span className="text-[11px] opacity-70">
+                                {isExpanded ? '▲' : '▼'}
+                              </span>
+                            </button>
+
+                            <span className="hidden sm:inline-block min-w-16 text-right">
+                              {formatPlayTime(release.latestPlayedAt)}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
+
+                        {/* Expandable Tracks Accordion in List View */}
+                        {isExpanded && (
+                          <div className="bg-canvas-soft/40 border-t border-line px-4 py-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                              Tracks played:
+                            </span>
+                            {release.tracksPlayed.map((t, idx) => {
+                              const isPlayingThisTrack =
+                                currentTrack?.id === t.song.id &&
+                                playbackStatus === 'playing'
+
+                              return (
+                                <button
+                                  key={t.historyId}
+                                  type="button"
+                                  onClick={() =>
+                                    handlePlaySingleTrack(
+                                      t,
+                                      release.tracksPlayed,
+                                    )
+                                  }
+                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-[11px] transition-colors cursor-pointer ${
+                                    isPlayingThisTrack
+                                      ? 'bg-blue/10 text-blue font-medium'
+                                      : 'hover:bg-canvas text-ink-soft hover:text-ink'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
+                                    <span className="font-mono text-[11px] text-ink-soft/60 w-4 text-right shrink-0">
+                                      {idx + 1}
+                                    </span>
+                                    <span className="shrink-0 text-[11px]">
+                                      {isPlayingThisTrack ? '▶' : '♪'}
+                                    </span>
+                                    <span className="truncate">
+                                      {t.song.title}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 shrink-0 font-mono text-[11px] opacity-70">
+                                    <span>{formatPlayTime(t.playedAt)}</span>
+                                    <span>
+                                      {formatDurationSeconds(
+                                        t.song.durationSeconds,
+                                      )}
+                                    </span>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          ))}
+
+          {/* ===================== INFINITE SCROLL SENTINEL ===================== */}
+          <div
+            ref={sentinelRef}
+            className="py-8 flex flex-col items-center justify-center"
+          >
+            {isLoadingMore && (
+              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
+                <span>Loading earlier releases...</span>
               </div>
             )}
-          </section>
-        ))}
-
-        {/* ===================== INFINITE SCROLL SENTINEL ===================== */}
-        <div ref={sentinelRef} className="py-8 flex flex-col items-center justify-center">
-          {isLoadingMore && (
-            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
-              <span>Loading earlier releases...</span>
-            </div>
-          )}
-          {!hasMore && items.length > 0 && (
-            <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/60">
-              ✦ Beginning of recorded history reached
-            </p>
-          )}
+            {!hasMore && items.length > 0 && (
+              <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/60">
+                ✦ Beginning of recorded history reached
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-    )}
-  </div>
-)
+      )}
+    </div>
+  )
 }

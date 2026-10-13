@@ -366,6 +366,7 @@ function UnifiedFeedComponent() {
           <div className="pt-2">
             <Link
               to="/login"
+              search={{ redirect: '/feed' }}
               className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In to Social Hub &rarr;

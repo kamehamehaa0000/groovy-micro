@@ -1125,12 +1125,14 @@ function PersonalCollectionManagePage() {
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
               to="/login"
+              search={{ redirect: '/collection/manage' }}
               className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold"
             >
               Sign In
             </Link>
             <Link
               to="/register"
+              search={{ redirect: '/collection/manage' }}
               className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
             >
               Create Account

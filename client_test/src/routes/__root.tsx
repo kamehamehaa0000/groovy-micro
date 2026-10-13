@@ -32,6 +32,7 @@ import { NotificationBell } from '../components/navigation/NotificationBell'
 import { useNotificationsStore } from '../stores/notifications.store'
 import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal'
 import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
+import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -110,7 +111,17 @@ function RootComponent() {
     }
   }, [isAuthenticated])
 
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
+
+  // Track last visited non-auth route so login can safely return the user
+  useEffect(() => {
+    const fullPath =
+      pathname + (location.searchStr ? `?${location.searchStr}` : '')
+    if (!isAuthRoute(pathname)) {
+      trackLastVisitedPath(fullPath)
+    }
+  }, [pathname, location.searchStr])
 
   // Close desktop create and user dropdowns on outside click or Escape key
   useEffect(() => {
@@ -159,6 +170,10 @@ function RootComponent() {
     pathname === '/verify-email' ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password'
+
+  const currentRedirect = !isAuthPage
+    ? pathname + (location.searchStr ? `?${location.searchStr}` : '')
+    : undefined
 
   return (
     <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
@@ -849,12 +864,14 @@ function RootComponent() {
                 <div className="flex items-center gap-2">
                   <Link
                     to="/login"
+                    search={currentRedirect ? { redirect: currentRedirect } : undefined}
                     className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
+                    search={currentRedirect ? { redirect: currentRedirect } : undefined}
                     className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 bg-ink text-canvas border border-ink hover:bg-canvas hover:text-ink font-medium transition-colors"
                   >
                     Join
@@ -943,6 +960,7 @@ function RootComponent() {
               <div className="grid grid-cols-2 gap-2 border-b border-line pb-4">
                 <Link
                   to="/login"
+                  search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
                   className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
                 >
@@ -950,6 +968,7 @@ function RootComponent() {
                 </Link>
                 <Link
                   to="/register"
+                  search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
                   className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 bg-ink text-canvas hover:bg-canvas hover:text-ink border border-ink font-semibold transition-colors"
                 >

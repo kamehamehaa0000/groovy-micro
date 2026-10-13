@@ -49,7 +49,7 @@ function AdminSubscriptionsDeskComponent() {
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/admin/subscriptions' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 

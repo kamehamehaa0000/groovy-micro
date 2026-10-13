@@ -221,12 +221,14 @@ function HomeComponent() {
           <div className="flex flex-wrap items-center gap-4 relative z-10">
             <Link
               to="/login"
+              search={{ redirect: '/' }}
               className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
             >
               Enter the collective &rarr;
             </Link>
             <Link
               to="/register"
+              search={{ redirect: '/' }}
               className="border border-line bg-panel hover:bg-canvas-deep text-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider transition-all shadow-2xs"
             >
               Join the Collective

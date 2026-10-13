@@ -1,4 +1,9 @@
-import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  redirect,
+} from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 
@@ -63,7 +68,9 @@ function ForgotPasswordComponent() {
       setCooldown(60)
     } catch (err: any) {
       setNotice({
-        text: err.message || 'Failed to dispatch password reset email. Please try again.',
+        text:
+          err.message ||
+          'Failed to dispatch password reset email. Please try again.',
         type: 'error',
       })
     } finally {
@@ -76,27 +83,17 @@ function ForgotPasswordComponent() {
   }
 
   return (
-    <div className="w-full max-w-[480px] mx-auto my-12 px-4 select-none">
-      <div className="border border-line bg-canvas p-8 sm:p-10 shadow-xs">
+    <div className="w-full max-w-120 mx-auto my-12 px-4 select-none">
+      <div className="rounded-lg border border-line bg-canvas p-8 sm:p-10 shadow-xs">
         {/* Brand Header */}
-        <div className="text-center mb-8">
-          <Link
-            to="/"
-            className="font-serif italic text-3xl tracking-[-0.03em] text-ink hover:opacity-80 transition-opacity"
-          >
-            Groov<span className="not-italic text-blue font-serif">y</span>
-          </Link>
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mt-2">
-            Security &nbsp;·&nbsp; Password Recovery
-          </div>
-        </div>
 
-        <div className="text-center mb-6">
-          <h1 className="font-serif text-2xl text-ink font-normal mb-2">
+        <div className="text-center mb-6 space-y-6">
+          <h1 className="font-serif italic text-3xl tracking-[-0.03em] text-ink">
             Forgot your password?
           </h1>
           <p className="font-sans text-xs text-ink-soft leading-relaxed max-w-sm mx-auto">
-            Enter the email address associated with your account, and we will dispatch a link to reset your credentials.
+            Enter the email address associated with your account, and we will
+            dispatch a link to reset your credentials.
           </p>
         </div>
 
@@ -136,7 +133,7 @@ function ForgotPasswordComponent() {
           <button
             type="submit"
             disabled={isSubmitting || cooldown > 0 || !email}
-            className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="mt-2 rounded-lg w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting
               ? 'Dispatching...'

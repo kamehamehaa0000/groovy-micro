@@ -93,7 +93,12 @@ function JamRouteComponent() {
           {!isAuthenticated && (
             <button
               type="button"
-              onClick={() => navigate({ to: "/login" })}
+              onClick={() =>
+                navigate({
+                  to: "/login",
+                  search: { redirect: `/jam/${code}` },
+                })
+              }
               className="px-4 py-2 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
             >
               Sign In

@@ -2,10 +2,16 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useAuthStore } from "../stores/auth.store";
+import {
+  getSavedAuthRedirect,
+  clearSavedAuthRedirect,
+  resolveRedirectTarget,
+} from "../lib/auth-redirect";
 
 const searchSchema = z.object({
   token: z.string().optional(),
   error: z.string().optional(),
+  redirect: z.string().optional(),
 });
 
 export const Route = createFileRoute("/oauth/callback")({
@@ -14,7 +20,7 @@ export const Route = createFileRoute("/oauth/callback")({
 });
 
 function OAuthCallbackComponent() {
-  const { token, error } = Route.useSearch();
+  const { token, error, redirect: redirectParam } = Route.useSearch();
   const navigate = useNavigate();
   const { setAccessToken, refreshProfile, clearAuth } = useAuthStore();
   const [statusText, setStatusText] = useState("Finalizing Maison Google Authentication...");
@@ -31,7 +37,11 @@ function OAuthCallbackComponent() {
       setAccessToken(token);
       refreshProfile()
         .then(() => {
-          navigate({ to: "/profile" });
+          const destination = resolveRedirectTarget(
+            redirectParam || getSavedAuthRedirect()
+          );
+          clearSavedAuthRedirect();
+          navigate({ to: destination });
         })
         .catch(() => {
           clearAuth();
@@ -43,7 +53,7 @@ function OAuthCallbackComponent() {
       setStatusText("No member credentials detected. Returning to entrance...");
       setTimeout(() => navigate({ to: "/login" }), 2000);
     }
-  }, [token, error, setAccessToken, refreshProfile, clearAuth, navigate]);
+  }, [token, error, redirectParam, setAccessToken, refreshProfile, clearAuth, navigate]);
 
   return (
     <div className="py-24 text-center">
