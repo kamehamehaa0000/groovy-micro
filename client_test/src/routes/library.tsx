@@ -64,8 +64,10 @@ function LibraryPageComponent() {
     useLibraryStore.getState().setLibraryMounted(true)
 
     if (isAuthenticated) {
-      const { payload, isStale, lastFetchedAt, fetchLibrary } = useLibraryStore.getState()
-      const isOlderThanStaleTime = !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
+      const { payload, isStale, lastFetchedAt, fetchLibrary } =
+        useLibraryStore.getState()
+      const isOlderThanStaleTime =
+        !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
       if (!payload || isStale || isOlderThanStaleTime) {
         fetchLibrary(true)
       }
@@ -80,8 +82,10 @@ function LibraryPageComponent() {
   useEffect(() => {
     const handleFocus = () => {
       if (!isAuthenticated) return
-      const { isStale, lastFetchedAt, fetchLibrary } = useLibraryStore.getState()
-      const isOlderThanThrottle = !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
+      const { isStale, lastFetchedAt, fetchLibrary } =
+        useLibraryStore.getState()
+      const isOlderThanThrottle =
+        !lastFetchedAt || Date.now() - lastFetchedAt > 60_000
       if (isStale || isOlderThanThrottle) {
         fetchLibrary(true)
       }
@@ -362,10 +366,10 @@ function LibraryPageComponent() {
         <button
           type="button"
           onClick={() => setIsSortSheetOpen(true)}
-          className="flex items-center gap-1.5 text-ink font-medium hover:text-blue transition-colors group"
+          className="flex items-center align-middle  gap-1.5 text-ink-soft  font-medium hover:text-blue transition-colors group"
         >
-          <SortIconSVG className="w-3.5 h-3.5 text-ink-soft group-hover:text-blue" />
-          <span>{sortLabelMap[activeSort]}</span>
+          <SortIconSVG className="w-5 h-5 text-ink-soft group-hover:text-blue" />
+          <span className="">{sortLabelMap[activeSort]}</span>
         </button>
 
         {/* View Mode Switcher */}
@@ -376,9 +380,9 @@ function LibraryPageComponent() {
           className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors"
         >
           {viewMode === 'list' ? (
-            <GridIconSVG className="w-4 h-4" />
+            <GridIconSVG className="w-5 h-5" />
           ) : (
-            <ListIconSVG className="w-4 h-4" />
+            <ListIconSVG className="w-5 h-5" />
           )}
         </button>
       </div>

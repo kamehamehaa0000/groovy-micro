@@ -433,9 +433,9 @@ function PersonalCollectionExplorePage() {
               className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
             >
               {viewMode === 'list' ? (
-                <GridIconSVG className="w-4 h-4" />
+                <GridIconSVG className="w-5 h-5" />
               ) : (
-                <ListIconSVG className="w-4 h-4" />
+                <ListIconSVG className="w-5 h-5" />
               )}
             </button>
           )}

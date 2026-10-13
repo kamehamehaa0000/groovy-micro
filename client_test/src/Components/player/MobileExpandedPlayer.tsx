@@ -22,6 +22,31 @@ import {
   VerifiedBadgeSVG,
 } from '../icons'
 
+/* ---------------------------------------------------------------------------
+ * Spotify-proportioned sizing (reference: 390 x 844 viewport)
+ *
+ *   side gutter ........ 24px   -> 6.15vw, clamped 16–24px
+ *   header height ...... 56px
+ *   artwork ............ full content width (342px), square, 8px radius,
+ *                        shrinks automatically on short screens
+ *   title .............. 24px bold / artist 16px
+ *   scrubber ........... 4px track, 12px knob, 44px touch target
+ *   shuffle / repeat ... 24px icons
+ *   prev / next ........ 32px icons
+ *   play / pause ....... 64px circle (16.4vw, clamped 56–64px)
+ *   bottom row ......... 24px icons, 44px touch targets
+ *
+ * Every dimension scales with clamp() so the layout holds from 320px
+ * (iPhone SE) up to ~767px, and respects notches via safe-area insets.
+ * ------------------------------------------------------------------------- */
+
+const GUTTER = 'px-[clamp(16px,6.15vw,24px)]'
+const CONTENT = 'w-full max-w-[480px] mx-auto'
+
+// ~380px = header (56) + track info (~64) + scrubber (~60) + controls (~88)
+// + utility row (44) + vertical padding. Safe-area insets are added on top.
+const ARTWORK_SIZE = `max(160px, min(calc(100vw - 2 * clamp(16px, 6.15vw, 24px)), 480px, calc(100dvh - 380px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))))`
+
 function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
   const mins = Math.floor(totalSeconds / 60)
@@ -151,6 +176,8 @@ export function MobileExpandedPlayer() {
   const progressPercent =
     duration > 0 ? Math.min(100, (displayTime / duration) * 100) : 0
 
+  const closePlayer = () => setNowPlayingExpanded(false)
+
   // Touch Drag-to-Dismiss Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length !== 1) return
@@ -191,7 +218,6 @@ export function MobileExpandedPlayer() {
     if (dragY > 85 || (velocity > 0.4 && dragY > 30)) {
       triggerDismiss()
     } else {
-      // Snap back to top
       setDragY(0)
     }
   }
@@ -209,24 +235,33 @@ export function MobileExpandedPlayer() {
     }, 280)
   }
 
-  // Scrubber Touch & Mouse Handlers
-  const handleScrubStart = (clientX: number) => {
-    if (!scrubBarRef.current || duration <= 0) return
+  // Scrubber (pointer events + capture: one code path for touch, pen & mouse,
+  // and the finger can slide off the bar without losing the drag)
+  const positionFromClientX = (clientX: number) => {
+    const el = scrubBarRef.current
+    if (!el || duration <= 0) return 0
+    const rect = el.getBoundingClientRect()
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+    return ratio * duration
+  }
+
+  const handleScrubDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (duration <= 0) return
+    e.currentTarget.setPointerCapture(e.pointerId)
     setIsScrubbing(true)
-    const rect = scrubBarRef.current.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-    setScrubPosition(ratio * duration)
+    setScrubPosition(positionFromClientX(e.clientX))
   }
 
-  const handleScrubMove = (clientX: number) => {
-    if (!isScrubbing || !scrubBarRef.current || duration <= 0) return
-    const rect = scrubBarRef.current.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-    setScrubPosition(ratio * duration)
-  }
-
-  const handleScrubEnd = () => {
+  const handleScrubMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isScrubbing) return
+    setScrubPosition(positionFromClientX(e.clientX))
+  }
+
+  const handleScrubEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbing) return
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
     seek(scrubPosition)
     setIsScrubbing(false)
   }
@@ -277,6 +312,9 @@ export function MobileExpandedPlayer() {
     setTimeout(() => setJamCopied(false), 2000)
   }
 
+  const goToRelease = () =>
+    navigateToRelease(currentTrack, navigate, closePlayer)
+
   return (
     <div
       role="dialog"
@@ -284,6 +322,7 @@ export function MobileExpandedPlayer() {
       aria-label="Now Playing View"
       className="fixed inset-0 z-50 bg-canvas text-ink flex flex-col md:hidden select-none overflow-hidden"
       style={{
+        height: '100dvh',
         transform: `translateY(${dragY}px)`,
         transition: isDragging
           ? 'none'
@@ -293,78 +332,83 @@ export function MobileExpandedPlayer() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Dynamic Ambient Background Tint */}
+      {/* Ambient background tint */}
       <div className="absolute inset-0 bg-linear-to-b from-panel via-canvas to-canvas pointer-events-none opacity-60" />
 
-      {/* ===================== TOP HEADER & DRAG HANDLE ===================== */}
-      <div className="relative z-10 shrink-0 px-4 pt-3 pb-2 flex flex-col items-center">
-        {/* Subtle Pill Handle */}
-        <div className="w-10 h-1 bg-line/60 rounded-full mb-3" />
-
-        <div className="w-full flex items-center justify-between">
-          {/* Collapse Chevron Button */}
+      {/* ===================== HEADER (56px + safe area) ===================== */}
+      <header
+        className={`relative z-10 shrink-0 ${GUTTER}`}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
+        <div
+          className={`${CONTENT} h-14 flex items-center justify-between gap-2`}
+        >
           <button
             type="button"
             onClick={triggerDismiss}
             aria-label="Collapse Player"
-            className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-90 transition-transform cursor-pointer"
+            className="w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center text-ink hover:text-ink active:scale-90 transition-transform cursor-pointer shrink-0"
           >
             <ChevronDownIconSVG className="w-6 h-6" />
           </button>
 
-          {/* Context Title */}
           <button
             type="button"
-            onClick={() =>
-              navigateToRelease(currentTrack, navigate, () =>
-                setNowPlayingExpanded(false),
-              )
-            }
-            className="flex-1 min-w-0 px-2 text-center cursor-pointer group"
+            onClick={goToRelease}
+            className="flex-1 min-w-0 text-center cursor-pointer group"
           >
             <span className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft truncate group-hover:text-ink transition-colors">
               {contextTitle
-                ? `Playing From ${contextTitle}`
+                ? 'Playing From'
                 : currentTrack.albumTitle
-                  ? `Playing From Album`
+                  ? 'Playing From Album'
                   : 'Groovy Catalog'}
             </span>
-            <span className="block font-semibold text-xs text-ink truncate mt-0.5 group-hover:underline">
+            <span className="block font-bold text-[13px] leading-tight text-ink truncate mt-0.5 group-hover:underline">
               {contextTitle || currentTrack.albumTitle || 'Master Stream'}
             </span>
           </button>
 
-          {/* 3-Dots Action Menu */}
-          <div className="w-10 h-10 -mr-2 flex items-center justify-end">
+          <div className="w-11 h-11 -mr-2.5 flex items-center justify-center shrink-0">
             <SongActionMenu track={currentTrack} align="right" />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ===================== SCROLLABLE CONTENT BODY ===================== */}
+      {/* ===================== SCROLL BODY ===================== */}
       <div
         ref={scrollContainerRef}
-        className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden px-6 pt-2 pb-12 space-y-6 no-scrollbar"
+        className="relative z-10 flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain no-scrollbar"
       >
-        {/* ===================== PRIMARY NOW PLAYING PLAYER ===================== */}
-        <div className="flex flex-col space-y-3.5 sm:space-y-4 shrink-0 pb-1">
-          {/* Responsive 1:1 Album Artwork */}
-          <div className="w-full flex items-center justify-center pt-1">
+        {/* ---------- First screen: always fits the viewport ---------- */}
+        <section
+          className={`min-h-full flex flex-col ${GUTTER}`}
+          style={{
+            paddingBottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
+          }}
+        >
+          {/* Artwork: fills all spare height, stays square, capped by width */}
+          <div
+            className={`${CONTENT} flex-1 flex items-center justify-center py-[clamp(8px,2.5dvh,24px)]`}
+          >
             <button
               type="button"
-              onClick={() =>
-                navigateToRelease(currentTrack, navigate, () =>
-                  setNowPlayingExpanded(false),
-                )
-              }
-              className="w-full aspect-square mx-auto rounded-2xl overflow-hidden shadow-2xl bg-panel border border-line/60 relative flex items-center justify-center cursor-pointer group hover:opacity-95 transition-opacity"
-              style={{ maxWidth: 'min(280px, 74vw, 34dvh)' }}
+              onClick={goToRelease}
+              aria-label={`Open release for ${currentTrack.title}`}
+              className="rounded-lg overflow-hidden shadow-2xl bg-panel relative flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform shrink-0"
+              style={{
+                // Square: limited by screen width (minus gutters), 480px max,
+                // and by height left after header, info, scrubber and controls.
+                width: ARTWORK_SIZE,
+                height: ARTWORK_SIZE,
+              }}
             >
               {currentTrack.coverImageUrl ? (
                 <img
                   src={currentTrack.coverImageUrl}
                   alt={currentTrack.title}
                   className="w-full h-full object-cover select-none"
+                  draggable={false}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center font-serif italic text-6xl text-ink-soft/40">
@@ -374,50 +418,41 @@ export function MobileExpandedPlayer() {
             </button>
           </div>
 
-          {/* Track Title, Artist & Like Button */}
-          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between gap-4">
+          {/* Track info + like */}
+          <div
+            className={`${CONTENT} shrink-0 flex items-center justify-between gap-4 pt-[clamp(8px,2dvh,20px)]`}
+          >
             <div className="min-w-0 flex-1">
               <button
                 type="button"
-                onClick={() =>
-                  navigateToRelease(currentTrack, navigate, () =>
-                    setNowPlayingExpanded(false),
-                  )
-                }
-                className="font-serif italic font-semibold text-2xl text-ink truncate leading-tight hover:underline cursor-pointer text-left block max-w-full"
+                onClick={goToRelease}
+                className="font-serif italic font-bold text-[clamp(1.25rem,6.15vw,1.5rem)] text-ink truncate leading-tight cursor-pointer text-left block max-w-full"
               >
                 {currentTrack.title}
               </button>
-              <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-sm text-ink-soft mt-1">
+              <div className="flex items-center flex-wrap gap-x-1 text-[clamp(0.875rem,4.1vw,1rem)] text-ink-soft mt-0.5 leading-snug">
                 {parsedCredits.all.length > 0 ? (
-                  parsedCredits.all.map((artist, idx) => {
-                    const isPrimary = idx === 0
-                    return (
-                      <span
-                        key={artist.name + idx}
-                        className="inline-flex items-center"
+                  parsedCredits.all.map((artist, idx) => (
+                    <span
+                      key={artist.name + idx}
+                      className="inline-flex items-center min-w-0"
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigateToArtist(artist, navigate, closePlayer)
+                        }
+                        className="hover:text-ink transition-colors truncate cursor-pointer text-left"
                       >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigateToArtist(artist, navigate, () =>
-                              setNowPlayingExpanded(false),
-                            )
-                          }
-                          className={`hover:text-ink hover:underline transition-colors truncate cursor-pointer text-left ${
-                            isPrimary ? 'font-medium text-ink' : 'text-ink-soft'
-                          }`}
-                        >
-                          {artist.name}
-                        </button>
-                        {idx < parsedCredits.all.length - 1 && (
-                          <span className="text-ink-soft/60 mx-1 text-xs select-none">
-                            {idx === 0 ? 'feat.' : '&'}
-                          </span>
-                        )}
-                      </span>
-                    )
-                  })
+                        {artist.name}
+                      </button>
+                      {idx < parsedCredits.all.length - 1 && (
+                        <span className="text-ink-soft/60 ml-1 select-none">
+                          {idx === 0 ? 'feat.' : '&'}
+                        </span>
+                      )}
+                    </span>
+                  ))
                 ) : (
                   <button
                     type="button"
@@ -429,10 +464,10 @@ export function MobileExpandedPlayer() {
                           slug: currentTrack.artistSlug,
                         },
                         navigate,
-                        () => setNowPlayingExpanded(false),
+                        closePlayer,
                       )
                     }
-                    className="font-medium text-ink hover:underline transition-colors truncate cursor-pointer text-left"
+                    className="hover:text-ink transition-colors truncate cursor-pointer text-left"
                   >
                     {currentTrack.artistName || 'Unknown Artist'}
                   </button>
@@ -444,57 +479,69 @@ export function MobileExpandedPlayer() {
               type="button"
               onClick={handleToggleLike}
               aria-label={isLiked ? 'Unlike song' : 'Like song'}
-              className="w-11 h-11 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-125 transition-transform shrink-0 cursor-pointer"
+              aria-pressed={isLiked}
+              className="w-11 h-11 -mr-2.5 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-125 transition-transform shrink-0 cursor-pointer"
             >
               <HeartIconSVG
                 filled={isLiked}
-                className={`w-6 h-6 ${isLiked ? 'text-red-500 dark:text-red-400' : ''}`}
+                className={`w-[clamp(22px,6.15vw,24px)] h-[clamp(22px,6.15vw,24px)] ${
+                  isLiked ? 'text-red-500 dark:text-red-400' : ''
+                }`}
               />
             </button>
           </div>
 
-          {/* Interactive Touch Scrubber */}
-          <div className="w-full max-w-[340px] mx-auto space-y-1.5">
+          {/* Scrubber */}
+          <div className={`${CONTENT} shrink-0 pt-[clamp(4px,1.2dvh,12px)]`}>
             <div
               ref={scrubBarRef}
-              className="relative h-6 flex items-center cursor-pointer touch-none"
-              onMouseDown={(e) => handleScrubStart(e.clientX)}
-              onMouseMove={(e) => isScrubbing && handleScrubMove(e.clientX)}
-              onMouseUp={handleScrubEnd}
-              onTouchStart={(e) => handleScrubStart(e.touches[0].clientX)}
-              onTouchMove={(e) => handleScrubMove(e.touches[0].clientX)}
-              onTouchEnd={handleScrubEnd}
+              role="slider"
+              aria-label="Seek"
+              aria-valuemin={0}
+              aria-valuemax={Math.floor(duration) || 0}
+              aria-valuenow={Math.floor(displayTime)}
+              aria-valuetext={`${formatTime(displayTime)} of ${formatTime(duration)}`}
+              className="relative h-11 flex items-center cursor-pointer touch-none"
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onPointerDown={handleScrubDown}
+              onPointerMove={handleScrubMove}
+              onPointerUp={handleScrubEnd}
+              onPointerCancel={handleScrubEnd}
             >
-              {/* Scrubber Track */}
-              <div className="w-full h-1.5 bg-line/40 rounded-full overflow-hidden relative">
+              <div className="w-full h-1 bg-line/50 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue rounded-full relative"
+                  className="h-full bg-ink rounded-full"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-
-              {/* Draggable Knob */}
               <div
-                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-ink rounded-full shadow-md pointer-events-none transition-transform"
-                style={{ left: `calc(${progressPercent}% - 8px)` }}
+                className={`absolute top-1/2 -translate-y-1/2 bg-ink rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
+                  isScrubbing ? 'w-4 h-4' : 'w-3 h-3'
+                }`}
+                style={{
+                  left: `${progressPercent}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
               />
             </div>
 
-            {/* Timestamps */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-ink-soft">
+            <div className="flex items-center justify-between text-xs font-mono text-ink-soft -mt-1.5 tabular-nums">
               <span>{formatTime(displayTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
-          {/* Main Transport Controls */}
-          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between px-2">
-            {/* Shuffle Button */}
+          {/* Transport controls */}
+          <div
+            className={`${CONTENT} shrink-0 flex items-center justify-between pt-[clamp(4px,1.5dvh,16px)]`}
+          >
             <button
               type="button"
               onClick={toggleShuffle}
-              title={isShuffle ? 'Shuffle On' : 'Shuffle Off'}
-              className={`p-2 transition-colors active:scale-90 cursor-pointer ${
+              aria-label={isShuffle ? 'Shuffle on' : 'Shuffle off'}
+              aria-pressed={isShuffle}
+              className={`w-11 h-11 -ml-2.5 flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
                 isShuffle ? 'text-blue' : 'text-ink-soft'
               }`}
             >
@@ -502,8 +549,10 @@ export function MobileExpandedPlayer() {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.2"
-                className="w-5 h-5"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-[clamp(20px,6.15vw,24px)] h-[clamp(20px,6.15vw,24px)]"
               >
                 <polyline points="16 3 21 3 21 8" />
                 <line x1="4" y1="20" x2="21" y2="3" />
@@ -513,14 +562,17 @@ export function MobileExpandedPlayer() {
               </svg>
             </button>
 
-            {/* Previous Track */}
             <button
               type="button"
               onClick={previous}
-              title="Previous track"
-              className="p-2 text-ink active:scale-90 transition-transform cursor-pointer"
+              aria-label="Previous track"
+              className="w-14 h-14 flex items-center justify-center text-ink active:scale-90 transition-transform cursor-pointer"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-[clamp(26px,8.2vw,32px)] h-[clamp(26px,8.2vw,32px)]"
+              >
                 <polygon points="19 20 9 12 19 4 19 20" />
                 <line
                   x1="5"
@@ -533,31 +585,33 @@ export function MobileExpandedPlayer() {
               </svg>
             </button>
 
-            {/* Big Play/Pause Button */}
             <button
               type="button"
               onClick={togglePlay}
               disabled={isLoading}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-16 h-16 rounded-full bg-ink text-canvas flex items-center justify-center shadow-xl active:scale-95 transition-transform cursor-pointer"
+              className="w-[clamp(56px,16.4vw,64px)] h-[clamp(56px,16.4vw,64px)] rounded-full bg-ink text-canvas flex items-center justify-center active:scale-95 transition-transform cursor-pointer shrink-0"
             >
               {isLoading ? (
-                <div className="w-6 h-6 border-3 border-canvas border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-[3px] border-canvas border-t-transparent rounded-full animate-spin" />
               ) : isPlaying ? (
-                <PauseIconSVG className="w-7 h-7 text-canvas" />
+                <PauseIconSVG className="w-[44%] h-[44%] text-canvas" />
               ) : (
-                <PlayIconSVG className="w-7 h-7 text-canvas ml-1" />
+                <PlayIconSVG className="w-[44%] h-[44%] text-canvas ml-[4%]" />
               )}
             </button>
 
-            {/* Next Track */}
             <button
               type="button"
               onClick={next}
-              title="Next track"
-              className="p-2 text-ink active:scale-90 transition-transform cursor-pointer"
+              aria-label="Next track"
+              className="w-14 h-14 flex items-center justify-center text-ink active:scale-90 transition-transform cursor-pointer"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-[clamp(26px,8.2vw,32px)] h-[clamp(26px,8.2vw,32px)]"
+              >
                 <polygon points="5 4 15 12 5 20 5 4" />
                 <line
                   x1="19"
@@ -570,12 +624,11 @@ export function MobileExpandedPlayer() {
               </svg>
             </button>
 
-            {/* Repeat Button */}
             <button
               type="button"
               onClick={toggleRepeat}
-              title={`Repeat mode: ${repeatMode}`}
-              className={`p-2 transition-colors active:scale-90 relative cursor-pointer ${
+              aria-label={`Repeat mode: ${repeatMode}`}
+              className={`w-11 h-11 -mr-2.5 flex items-center justify-center transition-colors active:scale-90 relative cursor-pointer ${
                 repeatMode !== 'off' ? 'text-blue' : 'text-ink-soft'
               }`}
             >
@@ -583,8 +636,10 @@ export function MobileExpandedPlayer() {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.2"
-                className="w-5 h-5"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-[clamp(20px,6.15vw,24px)] h-[clamp(20px,6.15vw,24px)]"
               >
                 <polyline points="17 1 21 5 17 9" />
                 <path d="M3 11V9a4 4 0 0 1 4-4h14" />
@@ -592,44 +647,47 @@ export function MobileExpandedPlayer() {
                 <path d="M21 13v2a4 4 0 0 1-4 4H3" />
               </svg>
               {repeatMode === 'one' && (
-                <span className="absolute -top-1 -right-1 text-[11px] leading-none font-mono font-bold bg-blue text-canvas px-1 rounded-full">
+                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-blue text-canvas px-1 py-0.5 rounded-full">
                   1
                 </span>
               )}
             </button>
           </div>
 
-          {/* Secondary Utility Row (Jam on Left & Queue on Right - Justified Between like Spotify) */}
-          <div className="w-full max-w-[340px] mx-auto flex items-center justify-between pt-1 border-t border-line/40">
-            {/* Live Jam Shortcut (Left) */}
+          {/* Bottom utility row: Jam (left) / Queue (right) */}
+          <div
+            className={`${CONTENT} shrink-0 flex items-center justify-between pt-[clamp(0px,0.8dvh,8px)]`}
+          >
             <button
               type="button"
               onClick={openJamModal}
-              title={
+              aria-label={
                 activeRoom ? `Live Jam: ${activeRoom.roomCode}` : 'Live Jam'
               }
-              className={`p-2 rounded-full transition-colors active:scale-90 cursor-pointer ${
+              className={`w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
                 activeRoom
                   ? 'text-emerald-500 bg-emerald-500/10'
                   : 'text-ink-soft hover:text-ink'
               }`}
             >
-              <span className="text-base leading-none">🎧</span>
+              <span className="text-[clamp(18px,5.4vw,22px)] leading-none">
+                🎧
+              </span>
             </button>
 
-            {/* Queue Toggle (Right) */}
             <button
               type="button"
               onClick={toggleQueueDrawer}
-              title="Open Queue"
-              className="p-2 text-ink-soft hover:text-ink active:scale-90 transition-transform cursor-pointer"
+              aria-label="Open queue"
+              className="w-11 h-11 -mr-2.5 flex items-center justify-center text-ink-soft hover:text-ink active:scale-90 transition-transform cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="w-5 h-5"
+                strokeLinecap="round"
+                className="w-[clamp(20px,6.15vw,24px)] h-[clamp(20px,6.15vw,24px)]"
               >
                 <line x1="8" y1="6" x2="21" y2="6" />
                 <line x1="8" y1="12" x2="21" y2="12" />
@@ -640,24 +698,33 @@ export function MobileExpandedPlayer() {
               </svg>
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* ===================== LIVE JAM SESSION CARD ===================== */}
-        {activeRoom && (
-          <div className="w-full max-w-[340px] mx-auto rounded-xl overflow-hidden bg-panel border border-emerald-500/30 p-4 space-y-3 shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
-                  Live Jam Active
+        {/* ---------- Cards below the fold ---------- */}
+        <div
+          className={`${GUTTER} pt-2 space-y-3`}
+          style={{
+            paddingBottom:
+              'max(48px, calc(env(safe-area-inset-bottom, 0px) + 32px))',
+          }}
+        >
+          {/* LIVE JAM SESSION */}
+          {activeRoom && (
+            <div
+              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-emerald-500/30 p-4 space-y-3 shadow-md`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
+                    Live Jam Active
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  {activeRoom.privacy.replace('_', ' ')}
                 </span>
               </div>
-              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                {activeRoom.privacy.replace('_', ' ')}
-              </span>
-            </div>
 
-            <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-canvas-deep border border-line">
                 <div className="min-w-0">
                   <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
@@ -670,33 +737,32 @@ export function MobileExpandedPlayer() {
                 <button
                   type="button"
                   onClick={handleCopyJamLink}
-                  className="px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-line hover:border-emerald-500 bg-panel text-ink transition-colors cursor-pointer"
+                  className="min-h-9 px-3 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-line hover:border-emerald-500 bg-panel text-ink transition-colors cursor-pointer"
                 >
                   {jamCopied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-soft text-[11px]">
+              <div className="flex items-center justify-between">
+                <span className="text-ink-soft text-xs">
                   DJ:{' '}
                   <strong className="text-ink font-semibold">
                     {isHost ? 'You (Host)' : activeRoom.hostName}
                   </strong>
                 </span>
-                <span className="text-[11px] font-mono text-ink-soft">
+                <span className="text-xs font-mono text-ink-soft">
                   {members.length}{' '}
                   {members.length === 1 ? 'listener' : 'listeners'}
                 </span>
               </div>
 
-              {/* Members Avatar Preview */}
               {members.length > 0 && (
                 <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
                   {members.map((m) => (
                     <div
                       key={m.userId}
                       title={`${m.displayName}${m.role === 'HOST' ? ' (DJ)' : ''}`}
-                      className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[11px] shrink-0 overflow-hidden"
+                      className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-xs shrink-0 overflow-hidden"
                     >
                       {m.avatarUrl ? (
                         <img
@@ -716,306 +782,307 @@ export function MobileExpandedPlayer() {
                 <Link
                   to="/jam/$code"
                   params={{ code: activeRoom.roomCode }}
-                  onClick={() => setNowPlayingExpanded(false)}
-                  className="flex-1 py-1.5 rounded-lg border border-line bg-canvas hover:bg-panel text-center font-mono text-[11px] uppercase tracking-wider text-ink font-semibold transition-colors"
+                  onClick={closePlayer}
+                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-line bg-canvas hover:bg-panel font-mono text-[11px] uppercase tracking-wider text-ink font-semibold transition-colors"
                 >
                   Jam Page &rarr;
                 </Link>
                 <button
                   type="button"
                   onClick={leaveRoom}
-                  className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  className="min-h-10 px-4 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                 >
                   Leave
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ===================== ABOUT THE ARTIST CARD ===================== */}
-        {artistDetails && (
-          <div className="w-full max-w-[340px] mx-auto rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
-                About The Artist
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  navigateToArtist(
-                    {
-                      name: artistDetails.stageName,
-                      slug: artistDetails.slug,
-                      id: artistDetails.id,
-                    },
-                    navigate,
-                    () => setNowPlayingExpanded(false),
-                  )
-                }
-                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
-              >
-                Profile &rarr;
-              </button>
-            </div>
-
-            {/* Artist Hero Banner / Avatar */}
-            <div className="w-full h-32 rounded-lg bg-canvas-deep overflow-hidden relative border border-line/40">
-              {artistDetails.bannerUrl ? (
-                <img
-                  src={artistDetails.bannerUrl}
-                  alt={artistDetails.stageName}
-                  className="w-full h-full object-cover"
-                />
-              ) : artistDetails.avatarUrl ? (
-                <img
-                  src={artistDetails.avatarUrl}
-                  alt={artistDetails.stageName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-serif italic text-3xl text-ink-soft/40">
-                  {artistDetails.stageName.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-base text-ink">
-                    {artistDetails.stageName}
-                  </h3>
-                  {artistDetails.verified && (
-                    <VerifiedBadgeSVG className="w-4 h-4 text-blue" />
-                  )}
-                </div>
-                {artistDetails.monthlyListeners !== undefined && (
-                  <p className="font-mono text-[11px] text-ink-soft mt-0.5">
-                    {artistDetails.monthlyListeners.toLocaleString()} monthly
-                    listeners
-                  </p>
-                )}
+          {/* ABOUT THE ARTIST */}
+          {artistDetails && (
+            <div
+              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+                  About The Artist
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigateToArtist(
+                      {
+                        name: artistDetails.stageName,
+                        slug: artistDetails.slug,
+                        id: artistDetails.id,
+                      },
+                      navigate,
+                      closePlayer,
+                    )
+                  }
+                  className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer py-1"
+                >
+                  Profile &rarr;
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={handleToggleFollow}
-                disabled={isFollowLoading}
-                className={`font-mono text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-full border transition-all cursor-pointer font-semibold ${
-                  isFollowing
-                    ? 'border-line bg-canvas text-ink hover:border-red-400 hover:text-red-500'
-                    : 'border-ink bg-ink text-canvas hover:opacity-90'
-                }`}
-              >
-                {isFollowLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
-              </button>
-            </div>
-
-            {artistDetails.bio && (
-              <p className="text-xs text-ink-soft leading-relaxed line-clamp-3">
-                {artistDetails.bio}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ===================== COLLABORATORS & FEATURED ARTISTS CARD ===================== */}
-        {parsedCredits.collaborators.length > 0 && (
-          <div className="w-full max-w-[340px] mx-auto rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
-              Featured &amp; Collaborators
-            </span>
-
-            <div className="space-y-2.5">
-              {parsedCredits.collaborators.map((collab, idx) => {
-                const isCollabFollowing = collab.id
-                  ? followedArtistIds.has(collab.id)
-                  : false
-
-                return (
-                  <div
-                    key={collab.name + idx}
-                    className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-canvas-deep border border-line/60"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigateToArtist(collab, navigate, () =>
-                            setNowPlayingExpanded(false),
-                          )
-                        }
-                        className="w-8 h-8 rounded-full bg-blue/10 text-blue font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue/20 hover:scale-105 transition-transform cursor-pointer"
-                      >
-                        {collab.name.slice(0, 2).toUpperCase()}
-                      </button>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigateToArtist(collab, navigate, () =>
-                                setNowPlayingExpanded(false),
-                              )
-                            }
-                            className="font-bold text-xs text-ink truncate hover:underline cursor-pointer text-left"
-                          >
-                            {collab.name}
-                          </button>
-                          {collab.verified && (
-                            <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
-                          )}
-                        </div>
-                        <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider">
-                          {collab.role}
-                        </span>
-                      </div>
-                    </div>
-
-                    {collab.id && (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleArtistFollow(collab.id!)}
-                        className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
-                          isCollabFollowing
-                            ? 'border-line bg-canvas text-ink hover:text-red-500 hover:border-red-400'
-                            : 'border-ink bg-ink text-canvas hover:opacity-90'
-                        }`}
-                      >
-                        {isCollabFollowing ? 'Following' : 'Follow'}
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ===================== NEXT IN QUEUE PREVIEW ===================== */}
-        {nextTrack && (
-          <div className="w-full max-w-[340px] mx-auto rounded-xl bg-panel border border-line p-3.5 space-y-2 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
-                Next In Queue
-              </span>
-              <button
-                type="button"
-                onClick={toggleQueueDrawer}
-                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
-              >
-                Open Queue
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-canvas-deep border border-line/60 overflow-hidden shrink-0">
-                {nextTrack.coverImageUrl ? (
+              <div className="w-full aspect-[16/9] rounded-lg bg-canvas-deep overflow-hidden relative border border-line/40">
+                {artistDetails.bannerUrl ? (
                   <img
-                    src={nextTrack.coverImageUrl}
-                    alt={nextTrack.title}
+                    src={artistDetails.bannerUrl}
+                    alt={artistDetails.stageName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : artistDetails.avatarUrl ? (
+                  <img
+                    src={artistDetails.avatarUrl}
+                    alt={artistDetails.stageName}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
-                    ♪
+                  <div className="w-full h-full flex items-center justify-center font-serif italic text-3xl text-ink-soft/40">
+                    {artistDetails.stageName.slice(0, 2).toUpperCase()}
                   </div>
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-xs text-ink truncate">
-                  {nextTrack.title}
+
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-base text-ink truncate">
+                      {artistDetails.stageName}
+                    </h3>
+                    {artistDetails.verified && (
+                      <VerifiedBadgeSVG className="w-4 h-4 text-blue shrink-0" />
+                    )}
+                  </div>
+                  {artistDetails.monthlyListeners !== undefined && (
+                    <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+                      {artistDetails.monthlyListeners.toLocaleString()} monthly
+                      listeners
+                    </p>
+                  )}
                 </div>
-                <div className="text-[11px] text-ink-soft truncate">
-                  {nextTrack.artistName}
+
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  disabled={isFollowLoading}
+                  className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                    isFollowing
+                      ? 'border-line bg-canvas text-ink hover:border-red-400 hover:text-red-500'
+                      : 'border-ink bg-ink text-canvas hover:opacity-90'
+                  }`}
+                >
+                  {isFollowLoading
+                    ? '...'
+                    : isFollowing
+                      ? 'Following'
+                      : 'Follow'}
+                </button>
+              </div>
+
+              {artistDetails.bio && (
+                <p className="text-[13px] text-ink-soft leading-relaxed line-clamp-3">
+                  {artistDetails.bio}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* COLLABORATORS */}
+          {parsedCredits.collaborators.length > 0 && (
+            <div
+              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md`}
+            >
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
+                Featured &amp; Collaborators
+              </span>
+
+              <div className="space-y-2.5">
+                {parsedCredits.collaborators.map((collab, idx) => {
+                  const isCollabFollowing = collab.id
+                    ? followedArtistIds.has(collab.id)
+                    : false
+
+                  return (
+                    <div
+                      key={collab.name + idx}
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-canvas-deep border border-line/60"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigateToArtist(collab, navigate, closePlayer)
+                          }
+                          className="w-10 h-10 rounded-full bg-blue/10 text-blue font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue/20 active:scale-95 transition-transform cursor-pointer"
+                        >
+                          {collab.name.slice(0, 2).toUpperCase()}
+                        </button>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigateToArtist(collab, navigate, closePlayer)
+                              }
+                              className="font-bold text-[13px] text-ink truncate hover:underline cursor-pointer text-left"
+                            >
+                              {collab.name}
+                            </button>
+                            {collab.verified && (
+                              <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue shrink-0" />
+                            )}
+                          </div>
+                          <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider truncate">
+                            {collab.role}
+                          </span>
+                        </div>
+                      </div>
+
+                      {collab.id && (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleArtistFollow(collab.id!)}
+                          className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                            isCollabFollowing
+                              ? 'border-line bg-canvas text-ink hover:text-red-500 hover:border-red-400'
+                              : 'border-ink bg-ink text-canvas hover:opacity-90'
+                          }`}
+                        >
+                          {isCollabFollowing ? 'Following' : 'Follow'}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* NEXT IN QUEUE */}
+          {nextTrack && (
+            <div
+              className={`${CONTENT} rounded-xl bg-panel border border-line p-4 space-y-2.5 shadow-sm`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+                  Next In Queue
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleQueueDrawer}
+                  className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer py-1"
+                >
+                  Open Queue
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-md bg-canvas-deep border border-line/60 overflow-hidden shrink-0">
+                  {nextTrack.coverImageUrl ? (
+                    <img
+                      src={nextTrack.coverImageUrl}
+                      alt={nextTrack.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-ink-soft">
+                      ♪
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-sm text-ink truncate">
+                    {nextTrack.title}
+                  </div>
+                  <div className="text-xs text-ink-soft truncate">
+                    {nextTrack.artistName}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ===================== RELEASE CREDITS & TECH SPECS ===================== */}
-        <div className="w-full max-w-[340px] mx-auto rounded-xl bg-panel border border-line p-4 space-y-2.5 text-xs shadow-sm">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block mb-1">
-            Song Credits &amp; Specs
-          </span>
+          {/* CREDITS & SPECS */}
+          <div
+            className={`${CONTENT} rounded-xl bg-panel border border-line p-4 space-y-1 text-[13px] shadow-sm`}
+          >
+            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block mb-2">
+              Song Credits &amp; Specs
+            </span>
 
-          <div className="flex items-center justify-between py-1 border-b border-line/40">
-            <span className="text-ink-soft">Primary Artist:</span>
-            <span className="font-medium text-ink truncate max-w-[190px]">
+            <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
+              <span className="text-ink-soft shrink-0">Primary Artist</span>
               <button
                 type="button"
                 onClick={() =>
-                  navigateToArtist(parsedCredits.primary, navigate, () =>
-                    setNowPlayingExpanded(false),
-                  )
+                  navigateToArtist(parsedCredits.primary, navigate, closePlayer)
                 }
-                className="hover:text-blue hover:underline cursor-pointer text-left truncate"
+                className="font-medium text-ink hover:text-blue hover:underline cursor-pointer text-right min-w-0 break-words"
               >
                 {parsedCredits.primary.name}
               </button>
-            </span>
-          </div>
+            </div>
 
-          {parsedCredits.collaborators.length > 0 && (
-            <div className="flex items-center justify-between py-1 border-b border-line/40">
-              <span className="text-ink-soft">Featured:</span>
-              <span className="font-medium text-ink truncate max-w-[190px]">
-                {parsedCredits.collaborators.map((c, idx) => (
-                  <span key={c.name + idx}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigateToArtist(c, navigate, () =>
-                          setNowPlayingExpanded(false),
-                        )
-                      }
-                      className="hover:text-blue hover:underline cursor-pointer text-left"
-                    >
-                      {c.name}
-                    </button>
-                    {idx < parsedCredits.collaborators.length - 1 && ', '}
-                  </span>
-                ))}
+            {parsedCredits.collaborators.length > 0 && (
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
+                <span className="text-ink-soft shrink-0">Featured</span>
+                <span className="font-medium text-ink text-right min-w-0 break-words">
+                  {parsedCredits.collaborators.map((c, idx) => (
+                    <span key={c.name + idx}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigateToArtist(c, navigate, closePlayer)
+                        }
+                        className="hover:text-blue hover:underline cursor-pointer"
+                      >
+                        {c.name}
+                      </button>
+                      {idx < parsedCredits.collaborators.length - 1 && ', '}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            )}
+
+            {parsedCredits.producers.length > 0 && (
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
+                <span className="text-ink-soft shrink-0">Production</span>
+                <span className="font-medium text-ink text-right min-w-0 break-words">
+                  {parsedCredits.producers.map((p) => p.name).join(', ')}
+                </span>
+              </div>
+            )}
+
+            {parsedCredits.writers.length > 0 && (
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
+                <span className="text-ink-soft shrink-0">Writing</span>
+                <span className="font-medium text-ink text-right min-w-0 break-words">
+                  {parsedCredits.writers.map((w) => w.name).join(', ')}
+                </span>
+              </div>
+            )}
+
+            {currentTrack.albumTitle && (
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
+                <span className="text-ink-soft shrink-0">Release</span>
+                <span className="font-medium text-ink text-right min-w-0 break-words">
+                  {currentTrack.albumTitle}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4 py-1.5">
+              <span className="text-ink-soft shrink-0">Audio Engine</span>
+              <span className="font-mono text-[11px] text-blue font-bold uppercase tracking-wider text-right">
+                {currentTrack.hlsManifestUrl
+                  ? 'Hi-Res HLS Stream'
+                  : 'Lossless FLAC Master'}
               </span>
             </div>
-          )}
-
-          {parsedCredits.producers.length > 0 && (
-            <div className="flex items-center justify-between py-1 border-b border-line/40">
-              <span className="text-ink-soft">Production:</span>
-              <span className="font-medium text-ink truncate max-w-[190px]">
-                {parsedCredits.producers.map((p) => p.name).join(', ')}
-              </span>
-            </div>
-          )}
-
-          {parsedCredits.writers.length > 0 && (
-            <div className="flex items-center justify-between py-1 border-b border-line/40">
-              <span className="text-ink-soft">Writing:</span>
-              <span className="font-medium text-ink truncate max-w-[190px]">
-                {parsedCredits.writers.map((w) => w.name).join(', ')}
-              </span>
-            </div>
-          )}
-
-          {currentTrack.albumTitle && (
-            <div className="flex items-center justify-between py-1 border-b border-line/40">
-              <span className="text-ink-soft">Release:</span>
-              <span className="font-medium text-ink truncate max-w-[190px]">
-                {currentTrack.albumTitle}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between py-1">
-            <span className="text-ink-soft">Audio Engine:</span>
-            <span className="font-mono text-[11px] text-blue font-bold uppercase tracking-wider">
-              {currentTrack.hlsManifestUrl
-                ? 'Hi-Res HLS Stream'
-                : 'Lossless FLAC Master'}
-            </span>
           </div>
         </div>
       </div>

@@ -9,8 +9,6 @@ import { ProceduralCover } from '../components/common/ProceduralCover'
 import {
   PlayIconSVG,
   PauseIconSVG,
-  GridIconSVG,
-  ListIconSVG,
 } from '../components/icons'
 
 export const Route = createFileRoute('/history')({
@@ -18,7 +16,6 @@ export const Route = createFileRoute('/history')({
 })
 
 type GroupByInterval = 'day' | 'week' | 'month' | 'year'
-type ViewMode = 'grid' | 'list'
 
 interface PlayedRelease {
   releaseKey: string
@@ -71,7 +68,6 @@ function HistoryPageComponent() {
   const togglePlay = usePlayerStore((s) => s.togglePlay)
 
   const [groupBy, setGroupBy] = useState<GroupByInterval>('day')
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [items, setItems] = useState<HistoryItem[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
@@ -524,7 +520,7 @@ function HistoryPageComponent() {
             </p>
           </div>
 
-          {/* Controls Bar: Group by Interval & View Mode */}
+          {/* Controls Bar: Group by Interval */}
           <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
             {/* Grouping Interval Tabs */}
             <div className="flex items-center gap-1 p-1 bg-panel border border-line rounded-lg shadow-2xs">
@@ -557,36 +553,6 @@ function HistoryPageComponent() {
                 },
               )}
             </div>
-
-            {/* View Mode Toggle (Grid / List) */}
-            <div className="flex items-center p-1 bg-panel border border-line rounded-lg shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                title="Grid View"
-                aria-label="Grid View"
-                className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-ink text-canvas shadow-xs'
-                    : 'text-ink-soft hover:text-ink hover:bg-canvas'
-                }`}
-              >
-                <GridIconSVG className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                title="List View"
-                aria-label="List View"
-                className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-ink text-canvas shadow-xs'
-                    : 'text-ink-soft hover:text-ink hover:bg-canvas'
-                }`}
-              >
-                <ListIconSVG className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -598,35 +564,20 @@ function HistoryPageComponent() {
           {[1, 2].map((groupIndex) => (
             <div key={groupIndex} className="space-y-4">
               <div className="h-5 w-48 bg-line/40 rounded-xs animate-pulse" />
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse space-y-2.5"
-                    >
-                      <div className="aspect-square bg-line/30 rounded-lg" />
-                      <div className="h-3.5 bg-line/50 rounded-xs w-4/5" />
-                      <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse flex items-center gap-3.5"
+                  >
+                    <div className="w-12 h-12 bg-line/30 rounded-lg shrink-0" />
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-3.5 bg-line/50 rounded-xs w-1/3" />
+                      <div className="h-2.5 bg-line/30 rounded-xs w-1/4" />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-xl bg-panel/40 border border-line/40 animate-pulse flex items-center gap-3.5"
-                    >
-                      <div className="w-12 h-12 bg-line/30 rounded-lg shrink-0" />
-                      <div className="space-y-1.5 flex-1">
-                        <div className="h-3.5 bg-line/50 rounded-xs w-1/3" />
-                        <div className="h-2.5 bg-line/30 rounded-xs w-1/4" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -678,180 +629,8 @@ function HistoryPageComponent() {
                 </span>
               </div>
 
-              {/* View Mode: Grid View */}
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                  {group.releases.map((release) => {
-                    const isCurrentReleasePlaying =
-                      release.tracksPlayed.some(
-                        (t) => t.song.id === currentTrack?.id,
-                      ) && playbackStatus === 'playing'
-
-                    const isExpanded =
-                      expandedReleaseKey ===
-                      `${group.key}:${release.releaseKey}`
-
-                    return (
-                      <div
-                        key={release.releaseKey}
-                        className="group relative flex flex-col p-2.5 rounded-xl border border-line bg-panel/40 hover:bg-canvas-soft/80 hover:border-ink/20 shadow-2xs transition-all duration-200"
-                      >
-                        {/* Album Artwork with Quick Play Overlay */}
-                        <div className="aspect-square bg-canvas-deep border border-line relative overflow-hidden rounded-lg mb-2.5 shadow-2xs">
-                          {release.coverImageUrl ? (
-                            <img
-                              src={release.coverImageUrl}
-                              alt={release.title}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <ProceduralCover
-                              title={release.title}
-                              artistName={release.artistName}
-                              className="w-full h-full"
-                            />
-                          )}
-
-                          {/* Play / Pause Overlay */}
-                          <button
-                            type="button"
-                            onClick={() => handlePlayRelease(release)}
-                            aria-label={
-                              isCurrentReleasePlaying
-                                ? 'Pause release'
-                                : 'Play release'
-                            }
-                            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95">
-                              {isCurrentReleasePlaying ? (
-                                <PauseIconSVG className="w-4 h-4 text-canvas" />
-                              ) : (
-                                <PlayIconSVG className="w-4 h-4 text-canvas ml-0.5" />
-                              )}
-                            </div>
-                          </button>
-
-                          {/* Release Type Badge (ALBUM, EP, SINGLE, VAULT) */}
-                          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-canvas/90 backdrop-blur-xs text-ink-soft border border-line/60">
-                            {release.albumType}
-                          </span>
-                        </div>
-
-                        {/* Release Title & Artist */}
-                        <div className="flex flex-col min-w-0 flex-1">
-                          {release.albumId ? (
-                            <Link
-                              to="/albums/$idOrSlug"
-                              params={{
-                                idOrSlug: release.slug || release.albumId,
-                              }}
-                              className="text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
-                              title={release.title}
-                            >
-                              {release.title}
-                            </Link>
-                          ) : (
-                            <span
-                              className="text-sm font-semibold text-ink truncate tracking-tight"
-                              title={release.title}
-                            >
-                              {release.title}
-                            </span>
-                          )}
-
-                          {release.artistSlug ? (
-                            <Link
-                              to="/artists/$idOrSlug"
-                              params={{ idOrSlug: release.artistSlug }}
-                              className="text-[11px] text-ink-soft hover:text-ink truncate transition-colors mt-0.5 block"
-                            >
-                              {release.artistName}
-                            </Link>
-                          ) : (
-                            <span className="text-[11px] text-ink-soft truncate mt-0.5">
-                              {release.artistName}
-                            </span>
-                          )}
-
-                          {/* Sub-bar: Track Count & Expand Toggle */}
-                          <div className="flex items-center justify-between font-mono text-[11px] text-ink-soft/70 border-t border-line-soft pt-1.5 mt-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedReleaseKey((curr) =>
-                                  curr === `${group.key}:${release.releaseKey}`
-                                    ? null
-                                    : `${group.key}:${release.releaseKey}`,
-                                )
-                              }
-                              className="hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
-                              title="Toggle tracks played"
-                            >
-                              <span className="text-[11px] opacity-70">
-                                {isExpanded ? '▲' : '▼'}
-                              </span>
-                            </button>
-
-                            <span>
-                              {formatPlayTime(release.latestPlayedAt)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Expandable Track List Accordion */}
-                        {isExpanded && (
-                          <div className="mt-2.5 pt-2 border-t border-line space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
-                              Tracks played:
-                            </span>
-                            {release.tracksPlayed.map((t) => {
-                              const isPlayingThisTrack =
-                                currentTrack?.id === t.song.id &&
-                                playbackStatus === 'playing'
-
-                              return (
-                                <button
-                                  key={t.historyId}
-                                  type="button"
-                                  onClick={() =>
-                                    handlePlaySingleTrack(
-                                      t,
-                                      release.tracksPlayed,
-                                    )
-                                  }
-                                  className={`w-full flex items-center justify-between text-left py-1 px-1.5 rounded-xs text-[11px] transition-colors cursor-pointer ${
-                                    isPlayingThisTrack
-                                      ? 'bg-blue/10 text-blue font-medium'
-                                      : 'hover:bg-canvas text-ink-soft hover:text-ink'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
-                                    <span className="shrink-0 text-[11px] opacity-60">
-                                      {isPlayingThisTrack ? '▶' : '♪'}
-                                    </span>
-                                    <span className="truncate">
-                                      {t.song.title}
-                                    </span>
-                                  </div>
-                                  <span className="font-mono text-[11px] shrink-0 opacity-70">
-                                    {formatDurationSeconds(
-                                      t.song.durationSeconds,
-                                    )}
-                                  </span>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                /* View Mode: List View */
-                <div className="space-y-2">
+              {/* List View */}
+              <div className="space-y-2">
                   {group.releases.map((release) => {
                     const isCurrentReleasePlaying =
                       release.tracksPlayed.some(
@@ -1034,7 +813,6 @@ function HistoryPageComponent() {
                     )
                   })}
                 </div>
-              )}
             </section>
           ))}
 
