@@ -151,15 +151,15 @@ and run the guard for the live figure (a count going **up** is the signal):
 
 | Rule | Count | Points at |
 | --- | --- | --- |
-| `legacy-type-size` | 774 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 209 | `rounded-control` / `-inset` / `-surface` / `-full` |
-| `legacy-shadow` | 127 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 661 | `success` / `destructive` / `warning` |
-| **TOTAL** | **1771** | |
+| `legacy-type-size` | 620 | `text-eyebrow` / `text-caption` / `text-body` |
+| `legacy-radius` | 199 | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-shadow` | 106 | `shadow-raised` / `shadow-floating` |
+| `raw-palette-color` | 526 | `success` / `destructive` / `warning` |
+| **TOTAL** | **1451** | |
 
-Top offenders: `vault.manage.tsx` 161 · `profile.tsx` 159 · `playlists.$id.tsx` 94 ·
-`__root.tsx` 94 · `jam.$code.tsx` 76. `studio.tsx` (formerly #1 at 376) and
-`common/SongRow.tsx` are fully clean (0 guard hits).
+Top offenders: `playlists.$id.tsx` 94 · `__root.tsx` 94 · `jam.$code.tsx` 76 ·
+`LiveJamModal.tsx` 75 · `LiveJamBar.tsx` 73. `studio.tsx` (376), `vault.manage.tsx` (161),
+`profile.tsx` (159), and `common/SongRow.tsx` (18) are all clean at 0 guard hits.
 
 ## 8. Verify before claiming done
 
