@@ -151,16 +151,15 @@ and run the guard for the live figure (a count going **up** is the signal):
 
 | Rule | Count | Points at |
 | --- | --- | --- |
-| `legacy-type-size` | 967 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 229 | `rounded-control` / `-inset` / `-surface` / `-full` |
-| `legacy-shadow` | 142 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 806 | `success` / `destructive` / `warning` |
-| **TOTAL** | **2144** | |
+| `legacy-type-size` | 774 | `text-eyebrow` / `text-caption` / `text-body` |
+| `legacy-radius` | 209 | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-shadow` | 127 | `shadow-raised` / `shadow-floating` |
+| `raw-palette-color` | 661 | `success` / `destructive` / `warning` |
+| **TOTAL** | **1771** | |
 
-Top offenders are all routes: `studio.tsx` 376 · `vault.manage.tsx` 161 ·
-`profile.tsx` 159 · `playlists.$id.tsx` 94. Phase 2 is underway — the whole
-non-ui component layer is ~516 hits across ~26 files, and `common/SongRow.tsx`
-is already clean.
+Top offenders: `vault.manage.tsx` 161 · `profile.tsx` 159 · `playlists.$id.tsx` 94 ·
+`__root.tsx` 94 · `jam.$code.tsx` 76. `studio.tsx` (formerly #1 at 376) and
+`common/SongRow.tsx` are fully clean (0 guard hits).
 
 ## 8. Verify before claiming done
 
@@ -223,10 +222,15 @@ stacked on `rebuilt/groovy`). Newest first:
 | `1f92538` | Foundation: tokens, 8 primitives, `cn()`, drift guard (replaced `theme.css`) |
 
 **The vocabulary is shadcn/ui's** so a palette exported for shadcn
-(tweakcn.com, the shadcn registry) drops straight in. Tokens shadcn does not
-define are marked *extension*: `primary-strong`, `border-soft`,
-`destructive-soft`, `success`/`-soft`/`-foreground`, `warning`/`-soft`,
+(tweakcn.com, the shadcn registry) drops straight in. Tokens shadcn does not define are marked *extension*: `primary-strong`,
+`border-soft`, `destructive-soft`, `success`/`-soft`/`-foreground`,
+`warning`/`-soft`, `info`/`-soft`/`-foreground` (for unlisted/secret status),
 `scrim`, `font-eyebrow`.
+
+Semantic states double as **ink and fill**. Light `--success` was darkened to
+`#15803d` (with `--success-foreground: #ffffff`) so it stays legible when drawn
+as text on `--success-soft` (the earlier `#1ed760` fill failed at ~1.6:1
+contrast; dark mode keeps `#1ed760`). `--info` is `#7e22ce` light / `#d8b4fe` dark.
 
 Any **filled** semantic surface needs an explicit `<surface>-foreground`. A
 missing foreground is a **gap to fill, not a licence to type `text-white`** —
