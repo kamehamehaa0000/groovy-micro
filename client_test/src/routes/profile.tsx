@@ -568,7 +568,7 @@ function ProfileComponent() {
       </div>
 
       {/* ===================== STICKY TAB NAVIGATION ===================== */}
-      <div className="sticky top-12 z-30 bg-canvas/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-line/40">
+      <div className="sticky top-14 z-30 bg-canvas/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-line/40">
         <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {[
             { id: 'account' as const, label: 'Account' },

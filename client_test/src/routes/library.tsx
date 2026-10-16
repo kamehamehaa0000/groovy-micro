@@ -256,7 +256,7 @@ function LibraryPageComponent() {
   return (
     <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS ===================== */}
-      <header className="sticky top-12 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
+      <header className="sticky top-14 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {/* Quick Search Toggle Button */}
@@ -523,7 +523,7 @@ function LibraryPageComponent() {
 
       {/* ===================== FLOATING TOAST ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none">
           <span>✓</span>
           <span>{toastMessage}</span>
         </div>

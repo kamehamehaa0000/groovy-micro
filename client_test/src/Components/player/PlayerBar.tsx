@@ -279,7 +279,7 @@ export function PlayerBar() {
     <>
       {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION BANNER ===================== */}
       {supersededByDevice && (
-        <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-40 bg-canvas-deep/95 backdrop-blur-md border-t border-line px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-20 left-0 right-0 z-40 bg-canvas-deep/95 backdrop-blur-md border-t border-line px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
           <div className="flex items-center gap-2.5 text-xs text-ink max-w-[70%] truncate">
             <span className="flex h-2 w-2 relative shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue opacity-75"></span>
@@ -320,7 +320,7 @@ export function PlayerBar() {
       )}
 
       {/* Live Jam Floating Bar */}
-      <div className="fixed bottom-31.5 left-3 right-3 md:bottom-20 md:left-0 md:right-0 z-40 select-none pointer-events-auto">
+      <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-20 md:left-0 md:right-0 z-40 select-none pointer-events-auto">
         <LiveJamBar />
       </div>
 
@@ -329,7 +329,7 @@ export function PlayerBar() {
 
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-20 bg-panel/95 backdrop-blur-md border-t border-line px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[calc(5rem+env(safe-area-inset-bottom))] pb-safe bg-panel/95 backdrop-blur-md border-t border-line px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
       >
         {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
         <div

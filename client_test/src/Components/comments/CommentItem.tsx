@@ -324,7 +324,7 @@ export function CommentItem({
             className={`p-1 rounded cursor-pointer transition-colors ${
               comment.isPinned
                 ? "text-blue bg-blue/10"
-                : "text-ink-soft/40 hover:text-ink hover:bg-stone/20 opacity-0 group-hover:opacity-100"
+                : "text-ink-soft/40 hover:text-ink hover:bg-stone/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             }`}
           >
             <PinIcon filled={comment.isPinned} className="w-3.5 h-3.5" />

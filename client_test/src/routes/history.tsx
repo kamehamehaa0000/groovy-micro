@@ -674,7 +674,7 @@ function HistoryPageComponent() {
                                   ? 'Pause release'
                                   : 'Play release'
                               }
-                              className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity cursor-pointer"
+                              className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover/cover:opacity-100 transition-opacity cursor-pointer"
                             >
                               <div className="w-7 h-7 rounded-full bg-ink text-canvas flex items-center justify-center shadow-md">
                                 {isCurrentReleasePlaying ? (

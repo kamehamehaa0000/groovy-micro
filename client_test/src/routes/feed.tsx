@@ -672,7 +672,7 @@ function UnifiedFeedComponent() {
                         <button
                           type="button"
                           onClick={() => handlePlayFeedSong(item)}
-                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
+                          className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
                           title={isPlaying ? 'Pause' : 'Play'}
                         >
                           {isPlaying ? (

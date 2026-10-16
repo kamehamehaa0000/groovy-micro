@@ -176,7 +176,7 @@ function RootComponent() {
     : undefined
 
   return (
-    <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
+    <div className="min-h-dvh bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
       {/* ===================== TOP HEADER ===================== */}
       {isAuthPage ? (
         /* Dedicated Auth Header with Back to Home & Theme Toggle */
@@ -1129,7 +1129,7 @@ function RootComponent() {
       {isAuthPage ? (
         /* Dedicated Auth Content Outside Main Layout Outlet */
         <div
-          className={`flex-1 flex items-center justify-center p-2 sm:p-8 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
+          className={`flex-1 flex items-center justify-center p-2 sm:p-8 ${currentTrack ? 'pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-24' : 'pb-16 md:pb-0'}`}
         >
           <Outlet />
         </div>
@@ -1137,7 +1137,7 @@ function RootComponent() {
         <div className="flex-1 flex min-w-0 relative">
           {/* Main App Page Flow */}
           <div
-            className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-32 md:pb-24' : 'pb-16 md:pb-0'}`}
+            className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-24' : 'pb-16 md:pb-0'}`}
           >
             <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-12 sm:py-10">
               <Outlet />

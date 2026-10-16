@@ -826,7 +826,7 @@ export function QueueDrawer() {
             ? 'none'
             : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
-        className="fixed inset-x-0 bottom-0 top-12 sm:top-16 z-50 bg-panel border-t border-line rounded-t-2xl sm:rounded-t-3xl shadow-2xl flex flex-col overflow-hidden pb-safe select-none"
+        className="fixed inset-x-0 bottom-0 top-14 sm:top-16 z-50 bg-panel border-t border-line rounded-t-2xl sm:rounded-t-3xl shadow-2xl flex flex-col overflow-hidden pb-safe select-none"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

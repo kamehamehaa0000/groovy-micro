@@ -19,8 +19,13 @@ export function LibrarySortSheet({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -40,7 +45,7 @@ export function LibrarySortSheet({
       />
 
       {/* Sheet Content */}
-      <div className="relative w-full sm:max-w-xs bg-panel border-t sm:border border-line sm:rounded-2xl rounded-t-2xl shadow-2xl p-4 sm:p-5 z-10 transition-transform select-none">
+      <div className="relative w-full sm:max-w-xs max-h-[80vh] overflow-y-auto bg-panel border-t sm:border border-line sm:rounded-2xl rounded-t-2xl shadow-2xl p-4 sm:p-5 pb-safe z-10 transition-transform select-none">
         {/* Mobile handle */}
         <div className="sm:hidden w-10 h-1 bg-line rounded-full mx-auto mb-3" />
 

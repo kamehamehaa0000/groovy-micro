@@ -203,7 +203,7 @@ export function AddToPlaylistModal() {
 
         {/* Visual Feedback Toast */}
         {toastMessage && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
             ✓ {toastMessage}
           </div>
         )}

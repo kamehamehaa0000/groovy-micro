@@ -173,7 +173,7 @@ export function MobileMiniPlayer() {
         transition:
           dragX === 0 ? 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)' : 'none',
       }}
-      className="fixed bottom-15 left-2 right-2 z-40 md:hidden h-14 bg-panel/95 dark:bg-[#282828]/95 backdrop-blur-xl border border-line/60 dark:border-white/10 rounded-lg shadow-lg dark:shadow-2xl shadow-black/10 dark:shadow-black/50 flex items-center justify-between px-2.5 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
+      className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom))] left-2 right-2 z-40 md:hidden h-14 bg-panel/95 dark:bg-[#282828]/95 backdrop-blur-xl border border-line/60 dark:border-white/10 rounded-lg shadow-lg dark:shadow-2xl shadow-black/10 dark:shadow-black/50 flex items-center justify-between px-2.5 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
     >
       {/* 2px Hairline Progress Bar along the bottom of the card */}
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-line/20 dark:bg-white/10 overflow-hidden rounded-b-lg pointer-events-none">
@@ -224,7 +224,7 @@ export function MobileMiniPlayer() {
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
           aria-label={isLiked ? 'Unlike song' : 'Like song'}
-          className="w-9 h-9 flex items-center justify-center text-ink-soft hover:text-ink active:scale-80 transition-all cursor-pointer"
+          className="w-11 h-11 flex items-center justify-center text-ink-soft hover:text-ink active:scale-80 transition-all cursor-pointer"
         >
           <HeartIconSVG
             filled={isLiked}
@@ -244,7 +244,7 @@ export function MobileMiniPlayer() {
           onTouchEnd={(e) => e.stopPropagation()}
           disabled={isLoading}
           aria-label={isPlaying ? 'Pause' : 'Play'}
-          className="w-9 h-9 flex items-center justify-center text-ink dark:text-white active:scale-85 transition-transform cursor-pointer"
+          className="w-11 h-11 flex items-center justify-center text-ink dark:text-white active:scale-85 transition-transform cursor-pointer"
         >
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-ink dark:border-white border-t-transparent rounded-full animate-spin" />

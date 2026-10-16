@@ -84,7 +84,7 @@ export function MediaTile({
                 e.stopPropagation();
                 onPlay();
               }}
-              className="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-full bg-blue text-white shadow-md flex items-center justify-center opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hover:scale-105 active:scale-95 z-20 cursor-pointer"
+              className="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-full bg-blue text-white shadow-md flex items-center justify-center opacity-100 translate-y-0 sm:opacity-0 sm:translate-y-1 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-200 hover:scale-105 active:scale-95 z-20 cursor-pointer"
               aria-label="Play"
             >
               <svg className="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24">

@@ -263,7 +263,7 @@ function PersonalCollectionExplorePage() {
   return (
     <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS (Matched to /library) ===================== */}
-      <header className="sticky top-12 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
+      <header className="sticky top-14 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {/* Quick Search Toggle Button */}
@@ -302,7 +302,7 @@ function PersonalCollectionExplorePage() {
               type="button"
               onClick={() => setActivePill('all')}
               aria-label="Clear active filter"
-              className="shrink-0 w-7 h-7 rounded-md bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors font-mono text-xs font-bold cursor-pointer"
+              className="shrink-0 w-9 h-9 rounded-md bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors font-mono text-xs font-bold cursor-pointer"
             >
               ✕
             </button>
@@ -575,7 +575,7 @@ function PersonalCollectionExplorePage() {
                         className={`absolute bottom-2 right-2 w-9 h-9 bg-blue text-canvas rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer ${
                           isPlayingThisRelease
                             ? 'opacity-100 scale-100 ring-2 ring-white/50'
-                            : 'opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 hover:scale-105'
+                            : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 scale-100 sm:scale-90 sm:group-hover:scale-100 hover:scale-105'
                         }`}
                         title="Play release"
                       >
@@ -587,11 +587,11 @@ function PersonalCollectionExplorePage() {
                       </button>
 
                       {/* Global Action Menu 3-Dot Button */}
-                      <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-1.5 right-1.5 z-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <ReleaseActionMenu
                           release={release}
                           onDeleteRequest={setDeleteConfirm}
-                          buttonClassName="w-7 h-7 rounded-full bg-canvas/80 backdrop-blur-xs border border-line/60 text-ink shadow-sm flex items-center justify-center hover:bg-canvas transition-colors cursor-pointer"
+                          buttonClassName="w-9 h-9 rounded-full bg-canvas/80 backdrop-blur-xs border border-line/60 text-ink shadow-sm flex items-center justify-center hover:bg-canvas transition-colors cursor-pointer"
                         />
                       </div>
                     </div>
@@ -745,7 +745,7 @@ function PersonalCollectionExplorePage() {
 
       {/* ===================== TOAST NOTIFICATION ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-24 sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
           {toastMessage}
         </div>
       )}

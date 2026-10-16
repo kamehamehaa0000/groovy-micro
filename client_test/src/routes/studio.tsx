@@ -5187,7 +5187,7 @@ function StudioComponent() {
         <div
           role="status"
           aria-live="polite"
-          className={`fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-3 px-6 shadow-2xl rounded-xs pointer-events-none transition-all duration-200 border flex items-center gap-3 max-w-[92vw] text-center backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 ${
+          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-3 px-6 shadow-2xl rounded-xs pointer-events-none transition-all duration-200 border flex items-center gap-3 max-w-[92vw] text-center backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 ${
             errorNotice
               ? 'bg-red-950/95 text-red-100 border-red-500/50'
               : 'bg-emerald-950/95 text-emerald-100 border-emerald-500/50'

@@ -489,7 +489,7 @@ export const SongRow = memo(function SongRow({
               type="button"
               onClick={handlePlayButtonClick}
               aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
-              className={`w-7 h-7 flex items-center justify-center shrink-0 ${
+              className={`w-9 h-9 flex items-center justify-center shrink-0 ${
                 isLocked
                   ? 'text-ink-soft/50 cursor-not-allowed'
                   : 'text-ink-soft group-hover:text-ink cursor-pointer'
@@ -740,7 +740,7 @@ export const SongRow = memo(function SongRow({
               type="button"
               onClick={handleToggleLikeClick}
               aria-label={isLiked ? 'Unlike track' : 'Like track'}
-              className="p-1 sm:p-1.5 cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+              className="p-2 sm:p-1.5 cursor-pointer hover:scale-110 active:scale-95 transition-transform"
             >
               <HeartIconSVG
                 filled={isLiked}

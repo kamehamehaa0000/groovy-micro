@@ -1500,7 +1500,7 @@ function PlaylistDetailComponent() {
 
       {/* Floating Toast Notification */}
       {toastNotice && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-xs px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-xs px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
           {toastNotice.message}
         </div>
       )}
