@@ -9,6 +9,8 @@
                 depth comes from the outline, never a drop shadow
      flat       no outlines at all; surfaces are told apart by tone, spacing
                 and elevation — fills replace outlines on controls
+     hybrid     the middle path: outline the structure, fill the controls —
+                containers keep bordered's hairline, controls take flat's tone
      material   Google's Material 3: tonal surfaces instead of outlines, a pill
                 for every action, filled text fields with an indicator line,
                 Roboto and its type scale, sentence-case labels
@@ -100,7 +102,53 @@ body[data-style='flat'] .variant-list > * {
   border-color: var(--border-soft);
 }
 
-/* -------------------------------------------------------------- 3 · material */
+/* ---------------------------------------------------------------- 3 · hybrid */
+/* The middle path, and probably the keeper: OUTLINE THE STRUCTURE, FILL THE
+   CONTROLS.
+     · containers keep bordered's hairline, so the page still has visible bones
+     · controls take flat's tone instead of an outline, so a button or a field
+       never competes with the card it sits in
+     · two corner steps, deliberately: 8px controls · 12px surfaces
+     · no drop shadows — the hairline is the edge */
+
+body[data-style='hybrid'] {
+  --variant-radius: 0.5rem; /* raw radii normalise to the control step */
+  --radius-control: 0.5rem;
+  --radius-inset: 0.5rem;
+  --radius-surface: 0.75rem;
+  --border: rgba(23, 22, 15, 0.14);
+  --border-soft: rgba(23, 22, 15, 0.08);
+  --input: rgba(23, 22, 15, 0.14);
+  --elevation-raised: 0 0 #0000; /* the hairline is the edge */
+}
+
+.dark body[data-style='hybrid'] {
+  --border: rgba(244, 243, 235, 0.18);
+  --border-soft: rgba(244, 243, 235, 0.1);
+  --input: rgba(244, 243, 235, 0.18);
+  /* `--muted` and `--card` are the same value in dark; a filled control needs
+     one of them to move, so the tone lifts a step. */
+  --muted: #23241c;
+}
+
+/* The one move that defines the hybrid: controls are filled, not outlined. */
+body[data-style='hybrid'] :is(input, textarea, select),
+body[data-style='hybrid'] button[data-variant='outline'],
+body[data-style='hybrid'] button[data-size]:not([data-variant]) {
+  background-color: var(--muted);
+  border-color: transparent;
+}
+
+body[data-style='hybrid'] button[data-variant='danger'] {
+  background-color: var(--destructive-soft);
+  border-color: transparent;
+}
+
+/* Focus keeps the fill and turns the edge primary — a filled control has no
+   other way to announce itself. That comes from the primitive's own
+   `focus:border-primary`, so it needs no rule here. */
+
+/* -------------------------------------------------------------- 4 · material */
 /* Google's Material 3. The two structural moves that make it read as Material:
    surfaces are told apart by TONE (no outlines anywhere) and every action is a
    pill. Type is Roboto in sentence case — M3 has no uppercase, no serif and no

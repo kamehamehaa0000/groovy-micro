@@ -70,7 +70,7 @@ export const Route = createFileRoute('/dev/design')({
 /* Variants                                                            */
 /* ------------------------------------------------------------------ */
 
-type VariantKey = 'bordered' | 'flat' | 'material'
+type VariantKey = 'bordered' | 'hybrid' | 'flat' | 'material'
 
 const VARIANTS: Array<{
   key: VariantKey
@@ -87,6 +87,17 @@ const VARIANTS: Array<{
       'One corner size for everything non-circular: 8px (rounded-lg).',
       'shadow-raised is switched off, so nothing floats — it is bordered.',
       'Hairlines carry the hierarchy, so they are tuned a step stronger.',
+    ],
+  },
+  {
+    key: 'hybrid',
+    label: 'Hybrid',
+    tagline: 'Outline the structure, fill the controls — bounded and flat at once.',
+    rules: [
+      'Containers keep a hairline, so the page still has visible bones.',
+      'Controls trade their outline for a tone — a button never competes with the card it sits in.',
+      'Two corner steps, on purpose: 8px controls · 12px surfaces.',
+      'No drop shadows; the hairline is the edge. Focus stays an outline.',
     ],
   },
   {
