@@ -151,15 +151,17 @@ and run the guard for the live figure (a count going **up** is the signal):
 
 | Rule | Count | Points at |
 | --- | --- | --- |
-| `legacy-type-size` | 620 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 199 | `rounded-control` / `-inset` / `-surface` / `-full` |
-| `legacy-shadow` | 106 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 526 | `success` / `destructive` / `warning` |
-| **TOTAL** | **1451** | |
+| `legacy-type-size` | 3 | `text-eyebrow` / `text-caption` / `text-body` |
+| `legacy-radius` | 3 | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-shadow` | 0 | `shadow-raised` / `shadow-floating` |
+| `raw-palette-color` | 25 | `success` / `destructive` / `warning` |
+| **TOTAL** | **31** | |
 
-Top offenders: `playlists.$id.tsx` 94 · `__root.tsx` 94 · `jam.$code.tsx` 76 ·
-`LiveJamModal.tsx` 75 · `LiveJamBar.tsx` 73. `studio.tsx` (376), `vault.manage.tsx` (161),
-`profile.tsx` (159), and `common/SongRow.tsx` (18) are all clean at 0 guard hits.
+Phase 2 complete across all routes and components! Every route, modal, drawer,
+and view in the application is fully migrated to 0 drift. The only remaining hits
+(31) reside in `PlayerBar.tsx` (4) and `SongActionMenu.tsx` (27), which were
+deliberately exempted during user edits. Once those two are committed, the count
+reaches 0 and `--strict` can be wired into `lint`.
 
 ## 8. Verify before claiming done
 
