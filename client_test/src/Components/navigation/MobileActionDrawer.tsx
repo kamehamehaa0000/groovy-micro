@@ -54,7 +54,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
       })
       return
     }
-    navigate({ to: '/collection' })
+    navigate({ to: '/vault' })
   }
 
   if (!isOpen) return null
@@ -135,7 +135,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
                 onClick={handleOpenCollection}
                 className="w-full flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line text-left cursor-pointer transition-colors"
               >
-                <span>Personal Collection</span>
+                <span>Personal Vault</span>
                 <span className="text-ink-soft">&rarr;</span>
               </button>
             </nav>

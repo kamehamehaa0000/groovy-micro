@@ -211,7 +211,7 @@ function ArtistsDirectoryComponent() {
           </p>
           {scope === 'PERSONAL' && user ? (
             <Link
-              to="/collection"
+              to="/vault"
               className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
             >
               Go to Personal Collection &rarr;

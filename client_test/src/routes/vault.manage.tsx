@@ -38,7 +38,7 @@ interface CollectionManageSearchParams {
   tab?: 'import' | 'collection' | 'artists' | 'trash'
 }
 
-export const Route = createFileRoute('/collection/manage')({
+export const Route = createFileRoute('/vault/manage')({
   component: PersonalCollectionManagePage,
   validateSearch: (
     search: Record<string, unknown>,
@@ -101,7 +101,7 @@ function PersonalCollectionManagePage() {
   ) => {
     setActiveTab(tab)
     navigate({
-      to: '/collection/manage',
+      to: '/vault/manage',
       search: tab === 'import' ? {} : { tab },
       replace: true,
     })
@@ -1125,14 +1125,14 @@ function PersonalCollectionManagePage() {
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
               to="/login"
-              search={{ redirect: '/collection/manage' }}
+              search={{ redirect: '/vault/manage' }}
               className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold"
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              search={{ redirect: '/collection/manage' }}
+              search={{ redirect: '/vault/manage' }}
               className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
             >
               Create Account
@@ -1533,7 +1533,7 @@ function PersonalCollectionManagePage() {
             ) : null}
 
             <Link
-              to="/collection"
+              to="/vault"
               className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 border border-line bg-panel hover:bg-canvas text-ink rounded-md transition-all shadow-2xs cursor-pointer font-medium shrink-0 self-start sm:self-center"
             >
               <span>♫ View Vault</span>

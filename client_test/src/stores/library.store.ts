@@ -362,7 +362,7 @@ export function buildUnifiedLibraryItems(
     title: "Personal Collection",
     subtitle: `Vault • ${payload.personalCollection.totalReleases} releases, ${payload.personalCollection.totalTracks} tracks`,
     imageUrl: null,
-    linkTo: "/collection",
+    linkTo: "/vault",
     addedAt: payload.personalCollection.lastAddedAt || new Date(0).toISOString(),
     creatorOrArtistName: "Personal Vault",
     isPinned: !!collectionPin,

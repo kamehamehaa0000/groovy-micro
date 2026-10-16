@@ -18,8 +18,7 @@ export function MobileBottomBar() {
   const isLibraryActive =
     pathname.startsWith('/library') ||
     pathname.startsWith('/playlists') ||
-    pathname.startsWith('/collection') ||
-    pathname.startsWith('/personal-collection')
+    pathname.startsWith('/vault')
 
   return (
     <nav

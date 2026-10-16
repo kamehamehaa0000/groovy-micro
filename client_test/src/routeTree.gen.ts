@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
-import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -19,7 +18,6 @@ import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LikedRouteImport } from './routes/liked'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as PersonalCollectionRouteImport } from './routes/personal-collection'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReleasesRouteImport } from './routes/releases'
@@ -27,20 +25,21 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StudioRouteImport } from './routes/studio'
+import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminVerificationRouteImport } from './routes/admin.verification'
 import { Route as AlbumsIdOrSlugRouteImport } from './routes/albums.$idOrSlug'
 import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
 import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
-import { Route as CollectionIndexRouteImport } from './routes/collection.index'
-import { Route as CollectionManageRouteImport } from './routes/collection.manage'
 import { Route as JamCodeRouteImport } from './routes/jam.$code'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as RadioSongIdRouteImport } from './routes/radio.$songId'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
+import { Route as VaultIndexRouteImport } from './routes/vault.index'
+import { Route as VaultManageRouteImport } from './routes/vault.manage'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -50,11 +49,6 @@ const IndexRoute = IndexRouteImport.update({
 const ActivityRoute = ActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CollectionRoute = CollectionRouteImport.update({
-  id: '/collection',
-  path: '/collection',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedRoute = FeedRouteImport.update({
@@ -92,11 +86,6 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PersonalCollectionRoute = PersonalCollectionRouteImport.update({
-  id: '/personal-collection',
-  path: '/personal-collection',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -132,6 +121,11 @@ const StudioRoute = StudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VaultRoute = VaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
@@ -161,16 +155,6 @@ const ArtistsIdOrSlugRoute = ArtistsIdOrSlugRouteImport.update({
   id: '/artists/$idOrSlug',
   path: '/artists/$idOrSlug',
   getParentRoute: () => rootRouteImport,
-} as any)
-const CollectionIndexRoute = CollectionIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CollectionRoute,
-} as any)
-const CollectionManageRoute = CollectionManageRouteImport.update({
-  id: '/manage',
-  path: '/manage',
-  getParentRoute: () => CollectionRoute,
 } as any)
 const JamCodeRoute = JamCodeRouteImport.update({
   id: '/jam/$code',
@@ -202,11 +186,20 @@ const UsersIdRoute = UsersIdRouteImport.update({
   path: '/users/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VaultIndexRoute = VaultIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VaultRoute,
+} as any)
+const VaultManageRoute = VaultManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => VaultRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/history': typeof HistoryRoute
@@ -214,7 +207,6 @@ export interface FileRoutesByFullPath {
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
-  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/releases': typeof ReleasesRoute
@@ -222,20 +214,21 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
+  '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
-  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
+  '/vault/manage': typeof VaultManageRoute
   '/artists/': typeof ArtistsIndexRoute
-  '/collection/': typeof CollectionIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
+  '/vault/': typeof VaultIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -247,7 +240,6 @@ export interface FileRoutesByTo {
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
-  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/releases': typeof ReleasesRoute
@@ -260,21 +252,20 @@ export interface FileRoutesByTo {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
-  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
+  '/vault/manage': typeof VaultManageRoute
   '/artists': typeof ArtistsIndexRoute
-  '/collection': typeof CollectionIndexRoute
   '/playlists': typeof PlaylistsIndexRoute
+  '/vault': typeof VaultIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/collection': typeof CollectionRouteWithChildren
   '/feed': typeof FeedRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/history': typeof HistoryRoute
@@ -282,7 +273,6 @@ export interface FileRoutesById {
   '/liked': typeof LikedRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
-  '/personal-collection': typeof PersonalCollectionRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/releases': typeof ReleasesRoute
@@ -290,27 +280,27 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
+  '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
-  '/collection/manage': typeof CollectionManageRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
+  '/vault/manage': typeof VaultManageRoute
   '/artists/': typeof ArtistsIndexRoute
-  '/collection/': typeof CollectionIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
+  '/vault/': typeof VaultIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/activity'
-    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/history'
@@ -318,7 +308,6 @@ export interface FileRouteTypes {
     | '/liked'
     | '/login'
     | '/notifications'
-    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/releases'
@@ -326,20 +315,21 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/studio'
+    | '/vault'
     | '/verify-email'
     | '/admin/subscriptions'
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
-    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
     | '/users/$id'
+    | '/vault/manage'
     | '/artists/'
-    | '/collection/'
     | '/playlists/'
+    | '/vault/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -351,7 +341,6 @@ export interface FileRouteTypes {
     | '/liked'
     | '/login'
     | '/notifications'
-    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/releases'
@@ -364,20 +353,19 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
-    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
     | '/users/$id'
+    | '/vault/manage'
     | '/artists'
-    | '/collection'
     | '/playlists'
+    | '/vault'
   id:
     | '__root__'
     | '/'
     | '/activity'
-    | '/collection'
     | '/feed'
     | '/forgot-password'
     | '/history'
@@ -385,7 +373,6 @@ export interface FileRouteTypes {
     | '/liked'
     | '/login'
     | '/notifications'
-    | '/personal-collection'
     | '/profile'
     | '/register'
     | '/releases'
@@ -393,26 +380,26 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/studio'
+    | '/vault'
     | '/verify-email'
     | '/admin/subscriptions'
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
-    | '/collection/manage'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
     | '/users/$id'
+    | '/vault/manage'
     | '/artists/'
-    | '/collection/'
     | '/playlists/'
+    | '/vault/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
-  CollectionRoute: typeof CollectionRouteWithChildren
   FeedRoute: typeof FeedRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HistoryRoute: typeof HistoryRoute
@@ -420,7 +407,6 @@ export interface RootRouteChildren {
   LikedRoute: typeof LikedRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
-  PersonalCollectionRoute: typeof PersonalCollectionRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   ReleasesRoute: typeof ReleasesRoute
@@ -428,6 +414,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   StudioRoute: typeof StudioRoute
+  VaultRoute: typeof VaultRouteWithChildren
   VerifyEmailRoute: typeof VerifyEmailRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminVerificationRoute: typeof AdminVerificationRoute
@@ -456,13 +443,6 @@ declare module '@tanstack/react-router' {
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof ActivityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/collection': {
-      id: '/collection'
-      path: '/collection'
-      fullPath: '/collection'
-      preLoaderRoute: typeof CollectionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed': {
@@ -514,13 +494,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/personal-collection': {
-      id: '/personal-collection'
-      path: '/personal-collection'
-      fullPath: '/personal-collection'
-      preLoaderRoute: typeof PersonalCollectionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -570,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vault': {
+      id: '/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof VaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-email': {
       id: '/verify-email'
       path: '/verify-email'
@@ -611,20 +591,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/artists/$idOrSlug'
       preLoaderRoute: typeof ArtistsIdOrSlugRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/collection/': {
-      id: '/collection/'
-      path: '/'
-      fullPath: '/collection/'
-      preLoaderRoute: typeof CollectionIndexRouteImport
-      parentRoute: typeof CollectionRoute
-    }
-    '/collection/manage': {
-      id: '/collection/manage'
-      path: '/manage'
-      fullPath: '/collection/manage'
-      preLoaderRoute: typeof CollectionManageRouteImport
-      parentRoute: typeof CollectionRoute
     }
     '/jam/$code': {
       id: '/jam/$code'
@@ -668,27 +634,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vault/': {
+      id: '/vault/'
+      path: '/'
+      fullPath: '/vault/'
+      preLoaderRoute: typeof VaultIndexRouteImport
+      parentRoute: typeof VaultRoute
+    }
+    '/vault/manage': {
+      id: '/vault/manage'
+      path: '/manage'
+      fullPath: '/vault/manage'
+      preLoaderRoute: typeof VaultManageRouteImport
+      parentRoute: typeof VaultRoute
+    }
   }
 }
 
-interface CollectionRouteChildren {
-  CollectionManageRoute: typeof CollectionManageRoute
-  CollectionIndexRoute: typeof CollectionIndexRoute
+interface VaultRouteChildren {
+  VaultManageRoute: typeof VaultManageRoute
+  VaultIndexRoute: typeof VaultIndexRoute
 }
 
-const CollectionRouteChildren: CollectionRouteChildren = {
-  CollectionManageRoute: CollectionManageRoute,
-  CollectionIndexRoute: CollectionIndexRoute,
+const VaultRouteChildren: VaultRouteChildren = {
+  VaultManageRoute: VaultManageRoute,
+  VaultIndexRoute: VaultIndexRoute,
 }
 
-const CollectionRouteWithChildren = CollectionRoute._addFileChildren(
-  CollectionRouteChildren,
-)
+const VaultRouteWithChildren = VaultRoute._addFileChildren(VaultRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
-  CollectionRoute: CollectionRouteWithChildren,
   FeedRoute: FeedRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HistoryRoute: HistoryRoute,
@@ -696,7 +673,6 @@ const rootRouteChildren: RootRouteChildren = {
   LikedRoute: LikedRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
-  PersonalCollectionRoute: PersonalCollectionRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   ReleasesRoute: ReleasesRoute,
@@ -704,6 +680,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   StudioRoute: StudioRoute,
+  VaultRoute: VaultRouteWithChildren,
   VerifyEmailRoute: VerifyEmailRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminVerificationRoute: AdminVerificationRoute,

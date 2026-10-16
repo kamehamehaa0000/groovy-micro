@@ -169,7 +169,7 @@ const COLLECTION_HUBS = [
     iconType: 'star',
   },
   {
-    to: '/collection',
+    to: '/vault',
     label: 'Personal Vault',
     tag: 'Locker',
     tagColor:

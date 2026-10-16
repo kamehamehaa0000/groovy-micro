@@ -366,7 +366,7 @@ function RootComponent() {
                       Feed
                     </Link>
                     <Link
-                      to="/collection"
+                      to="/vault"
                       activeProps={{
                         className:
                           'text-ink font-semibold border-b border-blue pb-0.5',
@@ -376,7 +376,7 @@ function RootComponent() {
                       }}
                       className="transition-colors"
                     >
-                      Collection
+                      Vault
                     </Link>
                   </>
                 )}
@@ -1070,11 +1070,11 @@ function RootComponent() {
                       <span className="text-ink-soft">&rarr;</span>
                     </Link>
                     <Link
-                      to="/collection"
+                      to="/vault"
                       onClick={() => setLeftSidebarOpen(false)}
                       className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
                     >
-                      <span>Personal Collection</span>
+                      <span>Personal Vault</span>
                       <span className="text-ink-soft">&rarr;</span>
                     </Link>
                     {user?.role === 'ADMIN' && (

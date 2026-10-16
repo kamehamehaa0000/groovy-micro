@@ -1153,7 +1153,7 @@ function ArtistPublicProfileComponent() {
                       : 'Tracks'}
                   </span>
                   <Link
-                    to="/collection"
+                    to="/vault"
                     className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
                   >
                     Vault &rarr;

@@ -22,7 +22,7 @@ import {
   SearchIconSVG,
 } from '../components/icons'
 
-export const Route = createFileRoute('/collection/')({
+export const Route = createFileRoute('/vault/')({
   component: PersonalCollectionExplorePage,
 })
 
@@ -69,7 +69,7 @@ function PersonalCollectionExplorePage() {
   // Auth gate
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
-      navigate({ to: '/login', search: { redirect: '/collection' } })
+      navigate({ to: '/login', search: { redirect: '/vault' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
@@ -398,7 +398,7 @@ function PersonalCollectionExplorePage() {
           )}
 
           <Link
-            to="/collection/manage"
+            to="/vault/manage"
             className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-line bg-panel hover:bg-canvas-soft text-ink-soft hover:text-ink text-xs transition-colors cursor-pointer"
             title="Manage storage and upload files"
           >
@@ -515,7 +515,7 @@ function PersonalCollectionExplorePage() {
                 </p>
               </div>
               <Link
-                to="/collection/manage"
+                to="/vault/manage"
                 className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
               >
                 <UploadCloudSVG className="w-4 h-4" />
