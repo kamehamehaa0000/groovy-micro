@@ -32,6 +32,7 @@ import { Route as AdminVerificationRouteImport } from './routes/admin.verificati
 import { Route as AlbumsIdOrSlugRouteImport } from './routes/albums.$idOrSlug'
 import { Route as ArtistsIndexRouteImport } from './routes/artists.index'
 import { Route as ArtistsIdOrSlugRouteImport } from './routes/artists.$idOrSlug'
+import { Route as DevDesignRouteImport } from './routes/dev.design'
 import { Route as JamCodeRouteImport } from './routes/jam.$code'
 import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
@@ -156,6 +157,11 @@ const ArtistsIdOrSlugRoute = ArtistsIdOrSlugRouteImport.update({
   path: '/artists/$idOrSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevDesignRoute = DevDesignRouteImport.update({
+  id: '/dev/design',
+  path: '/dev/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JamCodeRoute = JamCodeRouteImport.update({
   id: '/jam/$code',
   path: '/jam/$code',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/dev/design': typeof DevDesignRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/dev/design': typeof DevDesignRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
+  '/dev/design': typeof DevDesignRoute
   '/jam/$code': typeof JamCodeRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/dev/design'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/dev/design'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
+    | '/dev/design'
     | '/jam/$code'
     | '/oauth/callback'
     | '/playlists/$id'
@@ -420,6 +432,7 @@ export interface RootRouteChildren {
   AdminVerificationRoute: typeof AdminVerificationRoute
   AlbumsIdOrSlugRoute: typeof AlbumsIdOrSlugRoute
   ArtistsIdOrSlugRoute: typeof ArtistsIdOrSlugRoute
+  DevDesignRoute: typeof DevDesignRoute
   JamCodeRoute: typeof JamCodeRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   PlaylistsIdRoute: typeof PlaylistsIdRoute
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArtistsIdOrSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/design': {
+      id: '/dev/design'
+      path: '/dev/design'
+      fullPath: '/dev/design'
+      preLoaderRoute: typeof DevDesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/jam/$code': {
       id: '/jam/$code'
       path: '/jam/$code'
@@ -686,6 +706,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminVerificationRoute: AdminVerificationRoute,
   AlbumsIdOrSlugRoute: AlbumsIdOrSlugRoute,
   ArtistsIdOrSlugRoute: ArtistsIdOrSlugRoute,
+  DevDesignRoute: DevDesignRoute,
   JamCodeRoute: JamCodeRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   PlaylistsIdRoute: PlaylistsIdRoute,

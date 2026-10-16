@@ -1,0 +1,487 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
+import type { ReactNode } from 'react'
+import {
+  Badge,
+  Button,
+  Card,
+  Eyebrow,
+  Field,
+  IconButton,
+  Input,
+  SectionHeader,
+  Select,
+  Sheet,
+  Textarea,
+} from '../components/ui'
+import { cn } from '../components/ui/cn'
+import { useThemeStore } from '../stores/theme.store'
+import {
+  ChevronDownIconSVG,
+  EditIconSVG,
+  HeartIconSVG,
+  PlayIconSVG,
+  PlusIconSVG,
+  SearchIconSVG,
+  SortIconSVG,
+  TrashIconSVG,
+  UploadCloudSVG,
+} from '../components/icons'
+
+export const Route = createFileRoute('/dev/design')({
+  component: DesignPlayground,
+})
+
+/* ------------------------------------------------------------------ */
+/* Local, non-exported helpers                                         */
+/* ------------------------------------------------------------------ */
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: ReactNode
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <Eyebrow tone="brand">{title}</Eyebrow>
+        {hint ? (
+          <p className="mt-0.5 text-caption text-ink-soft">{hint}</p>
+        ) : null}
+      </div>
+      <Card padding="lg" className="flex flex-col gap-5">
+        {children}
+      </Card>
+    </section>
+  )
+}
+
+function Token({ children }: { children: ReactNode }) {
+  return (
+    <code className="font-mono text-caption text-ink-soft">{children}</code>
+  )
+}
+
+function SwatchGrid({
+  items,
+}: {
+  items: Array<{ token: string; className: string }>
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {items.map((item) => (
+        <div key={item.token} className="flex flex-col gap-1.5">
+          <div
+            className={cn(
+              'h-14 w-full rounded-inset border border-line',
+              item.className,
+            )}
+          />
+          <Token>{item.token}</Token>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Data                                                                */
+/* ------------------------------------------------------------------ */
+
+const SURFACES = [
+  { token: 'canvas', className: 'bg-canvas' },
+  { token: 'canvas-deep', className: 'bg-canvas-deep' },
+  { token: 'panel', className: 'bg-panel' },
+  { token: 'stone', className: 'bg-stone' },
+  { token: 'ink', className: 'bg-ink' },
+  { token: 'ink-soft', className: 'bg-ink-soft' },
+  { token: 'blue', className: 'bg-blue' },
+  { token: 'blue-deep', className: 'bg-blue-deep' },
+]
+
+const SEMANTICS = [
+  { token: 'success', className: 'bg-success' },
+  { token: 'success-soft', className: 'bg-success-soft' },
+  { token: 'danger', className: 'bg-danger' },
+  { token: 'danger-soft', className: 'bg-danger-soft' },
+  { token: 'warning', className: 'bg-warning' },
+  { token: 'warning-soft', className: 'bg-warning-soft' },
+  { token: 'scrim', className: 'bg-scrim' },
+]
+
+const BUTTON_VARIANTS = ['primary', 'brand', 'outline', 'ghost', 'danger'] as const
+const BUTTON_SIZES = ['sm', 'md'] as const
+const ICON_SIZES = ['sm', 'md', 'lg'] as const
+const BADGE_TONES = [
+  'neutral',
+  'ink',
+  'brand',
+  'success',
+  'warning',
+  'danger',
+] as const
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+function DesignPlayground() {
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const [bottomSheet, setBottomSheet] = useState(false)
+  const [centerSheet, setCenterSheet] = useState(false)
+
+  if (!import.meta.env.DEV) {
+    return (
+      <div className="p-8">
+        <Eyebrow tone="muted">dev only</Eyebrow>
+        <p className="mt-2 text-body text-ink-soft">
+          The design playground is only available in development.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-10 py-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Eyebrow tone="brand">design system</Eyebrow>
+          <h1 className="font-serif text-display text-ink">Playground</h1>
+          <p className="mt-1 max-w-prose text-body text-ink-soft">
+            Every token and primitive in one screen, rendered with the system
+            itself. Toggle the theme to check both surfaces.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleTheme}
+          leftIcon={<SortIconSVG className="h-3.5 w-3.5" />}
+        >
+          {theme === 'dark' ? 'Light' : 'Dark'} mode
+        </Button>
+      </div>
+
+      {/* Typography */}
+      <Section
+        title="Type roles"
+        hint="Fraunces for display, Inter for body/UI, IBM Plex Mono for eyebrows only."
+      >
+        <div className="flex flex-col gap-4">
+          <div>
+            <Token>text-display · Fraunces</Token>
+            <p className="font-serif text-display text-ink">Groovy</p>
+          </div>
+          <div>
+            <Token>text-heading · Inter</Token>
+            <h2 className="text-heading font-semibold text-ink">
+              Section heading
+            </h2>
+          </div>
+          <div>
+            <Token>text-title · Inter</Token>
+            <h3 className="text-title font-medium text-ink">Card title</h3>
+          </div>
+          <div>
+            <Token>text-body · Inter</Token>
+            <p className="text-body text-ink">
+              Body copy — the default reading size across the app.
+            </p>
+          </div>
+          <div>
+            <Token>text-caption · Inter</Token>
+            <p className="text-caption text-ink-soft">
+              Caption / secondary metadata.
+            </p>
+          </div>
+          <div>
+            <Token>text-eyebrow · IBM Plex Mono</Token>
+            <Eyebrow>Eyebrow label</Eyebrow>
+          </div>
+        </div>
+      </Section>
+
+      {/* Color */}
+      <Section
+        title="Surfaces & ink"
+        hint="The working palette, unchanged from before the foundation."
+      >
+        <SwatchGrid items={SURFACES} />
+      </Section>
+
+      <Section
+        title="Semantic state"
+        hint="Use these instead of raw red / green / amber. Danger is the calmer #dc2626."
+      >
+        <SwatchGrid items={SEMANTICS} />
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-success text-body">Success text</span>
+          <span className="text-danger text-body">Danger text</span>
+          <span className="text-warning text-body">Warning text</span>
+          <span className="text-blue text-body">Brand text</span>
+        </div>
+      </Section>
+
+      {/* Buttons */}
+      <Section
+        title="Buttons"
+        hint="Primary is solid ink with a brand-blue hover — Groovy's signature CTA."
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          {BUTTON_VARIANTS.map((variant) => (
+            <Button key={variant} variant={variant}>
+              {variant}
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {BUTTON_SIZES.map((size) => (
+            <Button key={size} size={size} variant="outline">
+              size · {size}
+            </Button>
+          ))}
+          <Button
+            variant="primary"
+            leftIcon={<PlayIconSVG className="h-3.5 w-3.5" />}
+          >
+            With icon
+          </Button>
+          <Button variant="outline" disabled>
+            Disabled
+          </Button>
+        </div>
+        <Button variant="brand" block>
+          Block button
+        </Button>
+      </Section>
+
+      {/* Icon buttons */}
+      <Section
+        title="Icon buttons"
+        hint="lg (44px) is the minimum target for primary mobile controls."
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          {ICON_SIZES.map((size) => (
+            <IconButton
+              key={size}
+              size={size}
+              aria-label={`Play (${size})`}
+              className="border border-line bg-panel"
+            >
+              <PlayIconSVG className="h-4 w-4" />
+            </IconButton>
+          ))}
+          <IconButton aria-label="Like" className="border border-line bg-panel">
+            <HeartIconSVG className="h-4 w-4" />
+          </IconButton>
+          <IconButton
+            aria-label="Search"
+            className="border border-line bg-panel"
+          >
+            <SearchIconSVG className="h-4 w-4" />
+          </IconButton>
+        </div>
+      </Section>
+
+      {/* Badges */}
+      <Section title="Badges" hint="Status pills — always a semantic tone.">
+        <div className="flex flex-wrap items-center gap-2">
+          {BADGE_TONES.map((tone) => (
+            <Badge key={tone} tone={tone}>
+              {tone}
+            </Badge>
+          ))}
+        </div>
+      </Section>
+
+      {/* Cards */}
+      <Section title="Cards" hint="Radius + border + surface, three weights.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(['plain', 'muted', 'interactive'] as const).map((variant) => (
+            <Card key={variant} variant={variant} padding="md">
+              <Eyebrow>{variant}</Eyebrow>
+              <h4 className="mt-1 text-title font-medium text-ink">
+                Release title
+              </h4>
+              <p className="mt-0.5 text-caption text-ink-soft">
+                Artist · 2026 · 12 tracks
+              </p>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      {/* Fields */}
+      <Section title="Fields" hint="Label + control + hint/error.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Display name" htmlFor="dn" hint="Shown on your profile.">
+            <Input id="dn" placeholder="e.g. Nova" />
+          </Field>
+          <Field label="Email" htmlFor="em" error="That address is taken.">
+            <Input id="em" defaultValue="nova@example.com" />
+          </Field>
+          <Field label="Visibility" htmlFor="vis">
+            <Select id="vis" defaultValue="public">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </Select>
+          </Field>
+          <Field label="Add a track" htmlFor="tr" hint="One per line.">
+            <Textarea id="tr" placeholder="Track name" />
+          </Field>
+        </div>
+      </Section>
+
+      {/* Section header */}
+      <Section
+        title="Section header"
+        hint="One header for every page — no more per-page sticky chrome."
+      >
+        <div className="overflow-hidden rounded-surface border border-line">
+          <SectionHeader
+            eyebrow="your vault"
+            title="Personal vault"
+            description="Uploaded files you own."
+            actions={
+              <Button size="sm" variant="outline">
+                Manage
+              </Button>
+            }
+          />
+          <div className="p-4 text-body text-ink-soft">
+            Page content sits under the header.
+          </div>
+        </div>
+      </Section>
+
+      {/* Radius + elevation */}
+      <Section title="Radius & elevation" hint="Four radius roles, two shadows.">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(
+            [
+              ['rounded-control', 'rounded-control'],
+              ['rounded-inset', 'rounded-inset'],
+              ['rounded-surface', 'rounded-surface'],
+              ['rounded-full', 'rounded-full'],
+            ] as const
+          ).map(([label, cls]) => (
+            <div key={label} className="flex flex-col items-center gap-2">
+              <div
+                className={cn(
+                  'h-16 w-16 border border-line bg-panel',
+                  cls,
+                )}
+              />
+              <Token>{label}</Token>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(
+            [
+              ['flat (border)', 'border shadow-none'],
+              ['shadow-raised', 'shadow-raised'],
+              ['shadow-floating', 'shadow-floating'],
+            ] as const
+          ).map(([label, cls]) => (
+            <div key={label} className="flex flex-col items-center gap-2">
+              <div
+                className={cn(
+                  'flex h-16 w-full items-center justify-center rounded-surface border-line bg-panel text-caption text-ink-soft',
+                  cls,
+                )}
+              >
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Sheets */}
+      <Section
+        title="Sheets"
+        hint="Scrim + Escape + body-scroll lock + safe-area, once."
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => setBottomSheet(true)}>
+            <UploadCloudSVG className="h-4 w-4" /> Bottom sheet
+          </Button>
+          <Button variant="outline" onClick={() => setCenterSheet(true)}>
+            <EditIconSVG className="h-4 w-4" /> Centered dialog
+          </Button>
+        </div>
+      </Section>
+
+      {/* Sheet instances */}
+      <Sheet
+        open={bottomSheet}
+        onClose={() => setBottomSheet(false)}
+        title="Bottom sheet"
+      >
+        <div className="flex flex-col gap-3 p-4">
+          <p className="text-body text-ink-soft">
+            Slides from the bottom, respects the home indicator, caps at 85dvh.
+          </p>
+          <div className="flex flex-col gap-1">
+            {['Save to library', 'Add to playlist', 'Share'].map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setBottomSheet(false)}
+                className="flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-ink transition-colors hover:bg-stone/20"
+              >
+                <PlusIconSVG className="h-4 w-4 text-ink-soft" />
+                {label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setBottomSheet(false)}
+              className="mt-1 flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-danger transition-colors hover:bg-danger-soft"
+            >
+              <TrashIconSVG className="h-4 w-4" />
+              Remove
+            </button>
+          </div>
+        </div>
+      </Sheet>
+
+      <Sheet
+        open={centerSheet}
+        onClose={() => setCenterSheet(false)}
+        title="Centered dialog"
+        placement="center"
+        size="sm"
+      >
+        <div className="flex flex-col gap-4 p-4">
+          <Field label="Playlist name" htmlFor="pl">
+            <Input id="pl" placeholder="Late night mix" />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCenterSheet(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              rightIcon={<ChevronDownIconSVG className="h-3.5 w-3.5" />}
+              onClick={() => setCenterSheet(false)}
+            >
+              Create
+            </Button>
+          </div>
+        </div>
+      </Sheet>
+    </div>
+  )
+}
