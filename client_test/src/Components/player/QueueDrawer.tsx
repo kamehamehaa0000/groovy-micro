@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link } from '@tanstack/react-router'
 import { usePlayerStore } from '../../stores/player.store'
 import { useJamStore } from '../../stores/jam.store'
 import { useAuthStore } from '../../stores/auth.store'
@@ -10,6 +9,15 @@ import { playerApi, type RecentHistoryItem } from '../../lib/player.api'
 import { QueueSongRow } from './QueueSongRow'
 import { UserQueueReorderList } from './UserQueueReorderList'
 import { SongActionMenu } from './SongActionMenu'
+import {
+  ChevronDown,
+  CirclePlus,
+  Eraser,
+  ListMusic,
+  RotateCcwClock,
+  Shuffle,
+  X,
+} from 'lucide-react'
 
 function formatSeconds(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00'
@@ -181,85 +189,33 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
     useCreatePlaylistModalStore.getState().openModal(uniqueTrackIds)
   }
 
-  // Parse source context badge
-  const renderSourceContextBadge = () => {
-    if (!contextUri && !contextTitle) return null
-
-    if (contextUri?.startsWith('album:')) {
-      const albumId = contextUri.replace('album:', '')
-      return (
-        <Link
-          to="/albums/$idOrSlug"
-          params={{ idOrSlug: albumId }}
-          onClick={() => {
-            if (mode === 'mobile') onClose()
-          }}
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-blue hover:underline max-w-50 truncate"
-          title={`Album: ${contextTitle || 'View Release'}`}
-        >
-          <span>✦ Album:</span>
-          <span className="truncate">{contextTitle || 'Release'}</span>
-        </Link>
-      )
-    }
-
-    if (contextUri?.startsWith('playlist:')) {
-      const playlistId = contextUri.replace('playlist:', '')
-      return (
-        <Link
-          to="/playlists/$id"
-          params={{ id: playlistId }}
-          onClick={() => {
-            if (mode === 'mobile') onClose()
-          }}
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-blue hover:underline max-w-50 truncate"
-          title={`Playlist: ${contextTitle || 'View Playlist'}`}
-        >
-          <span>✦ Playlist:</span>
-          <span className="truncate">{contextTitle || 'Playlist'}</span>
-        </Link>
-      )
-    }
-
-    return (
-      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft max-w-50 truncate">
-        ✦ From: {contextTitle || 'Catalog'}
-      </span>
-    )
-  }
-
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-panel text-ink">
       {/* ===================== TOP HEADER & TABS ===================== */}
       <div className="h-14 border-b border-line px-4 sm:px-5 flex items-center justify-between shrink-0 gap-2 select-none">
         {/* Left: Tab Switcher (Queue / History) */}
-        <div className="flex items-center gap-1 bg-canvas border border-line p-0.5 rounded">
+        <div className="flex items-center gap-1 bg-canvas p-0.5 rounded">
           <button
             type="button"
             onClick={() => setActiveTab('queue')}
             className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
               activeTab === 'queue'
-                ? 'bg-panel text-ink font-semibold shadow-2xs border border-line/60'
+                ? 'bg-panel text-ink font-semibold shadow-2xs'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >
-            Queue{' '}
-            {totalUpcomingTracks > 0 && (
-              <span className="font-mono text-[11px] opacity-75">
-                ({totalUpcomingTracks})
-              </span>
-            )}
+            <ListMusic className="w-5 h-5" />
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('history')}
             className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
               activeTab === 'history'
-                ? 'bg-panel text-ink font-semibold shadow-2xs border border-line/60'
+                ? 'bg-panel text-ink font-semibold shadow-2xs'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >
-            History
+            <RotateCcwClock className="w-5 h-5" />
           </button>
         </div>
 
@@ -275,30 +231,16 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   : 'Shuffle is off - click to enable'
               }
               aria-label={isShuffle ? 'Disable shuffle' : 'Enable shuffle'}
-              className={`font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5 border ${
+              className={`font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5  ${
                 isShuffle
                   ? 'bg-blue/15 text-blue border-blue/40 font-semibold'
                   : 'text-ink-soft bg-canvas hover:bg-canvas-deep border-line hover:text-ink'
               }`}
             >
-              <svg
-                className="w-3.5 h-3.5 shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="16 3 21 3 21 8" />
-                <line x1="4" y1="20" x2="21" y2="3" />
-                <polyline points="21 16 21 21 16 21" />
-                <line x1="15" y1="15" x2="21" y2="21" />
-                <line x1="4" y1="4" x2="9" y2="9" />
-              </svg>
-              <span className="hidden sm:inline">Shuffle</span>
-              {isShuffle && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue shrink-0 animate-pulse" />
+              {isShuffle ? (
+                <Shuffle className="w-5 h-5 bg-blue" />
+              ) : (
+                <Shuffle className="w-5 h-5" />
               )}
             </button>
           )}
@@ -312,22 +254,9 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   ? 'Save priority queue songs as a new playlist'
                   : 'Save active queue as a new playlist'
               }
-              className="font-mono text-[11px] uppercase tracking-wider text-ink bg-canvas hover:bg-canvas-deep border border-line hover:border-ink/60 px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+              className="font-mono text-xs uppercase tracking-wider text-ink-soft bg-canvas hover:bg-canvas-deep  px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
             >
-              <svg
-                className="w-3 h-3 text-ink-soft shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
-              <span className="hidden sm:inline">Save Queue</span>
+              <CirclePlus className="w-5 h-5" />
             </button>
           )}
 
@@ -338,7 +267,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
               className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer px-2 py-1 rounded transition-colors"
               title="Clear user-queued songs"
             >
-              Clear
+              <Eraser className="w-5 h-5" />
             </button>
           )}
 
@@ -350,28 +279,9 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             className="p-1.5 rounded-md text-ink-soft hover:text-ink hover:bg-canvas cursor-pointer transition-colors"
           >
             {mode === 'mobile' ? (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              <ChevronDown className="w-6 h-6" />
             ) : (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="w-4 h-4"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X className="w-6 h-6" />
             )}
           </button>
         </div>
@@ -397,7 +307,6 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           <div className="flex flex-col gap-2 pt-2">
             <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-bold flex items-center justify-between">
               <span>Now Playing</span>
-              {renderSourceContextBadge()}
             </span>
 
             {currentTrack ? (
@@ -517,11 +426,6 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
               <span className="font-mono text-[11px] uppercase tracking-widest text-ink font-semibold">
                 Next In Queue ({userQueue.length})
               </span>
-              {userQueue.length > 0 && (
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft/70">
-                  Swipe left to remove · Drag to reorder
-                </span>
-              )}
             </div>
 
             {userQueue.length === 0 ? (

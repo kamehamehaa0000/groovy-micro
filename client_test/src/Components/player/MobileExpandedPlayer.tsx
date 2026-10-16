@@ -391,10 +391,7 @@ export function MobileExpandedPlayer() {
           <div
             className={`${CONTENT} flex-1 flex items-center justify-center py-[clamp(8px,2.5dvh,24px)]`}
           >
-            <button
-              type="button"
-              onClick={goToRelease}
-              aria-label={`Open release for ${currentTrack.title}`}
+            <div
               className="rounded-lg overflow-hidden shadow-2xl bg-panel relative flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform shrink-0"
               style={{
                 // Square: limited by screen width (minus gutters), 480px max,
@@ -415,7 +412,7 @@ export function MobileExpandedPlayer() {
                   ♪
                 </div>
               )}
-            </button>
+            </div>
           </div>
 
           {/* Track info + like */}
@@ -826,7 +823,7 @@ export function MobileExpandedPlayer() {
                 </button>
               </div>
 
-              <div className="w-full aspect-[16/9] rounded-lg bg-canvas-deep overflow-hidden relative border border-line/40">
+              <div className="w-full aspect-video rounded-lg bg-canvas-deep overflow-hidden relative border border-line/40">
                 {artistDetails.bannerUrl ? (
                   <img
                     src={artistDetails.bannerUrl}
@@ -1020,7 +1017,7 @@ export function MobileExpandedPlayer() {
                 onClick={() =>
                   navigateToArtist(parsedCredits.primary, navigate, closePlayer)
                 }
-                className="font-medium text-ink hover:text-blue hover:underline cursor-pointer text-right min-w-0 break-words"
+                className="font-medium text-ink hover:text-blue hover:underline cursor-pointer text-right min-w-0 wrap-break-word"
               >
                 {parsedCredits.primary.name}
               </button>
@@ -1029,7 +1026,7 @@ export function MobileExpandedPlayer() {
             {parsedCredits.collaborators.length > 0 && (
               <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
                 <span className="text-ink-soft shrink-0">Featured</span>
-                <span className="font-medium text-ink text-right min-w-0 break-words">
+                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
                   {parsedCredits.collaborators.map((c, idx) => (
                     <span key={c.name + idx}>
                       <button
@@ -1051,7 +1048,7 @@ export function MobileExpandedPlayer() {
             {parsedCredits.producers.length > 0 && (
               <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
                 <span className="text-ink-soft shrink-0">Production</span>
-                <span className="font-medium text-ink text-right min-w-0 break-words">
+                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
                   {parsedCredits.producers.map((p) => p.name).join(', ')}
                 </span>
               </div>
@@ -1060,7 +1057,7 @@ export function MobileExpandedPlayer() {
             {parsedCredits.writers.length > 0 && (
               <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
                 <span className="text-ink-soft shrink-0">Writing</span>
-                <span className="font-medium text-ink text-right min-w-0 break-words">
+                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
                   {parsedCredits.writers.map((w) => w.name).join(', ')}
                 </span>
               </div>
@@ -1069,7 +1066,7 @@ export function MobileExpandedPlayer() {
             {currentTrack.albumTitle && (
               <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
                 <span className="text-ink-soft shrink-0">Release</span>
-                <span className="font-medium text-ink text-right min-w-0 break-words">
+                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
                   {currentTrack.albumTitle}
                 </span>
               </div>
