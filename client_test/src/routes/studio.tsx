@@ -1492,7 +1492,7 @@ function StudioComponent() {
 
   if (isAuthLoading || (user?.role === 'ARTIST' && isLoadingProfile)) {
     return (
-      <div className="py-32 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+      <div className="py-32 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
         Initializing Creator Studio...
       </div>
     )
@@ -1502,7 +1502,7 @@ function StudioComponent() {
 
   if (isLoadingProfile) {
     return (
-      <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+      <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
         Retrieving artist credentials &amp; studio workspace...
       </div>
     )
@@ -1562,7 +1562,7 @@ function StudioComponent() {
           <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
             Launch Your Artist Identity
           </h1>
-          <p className="font-sans text-xs text-muted-foreground mt-2 leading-relaxed">
+          <p className="font-sans text-caption text-muted-foreground mt-2 leading-relaxed">
             Upgrade instantly from a listener account to an official Groovy
             artist profile. Release master tracks, manage your presence, and
             curate your discography.
@@ -1570,7 +1570,7 @@ function StudioComponent() {
         </div>
 
         {errorNotice && (
-          <div className="p-4 mb-6 border border-red-300 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 font-mono text-xs">
+          <div className="p-4 mb-6 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption">
             {errorNotice}
           </div>
         )}
@@ -1579,7 +1579,7 @@ function StudioComponent() {
           <div className="p-6 border border-border bg-card flex flex-col gap-5 shadow-raised">
             <div>
               <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
-                Stage / Ensemble Name <span className="text-red-500">*</span>
+                Stage / Ensemble Name <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -1587,7 +1587,7 @@ function StudioComponent() {
                 value={stageName}
                 onChange={(e) => setStageName(e.target.value)}
                 placeholder="e.g. Hélène Vane, The Cinematic Trio"
-                className="w-full font-serif italic text-base py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
+                className="w-full font-serif italic text-title py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
               />
             </div>
 
@@ -1605,7 +1605,7 @@ function StudioComponent() {
                 value={customSlug}
                 onChange={(e) => setCustomSlug(e.target.value)}
                 placeholder="e.g. helene-vane"
-                className="w-full font-mono text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
+                className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
               />
               <div className="mt-2 font-mono text-eyebrow text-muted-foreground flex items-center gap-1">
                 <span>Public profile URL:</span>
@@ -1624,7 +1624,7 @@ function StudioComponent() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Share your musical background, style, influences, or instruments..."
-                className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors resize-y leading-relaxed"
+                className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors resize-y leading-relaxed"
               />
             </div>
 
@@ -1642,7 +1642,7 @@ function StudioComponent() {
                     value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
                     placeholder="https://instagram.com/..."
-                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
                 <div>
@@ -1654,7 +1654,7 @@ function StudioComponent() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     placeholder="https://yourwebsite.com"
-                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -1666,7 +1666,7 @@ function StudioComponent() {
                     value={spotify}
                     onChange={(e) => setSpotify(e.target.value)}
                     placeholder="https://open.spotify.com/artist/..."
-                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
               </div>
@@ -1676,7 +1676,7 @@ function StudioComponent() {
           <button
             type="submit"
             disabled={isSubmittingUpgrade}
-            className="w-full font-eyebrow text-xs uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+            className="w-full font-eyebrow text-caption uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
           >
             {isSubmittingUpgrade
               ? 'Activating Studio...'
@@ -1696,7 +1696,7 @@ function StudioComponent() {
         <p className="font-serif italic text-lg text-foreground">
           No artist profile detected.
         </p>
-        <p className="font-mono text-xs text-muted-foreground mt-1">
+        <p className="font-mono text-caption text-muted-foreground mt-1">
           Please try refreshing the page.
         </p>
       </div>
@@ -1925,12 +1925,12 @@ function StudioComponent() {
     <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 w-full">
       {/* Toast Alerts */}
       {successNotice && (
-        <div className="p-4 mb-6 border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200 font-mono text-xs shadow-raised">
+        <div className="p-4 mb-6 border border-success/40 bg-success-soft text-success font-mono text-caption shadow-raised">
           {successNotice}
         </div>
       )}
       {errorNotice && (
-        <div className="p-4 mb-6 border border-red-300 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 font-mono text-xs shadow-raised">
+        <div className="p-4 mb-6 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption shadow-raised">
           {errorNotice}
         </div>
       )}
@@ -1949,7 +1949,7 @@ function StudioComponent() {
               <VerifiedBadgeSVG className="w-5 h-5 text-primary" />
             )}
           </div>
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="font-mono text-caption text-muted-foreground">
             @{artistProfile.slug}
           </span>
         </div>
@@ -1967,7 +1967,7 @@ function StudioComponent() {
       </div>
 
       {/* Studio Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-border pb-px mb-8 font-eyebrow text-xs uppercase tracking-wider overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-border pb-px mb-8 font-eyebrow text-caption uppercase tracking-wider overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('releases')}
@@ -2028,7 +2028,7 @@ function StudioComponent() {
               <h2 className="font-serif italic text-2xl text-foreground">
                 Master Releases & Recordings
               </h2>
-              <p className="font-sans text-xs text-muted-foreground mt-0.5">
+              <p className="font-sans text-caption text-muted-foreground mt-0.5">
                 Manage your studio master tapes, published albums, and
                 standalone singles.
               </p>
@@ -2054,7 +2054,7 @@ function StudioComponent() {
             <div className="p-6 border-2 border-border bg-card shadow-md space-y-6">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
-                  <h3 className="font-serif italic text-xl text-foreground">
+                  <h3 className="font-serif italic text-heading text-foreground">
                     {releaseType === 'SINGLE'
                       ? 'Publish Standalone Single Release'
                       : `Publish New Master ${releaseType}`}
@@ -2068,7 +2068,7 @@ function StudioComponent() {
                 <button
                   type="button"
                   onClick={() => setIsCreateReleaseOpen(false)}
-                  className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   ✕ Close
                 </button>
@@ -2085,7 +2085,7 @@ function StudioComponent() {
                       key={type}
                       type="button"
                       onClick={() => setReleaseType(type)}
-                      className={`font-eyebrow text-xs uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
+                      className={`font-eyebrow text-caption uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
                         releaseType === type
                           ? 'border-foreground bg-foreground text-background font-semibold'
                           : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -2128,17 +2128,17 @@ function StudioComponent() {
                     <UploadCloudSVG className="w-5 h-5 text-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-eyebrow text-xs uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
+                    <div className="font-eyebrow text-caption uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
                       <span>✦ Quick Start: Auto-Fill from Audio Metadata</span>
                     </div>
-                    <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                    <p className="font-sans text-caption text-muted-foreground mt-0.5">
                       Drop audio file{releaseType !== 'SINGLE' ? 's' : ''} or browse to auto-extract release title, embedded artwork, track titles, genres, and durations. All prefilled fields remain completely editable.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="font-eyebrow text-xs uppercase tracking-wider py-2 px-3.5 border border-foreground bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
+                  <label className="font-eyebrow text-caption uppercase tracking-wider py-2 px-3.5 border border-foreground bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
                     <span>
                       {isBatchImporting || isUploadingSingleAudio
                         ? 'Extracting & Uploading...'
@@ -2176,7 +2176,7 @@ function StudioComponent() {
                   <div>
                     <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
                       {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
-                      <span className="text-red-500">*</span>
+                      <span className="text-destructive">*</span>
                     </label>
                     <input
                       type="text"
@@ -2188,7 +2188,7 @@ function StudioComponent() {
                           ? 'e.g. Autumn in Saint-Germain'
                           : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
                       }
-                      className="w-full font-serif italic text-base py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
@@ -2200,7 +2200,7 @@ function StudioComponent() {
                       <button
                         type="button"
                         onClick={() => setReleaseMode('IMMEDIATE')}
-                        className={`font-eyebrow text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
+                        className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
                           releaseMode === 'IMMEDIATE'
                             ? 'border-foreground bg-foreground text-background font-semibold'
                             : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -2218,7 +2218,7 @@ function StudioComponent() {
                             setScheduledTime('00:00')
                           }
                         }}
-                        className={`font-eyebrow text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                        className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                           releaseMode === 'SCHEDULED'
                             ? 'border-foreground bg-foreground text-background font-semibold'
                             : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -2238,13 +2238,13 @@ function StudioComponent() {
                       <CalendarIconSVG className="w-3.5 h-3.5" />
                       <span>Scheduled Drop & Pre-Save Configuration</span>
                     </div>
-                    <p className="font-sans text-xs text-muted-foreground">
+                    <p className="font-sans text-caption text-muted-foreground">
                       Specify when your {releaseType.toLowerCase()} officially drops. Listeners can pre-save the release to their library immediately. Full audio playback remains locked until this exact timestamp.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                          Release Date (Local) <span className="text-red-500">*</span>
+                          Release Date (Local) <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="date"
@@ -2252,19 +2252,19 @@ function StudioComponent() {
                           min={new Date().toISOString().split('T')[0]}
                           value={scheduledDate}
                           onChange={(e) => setScheduledDate(e.target.value)}
-                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
                         <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                          Release Time (Local) <span className="text-red-500">*</span>
+                          Release Time (Local) <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="time"
                           required
                           value={scheduledTime}
                           onChange={(e) => setScheduledTime(e.target.value)}
-                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                     </div>
@@ -2305,11 +2305,11 @@ function StudioComponent() {
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-eyebrow text-xs font-semibold uppercase tracking-wider text-foreground">
+                          <span className="font-eyebrow text-caption font-semibold uppercase tracking-wider text-foreground">
                             {opt.label}
                           </span>
                           {releaseVisibility === opt.key && (
-                            <span className="font-mono text-xs text-primary">●</span>
+                            <span className="font-mono text-caption text-primary">●</span>
                           )}
                         </div>
                         <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
@@ -2324,9 +2324,9 @@ function StudioComponent() {
                 <div>
                   <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
                     {releaseType === 'SINGLE' ? 'Single Cover Artwork (Cloudflare R2)' : 'Release Cover Artwork (Cloudflare R2)'}{' '}
-                    <span className="text-red-500">*</span>
+                    <span className="text-destructive">*</span>
                   </label>
-                  <p className="font-sans text-xs text-muted-foreground mb-2">
+                  <p className="font-sans text-caption text-muted-foreground mb-2">
                     Square artwork (1:1 ratio), minimum 1400x1400px recommended (JPEG, PNG, or WebP). Stored on Cloudflare R2 edge CDN.
                   </p>
                   <div className="flex items-center gap-4">
@@ -2364,7 +2364,7 @@ function StudioComponent() {
                           <button
                             type="button"
                             onClick={handleRemoveCover}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
                           >
                             Remove
                           </button>
@@ -2393,7 +2393,7 @@ function StudioComponent() {
                           setReleasePrimaryGenre(e.target.value)
                           setReleaseSubGenre('')
                         }}
-                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       >
                         <option value="">Select Primary Genre...</option>
                         {PRIMARY_GENRES.map((g) => (
@@ -2413,7 +2413,7 @@ function StudioComponent() {
                         value={releaseSubGenre}
                         onChange={(e) => setReleaseSubGenre(e.target.value)}
                         disabled={!releasePrimaryGenre || !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length}
-                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
+                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                       >
                         <option value="">Select Sub-Genre...</option>
                         {releasePrimaryGenre &&
@@ -2484,7 +2484,7 @@ function StudioComponent() {
                           }
                         }}
                         placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       />
                       <button
                         type="button"
@@ -2511,7 +2511,7 @@ function StudioComponent() {
                             <button
                               type="button"
                               onClick={() => setReleaseTags(releaseTags.filter((t) => t !== tag))}
-                              className="text-muted-foreground hover:text-red-500 cursor-pointer ml-1"
+                              className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
                             >
                               ×
                             </button>
@@ -2532,7 +2532,7 @@ function StudioComponent() {
                     value={releaseDescription}
                     onChange={(e) => setReleaseDescription(e.target.value)}
                     placeholder="Recording location, inspiration, gear, or credits..."
-                    className="w-full font-sans text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
+                    className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                   />
                 </div>
 
@@ -2542,7 +2542,7 @@ function StudioComponent() {
                     <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
                       Discussion &amp; Comments
                     </span>
-                    <p className="font-sans text-xs text-muted-foreground">
+                    <p className="font-sans text-caption text-muted-foreground">
                       Allow listeners and curators to post comments and replies on this release.
                     </p>
                   </div>
@@ -2553,7 +2553,7 @@ function StudioComponent() {
                       onChange={(e) => setReleaseAllowComments(e.target.checked)}
                       className="accent-primary w-4 h-4"
                     />
-                    <span className="font-mono text-xs text-foreground font-medium">
+                    <span className="font-mono text-caption text-foreground font-medium">
                       {releaseAllowComments ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
@@ -2572,7 +2572,7 @@ function StudioComponent() {
                         <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-semibold">
                           Master Audio Recording
                         </span>
-                        <label className="font-eyebrow text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
+                        <label className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={singleTrackExplicit}
@@ -2583,13 +2583,13 @@ function StudioComponent() {
                       </div>
 
                       {singleTrackAudioKey || singleTrackAudioUrl ? (
-                        <div className="p-3 border border-green-500/40 bg-green-500/10 flex items-center justify-between gap-3">
+                        <div className="p-3 border border-success/40 bg-success-soft flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-green-600 text-background flex items-center justify-center font-mono text-xs font-bold shrink-0">
+                            <span className="w-5 h-5 rounded-full bg-success text-background flex items-center justify-center font-mono text-caption font-bold shrink-0">
                               ✓
                             </span>
                             <div className="min-w-0">
-                              <div className="font-sans font-semibold text-sm text-foreground truncate">
+                              <div className="font-sans font-semibold text-body text-foreground truncate">
                                 {singleTrackAudioFileName || releaseTitle || 'Master Audio Track'}
                               </div>
                               <div className="font-mono text-eyebrow text-muted-foreground">
@@ -2610,7 +2610,7 @@ function StudioComponent() {
                             <button
                               type="button"
                               onClick={handleResetSingleAudio}
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 bg-card cursor-pointer transition-colors"
+                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
                               title="Remove uploaded audio and select a new file"
                             >
                               ✕ Reset Audio
@@ -2652,7 +2652,7 @@ function StudioComponent() {
                           value={singleTrackGenre}
                           onChange={(e) => setSingleTrackGenre(e.target.value)}
                           placeholder={releasePrimaryGenre || 'e.g. Modern Jazz'}
-                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
@@ -2668,7 +2668,7 @@ function StudioComponent() {
                             setSingleTrackBpm(e.target.value ? Number(e.target.value) : null)
                           }
                           placeholder="e.g. 120"
-                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
@@ -2680,7 +2680,7 @@ function StudioComponent() {
                           value={singleTrackKey}
                           onChange={(e) => setSingleTrackKey(e.target.value)}
                           placeholder="e.g. C min, F# maj"
-                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                     </div>
@@ -2743,8 +2743,8 @@ function StudioComponent() {
                     </div>
 
                     {duplicateNotice && duplicateNotice.count > 0 && (
-                      <div className="p-3 border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2.5 rounded-control animate-in fade-in duration-150">
-                        <span className="font-mono text-xs shrink-0 mt-0.5">⚠️</span>
+                      <div className="p-3 border border-warning/30 bg-warning-soft text-warning text-caption flex items-start gap-2.5 rounded-control animate-in fade-in duration-150">
+                        <span className="font-mono text-caption shrink-0 mt-0.5">⚠️</span>
                         <div className="space-y-0.5 min-w-0 flex-1">
                           <p className="font-sans font-medium">
                             <strong>{duplicateNotice.count}</strong> duplicate cut(s) were automatically detected and excluded:
@@ -2770,7 +2770,7 @@ function StudioComponent() {
                           className="p-3.5 border border-border bg-background space-y-3"
                         >
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-xs text-muted-foreground w-6">
+                            <span className="font-mono text-caption text-muted-foreground w-6">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
 
@@ -2788,7 +2788,7 @@ function StudioComponent() {
                                     ),
                                   )
                                 }}
-                                className="font-serif italic text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <input
@@ -2803,7 +2803,7 @@ function StudioComponent() {
                                     ),
                                   )
                                 }}
-                                className="font-mono text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <div className="flex items-center gap-2">
@@ -2837,7 +2837,7 @@ function StudioComponent() {
                             <div className="flex items-center gap-2 shrink-0">
                               {draft.audioUrl || draft.rawAudioKey ? (
                                 <div className="flex items-center gap-1.5">
-                                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300 flex items-center gap-1">
+                                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
                                     <span>✓</span>
                                     <span>{formatDuration(draft.durationSeconds)}</span>
                                   </span>
@@ -2852,7 +2852,7 @@ function StudioComponent() {
                                   <button
                                     type="button"
                                     onClick={() => handleResetDraftAudio(draft.id)}
-                                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 bg-card cursor-pointer transition-colors"
+                                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
                                     title="Reset audio file for this cut"
                                   >
                                     ✕ Reset
@@ -2881,7 +2881,7 @@ function StudioComponent() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveDraftCut(draft.id)}
-                                  className="p-1 text-muted-foreground hover:text-red-500 cursor-pointer"
+                                  className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
                                   title="Remove Cut"
                                 >
                                   ✕
@@ -2958,7 +2958,7 @@ function StudioComponent() {
                   <button
                     type="submit"
                     disabled={isSubmittingRelease}
-                    className="font-eyebrow text-xs uppercase tracking-widest py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                    className="font-eyebrow text-caption uppercase tracking-widest py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
                   >
                     {isSubmittingRelease ? (
                       <span>
@@ -2980,7 +2980,7 @@ function StudioComponent() {
                   <button
                     type="button"
                     onClick={() => setIsCreateReleaseOpen(false)}
-                    className="font-eyebrow text-xs uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="font-eyebrow text-caption uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2996,13 +2996,13 @@ function StudioComponent() {
             </h3>
 
             {isLoadingReleases ? (
-              <div className="p-8 text-center font-mono text-xs text-muted-foreground animate-pulse">
+              <div className="p-8 text-center font-mono text-caption text-muted-foreground animate-pulse">
                 Querying studio releases...
               </div>
             ) : albums.length === 0 ? (
               <div className="p-10 border border-dashed border-border bg-card text-center">
                 <DiscIconSVG className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-                <p className="font-serif italic text-base text-foreground">
+                <p className="font-serif italic text-title text-foreground">
                   No active master releases yet
                 </p>
                 <p className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-1">
@@ -3060,11 +3060,11 @@ function StudioComponent() {
                                   </span>
                                 </span>
                               ) : album.status === 'DRAFT' ? (
-                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold">
+                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-warning/40 bg-warning-soft text-warning font-semibold">
                                   Draft
                                 </span>
                               ) : (
-                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold">
+                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-success/40 bg-success-soft text-success font-semibold">
                                   Published
                                 </span>
                               )}
@@ -3081,9 +3081,9 @@ function StudioComponent() {
                                   }
                                   className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 border cursor-pointer focus:outline-none font-semibold ${
                                     album.visibility === 'UNLISTED'
-                                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300'
+                                      ? 'border-info/40 bg-info-soft text-info'
                                       : album.visibility === 'PRIVATE'
-                                        ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
+                                        ? 'border-destructive/40 bg-destructive-soft text-destructive'
                                         : 'border-border bg-background text-muted-foreground hover:text-foreground'
                                   }`}
                                   title="Change release visibility tier"
@@ -3109,7 +3109,7 @@ function StudioComponent() {
                                   : 'Recent'}
                               </span>
                             </div>
-                            <h4 className="font-sans font-semibold text-base sm:text-lg text-foreground truncate mt-0.5">
+                            <h4 className="font-sans font-semibold text-title sm:text-lg text-foreground truncate mt-0.5">
                               {album.title}
                             </h4>
                             <div className="font-mono text-eyebrow text-muted-foreground">
@@ -3130,7 +3130,7 @@ function StudioComponent() {
                                 navigator.clipboard.writeText(shareUrl)
                                 setSuccessNotice(`Copied secret share link for "${album.title}"!`)
                               }}
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 cursor-pointer transition-colors"
+                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors"
                               title="Copy secret link with share token"
                             >
                               Copy Secret Link
@@ -3174,7 +3174,7 @@ function StudioComponent() {
                                 album.totalTracks || tracks.length || 1,
                               )
                             }
-                            className="p-1.5 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
+                            className="p-1.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
                             title="Move to 30-Day Trash"
                           >
                             <TrashIconSVG className="w-3.5 h-3.5" />
@@ -3190,11 +3190,11 @@ function StudioComponent() {
                           </span>
 
                           {isLoadingAlbumTracks && tracks.length === 0 ? (
-                            <div className="font-mono text-xs text-muted-foreground animate-pulse">
+                            <div className="font-mono text-caption text-muted-foreground animate-pulse">
                               Loading tracks...
                             </div>
                           ) : tracks.length === 0 ? (
-                            <div className="font-sans text-xs text-muted-foreground italic">
+                            <div className="font-sans text-caption text-muted-foreground italic">
                               No tracks in this album.
                             </div>
                           ) : (
@@ -3202,7 +3202,7 @@ function StudioComponent() {
                               {tracks.map((track, i) => (
                                 <div
                                   key={track.id}
-                                  className="p-2.5 flex items-center justify-between text-xs gap-3"
+                                  className="p-2.5 flex items-center justify-between text-caption gap-3"
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0">
                                     <span className="font-mono text-eyebrow text-muted-foreground w-5">
@@ -3210,7 +3210,7 @@ function StudioComponent() {
                                         track.trackNumber || i + 1,
                                       ).padStart(2, '0')}
                                     </span>
-                                    <span className="font-sans font-medium text-xs text-foreground truncate">
+                                    <span className="font-sans font-medium text-caption text-foreground truncate">
                                       {track.title}
                                     </span>
                                     {track.isExplicit && (
@@ -3248,7 +3248,7 @@ function StudioComponent() {
                                           tracks.length,
                                         )
                                       }
-                                      className="p-1 text-muted-foreground hover:text-red-500 cursor-pointer"
+                                      className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
                                       title="Trash track"
                                     >
                                       <TrashIconSVG className="w-3 h-3" />
@@ -3274,7 +3274,7 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {activeTab === 'trash' && (
         <div className="space-y-6">
-          <div className="p-4 border border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 font-sans text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 border border-warning/40 bg-warning-soft text-warning font-sans text-caption flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="font-eyebrow text-eyebrow uppercase tracking-widest font-semibold block mb-0.5">
                 30-Day Recovery Guarantee
@@ -3290,7 +3290,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isPurging}
                 onClick={() => setTrashConfirm({ type: 'empty' })}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors font-semibold cursor-pointer shrink-0"
+                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-destructive/40 bg-destructive-soft hover:bg-destructive/20 text-destructive transition-colors font-semibold cursor-pointer shrink-0"
               >
                 {isPurging ? 'Emptying...' : 'Empty Trash'}
               </button>
@@ -3303,11 +3303,11 @@ function StudioComponent() {
             </h3>
 
             {isLoadingTrash ? (
-              <div className="p-6 text-center font-mono text-xs text-muted-foreground animate-pulse">
+              <div className="p-6 text-center font-mono text-caption text-muted-foreground animate-pulse">
                 Loading trash archive...
               </div>
             ) : trashAlbums.length === 0 ? (
-              <div className="p-6 border border-border bg-card text-center font-mono text-xs text-muted-foreground">
+              <div className="p-6 border border-border bg-card text-center font-mono text-caption text-muted-foreground">
                 Trash is empty. No deleted albums found.
               </div>
             ) : (
@@ -3322,7 +3322,7 @@ function StudioComponent() {
                         <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground">
                           {album.albumType}
                         </span>
-                        <h4 className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
+                        <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate">
                           {album.title}
                         </h4>
                       </div>
@@ -3353,7 +3353,7 @@ function StudioComponent() {
                             title: album.title,
                           })
                         }
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold cursor-pointer transition-colors"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
                       >
                         Delete Forever
                       </button>
@@ -3378,7 +3378,7 @@ function StudioComponent() {
                     className="p-3 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
-                      <span className="font-sans font-semibold text-sm text-foreground truncate block">
+                      <span className="font-sans font-semibold text-body text-foreground truncate block">
                         {song.title}
                       </span>
                       <span className="font-mono text-eyebrow text-muted-foreground">
@@ -3408,7 +3408,7 @@ function StudioComponent() {
                             title: song.title,
                           })
                         }
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-red-500/40 hover:bg-red-500/10 text-red-600 dark:text-red-400 font-semibold cursor-pointer transition-colors"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
                       >
                         Delete Forever
                       </button>
@@ -3431,10 +3431,10 @@ function StudioComponent() {
           <div className="p-6 border border-border bg-card shadow-raised">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
               <div>
-                <h2 className="font-serif italic text-xl text-foreground">
+                <h2 className="font-serif italic text-heading text-foreground">
                   Artist Avatar / Profile Picture
                 </h2>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                <p className="font-sans text-caption text-muted-foreground mt-0.5">
                   Square profile artwork used for artist credits, jam sessions, and search results.
                 </p>
               </div>
@@ -3445,7 +3445,7 @@ function StudioComponent() {
                     type="button"
                     disabled={isUploadingAvatar}
                     onClick={handleRemoveAvatar}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-red-500/40 hover:text-red-500 text-muted-foreground transition-colors cursor-pointer disabled:opacity-50"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground transition-colors cursor-pointer disabled:opacity-50"
                   >
                     Remove
                   </button>
@@ -3491,8 +3491,8 @@ function StudioComponent() {
                 )}
               </div>
 
-              <div className="font-mono text-xs text-muted-foreground space-y-1">
-                <div className="text-foreground font-serif italic text-base">
+              <div className="font-mono text-caption text-muted-foreground space-y-1">
+                <div className="text-foreground font-serif italic text-title">
                   {artistProfile.stageName}
                 </div>
                 <p className="text-eyebrow text-muted-foreground/80">
@@ -3506,10 +3506,10 @@ function StudioComponent() {
           <div className="p-6 border border-border bg-card shadow-raised">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
-                <h2 className="font-serif italic text-xl text-foreground">
+                <h2 className="font-serif italic text-heading text-foreground">
                   Artist Profile Banner
                 </h2>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                <p className="font-sans text-caption text-muted-foreground mt-0.5">
                   Panoramic cover displayed across your public artist page. Interactive cropping and framing preview is provided before upload.
                 </p>
               </div>
@@ -3542,13 +3542,13 @@ function StudioComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground font-mono text-xs">
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground font-mono text-caption">
                   <UploadCloudSVG className="w-8 h-8 opacity-40 mb-2" />
                   <span>No banner uploaded yet</span>
                 </div>
               )}
               {isUploadingBanner && (
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center font-mono text-xs text-foreground animate-pulse">
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center font-mono text-caption text-foreground animate-pulse">
                   Transferring asset to Cloudflare R2 storage...
                 </div>
               )}
@@ -3559,10 +3559,10 @@ function StudioComponent() {
           <div className="p-6 border border-border bg-card shadow-raised">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
               <div>
-                <h2 className="font-serif italic text-xl text-foreground">
+                <h2 className="font-serif italic text-heading text-foreground">
                   Identity & Presentation
                 </h2>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                <p className="font-sans text-caption text-muted-foreground mt-0.5">
                   Customize your public stage name, biography, and external links.
                 </p>
               </div>
@@ -3590,7 +3590,7 @@ function StudioComponent() {
                       required
                       value={editStageName}
                       onChange={(e) => setEditStageName(e.target.value)}
-                      className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      className="w-full font-serif italic text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
@@ -3603,7 +3603,7 @@ function StudioComponent() {
                       required
                       value={editSlug}
                       onChange={(e) => setEditSlug(e.target.value)}
-                      className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
                 </div>
@@ -3616,7 +3616,7 @@ function StudioComponent() {
                     rows={4}
                     value={editBio}
                     onChange={(e) => setEditBio(e.target.value)}
-                    className="w-full font-sans text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
+                    className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                   />
                 </div>
 
@@ -3630,7 +3630,7 @@ function StudioComponent() {
                       value={editInstagram}
                       onChange={(e) => setEditInstagram(e.target.value)}
                       placeholder="https://instagram.com/..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
+                      className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
@@ -3642,7 +3642,7 @@ function StudioComponent() {
                       value={editWebsite}
                       onChange={(e) => setEditWebsite(e.target.value)}
                       placeholder="https://..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
+                      className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
@@ -3654,7 +3654,7 @@ function StudioComponent() {
                       value={editSpotify}
                       onChange={(e) => setEditSpotify(e.target.value)}
                       placeholder="https://open.spotify.com/..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
+                      className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                 </div>
@@ -3677,7 +3677,7 @@ function StudioComponent() {
                 </div>
               </form>
             ) : (
-              <div className="flex flex-col gap-4 text-xs font-sans text-foreground">
+              <div className="flex flex-col gap-4 text-caption font-sans text-foreground">
                 <div>
                   <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
                     Biography
@@ -3742,21 +3742,21 @@ function StudioComponent() {
                         </span>
                       ) : (
                         <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground bg-background border border-border px-2 py-0.5 rounded-control flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-success" />
                           <span>Active: Automatic Latest Drop</span>
                         </span>
                       )}
                       {isSpotlightDirty && (
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-control flex items-center gap-1 font-semibold animate-pulse">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning bg-warning-soft border border-warning/30 px-2 py-0.5 rounded-control flex items-center gap-1 font-semibold animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-warning" />
                           <span>Unsaved Changes</span>
                         </span>
                       )}
                     </div>
-                    <h2 className="font-serif italic text-xl text-foreground">
+                    <h2 className="font-serif italic text-heading text-foreground">
                       Artist Pick &amp; Spotlight
                     </h2>
-                    <p className="font-sans text-xs text-muted-foreground mt-0.5 max-w-xl">
+                    <p className="font-sans text-caption text-muted-foreground mt-0.5 max-w-xl">
                       Feature a chosen release and personal note at the top of your public artist profile. When none is selected, your newest release is showcased automatically.
                     </p>
                   </div>
@@ -3766,7 +3766,7 @@ function StudioComponent() {
                       type="button"
                       disabled={isSavingSpotlight}
                       onClick={handleClearSpotlight}
-                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-red-400 hover:text-red-500 text-muted-foreground transition-colors cursor-pointer self-start sm:self-auto rounded-control shrink-0"
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground transition-colors cursor-pointer self-start sm:self-auto rounded-control shrink-0"
                     >
                       Reset to Latest Release
                     </button>
@@ -3775,9 +3775,9 @@ function StudioComponent() {
 
                 {/* Inline Confirmation Alert Strip */}
                 {spotlightStatus === 'saved' && (
-                  <div className="flex items-center justify-between gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700/50 rounded-control text-emerald-800 dark:text-emerald-200 font-mono text-xs shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center justify-between gap-3 p-3.5 bg-success-soft border border-success/40 rounded-control text-success font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                      <span className="w-5 h-5 rounded-full bg-success text-success-foreground flex items-center justify-center shrink-0 font-bold text-caption">
                         ✓
                       </span>
                       <div className="min-w-0">
@@ -3792,7 +3792,7 @@ function StudioComponent() {
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: artistProfile.slug }}
                         target="_blank"
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-emerald-400 dark:border-emerald-600 bg-white/50 dark:bg-black/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-control transition-colors shrink-0 flex items-center gap-1"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-success bg-background/50 hover:bg-success/20 rounded-control transition-colors shrink-0 flex items-center gap-1"
                       >
                         <span>View Live</span>
                         <ExternalLinkSVG className="w-2.5 h-2.5" />
@@ -3802,8 +3802,8 @@ function StudioComponent() {
                 )}
 
                 {spotlightStatus === 'cleared' && (
-                  <div className="flex items-center gap-2.5 p-3.5 bg-primary/10 border border-primary/30 rounded-control text-primary font-mono text-xs shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div className="flex items-center gap-2.5 p-3.5 bg-primary/10 border border-primary/30 rounded-control text-primary font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-caption">
                       ✓
                     </span>
                     <div>
@@ -3816,8 +3816,8 @@ function StudioComponent() {
                 )}
 
                 {spotlightStatus === 'error' && (
-                  <div className="flex items-center gap-2.5 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-700/50 rounded-control text-red-700 dark:text-red-300 font-mono text-xs shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div className="flex items-center gap-2.5 p-3.5 bg-destructive-soft border border-destructive/40 rounded-control text-destructive font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shrink-0 font-bold text-caption">
                       ✕
                     </span>
                     <div>
@@ -3849,7 +3849,7 @@ function StudioComponent() {
                           setSpotlightReleaseId(e.target.value)
                           setSpotlightStatus('idle')
                         }}
-                        className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-control transition-colors"
+                        className="w-full font-serif italic text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-control transition-colors"
                       >
                         <option value="">
                           -- Automatic Default: Always show latest release --
@@ -3870,7 +3870,7 @@ function StudioComponent() {
                           : 'Dynamic mode: Groovy automatically presents your newest published drop.'}
                       </p>
                       {albums.length === 0 && !isLoadingReleases && (
-                        <p className="font-mono text-eyebrow text-amber-600 dark:text-amber-400 mt-1">
+                        <p className="font-mono text-eyebrow text-warning mt-1">
                           No published releases found yet. Upload a single or album in the Releases tab to feature it here.
                         </p>
                       )}
@@ -3886,7 +3886,7 @@ function StudioComponent() {
                           <span
                             className={`font-mono text-eyebrow ${
                               spotlightComment.length > 250
-                                ? 'text-amber-500 font-semibold'
+                                ? 'text-warning font-semibold'
                                 : 'text-muted-foreground'
                             }`}
                           >
@@ -3909,7 +3909,7 @@ function StudioComponent() {
                               ? 'e.g. Turn the volume up! Celebrating our new drop with you all.'
                               : 'Select a specific release first to add a custom quote'
                           }
-                          className="w-full font-sans text-xs py-2 pl-3 pr-8 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50 disabled:bg-muted rounded-control transition-colors"
+                          className="w-full font-sans text-caption py-2 pl-3 pr-8 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50 disabled:bg-muted rounded-control transition-colors"
                         />
                         {spotlightReleaseId && spotlightComment && (
                           <button
@@ -3918,7 +3918,7 @@ function StudioComponent() {
                               setSpotlightComment('')
                               setSpotlightStatus('idle')
                             }}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs font-mono cursor-pointer"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-caption font-mono cursor-pointer"
                             title="Clear note"
                           >
                             ✕
@@ -3945,7 +3945,7 @@ function StudioComponent() {
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-2">
                             Public Profile Live Preview
                           </span>
-                          <div className="max-w-md border border-dashed border-border rounded-md bg-background/40 p-5 text-center text-muted-foreground font-mono text-xs">
+                          <div className="max-w-md border border-dashed border-border rounded-md bg-background/40 p-5 text-center text-muted-foreground font-mono text-caption">
                             Upload a release to preview the spotlight card here.
                           </div>
                         </div>
@@ -3995,7 +3995,7 @@ function StudioComponent() {
                           </div>
 
                           {spotlightReleaseId && spotlightComment.trim() && (
-                            <p className="font-serif italic text-xs text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control border border-border-soft">
+                            <p className="font-serif italic text-caption text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control border border-border-soft">
                               "{spotlightComment.trim()}"
                             </p>
                           )}
@@ -4018,7 +4018,7 @@ function StudioComponent() {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
+                              <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate">
                                 {previewRelease.title}
                               </h4>
                               <p className="font-mono text-eyebrow text-muted-foreground truncate mt-0.5">
@@ -4042,7 +4042,7 @@ function StudioComponent() {
                       disabled={isSavingSpotlight}
                       className={`font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 transition-all cursor-pointer rounded-control flex items-center gap-2 ${
                         spotlightStatus === 'saved'
-                          ? 'bg-emerald-600 text-white border border-emerald-500 shadow-sm'
+                          ? 'bg-success text-success-foreground border border-success shadow-sm'
                           : isSpotlightDirty
                             ? 'bg-foreground text-background hover:bg-primary hover:text-primary-foreground shadow-sm'
                             : 'bg-foreground text-background hover:opacity-90'
@@ -4060,7 +4060,7 @@ function StudioComponent() {
                       ) : isSpotlightDirty ? (
                         <>
                           <span>Save Artist Pick</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
                         </>
                       ) : (
                         <span>Save Artist Pick</span>
@@ -4091,10 +4091,10 @@ function StudioComponent() {
       {activeTab === 'verification' && (
         <div className="p-6 border border-border bg-card shadow-raised">
           <div className="mb-6 pb-4 border-b border-border-soft">
-            <h2 className="font-serif italic text-xl text-foreground">
+            <h2 className="font-serif italic text-heading text-foreground">
               Creator Verification
             </h2>
-            <p className="font-sans text-xs text-muted-foreground mt-0.5">
+            <p className="font-sans text-caption text-muted-foreground mt-0.5">
               Verified badges certify official recording artists and unlock
               prominent catalog placement.
             </p>
@@ -4104,10 +4104,10 @@ function StudioComponent() {
             <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
               <VerifiedBadgeSVG className="w-8 h-8 text-primary shrink-0" />
               <div>
-                <h3 className="font-serif italic text-base text-foreground">
+                <h3 className="font-serif italic text-title text-foreground">
                   Officially Verified Artist
                 </h3>
-                <p className="font-sans text-xs text-muted-foreground mt-0.5">
+                <p className="font-sans text-caption text-muted-foreground mt-0.5">
                   Your artist profile has been verified by the administration desk.
                   The verified emblem is active on your public profile and catalog
                   releases.
@@ -4115,36 +4115,36 @@ function StudioComponent() {
               </div>
             </div>
           ) : artistProfile.verificationStatus === 'PENDING' ? (
-            <div className="p-6 border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 flex flex-col gap-3">
+            <div className="p-6 border border-warning/40 bg-warning-soft flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-                <h3 className="font-serif italic text-base text-foreground">
+                <span className="w-2.5 h-2.5 rounded-full bg-warning animate-ping" />
+                <h3 className="font-serif italic text-title text-foreground">
                   Application Under Review
                 </h3>
               </div>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+              <p className="font-sans text-caption text-muted-foreground leading-relaxed">
                 Your verification application was received and is queued for
                 administrative audit. Proof links and official artist identities
                 are usually reviewed within 24-48 hours.
               </p>
               {artistProfile.verificationDetails?.message && (
-                <div className="mt-2 p-3 border border-border-soft bg-background/60 font-sans text-xs text-muted-foreground italic">
+                <div className="mt-2 p-3 border border-border-soft bg-background/60 font-sans text-caption text-muted-foreground italic">
                   "{artistProfile.verificationDetails.message}"
                 </div>
               )}
             </div>
           ) : artistProfile.verificationStatus === 'REJECTED' &&
             !showResubmitForm ? (
-            <div className="p-6 border border-red-300/60 bg-red-50/40 dark:bg-red-950/10 flex flex-col gap-4">
+            <div className="p-6 border border-destructive/60 bg-destructive-soft flex flex-col gap-4">
               <div>
-                <h3 className="font-serif italic text-base text-red-600 dark:text-red-400">
+                <h3 className="font-serif italic text-title text-destructive">
                   Application Needs Revision
                 </h3>
-                <p className="font-sans text-xs text-muted-foreground mt-1">
+                <p className="font-sans text-caption text-muted-foreground mt-1">
                   The administrative review requested adjustments to your
                   verification materials:
                 </p>
-                <div className="mt-2 p-3 border border-red-200 dark:border-red-900/40 bg-background font-mono text-xs text-red-700 dark:text-red-300">
+                <div className="mt-2 p-3 border border-destructive/40 bg-background font-mono text-caption text-destructive">
                   {artistProfile.rejectionReason ||
                     'Please provide verifiable official links.'}
                 </div>
@@ -4174,7 +4174,7 @@ function StudioComponent() {
               <div>
                 <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
                   Verification Pitch / Artist Background{' '}
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   required
@@ -4182,7 +4182,7 @@ function StudioComponent() {
                   value={verifyPitch}
                   onChange={(e) => setVerifyPitch(e.target.value)}
                   placeholder="Briefly describe your musical career, past releases, live performances, or label affiliations..."
-                  className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
+                  className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                 />
               </div>
 
@@ -4196,7 +4196,7 @@ function StudioComponent() {
                     value={verifyContactEmail}
                     onChange={(e) => setVerifyContactEmail(e.target.value)}
                     placeholder="artist@example.com"
-                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
                 <div>
@@ -4208,7 +4208,7 @@ function StudioComponent() {
                     value={verifyContactPhone}
                     onChange={(e) => setVerifyContactPhone(e.target.value)}
                     placeholder="+1 555-0199"
-                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
               </div>
@@ -4216,9 +4216,9 @@ function StudioComponent() {
               <div>
                 <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
                   Official Proof & Portfolio Links{' '}
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </label>
-                <p className="font-sans text-xs text-muted-foreground mb-3">
+                <p className="font-sans text-caption text-muted-foreground mb-3">
                   Include links to verified Spotify, Apple Music, Bandcamp,
                   official website, or press articles.
                 </p>
@@ -4236,7 +4236,7 @@ function StudioComponent() {
                           setVerifyLinks(copy)
                         }}
                         placeholder="https://open.spotify.com/artist/..."
-                        className="flex-1 font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                        className="flex-1 font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                       />
                       {verifyLinks.length > 1 && (
                         <button
@@ -4246,7 +4246,7 @@ function StudioComponent() {
                               verifyLinks.filter((_, i) => i !== idx),
                             )
                           }}
-                          className="font-mono text-xs py-2 px-3 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
+                          className="font-mono text-caption py-2 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
                         >
                           Remove
                         </button>
@@ -4300,7 +4300,7 @@ function StudioComponent() {
                 <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block">
                   Catalog Action &bull; Spin-off Single
                 </span>
-                <h3 className="font-serif italic text-xl text-foreground">
+                <h3 className="font-serif italic text-heading text-foreground">
                   Detach Cut
                 </h3>
               </div>
@@ -4308,13 +4308,13 @@ function StudioComponent() {
                 type="button"
                 onClick={handleCloseDetachModal}
                 disabled={isSubmittingDetach}
-                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
               >
                 ✕ Close
               </button>
             </div>
 
-            <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            <p className="font-sans text-caption text-muted-foreground leading-relaxed">
               Detaching <strong className="text-foreground font-medium font-serif italic">"{detachModalData.song.title}"</strong> from <strong className="text-foreground font-medium font-serif italic">{detachModalData.parentAlbum.title}</strong> will turn it into an independent standalone <span className="font-mono text-eyebrow font-semibold text-foreground">SINGLE</span> release.
             </p>
 
@@ -4366,7 +4366,7 @@ function StudioComponent() {
                           if (detachCoverInputRef.current)
                             detachCoverInputRef.current.value = ''
                         }}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
                       >
                         Revert to Album Art
                       </button>
@@ -4423,14 +4423,14 @@ function StudioComponent() {
                 type="button"
                 onClick={handleCloseEditModal}
                 disabled={isSavingRelease}
-                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
               >
                 ✕ Close
               </button>
             </div>
 
             {isLoadingEditData ? (
-              <div className="py-16 text-center font-mono text-xs text-muted-foreground animate-pulse">
+              <div className="py-16 text-center font-mono text-caption text-muted-foreground animate-pulse">
                 Loading release details, master cuts &amp; collaborator credits...
               </div>
             ) : (
@@ -4439,7 +4439,7 @@ function StudioComponent() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="sm:col-span-2">
                     <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Release Title <span className="text-red-500">*</span>
+                      Release Title <span className="text-destructive">*</span>
                     </label>
                     <input
                       type="text"
@@ -4447,7 +4447,7 @@ function StudioComponent() {
                       value={editReleaseTitle}
                       onChange={(e) => setEditReleaseTitle(e.target.value)}
                       placeholder="Release title"
-                      className="w-full font-serif italic text-base py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
@@ -4458,7 +4458,7 @@ function StudioComponent() {
                     <select
                       value={editReleaseType}
                       onChange={(e) => setEditReleaseType(e.target.value as AlbumType)}
-                      className="w-full font-mono text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     >
                       {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
                         <option key={type} value={type}>
@@ -4483,7 +4483,7 @@ function StudioComponent() {
                           setEditReleasePrimaryGenre(e.target.value)
                           setEditReleaseSubGenre('')
                         }}
-                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       >
                         <option value="">Select Primary Genre...</option>
                         {PRIMARY_GENRES.map((g) => (
@@ -4506,7 +4506,7 @@ function StudioComponent() {
                         value={editReleaseSubGenre}
                         onChange={(e) => setEditReleaseSubGenre(e.target.value)}
                         disabled={!editReleasePrimaryGenre || !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.length}
-                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
+                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                       >
                         <option value="">Select Sub-Genre...</option>
                         {editReleasePrimaryGenre &&
@@ -4577,7 +4577,7 @@ function StudioComponent() {
                           }
                         }}
                         placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       />
                       <button
                         type="button"
@@ -4604,7 +4604,7 @@ function StudioComponent() {
                             <button
                               type="button"
                               onClick={() => setEditReleaseTags(editReleaseTags.filter((t) => t !== tag))}
-                              className="text-muted-foreground hover:text-red-500 cursor-pointer ml-1"
+                              className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
                             >
                               ×
                             </button>
@@ -4672,7 +4672,7 @@ function StudioComponent() {
                       onClick={() => setEditReleaseVisibility('PUBLIC')}
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'PUBLIC'
-                          ? 'border-emerald-500/60 bg-emerald-500/10 dark:bg-emerald-950/20'
+                          ? 'border-success/60 bg-success-soft'
                           : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
@@ -4689,7 +4689,7 @@ function StudioComponent() {
                       onClick={() => setEditReleaseVisibility('UNLISTED')}
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'UNLISTED'
-                          ? 'border-purple-500/60 bg-purple-500/10 dark:bg-purple-950/20'
+                          ? 'border-info/60 bg-info-soft'
                           : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
@@ -4706,12 +4706,12 @@ function StudioComponent() {
                       onClick={() => setEditReleaseVisibility('PRIVATE')}
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'PRIVATE'
-                          ? 'border-red-500/60 bg-red-500/10 dark:bg-red-950/20'
+                          ? 'border-destructive/60 bg-destructive-soft'
                           : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
                       <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
-                        <LockIconSVG className="w-3 h-3 text-red-500" />
+                        <LockIconSVG className="w-3 h-3 text-destructive" />
                         <span>Private</span>
                       </div>
                       <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
@@ -4721,7 +4721,7 @@ function StudioComponent() {
                   </div>
 
                   {editReleaseVisibility === 'UNLISTED' && editingAlbum.shareToken && (
-                    <div className="p-3 border border-purple-500/30 bg-purple-500/5 flex items-center justify-between gap-3 mt-2">
+                    <div className="p-3 border border-info/30 bg-info-soft flex items-center justify-between gap-3 mt-2">
                       <div className="min-w-0 font-mono text-eyebrow text-foreground truncate">
                         <span className="text-muted-foreground">Secret Link: </span>
                         <span className="underline">
@@ -4735,7 +4735,7 @@ function StudioComponent() {
                           navigator.clipboard.writeText(url)
                           setSuccessNotice('Copied secret share link to clipboard!')
                         }}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 shrink-0 cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-info/40 bg-info-soft text-info hover:bg-info/20 shrink-0 cursor-pointer"
                       >
                         Copy Link
                       </button>
@@ -4752,7 +4752,7 @@ function StudioComponent() {
                     <button
                       type="button"
                       onClick={() => setEditReleaseMode('IMMEDIATE')}
-                      className={`font-eyebrow text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
+                      className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
                         editReleaseMode === 'IMMEDIATE'
                           ? 'border-foreground bg-foreground text-background font-semibold'
                           : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -4770,7 +4770,7 @@ function StudioComponent() {
                           setEditReleaseTime('00:00')
                         }
                       }}
-                      className={`font-eyebrow text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                      className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                         editReleaseMode === 'SCHEDULED'
                           ? 'border-foreground bg-foreground text-background font-semibold'
                           : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -4793,7 +4793,7 @@ function StudioComponent() {
                             min={new Date().toISOString().split('T')[0]}
                             value={editReleaseDate}
                             onChange={(e) => setEditReleaseDate(e.target.value)}
-                            className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                           />
                         </div>
                         <div>
@@ -4804,7 +4804,7 @@ function StudioComponent() {
                             type="time"
                             value={editReleaseTime}
                             onChange={(e) => setEditReleaseTime(e.target.value)}
-                            className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
+                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                           />
                         </div>
                       </div>
@@ -4825,7 +4825,7 @@ function StudioComponent() {
                     value={editReleaseDescription}
                     onChange={(e) => setEditReleaseDescription(e.target.value)}
                     placeholder="Liner notes, studio sessions, recording personnel, narrative..."
-                    className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
+                    className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                   />
                 </div>
 
@@ -4835,7 +4835,7 @@ function StudioComponent() {
                     <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
                       Discussion &amp; Comments
                     </span>
-                    <p className="font-sans text-xs text-muted-foreground">
+                    <p className="font-sans text-caption text-muted-foreground">
                       Allow listeners and curators to post comments and replies on this release.
                     </p>
                   </div>
@@ -4846,7 +4846,7 @@ function StudioComponent() {
                       onChange={(e) => setEditReleaseAllowComments(e.target.checked)}
                       className="accent-primary w-4 h-4"
                     />
-                    <span className="font-mono text-xs text-foreground font-medium">
+                    <span className="font-mono text-caption text-foreground font-medium">
                       {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
@@ -4871,7 +4871,7 @@ function StudioComponent() {
                           className="p-3.5 border border-border bg-background space-y-3"
                         >
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-xs text-muted-foreground w-6">
+                            <span className="font-mono text-caption text-muted-foreground w-6">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
 
@@ -4889,7 +4889,7 @@ function StudioComponent() {
                                   )
                                 }}
                                 placeholder="Cut Title"
-                                className="font-serif italic text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <input
@@ -4904,7 +4904,7 @@ function StudioComponent() {
                                   )
                                 }}
                                 placeholder="Genre (e.g. Ambient)"
-                                className="font-mono text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <div className="flex items-center gap-2">
@@ -5028,7 +5028,7 @@ function StudioComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
           <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
@@ -5037,7 +5037,7 @@ function StudioComponent() {
                     ? 'Move Release to Trash?'
                     : 'Move Master Track to Trash?'}
                 </h4>
-                <p className="font-sans text-xs text-muted-foreground mt-1 leading-relaxed">
+                <p className="font-sans text-caption text-muted-foreground mt-1 leading-relaxed">
                   {deleteConfirm.type === 'album' ? (
                     <>
                       Are you sure you want to move{' '}
@@ -5073,7 +5073,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isDeletingItem}
                 onClick={() => setDeleteConfirm(null)}
-                className="font-eyebrow text-xs uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
+                className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -5081,7 +5081,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isDeletingItem}
                 onClick={confirmSoftDelete}
-                className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs"
+                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs"
               >
                 {isDeletingItem ? 'Moving...' : 'Move to Trash'}
               </button>
@@ -5095,7 +5095,7 @@ function StudioComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
           <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
@@ -5106,7 +5106,7 @@ function StudioComponent() {
                       ? 'Permanently Delete Release?'
                       : 'Permanently Delete Master Cut?'}
                 </h4>
-                <p className="font-sans text-xs text-muted-foreground mt-1 leading-relaxed">
+                <p className="font-sans text-caption text-muted-foreground mt-1 leading-relaxed">
                   {trashConfirm.type === 'empty'
                     ? 'Are you sure you want to permanently delete all items in the studio trash? All associated master audio recordings and artwork will be permanently purged from cloud storage. This action cannot be undone.'
                     : trashConfirm.type === 'permanent_release'
@@ -5121,7 +5121,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isPurging}
                 onClick={() => setTrashConfirm(null)}
-                className="font-eyebrow text-xs uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
+                className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -5143,7 +5143,7 @@ function StudioComponent() {
                     handlePermanentDeleteSong(trashConfirm.id)
                   }
                 }}
-                className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer font-semibold shadow-xs"
+                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs"
               >
                 {isPurging ? 'Deleting...' : 'Delete Forever'}
               </button>
@@ -5189,11 +5189,11 @@ function StudioComponent() {
           aria-live="polite"
           className={`fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 font-eyebrow text-eyebrow uppercase tracking-wider py-3 px-6 shadow-2xl rounded-control pointer-events-none transition-all duration-200 border flex items-center gap-3 max-w-[92vw] text-center backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 ${
             errorNotice
-              ? 'bg-red-950/95 text-red-100 border-red-500/50'
-              : 'bg-emerald-950/95 text-emerald-100 border-emerald-500/50'
+              ? 'bg-destructive text-destructive-foreground border-destructive/50'
+              : 'bg-success text-success-foreground border-success/50'
           }`}
         >
-          <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-white/20">
+          <span className="w-4 h-4 rounded-full flex items-center justify-center text-caption font-bold shrink-0 bg-background/25">
             {errorNotice ? '✕' : '✓'}
           </span>
           <span className="truncate">{errorNotice || successNotice}</span>

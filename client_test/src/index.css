@@ -56,11 +56,14 @@
   --ring: #1b5fa6;
 
   /* extensions — state shadcn does not ship */
-  --success: #1ed760;
-  --success-foreground: #052e16; /* extension — text/icons placed ON --success */
+  --success: #15803d; /* darker than a pure fill: this doubles as ink on light surfaces */
+  --success-foreground: #ffffff; /* extension — text/icons placed ON --success */
   --success-soft: rgba(30, 215, 96, 0.14);
   --warning: #d97706;
   --warning-soft: rgba(217, 119, 6, 0.14);
+  --info: #7e22ce;
+  --info-foreground: #ffffff; /* extension — text/icons placed ON --info */
+  --info-soft: rgba(126, 34, 206, 0.12);
   --scrim: rgba(23, 22, 15, 0.45);
 
   --radius: 0.5rem;
@@ -103,6 +106,9 @@
   --success-soft: rgba(30, 215, 96, 0.16);
   --warning: #fbbf24;
   --warning-soft: rgba(251, 191, 36, 0.16);
+  --info: #d8b4fe;
+  --info-foreground: #1a0f1f; /* extension — text/icons placed ON --info */
+  --info-soft: rgba(216, 180, 254, 0.16);
   --scrim: rgba(0, 0, 0, 0.6);
 
   --shadow-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
@@ -142,6 +148,9 @@
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
   --color-scrim: var(--scrim);
 }
 
