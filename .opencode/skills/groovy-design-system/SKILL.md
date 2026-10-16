@@ -142,26 +142,23 @@ not.
 call sites. **Run it with the working directory set to `client_test`** — it globs
 `./src` and will throw if run from the repo root.
 
-- `npm run lint:design` → **report mode, always exits 0.**
-- `npm run lint:design -- --strict` → exits 1 on any violation.
+- `npm run lint:design` → **strict mode, exits 1 on any violation.**
+- Wired into `npm run lint`: `oxlint && node scripts/check-design-tokens.mjs --strict`.
 - It exempts `src/Components/ui`.
 
-Baseline at the time of writing — treat the number as a **trend, not a constant**,
-and run the guard for the live figure (a count going **up** is the signal):
+Current counts across the entire codebase (**Phase 2 & 3 complete**):
 
 | Rule | Count | Points at |
 | --- | --- | --- |
-| `legacy-type-size` | 3 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 3 | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-type-size` | 0 | `text-eyebrow` / `text-caption` / `text-body` |
+| `legacy-radius` | 0 | `rounded-control` / `-inset` / `-surface` / `-full` |
 | `legacy-shadow` | 0 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 25 | `success` / `destructive` / `warning` |
-| **TOTAL** | **31** | |
+| `raw-palette-color` | 0 | `success` / `destructive` / `warning` |
+| **TOTAL** | **0** | **Clean** |
 
-Phase 2 complete across all routes and components! Every route, modal, drawer,
-and view in the application is fully migrated to 0 drift. The only remaining hits
-(31) reside in `PlayerBar.tsx` (4) and `SongActionMenu.tsx` (27), which were
-deliberately exempted during user edits. Once those two are committed, the count
-reaches 0 and `--strict` can be wired into `lint`.
+Every single component, route, drawer, modal, and utility in the application has
+been fully migrated onto the design system tokens. Any future off-system class
+usage will fail `npm run lint` and CI.
 
 ## 8. Verify before claiming done
 
@@ -253,12 +250,8 @@ it collided with the success/warning semantics. Destructive was calmed to
 
 ## 11. What is still open
 
-- **Phase 2 — call-site migration**, by leverage: `studio.tsx` →
-  `vault.manage.tsx` → `profile.tsx` → `playlists.$id.tsx` → `feed.tsx` → …
-- **Phase 3 — enforcement**: wire `lint:design --strict` into `lint` once the
-  count reaches 0.
-- The 810 `raw-palette-color` hits are a separate deferred bucket (gradients in
-  `liked.tsx` / `search.tsx` / `LibraryItemCard.tsx`, `dark:text-blue-400` in
-  `vault.manage.tsx`, …).
+- **Phase 2 & Phase 3 are complete**: All 2,185 drift violations across all routes
+  and components have been driven to 0, and `node scripts/check-design-tokens.mjs --strict`
+  is now permanently wired into `npm run lint`.
 - Resolve the `components` vs `Components` import casing before any
   case-sensitive CI runs.

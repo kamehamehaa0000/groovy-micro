@@ -38,7 +38,7 @@ export interface SongActionMenuProps {
 
 export function SongActionMenu({
   track,
-  buttonClassName = 'p-2 sm:p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded flex items-center justify-center',
+  buttonClassName = 'p-2 sm:p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-control flex items-center justify-center',
   align = 'right',
   isLocked: propIsLocked,
   isScheduled: propIsScheduled,
@@ -412,7 +412,7 @@ export function SongActionMenu({
               left: `${dropdownPos.left}px`,
               zIndex: 99999,
             }}
-            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-sm font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-control font-sans text-caption animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             {!isLocked && (
@@ -467,7 +467,7 @@ export function SongActionMenu({
                   <button
                     type="button"
                     onClick={handleAddToJam}
-                    className="w-full text-left px-3.5 py-2 hover:bg-emerald-500/10 flex items-center gap-2.5 text-emerald-700 dark:text-emerald-400 font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 hover:bg-success-soft flex items-center gap-2.5 text-success font-medium cursor-pointer"
                   >
                     <span className="text-sm shrink-0">🎧</span>
                     <span>Add to Jam Queue</span>
@@ -487,8 +487,8 @@ export function SongActionMenu({
                     filled={isLiked}
                     className={`w-3.5 h-3.5 shrink-0 ${
                       isLiked
-                        ? 'text-red-500 fill-current'
-                        : 'text-muted-foreground dark:text-neutral-300'
+                        ? 'text-destructive fill-current'
+                        : 'text-muted-foreground'
                     }`}
                   />
                   <span>
@@ -518,14 +518,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleRemoveFromPlaylist}
-                  className="w-full text-left px-3.5 py-2 hover:bg-red-500/10 flex items-center gap-2.5 text-red-500 cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-destructive/10 flex items-center gap-2.5 text-destructive cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-red-500 shrink-0"
+                    className="w-3.5 h-3.5 text-destructive shrink-0"
                   >
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -546,7 +546,7 @@ export function SongActionMenu({
                   }}
                   className={`w-full text-left px-3.5 py-2 flex items-center gap-2.5 cursor-pointer ${
                     act.danger
-                      ? 'text-red-500 hover:bg-red-500/10'
+                      ? 'text-destructive hover:bg-destructive/10'
                       : 'text-foreground hover:bg-muted'
                   }`}
                 >
@@ -722,7 +722,7 @@ export function SongActionMenu({
                 onTouchEnd={handleSheetTouchEnd}
                 onTouchCancel={handleSheetTouchEnd}
               >
-                <div className="w-12 h-12 bg-muted border border-border rounded overflow-hidden shrink-0">
+                <div className="w-12 h-12 bg-muted border border-border rounded-control overflow-hidden shrink-0">
                   {track.coverImageUrl ? (
                     <img
                       src={track.coverImageUrl}
@@ -764,8 +764,8 @@ export function SongActionMenu({
                         filled={isLiked}
                         className={`w-5 h-5 shrink-0 ${
                           isLiked
-                            ? 'text-red-500 fill-current'
-                            : 'text-muted-foreground dark:text-neutral-300'
+                            ? 'text-destructive fill-current'
+                            : 'text-muted-foreground'
                         }`}
                       />
                       <span className="font-medium">
@@ -855,7 +855,7 @@ export function SongActionMenu({
                         <button
                           type="button"
                           onClick={handleAddToJam}
-                          className="w-full h-12 px-5 flex items-center gap-3.5 text-emerald-600 dark:text-emerald-400 font-medium hover:bg-emerald-500/10 active:bg-emerald-500/10 transition-colors text-left cursor-pointer"
+                          className="w-full h-12 px-5 flex items-center gap-3.5 text-success font-medium hover:bg-success-soft active:bg-success/15 transition-colors text-left cursor-pointer"
                         >
                           <span className="text-base shrink-0">🎧</span>
                           <span>Add to Jam Queue</span>
@@ -888,14 +888,14 @@ export function SongActionMenu({
                     <button
                       type="button"
                       onClick={handleRemoveFromPlaylist}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-red-500 hover:bg-red-500/10 active:bg-red-500/10 transition-colors text-left cursor-pointer"
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-destructive hover:bg-destructive/10 active:bg-destructive/15 transition-colors text-left cursor-pointer"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-5 h-5 text-red-500 shrink-0"
+                        className="w-5 h-5 text-destructive shrink-0"
                       >
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -916,7 +916,7 @@ export function SongActionMenu({
                       }}
                       className={`w-full h-12 px-5 flex items-center gap-3.5 text-left cursor-pointer ${
                         act.danger
-                          ? 'text-red-500 hover:bg-red-500/10 active:bg-red-500/10'
+                          ? 'text-destructive hover:bg-destructive/10 active:bg-destructive/15'
                           : 'text-foreground hover:bg-muted active:bg-muted'
                       }`}
                     >
@@ -1038,7 +1038,7 @@ export function SongActionMenu({
         createPortal(
           <div
             style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
           >
             ✓ {toastMessage}
           </div>,

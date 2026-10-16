@@ -266,7 +266,7 @@ export function PlayerBar() {
                 fill={isLiked ? 'currentColor' : 'none'}
                 className={
                   isLiked
-                    ? 'text-red-500 fill-red-500'
+                    ? 'text-destructive fill-destructive'
                     : 'text-muted-foreground hover:text-foreground transition-colors'
                 }
               />
@@ -409,7 +409,7 @@ export function PlayerBar() {
 
           {/* Progress bar & timestamps row */}
           <div className="w-full flex items-center gap-3 mt-1.5 select-none">
-            <span className="w-11 text-right text-[11px] font-mono text-muted-foreground/80 tabular-nums">
+            <span className="w-11 text-right text-eyebrow font-mono text-muted-foreground/80 tabular-nums">
               {formatTime(currentTime)}
             </span>
 
@@ -439,7 +439,7 @@ export function PlayerBar() {
               />
             </div>
 
-            <span className="w-11 text-left text-[11px] font-mono text-muted-foreground/80 tabular-nums">
+            <span className="w-11 text-left text-eyebrow font-mono text-muted-foreground/80 tabular-nums">
               {formatTime(duration)}
             </span>
           </div>

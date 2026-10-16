@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "lint:design": "node scripts/check-design-tokens.mjs",
+    "lint": "oxlint && node scripts/check-design-tokens.mjs --strict",
+    "lint:design": "node scripts/check-design-tokens.mjs --strict",
     "preview": "vite preview"
   },
   "dependencies": {
