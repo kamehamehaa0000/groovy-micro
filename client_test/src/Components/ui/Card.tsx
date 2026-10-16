@@ -31,7 +31,6 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      data-variant={variant}
       className={cn(
         'rounded-surface border',
         VARIANT[variant],

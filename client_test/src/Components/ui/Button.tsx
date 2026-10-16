@@ -51,8 +51,6 @@ export function Button({
   return (
     <button
       type={type}
-      data-variant={variant}
-      data-size={size}
       className={cn(
         'inline-flex select-none items-center justify-center rounded-control border font-mono font-semibold uppercase tracking-wider transition-colors cursor-pointer',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',

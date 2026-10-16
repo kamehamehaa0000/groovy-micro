@@ -171,7 +171,6 @@ export function Sheet({
       <div
         ref={panelRef}
         tabIndex={-1}
-        data-placement={placement}
         style={isBottom && dragging ? { translate: `0 ${dragY}px` } : undefined}
         className={cn(
           'relative z-10 flex w-full flex-col overflow-hidden bg-card shadow-floating outline-none',
