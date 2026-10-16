@@ -27,6 +27,7 @@ const TONE: Record<BadgeTone, string> = {
 export function Badge({ children, tone = 'neutral', className }: BadgeProps) {
   return (
     <span
+      data-tone={tone}
       className={cn(
         'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-eyebrow font-medium uppercase',
         TONE[tone],

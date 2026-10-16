@@ -9,8 +9,9 @@
                 depth comes from the outline, never a drop shadow
      flat       no outlines at all; surfaces are told apart by tone, spacing
                 and elevation — fills replace outlines on controls
-     pixel      hard 2px ink strokes, square corners, offset shadows, and the
-                display face joins the monospace grid
+     material   Google's Material 3: tonal surfaces instead of outlines, a pill
+                for every action, filled text fields with an indicator line,
+                Roboto and its type scale, sentence-case labels
 
    It works in the same two layers as the real theme, and nothing else:
      1. tokens on the scope — `--radius-*`, `--border*`, `--elevation-*`
@@ -99,39 +100,190 @@ body[data-style='flat'] .variant-list > * {
   border-color: var(--border-soft);
 }
 
-/* ---------------------------------------------------------------- 3 · pixel */
+/* -------------------------------------------------------------- 3 · material */
+/* Google's Material 3. The two structural moves that make it read as Material:
+   surfaces are told apart by TONE (no outlines anywhere) and every action is a
+   pill. Type is Roboto in sentence case — M3 has no uppercase, no serif and no
+   monospace voice, so all three of Groovy's families collapse into one. */
 
-body[data-style='pixel'] {
-  --variant-radius: 0;
-  --radius-control: 0;
-  --radius-inset: 0;
-  --radius-surface: 0;
-  --border: var(--foreground);
-  --border-soft: var(--foreground);
-  --input: var(--foreground);
-  --elevation-raised: 2px 2px 0 0 var(--foreground);
-  --elevation-floating: 4px 4px 0 0 var(--foreground);
-  --font-serif: var(--font-mono); /* display type joins the pixel grid */
+body[data-style='material'] {
+  --variant-radius: 0.75rem; /* M3 "medium" 12dp — cards */
+  --radius-control: 0.25rem; /* text fields: 4dp top corners (M3 extra-small) */
+  --radius-inset: 0.75rem;
+  --radius-surface: 0.75rem;
+
+  /* M3 colour roles mapped onto Groovy's token names:
+       surface                    -> background
+       surface-container-low      -> card
+       surface-container-highest  -> muted
+       outline-variant / outline  -> border / input
+       secondary-container        -> secondary (badges, hovers) */
+  --background: #fef7ff;
+  --foreground: #1d1b20;
+  --card: #f7f2fa;
+  --card-foreground: #1d1b20;
+  --popover: #f7f2fa;
+  --popover-foreground: #1d1b20;
+  --muted: #e6e0e9;
+  --muted-foreground: #49454f;
+  --secondary: #dae2f9;
+  --secondary-foreground: #1d1b20;
+  --accent: #dae2f9;
+  --accent-foreground: #1d1b20;
+  --primary: #1b5fa6;
+  --primary-strong: #164f8b;
+  --primary-foreground: #ffffff;
+  --destructive: #ba1a1a; /* M3 "error" */
+  --destructive-soft: #ffdad6; /* error-container */
+  --destructive-foreground: #ffffff;
+  --border: #cac4d0;
+  --border-soft: #e7e0ec;
+  --input: #79747e;
+  --ring: #1b5fa6;
+  --scrim: rgba(0, 0, 0, 0.32);
+
+  /* M3 elevation levels 1 and 3 */
+  --elevation-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --elevation-floating:
+    0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  /* One family, and the M3 type scale */
+  --font-serif: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+
+  --text-display: 2.25rem; /* display-small 36/44 */
+  --text-display--line-height: 1.22;
+  --text-display--letter-spacing: 0;
+  --text-heading: 1.375rem; /* title-large 22/28 */
+  --text-heading--line-height: 1.27;
+  --text-title: 1rem; /* title-medium 16/24 */
+  --text-title--line-height: 1.5;
+  --text-body: 0.875rem; /* body-medium 14/20 */
+  --text-body--line-height: 1.43;
+  --text-caption: 0.75rem; /* body-small 12/16 */
+  --text-caption--line-height: 1.33;
+  --text-eyebrow: 0.6875rem; /* label-small 11/16 */
+  --text-eyebrow--line-height: 1.45;
+  --text-eyebrow--letter-spacing: 0.05em;
 }
 
-.dark body[data-style='pixel'] {
-  --border: rgba(244, 243, 235, 0.5);
-  --border-soft: rgba(244, 243, 235, 0.35);
-  --input: rgba(244, 243, 235, 0.5);
-  --elevation-raised: 2px 2px 0 0 #000;
-  --elevation-floating: 4px 4px 0 0 #000;
+.dark body[data-style='material'] {
+  --background: #141218;
+  --foreground: #e6e0e9;
+  --card: #1d1b20;
+  --card-foreground: #e6e0e9;
+  --popover: #211f26;
+  --popover-foreground: #e6e0e9;
+  --muted: #2b2930;
+  --muted-foreground: #cac4d0;
+  --secondary: #3b4758;
+  --secondary-foreground: #dae2f9;
+  --accent: #3b4758;
+  --accent-foreground: #dae2f9;
+  --primary: #a8c8ff;
+  --primary-strong: #c7dcff;
+  --primary-foreground: #00315c;
+  --destructive: #ffb4ab;
+  --destructive-soft: #93000a;
+  --destructive-foreground: #690005;
+  --border: #49454f;
+  --border-soft: #2b2930;
+  --input: #938f99;
+  --ring: #a8c8ff;
+  --scrim: rgba(0, 0, 0, 0.5);
+  --elevation-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.5), 0 1px 3px 1px rgba(0, 0, 0, 0.35);
+  --elevation-floating:
+    0 4px 8px 3px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Chunky strokes: every border utility doubles up. `:is()` keeps this at
-   (0,2,0) so it beats Tailwind's single-class utilities without `!important`. */
-body[data-style='pixel'] :is(
-    .border,
-    .border-t,
-    .border-b,
-    .border-l,
-    .border-r,
-    .border-x,
-    .border-y
-  ) {
-  border-width: 2px;
+/* Labels are sentence case in M3. Groovy's mono/uppercase voice becomes
+   label-large — one rule takes the uppercase off buttons, eyebrows and badges. */
+body[data-style='material'] :is(.font-mono, .uppercase) {
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: 0.007em;
+}
+
+/* Every action is a pill: filled buttons, outlined buttons and icon buttons. */
+body[data-style='material'] button[data-variant],
+body[data-style='material'] button[data-size]:not([data-variant]) {
+  border-radius: 9999px;
+}
+
+body[data-style='material'] button[data-variant] {
+  min-height: 2.5rem;
+  padding-inline: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Outlined and text buttons are inked with primary, not on-surface. */
+body[data-style='material'] button[data-variant='outline'] {
+  border-color: var(--input);
+  color: var(--primary);
+}
+
+body[data-style='material'] button[data-variant='ghost'] {
+  color: var(--primary);
+}
+
+/* Groovy's five button variants map onto M3's five treatments:
+   primary -> filled · brand -> tonal · outline -> outlined · ghost -> text ·
+   danger -> error */
+body[data-style='material'] button[data-variant='primary'] {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+body[data-style='material'] button[data-variant='brand'] {
+  background-color: var(--secondary);
+  border-color: transparent;
+  color: var(--secondary-foreground);
+}
+
+body[data-style='material'] button[data-variant='danger'] {
+  border-color: transparent;
+  color: var(--destructive);
+}
+
+/* Icon buttons are filled tonal: no outline, just a tinted circle. */
+body[data-style='material'] button[data-size]:not([data-variant]) {
+  border-color: transparent;
+}
+
+/* Filled text field: tone instead of an outline, plus a 1dp indicator line that
+   thickens and turns primary on focus — the move that says "Material". */
+body[data-style='material'] :is(input, textarea, select) {
+  border-width: 0 0 1px 0;
+  border-bottom-color: var(--input);
+  border-radius: 0.25rem 0.25rem 0 0;
+  background-color: var(--muted);
+  padding: 0.75rem 1rem;
+}
+
+body[data-style='material'] :is(input, textarea, select):focus {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--primary);
+  background-color: var(--muted);
+}
+
+/* Chips take the 8dp "small" corner — pills are for actions, not labels. */
+body[data-style='material'] :is([data-tone]) {
+  border-radius: 0.5rem;
+}
+
+/* M3 surfaces are filled, so cards, panels and sheets drop their outline. */
+body[data-style='material'] .rounded-surface {
+  border-color: transparent;
+}
+
+/* Sheets and dialogs take the 28dp extra-large corner. */
+body[data-style='material'] [data-placement] {
+  border-radius: 1.75rem;
+}
+
+body[data-style='material'] [data-placement='bottom'] {
+  border-radius: 1.75rem 1.75rem 0 0;
+  border-width: 0;
 }

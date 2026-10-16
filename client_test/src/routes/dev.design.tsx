@@ -70,7 +70,7 @@ export const Route = createFileRoute('/dev/design')({
 /* Variants                                                            */
 /* ------------------------------------------------------------------ */
 
-type VariantKey = 'bordered' | 'flat' | 'pixel'
+type VariantKey = 'bordered' | 'flat' | 'material'
 
 const VARIANTS: Array<{
   key: VariantKey
@@ -95,20 +95,20 @@ const VARIANTS: Array<{
     tagline: 'No outlines — tone, spacing and fills do the separating.',
     rules: [
       'All outlines are removed; controls trade their border for a fill.',
-      'Corners open up: 12px controls · 16px surfaces.',
+      'One corner size for everything non-circular: 12px.',
       'The dark canvas is deepened so card and background still read apart.',
       'One concession: a hairline stays between rows in long lists.',
     ],
   },
   {
-    key: 'pixel',
-    label: 'Pixel',
-    tagline: 'Hard 2px ink strokes, square corners, offset shadows, mono display.',
+    key: 'material',
+    label: 'Material',
+    tagline: 'Google Material 3 — tonal surfaces, pill actions, Roboto, sentence case.',
     rules: [
-      'Zero radius anywhere except genuine circles.',
-      'Every border becomes a 2px ink stroke.',
-      'Elevation is a hard offset block shadow (2px raised · 4px floating).',
-      'The display face joins the monospace grid.',
+      'Outlines are gone; surfaces are separated by tonal fill instead.',
+      'Every action is a pill · chips take the 8dp corner · sheets and dialogs 28dp.',
+      'Text fields are filled, with a 1dp indicator that thickens on focus.',
+      'Roboto and the M3 type scale — labels are sentence case, never uppercase.',
     ],
   },
 ]
@@ -393,6 +393,20 @@ function DesignPlayground() {
     }
   }, [variant])
 
+  /* Material is the only variant that needs a typeface the app does not ship,
+     so the preview pulls Roboto in on demand — dev only, review only. */
+  useEffect(() => {
+    if (variant !== 'material') return
+    const id = 'groovy-material-roboto'
+    if (document.getElementById(id)) return
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href =
+      'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
+    document.head.appendChild(link)
+  }, [variant])
+
   const choose = (next: VariantKey) => {
     setVariant(next)
     const url = new URL(window.location.href)
@@ -473,7 +487,7 @@ function DesignPlayground() {
           <p className="mt-2 text-caption text-muted-foreground">
             The switch is scoped to the whole document, so the app chrome around
             this page and the sheets below re-skin with it. It is bookmarkable —
-            add <Token>?style=flat</Token> or <Token>?style=pixel</Token>.
+            add <Token>?style=flat</Token> or <Token>?style=material</Token>.
           </p>
         </div>
       </div>
