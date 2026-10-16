@@ -146,18 +146,21 @@ call sites. **Run it with the working directory set to `client_test`** — it gl
 - `npm run lint:design -- --strict` → exits 1 on any violation.
 - It exempts `src/Components/ui`.
 
-Current counts (baseline — a number going **up** is the signal):
+Baseline at the time of writing — treat the number as a **trend, not a constant**,
+and run the guard for the live figure (a count going **up** is the signal):
 
 | Rule | Count | Points at |
 | --- | --- | --- |
-| `legacy-type-size` | 978 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 232 | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-type-size` | 967 | `text-eyebrow` / `text-caption` / `text-body` |
+| `legacy-radius` | 229 | `rounded-control` / `-inset` / `-surface` / `-full` |
 | `legacy-shadow` | 142 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 810 | `success` / `destructive` / `warning` |
-| **TOTAL** | **2162** | |
+| `raw-palette-color` | 806 | `success` / `destructive` / `warning` |
+| **TOTAL** | **2144** | |
 
-Top offenders: `studio.tsx` 376 · `vault.manage.tsx` 161 · `profile.tsx` 159 ·
-`playlists.$id.tsx` 94.
+Top offenders are all routes: `studio.tsx` 376 · `vault.manage.tsx` 161 ·
+`profile.tsx` 159 · `playlists.$id.tsx` 94. Phase 2 is underway — the whole
+non-ui component layer is ~516 hits across ~26 files, and `common/SongRow.tsx`
+is already clean.
 
 ## 8. Verify before claiming done
 
@@ -222,8 +225,14 @@ stacked on `rebuilt/groovy`). Newest first:
 **The vocabulary is shadcn/ui's** so a palette exported for shadcn
 (tweakcn.com, the shadcn registry) drops straight in. Tokens shadcn does not
 define are marked *extension*: `primary-strong`, `border-soft`,
-`destructive-soft`, `success`/`-soft`, `warning`/`-soft`, `scrim`,
-`font-eyebrow`.
+`destructive-soft`, `success`/`-soft`/`-foreground`, `warning`/`-soft`,
+`scrim`, `font-eyebrow`.
+
+Any **filled** semantic surface needs an explicit `<surface>-foreground`. A
+missing foreground is a **gap to fill, not a licence to type `text-white`** —
+filled success had no text colour at all until `--success-foreground` was added.
+`scrim` (media dimming) still has none, so overlays sitting on a
+`bg-foreground/*` veil are unresolved.
 
 Old → current token mapping, for reading pre-rename code and old diffs:
 
