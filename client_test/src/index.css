@@ -57,6 +57,7 @@
 
   /* extensions — state shadcn does not ship */
   --success: #1ed760;
+  --success-foreground: #052e16; /* extension — text/icons placed ON --success */
   --success-soft: rgba(30, 215, 96, 0.14);
   --warning: #d97706;
   --warning-soft: rgba(217, 119, 6, 0.14);
@@ -98,6 +99,7 @@
   --ring: #818cf8;
 
   --success: #1ed760;
+  --success-foreground: #052e16; /* extension — text/icons placed ON --success */
   --success-soft: rgba(30, 215, 96, 0.16);
   --warning: #fbbf24;
   --warning-soft: rgba(251, 191, 36, 0.16);
@@ -136,6 +138,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);

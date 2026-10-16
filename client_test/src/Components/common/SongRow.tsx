@@ -324,7 +324,7 @@ export const SongRow = memo(function SongRow({
       data-track-index={index}
       className={`relative select-none overflow-hidden ${
         isDragging
-          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-card opacity-95 scale-[1.01]'
+          ? 'z-40 shadow-floating ring-2 ring-primary/60 bg-card opacity-95 scale-[1.01]'
           : ''
       } ${className}`}
       onTouchStart={handleTouchStart}
@@ -354,10 +354,10 @@ export const SongRow = memo(function SongRow({
         </div>
       )}
       {/* ==================== SWIPE UNDERLAY BADGES ==================== */}
-      {/* Swipe Left: Reveal "Add to Queue" (Blue accent on the right) */}
+      {/* Swipe Left: Reveal "Add to Queue" (primary, on the right) */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-primary flex items-center justify-center gap-1.5 text-primary-foreground font-eyebrow text-[11px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 right-0 w-24 bg-primary flex items-center justify-center gap-1.5 text-primary-foreground font-eyebrow text-eyebrow uppercase tracking-wider transition-opacity ${
             swipeOffset < -20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -379,10 +379,10 @@ export const SongRow = memo(function SongRow({
         </div>
       )}
 
-      {/* Swipe Right: Reveal "Add to Playlist" (Emerald accent on the left) */}
+      {/* Swipe Right: Reveal "Add to Playlist" (success, on the left) */}
       {canSwipeRight && (
         <div
-          className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-eyebrow text-[11px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 left-0 w-28 bg-success flex items-center justify-center gap-1.5 text-success-foreground font-eyebrow text-eyebrow uppercase tracking-wider transition-opacity ${
             swipeOffset > 20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -432,9 +432,9 @@ export const SongRow = memo(function SongRow({
                 e.stopPropagation()
                 e.preventDefault()
               }}
-              className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded ${
+              className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded-control ${
                 isDragging
-                  ? 'text-primary bg-primary/15 scale-110 shadow-xs'
+                  ? 'text-primary bg-primary/15 scale-110 shadow-raised'
                   : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder tracks"
@@ -445,7 +445,7 @@ export const SongRow = memo(function SongRow({
 
           {/* Leading Display: Thumbnail vs Track Number */}
           {showThumbnail ? (
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-muted border border-border rounded-xs overflow-hidden shrink-0 group/thumb">
+            <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-muted border border-border rounded-control overflow-hidden shrink-0 group/thumb">
               {track.coverImageUrl ? (
                 <img
                   src={track.coverImageUrl}
@@ -459,7 +459,7 @@ export const SongRow = memo(function SongRow({
                   size="sm"
                   title={track.title}
                   artistName={track.artistName}
-                  className="w-full h-full text-[11px]"
+                  className="w-full h-full text-eyebrow"
                 />
               )}
 
@@ -502,7 +502,7 @@ export const SongRow = memo(function SongRow({
               ) : (
                 <>
                   <span
-                    className={`font-mono text-[11px] group-hover:hidden ${
+                    className={`font-mono text-eyebrow group-hover:hidden ${
                       isCurrentLoaded ? 'text-primary font-bold' : ''
                     }`}
                   >
@@ -534,7 +534,7 @@ export const SongRow = memo(function SongRow({
               {isLocked && (
                 <span
                   title="Locked track"
-                  className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 flex items-center gap-1"
+                  className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 flex items-center gap-1"
                 >
                   <LockIconSVG className="w-2.5 h-2.5" />
                   <span>
@@ -548,7 +548,7 @@ export const SongRow = memo(function SongRow({
               {track.isExplicit && (
                 <span
                   title="Explicit Content"
-                  className="font-eyebrow text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
+                  className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
                 >
                   E
                 </span>
@@ -557,7 +557,7 @@ export const SongRow = memo(function SongRow({
               {(isPersonal || track.scope === 'PERSONAL') && (
                 <span
                   title="Personal Collection (Vault)"
-                  className="font-eyebrow text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs leading-none"
+                  className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-primary/30 text-primary bg-primary/10 shrink-0 rounded-control leading-none"
                 >
                   V
                 </span>
@@ -605,7 +605,7 @@ export const SongRow = memo(function SongRow({
                 {/* Featured Credits */}
                 {featuredCredits.length > 0 && (
                   <>
-                    <span className="text-muted-foreground/70 font-mono text-[11px] ml-1">
+                    <span className="text-muted-foreground/70 font-mono text-eyebrow ml-1">
                       feat.
                     </span>
                     {featuredCredits.map((c, i) => (
@@ -631,7 +631,7 @@ export const SongRow = memo(function SongRow({
                 {/* Producer Credits */}
                 {producerCredits.length > 0 && (
                   <>
-                    <span className="text-muted-foreground/70 font-mono text-[11px] ml-1">
+                    <span className="text-muted-foreground/70 font-mono text-eyebrow ml-1">
                       prod.
                     </span>
                     {producerCredits.map((c, i) => (
@@ -706,7 +706,7 @@ export const SongRow = memo(function SongRow({
 
         {/* Added by (for Collaborative Playlists) */}
         {addedByDisplayName && (
-          <div className="hidden md:block text-right font-mono text-[11px] text-muted-foreground/70 shrink-0 max-w-35 truncate">
+          <div className="hidden md:block text-right font-mono text-eyebrow text-muted-foreground/70 shrink-0 max-w-35 truncate">
             Added by {addedByDisplayName}
           </div>
         )}
@@ -714,7 +714,7 @@ export const SongRow = memo(function SongRow({
         {/* ==================== RIGHT SECTION ==================== */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-3 shrink-0">
           {/* Duration (Hidden on extra small mobile screens for compact density) */}
-          <span className="hidden sm:inline-block font-mono text-[11px] text-muted-foreground text-right w-11">
+          <span className="hidden sm:inline-block font-mono text-eyebrow text-muted-foreground text-right w-11">
             {formatDuration(track.durationSeconds || 0)}
           </span>
 
@@ -746,8 +746,8 @@ export const SongRow = memo(function SongRow({
                 filled={isLiked}
                 className={`w-3.5 h-3.5 transition-colors ${
                   isLiked
-                    ? 'text-red-500 fill-current'
-                    : 'text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+                    ? 'text-destructive fill-current'
+                    : 'text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                 }`}
               />
             </button>
