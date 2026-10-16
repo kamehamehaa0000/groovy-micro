@@ -206,7 +206,7 @@ function HomeComponent() {
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
         <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-3">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
           <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
@@ -406,7 +406,7 @@ function HomeComponent() {
                             <span>{artist.primaryGenre || 'Artist'}</span>
                             {artist.verified && (
                               <span
-                                className="text-blue font-bold text-[11px]"
+                                className="text-primary font-bold text-[11px]"
                                 title="Verified Artist"
                               >
                                 ✓

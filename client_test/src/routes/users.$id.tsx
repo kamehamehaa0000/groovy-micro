@@ -521,7 +521,7 @@ function UserProfileComponent() {
                 {/* Upcoming Pre-saved Releases */}
                 {library.presavedReleases?.length > 0 && (
                   <div>
-                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-4">
+                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-primary mb-4">
                       Pre-Saved Drops ({library.presavedReleases.length})
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -535,7 +535,7 @@ function UserProfileComponent() {
                           imageUrl={album.coverImageUrl}
                           artistName={album.artistName}
                           badge={
-                            <span className="bg-panel/90 backdrop-blur-md text-blue text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
+                            <span className="bg-panel/90 backdrop-blur-md text-primary text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
                               Pre-Saved
                             </span>
                           }

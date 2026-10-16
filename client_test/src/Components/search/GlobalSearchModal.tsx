@@ -249,7 +249,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {/* TOP RESULT CARD */}
               {results.topResult && activeCategory === 'all' && (
                 <div>
-                  <h4 className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-3">
+                  <h4 className="font-mono text-[11px] uppercase tracking-widest text-primary mb-3">
                     Top Result
                   </h4>
                   <div className="border border-line bg-canvas p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group hover:border-ink transition-colors">
@@ -281,10 +281,10 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">
                             Artist
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-blue transition-colors">
+                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).stageName}
                           </h3>
                           <p className="font-mono text-[11px] text-ink-soft">
@@ -341,7 +341,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                 .artistSlug,
                             }}
                             onClick={onClose}
-                            className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block"
+                            className="font-sans text-xs text-ink-soft hover:text-primary transition-colors truncate block"
                           >
                             {(results.topResult.item as any).artistName}
                           </Link>
@@ -395,7 +395,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               </span>
                             )}
                           </div>
-                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-blue transition-colors">
+                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
                           </h3>
                           <p className="font-sans text-xs text-ink-soft truncate">
@@ -436,7 +436,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <span className="font-mono text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block mb-1">
                             Playlist
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-blue transition-colors">
+                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
                           </h3>
                           <p className="font-mono text-[11px] text-ink-soft">
@@ -476,7 +476,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <span className="font-mono text-[11px] uppercase tracking-wider text-stone/80 bg-stone/20 px-2 py-0.5 rounded-full inline-block mb-1">
                             {(results.topResult.item as any).role}
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-blue transition-colors">
+                          <h3 className="font-serif italic text-xl font-bold text-ink truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).displayName}
                           </h3>
                         </div>
@@ -576,7 +576,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                 to="/artists/$idOrSlug"
                                 params={{ idOrSlug: song.artistSlug }}
                                 onClick={onClose}
-                                className="font-sans text-xs text-ink-soft hover:text-blue transition-colors truncate block"
+                                className="font-sans text-xs text-ink-soft hover:text-primary transition-colors truncate block"
                               >
                                 {song.artistName}
                               </Link>
@@ -709,7 +709,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                          <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-primary transition-colors">
                             {artist.stageName}
                           </h4>
                           <span className="font-mono text-[11px] text-ink-soft block">
@@ -758,7 +758,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                            <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-primary transition-colors">
                               {album.title}
                             </h4>
                             {album.isPersonal && (
@@ -809,7 +809,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                          <h4 className="font-sans text-sm font-semibold text-ink truncate group-hover:text-primary transition-colors">
                             {playlist.title}
                           </h4>
                           <span className="font-mono text-[11px] text-ink-soft block truncate">
@@ -854,7 +854,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1">
-                            <h4 className="font-semibold text-xs text-ink truncate group-hover:text-blue transition-colors">
+                            <h4 className="font-semibold text-xs text-ink truncate group-hover:text-primary transition-colors">
                               {user.displayName}
                             </h4>
                             {user.isPrivateAccount && (
@@ -885,7 +885,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 search: { q: query.trim() || undefined, type: activeCategory },
               })
             }}
-            className="text-ink hover:text-blue transition-colors flex items-center gap-1 cursor-pointer font-semibold"
+            className="text-ink hover:text-primary transition-colors flex items-center gap-1 cursor-pointer font-semibold"
           >
             <span>Open Dedicated Search Page</span>
             <span aria-hidden="true">&rarr;</span>

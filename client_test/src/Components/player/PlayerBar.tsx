@@ -73,7 +73,7 @@ const ShuffleIcon = ({
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`${className} ${active ? 'text-blue stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
+    className={`${className} ${active ? 'text-primary stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
   >
     <polyline points="16 3 21 3 21 8" />
     <line x1="4" y1="20" x2="21" y2="3" />
@@ -98,7 +98,7 @@ const RepeatIcon = ({
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`${className} ${mode !== 'off' ? 'text-blue stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
+      className={`${className} ${mode !== 'off' ? 'text-primary stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
     >
       <polyline points="17 1 21 5 17 9" />
       <path d="M3 11V9a4 4 0 0 1 4-4h14" />
@@ -106,7 +106,7 @@ const RepeatIcon = ({
       <path d="M21 13v2a4 4 0 0 1-4 4H3" />
     </svg>
     {mode === 'one' && (
-      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-blue bg-panel px-0.5 rounded">
+      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-primary bg-panel px-0.5 rounded">
         1
       </span>
     )}
@@ -282,8 +282,8 @@ export function PlayerBar() {
         <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-20 left-0 right-0 z-40 bg-canvas-deep/95 backdrop-blur-md border-t border-line px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
           <div className="flex items-center gap-2.5 text-xs text-ink max-w-[70%] truncate">
             <span className="flex h-2 w-2 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
             <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
               Listening on
@@ -297,7 +297,7 @@ export function PlayerBar() {
             <button
               type="button"
               onClick={() => takeoverPlayback()}
-              className="bg-ink text-canvas hover:bg-blue hover:text-white px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+              className="bg-ink text-canvas hover:bg-primary hover:text-primary-foreground px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
             >
               Play here instead
             </button>
@@ -342,10 +342,10 @@ export function PlayerBar() {
           }}
         >
           <div
-            className="h-full bg-blue transition-all duration-75 relative"
+            className="h-full bg-primary transition-all duration-75 relative"
             style={{ width: `${progressPercent}%` }}
           >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
           </div>
         </div>
 
@@ -357,7 +357,7 @@ export function PlayerBar() {
             onClick={() => toggleDesktopRightSidebar('now-playing')}
             className={`group relative w-12 h-12 rounded bg-stone/40 border transition-all shrink-0 overflow-hidden shadow-xs cursor-pointer ${
               desktopRightSidebarView === 'now-playing'
-                ? 'border-blue ring-1 ring-blue/50'
+                ? 'border-primary ring-1 ring-primary/50'
                 : 'border-line hover:border-ink/40'
             }`}
             title={
@@ -401,7 +401,7 @@ export function PlayerBar() {
               <Link
                 to="/albums/$idOrSlug"
                 params={{ idOrSlug: albumTarget }}
-                className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight hover:text-blue transition-colors block"
+                className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight hover:text-primary transition-colors block"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
@@ -491,7 +491,7 @@ export function PlayerBar() {
             title="Toggle Queue"
             className={`relative p-1.5 rounded-md transition-colors cursor-pointer ${
               isQueueOpen
-                ? 'bg-blue/10 text-blue font-semibold'
+                ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >
@@ -600,7 +600,7 @@ export function PlayerBar() {
           {/* {streamQuality === 'lossless' ? (
             <span
               title="Hi-Res Lossless FLAC Quality Stream"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-blue text-blue bg-blue/10"
+              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-primary text-primary bg-primary/10"
             >
               Hi-Fi FLAC
             </span>
@@ -639,7 +639,7 @@ export function PlayerBar() {
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               aria-label="Volume"
-              className="w-16 md:w-24 h-1 bg-stone/40 rounded-lg appearance-none cursor-pointer accent-blue"
+              className="w-16 md:w-24 h-1 bg-stone/40 rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>
 
@@ -671,7 +671,7 @@ export function PlayerBar() {
             title="Toggle Queue"
             className={`relative p-2 rounded-md transition-colors cursor-pointer ${
               desktopRightSidebarView === 'queue'
-                ? 'bg-blue/10 text-blue font-semibold'
+                ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-ink-soft hover:text-ink hover:bg-stone/20'
             }`}
           >

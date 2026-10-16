@@ -122,7 +122,7 @@ export function ArtistCreditPicker({
               <span className="font-serif italic font-medium text-ink flex items-center gap-1">
                 {c.stageName}
                 {c.verified && (
-                  <VerifiedBadgeSVG className="w-3 h-3 text-blue shrink-0" />
+                  <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />
                 )}
               </span>
 
@@ -225,7 +225,7 @@ export function ArtistCreditPicker({
                         <div className="font-serif italic text-xs text-ink flex items-center gap-1">
                           <span className="truncate">{artist.stageName}</span>
                           {artist.verified && (
-                            <VerifiedBadgeSVG className="w-3 h-3 text-blue shrink-0" />
+                            <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />
                           )}
                         </div>
                         <span className="font-mono text-[11px] text-ink-soft">
@@ -234,7 +234,7 @@ export function ArtistCreditPicker({
                       </div>
                     </div>
 
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-blue shrink-0 pl-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-primary shrink-0 pl-2">
                       + Credit
                     </span>
                   </button>

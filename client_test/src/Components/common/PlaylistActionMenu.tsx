@@ -335,7 +335,7 @@ export function PlaylistActionMenu({
                       onClick={handleCloneClick}
                       className="w-full text-left px-3.5 py-2 hover:bg-canvas-soft/70 text-ink transition-colors cursor-pointer flex items-center gap-2.5 font-medium"
                     >
-                      <span className="text-blue text-sm">✦</span>
+                      <span className="text-primary text-sm">✦</span>
                       <span>Clone to Library</span>
                     </button>
                   )}
@@ -507,7 +507,7 @@ export function PlaylistActionMenu({
                           onClick={handleCloneClick}
                           className="w-full text-left px-5 py-3 hover:bg-canvas-soft/70 active:bg-canvas-soft text-ink transition-colors flex items-center gap-3 font-medium"
                         >
-                          <span className="text-blue text-base">✦</span>
+                          <span className="text-primary text-base">✦</span>
                           <span className="text-sm">Clone to Library</span>
                         </button>
                       )}

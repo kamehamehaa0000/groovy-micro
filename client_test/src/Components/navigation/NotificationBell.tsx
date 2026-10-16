@@ -41,7 +41,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
 
       {/* Unread Pill Badge */}
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-blue text-white font-mono text-[11px] leading-tight px-1.5 py-0.5 rounded-full font-bold shadow-xs animate-in zoom-in-75">
+        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground font-mono text-[11px] leading-tight px-1.5 py-0.5 rounded-full font-bold shadow-xs animate-in zoom-in-75">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

@@ -166,7 +166,7 @@ function FollowedReleasesComponent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center select-none">
-        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-blue shadow-md">
+        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-primary shadow-md">
           <svg
             className="w-8 h-8"
             viewBox="0 0 24 24"
@@ -188,7 +188,7 @@ function FollowedReleasesComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-blue text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -205,7 +205,7 @@ function FollowedReleasesComponent() {
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
               Latest releases
             </h1>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
               ✦ Artist Radar
             </span>
           </div>
@@ -351,7 +351,7 @@ function FollowedReleasesComponent() {
                       {/* Release Title & Artist */}
                       <div className="flex flex-col min-w-0 flex-1">
                         <span
-                          className="text-sm font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
+                          className="text-sm font-semibold text-ink group-hover:text-primary truncate tracking-tight transition-colors"
                           title={release.title}
                         >
                           {release.title}
@@ -407,7 +407,7 @@ function FollowedReleasesComponent() {
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span
-                            className="text-xs sm:text-sm font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
+                            className="text-xs sm:text-sm font-semibold text-ink group-hover:text-primary truncate tracking-tight transition-colors"
                             title={release.title}
                           >
                             {release.title}
@@ -450,7 +450,7 @@ function FollowedReleasesComponent() {
           >
             {isLoadingMore && (
               <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>
             )}

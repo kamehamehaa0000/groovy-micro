@@ -233,12 +233,12 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
               aria-label={isShuffle ? 'Disable shuffle' : 'Enable shuffle'}
               className={`font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5  ${
                 isShuffle
-                  ? 'bg-blue/15 text-blue border-blue/40 font-semibold'
+                  ? 'bg-primary/15 text-primary border-primary/40 font-semibold'
                   : 'text-ink-soft bg-canvas hover:bg-canvas-deep border-line hover:text-ink'
               }`}
             >
               {isShuffle ? (
-                <Shuffle className="w-5 h-5 bg-blue" />
+                <Shuffle className="w-5 h-5 bg-primary" />
               ) : (
                 <Shuffle className="w-5 h-5" />
               )}
@@ -305,12 +305,12 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
           {/* SECTION 1: NOW PLAYING */}
           <div className="flex flex-col gap-2 pt-2">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-bold flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold flex items-center justify-between">
               <span>Now Playing</span>
             </span>
 
             {currentTrack ? (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-blue/5 border border-blue/20 shadow-2xs">
+              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/20 shadow-2xs">
                 {/* Artwork with Equalizer Indicator */}
                 <div className="relative w-12 h-12 rounded bg-canvas border border-line shrink-0 overflow-hidden">
                   {currentTrack.coverImageUrl ? (
@@ -562,7 +562,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
                       {/* Song info & timestamp */}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-medium truncate text-ink group-hover:text-blue transition-colors leading-tight">
+                        <span className="text-xs font-sans font-medium truncate text-ink group-hover:text-primary transition-colors leading-tight">
                           {playerTrack.title}
                         </span>
                         <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate font-sans">

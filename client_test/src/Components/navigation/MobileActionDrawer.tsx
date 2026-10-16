@@ -76,7 +76,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
           {/* Header */}
           <div className="flex items-center justify-between border-b border-line pb-4">
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
                 Quick Actions
               </div>
               <h3 className="font-serif italic text-base font-bold text-ink">
@@ -103,7 +103,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
 
           {/* Simple Navigation Actions matching Left Sidebar */}
           <div className="space-y-1">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-2">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-2">
               Creation Desk
             </div>
             <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider">

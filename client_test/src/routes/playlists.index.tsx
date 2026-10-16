@@ -178,7 +178,7 @@ function PlaylistsDirectoryComponent() {
       <div className="border-b border-line pb-6 sm:pb-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2 font-medium">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2 font-medium">
               Groovy Playlists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight font-semibold">
@@ -263,13 +263,13 @@ function PlaylistsDirectoryComponent() {
                             onClick={() => handleSortChange(optionKey)}
                             className={`w-full text-left font-mono text-xs px-3.5 py-2.5 transition-colors cursor-pointer flex items-center justify-between ${
                               isSelected
-                                ? 'bg-canvas-soft text-blue font-semibold'
+                                ? 'bg-canvas-soft text-primary font-semibold'
                                 : 'text-ink hover:bg-canvas-soft/70'
                             }`}
                           >
                             <span>{SORT_LABELS[optionKey]}</span>
                             {isSelected && (
-                              <span className="text-blue text-[11px]">✓</span>
+                              <span className="text-primary text-[11px]">✓</span>
                             )}
                           </button>
                         )

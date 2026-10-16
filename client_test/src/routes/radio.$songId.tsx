@@ -223,7 +223,7 @@ function RadioMixPage() {
               />
             )}
             <div className="absolute top-3 right-3 z-10">
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono tracking-wider uppercase bg-blue text-white font-bold shadow-xs">
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono tracking-wider uppercase bg-primary text-primary-foreground font-bold shadow-xs">
                 RADIO
               </span>
             </div>
@@ -231,7 +231,7 @@ function RadioMixPage() {
 
           {/* Meta Info */}
           <div className="space-y-3 flex-1 min-w-0">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep font-semibold">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong font-semibold">
               Personalized Dynamic Mix &bull; Continuous Flow
             </div>
 
@@ -256,7 +256,7 @@ function RadioMixPage() {
               <span>&bull;</span>
               <span>{formatTotalDuration(totalDurationSeconds)}</span>
               <span>&bull;</span>
-              <span className="text-blue font-medium">Auto-refreshed</span>
+              <span className="text-primary font-medium">Auto-refreshed</span>
             </div>
           </div>
         </div>
@@ -272,7 +272,7 @@ function RadioMixPage() {
             type="button"
             onClick={handlePlayAll}
             disabled={isLoading || fullQueue.length === 0}
-            className="w-13 h-13 rounded-full bg-blue hover:bg-blue-deep text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-md cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+            className="w-13 h-13 rounded-full bg-primary hover:bg-primary-strong text-primary-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-md cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
             aria-label={isRadioPlaying ? 'Pause Radio' : 'Play Radio'}
           >
             {isRadioPlaying ? (

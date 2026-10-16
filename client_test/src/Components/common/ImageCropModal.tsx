@@ -324,7 +324,7 @@ export function ImageCropModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-line pb-2.5 sm:pb-3">
           <div className="pr-2 min-w-0">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-0.5 truncate">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-0.5 truncate">
               {subtitle}
             </span>
             <h2 className="font-serif italic text-lg sm:text-xl text-ink truncate">
@@ -409,10 +409,10 @@ export function ImageCropModal({
             )}
 
             {/* Corner Framing Guides */}
-            <div className="absolute top-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-l-2 border-blue pointer-events-none" />
-            <div className="absolute top-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-r-2 border-blue pointer-events-none" />
-            <div className="absolute bottom-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-l-2 border-blue pointer-events-none" />
-            <div className="absolute bottom-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-r-2 border-blue pointer-events-none" />
+            <div className="absolute top-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-l-2 border-primary pointer-events-none" />
+            <div className="absolute top-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-t-2 border-r-2 border-primary pointer-events-none" />
+            <div className="absolute bottom-1 left-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-l-2 border-primary pointer-events-none" />
+            <div className="absolute bottom-1 right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 border-b-2 border-r-2 border-primary pointer-events-none" />
           </div>
         </div>
 
@@ -438,7 +438,7 @@ export function ImageCropModal({
               step={0.02}
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
-              className="flex-1 sm:w-44 accent-blue cursor-pointer h-2"
+              className="flex-1 sm:w-44 accent-primary cursor-pointer h-2"
             />
             <button
               type="button"

@@ -122,7 +122,7 @@ export function CreatePlaylistModal() {
         </div>
 
         {initialTrackIds.length > 0 && (
-          <div className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
             <span>Saving Active Queue</span>
             <span>{initialTrackIds.length} tracks</span>
           </div>
@@ -190,7 +190,7 @@ export function CreatePlaylistModal() {
                   type="checkbox"
                   checked={newAllowDuplicates}
                   onChange={(e) => setNewAllowDuplicates(e.target.checked)}
-                  className="accent-blue"
+                  className="accent-primary"
                 />
                 <span className="font-mono text-[11px] text-ink">
                   Allow Dups
@@ -207,7 +207,7 @@ export function CreatePlaylistModal() {
                   type="checkbox"
                   checked={newAllowComments}
                   onChange={(e) => setNewAllowComments(e.target.checked)}
-                  className="accent-blue"
+                  className="accent-primary"
                 />
                 <span className="font-mono text-[11px] text-ink">
                   Allow Comments

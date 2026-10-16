@@ -49,7 +49,7 @@ export function CommentForm({
       {replyToUserName && (
         <div className="flex items-center justify-between text-xs font-mono text-ink-soft">
           <span>
-            Replying to <span className="text-blue font-medium">@{replyToUserName}</span>
+            Replying to <span className="text-primary font-medium">@{replyToUserName}</span>
           </span>
           {onCancel && (
             <button
@@ -63,7 +63,7 @@ export function CommentForm({
         </div>
       )}
 
-      <div className="relative rounded-md border border-line bg-panel focus-within:border-blue focus-within:ring-1 focus-within:ring-blue/30 transition-all">
+      <div className="relative rounded-md border border-line bg-panel focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

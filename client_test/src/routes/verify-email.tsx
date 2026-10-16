@@ -96,7 +96,7 @@ function VerifyEmailComponent() {
       {/* Brand Header */}
       <div className="text-center mb-8 select-none">
         <div className="font-serif italic text-3xl tracking-[-0.03em] text-ink">
-          Groov<span className="not-italic text-blue font-serif">y</span>
+          Groov<span className="not-italic text-primary font-serif">y</span>
         </div>
         <div className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1.5">
           Sound Atelier
@@ -106,7 +106,7 @@ function VerifyEmailComponent() {
       {/* ================= STATE: VERIFYING ================= */}
       {status === 'verifying' && (
         <div className="border-y border-line py-8 text-center">
-          <div className="mx-auto w-12 h-12 mb-6 text-blue flex items-center justify-center">
+          <div className="mx-auto w-12 h-12 mb-6 text-primary flex items-center justify-center">
             <svg
               className="animate-spin w-8 h-8"
               viewBox="0 0 24 24"
@@ -119,7 +119,7 @@ function VerifyEmailComponent() {
             </svg>
           </div>
 
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-2">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
             Correspondence · Cryptographic Check
           </div>
           <h1 className="font-serif italic font-normal text-3xl text-ink leading-tight mb-3">
@@ -219,7 +219,7 @@ function VerifyEmailComponent() {
       {status === 'idle' && (
         <div className="border-y border-line py-8">
           <div className="text-center mb-6">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-2">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
               Correspondence · Dispatch
             </div>
             <h1 className="font-serif italic font-normal text-3xl text-ink leading-tight mb-3">
@@ -279,7 +279,7 @@ function VerifyEmailComponent() {
             Already verified?{' '}
             <Link
               to="/login"
-              className="text-blue hover:underline transition-colors"
+              className="text-primary hover:underline transition-colors"
             >
               Sign in
             </Link>

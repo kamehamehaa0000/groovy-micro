@@ -472,7 +472,7 @@ function HistoryPageComponent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center select-none">
-        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-blue shadow-md">
+        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-primary shadow-md">
           <svg
             className="w-8 h-8"
             viewBox="0 0 24 24"
@@ -494,7 +494,7 @@ function HistoryPageComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-blue text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -508,7 +508,7 @@ function HistoryPageComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
               ✦ Activity &amp; Listening Telemetry
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -695,7 +695,7 @@ function HistoryPageComponent() {
                                   params={{
                                     idOrSlug: release.slug || release.albumId,
                                   }}
-                                  className="text-xs sm:text-sm font-semibold text-ink hover:text-blue truncate tracking-tight transition-colors"
+                                  className="text-xs sm:text-sm font-semibold text-ink hover:text-primary truncate tracking-tight transition-colors"
                                   title={release.title}
                                 >
                                   {release.title}
@@ -781,7 +781,7 @@ function HistoryPageComponent() {
                                   }
                                   className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-[11px] transition-colors cursor-pointer ${
                                     isPlayingThisTrack
-                                      ? 'bg-blue/10 text-blue font-medium'
+                                      ? 'bg-primary/10 text-primary font-medium'
                                       : 'hover:bg-canvas text-ink-soft hover:text-ink'
                                   }`}
                                 >
@@ -823,7 +823,7 @@ function HistoryPageComponent() {
           >
             {isLoadingMore && (
               <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-blue animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>
             )}

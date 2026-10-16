@@ -324,7 +324,7 @@ export const SongRow = memo(function SongRow({
       data-track-index={index}
       className={`relative select-none overflow-hidden ${
         isDragging
-          ? 'z-40 shadow-2xl ring-2 ring-blue/60 bg-panel-elevated opacity-95 scale-[1.01]'
+          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-panel-elevated opacity-95 scale-[1.01]'
           : ''
       } ${className}`}
       onTouchStart={handleTouchStart}
@@ -335,7 +335,7 @@ export const SongRow = memo(function SongRow({
       {/* Queued Feedback Banner */}
       {showQueuedBadge && (
         <div
-          className={`absolute inset-0 z-30 bg-blue/95 flex items-center justify-center gap-2 text-white font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
+          className={`absolute inset-0 z-30 bg-primary/95 flex items-center justify-center gap-2 text-primary-foreground font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
             isQueuedBadgeFading
               ? 'opacity-0'
               : 'opacity-100 animate-in fade-in duration-75'
@@ -357,7 +357,7 @@ export const SongRow = memo(function SongRow({
       {/* Swipe Left: Reveal "Add to Queue" (Blue accent on the right) */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-blue flex items-center justify-center gap-1.5 text-white font-mono text-[11px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 right-0 w-24 bg-primary flex items-center justify-center gap-1.5 text-primary-foreground font-mono text-[11px] uppercase tracking-wider transition-opacity ${
             swipeOffset < -20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -410,7 +410,7 @@ export const SongRow = memo(function SongRow({
             : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         className={`relative z-10 px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 bg-panel hover:bg-canvas-deep active:bg-canvas-deep/80 transition-colors group cursor-pointer ${
-          isCurrentPlaying ? 'bg-blue/5' : ''
+          isCurrentPlaying ? 'bg-primary/5' : ''
         } ${isLocked ? 'opacity-65' : ''} ${
           isDragging ? 'bg-panel-elevated' : ''
         }`}
@@ -434,8 +434,8 @@ export const SongRow = memo(function SongRow({
               }}
               className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded ${
                 isDragging
-                  ? 'text-blue bg-blue/15 scale-110 shadow-xs'
-                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-blue active:bg-blue/10'
+                  ? 'text-primary bg-primary/15 scale-110 shadow-xs'
+                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder tracks"
             >
@@ -498,12 +498,12 @@ export const SongRow = memo(function SongRow({
               {isLocked ? (
                 <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/60" />
               ) : isCurrentPlaying ? (
-                <PauseIconSVG className="w-3.5 h-3.5 text-blue animate-pulse" />
+                <PauseIconSVG className="w-3.5 h-3.5 text-primary animate-pulse" />
               ) : (
                 <>
                   <span
                     className={`font-mono text-[11px] group-hover:hidden ${
-                      isCurrentLoaded ? 'text-blue font-bold' : ''
+                      isCurrentLoaded ? 'text-primary font-bold' : ''
                     }`}
                   >
                     {String(trackNumberDisplay ?? index + 1).padStart(2, '0')}
@@ -522,9 +522,9 @@ export const SongRow = memo(function SongRow({
                 className="min-w-0"
                 innerClassName={`font-sans text-sm font-semibold ${
                   isCurrentPlaying
-                    ? 'text-blue'
+                    ? 'text-primary'
                     : isCurrentLoaded
-                      ? 'text-blue'
+                      ? 'text-primary'
                       : 'text-ink'
                 }`}
               >

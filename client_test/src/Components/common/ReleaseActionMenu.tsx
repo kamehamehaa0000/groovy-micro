@@ -343,7 +343,7 @@ export function ReleaseActionMenu({
                 onClick={handlePlayRelease}
                 className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
               >
-                <PlayIconSVG className="w-3.5 h-3.5 text-blue shrink-0" />
+                <PlayIconSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Play Release</span>
               </button>
               <button
@@ -531,7 +531,7 @@ export function ReleaseActionMenu({
                     onClick={handlePlayRelease}
                     className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
                   >
-                    <PlayIconSVG className="w-4 h-4 text-blue shrink-0" />
+                    <PlayIconSVG className="w-4 h-4 text-primary shrink-0" />
                     <span>Play Release</span>
                   </button>
                   <button

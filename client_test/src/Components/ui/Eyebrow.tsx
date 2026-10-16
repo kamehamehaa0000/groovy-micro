@@ -14,7 +14,7 @@ export interface EyebrowProps {
 const TONE: Record<EyebrowTone, string> = {
   muted: 'text-ink-soft',
   ink: 'text-ink',
-  brand: 'text-blue',
+  brand: 'text-primary',
   success: 'text-success',
   danger: 'text-danger',
 }

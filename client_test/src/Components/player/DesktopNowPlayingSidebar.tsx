@@ -363,7 +363,7 @@ export function DesktopNowPlayingSidebar({
                     navigate,
                   )
                 }
-                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer"
               >
                 Profile &rarr;
               </button>
@@ -397,7 +397,7 @@ export function DesktopNowPlayingSidebar({
                     {artistDetails.stageName}
                   </h3>
                   {artistDetails.verified && (
-                    <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
+                    <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary" />
                   )}
                 </div>
                 {artistDetails.monthlyListeners !== undefined && (
@@ -452,7 +452,7 @@ export function DesktopNowPlayingSidebar({
                       <button
                         type="button"
                         onClick={() => navigateToArtist(collab, navigate)}
-                        className="w-8 h-8 rounded-full bg-blue/10 text-blue font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue/20 hover:scale-105 transition-transform cursor-pointer"
+                        className="w-8 h-8 rounded-full bg-primary/10 text-primary font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 hover:scale-105 transition-transform cursor-pointer"
                       >
                         {collab.name.slice(0, 2).toUpperCase()}
                       </button>
@@ -466,7 +466,7 @@ export function DesktopNowPlayingSidebar({
                             {collab.name}
                           </button>
                           {collab.verified && (
-                            <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
+                            <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary" />
                           )}
                         </div>
                         <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider">
@@ -505,7 +505,7 @@ export function DesktopNowPlayingSidebar({
               <button
                 type="button"
                 onClick={onSwitchToQueue}
-                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer"
               >
                 Open Queue &rarr;
               </button>
@@ -551,7 +551,7 @@ export function DesktopNowPlayingSidebar({
                 onClick={() =>
                   navigateToArtist(parsedCredits.primary, navigate)
                 }
-                className="hover:text-blue hover:underline cursor-pointer text-left truncate"
+                className="hover:text-primary hover:underline cursor-pointer text-left truncate"
               >
                 {parsedCredits.primary.name}
               </button>
@@ -567,7 +567,7 @@ export function DesktopNowPlayingSidebar({
                     <button
                       type="button"
                       onClick={() => navigateToArtist(c, navigate)}
-                      className="hover:text-blue hover:underline cursor-pointer text-left"
+                      className="hover:text-primary hover:underline cursor-pointer text-left"
                     >
                       {c.name}
                     </button>
@@ -607,7 +607,7 @@ export function DesktopNowPlayingSidebar({
 
           {/* <div className="flex items-center justify-between py-1 border-b border-line/40">
             <span className="text-ink-soft">Stream Quality:</span>
-            <span className="font-mono text-[11px] uppercase font-bold text-blue">
+            <span className="font-mono text-[11px] uppercase font-bold text-primary">
               {streamQuality === 'lossless'
                 ? 'Hi-Fi FLAC Lossless'
                 : streamFormat === 'hls'

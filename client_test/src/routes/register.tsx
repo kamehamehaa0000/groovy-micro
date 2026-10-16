@@ -133,7 +133,7 @@ function RegisterComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-4">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-ink leading-[1.1] mb-4 font-normal">
@@ -180,7 +180,7 @@ function RegisterComponent() {
                 &larr; Back to form
               </button>
 
-              <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-2">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
                 Correspondence · Account
               </div>
               <h2 className="font-serif italic font-medium text-3xl text-ink mb-3 leading-tight">
@@ -237,7 +237,7 @@ function RegisterComponent() {
                 <button
                   type="button"
                   onClick={() => setRegisteredEmail(null)}
-                  className="text-blue underline cursor-pointer"
+                  className="text-primary underline cursor-pointer"
                 >
                   Edit and resend
                 </button>
@@ -255,7 +255,7 @@ function RegisterComponent() {
                 >
                   Sign In
                 </Link>
-                <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-blue text-ink font-medium">
+                <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-ink font-medium">
                   Create Account
                 </span>
               </div>
@@ -376,7 +376,7 @@ function RegisterComponent() {
                 <Link
                   to="/login"
                   search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="text-blue hover:underline transition-colors"
+                  className="text-primary hover:underline transition-colors"
                 >
                   Sign in
                 </Link>

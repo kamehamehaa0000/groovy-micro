@@ -57,7 +57,7 @@ function OAuthCallbackComponent() {
 
   return (
     <div className="py-24 text-center">
-      <div className="mx-auto w-10 h-10 mb-4 text-blue flex items-center justify-center">
+      <div className="mx-auto w-10 h-10 mb-4 text-primary flex items-center justify-center">
         <svg
           className="animate-spin w-7 h-7"
           viewBox="0 0 24 24"

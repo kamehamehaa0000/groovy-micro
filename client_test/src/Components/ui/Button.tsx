@@ -19,16 +19,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT: Record<ButtonVariant, string> = {
-  /* Groovy's signature CTA: solid ink, brand-blue on hover. */
+  /* Groovy's signature CTA: solid ink, brand-primary on hover. */
   primary:
-    'border-ink bg-ink text-canvas hover:border-blue hover:bg-blue hover:text-white',
-  brand: 'border-blue bg-blue text-canvas hover:border-blue-deep hover:bg-blue-deep',
+    'border-ink bg-ink text-canvas hover:border-primary hover:bg-primary hover:text-primary-foreground',
+  brand:
+    'border-primary bg-primary text-primary-foreground hover:border-primary-strong hover:bg-primary-strong',
   outline:
-    'border-line bg-transparent text-ink hover:border-blue hover:text-blue',
+    'border-line bg-transparent text-ink hover:border-primary hover:text-primary',
   ghost:
     'border-transparent bg-transparent text-ink-soft hover:bg-stone/20 hover:text-ink',
   danger:
-    'border-danger/40 bg-transparent text-danger hover:border-danger hover:bg-danger hover:text-white',
+    'border-danger/40 bg-transparent text-danger hover:border-danger hover:bg-danger hover:text-danger-foreground',
 }
 
 const SIZE: Record<ButtonSize, string> = {
@@ -52,7 +53,7 @@ export function Button({
       type={type}
       className={cn(
         'inline-flex select-none items-center justify-center rounded-control border font-mono font-semibold uppercase tracking-wider transition-colors cursor-pointer',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue/40',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
         'disabled:cursor-not-allowed disabled:opacity-50',
         VARIANT[variant],
         SIZE[size],

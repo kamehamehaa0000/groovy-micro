@@ -224,7 +224,7 @@ export function CommentSection({
             <select
               value={sort}
               onChange={(e) => handleSortChange(e.target.value as CommentSort)}
-              className="bg-panel border border-line rounded px-2.5 py-1 text-xs font-mono text-ink focus:outline-none focus:border-blue cursor-pointer"
+              className="bg-panel border border-line rounded px-2.5 py-1 text-xs font-mono text-ink focus:outline-none focus:border-primary cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

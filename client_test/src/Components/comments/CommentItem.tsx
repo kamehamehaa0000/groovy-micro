@@ -257,7 +257,7 @@ export function CommentItem({
     >
       {/* Pinned Header Badge */}
       {comment.isPinned && (
-        <div className="flex items-center gap-1.5 text-blue font-mono text-[11px] uppercase tracking-wider font-semibold">
+        <div className="flex items-center gap-1.5 text-primary font-mono text-[11px] uppercase tracking-wider font-semibold">
           <PinIcon filled className="w-3 h-3" />
           <span>Pinned by Creator</span>
         </div>
@@ -298,7 +298,7 @@ export function CommentItem({
               <Link
                 to="/users/$id"
                 params={{ id: comment.userId }}
-                className="text-xs font-semibold text-ink hover:text-blue transition-colors"
+                className="text-xs font-semibold text-ink hover:text-primary transition-colors"
               >
                 {comment.userName}
               </Link>
@@ -323,7 +323,7 @@ export function CommentItem({
             title={comment.isPinned ? "Unpin comment" : "Pin comment to top"}
             className={`p-1 rounded cursor-pointer transition-colors ${
               comment.isPinned
-                ? "text-blue bg-blue/10"
+                ? "text-primary bg-primary/10"
                 : "text-ink-soft/40 hover:text-ink hover:bg-stone/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             }`}
           >
@@ -351,7 +351,7 @@ export function CommentItem({
             <p className="whitespace-pre-wrap break-words">
               {/* If this is a reply with a recipient username, show mention tag */}
               {comment.replyToUserName && (
-                <span className="text-blue font-medium mr-1.5 select-none">
+                <span className="text-primary font-medium mr-1.5 select-none">
                   @{comment.replyToUserName}
                 </span>
               )}
@@ -371,7 +371,7 @@ export function CommentItem({
             aria-label="Upvote"
             className={`flex items-center gap-1.5 py-1 px-1.5 -ml-1.5 rounded transition-all cursor-pointer select-none ${
               isUpvoted
-                ? "text-blue bg-blue/10 font-semibold"
+                ? "text-primary bg-primary/10 font-semibold"
                 : "text-ink-soft hover:text-ink hover:bg-stone/20"
             }`}
           >
@@ -450,7 +450,7 @@ export function CommentItem({
             <button
               type="button"
               onClick={handleToggleReplies}
-              className="flex items-center gap-1.5 text-xs font-mono text-blue hover:underline cursor-pointer py-1"
+              className="flex items-center gap-1.5 text-xs font-mono text-primary hover:underline cursor-pointer py-1"
             >
               <span>
                 {showReplies

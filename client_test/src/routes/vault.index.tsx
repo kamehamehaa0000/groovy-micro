@@ -380,7 +380,7 @@ function PersonalCollectionExplorePage() {
               <button
                 type="button"
                 onClick={() => handlePlayRelease(personalReleases[0])}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-blue text-canvas font-medium text-xs hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
+                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-canvas font-medium text-xs hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
               >
                 <PlayIconSVG className="w-3 h-3 text-canvas" />
                 <span>Play</span>
@@ -473,13 +473,13 @@ function PersonalCollectionExplorePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-blue bg-blue/10">
+                      <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-primary bg-primary/10">
                         {artist.stageName.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div className="w-full">
-                    <div className="font-semibold text-sm text-ink group-hover:text-blue transition-colors truncate">
+                    <div className="font-semibold text-sm text-ink group-hover:text-primary transition-colors truncate">
                       {artist.stageName}
                     </div>
                     <div className="text-xs text-ink-soft truncate mt-0.5">
@@ -502,7 +502,7 @@ function PersonalCollectionExplorePage() {
           ) : personalReleases.length === 0 ? (
             /* Empty Collection State */
             <div className="p-12 border border-dashed border-line bg-panel/40 text-center space-y-4 my-6 rounded-2xl select-none">
-              <div className="w-14 h-14 bg-panel border border-line text-blue flex items-center justify-center mx-auto rounded-full shadow-md">
+              <div className="w-14 h-14 bg-panel border border-line text-primary flex items-center justify-center mx-auto rounded-full shadow-md">
                 <UploadCloudSVG className="w-7 h-7" />
               </div>
               <div className="space-y-1">
@@ -572,7 +572,7 @@ function PersonalCollectionExplorePage() {
                           e.stopPropagation()
                           handlePlayRelease(release)
                         }}
-                        className={`absolute bottom-2 right-2 w-9 h-9 bg-blue text-canvas rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`absolute bottom-2 right-2 w-9 h-9 bg-primary text-canvas rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer ${
                           isPlayingThisRelease
                             ? 'opacity-100 scale-100 ring-2 ring-white/50'
                             : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 scale-100 sm:scale-90 sm:group-hover:scale-100 hover:scale-105'
@@ -601,7 +601,7 @@ function PersonalCollectionExplorePage() {
                       <Link
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: release.slug || release.id }}
-                        className="font-semibold text-sm truncate group-hover:text-blue transition-colors block text-inherit no-underline"
+                        className="font-semibold text-sm truncate group-hover:text-primary transition-colors block text-inherit no-underline"
                         title={release.title}
                       >
                         {release.title}
@@ -664,7 +664,7 @@ function PersonalCollectionExplorePage() {
 
                       {/* Text Information (NO release type bubble, NO cuts!) */}
                       <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="font-semibold text-sm text-ink group-hover:text-blue transition-colors truncate">
+                        <h3 className="font-semibold text-sm text-ink group-hover:text-primary transition-colors truncate">
                           {release.title}
                         </h3>
                         <div className="flex items-center gap-1.5 text-xs text-ink-soft mt-0.5 truncate">

@@ -143,7 +143,7 @@ export function RecentlyPlayedShelf({
                   {/* Title & Artist */}
                   <div className="flex flex-col justify-center min-w-0 flex-1 px-2.5 py-1">
                     <span
-                      className="text-xs font-semibold text-ink group-hover:text-blue truncate tracking-tight transition-colors"
+                      className="text-xs font-semibold text-ink group-hover:text-primary truncate tracking-tight transition-colors"
                       title={releaseTitle}
                     >
                       {releaseTitle}

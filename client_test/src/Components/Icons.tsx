@@ -1,6 +1,6 @@
 export const DarkModeSVG = () => (
   <svg
-    className="w-3.5 h-3.5 text-blue"
+    className="w-3.5 h-3.5 text-primary"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -19,7 +19,7 @@ export const DarkModeSVG = () => (
 )
 export const LightModeSVG = () => (
   <svg
-    className="w-3.5 h-3.5 text-blue"
+    className="w-3.5 h-3.5 text-primary"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -106,7 +106,7 @@ export const GoogleIcon = () => (
   </svg>
 )
 
-export const VerifiedBadgeSVG = ({ className = "w-4 h-4 text-blue" }: { className?: string }) => (
+export const VerifiedBadgeSVG = ({ className = "w-4 h-4 text-primary" }: { className?: string }) => (
   <svg
     className={className}
     viewBox="0 0 24 24"

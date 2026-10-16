@@ -73,9 +73,9 @@ function ResetPasswordComponent() {
             to="/"
             className="font-serif italic text-3xl tracking-[-0.03em] text-ink hover:opacity-80 transition-opacity"
           >
-            Groov<span className="not-italic text-blue font-serif">y</span>
+            Groov<span className="not-italic text-primary font-serif">y</span>
           </Link>
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mt-2">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary mt-2">
             Security &nbsp;·&nbsp; Password Reset
           </div>
         </div>
@@ -230,7 +230,7 @@ function ResetPasswordComponent() {
 
             <div className="mt-8 pt-6 border-t border-line/60 text-center font-sans text-xs text-ink-soft">
               Remember your password?{' '}
-              <Link to="/login" className="text-blue hover:underline">
+              <Link to="/login" className="text-primary hover:underline">
                 Sign In
               </Link>
             </div>

@@ -1556,7 +1556,7 @@ function StudioComponent() {
     return (
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-12">
         <div className="border-b border-line pb-6 mb-8">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
             Maison Creator Studio
           </span>
           <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -1609,7 +1609,7 @@ function StudioComponent() {
               />
               <div className="mt-2 font-mono text-[11px] text-ink-soft flex items-center gap-1">
                 <span>Public profile URL:</span>
-                <span className="text-blue font-semibold">
+                <span className="text-primary font-semibold">
                   groovy.app/artists/{previewSlug}
                 </span>
               </div>
@@ -1938,7 +1938,7 @@ function StudioComponent() {
       {/* Studio Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line mb-8">
         <div>
-          <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
             Maison Studio Suite
           </span>
           <div className="flex items-center gap-2 flex-wrap">
@@ -1946,7 +1946,7 @@ function StudioComponent() {
               {artistProfile.stageName}
             </h1>
             {artistProfile.verified && (
-              <VerifiedBadgeSVG className="w-5 h-5 text-blue" />
+              <VerifiedBadgeSVG className="w-5 h-5 text-primary" />
             )}
           </div>
           <span className="font-mono text-xs text-ink-soft">
@@ -1973,7 +1973,7 @@ function StudioComponent() {
           onClick={() => setActiveTab('releases')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'releases'
-              ? 'border-blue text-ink font-semibold'
+              ? 'border-primary text-ink font-semibold'
               : 'border-transparent text-ink-soft hover:text-ink'
           }`}
         >
@@ -1985,7 +1985,7 @@ function StudioComponent() {
           onClick={() => setActiveTab('trash')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'trash'
-              ? 'border-blue text-ink font-semibold'
+              ? 'border-primary text-ink font-semibold'
               : 'border-transparent text-ink-soft hover:text-ink'
           }`}
         >
@@ -1997,7 +1997,7 @@ function StudioComponent() {
           onClick={() => setActiveTab('profile')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'border-blue text-ink font-semibold'
+              ? 'border-primary text-ink font-semibold'
               : 'border-transparent text-ink-soft hover:text-ink'
           }`}
         >
@@ -2009,7 +2009,7 @@ function StudioComponent() {
           onClick={() => setActiveTab('verification')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'verification'
-              ? 'border-blue text-ink font-semibold'
+              ? 'border-primary text-ink font-semibold'
               : 'border-transparent text-ink-soft hover:text-ink'
           }`}
         >
@@ -2233,8 +2233,8 @@ function StudioComponent() {
 
                 {/* Scheduled Release Date & Time Settings */}
                 {releaseMode === 'SCHEDULED' && (
-                  <div className="p-4 border border-blue/40 bg-blue/5 space-y-3">
-                    <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-blue font-semibold">
+                  <div className="p-4 border border-primary/40 bg-primary/5 space-y-3">
+                    <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-primary font-semibold">
                       <CalendarIconSVG className="w-3.5 h-3.5" />
                       <span>Scheduled Drop & Pre-Save Configuration</span>
                     </div>
@@ -2309,7 +2309,7 @@ function StudioComponent() {
                             {opt.label}
                           </span>
                           {releaseVisibility === opt.key && (
-                            <span className="font-mono text-xs text-blue">●</span>
+                            <span className="font-mono text-xs text-primary">●</span>
                           )}
                         </div>
                         <p className="font-sans text-[11px] text-ink-soft leading-snug">
@@ -2551,7 +2551,7 @@ function StudioComponent() {
                       type="checkbox"
                       checked={releaseAllowComments}
                       onChange={(e) => setReleaseAllowComments(e.target.checked)}
-                      className="accent-blue w-4 h-4"
+                      className="accent-primary w-4 h-4"
                     />
                     <span className="font-mono text-xs text-ink font-medium">
                       {releaseAllowComments ? 'Enabled' : 'Disabled'}
@@ -3039,13 +3039,13 @@ function StudioComponent() {
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-primary font-semibold">
                                 {album.albumType}
                               </span>
 
                               {/* Status Badge */}
                               {album.status === 'SCHEDULED' ? (
-                                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold flex items-center gap-1">
+                                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary font-semibold flex items-center gap-1">
                                   <CalendarIconSVG className="w-2.5 h-2.5" />
                                   <span>
                                     Scheduled &bull;{' '}
@@ -3730,12 +3730,12 @@ function StudioComponent() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line-soft">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-semibold px-2 py-0.5 rounded border border-blue/30 bg-blue/10">
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-semibold px-2 py-0.5 rounded border border-primary/30 bg-primary/10">
                         ✦ Profile Spotlight
                       </span>
                       {artistProfile.pinnedReleaseId ? (
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-blue bg-blue/10 border border-blue/30 px-2 py-0.5 rounded flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue animate-pulse" />
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           <span>
                             Active: {currentPinnedRelease ? `"${currentPinnedRelease.title}"` : 'Custom Pick'}
                           </span>
@@ -3802,8 +3802,8 @@ function StudioComponent() {
                 )}
 
                 {spotlightStatus === 'cleared' && (
-                  <div className="flex items-center gap-2.5 p-3.5 bg-blue/10 border border-blue/30 rounded text-blue font-mono text-xs shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span className="w-5 h-5 rounded-full bg-blue text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div className="flex items-center gap-2.5 p-3.5 bg-primary/10 border border-primary/30 rounded text-primary font-mono text-xs shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-xs">
                       ✓
                     </span>
                     <div>
@@ -3963,7 +3963,7 @@ function StudioComponent() {
                               to="/artists/$idOrSlug"
                               params={{ idOrSlug: artistProfile.slug }}
                               target="_blank"
-                              className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline inline-flex items-center gap-1"
+                              className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline inline-flex items-center gap-1"
                             >
                               <span>View Live Profile</span>
                               <ExternalLinkSVG className="w-2.5 h-2.5" />
@@ -3983,7 +3983,7 @@ function StudioComponent() {
                                   />
                                 </div>
                               )}
-                              <span className="font-mono text-[11px] uppercase tracking-widest text-blue font-semibold flex items-center gap-1.5">
+                              <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
                                 <span>{spotlightReleaseId ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
                               </span>
                             </div>
@@ -4044,7 +4044,7 @@ function StudioComponent() {
                         spotlightStatus === 'saved'
                           ? 'bg-emerald-600 text-white border border-emerald-500 shadow-sm'
                           : isSpotlightDirty
-                            ? 'bg-ink text-canvas hover:bg-blue hover:text-white shadow-sm'
+                            ? 'bg-ink text-canvas hover:bg-primary hover:text-primary-foreground shadow-sm'
                             : 'bg-ink text-canvas hover:opacity-90'
                       } disabled:opacity-50`}
                     >
@@ -4101,8 +4101,8 @@ function StudioComponent() {
           </div>
 
           {artistProfile.verificationStatus === 'VERIFIED' ? (
-            <div className="p-6 border border-blue/20 bg-blue/5 flex items-center gap-4">
-              <VerifiedBadgeSVG className="w-8 h-8 text-blue shrink-0" />
+            <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
+              <VerifiedBadgeSVG className="w-8 h-8 text-primary shrink-0" />
               <div>
                 <h3 className="font-serif italic text-base text-ink">
                   Officially Verified Artist
@@ -4782,7 +4782,7 @@ function StudioComponent() {
                   </div>
 
                   {editReleaseMode === 'SCHEDULED' && (
-                    <div className="p-3.5 border border-blue/30 bg-blue/5 space-y-3">
+                    <div className="p-3.5 border border-primary/30 bg-primary/5 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
@@ -4844,7 +4844,7 @@ function StudioComponent() {
                       type="checkbox"
                       checked={editReleaseAllowComments}
                       onChange={(e) => setEditReleaseAllowComments(e.target.checked)}
-                      className="accent-blue w-4 h-4"
+                      className="accent-primary w-4 h-4"
                     />
                     <span className="font-mono text-xs text-ink font-medium">
                       {editReleaseAllowComments ? 'Enabled' : 'Disabled'}

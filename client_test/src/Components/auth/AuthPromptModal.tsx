@@ -105,8 +105,8 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
           {/* Heading */}
           <div className="mb-7">
-            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-blue">
-              <span className="h-px w-7 bg-blue"></span>
+            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-primary">
+              <span className="h-px w-7 bg-primary"></span>
               {activeCategory}
             </div>
 
@@ -139,7 +139,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-canvas transition hover:bg-blue hover:border-blue cursor-pointer shadow-xs"
+              className="group rounded-lg flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-canvas transition hover:bg-primary hover:border-primary cursor-pointer shadow-xs"
             >
               <span>Log in</span>
               <svg
@@ -170,7 +170,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-line bg-transparent px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-ink transition hover:border-blue hover:text-blue cursor-pointer"
+              className="group rounded-lg flex w-full items-center justify-between border border-line bg-transparent px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-ink transition hover:border-primary hover:text-primary cursor-pointer"
             >
               <span>Create account</span>
               <svg

@@ -539,7 +539,7 @@ export function MobileExpandedPlayer() {
               aria-label={isShuffle ? 'Shuffle on' : 'Shuffle off'}
               aria-pressed={isShuffle}
               className={`w-11 h-11 -ml-2.5 flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
-                isShuffle ? 'text-blue' : 'text-ink-soft'
+                isShuffle ? 'text-primary' : 'text-ink-soft'
               }`}
             >
               <svg
@@ -626,7 +626,7 @@ export function MobileExpandedPlayer() {
               onClick={toggleRepeat}
               aria-label={`Repeat mode: ${repeatMode}`}
               className={`w-11 h-11 -mr-2.5 flex items-center justify-center transition-colors active:scale-90 relative cursor-pointer ${
-                repeatMode !== 'off' ? 'text-blue' : 'text-ink-soft'
+                repeatMode !== 'off' ? 'text-primary' : 'text-ink-soft'
               }`}
             >
               <svg
@@ -644,7 +644,7 @@ export function MobileExpandedPlayer() {
                 <path d="M21 13v2a4 4 0 0 1-4 4H3" />
               </svg>
               {repeatMode === 'one' && (
-                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-blue text-canvas px-1 py-0.5 rounded-full">
+                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-primary text-canvas px-1 py-0.5 rounded-full">
                   1
                 </span>
               )}
@@ -817,7 +817,7 @@ export function MobileExpandedPlayer() {
                       closePlayer,
                     )
                   }
-                  className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer py-1"
+                  className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Profile &rarr;
                 </button>
@@ -850,7 +850,7 @@ export function MobileExpandedPlayer() {
                       {artistDetails.stageName}
                     </h3>
                     {artistDetails.verified && (
-                      <VerifiedBadgeSVG className="w-4 h-4 text-blue shrink-0" />
+                      <VerifiedBadgeSVG className="w-4 h-4 text-primary shrink-0" />
                     )}
                   </div>
                   {artistDetails.monthlyListeners !== undefined && (
@@ -913,7 +913,7 @@ export function MobileExpandedPlayer() {
                           onClick={() =>
                             navigateToArtist(collab, navigate, closePlayer)
                           }
-                          className="w-10 h-10 rounded-full bg-blue/10 text-blue font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue/20 active:scale-95 transition-transform cursor-pointer"
+                          className="w-10 h-10 rounded-full bg-primary/10 text-primary font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 active:scale-95 transition-transform cursor-pointer"
                         >
                           {collab.name.slice(0, 2).toUpperCase()}
                         </button>
@@ -929,7 +929,7 @@ export function MobileExpandedPlayer() {
                               {collab.name}
                             </button>
                             {collab.verified && (
-                              <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue shrink-0" />
+                              <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                             )}
                           </div>
                           <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider truncate">
@@ -970,7 +970,7 @@ export function MobileExpandedPlayer() {
                 <button
                   type="button"
                   onClick={toggleQueueDrawer}
-                  className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline cursor-pointer py-1"
+                  className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Open Queue
                 </button>
@@ -1017,7 +1017,7 @@ export function MobileExpandedPlayer() {
                 onClick={() =>
                   navigateToArtist(parsedCredits.primary, navigate, closePlayer)
                 }
-                className="font-medium text-ink hover:text-blue hover:underline cursor-pointer text-right min-w-0 wrap-break-word"
+                className="font-medium text-ink hover:text-primary hover:underline cursor-pointer text-right min-w-0 wrap-break-word"
               >
                 {parsedCredits.primary.name}
               </button>
@@ -1034,7 +1034,7 @@ export function MobileExpandedPlayer() {
                         onClick={() =>
                           navigateToArtist(c, navigate, closePlayer)
                         }
-                        className="hover:text-blue hover:underline cursor-pointer"
+                        className="hover:text-primary hover:underline cursor-pointer"
                       >
                         {c.name}
                       </button>
@@ -1074,7 +1074,7 @@ export function MobileExpandedPlayer() {
 
             <div className="flex items-center justify-between gap-4 py-1.5">
               <span className="text-ink-soft shrink-0">Audio Engine</span>
-              <span className="font-mono text-[11px] text-blue font-bold uppercase tracking-wider text-right">
+              <span className="font-mono text-[11px] text-primary font-bold uppercase tracking-wider text-right">
                 {currentTrack.hlsManifestUrl
                   ? 'Hi-Res HLS Stream'
                   : 'Lossless FLAC Master'}

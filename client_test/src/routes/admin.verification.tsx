@@ -140,7 +140,7 @@ function AdminVerificationDeskComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
               Groovy Administration
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -199,7 +199,7 @@ function AdminVerificationDeskComponent() {
                   onClick={() => setActiveTab(tab)}
                   className={`py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer ${
                     activeTab === tab
-                      ? 'border-b-2 border-blue text-ink font-semibold'
+                      ? 'border-b-2 border-primary text-ink font-semibold'
                       : 'text-ink-soft hover:text-ink'
                   }`}
                 >
@@ -253,13 +253,13 @@ function AdminVerificationDeskComponent() {
                       <Link
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: app.slug }}
-                        className="font-serif italic text-xl text-ink hover:text-blue transition-colors flex items-center gap-1.5"
+                        className="font-serif italic text-xl text-ink hover:text-primary transition-colors flex items-center gap-1.5"
                       >
                         <span>{app.stageName}</span>
                         <ExternalLinkSVG className="w-3.5 h-3.5 text-ink-soft" />
                       </Link>
                       {app.verified && (
-                        <VerifiedBadgeSVG className="w-4 h-4 text-blue" />
+                        <VerifiedBadgeSVG className="w-4 h-4 text-primary" />
                       )}
                     </div>
                     <div className="font-mono text-[11px] text-ink-soft flex items-center gap-2 mt-0.5">
@@ -273,7 +273,7 @@ function AdminVerificationDeskComponent() {
                     <span
                       className={`font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border ${
                         app.verificationStatus === 'VERIFIED'
-                          ? 'border-blue/30 bg-blue/10 text-blue font-semibold'
+                          ? 'border-primary/30 bg-primary/10 text-primary font-semibold'
                           : app.verificationStatus === 'PENDING'
                             ? 'border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold'
                             : app.verificationStatus === 'REJECTED'

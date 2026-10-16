@@ -158,7 +158,7 @@ export const QueueSongRow = memo(function QueueSongRow({
       data-user-queue={isUserQueue}
       className={`relative select-none rounded transition-colors ${
         isDragging
-          ? 'z-40 shadow-2xl ring-2 ring-blue/60 bg-panel-elevated opacity-95 scale-[1.01]'
+          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-panel-elevated opacity-95 scale-[1.01]'
           : ''
       } ${
         isRemoving ? 'opacity-0 -translate-x-full duration-200' : ''
@@ -228,7 +228,7 @@ export const QueueSongRow = memo(function QueueSongRow({
         onClick={handleRowClick}
         className={`group relative z-10 flex items-center justify-between gap-2.5 p-2 rounded-md transition-colors cursor-pointer ${
           isNowPlaying
-            ? 'bg-blue/8 border border-blue/25'
+            ? 'bg-primary/8 border border-primary/25'
             : isDragging
             ? 'bg-panel-elevated'
             : 'hover:bg-canvas-deep bg-panel'
@@ -258,8 +258,8 @@ export const QueueSongRow = memo(function QueueSongRow({
               }}
               className={`drag-grip -ml-1.5 w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 select-none touch-none rounded transition-colors cursor-grab active:cursor-grabbing ${
                 isDragging
-                  ? 'text-blue bg-blue/15 scale-110 shadow-xs'
-                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-blue active:bg-blue/10'
+                  ? 'text-primary bg-primary/15 scale-110 shadow-xs'
+                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder"
             >
@@ -316,7 +316,7 @@ export const QueueSongRow = memo(function QueueSongRow({
           <div className="flex flex-col min-w-0">
             <span
               className={`text-xs font-sans font-medium truncate transition-colors leading-tight ${
-                isNowPlaying ? 'text-blue font-semibold' : 'text-ink group-hover:text-blue'
+                isNowPlaying ? 'text-primary font-semibold' : 'text-ink group-hover:text-primary'
               }`}
             >
               {track.title}

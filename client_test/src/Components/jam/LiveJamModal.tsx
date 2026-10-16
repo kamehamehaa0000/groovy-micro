@@ -185,7 +185,7 @@ export function LiveJamModal() {
                     <button
                       type="button"
                       onClick={handleCopyLink}
-                      className="px-3 py-1.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors shrink-0 cursor-pointer shadow-2xs"
+                      className="px-3 py-1.5 rounded-xs bg-ink hover:bg-primary text-canvas hover:text-primary-foreground font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors shrink-0 cursor-pointer shadow-2xs"
                     >
                       {copied ? "Copied!" : "Copy"}
                     </button>
@@ -210,7 +210,7 @@ export function LiveJamModal() {
                 className="w-full flex items-center justify-center gap-2 py-2 rounded-xs border border-line bg-panel hover:bg-canvas text-ink font-mono text-xs uppercase tracking-wider transition-colors shadow-2xs"
               >
                 <span>Open Dedicated Jam Room</span>
-                <span className="text-blue">&rarr;</span>
+                <span className="text-primary">&rarr;</span>
               </Link>
 
               {/* Connected Listeners */}
@@ -320,7 +320,7 @@ export function LiveJamModal() {
                         onClick={() => setPrivacy("FRIENDS_ONLY")}
                         className={`flex items-start gap-3 p-3 rounded-xs border cursor-pointer transition-colors ${
                           privacy === "FRIENDS_ONLY"
-                            ? "bg-blue/5 dark:bg-blue/10 border-blue"
+                            ? "bg-primary/5 dark:bg-primary/10 border-primary"
                             : "bg-panel border-line hover:border-ink/30"
                         }`}
                       >
@@ -329,7 +329,7 @@ export function LiveJamModal() {
                           name="jam_privacy"
                           checked={privacy === "FRIENDS_ONLY"}
                           onChange={() => setPrivacy("FRIENDS_ONLY")}
-                          className="mt-0.5 accent-blue"
+                          className="mt-0.5 accent-primary"
                         />
                         <div>
                           <div className="text-xs font-semibold text-ink">
@@ -345,7 +345,7 @@ export function LiveJamModal() {
                         onClick={() => setPrivacy("PUBLIC")}
                         className={`flex items-start gap-3 p-3 rounded-xs border cursor-pointer transition-colors ${
                           privacy === "PUBLIC"
-                            ? "bg-blue/5 dark:bg-blue/10 border-blue"
+                            ? "bg-primary/5 dark:bg-primary/10 border-primary"
                             : "bg-panel border-line hover:border-ink/30"
                         }`}
                       >
@@ -354,7 +354,7 @@ export function LiveJamModal() {
                           name="jam_privacy"
                           checked={privacy === "PUBLIC"}
                           onChange={() => setPrivacy("PUBLIC")}
-                          className="mt-0.5 accent-blue"
+                          className="mt-0.5 accent-primary"
                         />
                         <div>
                           <div className="text-xs font-semibold text-ink">Public</div>
@@ -368,7 +368,7 @@ export function LiveJamModal() {
                         onClick={() => setPrivacy("INVITE_ONLY")}
                         className={`flex items-start gap-3 p-3 rounded-xs border cursor-pointer transition-colors ${
                           privacy === "INVITE_ONLY"
-                            ? "bg-blue/5 dark:bg-blue/10 border-blue"
+                            ? "bg-primary/5 dark:bg-primary/10 border-primary"
                             : "bg-panel border-line hover:border-ink/30"
                         }`}
                       >
@@ -377,7 +377,7 @@ export function LiveJamModal() {
                           name="jam_privacy"
                           checked={privacy === "INVITE_ONLY"}
                           onChange={() => setPrivacy("INVITE_ONLY")}
-                          className="mt-0.5 accent-blue"
+                          className="mt-0.5 accent-primary"
                         />
                         <div>
                           <div className="text-xs font-semibold text-ink">Invite Only</div>
@@ -395,7 +395,7 @@ export function LiveJamModal() {
                       type="checkbox"
                       checked={allowGuestQueue}
                       onChange={(e) => setAllowGuestQueue(e.target.checked)}
-                      className="accent-blue rounded-xs"
+                      className="accent-primary rounded-xs"
                     />
                     <span className="text-[11px] text-ink-soft">
                       Allow listeners to add and suggest tracks to the collaborative queue
@@ -407,7 +407,7 @@ export function LiveJamModal() {
                     type="button"
                     disabled={loading}
                     onClick={handleCreate}
-                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer mt-2"
+                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-primary text-canvas hover:text-primary-foreground font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer mt-2"
                   >
                     {loading ? "Starting Session..." : "Start Live Jam"}
                   </button>
@@ -427,7 +427,7 @@ export function LiveJamModal() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleJoin();
                       }}
-                      className="w-full bg-panel border border-line rounded-xs px-4 py-2.5 text-center text-xl font-mono font-bold tracking-widest text-ink placeholder:text-ink-soft/40 uppercase focus:outline-none focus:border-blue transition-colors shadow-2xs"
+                      className="w-full bg-panel border border-line rounded-xs px-4 py-2.5 text-center text-xl font-mono font-bold tracking-widest text-ink placeholder:text-ink-soft/40 uppercase focus:outline-none focus:border-primary transition-colors shadow-2xs"
                       maxLength={10}
                     />
                   </div>
@@ -440,7 +440,7 @@ export function LiveJamModal() {
                     type="button"
                     disabled={loading || !joinCode.trim()}
                     onClick={handleJoin}
-                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                    className="w-full py-2.5 rounded-xs bg-ink hover:bg-primary text-canvas hover:text-primary-foreground font-mono text-xs uppercase tracking-wider font-semibold transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                   >
                     {loading ? "Joining..." : "Join Jam"}
                   </button>

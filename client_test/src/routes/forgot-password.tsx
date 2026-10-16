@@ -146,13 +146,13 @@ function ForgotPasswordComponent() {
         <div className="mt-8 pt-6 border-t border-line/60 flex flex-col items-center gap-2 font-sans text-xs text-ink-soft">
           <div>
             Remember your credentials?{' '}
-            <Link to="/login" className="text-blue hover:underline">
+            <Link to="/login" className="text-primary hover:underline">
               Sign In
             </Link>
           </div>
           <div>
             Don't have an account?{' '}
-            <Link to="/register" className="text-blue hover:underline">
+            <Link to="/register" className="text-primary hover:underline">
               Create an account
             </Link>
           </div>

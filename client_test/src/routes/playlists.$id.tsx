@@ -601,7 +601,7 @@ function PlaylistDetailComponent() {
   if (errorMessage || !playlist) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-widest text-blue block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-primary block mb-2">
           404 Catalog Notice
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -664,7 +664,7 @@ function PlaylistDetailComponent() {
 
       {collabToken && !isOwner && !isCollaborator && (
         <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-4">
-          <div className="p-4 border border-blue bg-blue/10 flex items-center justify-between gap-4 flex-wrap rounded-lg shadow-xs">
+          <div className="p-4 border border-primary bg-primary/10 flex items-center justify-between gap-4 flex-wrap rounded-lg shadow-xs">
             <div>
               <h4 className="font-serif italic text-base text-ink">
                 Collaborator Invitation
@@ -678,7 +678,7 @@ function PlaylistDetailComponent() {
               type="button"
               disabled={isJoiningCollab}
               onClick={handleJoinCollaboration}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-blue text-canvas font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs rounded"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-primary text-canvas font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs rounded"
             >
               {isJoiningCollab
                 ? 'Joining...'
@@ -779,7 +779,7 @@ function PlaylistDetailComponent() {
                   <Link
                     to="/users/$id"
                     params={{ id: playlist.ownerId }}
-                    className="font-serif italic text-base sm:text-lg text-ink hover:text-blue transition-colors inline-flex items-center gap-1.5"
+                    className="font-serif italic text-base sm:text-lg text-ink hover:text-primary transition-colors inline-flex items-center gap-1.5"
                   >
                     <span>
                       Curated by {playlist.ownerDisplayName || 'Curator'}
@@ -828,7 +828,7 @@ function PlaylistDetailComponent() {
                   <button
                     type="button"
                     onClick={handlePlayPlaylistFromStart}
-                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
                     <span>Play</span>
@@ -958,7 +958,7 @@ function PlaylistDetailComponent() {
             {/* Sticky Modal Header */}
             <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-line bg-panel shrink-0">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1 font-semibold">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1 font-semibold">
                   Playlist Settings
                 </span>
                 <h3 className="font-serif italic text-2xl sm:text-3xl text-ink font-semibold">
@@ -1107,7 +1107,7 @@ function PlaylistDetailComponent() {
                       type="checkbox"
                       checked={editAllowDuplicates}
                       onChange={(e) => setEditAllowDuplicates(e.target.checked)}
-                      className="accent-blue mt-0.5"
+                      className="accent-primary mt-0.5"
                     />
                     <div>
                       <span className="font-mono text-xs text-ink font-semibold block">
@@ -1125,7 +1125,7 @@ function PlaylistDetailComponent() {
                       type="checkbox"
                       checked={editAllowComments}
                       onChange={(e) => setEditAllowComments(e.target.checked)}
-                      className="accent-blue mt-0.5"
+                      className="accent-primary mt-0.5"
                     />
                     <div>
                       <span className="font-mono text-xs text-ink font-semibold block">
@@ -1164,7 +1164,7 @@ function PlaylistDetailComponent() {
                       onClick={handleToggleCollabSetting}
                       className={`font-mono text-[11px] uppercase tracking-wider py-2 px-4 border rounded-full transition-colors cursor-pointer shrink-0 font-medium ${
                         playlist.isCollaborative
-                          ? 'border-blue bg-blue text-canvas'
+                          ? 'border-primary bg-primary text-canvas'
                           : 'border-line bg-panel text-ink-soft hover:text-ink'
                       }`}
                     >
@@ -1412,7 +1412,7 @@ function PlaylistDetailComponent() {
                         )
                       }}
                       className={`p-3 flex items-center justify-between cursor-pointer hover:bg-canvas-soft transition-colors ${
-                        isSelected ? 'bg-blue/10' : ''
+                        isSelected ? 'bg-primary/10' : ''
                       }`}
                     >
                       <div className="min-w-0 pr-3">
@@ -1427,7 +1427,7 @@ function PlaylistDetailComponent() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => {}}
-                        className="accent-blue"
+                        className="accent-primary"
                       />
                     </div>
                   )

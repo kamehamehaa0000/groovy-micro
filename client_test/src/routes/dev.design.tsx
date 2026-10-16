@@ -99,8 +99,8 @@ const SURFACES = [
   { token: 'stone', className: 'bg-stone' },
   { token: 'ink', className: 'bg-ink' },
   { token: 'ink-soft', className: 'bg-ink-soft' },
-  { token: 'blue (accent)', className: 'bg-blue' },
-  { token: 'blue-deep', className: 'bg-blue-deep' },
+  { token: 'primary (accent)', className: 'bg-primary' },
+  { token: 'primary-strong', className: 'bg-primary-strong' },
 ]
 
 const SEMANTICS = [
@@ -299,7 +299,7 @@ function DesignPlayground() {
           <span className="text-success text-body">Success text</span>
           <span className="text-danger text-body">Danger text</span>
           <span className="text-warning text-body">Warning text</span>
-          <span className="text-blue text-body">Brand text</span>
+          <span className="text-primary text-body">Brand text</span>
         </div>
       </Section>
 

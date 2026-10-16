@@ -46,7 +46,7 @@ function ToggleSwitch({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-line transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-line transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
         checked ? 'bg-ink' : 'bg-canvas-deep'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
@@ -533,7 +533,7 @@ function ProfileComponent() {
               <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line bg-canvas text-ink-soft">
                 Role: <strong className="text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue/30 bg-blue/10 text-blue font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary font-semibold">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
               </span>
               {user.id && (
@@ -641,7 +641,7 @@ function ProfileComponent() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors placeholder:text-ink-soft/50 font-sans"
+                  className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors placeholder:text-ink-soft/50 font-sans"
                   placeholder="Your curator name"
                 />
               </div>
@@ -661,7 +661,7 @@ function ProfileComponent() {
           {/* Musician or Recording Artist Card (Moved to Account View) */}
           <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-1">
                 Maison Artist Presence
               </div>
               <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
@@ -681,7 +681,7 @@ function ProfileComponent() {
                   <Link
                     to="/artists/$idOrSlug"
                     params={{ idOrSlug: artistProfile.slug || artistProfile.id }}
-                    className="font-mono text-[11px] text-blue hover:underline inline-flex items-center gap-1.5"
+                    className="font-mono text-[11px] text-primary hover:underline inline-flex items-center gap-1.5"
                   >
                     <span>View Public Artist Page</span>
                     <span className="text-xs">↗</span>
@@ -733,7 +733,7 @@ function ProfileComponent() {
               )}
               <div className="py-3 flex items-center justify-between gap-4">
                 <span className="text-ink-soft">Active Plan</span>
-                <span className="font-mono text-[11px] uppercase text-blue font-semibold">
+                <span className="font-mono text-[11px] uppercase text-primary font-semibold">
                   {entitlements?.planName || user.plan?.name || 'Groovy Free'}
                 </span>
               </div>
@@ -767,7 +767,7 @@ function ProfileComponent() {
           <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
                   Active Subscription Tier
                 </span>
                 <div className="flex items-center gap-2.5">
@@ -1274,7 +1274,7 @@ function ProfileComponent() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors font-sans"
+                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors font-sans"
                   />
                 </div>
 
@@ -1292,7 +1292,7 @@ function ProfileComponent() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-blue transition-colors font-sans"
+                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors font-sans"
                   />
                 </div>
               </div>
@@ -1368,7 +1368,7 @@ function ProfileComponent() {
           <div className="max-w-4xl w-full bg-panel border border-line rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
                   Maison Sound Tiers &bull; Dev Mock Checkout
                 </span>
                 <h3 className="font-serif italic text-2xl sm:text-3xl text-ink">
@@ -1403,7 +1403,7 @@ function ProfileComponent() {
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-blue">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-primary">
                             {plan.id}
                           </span>
                           {isCurrent && (

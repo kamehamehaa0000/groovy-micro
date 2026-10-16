@@ -418,7 +418,7 @@ export function SongActionMenu({
                   onClick={handlePlayNow}
                   className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
                 >
-                  <PlayIconSVG className="w-3.5 h-3.5 text-blue shrink-0" />
+                  <PlayIconSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span>Play Now</span>
                 </button>
                 <button
@@ -779,7 +779,7 @@ export function SongActionMenu({
                         onClick={handlePlayNow}
                         className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
                       >
-                        <PlayIconSVG className="w-5 h-5 text-blue shrink-0" />
+                        <PlayIconSVG className="w-5 h-5 text-primary shrink-0" />
                         <span>Play Now</span>
                       </button>
                       <button

@@ -7,7 +7,7 @@ import type {
 import { cn } from './cn'
 
 const CONTROL =
-  'w-full rounded-control border border-line bg-panel px-3 py-2 text-body text-ink transition-colors placeholder:text-ink-soft/50 focus:border-blue focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
+  'w-full rounded-control border border-line bg-panel px-3 py-2 text-body text-ink transition-colors placeholder:text-ink-soft/50 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement>
 

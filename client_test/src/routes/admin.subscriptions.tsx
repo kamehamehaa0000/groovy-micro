@@ -249,7 +249,7 @@ function AdminSubscriptionsDeskComponent() {
       <div className="border-b border-line pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
               Groovy Administration
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -346,7 +346,7 @@ function AdminSubscriptionsDeskComponent() {
               <button
                 type="button"
                 onClick={handleOpenCreatePlan}
-                className="mt-3 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
+                className="mt-3 font-mono text-xs uppercase tracking-wider text-primary hover:underline"
               >
                 Create your first plan
               </button>
@@ -360,7 +360,7 @@ function AdminSubscriptionsDeskComponent() {
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-blue font-semibold">
+                      <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-primary font-semibold">
                         {plan.id}
                       </span>
                       <span

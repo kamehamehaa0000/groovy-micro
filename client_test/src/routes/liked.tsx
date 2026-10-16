@@ -257,7 +257,7 @@ function LikedSongsPage() {
           <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
             {/* Badges */}
             <div className="flex items-center gap-2.5 flex-wrap font-mono text-[11px] uppercase tracking-wider">
-              <span className="px-2.5 py-0.5 border border-line bg-canvas text-blue font-semibold">
+              <span className="px-2.5 py-0.5 border border-line bg-canvas text-primary font-semibold">
                 Collection
               </span>
               <span className="px-2 py-0.5 border border-line text-ink-soft">
@@ -291,7 +291,7 @@ function LikedSongsPage() {
                   <button
                     type="button"
                     onClick={handlePlayAll}
-                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-blue text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-primary text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
                   >
                     {isPlayingThisContext ? (
                       <PauseIconSVG className="w-4 h-4" />
@@ -404,7 +404,7 @@ function LikedSongsPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="font-mono text-xs text-blue hover:underline cursor-pointer"
+                  className="font-mono text-xs text-primary hover:underline cursor-pointer"
                 >
                   Clear filter
                 </button>

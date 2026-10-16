@@ -357,7 +357,7 @@ function AlbumDetailComponent() {
   if (queryError || !album) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-widest text-blue block mb-2">
+        <span className="font-mono text-xs uppercase tracking-widest text-primary block mb-2">
           404 Catalog Notice
         </span>
         <h1 className="font-serif italic text-3xl text-ink">
@@ -450,7 +450,7 @@ function AlbumDetailComponent() {
             <div className="min-w-0 flex-1 flex flex-col justify-end text-center md:text-left">
               {/* Badges / Eyebrow */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
-                <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-blue font-semibold rounded">
+                <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-primary font-semibold rounded">
                   {album.albumType}
                 </span>
                 {(album as any).scope === 'PERSONAL' && (
@@ -459,7 +459,7 @@ function AlbumDetailComponent() {
                   </span>
                 )}
                 {album.isUpcoming && (
-                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-blue/30 bg-blue/10 text-blue font-semibold flex items-center gap-1 rounded">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-primary/30 bg-primary/10 text-primary font-semibold flex items-center gap-1 rounded">
                     <CalendarIconSVG className="w-2.5 h-2.5" />
                     <span>Upcoming Drop</span>
                   </span>
@@ -484,11 +484,11 @@ function AlbumDetailComponent() {
                 <Link
                   to="/artists/$idOrSlug"
                   params={{ idOrSlug: album.artistSlug }}
-                  className="font-serif italic text-base sm:text-lg text-ink hover:text-blue transition-colors inline-flex items-center gap-1.5"
+                  className="font-serif italic text-base sm:text-lg text-ink hover:text-primary transition-colors inline-flex items-center gap-1.5"
                 >
                   <span>{album.artistStageName}</span>
                   {album.artistVerified && (
-                    <VerifiedBadgeSVG className="w-3.5 h-3.5 text-blue" />
+                    <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary" />
                   )}
                 </Link>
 
@@ -526,7 +526,7 @@ function AlbumDetailComponent() {
                     onClick={handleTogglePreSave}
                     className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all shadow-2xs cursor-pointer ${
                       isPreSaved
-                        ? 'border border-blue bg-blue text-canvas hover:opacity-90'
+                        ? 'border border-primary bg-primary text-canvas hover:opacity-90'
                         : 'bg-ink text-canvas hover:opacity-90'
                     }`}
                   >
@@ -541,7 +541,7 @@ function AlbumDetailComponent() {
                   <button
                     type="button"
                     onClick={handlePlayAlbumFromStart}
-                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-blue text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
                     <span>
@@ -580,10 +580,10 @@ function AlbumDetailComponent() {
       <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-8 sm:mt-10 space-y-8">
         {/* ===================== UPCOMING RELEASE BANNER ===================== */}
         {album.isUpcoming && (
-          <div className="border border-blue/30 bg-blue/5 hover:border-blue/60 transition-colors rounded-lg p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xs">
+          <div className="border border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors rounded-lg p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xs">
             <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-blue font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue animate-ping" />
+              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                 <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
               </div>
               <h2 className="font-serif italic text-lg sm:text-xl text-ink font-semibold">
@@ -606,32 +606,32 @@ function AlbumDetailComponent() {
               {timeLeft && timeLeft.totalMs > 0 && (
                 <div className="pt-1">
                   <div className="grid grid-cols-4 gap-2 max-w-xs">
-                    <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded-md">
-                      <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                    <div className="border border-primary/30 bg-primary/10 p-2 text-center rounded-md">
+                      <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {timeLeft.days}
                       </span>
                       <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Days
                       </span>
                     </div>
-                    <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded-md">
-                      <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                    <div className="border border-primary/30 bg-primary/10 p-2 text-center rounded-md">
+                      <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.hours).padStart(2, '0')}
                       </span>
                       <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Hours
                       </span>
                     </div>
-                    <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded-md">
-                      <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                    <div className="border border-primary/30 bg-primary/10 p-2 text-center rounded-md">
+                      <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.minutes).padStart(2, '0')}
                       </span>
                       <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
                         Mins
                       </span>
                     </div>
-                    <div className="border border-blue/30 bg-blue/10 p-2 text-center rounded-md">
-                      <span className="font-mono text-base sm:text-lg font-bold text-blue block leading-none">
+                    <div className="border border-primary/30 bg-primary/10 p-2 text-center rounded-md">
+                      <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.seconds).padStart(2, '0')}
                       </span>
                       <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
@@ -655,7 +655,7 @@ function AlbumDetailComponent() {
                 onClick={handleTogglePreSave}
                 className={`w-full md:w-auto rounded font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
                   isPreSaved
-                    ? 'border-blue bg-blue text-canvas hover:opacity-90'
+                    ? 'border-primary bg-primary text-canvas hover:opacity-90'
                     : 'border-ink bg-ink text-canvas hover:opacity-90'
                 }`}
               >
@@ -753,7 +753,7 @@ function AlbumDetailComponent() {
               <Link
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: album.artistSlug || album.artistId }}
-                className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
+                className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline"
               >
                 View Discography &rarr;
               </Link>
@@ -766,7 +766,7 @@ function AlbumDetailComponent() {
                   params={{ idOrSlug: sibling.slug || sibling.id }}
                   className="group block space-y-2"
                 >
-                  <div className="aspect-square w-full rounded bg-canvas-deep border border-line overflow-hidden relative shadow-2xs group-hover:border-blue/50 transition-colors">
+                  <div className="aspect-square w-full rounded bg-canvas-deep border border-line overflow-hidden relative shadow-2xs group-hover:border-primary/50 transition-colors">
                     {sibling.coverImageUrl ? (
                       <img
                         src={sibling.coverImageUrl}
@@ -783,7 +783,7 @@ function AlbumDetailComponent() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-sans font-semibold text-sm text-ink truncate group-hover:text-blue transition-colors">
+                    <h4 className="font-sans font-semibold text-sm text-ink truncate group-hover:text-primary transition-colors">
                       {sibling.title}
                     </h4>
                     <div className="flex items-center gap-1.5 font-sans text-xs text-ink-soft truncate mt-0.5">

@@ -301,7 +301,7 @@ function RootComponent() {
                   to="/"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
+                      'text-ink font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
                     className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -314,7 +314,7 @@ function RootComponent() {
                   to="/artists"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
+                      'text-ink font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
                     className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -327,7 +327,7 @@ function RootComponent() {
                   to="/playlists"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
+                      'text-ink font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
                     className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -340,7 +340,7 @@ function RootComponent() {
                   to="/library"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-blue pb-0.5',
+                      'text-ink font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
                     className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -356,7 +356,7 @@ function RootComponent() {
                       to="/feed"
                       activeProps={{
                         className:
-                          'text-ink font-semibold border-b border-blue pb-0.5',
+                          'text-ink font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
                         className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -369,7 +369,7 @@ function RootComponent() {
                       to="/vault"
                       activeProps={{
                         className:
-                          'text-ink font-semibold border-b border-blue pb-0.5',
+                          'text-ink font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
                         className: 'text-ink-soft hover:text-ink pb-0.5',
@@ -796,7 +796,7 @@ function RootComponent() {
                           onClick={() => setUserMenuOpen(false)}
                           className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
                         >
-                          <div className="w-7 h-7  flex items-center justify-center text-blue group-hover:border-blue/50 transition-colors shrink-0">
+                          <div className="w-7 h-7  flex items-center justify-center text-primary group-hover:border-primary/50 transition-colors shrink-0">
                             <svg
                               className="w-3.5 h-3.5"
                               viewBox="0 0 24 24"
@@ -810,7 +810,7 @@ function RootComponent() {
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-blue block">
+                            <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-primary block">
                               Admin Desk
                             </span>
                             <p className="font-sans text-[11px] text-ink-soft truncate">
@@ -921,7 +921,7 @@ function RootComponent() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-sans text-sm font-semibold text-ink truncate group-hover:text-blue transition-colors">
+                    <div className="font-sans text-sm font-semibold text-ink truncate group-hover:text-primary transition-colors">
                       {user.displayName}
                     </div>
                     <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft truncate">
@@ -979,7 +979,7 @@ function RootComponent() {
 
             {/* Navigation Directory */}
             <div className="space-y-1">
-              <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mb-2">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-2">
                 Catalog &amp; Discovery
               </div>
               <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider">
@@ -1026,7 +1026,7 @@ function RootComponent() {
 
                 {isAuthenticated && (
                   <>
-                    <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep dark:text-blue-400 mt-4 mb-2">
+                    <div className="font-mono text-[11px] uppercase tracking-widest text-primary mt-4 mb-2">
                       Your Vault
                     </div>
                     <Link
@@ -1081,10 +1081,10 @@ function RootComponent() {
                       <Link
                         to="/admin/verification"
                         onClick={() => setLeftSidebarOpen(false)}
-                        className="flex items-center justify-between p-2 text-blue hover:bg-canvas rounded border border-transparent hover:border-blue/30"
+                        className="flex items-center justify-between p-2 text-primary hover:bg-canvas rounded border border-transparent hover:border-primary/30"
                       >
                         <span>Admin Desk</span>
-                        <span className="text-blue">&rarr;</span>
+                        <span className="text-primary">&rarr;</span>
                       </Link>
                     )}
                   </>

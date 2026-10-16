@@ -63,7 +63,7 @@ function ArtistsDirectoryComponent() {
       <div className="border-b border-line pb-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-blue block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
               Groovy Artists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
@@ -212,7 +212,7 @@ function ArtistsDirectoryComponent() {
           {scope === 'PERSONAL' && user ? (
             <Link
               to="/vault"
-              className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
+              className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-primary hover:underline"
             >
               Go to Personal Collection &rarr;
             </Link>
@@ -220,7 +220,7 @@ function ArtistsDirectoryComponent() {
             user?.role === 'LISTENER' && (
               <Link
                 to="/studio"
-                className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-blue hover:underline"
+                className="inline-block mt-4 font-mono text-xs uppercase tracking-wider text-primary hover:underline"
               >
                 Launch Your Artist Studio &rarr;
               </Link>
@@ -257,11 +257,11 @@ function ArtistsDirectoryComponent() {
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-sans font-semibold text-base sm:text-lg text-ink group-hover:text-blue transition-colors">
+                      <h3 className="font-sans font-semibold text-base sm:text-lg text-ink group-hover:text-primary transition-colors">
                         {artist.stageName}
                       </h3>
                       {artist.verified && (
-                        <VerifiedBadgeSVG className="w-4 h-4 text-blue shrink-0 inline-block" />
+                        <VerifiedBadgeSVG className="w-4 h-4 text-primary shrink-0 inline-block" />
                       )}
                     </div>
                     <div className="flex items-center gap-1">
@@ -271,7 +271,7 @@ function ArtistsDirectoryComponent() {
                         </span>
                       )}
                       {followedArtistIds.has(artist.id) && (
-                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-blue/40 bg-blue/10 text-blue font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary font-semibold">
                           ✓ Following
                         </span>
                       )}
@@ -300,7 +300,7 @@ function ArtistsDirectoryComponent() {
                         ? 'Personal Artist'
                         : `${artist.monthlyListeners.toLocaleString()} monthly listeners`}
                     </span>
-                    <span className="text-blue group-hover:translate-x-0.5 transition-transform">
+                    <span className="text-primary group-hover:translate-x-0.5 transition-transform">
                       Explore &rarr;
                     </span>
                   </div>

@@ -352,7 +352,7 @@ function UnifiedFeedComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
         <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
             Community &nbsp;·&nbsp; Social Circle
           </div>
           <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
@@ -383,7 +383,7 @@ function UnifiedFeedComponent() {
       <section className="shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1.5">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-1.5">
               Community &nbsp;·&nbsp; Socials &amp; Friends
             </div>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal leading-tight">
@@ -448,7 +448,7 @@ function UnifiedFeedComponent() {
         >
           <span>Requests</span>
           {incomingRequests.length > 0 && (
-            <span className="bg-blue text-white text-[11px] font-mono px-1.5 py-0.5 rounded-full font-bold">
+            <span className="bg-primary text-primary-foreground text-[11px] font-mono px-1.5 py-0.5 rounded-full font-bold">
               {incomingRequests.length}
             </span>
           )}
@@ -620,7 +620,7 @@ function UnifiedFeedComponent() {
                             <Link
                               to="/artists/$idOrSlug"
                               params={{ idOrSlug: item.actor.slug }}
-                              className="font-medium text-ink hover:text-blue transition-colors"
+                              className="font-medium text-ink hover:text-primary transition-colors"
                             >
                               {item.actor.name}
                             </Link>
@@ -628,7 +628,7 @@ function UnifiedFeedComponent() {
                             <Link
                               to="/users/$id"
                               params={{ id: item.actor.id }}
-                              className="font-medium text-ink hover:text-blue transition-colors"
+                              className="font-medium text-ink hover:text-primary transition-colors"
                             >
                               {item.actor.name}
                             </Link>
@@ -815,7 +815,7 @@ function UnifiedFeedComponent() {
             <div className="border border-line bg-panel p-5 rounded-2xl shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5">
+                  <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5">
                     Private Vault Requests
                   </div>
                   <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -823,7 +823,7 @@ function UnifiedFeedComponent() {
                   </h3>
                 </div>
                 {incomingRequests.length > 0 && (
-                  <span className="bg-blue/15 text-blue text-[11px] font-mono px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-primary/15 text-primary text-[11px] font-mono px-2 py-0.5 rounded-full font-bold">
                     Action Needed
                   </span>
                 )}
@@ -870,7 +870,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleAcceptRequest(req.requesterId)}
-                            className="bg-ink text-canvas hover:bg-blue px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="bg-ink text-canvas hover:bg-primary px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Accept
                           </button>
@@ -899,7 +899,7 @@ function UnifiedFeedComponent() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5 flex items-center gap-1.5">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5 flex items-center gap-1.5">
                   <span>Real-Time Presence</span>
                 </div>
                 <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -976,7 +976,7 @@ function UnifiedFeedComponent() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-ink block truncate hover:text-blue transition-colors">
+                            <span className="font-semibold text-xs text-ink block truncate hover:text-primary transition-colors">
                               {item.user.displayName}
                             </span>
                             <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
@@ -1024,7 +1024,7 @@ function UnifiedFeedComponent() {
                           <div className="mt-1.5 space-y-0.5">
                             <div className="w-full h-1 bg-stone/20 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-blue transition-all duration-300"
+                                className="h-full bg-primary transition-all duration-300"
                                 style={{ width: `${progressPercent}%` }}
                               />
                             </div>
@@ -1047,7 +1047,7 @@ function UnifiedFeedComponent() {
                           onClick={() => handleListenAlong(item)}
                           className={`shrink-0 px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-2xs ${
                             isPlayingThis
-                              ? 'border-blue bg-blue text-white'
+                              ? 'border-primary bg-primary text-primary-foreground'
                               : 'border-line bg-canvas hover:bg-ink hover:text-canvas hover:border-ink text-ink'
                           }`}
                         >
@@ -1068,7 +1068,7 @@ function UnifiedFeedComponent() {
             }`}
           >
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-0.5">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5">
                 Directory &nbsp;·&nbsp; Network
               </div>
               <h3 className="font-serif italic text-lg text-ink font-normal">
@@ -1158,7 +1158,7 @@ function UnifiedFeedComponent() {
                         </div>
 
                         <div className="min-w-0">
-                          <span className="font-semibold text-xs text-ink block truncate hover:text-blue transition-colors">
+                          <span className="font-semibold text-xs text-ink block truncate hover:text-primary transition-colors">
                             {member.displayName}
                           </span>
                           <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
@@ -1186,7 +1186,7 @@ function UnifiedFeedComponent() {
                             ? 'border-line bg-canvas hover:border-red-500 hover:text-red-500 text-ink-soft'
                             : member.relationship === 'PENDING_SENT'
                               ? 'border-line bg-stone/20 text-ink-soft hover:bg-red-900/10 hover:text-red-500'
-                              : 'border-ink bg-ink text-canvas hover:bg-blue hover:border-blue'
+                              : 'border-ink bg-ink text-canvas hover:bg-primary hover:border-primary'
                         }`}
                       >
                         {member.relationship === 'FRIENDS'

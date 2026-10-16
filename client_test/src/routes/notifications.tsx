@@ -125,7 +125,7 @@ function NotificationsPageComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
         <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
             Inbox &nbsp;·&nbsp; Activity Pulse
           </div>
           <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
@@ -164,7 +164,7 @@ function NotificationsPageComponent() {
       <section className=" shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-widest text-blue mb-1.5">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-1.5">
               Inbox &nbsp;·&nbsp; Activity Pulse
             </div>
             <div className="flex items-center gap-3">
@@ -172,7 +172,7 @@ function NotificationsPageComponent() {
                 Notifications
               </h1>
               {unreadCount > 0 && (
-                <span className="bg-blue/15 text-blue text-xs font-mono px-2.5 py-0.5 rounded-full font-bold">
+                <span className="bg-primary/15 text-primary text-xs font-mono px-2.5 py-0.5 rounded-full font-bold">
                   {unreadCount} unread
                 </span>
               )}
@@ -246,7 +246,7 @@ function NotificationsPageComponent() {
             className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
           >
             <svg
-              className="w-3 h-3 text-blue"
+              className="w-3 h-3 text-primary"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -294,7 +294,7 @@ function NotificationsPageComponent() {
                 className={`p-4 sm:p-5 border rounded-2xl transition-all cursor-pointer space-y-3 shadow-2xs ${
                   item.isRead
                     ? 'border-line bg-panel hover:border-ink/40'
-                    : 'border-blue/40 bg-blue/5 hover:border-blue/60'
+                    : 'border-primary/40 bg-primary/5 hover:border-primary/60'
                 }`}
               >
                 {/* Header Row */}
@@ -302,7 +302,7 @@ function NotificationsPageComponent() {
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Unread Indicator */}
                     {!item.isRead && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue shrink-0 animate-pulse" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 animate-pulse" />
                     )}
 
                     {/* Actor Avatar */}
@@ -371,7 +371,7 @@ function NotificationsPageComponent() {
                       type="button"
                       disabled={isActing}
                       onClick={() => handleAcceptRequest(item)}
-                      className="bg-ink text-canvas hover:bg-blue px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
+                      className="bg-ink text-canvas hover:bg-primary px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
                     >
                       Accept Request
                     </button>
@@ -392,7 +392,7 @@ function NotificationsPageComponent() {
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: item.metadata.slug }}
                       onClick={() => markAsRead(item.id)}
-                      className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-blue hover:underline"
+                      className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-primary hover:underline"
                     >
                       <span>View Album Details</span>
                       <span>&rarr;</span>

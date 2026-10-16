@@ -217,7 +217,7 @@ function LibraryPageComponent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 sm:py-24 text-center select-none">
-        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-blue shadow-md">
+        <div className="w-16 h-16 rounded-full bg-panel border border-line flex items-center justify-center mx-auto mb-6 text-primary shadow-md">
           <svg
             className="w-8 h-8"
             viewBox="0 0 24 24"
@@ -243,7 +243,7 @@ function LibraryPageComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3.5 bg-blue text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3.5 bg-primary text-canvas rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -366,9 +366,9 @@ function LibraryPageComponent() {
         <button
           type="button"
           onClick={() => setIsSortSheetOpen(true)}
-          className="flex items-center align-middle  gap-1.5 text-ink-soft  font-medium hover:text-blue transition-colors group"
+          className="flex items-center align-middle  gap-1.5 text-ink-soft  font-medium hover:text-primary transition-colors group"
         >
-          <SortIconSVG className="w-5 h-5 text-ink-soft group-hover:text-blue" />
+          <SortIconSVG className="w-5 h-5 text-ink-soft group-hover:text-primary" />
           <span className="">{sortLabelMap[activeSort]}</span>
         </button>
 
@@ -411,7 +411,7 @@ function LibraryPageComponent() {
           <button
             type="button"
             onClick={() => fetchLibrary(true)}
-            className="px-4 py-2 bg-blue text-canvas font-mono text-xs uppercase tracking-wider font-semibold rounded hover:opacity-90 cursor-pointer"
+            className="px-4 py-2 bg-primary text-canvas font-mono text-xs uppercase tracking-wider font-semibold rounded hover:opacity-90 cursor-pointer"
           >
             Retry
           </button>
@@ -473,7 +473,7 @@ function LibraryPageComponent() {
                 <button
                   type="button"
                   onClick={() => openCreatePlaylistModal()}
-                  className="px-5 py-2 rounded-full bg-blue text-canvas font-mono text-xs font-semibold hover:opacity-90 transition-opacity"
+                  className="px-5 py-2 rounded-full bg-primary text-canvas font-mono text-xs font-semibold hover:opacity-90 transition-opacity"
                 >
                   Create Playlist
                 </button>

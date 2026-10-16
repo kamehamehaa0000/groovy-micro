@@ -138,7 +138,7 @@ function LoginComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-blue-deep mb-4">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-ink leading-[1.1] mb-4 font-normal">
@@ -177,7 +177,7 @@ function LoginComponent() {
 
           {/* Navigation Tabs */}
           <div className="flex gap-7 mb-8 border-b border-line">
-            <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-blue text-ink font-medium">
+            <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-ink font-medium">
               Sign In
             </span>
             <Link
@@ -210,7 +210,7 @@ function LoginComponent() {
                     type="button"
                     onClick={handleResend}
                     disabled={isResending || cooldown > 0}
-                    className="font-mono text-[11px] uppercase tracking-wider text-blue hover:underline disabled:opacity-50 transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline disabled:opacity-50 transition-colors"
                   >
                     {cooldown > 0
                       ? `Resend in ${cooldown}s`
@@ -287,7 +287,7 @@ function LoginComponent() {
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="font-mono text-[11px] uppercase tracking-widest text-blue hover:underline"
+                  className="font-mono text-[11px] uppercase tracking-widest text-primary hover:underline"
                 >
                   Forgot?
                 </Link>
@@ -327,7 +327,7 @@ function LoginComponent() {
             <Link
               to="/register"
               search={redirectParam ? { redirect: redirectParam } : undefined}
-              className="text-blue hover:underline transition-colors"
+              className="text-primary hover:underline transition-colors"
             >
               Create an account
             </Link>

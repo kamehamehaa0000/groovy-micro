@@ -99,7 +99,7 @@ function JamRouteComponent() {
                   search: { redirect: `/jam/${code}` },
                 })
               }
-              className="px-4 py-2 rounded-xs bg-ink hover:bg-blue text-canvas hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+              className="px-4 py-2 rounded-xs bg-ink hover:bg-primary text-canvas hover:text-primary-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
             >
               Sign In
             </button>
