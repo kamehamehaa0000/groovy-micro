@@ -194,13 +194,13 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
       {/* ===================== TOP HEADER & TABS ===================== */}
       <div className="h-14 border-b border-border px-4 sm:px-5 flex items-center justify-between shrink-0 gap-2 select-none">
         {/* Left: Tab Switcher (Queue / History) */}
-        <div className="flex items-center gap-1 bg-background p-0.5 rounded">
+        <div className="flex items-center gap-1 bg-background p-0.5 rounded-control">
           <button
             type="button"
             onClick={() => setActiveTab('queue')}
-            className={`font-eyebrow text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
+            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
               activeTab === 'queue'
-                ? 'bg-card text-foreground font-semibold shadow-2xs'
+                ? 'bg-card text-foreground font-semibold shadow-raised'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -209,9 +209,9 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           <button
             type="button"
             onClick={() => setActiveTab('history')}
-            className={`font-eyebrow text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
+            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
               activeTab === 'history'
-                ? 'bg-card text-foreground font-semibold shadow-2xs'
+                ? 'bg-card text-foreground font-semibold shadow-raised'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -231,7 +231,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   : 'Shuffle is off - click to enable'
               }
               aria-label={isShuffle ? 'Disable shuffle' : 'Enable shuffle'}
-              className={`font-eyebrow text-[11px] uppercase tracking-wider px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5  ${
+              className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5  ${
                 isShuffle
                   ? 'bg-primary/15 text-primary border-primary/40 font-semibold'
                   : 'text-muted-foreground bg-background hover:bg-muted border-border hover:text-foreground'
@@ -254,7 +254,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   ? 'Save priority queue songs as a new playlist'
                   : 'Save active queue as a new playlist'
               }
-              className="font-eyebrow text-xs uppercase tracking-wider text-muted-foreground bg-background hover:bg-muted  px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+              className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground bg-background hover:bg-muted  px-2 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1"
             >
               <CirclePlus className="w-5 h-5" />
             </button>
@@ -264,7 +264,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             <button
               type="button"
               onClick={clearUserQueue}
-              className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-red-500 cursor-pointer px-2 py-1 rounded transition-colors"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-destructive cursor-pointer px-2 py-1 rounded-control transition-colors"
               title="Clear user-queued songs"
             >
               <Eraser className="w-5 h-5" />
@@ -297,7 +297,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
         >
           {/* Queue Telemetry Meta */}
           {totalUpcomingTracks > 0 && (
-            <div className="flex items-center justify-between text-muted-foreground font-eyebrow text-[11px] uppercase tracking-wider pb-1">
+            <div className="flex items-center justify-between text-muted-foreground font-eyebrow text-eyebrow uppercase tracking-wider pb-1">
               <span>{totalUpcomingTracks} tracks in session</span>
               <span>{formatTotalTime(totalUpcomingSeconds)} remaining</span>
             </div>
@@ -305,14 +305,14 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
           {/* SECTION 1: NOW PLAYING */}
           <div className="flex flex-col gap-2 pt-2">
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary font-bold flex items-center justify-between">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-bold flex items-center justify-between">
               <span>Now Playing</span>
             </span>
 
             {currentTrack ? (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/20 shadow-2xs">
+              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/20 shadow-raised">
                 {/* Artwork with Equalizer Indicator */}
-                <div className="relative w-12 h-12 rounded bg-background border border-border shrink-0 overflow-hidden">
+                <div className="relative w-12 h-12 rounded-control bg-background border border-border shrink-0 overflow-hidden">
                   {currentTrack.coverImageUrl ? (
                     <img
                       src={currentTrack.coverImageUrl}
@@ -320,7 +320,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-muted-foreground">
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-body text-muted-foreground">
                       ♪
                     </div>
                   )}
@@ -335,10 +335,10 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
                 {/* Title & Artist */}
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-xs font-serif italic font-semibold text-foreground truncate leading-tight">
+                  <span className="text-caption font-serif italic font-semibold text-foreground truncate leading-tight">
                     {currentTrack.title}
                   </span>
-                  <span className="text-[11px] text-muted-foreground truncate font-sans">
+                  <span className="text-eyebrow text-muted-foreground truncate font-sans">
                     {currentTrack.artistName}
                   </span>
                 </div>
@@ -358,8 +358,8 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                     <svg
                       className={`w-3.5 h-3.5 transition-colors ${
                         likedSongIds.has(currentTrack.id)
-                          ? 'fill-red-500 text-red-500'
-                          : 'fill-transparent text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white'
+                          ? 'fill-destructive text-destructive'
+                          : 'fill-transparent text-muted-foreground hover:text-foreground'
                       }`}
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -373,13 +373,13 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
                   <SongActionMenu track={currentTrack} align="right" />
 
-                  <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
+                  <span className="font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
                     {formatSeconds(currentTrack.durationSeconds)}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="py-6 text-center text-muted-foreground italic font-serif text-xs border border-dashed border-border rounded">
+              <div className="py-6 text-center text-muted-foreground italic font-serif text-caption border border-dashed border-border rounded-control">
                 No track currently loaded
               </div>
             )}
@@ -389,17 +389,17 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           {activeJamRoom && (
             <div className="flex flex-col gap-2 pt-3">
               <div className="flex items-center justify-between">
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-success font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   Jam Queue ({jamQueue.length})
                 </span>
-                <span className="text-[11px] text-muted-foreground font-mono">
+                <span className="text-eyebrow text-muted-foreground font-mono">
                   Room: {activeJamRoom.roomCode}
                 </span>
               </div>
 
               {jamQueue.length === 0 ? (
-                <p className="text-xs text-muted-foreground/70 italic py-2">
+                <p className="text-caption text-muted-foreground/70 italic py-2">
                   No tracks in Jam queue yet. Use "Add to Jam Queue" on any song
                   to contribute!
                 </p>
@@ -423,17 +423,17 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           {/* SECTION 3: NEXT IN QUEUE (User Priority Queue) */}
           <div className="flex flex-col gap-2 pt-3">
             <div className="flex items-center justify-between">
-              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-foreground font-semibold">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-foreground font-semibold">
                 Next In Queue ({userQueue.length})
               </span>
             </div>
 
             {userQueue.length === 0 ? (
-              <div className="py-5 px-3 rounded border border-dashed border-border text-center space-y-1">
-                <p className="font-serif italic text-xs text-muted-foreground">
+              <div className="py-5 px-3 rounded-control border border-dashed border-border text-center space-y-1">
+                <p className="font-serif italic text-caption text-muted-foreground">
                   Priority queue is empty
                 </p>
-                <p className="font-sans text-[11px] text-muted-foreground/70">
+                <p className="font-sans text-eyebrow text-muted-foreground/70">
                   Swipe left on songs across Groovy or tap "Play Next" to add
                   them here.
                 </p>
@@ -452,18 +452,18 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           {/* SECTION 4: NEXT FROM CONTEXT (Album / Playlist) */}
           <div className="flex flex-col gap-2 pt-3">
             <div className="flex items-center justify-between">
-              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold truncate">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold truncate">
                 {contextTitle
                   ? `Next from: ${contextTitle}`
                   : 'Next from Context'}
               </span>
-              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/70">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground/70">
                 {upcomingContext.length} upcoming
               </span>
             </div>
 
             {upcomingContext.length === 0 ? (
-              <p className="text-xs text-muted-foreground/70 italic py-2">
+              <p className="text-caption text-muted-foreground/70 italic py-2">
                 End of album / playlist playback.
               </p>
             ) : (
@@ -492,20 +492,20 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           style={{ touchAction: 'pan-y' }}
         >
           <div className="flex items-center justify-between border-b border-border pb-2">
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-foreground font-semibold">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-foreground font-semibold">
               Recently Listened
             </span>
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
               Past Sessions
             </span>
           </div>
 
           {!isAuthenticated ? (
             <div className="py-8 px-4 text-center space-y-3">
-              <p className="font-serif italic text-sm text-muted-foreground">
+              <p className="font-serif italic text-body text-muted-foreground">
                 Listening history requires an account
               </p>
-              <p className="text-xs text-muted-foreground/80 max-w-xs mx-auto">
+              <p className="text-caption text-muted-foreground/80 max-w-xs mx-auto">
                 Sign in to track recently played records, synchronize playbacks,
                 and revisit past sessions.
               </p>
@@ -518,17 +518,17 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       'Sign in to synchronize your listening history across devices.',
                   })
                 }
-                className="font-eyebrow text-[11px] uppercase tracking-wider px-3 py-1.5 bg-foreground text-background rounded hover:bg-background hover:text-foreground border border-foreground transition-colors cursor-pointer"
+                className="font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-1.5 bg-foreground text-background rounded-control hover:bg-background hover:text-foreground border border-foreground transition-colors cursor-pointer"
               >
                 Sign In
               </button>
             </div>
           ) : isLoadingHistory ? (
-            <div className="py-8 text-center font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground animate-pulse">
+            <div className="py-8 text-center font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground animate-pulse">
               Loading listening history...
             </div>
           ) : historyItems.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground italic font-serif text-xs">
+            <div className="py-8 text-center text-muted-foreground italic font-serif text-caption">
               No listening history recorded yet. Start spinning some records!
             </div>
           ) : (
@@ -543,7 +543,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {/* Artwork */}
-                      <div className="relative w-8 h-8 rounded bg-background border border-border shrink-0 overflow-hidden group/thumb">
+                      <div className="relative w-8 h-8 rounded-control bg-background border border-border shrink-0 overflow-hidden group/thumb">
                         {playerTrack.coverImageUrl ? (
                           <img
                             src={playerTrack.coverImageUrl}
@@ -551,26 +551,26 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
+                          <div className="w-full h-full flex items-center justify-center font-serif italic text-caption text-muted-foreground">
                             ♪
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-[11px]">
+                        <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-eyebrow">
                           ▶
                         </div>
                       </div>
 
                       {/* Song info & timestamp */}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-medium truncate text-foreground group-hover:text-primary transition-colors leading-tight">
+                        <span className="text-caption font-sans font-medium truncate text-foreground group-hover:text-primary transition-colors leading-tight">
                           {playerTrack.title}
                         </span>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate font-sans">
+                        <div className="flex items-center gap-1.5 text-caption text-muted-foreground truncate font-sans">
                           <span className="truncate">
                             {playerTrack.artistName}
                           </span>
                           {item.playedAt && (
-                            <span className="font-mono text-[11px] text-muted-foreground/70 shrink-0">
+                            <span className="font-mono text-eyebrow text-muted-foreground/70 shrink-0">
                               • {formatRelativeTime(item.playedAt)}
                             </span>
                           )}
@@ -584,7 +584,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <SongActionMenu track={playerTrack} align="right" />
-                      <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
+                      <span className="font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
                         {formatSeconds(playerTrack.durationSeconds)}
                       </span>
                     </div>

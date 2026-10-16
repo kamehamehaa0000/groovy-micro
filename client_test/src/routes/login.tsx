@@ -129,7 +129,7 @@ function LoginComponent() {
           >
             Groovy
           </Link>
-          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group">
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
             </span>
@@ -138,13 +138,13 @@ function LoginComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-4">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
             The Collective keeps a seat for you.
           </h1>
-          <p className="font-sans text-sm leading-[1.7] text-muted-foreground max-w-sm">
+          <p className="font-sans text-body leading-[1.7] text-muted-foreground max-w-sm">
             A private catalog of unhurried, perfect music — kept, curated, and
             reserved for members. Sign in to pick up where the record left off.
           </p>
@@ -153,7 +153,7 @@ function LoginComponent() {
         {/* Decorative Geometric Vinyl Record SVG Art */}
         <SvgArtworkSpiral />
 
-        <div className="flex justify-between items-center font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground relative z-10">
+        <div className="flex justify-between items-center font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground relative z-10">
           <span>© 2026 Groovy </span>
           <span>Est. MMXXVI</span>
         </div>
@@ -166,7 +166,7 @@ function LoginComponent() {
           <div className="lg:hidden mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
+              className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 &larr;
@@ -177,13 +177,13 @@ function LoginComponent() {
 
           {/* Navigation Tabs */}
           <div className="flex gap-7 mb-8 border-b border-border">
-            <span className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
+            <span className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
               Sign In
             </span>
             <Link
               to="/register"
               search={redirectParam ? { redirect: redirectParam } : undefined}
-              className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+              className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
             >
               Create Account
             </Link>
@@ -192,25 +192,25 @@ function LoginComponent() {
           <h2 className="font-serif italic font-medium text-2xl text-foreground mb-1.5">
             Welcome back
           </h2>
-          <p className="text-xs text-muted-foreground leading-relaxed mb-7">
+          <p className="text-caption text-muted-foreground leading-relaxed mb-7">
             Enter your <span className="italic">groove</span> with the account
             you keep on file.
           </p>
 
           {/* Error Notice */}
           {error && (
-            <div className="mb-6 p-4 border border-red-800/30 bg-red-900/10 text-xs text-red-600 dark:text-red-400">
+            <div className="mb-6 p-4 border border-destructive/30 bg-destructive-soft text-caption text-destructive">
               <p>{error}</p>
               {isUnverifiedError && (
-                <div className="mt-3 pt-3 border-t border-red-800/20 flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">
+                <div className="mt-3 pt-3 border-t border-destructive/20 flex items-center justify-between">
+                  <span className="text-eyebrow text-muted-foreground">
                     Didn't receive the email?
                   </span>
                   <button
                     type="button"
                     onClick={handleResend}
                     disabled={isResending || cooldown > 0}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline disabled:opacity-50 transition-colors"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline disabled:opacity-50 transition-colors"
                   >
                     {cooldown > 0
                       ? `Resend in ${cooldown}s`
@@ -226,10 +226,10 @@ function LoginComponent() {
           {/* Resend Notice */}
           {resendNotice && (
             <div
-              className={`mb-6 p-3 border text-xs ${
+              className={`mb-6 p-3 border text-caption ${
                 resendNotice.type === 'success'
-                  ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+                  ? 'border-success/30 bg-success-soft text-success'
+                  : 'border-destructive/30 bg-destructive-soft text-destructive'
               }`}
             >
               {resendNotice.text}
@@ -243,7 +243,7 @@ function LoginComponent() {
               const destination = resolveRedirectTarget(redirectParam)
               saveAuthRedirect(destination)
             }}
-            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-caption font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-raised"
           >
             <GoogleIcon />
             Continue with Google
@@ -251,7 +251,7 @@ function LoginComponent() {
 
           {/* Divider */}
           <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
               Or with email
             </span>
           </div>
@@ -261,7 +261,7 @@ function LoginComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="si-email"
-                className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
               >
                 Email Address
               </label>
@@ -273,7 +273,7 @@ function LoginComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
               />
             </div>
 
@@ -281,13 +281,13 @@ function LoginComponent() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="si-password"
-                  className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                  className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                 >
                   Password
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="font-eyebrow text-[11px] uppercase tracking-widest text-primary hover:underline"
+                  className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary hover:underline"
                 >
                   Forgot?
                 </Link>
@@ -301,12 +301,12 @@ function LoginComponent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-2.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="absolute right-0 top-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -316,13 +316,13 @@ function LoginComponent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Entering...' : 'Enter the Maison'}
             </button>
           </form>
 
-          <div className="font-sans text-xs text-muted-foreground text-center mt-7">
+          <div className="font-sans text-caption text-muted-foreground text-center mt-7">
             New here?{' '}
             <Link
               to="/register"

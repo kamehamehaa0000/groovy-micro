@@ -311,7 +311,7 @@ export function ReleaseActionMenu({
         createPortal(
           <div
             style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 rounded shadow-2xl animate-in fade-in duration-150 pointer-events-none"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 rounded-control shadow-2xl animate-in fade-in duration-150 pointer-events-none"
           >
             {toastMessage}
           </div>,
@@ -334,7 +334,7 @@ export function ReleaseActionMenu({
               left: `${dropdownPos.left}px`,
               zIndex: 99999,
             }}
-            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-lg font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-lg font-sans text-caption animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="py-1">
@@ -421,9 +421,9 @@ export function ReleaseActionMenu({
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="w-full text-left px-3.5 py-2 hover:bg-red-500/10 flex items-center gap-2.5 text-red-500 cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-destructive/20 flex items-center gap-2.5 text-destructive cursor-pointer"
                 >
-                  <TrashIconSVG className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  <TrashIconSVG className="w-3.5 h-3.5 text-destructive shrink-0" />
                   <span>Delete from Vault</span>
                 </button>
               </div>
@@ -494,7 +494,7 @@ export function ReleaseActionMenu({
                 onTouchEnd={handleSheetTouchEnd}
                 onTouchCancel={handleSheetTouchEnd}
               >
-                <div className="w-12 h-12 bg-muted border border-border rounded overflow-hidden shrink-0">
+                <div className="w-12 h-12 bg-muted border border-border rounded-control overflow-hidden shrink-0">
                   {release.coverImageUrl ? (
                     <img
                       src={release.coverImageUrl}
@@ -506,15 +506,15 @@ export function ReleaseActionMenu({
                       size="sm"
                       title={release.title}
                       artistName={release.artistName}
-                      className="w-full h-full text-xs"
+                      className="w-full h-full text-caption"
                     />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
+                  <p className="font-sans font-semibold text-body sm:text-title text-foreground truncate">
                     {release.title}
                   </p>
-                  <p className="font-sans text-xs text-muted-foreground truncate">
+                  <p className="font-sans text-caption text-muted-foreground truncate">
                     {release.artistName || 'Unknown Artist'}
                   </p>
                 </div>
@@ -522,7 +522,7 @@ export function ReleaseActionMenu({
 
               {/* Action rows */}
               <div
-                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-border/30 font-sans text-sm overscroll-contain"
+                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-border/30 font-sans text-body overscroll-contain"
                 style={{ touchAction: 'pan-y' }}
               >
                 <div className="py-1">
@@ -609,9 +609,9 @@ export function ReleaseActionMenu({
                     <button
                       type="button"
                       onClick={handleDelete}
-                      className="w-full text-left px-5 py-3.5 hover:bg-red-500/10 flex items-center gap-3.5 text-red-500 cursor-pointer active:bg-red-500/10"
+                      className="w-full text-left px-5 py-3.5 hover:bg-destructive/20 flex items-center gap-3.5 text-destructive cursor-pointer active:bg-destructive-soft"
                     >
-                      <TrashIconSVG className="w-4 h-4 text-red-500 shrink-0" />
+                      <TrashIconSVG className="w-4 h-4 text-destructive shrink-0" />
                       <span>Delete from Vault</span>
                     </button>
                   </div>

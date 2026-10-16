@@ -75,7 +75,7 @@ function ResetPasswordComponent() {
           >
             Groov<span className="not-italic text-primary font-serif">y</span>
           </Link>
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mt-2">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mt-2">
             Security &nbsp;·&nbsp; Password Reset
           </div>
         </div>
@@ -83,13 +83,13 @@ function ResetPasswordComponent() {
         {!token ? (
           /* Missing Token State */
           <div className="text-center">
-            <div className="mb-6 p-4 border border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400 text-xs leading-relaxed text-left">
+            <div className="mb-6 p-4 border border-destructive/30 bg-destructive-soft text-destructive text-caption leading-relaxed text-left">
               <strong className="block font-medium mb-1">Missing Reset Token</strong>
               A password reset link with a valid security token is required. Please check the link from your email or request a new one.
             </div>
             <Link
               to="/forgot-password"
-              className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground cursor-pointer"
+              className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground cursor-pointer"
             >
               Request New Link
             </Link>
@@ -101,18 +101,18 @@ function ResetPasswordComponent() {
               <h1 className="font-serif text-2xl text-foreground font-normal mb-2">
                 Choose a new password
               </h1>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+              <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
                 Set a strong, unique password for your Groovy account. All other active sessions will be revoked for your security.
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-3.5 border border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400 text-xs leading-relaxed">
+              <div className="mb-6 p-3.5 border border-destructive/30 bg-destructive-soft text-destructive text-caption leading-relaxed">
                 <p>{error}</p>
                 <Link
                   to="/forgot-password"
-                  className="inline-block mt-2 font-eyebrow text-[11px] uppercase tracking-wider underline hover:opacity-80"
+                  className="inline-block mt-2 font-eyebrow text-eyebrow uppercase tracking-wider underline hover:opacity-80"
                 >
                   Request a new reset link &rarr;
                 </Link>
@@ -121,7 +121,7 @@ function ResetPasswordComponent() {
 
             {/* Success Message */}
             {success && (
-              <div className="mb-6 p-3.5 border border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 text-xs leading-relaxed text-center">
+              <div className="mb-6 p-3.5 border border-success/30 bg-success-soft text-success text-caption leading-relaxed text-center">
                 {success}
               </div>
             )}
@@ -132,14 +132,14 @@ function ResetPasswordComponent() {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="rp-password"
-                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                   >
                     New Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -152,7 +152,7 @@ function ResetPasswordComponent() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
               </div>
 
@@ -160,7 +160,7 @@ function ResetPasswordComponent() {
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="rp-confirm-password"
-                  className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                  className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                 >
                   Confirm New Password
                 </label>
@@ -172,18 +172,18 @@ function ResetPasswordComponent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
               </div>
 
               {/* Strength Checklist */}
-              <div className="p-3 bg-muted/60 border border-border/60 flex flex-col gap-1 text-[11px] font-sans">
-                <div className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
+              <div className="p-3 bg-muted/60 border border-border/60 flex flex-col gap-1 text-eyebrow font-sans">
+                <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1">
                   Password Requirements:
                 </div>
                 <div
                   className={`flex items-center gap-2 ${
-                    hasMinLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                    hasMinLength ? 'text-success' : 'text-muted-foreground'
                   }`}
                 >
                   <span>{hasMinLength ? '✔' : '○'}</span>
@@ -192,7 +192,7 @@ function ResetPasswordComponent() {
                 <div
                   className={`flex items-center gap-2 ${
                     hasUpperCase && hasLowerCase
-                      ? 'text-emerald-600 dark:text-emerald-400'
+                      ? 'text-success'
                       : 'text-muted-foreground'
                   }`}
                 >
@@ -201,7 +201,7 @@ function ResetPasswordComponent() {
                 </div>
                 <div
                   className={`flex items-center gap-2 ${
-                    hasDigit ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                    hasDigit ? 'text-success' : 'text-muted-foreground'
                   }`}
                 >
                   <span>{hasDigit ? '✔' : '○'}</span>
@@ -210,7 +210,7 @@ function ResetPasswordComponent() {
                 <div
                   className={`flex items-center gap-2 ${
                     passwordsMatch
-                      ? 'text-emerald-600 dark:text-emerald-400'
+                      ? 'text-success'
                       : 'text-muted-foreground'
                   }`}
                 >
@@ -222,13 +222,13 @@ function ResetPasswordComponent() {
               <button
                 type="submit"
                 disabled={!isFormValid || isSubmitting || !!success}
-                className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? 'Resetting Password...' : 'Update Password'}
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-border/60 text-center font-sans text-xs text-muted-foreground">
+            <div className="mt-8 pt-6 border-t border-border/60 text-center font-sans text-caption text-muted-foreground">
               Remember your password?{' '}
               <Link to="/login" className="text-primary hover:underline">
                 Sign In

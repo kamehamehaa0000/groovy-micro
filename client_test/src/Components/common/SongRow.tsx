@@ -335,7 +335,7 @@ export const SongRow = memo(function SongRow({
       {/* Queued Feedback Banner */}
       {showQueuedBadge && (
         <div
-          className={`absolute inset-0 z-30 bg-primary/95 flex items-center justify-center gap-2 text-primary-foreground font-eyebrow text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
+          className={`absolute inset-0 z-30 bg-primary/95 flex items-center justify-center gap-2 text-primary-foreground font-eyebrow text-caption uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
             isQueuedBadgeFading
               ? 'opacity-0'
               : 'opacity-100 animate-in fade-in duration-75'
@@ -432,7 +432,7 @@ export const SongRow = memo(function SongRow({
                 e.stopPropagation()
                 e.preventDefault()
               }}
-              className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded-control ${
+              className={`cursor-grab active:cursor-grabbing select-none font-mono text-caption px-1.5 py-1 transition-colors shrink-0 touch-none rounded-control ${
                 isDragging
                   ? 'text-primary bg-primary/15 scale-110 shadow-raised'
                   : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
@@ -520,7 +520,7 @@ export const SongRow = memo(function SongRow({
             <div className="flex items-center gap-1.5 min-w-0">
               <MarqueeText
                 className="min-w-0"
-                innerClassName={`font-sans text-sm font-semibold ${
+                innerClassName={`font-sans text-body font-semibold ${
                   isCurrentPlaying
                     ? 'text-primary'
                     : isCurrentLoaded
@@ -567,7 +567,7 @@ export const SongRow = memo(function SongRow({
             {/* Subtitle / Artist Credits Line */}
             {variant === 'album' ? (
               <MarqueeText
-                className="min-w-0 text-xs text-muted-foreground"
+                className="min-w-0 text-caption text-muted-foreground"
                 innerClassName="inline-flex items-center gap-1"
               >
                 {/* Primary Artist(s) */}
@@ -656,7 +656,7 @@ export const SongRow = memo(function SongRow({
               </MarqueeText>
             ) : (
               /* Standard / Playlist / Search / Artist Artist Subtitle */
-              <div className="font-sans text-xs text-muted-foreground truncate flex items-center gap-1.5">
+              <div className="font-sans text-caption text-muted-foreground truncate flex items-center gap-1.5">
                 {track.artistSlug ? (
                   <Link
                     to="/artists/$idOrSlug"
@@ -699,7 +699,7 @@ export const SongRow = memo(function SongRow({
         {/* ==================== MIDDLE SECTION ==================== */}
         {/* Plays count (for Artist top tracks or Album stream count) */}
         {playsCount !== undefined && (
-          <div className="hidden sm:block text-right font-mono text-xs text-muted-foreground shrink-0 w-24">
+          <div className="hidden sm:block text-right font-mono text-caption text-muted-foreground shrink-0 w-24">
             {playsCount.toLocaleString()}
           </div>
         )}

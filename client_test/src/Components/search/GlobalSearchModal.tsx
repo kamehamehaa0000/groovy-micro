@@ -165,7 +165,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               }
             }}
             placeholder="Search tracks, artists, albums, playlists, or listeners..."
-            className="w-full bg-transparent border-none text-foreground text-sm sm:text-base placeholder:text-muted-foreground/60 focus:outline-hidden font-sans"
+            className="w-full bg-transparent border-none text-foreground text-body sm:text-title placeholder:text-muted-foreground/60 focus:outline-hidden font-sans"
           />
 
           {isSearching && (
@@ -176,19 +176,19 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="text-muted-foreground hover:text-foreground text-xs font-mono px-1.5 py-0.5 border border-border hover:border-foreground transition-colors cursor-pointer"
+              className="text-muted-foreground hover:text-foreground text-caption font-mono px-1.5 py-0.5 border border-border hover:border-foreground transition-colors cursor-pointer"
             >
               Clear
             </button>
           )}
 
-          <div className="hidden sm:flex items-center gap-1 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/80 border border-border px-2 py-1 bg-background shrink-0">
+          <div className="hidden sm:flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground/80 border border-border px-2 py-1 bg-background shrink-0">
             <span>ESC</span>
           </div>
         </div>
 
         {/* Filter Categories Bar */}
-        <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 border-b border-border/60 bg-background/50 overflow-x-auto text-xs font-eyebrow uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 border-b border-border/60 bg-background/50 overflow-x-auto text-caption font-eyebrow uppercase tracking-wider">
           {(
             [
               { id: 'all', label: 'All' },
@@ -203,7 +203,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               key={cat.id}
               type="button"
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-3 py-1 rounded-full border transition-all cursor-pointer font-eyebrow text-[11px] uppercase tracking-wider whitespace-nowrap ${
+              className={`px-3 py-1 rounded-full border transition-all cursor-pointer font-eyebrow text-eyebrow uppercase tracking-wider whitespace-nowrap ${
                 activeCategory === cat.id
                   ? 'bg-foreground text-background border-foreground font-semibold shadow-xs'
                   : 'bg-card text-muted-foreground border-border hover:text-foreground hover:border-foreground/50'
@@ -222,7 +222,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               <div className="font-serif italic text-2xl text-foreground mb-2">
                 What do you want to play?
               </div>
-              <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+              <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto leading-relaxed">
                 Discover new releases from verified musicians, curated public
                 playlists, or find fellow music enthusiasts in the Groovy
                 community.
@@ -233,10 +233,10 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           {/* 2. No Results Found State */}
           {query.trim() && !isSearching && !hasAnyResults && (
             <div className="py-12 text-center">
-              <div className="font-serif italic text-xl text-foreground mb-2">
+              <div className="font-serif italic text-heading text-foreground mb-2">
                 No results found for "{query}"
               </div>
-              <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto">
+              <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto">
                 Please double check your spelling or search by an artist name,
                 song title, or curator.
               </p>
@@ -249,7 +249,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {/* TOP RESULT CARD */}
               {results.topResult && activeCategory === 'all' && (
                 <div>
-                  <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-3">
+                  <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-3">
                     Top Result
                   </h4>
                   <div className="border border-border bg-background p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group hover:border-foreground transition-colors">
@@ -275,19 +275,19 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-foreground">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-heading text-foreground">
                               {(results.topResult.item as any).stageName[0]}
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">
                             Artist
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).stageName}
                           </h3>
-                          <p className="font-mono text-[11px] text-muted-foreground">
+                          <p className="font-mono text-eyebrow text-muted-foreground">
                             {(
                               results.topResult.item as any
                             ).monthlyListeners.toLocaleString()}{' '}
@@ -322,16 +322,16 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-success bg-success-soft px-2 py-0.5 rounded-full inline-block">
                               Track
                             </span>
                             {(results.topResult.item as any).isPersonal && (
-                              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                                 Personal Collection
                               </span>
                             )}
                           </div>
-                          <h3 className="font-serif italic text-xl font-bold text-foreground truncate">
+                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate">
                             {(results.topResult.item as any).title}
                           </h3>
                           <Link
@@ -341,7 +341,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                 .artistSlug,
                             }}
                             onClick={onClose}
-                            className="font-sans text-xs text-muted-foreground hover:text-primary transition-colors truncate block"
+                            className="font-sans text-caption text-muted-foreground hover:text-primary transition-colors truncate block"
                           >
                             {(results.topResult.item as any).artistName}
                           </Link>
@@ -385,20 +385,20 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-info bg-info-soft px-2 py-0.5 rounded-full inline-block">
                               {(results.topResult.item as any).albumType ||
                                 'Album'}
                             </span>
                             {(results.topResult.item as any).isPersonal && (
-                              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                                 Personal Collection
                               </span>
                             )}
                           </div>
-                          <h3 className="font-serif italic text-xl font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
                           </h3>
-                          <p className="font-sans text-xs text-muted-foreground truncate">
+                          <p className="font-sans text-caption text-muted-foreground truncate">
                             {(results.topResult.item as any).artistName}
                           </p>
                         </div>
@@ -427,19 +427,19 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-muted-foreground">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-heading text-muted-foreground">
                               ♫
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning bg-warning-soft px-2 py-0.5 rounded-full inline-block mb-1">
                             Playlist
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
                           </h3>
-                          <p className="font-mono text-[11px] text-muted-foreground">
+                          <p className="font-mono text-eyebrow text-muted-foreground">
                             By {(results.topResult.item as any).ownerName} •{' '}
                             {(results.topResult.item as any).tracksCount} tracks
                           </p>
@@ -467,16 +467,16 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xl text-foreground">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-heading text-foreground">
                               {(results.topResult.item as any).displayName[0]}
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-secondary/80 bg-secondary/20 px-2 py-0.5 rounded-full inline-block mb-1">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-secondary/80 bg-secondary/20 px-2 py-0.5 rounded-full inline-block mb-1">
                             {(results.topResult.item as any).role}
                           </span>
-                          <h3 className="font-serif italic text-xl font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).displayName}
                           </h3>
                         </div>
@@ -508,7 +508,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {results.songs.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3 border-b border-border pb-1.5">
-                    <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                    <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                       Tracks ({results.songs.length})
                     </h4>
                   </div>
@@ -530,7 +530,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               onClick={() =>
                                 handlePlaySong(song, results.songs, idx)
                               }
-                              className="w-7 h-7 rounded-full border border-border flex items-center justify-center font-mono text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer bg-background"
+                              className="w-7 h-7 rounded-full border border-border flex items-center justify-center font-mono text-caption text-muted-foreground hover:border-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer bg-background"
                             >
                               {isPlaying ? (
                                 <PauseIconSVG className="w-3 h-3" />
@@ -551,23 +551,23 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   size="sm"
                                   title={song.title}
                                   artistName={song.artistName}
-                                  className="w-full h-full rounded-none text-[11px]"
+                                  className="w-full h-full rounded-none text-eyebrow"
                                 />
                               )}
                             </div>
 
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-sans text-sm font-semibold text-foreground truncate">
+                                <span className="font-sans text-body font-semibold text-foreground truncate">
                                   {song.title}
                                 </span>
                                 {song.isPersonal && (
-                                  <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold leading-none">
+                                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-control font-semibold leading-none">
                                     Personal Collection
                                   </span>
                                 )}
                                 {song.isExplicit && (
-                                  <span className="font-eyebrow text-[11px] uppercase border border-border px-1 py-0.2 rounded text-muted-foreground leading-none">
+                                  <span className="font-eyebrow text-eyebrow uppercase border border-border px-1 py-0.2 rounded-control text-muted-foreground leading-none">
                                     E
                                   </span>
                                 )}
@@ -576,7 +576,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                 to="/artists/$idOrSlug"
                                 params={{ idOrSlug: song.artistSlug }}
                                 onClick={onClose}
-                                className="font-sans text-xs text-muted-foreground hover:text-primary transition-colors truncate block"
+                                className="font-sans text-caption text-muted-foreground hover:text-primary transition-colors truncate block"
                               >
                                 {song.artistName}
                               </Link>
@@ -584,7 +584,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="font-mono text-xs text-muted-foreground">
+                            <span className="font-mono text-caption text-muted-foreground">
                               {formatDuration(song.durationSeconds)}
                             </span>
                             <button
@@ -610,12 +610,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                                   )
                                 }, 1500)
                               }}
-                              className="w-7 h-7 flex items-center justify-center rounded-xs border border-border bg-background hover:border-foreground text-muted-foreground hover:text-foreground transition-all cursor-pointer group/q shadow-2xs hover:bg-muted active:scale-95 shrink-0"
+                              className="w-7 h-7 flex items-center justify-center rounded-control border border-border bg-background hover:border-foreground text-muted-foreground hover:text-foreground transition-all cursor-pointer group/q shadow-raised hover:bg-muted active:scale-95 shrink-0"
                               title="Add to queue"
                               aria-label="Add to queue"
                             >
                               {queuedSongId === song.id ? (
-                                <span className="text-emerald-500 font-mono text-xs font-bold animate-in zoom-in-75 duration-150">
+                                <span className="text-success font-mono text-caption font-bold animate-in zoom-in-75 duration-150">
                                   ✓
                                 </span>
                               ) : (
@@ -681,7 +681,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {results.artists.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3 border-b border-border pb-1.5">
-                    <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                    <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                       Artists ({results.artists.length})
                     </h4>
                   </div>
@@ -693,7 +693,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: artist.slug }}
                         onClick={onClose}
-                        className="border border-border bg-card p-3 shadow-2xs hover:border-foreground transition-all group flex items-center gap-3"
+                        className="border border-border bg-card p-3 shadow-raised hover:border-foreground transition-all group flex items-center gap-3"
                       >
                         <div className="w-11 h-11 rounded-full bg-secondary/20 border border-border shrink-0 overflow-hidden">
                           {artist.avatarUrl ? (
@@ -703,16 +703,16 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-foreground">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-body text-foreground">
                               {artist.stageName[0]}
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-sans text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h4 className="font-sans text-body font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                             {artist.stageName}
                           </h4>
-                          <span className="font-mono text-[11px] text-muted-foreground block">
+                          <span className="font-mono text-eyebrow text-muted-foreground block">
                             {artist.monthlyListeners.toLocaleString()} listeners
                           </span>
                         </div>
@@ -726,7 +726,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {results.albums.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3 border-b border-border pb-1.5">
-                    <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                    <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                       Albums ({results.albums.length})
                     </h4>
                   </div>
@@ -738,7 +738,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: album.slug }}
                         onClick={onClose}
-                        className="border border-border bg-card p-3 shadow-2xs hover:border-foreground transition-all group flex items-center gap-3"
+                        className="border border-border bg-card p-3 shadow-raised hover:border-foreground transition-all group flex items-center gap-3"
                       >
                         <div className="w-12 h-12 bg-secondary/20 border border-border shrink-0 overflow-hidden">
                           {album.coverImageUrl ? (
@@ -752,22 +752,22 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               size="sm"
                               title={album.title}
                               artistName={album.artistName}
-                              className="w-full h-full rounded-none text-[11px]"
+                              className="w-full h-full rounded-none text-eyebrow"
                             />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="font-sans text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                            <h4 className="font-sans text-body font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                               {album.title}
                             </h4>
                             {album.isPersonal && (
-                              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded font-semibold leading-none">
+                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-control font-semibold leading-none">
                                 Personal Collection
                               </span>
                             )}
                           </div>
-                          <span className="font-sans text-xs text-muted-foreground truncate block">
+                          <span className="font-sans text-caption text-muted-foreground truncate block">
                             {album.artistName}
                           </span>
                         </div>
@@ -781,7 +781,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {results.playlists.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3 border-b border-border pb-1.5">
-                    <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                    <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                       Playlists ({results.playlists.length})
                     </h4>
                   </div>
@@ -793,7 +793,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         to="/playlists/$id"
                         params={{ id: playlist.id }}
                         onClick={onClose}
-                        className="border border-border bg-card p-3 shadow-2xs hover:border-foreground transition-all group flex items-center gap-3"
+                        className="border border-border bg-card p-3 shadow-raised hover:border-foreground transition-all group flex items-center gap-3"
                       >
                         <div className="w-12 h-12 bg-secondary/20 border border-border shrink-0 overflow-hidden">
                           {playlist.coverImageUrl ? (
@@ -803,16 +803,16 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-caption text-muted-foreground">
                               ♫
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-sans text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h4 className="font-sans text-body font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                             {playlist.title}
                           </h4>
-                          <span className="font-mono text-[11px] text-muted-foreground block truncate">
+                          <span className="font-mono text-eyebrow text-muted-foreground block truncate">
                             By {playlist.ownerName} • {playlist.tracksCount}{' '}
                             tracks
                           </span>
@@ -827,7 +827,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               {results.users.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3 border-b border-border pb-1.5">
-                    <h4 className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                    <h4 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                       Community Members ({results.users.length})
                     </h4>
                   </div>
@@ -839,9 +839,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         to="/users/$id"
                         params={{ id: user.id }}
                         onClick={onClose}
-                        className="border border-border bg-card p-3 shadow-2xs hover:border-foreground transition-all group flex items-center gap-3"
+                        className="border border-border bg-card p-3 shadow-raised hover:border-foreground transition-all group flex items-center gap-3"
                       >
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 border border-border shrink-0 overflow-hidden flex items-center justify-center font-mono text-xs font-semibold text-foreground">
+                        <div className="w-10 h-10 rounded-full bg-secondary/20 border border-border shrink-0 overflow-hidden flex items-center justify-center font-mono text-caption font-semibold text-foreground">
                           {user.avatarUrl ? (
                             <img
                               src={user.avatarUrl}
@@ -854,14 +854,14 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1">
-                            <h4 className="font-semibold text-xs text-foreground truncate group-hover:text-primary transition-colors">
+                            <h4 className="font-semibold text-caption text-foreground truncate group-hover:text-primary transition-colors">
                               {user.displayName}
                             </h4>
                             {user.isPrivateAccount && (
                               <LockIconSVG className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                             )}
                           </div>
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                             {user.role}
                           </span>
                         </div>
@@ -875,7 +875,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         </div>
 
         {/* Footer info strip */}
-        <div className="px-4 sm:px-6 py-2.5 border-t border-border bg-background/90 flex items-center justify-between font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/70">
+        <div className="px-4 sm:px-6 py-2.5 border-t border-border bg-background/90 flex items-center justify-between font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground/70">
           <button
             type="button"
             onClick={() => {
@@ -892,7 +892,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           </button>
           <div className="flex items-center gap-2">
             <span>Navigation:</span>
-            <kbd className="px-1.5 py-0.5 border border-border bg-card rounded">
+            <kbd className="px-1.5 py-0.5 border border-border bg-card rounded-control">
               ESC
             </kbd>
             <span>Close</span>

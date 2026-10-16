@@ -117,11 +117,11 @@ export function AddToPlaylistModal() {
         <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
           <div>
             <h4 className="font-serif italic font-medium text-lg text-foreground">Add to Playlist</h4>
-            <p className="font-mono text-[11px] text-muted-foreground truncate max-w-[220px]">
+            <p className="font-mono text-eyebrow text-muted-foreground truncate max-w-[220px]">
               {track.title}
             </p>
             {isPersonalCut && (
-              <p className="mt-1 font-mono text-[11px] text-amber-600 dark:text-amber-400">
+              <p className="mt-1 font-mono text-eyebrow text-warning">
                 🔒 Personal cut: private playlists only
               </p>
             )}
@@ -129,7 +129,7 @@ export function AddToPlaylistModal() {
           <button
             type="button"
             onClick={closeModal}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer p-1"
+            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer p-1"
             aria-label="Close"
           >
             ✕
@@ -138,12 +138,12 @@ export function AddToPlaylistModal() {
 
         <div className="flex-1 overflow-y-auto divide-y divide-border/40 my-2">
           {isLoadingPlaylists ? (
-            <div className="py-8 text-center font-mono text-xs text-muted-foreground">
+            <div className="py-8 text-center font-mono text-caption text-muted-foreground">
               Loading playlists...
             </div>
           ) : eligiblePlaylists.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="font-serif italic text-sm text-muted-foreground">
+              <p className="font-serif italic text-body text-muted-foreground">
                 {isPersonalCut
                   ? "No private playlists found. Create a private playlist for your personal cuts."
                   : "No playlists found."}
@@ -155,7 +155,7 @@ export function AddToPlaylistModal() {
                   closeModal();
                   openCreatePlaylistModal(trackIdToAdd);
                 }}
-                className="mt-3 font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
+                className="mt-3 font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
               >
                 Create Playlist
               </button>
@@ -171,14 +171,14 @@ export function AddToPlaylistModal() {
                   className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-muted transition-colors text-left cursor-pointer group"
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <p className="font-medium text-xs text-foreground group-hover:text-primary truncate">
+                    <p className="font-medium text-caption text-foreground group-hover:text-primary truncate">
                       {pl.title}
                     </p>
-                    <p className="font-mono text-[11px] text-muted-foreground">
+                    <p className="font-mono text-eyebrow text-muted-foreground">
                       {pl.savesCount ?? 0} saves &bull; {pl.tracksCount ?? 0} tracks
                     </p>
                   </div>
-                  <span className="font-mono text-[11px] text-muted-foreground group-hover:text-foreground shrink-0">
+                  <span className="font-mono text-eyebrow text-muted-foreground group-hover:text-foreground shrink-0">
                     {addingToPlaylistId === pl.id ? "Adding..." : "+ Add"}
                   </span>
                 </button>
@@ -191,7 +191,7 @@ export function AddToPlaylistModal() {
                     closeModal();
                     openCreatePlaylistModal(trackIdToAdd);
                   }}
-                  className="w-full font-eyebrow text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
+                  className="w-full font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-control flex items-center justify-center gap-1.5"
                 >
                   <span>+</span>
                   <span>New Playlist</span>
@@ -203,7 +203,7 @@ export function AddToPlaylistModal() {
 
         {/* Visual Feedback Toast */}
         {toastMessage && (
-          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
             ✓ {toastMessage}
           </div>
         )}

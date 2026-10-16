@@ -57,14 +57,14 @@ export function RecentlyPlayedShelf({
       {/* Header */}
       <div className="flex justify-between items-baseline border-b border-border pb-3">
         <div>
-          <h2 className="font-serif italic font-medium text-xl text-foreground">
+          <h2 className="font-serif italic font-medium text-heading text-foreground">
             {title}
           </h2>
           {subtitle && (
-            <p className="font-sans text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+            <p className="font-sans text-caption text-muted-foreground mt-0.5">{subtitle}</p>
           )}
         </div>
-        <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+        <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
           {displayedItems.length}{' '}
           {displayedItems.length === 1 ? 'release' : 'releases'}
         </span>
@@ -81,8 +81,8 @@ export function RecentlyPlayedShelf({
               >
                 <div className="w-13 h-13 sm:w-14 sm:h-14 bg-border/40 shrink-0" />
                 <div className="flex-1 min-w-0 px-2.5 space-y-1.5">
-                  <div className="h-3 bg-border/50 rounded-xs w-3/4" />
-                  <div className="h-2 bg-border/30 rounded-xs w-1/2" />
+                  <div className="h-3 bg-border/50 rounded-control w-3/4" />
+                  <div className="h-2 bg-border/30 rounded-control w-1/2" />
                 </div>
               </div>
             ))}
@@ -96,8 +96,8 @@ export function RecentlyPlayedShelf({
                 className="p-2.5 rounded-xl bg-card/40 animate-pulse space-y-2.5"
               >
                 <div className="aspect-square bg-border/40 rounded-md" />
-                <div className="h-3 bg-border/50 rounded-xs w-3/4" />
-                <div className="h-2.5 bg-border/30 rounded-xs w-1/2" />
+                <div className="h-3 bg-border/50 rounded-control w-3/4" />
+                <div className="h-2.5 bg-border/30 rounded-control w-1/2" />
               </div>
             ))}
           </div>
@@ -143,12 +143,12 @@ export function RecentlyPlayedShelf({
                   {/* Title & Artist */}
                   <div className="flex flex-col justify-center min-w-0 flex-1 px-2.5 py-1">
                     <span
-                      className="text-xs font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
+                      className="text-caption font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
                       title={releaseTitle}
                     >
                       {releaseTitle}
                     </span>
-                    <span className="text-xs text-muted-foreground truncate mt-0.5 leading-tight">
+                    <span className="text-caption text-muted-foreground truncate mt-0.5 leading-tight">
                       {item.song.artistName} · {releaseType}
                     </span>
                   </div>

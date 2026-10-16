@@ -178,13 +178,13 @@ function PlaylistsDirectoryComponent() {
       <div className="border-b border-border pb-6 sm:pb-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2 font-medium">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
               Groovy Playlists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
               Public Playlists
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-muted-foreground max-w-xl mt-2 leading-relaxed">
+            <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
               Explore community-curated tracklists, thematic soundscapes, and
               public mixes crafted by listeners and creators across Groovy.
             </p>
@@ -194,7 +194,7 @@ function PlaylistsDirectoryComponent() {
           <button
             type="button"
             onClick={handleCreatePlaylistClick}
-            className="inline-flex items-center justify-center gap-2 font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
+            className="inline-flex items-center justify-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
           >
             <PlusIconSVG className="w-3.5 h-3.5" />
             <span>New Playlist</span>
@@ -210,14 +210,14 @@ function PlaylistsDirectoryComponent() {
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search public playlists..."
-              className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
+              className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
             />
             <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             {search && (
               <button
                 type="button"
                 onClick={() => handleSearchChange('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
                 title="Clear search"
               >
                 ✕
@@ -232,9 +232,9 @@ function PlaylistsDirectoryComponent() {
               <button
                 type="button"
                 onClick={() => setIsSortDropdownOpen((prev) => !prev)}
-                className="inline-flex items-center gap-2 font-mono text-xs py-2 px-3.5 border border-border bg-card hover:bg-muted text-foreground rounded-xl focus:outline-none focus:border-foreground/60 transition-all cursor-pointer shadow-2xs font-medium"
+                className="inline-flex items-center gap-2 font-mono text-caption py-2 px-3.5 border border-border bg-card hover:bg-muted text-foreground rounded-xl focus:outline-none focus:border-foreground/60 transition-all cursor-pointer shadow-raised font-medium"
               >
-                <span className="text-muted-foreground text-[11px] uppercase tracking-wider">
+                <span className="text-muted-foreground text-eyebrow uppercase tracking-wider">
                   Sort:
                 </span>
                 <span>{SORT_LABELS[sort]}</span>
@@ -261,7 +261,7 @@ function PlaylistsDirectoryComponent() {
                             key={optionKey}
                             type="button"
                             onClick={() => handleSortChange(optionKey)}
-                            className={`w-full text-left font-mono text-xs px-3.5 py-2.5 transition-colors cursor-pointer flex items-center justify-between ${
+                            className={`w-full text-left font-mono text-caption px-3.5 py-2.5 transition-colors cursor-pointer flex items-center justify-between ${
                               isSelected
                                 ? 'bg-muted text-primary font-semibold'
                                 : 'text-foreground hover:bg-muted/70'
@@ -269,7 +269,7 @@ function PlaylistsDirectoryComponent() {
                           >
                             <span>{SORT_LABELS[optionKey]}</span>
                             {isSelected && (
-                              <span className="text-primary text-[11px]">✓</span>
+                              <span className="text-primary text-eyebrow">✓</span>
                             )}
                           </button>
                         )
@@ -281,7 +281,7 @@ function PlaylistsDirectoryComponent() {
             </div>
 
             {/* Total Results Count */}
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground shrink-0 border-l border-border pl-3">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground shrink-0 border-l border-border pl-3">
               {totalCount} {totalCount === 1 ? 'Playlist' : 'Playlists'}
             </span>
           </div>
@@ -297,8 +297,8 @@ function PlaylistsDirectoryComponent() {
               className="p-2.5 rounded-xl border border-border/40 bg-card/40 animate-pulse flex flex-col gap-2.5"
             >
               <div className="aspect-square w-full rounded-md bg-secondary/20" />
-              <div className="h-3 w-3/4 bg-secondary/20 rounded" />
-              <div className="h-2.5 w-1/2 bg-secondary/20 rounded" />
+              <div className="h-3 w-3/4 bg-secondary/20 rounded-control" />
+              <div className="h-2.5 w-1/2 bg-secondary/20 rounded-control" />
             </div>
           ))}
         </div>
@@ -344,7 +344,7 @@ function PlaylistsDirectoryComponent() {
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-6 border border-border bg-card hover:bg-background text-foreground transition-all rounded-full shadow-2xs cursor-pointer disabled:opacity-50"
+                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 border border-border bg-card hover:bg-background text-foreground transition-all rounded-full shadow-raised cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? 'Loading Playlists...' : 'Load More Playlists ↓'}
               </button>
@@ -357,10 +357,10 @@ function PlaylistsDirectoryComponent() {
           <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center mx-auto mb-3 text-muted-foreground">
             <SearchIconSVG className="w-5 h-5 opacity-60" />
           </div>
-          <h3 className="font-serif italic text-lg sm:text-xl font-semibold text-foreground">
+          <h3 className="font-serif italic text-lg sm:text-heading font-semibold text-foreground">
             No public playlists found
           </h3>
-          <p className="font-sans text-xs text-muted-foreground mt-1.5 max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
             {search
               ? `We couldn't find any public playlists matching "${search}".`
               : 'Be the first to curate and share a public playlist with the community.'}
@@ -370,7 +370,7 @@ function PlaylistsDirectoryComponent() {
               <button
                 type="button"
                 onClick={() => handleSearchChange('')}
-                className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background rounded-full text-foreground transition-colors cursor-pointer"
+                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background rounded-full text-foreground transition-colors cursor-pointer"
               >
                 Clear Search
               </button>
@@ -378,7 +378,7 @@ function PlaylistsDirectoryComponent() {
             <button
               type="button"
               onClick={handleCreatePlaylistClick}
-              className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-full transition-opacity cursor-pointer font-medium"
+              className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-full transition-opacity cursor-pointer font-medium"
             >
               + Create Playlist
             </button>

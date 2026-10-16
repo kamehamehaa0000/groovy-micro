@@ -29,11 +29,11 @@ export function LiveJamBar() {
   };
 
   return (
-    <div className="w-full bg-card/95 backdrop-blur-md border border-emerald-500/30 md:border-t md:border-b-0 md:border-x-0 md:border-border rounded-xl md:rounded-none text-foreground px-3 sm:px-6 md:px-8 py-1.5 md:py-0 md:h-9 flex items-center justify-between text-xs transition-all shadow-md md:shadow-none select-none">
+    <div className="w-full bg-card/95 backdrop-blur-md border border-success/30 md:border-t md:border-b-0 md:border-x-0 md:border-border rounded-xl md:rounded-none text-foreground px-3 sm:px-6 md:px-8 py-1.5 md:py-0 md:h-9 flex items-center justify-between text-caption transition-all shadow-md md:shadow-none select-none">
       {/* Left: Live Pulse & Room Code */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-eyebrow text-[11px] uppercase tracking-wider font-semibold shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-soft border border-success/30 text-success font-eyebrow text-eyebrow uppercase tracking-wider font-semibold shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
           <span className="hidden xs:inline">Live Jam</span>
           <span className="xs:hidden">Jam</span>
         </div>
@@ -42,12 +42,12 @@ export function LiveJamBar() {
           type="button"
           onClick={handleCopyLink}
           title="Click to copy invite link"
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-card dark:bg-background border border-border hover:border-foreground/40 text-foreground font-mono text-[11px] tracking-wider transition-colors shrink-0 cursor-pointer shadow-2xs"
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded-control bg-card dark:bg-background border border-border hover:border-foreground/40 text-foreground font-mono text-eyebrow tracking-wider transition-colors shrink-0 cursor-pointer shadow-raised"
         >
           <span>{activeRoom.roomCode}</span>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">
+          <span className="text-eyebrow text-muted-foreground hidden sm:inline">
             {copied ? (
-              <span className="text-emerald-600 dark:text-emerald-400 font-sans font-medium">Copied!</span>
+              <span className="text-success font-sans font-medium">Copied!</span>
             ) : (
               <svg className="w-3 h-3 inline text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -57,7 +57,7 @@ export function LiveJamBar() {
         </button>
 
         {/* Privacy Pill (md+) */}
-        <span className="hidden md:inline font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground px-1.5 py-0.5 rounded-xs border border-border bg-card/60">
+        <span className="hidden md:inline font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground px-1.5 py-0.5 rounded-control border border-border bg-card/60">
           {activeRoom.privacy.replace("_", " ")}
         </span>
       </div>
@@ -71,7 +71,7 @@ export function LiveJamBar() {
               usePlayerStore.getState().resume();
               useJamStore.getState().setNeedsGesture(false);
             }}
-            className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-eyebrow text-[11px] uppercase tracking-wider font-semibold shadow-sm animate-bounce transition-colors cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success hover:bg-success text-success-foreground font-eyebrow text-eyebrow uppercase tracking-wider font-semibold shadow-sm animate-bounce transition-colors cursor-pointer shrink-0"
             title="Browser blocked autoplay on reload. Tap to synchronize live playback."
           >
             <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
@@ -80,11 +80,11 @@ export function LiveJamBar() {
             <span>Tap to Sync</span>
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 text-muted-foreground text-xs truncate">
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
+          <div className="flex items-center gap-1.5 text-muted-foreground text-caption truncate">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
               DJ:
             </span>
-            <span className="font-medium text-foreground truncate text-[11px] sm:text-xs">
+            <span className="font-medium text-foreground truncate text-eyebrow sm:text-caption">
               {isHost ? "You (Host)" : activeRoom.hostName}
             </span>
           </div>
@@ -92,19 +92,19 @@ export function LiveJamBar() {
 
         {/* Sync Status Badge for Listeners (sm+) */}
         {!isHost && !needsGesture && (
-          <div className="hidden sm:flex items-center text-[11px] font-eyebrow uppercase tracking-wider">
+          <div className="hidden sm:flex items-center text-eyebrow font-eyebrow uppercase tracking-wider">
             {syncStatus === "synced" && (
-              <span className="px-1.5 py-0.2 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="px-1.5 py-0.2 rounded-control bg-success-soft text-success border border-success/20">
                 Synced
               </span>
             )}
             {syncStatus === "drift_correcting" && (
-              <span className="px-1.5 py-0.2 rounded-xs bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 animate-pulse">
+              <span className="px-1.5 py-0.2 rounded-control bg-warning-soft text-warning border border-warning/20 animate-pulse">
                 Catching up
               </span>
             )}
             {syncStatus === "syncing" && (
-              <span className="px-1.5 py-0.2 rounded-xs bg-secondary/20 text-muted-foreground border border-border">
+              <span className="px-1.5 py-0.2 rounded-control bg-secondary/20 text-muted-foreground border border-border">
                 Calibrating
               </span>
             )}
@@ -118,10 +118,10 @@ export function LiveJamBar() {
         <Link
           to="/jam/$code"
           params={{ code: activeRoom.roomCode }}
-          className="flex items-center gap-1 px-2 py-0.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-eyebrow text-[11px] uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+          className="flex items-center gap-1 px-2 py-0.5 rounded-control border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-eyebrow text-eyebrow uppercase tracking-wider transition-colors cursor-pointer shadow-raised"
           title="Open Jam Page with Collaborative Queue & Room Controls"
         >
-          <svg className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-3 h-3 text-success shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
           <span className="hidden xs:inline">Jam Page</span>
@@ -131,10 +131,10 @@ export function LiveJamBar() {
         <button
           type="button"
           onClick={() => setShowMembersDropdown(!showMembersDropdown)}
-          className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-muted-foreground hover:text-foreground font-mono text-[11px] transition-colors cursor-pointer shadow-2xs"
+          className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-control border border-border bg-card hover:bg-background hover:border-foreground text-muted-foreground hover:text-foreground font-mono text-eyebrow transition-colors cursor-pointer shadow-raised"
           title="View connected listeners"
         >
-          <svg className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-3 h-3 text-success shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           <span>{members.length}</span>
@@ -144,7 +144,7 @@ export function LiveJamBar() {
         <button
           type="button"
           onClick={openModal}
-          className="hidden sm:inline-block px-2 py-0.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-muted-foreground hover:text-foreground font-eyebrow text-[11px] uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+          className="hidden sm:inline-block px-2 py-0.5 rounded-control border border-border bg-card hover:bg-background hover:border-foreground text-muted-foreground hover:text-foreground font-eyebrow text-eyebrow uppercase tracking-wider transition-colors cursor-pointer shadow-raised"
           title="Room Details & Privacy Settings"
         >
           Settings
@@ -154,7 +154,7 @@ export function LiveJamBar() {
         <button
           type="button"
           onClick={leaveRoom}
-          className="px-2 py-0.5 rounded-xs border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-eyebrow text-[11px] uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+          className="px-2 py-0.5 rounded-control border border-destructive/20 bg-destructive-soft hover:bg-destructive/20 text-destructive font-eyebrow text-eyebrow uppercase tracking-wider transition-colors cursor-pointer shadow-raised"
           title="Leave Live Jam Session"
         >
           Leave
@@ -162,8 +162,8 @@ export function LiveJamBar() {
 
         {/* Members Flyout Menu */}
         {showMembersDropdown && (
-          <div className="absolute right-0 bottom-full mb-2 w-64 bg-card border border-border rounded-xs p-3 shadow-[0_16px_40px_rgba(23,22,15,0.15)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)] z-50 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-border font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div className="absolute right-0 bottom-full mb-2 w-64 bg-card border border-border rounded-control p-3 shadow-[0_16px_40px_rgba(23,22,15,0.15)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)] z-50 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-border font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
               <span>Listeners ({members.length})</span>
               <button
                 type="button"
@@ -183,24 +183,24 @@ export function LiveJamBar() {
                 return (
                   <div
                     key={m.userId}
-                    className="flex items-center justify-between py-1 px-1.5 rounded-xs hover:bg-background transition"
+                    className="flex items-center justify-between py-1 px-1.5 rounded-control hover:bg-background transition"
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <div className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[11px] shrink-0 overflow-hidden">
+                      <div className="w-5 h-5 rounded-full bg-success-soft text-success flex items-center justify-center font-mono font-bold text-eyebrow shrink-0 overflow-hidden">
                         {m.avatarUrl ? (
                           <img src={m.avatarUrl} alt={m.displayName} className="w-full h-full object-cover" />
                         ) : (
                           m.displayName.charAt(0).toUpperCase()
                         )}
                       </div>
-                      <span className="truncate text-foreground text-xs font-medium">
-                        {m.displayName} {isMe && <span className="text-muted-foreground text-[11px]">(You)</span>}
+                      <span className="truncate text-foreground text-caption font-medium">
+                        {m.displayName} {isMe && <span className="text-muted-foreground text-eyebrow">(You)</span>}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       {isMemberHost ? (
-                        <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.2 rounded-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.2 rounded-control bg-success-soft text-success font-semibold border border-success/30">
                           DJ
                         </span>
                       ) : (
@@ -211,7 +211,7 @@ export function LiveJamBar() {
                               transferHost(m.userId);
                               setShowMembersDropdown(false);
                             }}
-                            className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-border hover:border-emerald-500 bg-card hover:bg-emerald-500 hover:text-white text-muted-foreground transition cursor-pointer"
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-border hover:border-success bg-card hover:bg-success hover:text-success-foreground text-muted-foreground transition cursor-pointer"
                             title="Make this listener the DJ"
                           >
                             Pass Aux

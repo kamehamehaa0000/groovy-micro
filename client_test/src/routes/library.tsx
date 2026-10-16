@@ -235,7 +235,7 @@ function LibraryPageComponent() {
         <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-bold mb-3 tracking-tight">
           Your Library, Amplified
         </h1>
-        <p className="text-muted-foreground text-sm max-w-md mx-auto mb-8 leading-relaxed">
+        <p className="text-muted-foreground text-body max-w-md mx-auto mb-8 leading-relaxed">
           Log in or create a free account to pin your favorite playlists, save
           albums, follow artists, and unlock your private Personal Collection
           vault.
@@ -243,7 +243,7 @@ function LibraryPageComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3.5 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-caption uppercase tracking-widest font-semibold px-8 py-3.5 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -295,7 +295,7 @@ function LibraryPageComponent() {
               type="button"
               onClick={() => setActiveFilter('all')}
               aria-label="Clear active filter"
-              className="shrink-0 w-7 h-7 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-xs font-bold cursor-pointer"
+              className="shrink-0 w-7 h-7 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-caption font-bold cursor-pointer"
             >
               ✕
             </button>
@@ -309,7 +309,7 @@ function LibraryPageComponent() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -331,7 +331,7 @@ function LibraryPageComponent() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Find in Your Library..."
-                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
+                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
               />
               <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
@@ -339,7 +339,7 @@ function LibraryPageComponent() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
                   title="Clear search"
                 >
                   ✕
@@ -352,7 +352,7 @@ function LibraryPageComponent() {
                 setIsSearchOpen(false)
                 setSearchQuery('')
               }}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
+              className="font-mono text-caption text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -361,7 +361,7 @@ function LibraryPageComponent() {
       </header>
 
       {/* ===================== CONTROLS BAR (Sort & View Mode) ===================== */}
-      <div className="flex items-center justify-between py-3 px-1 text-xs select-none">
+      <div className="flex items-center justify-between py-3 px-1 text-caption select-none">
         {/* Sort trigger button */}
         <button
           type="button"
@@ -398,8 +398,8 @@ function LibraryPageComponent() {
             >
               <div className="w-14 h-14 bg-border/50 rounded-md shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-border/60 rounded w-2/5" />
-                <div className="h-3 bg-border/40 rounded w-1/4" />
+                <div className="h-4 bg-border/60 rounded-control w-2/5" />
+                <div className="h-3 bg-border/40 rounded-control w-1/4" />
               </div>
             </div>
           ))}
@@ -407,11 +407,11 @@ function LibraryPageComponent() {
       ) : error ? (
         // Error state
         <div className="p-8 text-center bg-card border border-border rounded-xl my-6">
-          <p className="text-red-500 font-mono text-xs mb-3">{error}</p>
+          <p className="text-destructive font-mono text-caption mb-3">{error}</p>
           <button
             type="button"
             onClick={() => fetchLibrary(true)}
-            className="px-4 py-2 bg-primary text-background font-eyebrow text-xs uppercase tracking-wider font-semibold rounded hover:opacity-90 cursor-pointer"
+            className="px-4 py-2 bg-primary text-background font-eyebrow text-caption uppercase tracking-wider font-semibold rounded-control hover:opacity-90 cursor-pointer"
           >
             Retry
           </button>
@@ -433,39 +433,39 @@ function LibraryPageComponent() {
           </div>
           {searchQuery ? (
             <>
-              <p className="font-semibold text-sm text-foreground">
+              <p className="font-semibold text-body text-foreground">
                 No results found for &ldquo;{searchQuery}&rdquo;
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-caption text-muted-foreground mt-1">
                 Please check the spelling or clear your search query.
               </p>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-1.5 text-xs border border-border rounded-full text-foreground hover:bg-muted"
+                className="mt-4 px-4 py-1.5 text-caption border border-border rounded-full text-foreground hover:bg-muted"
               >
                 Clear search
               </button>
             </>
           ) : activeFilter !== 'all' ? (
             <>
-              <p className="font-semibold text-sm text-foreground">
+              <p className="font-semibold text-body text-foreground">
                 No items in this category
               </p>
               <button
                 type="button"
                 onClick={() => setActiveFilter('all')}
-                className="mt-4 px-4 py-1.5 text-xs border border-border rounded-full text-foreground hover:bg-muted"
+                className="mt-4 px-4 py-1.5 text-caption border border-border rounded-full text-foreground hover:bg-muted"
               >
                 Show all items
               </button>
             </>
           ) : (
             <>
-              <p className="font-semibold text-sm text-foreground">
+              <p className="font-semibold text-body text-foreground">
                 Your library is empty
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-caption text-muted-foreground mt-1">
                 Create a playlist, like songs, or follow artists to start
                 building your collection.
               </p>
@@ -473,13 +473,13 @@ function LibraryPageComponent() {
                 <button
                   type="button"
                   onClick={() => openCreatePlaylistModal()}
-                  className="px-5 py-2 rounded-full bg-primary text-background font-mono text-xs font-semibold hover:opacity-90 transition-opacity"
+                  className="px-5 py-2 rounded-full bg-primary text-background font-mono text-caption font-semibold hover:opacity-90 transition-opacity"
                 >
                   Create Playlist
                 </button>
                 <Link
                   to="/"
-                  className="px-5 py-2 rounded-full border border-border text-foreground hover:bg-muted font-mono text-xs transition-colors"
+                  className="px-5 py-2 rounded-full border border-border text-foreground hover:bg-muted font-mono text-caption transition-colors"
                 >
                   Browse Catalog
                 </Link>
@@ -523,7 +523,7 @@ function LibraryPageComponent() {
 
       {/* ===================== FLOATING TOAST ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background text-caption px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none">
           <span>✓</span>
           <span>{toastMessage}</span>
         </div>

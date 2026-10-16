@@ -41,7 +41,7 @@ export function PlaylistActionMenu({
   onClone,
   onOpenSettings,
   onDeleteRequest,
-  buttonClassName = 'p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-muted border border-border bg-card shadow-2xs',
+  buttonClassName = 'p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-muted border border-border bg-card shadow-raised',
   align = 'right',
 }: PlaylistActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -303,7 +303,7 @@ export function PlaylistActionMenu({
         title="More playlist options"
         aria-label="Playlist options"
       >
-        <span className="font-mono text-sm leading-none tracking-widest text-foreground select-none">
+        <span className="font-mono text-body leading-none tracking-widest text-foreground select-none">
           •••
         </span>
       </button>
@@ -322,7 +322,7 @@ export function PlaylistActionMenu({
                   left: dropdownPos?.left ?? 0,
                   zIndex: 9999,
                 }}
-                className={`hidden sm:block w-54 bg-card border border-border rounded-xl shadow-xl py-1.5 font-mono text-xs select-none divide-y divide-border/40 animate-in fade-in zoom-in-95 duration-100 ${
+                className={`hidden sm:block w-54 bg-card border border-border rounded-xl shadow-xl py-1.5 font-mono text-caption select-none divide-y divide-border/40 animate-in fade-in zoom-in-95 duration-100 ${
                   dropdownPos?.openUp ? 'origin-bottom' : 'origin-top'
                 }`}
                 onClick={(e) => e.stopPropagation()}
@@ -335,7 +335,7 @@ export function PlaylistActionMenu({
                       onClick={handleCloneClick}
                       className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5 font-medium"
                     >
-                      <span className="text-primary text-sm">✦</span>
+                      <span className="text-primary text-body">✦</span>
                       <span>Clone to Library</span>
                     </button>
                   )}
@@ -401,7 +401,7 @@ export function PlaylistActionMenu({
                       onClick={handleCopyCollabLink}
                       className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                     >
-                      <span className="text-xs">🤝</span>
+                      <span className="text-caption">🤝</span>
                       <span>Copy Invite Link</span>
                     </button>
                   )}
@@ -425,9 +425,9 @@ export function PlaylistActionMenu({
                       <button
                         type="button"
                         onClick={handleDeleteClick}
-                        className="w-full text-left px-3.5 py-2 hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors cursor-pointer flex items-center gap-2.5"
+                        className="w-full text-left px-3.5 py-2 hover:bg-destructive/20 text-destructive hover:text-destructive transition-colors cursor-pointer flex items-center gap-2.5"
                       >
-                        <TrashIconSVG className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <TrashIconSVG className="w-3.5 h-3.5 text-destructive shrink-0" />
                         <span>Delete Playlist</span>
                       </button>
                     )}
@@ -487,10 +487,10 @@ export function PlaylistActionMenu({
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
+                      <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate">
                         {playlist.title}
                       </h4>
-                      <p className="font-mono text-[11px] text-muted-foreground truncate mt-0.5">
+                      <p className="font-mono text-eyebrow text-muted-foreground truncate mt-0.5">
                         {playlist.tracksCount ?? tracks.length} tracks &bull;{' '}
                         {playlist.visibility || 'PUBLIC'}
                       </p>
@@ -498,7 +498,7 @@ export function PlaylistActionMenu({
                   </div>
 
                   {/* Action List in Sheet */}
-                  <div className="py-2 overflow-y-auto divide-y divide-border/40 font-mono text-xs">
+                  <div className="py-2 overflow-y-auto divide-y divide-border/40 font-mono text-caption">
                     {/* Section 1: Clone & Queueing */}
                     <div className="py-1">
                       {onClone && (
@@ -507,8 +507,8 @@ export function PlaylistActionMenu({
                           onClick={handleCloneClick}
                           className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3 font-medium"
                         >
-                          <span className="text-primary text-base">✦</span>
-                          <span className="text-sm">Clone to Library</span>
+                          <span className="text-primary text-title">✦</span>
+                          <span className="text-body">Clone to Library</span>
                         </button>
                       )}
 
@@ -518,7 +518,7 @@ export function PlaylistActionMenu({
                         className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                       >
                         <PlayIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">Play Next</span>
+                        <span className="text-body">Play Next</span>
                       </button>
 
                       <button
@@ -540,7 +540,7 @@ export function PlaylistActionMenu({
                           <line x1="3" y1="12" x2="3.01" y2="12" />
                           <line x1="3" y1="18" x2="3.01" y2="18" />
                         </svg>
-                        <span className="text-sm">Add to Queue</span>
+                        <span className="text-body">Add to Queue</span>
                       </button>
                     </div>
 
@@ -564,7 +564,7 @@ export function PlaylistActionMenu({
                           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
                           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                         </svg>
-                        <span className="text-sm">Share Playlist</span>
+                        <span className="text-body">Share Playlist</span>
                       </button>
 
                       {playlist.isCollaborative && playlist.collaborationToken && (
@@ -573,8 +573,8 @@ export function PlaylistActionMenu({
                           onClick={handleCopyCollabLink}
                           className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                         >
-                          <span className="text-sm">🤝</span>
-                          <span className="text-sm">Copy Invite Link</span>
+                          <span className="text-body">🤝</span>
+                          <span className="text-body">Copy Invite Link</span>
                         </button>
                       )}
                     </div>
@@ -589,7 +589,7 @@ export function PlaylistActionMenu({
                             className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                           >
                             <EditIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm">Settings</span>
+                            <span className="text-body">Settings</span>
                           </button>
                         )}
 
@@ -597,10 +597,10 @@ export function PlaylistActionMenu({
                           <button
                             type="button"
                             onClick={handleDeleteClick}
-                            className="w-full text-left px-5 py-3 hover:bg-red-500/10 active:bg-red-500/20 text-red-500 transition-colors flex items-center gap-3"
+                            className="w-full text-left px-5 py-3 hover:bg-destructive/20 active:bg-destructive-soft text-destructive transition-colors flex items-center gap-3"
                           >
-                            <TrashIconSVG className="w-4 h-4 text-red-500 shrink-0" />
-                            <span className="text-sm">Delete Playlist</span>
+                            <TrashIconSVG className="w-4 h-4 text-destructive shrink-0" />
+                            <span className="text-body">Delete Playlist</span>
                           </button>
                         )}
                       </div>
@@ -612,7 +612,7 @@ export function PlaylistActionMenu({
 
             {/* Optional Floating Feedback Toast */}
             {toastMessage && (
-              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-10000 bg-foreground text-background font-mono text-xs px-4 py-2 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-10000 bg-foreground text-background font-mono text-caption px-4 py-2 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
                 {toastMessage}
               </div>
             )}

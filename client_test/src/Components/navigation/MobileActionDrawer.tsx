@@ -76,17 +76,17 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div>
-              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary">
+              <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
                 Quick Actions
               </div>
-              <h3 className="font-serif italic text-base font-bold text-foreground">
+              <h3 className="font-serif italic text-title font-bold text-foreground">
                 Create &amp; Collect
               </h3>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded cursor-pointer transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded-control cursor-pointer transition-colors"
               aria-label="Close action drawer"
             >
               <svg
@@ -103,19 +103,19 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
 
           {/* Simple Navigation Actions matching Left Sidebar */}
           <div className="space-y-1">
-            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-2">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-2">
               Creation Desk
             </div>
-            <nav className="flex flex-col gap-1 font-eyebrow text-xs uppercase tracking-wider">
+            <nav className="flex flex-col gap-1 font-eyebrow text-caption uppercase tracking-wider">
               <button
                 type="button"
                 onClick={handleOpenJam}
-                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded-control border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <span>Start / Join Live Jam</span>
                   {activeJamRoom && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   )}
                 </span>
                 <span className="text-muted-foreground">&rarr;</span>
@@ -124,7 +124,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
               <button
                 type="button"
                 onClick={handleCreatePlaylist}
-                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded-control border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span>Create Playlist</span>
                 <span className="text-muted-foreground">&rarr;</span>
@@ -133,7 +133,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
               <button
                 type="button"
                 onClick={handleOpenCollection}
-                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded-control border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span>Personal Vault</span>
                 <span className="text-muted-foreground">&rarr;</span>
@@ -143,7 +143,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
         </div>
 
         {/* Footer info */}
-        <div className="pt-4 border-t border-border font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground text-center">
+        <div className="pt-4 border-t border-border font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground text-center">
           Groovy High-Fidelity Creation Desk
         </div>
       </aside>

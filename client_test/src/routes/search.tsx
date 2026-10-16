@@ -59,15 +59,15 @@ const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: 'electronic',
     name: 'Electronic & Dance',
     query: 'Electronic',
-    gradient: 'from-violet-600 to-indigo-800',
-    discGradient: 'from-violet-400 to-indigo-900',
+    gradient: 'from-info to-indigo-800',
+    discGradient: 'from-info to-indigo-900',
   },
   {
     id: 'hiphop',
     name: 'Hip-Hop & Rap',
     query: 'Hip-Hop',
-    gradient: 'from-amber-600 to-orange-800',
-    discGradient: 'from-amber-400 to-orange-900',
+    gradient: 'from-warning to-orange-800',
+    discGradient: 'from-warning to-orange-900',
   },
   {
     id: 'synthwave',
@@ -80,15 +80,15 @@ const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: 'lofi',
     name: 'Lo-Fi & Chill',
     query: 'Lofi Beats',
-    gradient: 'from-emerald-600 to-teal-800',
-    discGradient: 'from-emerald-400 to-teal-900',
+    gradient: 'from-success to-teal-800',
+    discGradient: 'from-success to-teal-900',
   },
   {
     id: 'rock',
     name: 'Rock & Alt',
     query: 'Indie Rock',
-    gradient: 'from-rose-600 to-red-800',
-    discGradient: 'from-rose-400 to-red-900',
+    gradient: 'from-rose-600 to-destructive',
+    discGradient: 'from-rose-400 to-destructive',
   },
   {
     id: 'ambient',
@@ -101,8 +101,8 @@ const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: 'jazz',
     name: 'Jazz & Soul',
     query: 'Jazz',
-    gradient: 'from-yellow-700 to-amber-900',
-    discGradient: 'from-yellow-500 to-amber-950',
+    gradient: 'from-warning to-warning',
+    discGradient: 'from-warning to-warning',
   },
   {
     id: 'pop',
@@ -115,29 +115,29 @@ const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: 'indie',
     name: 'Indie & Folk',
     query: 'Indie',
-    gradient: 'from-teal-600 to-emerald-900',
-    discGradient: 'from-teal-400 to-emerald-950',
+    gradient: 'from-teal-600 to-success',
+    discGradient: 'from-teal-400 to-success',
   },
   {
     id: 'classical',
     name: 'Classical & Piano',
     query: 'Classical',
-    gradient: 'from-slate-600 to-zinc-800',
-    discGradient: 'from-slate-400 to-zinc-900',
+    gradient: 'from-muted to-card',
+    discGradient: 'from-muted to-card',
   },
   {
     id: 'rnb',
     name: 'R&B & Urban',
     query: 'R&B',
-    gradient: 'from-purple-600 to-indigo-900',
-    discGradient: 'from-purple-400 to-indigo-950',
+    gradient: 'from-info to-indigo-900',
+    discGradient: 'from-info to-indigo-950',
   },
   {
     id: 'metal',
     name: 'Metal & Heavy',
     query: 'Metal',
-    gradient: 'from-stone-800 to-neutral-950',
-    discGradient: 'from-stone-600 to-neutral-950',
+    gradient: 'from-muted to-card',
+    discGradient: 'from-muted to-card',
   },
 ]
 
@@ -147,7 +147,7 @@ const COLLECTION_HUBS = [
     label: 'Public Playlists',
     tag: 'Curations',
     tagColor:
-      'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      'text-success bg-success-soft border-success/20',
     description: 'Community-curated sets, mixtapes, and public mixes',
     iconType: 'music',
   },
@@ -164,7 +164,7 @@ const COLLECTION_HUBS = [
     label: 'New Releases',
     tag: 'Featured',
     tagColor:
-      'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
+      'text-info bg-info-soft border-info/20',
     description: 'Fresh master drops, singles, and projects',
     iconType: 'star',
   },
@@ -173,7 +173,7 @@ const COLLECTION_HUBS = [
     label: 'Personal Vault',
     tag: 'Locker',
     tagColor:
-      'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+      'text-warning bg-warning-soft border-warning/20',
     description: 'Private lossless audio locker and personal cuts',
     iconType: 'lock',
   },
@@ -468,7 +468,7 @@ function SearchPageComponent() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What do you want to listen to?"
-            className="w-full h-full py-2.5 sm:py-3 pr-2 text-sm sm:text-base bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:outline-none font-sans"
+            className="w-full h-full py-2.5 sm:py-3 pr-2 text-body sm:text-title bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:outline-none font-sans"
           />
 
           {isSearching && (
@@ -485,7 +485,7 @@ function SearchPageComponent() {
                 setDebouncedQuery('')
                 inputRef.current?.focus()
               }}
-              className="mr-2 sm:mr-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="mr-2 sm:mr-3 w-7 h-7 rounded-full flex items-center justify-center text-caption font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
               title="Clear search"
             >
               ✕
@@ -502,7 +502,7 @@ function SearchPageComponent() {
                 type="button"
                 onClick={() => setActiveCategory('all')}
                 aria-label="Clear category filter"
-                className="shrink-0 w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-xs font-bold cursor-pointer"
+                className="shrink-0 w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-caption font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -515,7 +515,7 @@ function SearchPageComponent() {
                   key={cat.id}
                   type="button"
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`shrink-0 px-3.5 py-1 rounded-full text-xs transition-all duration-150 font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`shrink-0 px-3.5 py-1 rounded-full text-caption transition-all duration-150 font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-foreground text-background shadow-xs font-semibold'
                       : 'bg-card border border-border text-foreground hover:bg-muted'
@@ -523,7 +523,7 @@ function SearchPageComponent() {
                 >
                   <span>{cat.label}</span>
                   {cat.count !== undefined && cat.count > 0 && (
-                    <span className="font-mono text-[11px] opacity-70">
+                    <span className="font-mono text-eyebrow opacity-70">
                       ({cat.count})
                     </span>
                   )}
@@ -541,13 +541,13 @@ function SearchPageComponent() {
           {recentSearches.length > 0 && (
             <section className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm sm:text-base font-bold text-foreground tracking-tight font-sans">
+                <h2 className="text-body sm:text-title font-bold text-foreground tracking-tight font-sans">
                   Recent searches
                 </h2>
                 <button
                   type="button"
                   onClick={clearRecentSearches}
-                  className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer py-1 px-1.5"
+                  className="text-caption text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer py-1 px-1.5"
                 >
                   Clear all
                 </button>
@@ -556,7 +556,7 @@ function SearchPageComponent() {
                 {recentSearches.map((term) => (
                   <div
                     key={term}
-                    className="group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full bg-card border border-border hover:border-foreground/40 transition-colors shadow-2xs"
+                    className="group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full bg-card border border-border hover:border-foreground/40 transition-colors shadow-raised"
                   >
                     <button
                       type="button"
@@ -565,7 +565,7 @@ function SearchPageComponent() {
                         setDebouncedQuery(term)
                         addRecentSearch(term)
                       }}
-                      className="text-xs font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="text-caption font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       <svg
                         className="w-3.5 h-3.5 text-muted-foreground shrink-0"
@@ -587,7 +587,7 @@ function SearchPageComponent() {
                         e.stopPropagation()
                         removeRecentSearch(term)
                       }}
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-eyebrow text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                       title="Remove"
                     >
                       ✕
@@ -600,10 +600,10 @@ function SearchPageComponent() {
           {/* Explore Collections / Catalog Hubs */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm sm:text-base font-bold text-foreground tracking-tight font-sans">
+              <h2 className="text-body sm:text-title font-bold text-foreground tracking-tight font-sans">
                 Explore collections
               </h2>
-              <span className="text-[11px] font-eyebrow text-muted-foreground uppercase tracking-wider">
+              <span className="text-eyebrow font-eyebrow text-muted-foreground uppercase tracking-wider">
                 Catalog hubs
               </span>
             </div>
@@ -613,20 +613,20 @@ function SearchPageComponent() {
                 <Link
                   key={hub.to}
                   to={hub.to}
-                  className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl bg-card border border-${hub.tagColor} hover:border-foreground/40 hover:bg-muted/60 transition-all shadow-2xs no-underline text-inherit`}
+                  className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl bg-card border border-${hub.tagColor} hover:border-foreground/40 hover:bg-muted/60 transition-all shadow-raised no-underline text-inherit`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`inline-flex items-center text-[11px] font-eyebrow font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${hub.tagColor}`}
+                      className={`inline-flex items-center text-eyebrow font-eyebrow font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${hub.tagColor}`}
                     >
                       {hub.tag}
                     </span>
                   </div>
                   <div className="mt-3">
-                    <h4 className="text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate font-sans">
+                    <h4 className="text-caption sm:text-body font-bold text-foreground group-hover:text-primary transition-colors truncate font-sans">
                       {hub.label}
                     </h4>
-                    <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5 leading-snug">
+                    <p className="text-eyebrow text-muted-foreground line-clamp-1 mt-0.5 leading-snug">
                       {hub.description}
                     </p>
                   </div>
@@ -637,10 +637,10 @@ function SearchPageComponent() {
           {/* Browse All: Genres & Moods */}
           <section>
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight font-sans">
+              <h2 className="text-title sm:text-lg font-bold text-foreground tracking-tight font-sans">
                 Browse all
               </h2>
-              <span className="text-[11px] font-eyebrow text-muted-foreground uppercase tracking-wider">
+              <span className="text-eyebrow font-eyebrow text-muted-foreground uppercase tracking-wider">
                 Genres &amp; Moods
               </span>
             </div>
@@ -657,7 +657,7 @@ function SearchPageComponent() {
                   }}
                   className={`group relative h-24 sm:h-28 border border-muted-foreground rounded-xl overflow-hidden p-3 sm:p-4 text-left shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50`}
                 >
-                  <span className="text-sm sm:text-base font-bold tracking-tight text-white leading-tight max-w-[65%] line-clamp-2 block drop-shadow-xs">
+                  <span className="text-body sm:text-title font-bold tracking-tight text-white leading-tight max-w-[65%] line-clamp-2 block drop-shadow-xs">
                     {cat.name}
                   </span>
 
@@ -681,10 +681,10 @@ function SearchPageComponent() {
       {/* ===================== NO RESULTS STATE ===================== */}
       {query.trim() && !isSearching && !hasAnyResults && (
         <div className="py-16 text-center border border-dashed border-border bg-card/30 rounded-xl my-6">
-          <div className="font-serif italic text-xl text-foreground mb-1.5">
+          <div className="font-serif italic text-heading text-foreground mb-1.5">
             No results found for &ldquo;{query}&rdquo;
           </div>
-          <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+          <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto leading-relaxed">
             Please check your spelling or search by an artist name, song title,
             album title, or curator.
           </p>
@@ -695,7 +695,7 @@ function SearchPageComponent() {
                 setQuery('')
                 setDebouncedQuery('')
               }}
-              className="font-eyebrow text-[11px] uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background text-foreground transition-colors cursor-pointer rounded-full"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background text-foreground transition-colors cursor-pointer rounded-full"
             >
               Clear Query
             </button>
@@ -709,7 +709,7 @@ function SearchPageComponent() {
           {/* 1. TOP RESULT CARD */}
           {results.topResult && activeCategory === 'all' && (
             <div className="space-y-2.5">
-              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary font-semibold">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold">
                 Top Result
               </span>
 
@@ -739,7 +739,7 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-eyebrow text-[11px] uppercase tracking-wider text-primary font-semibold">
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
                           Artist
                         </span>
                         {(results.topResult.item as any).verified && (
@@ -751,11 +751,11 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-sans text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
+                        className="font-sans text-heading sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
                       >
                         {(results.topResult.item as any).stageName}
                       </Link>
-                      <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                      <p className="font-mono text-caption text-muted-foreground mt-0.5">
                         {(
                           results.topResult.item as any
                         ).monthlyListeners.toLocaleString()}{' '}
@@ -770,9 +770,9 @@ function SearchPageComponent() {
                           (results.topResult!.item as any).id,
                         )
                       }
-                      className={`shrink-0 font-eyebrow text-[11px] uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer font-semibold ${
+                      className={`shrink-0 font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer font-semibold ${
                         isFollowing((results.topResult.item as any).id)
-                          ? 'bg-card text-foreground border-border hover:border-red-400 hover:text-red-500'
+                          ? 'bg-card text-foreground border-border hover:border-destructive hover:text-destructive'
                           : 'bg-foreground text-background border-foreground hover:opacity-90'
                       }`}
                     >
@@ -807,21 +807,21 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                        <span className="font-eyebrow text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-success font-semibold">
                           Track
                         </span>
                         {(results.topResult.item as any).isPersonal && (
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                             Personal
                           </span>
                         )}
                         {(results.topResult.item as any).isExplicit && (
-                          <span className="font-eyebrow text-[11px] uppercase border border-border px-1 py-0.2 rounded text-muted-foreground">
+                          <span className="font-eyebrow text-eyebrow uppercase border border-border px-1 py-0.2 rounded-control text-muted-foreground">
                             E
                           </span>
                         )}
                       </div>
-                      <h3 className="font-sans text-xl sm:text-2xl font-bold text-foreground truncate">
+                      <h3 className="font-sans text-heading sm:text-2xl font-bold text-foreground truncate">
                         {(results.topResult.item as any).title}
                       </h3>
                       <Link
@@ -829,7 +829,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).artistSlug,
                         }}
-                        className="font-sans text-xs text-muted-foreground hover:text-primary transition-colors truncate block mt-0.5"
+                        className="font-sans text-caption text-muted-foreground hover:text-primary transition-colors truncate block mt-0.5"
                       >
                         {(results.topResult.item as any).artistName}
                       </Link>
@@ -843,7 +843,7 @@ function SearchPageComponent() {
                             (results.topResult!.item as any).id,
                           )
                         }
-                        className="w-9 h-9 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
+                        className="w-9 h-9 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                         title="Like Track"
                       >
                         <HeartIconSVG
@@ -908,11 +908,11 @@ function SearchPageComponent() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                        <span className="font-eyebrow text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-info font-semibold">
                           Release
                         </span>
                         {(results.topResult.item as any).isPersonal && (
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full font-semibold">
                             Personal
                           </span>
                         )}
@@ -922,7 +922,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-sans text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
+                        className="font-sans text-heading sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
@@ -931,7 +931,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).artistSlug,
                         }}
-                        className="font-sans text-xs text-muted-foreground hover:text-primary transition-colors truncate block mt-0.5"
+                        className="font-sans text-caption text-muted-foreground hover:text-primary transition-colors truncate block mt-0.5"
                       >
                         {(results.topResult.item as any).artistName}
                       </Link>
@@ -945,7 +945,7 @@ function SearchPageComponent() {
                             (results.topResult!.item as any).id,
                           )
                         }
-                        className="w-9 h-9 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
+                        className="w-9 h-9 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                         title="Like Album"
                       >
                         <HeartIconSVG
@@ -961,7 +961,7 @@ function SearchPageComponent() {
                         params={{
                           idOrSlug: (results.topResult.item as any).slug,
                         }}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors font-medium shadow-2xs"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors font-medium shadow-raised"
                       >
                         View &rarr;
                       </Link>
@@ -991,17 +991,17 @@ function SearchPageComponent() {
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5 block">
+                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning font-semibold mb-0.5 block">
                         Playlist
                       </span>
                       <Link
                         to="/playlists/$id"
                         params={{ id: (results.topResult.item as any).id }}
-                        className="font-sans text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
+                        className="font-sans text-heading sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
                       >
                         {(results.topResult.item as any).title}
                       </Link>
-                      <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                      <p className="font-mono text-caption text-muted-foreground mt-0.5">
                         By {(results.topResult.item as any).ownerName} &bull;{' '}
                         {(results.topResult.item as any).tracksCount} tracks
                       </p>
@@ -1010,7 +1010,7 @@ function SearchPageComponent() {
                     <Link
                       to="/playlists/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-eyebrow text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors shrink-0 font-medium shadow-2xs"
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors shrink-0 font-medium shadow-raised"
                     >
                       Open &rarr;
                     </Link>
@@ -1039,14 +1039,14 @@ function SearchPageComponent() {
                     </Link>
 
                     <div className="min-w-0 flex-1">
-                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5 block">
+                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground font-semibold mb-0.5 block">
                         {(results.topResult.item as any).role}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <Link
                           to="/users/$id"
                           params={{ id: (results.topResult.item as any).id }}
-                          className="font-sans text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
+                          className="font-sans text-heading sm:text-2xl font-bold text-foreground hover:text-primary transition-colors truncate block"
                         >
                           {(results.topResult.item as any).displayName}
                         </Link>
@@ -1059,7 +1059,7 @@ function SearchPageComponent() {
                     <Link
                       to="/users/$id"
                       params={{ id: (results.topResult.item as any).id }}
-                      className="font-eyebrow text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors shrink-0 font-medium shadow-2xs"
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider px-3.5 py-2 rounded-full border border-border bg-card hover:bg-background text-foreground transition-colors shrink-0 font-medium shadow-raised"
                     >
                       Profile &rarr;
                     </Link>
@@ -1074,10 +1074,10 @@ function SearchPageComponent() {
             <div className="space-y-3">
               <div className="flex items-baseline justify-between border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-foreground">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
                     Tracks
                   </h3>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     ({results.songs.length})
                   </span>
                 </div>
@@ -1085,14 +1085,14 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('songs')}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
                 )}
               </div>
 
-              <div className="border border-border rounded-md overflow-hidden bg-card divide-y divide-border/60 shadow-2xs">
+              <div className="border border-border rounded-md overflow-hidden bg-card divide-y divide-border/60 shadow-raised">
                 {results.songs.map((song, idx) => (
                   <SongRow
                     key={song.id}
@@ -1114,10 +1114,10 @@ function SearchPageComponent() {
             <div className="space-y-3">
               <div className="flex items-baseline justify-between border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-foreground">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
                     Artists
                   </h3>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     ({results.artists.length})
                   </span>
                 </div>
@@ -1125,7 +1125,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('artists')}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
@@ -1154,10 +1154,10 @@ function SearchPageComponent() {
             <div className="space-y-3">
               <div className="flex items-baseline justify-between border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-foreground">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
                     Releases
                   </h3>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     ({results.albums.length})
                   </span>
                 </div>
@@ -1165,7 +1165,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('albums')}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>
@@ -1199,10 +1199,10 @@ function SearchPageComponent() {
             <div className="space-y-3">
               <div className="flex items-baseline justify-between border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-foreground">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
                     Playlists
                   </h3>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     ({results.playlists.length})
                   </span>
                 </div>
@@ -1212,7 +1212,7 @@ function SearchPageComponent() {
                       <button
                         type="button"
                         onClick={() => setActiveCategory('playlists')}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                       >
                         Filter tracks &rarr;
                       </button>
@@ -1220,7 +1220,7 @@ function SearchPageComponent() {
                   <Link
                     to="/playlists"
                     search={{ search: query.trim() || undefined }}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                   >
                     Browse all &rarr;
                   </Link>
@@ -1261,10 +1261,10 @@ function SearchPageComponent() {
             <div className="space-y-3">
               <div className="flex items-baseline justify-between border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-xl text-foreground">
+                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
                     Community
                   </h3>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     ({results.users.length})
                   </span>
                 </div>
@@ -1272,7 +1272,7 @@ function SearchPageComponent() {
                   <button
                     type="button"
                     onClick={() => setActiveCategory('users')}
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                   >
                     View all &rarr;
                   </button>

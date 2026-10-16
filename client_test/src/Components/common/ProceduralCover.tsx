@@ -50,9 +50,9 @@ export const ProceduralCover: React.FC<ProceduralCoverProps> = ({
   const patternType = hash % 3; // 0: wave, 1: vinyl circles, 2: modern diagonal grid
 
   const sizeClasses = {
-    sm: "w-10 h-10 text-xs",
-    md: "w-16 h-16 text-sm",
-    lg: "w-32 h-32 text-xl",
+    sm: "w-10 h-10 text-caption",
+    md: "w-16 h-16 text-body",
+    lg: "w-32 h-32 text-heading",
     xl: "w-48 h-48 text-3xl",
   }[size];
 

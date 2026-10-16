@@ -98,7 +98,7 @@ function VerifyEmailComponent() {
         <div className="font-serif italic text-3xl tracking-[-0.03em] text-foreground">
           Groov<span className="not-italic text-primary font-serif">y</span>
         </div>
-        <div className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mt-1.5">
+        <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1.5">
           Sound Atelier
         </div>
       </div>
@@ -119,13 +119,13 @@ function VerifyEmailComponent() {
             </svg>
           </div>
 
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
             Correspondence · Cryptographic Check
           </div>
           <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
             Authenticating token...
           </h1>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
             Please wait while the Maison cryptographic engine validates your
             token and activates your member privileges.
           </p>
@@ -135,19 +135,19 @@ function VerifyEmailComponent() {
       {/* ================= STATE: SUCCESS ================= */}
       {status === 'success' && (
         <div className="border-y border-border py-8 text-center">
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-success mb-2">
             Membership Confirmed · Est. MMXXVI
           </div>
           <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
             Account verified.
           </h1>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-6 max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground leading-relaxed mb-6 max-w-sm mx-auto">
             Welcome to Groovy. Your account has been authenticated. Redirecting
             you to your private atelier profile...
           </p>
           <Link
             to="/profile"
-            className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground text-center"
+            className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground text-center"
           >
             Enter the Maison &rarr;
           </Link>
@@ -158,23 +158,23 @@ function VerifyEmailComponent() {
       {status === 'error' && (
         <div className="border-y border-border py-8">
           <div className="text-center mb-6">
-            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-destructive mb-2">
               Correspondence · Security Notice
             </div>
             <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
               Token expired.
             </h1>
-            <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
               {errorMessage}
             </p>
           </div>
 
           {resendNotice && (
             <div
-              className={`mb-5 p-3 border text-xs ${
+              className={`mb-5 p-3 border text-caption ${
                 resendNotice.type === 'success'
-                  ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+                  ? 'border-success/30 bg-success-soft text-success'
+                  : 'border-destructive/30 bg-destructive-soft text-destructive'
               }`}
             >
               {resendNotice.text}
@@ -185,7 +185,7 @@ function VerifyEmailComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="resend-email"
-                className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
               >
                 Account Email
               </label>
@@ -196,14 +196,14 @@ function VerifyEmailComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
@@ -219,13 +219,13 @@ function VerifyEmailComponent() {
       {status === 'idle' && (
         <div className="border-y border-border py-8">
           <div className="text-center mb-6">
-            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
               Correspondence · Dispatch
             </div>
             <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
               Verify your email
             </h1>
-            <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
               Provide the email address associated with your Maison membership
               to receive an authentication correspondence.
             </p>
@@ -233,10 +233,10 @@ function VerifyEmailComponent() {
 
           {resendNotice && (
             <div
-              className={`mb-5 p-3 border text-xs ${
+              className={`mb-5 p-3 border text-caption ${
                 resendNotice.type === 'success'
-                  ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+                  ? 'border-success/30 bg-success-soft text-success'
+                  : 'border-destructive/30 bg-destructive-soft text-destructive'
               }`}
             >
               {resendNotice.text}
@@ -247,7 +247,7 @@ function VerifyEmailComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="idle-email"
-                className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
               >
                 Account Email
               </label>
@@ -258,14 +258,14 @@ function VerifyEmailComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
@@ -275,7 +275,7 @@ function VerifyEmailComponent() {
             </button>
           </form>
 
-          <div className="font-sans text-xs text-muted-foreground text-center mt-7">
+          <div className="font-sans text-caption text-muted-foreground text-center mt-7">
             Already verified?{' '}
             <Link
               to="/login"
@@ -289,7 +289,7 @@ function VerifyEmailComponent() {
 
       {/* Footer Info */}
       <div className="mt-8 text-center">
-        <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground/70">
+        <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground/70">
           Maison Édition MMXXVI · Security & Correspondence
         </span>
       </div>

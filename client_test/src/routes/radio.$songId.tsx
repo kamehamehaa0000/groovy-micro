@@ -223,7 +223,7 @@ function RadioMixPage() {
               />
             )}
             <div className="absolute top-3 right-3 z-10">
-              <span className="px-2 py-0.5 rounded text-[11px] font-eyebrow tracking-wider uppercase bg-primary text-primary-foreground font-bold shadow-xs">
+              <span className="px-2 py-0.5 rounded-control text-eyebrow font-eyebrow tracking-wider uppercase bg-primary text-primary-foreground font-bold shadow-xs">
                 RADIO
               </span>
             </div>
@@ -231,7 +231,7 @@ function RadioMixPage() {
 
           {/* Meta Info */}
           <div className="space-y-3 flex-1 min-w-0">
-            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong font-semibold">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong font-semibold">
               Personalized Dynamic Mix &bull; Continuous Flow
             </div>
 
@@ -239,7 +239,7 @@ function RadioMixPage() {
               {seedSong ? `${seedSong.title} Radio` : 'Radio Mix'}
             </h1>
 
-            <p className="font-sans text-xs sm:text-sm text-muted-foreground line-clamp-2 max-w-2xl leading-relaxed">
+            <p className="font-sans text-caption sm:text-body text-muted-foreground line-clamp-2 max-w-2xl leading-relaxed">
               Harmonic queue seeded from{' '}
               <span className="font-semibold text-foreground">
                 {seedSong?.title || 'selected cut'}
@@ -251,7 +251,7 @@ function RadioMixPage() {
               . Continuously generated based on tempo, mood alignment, and playlist co-occurrences.
             </p>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground pt-1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-eyebrow text-muted-foreground pt-1">
               <span>{fullQueue.length} Works</span>
               <span>&bull;</span>
               <span>{formatTotalDuration(totalDurationSeconds)}</span>
@@ -287,14 +287,14 @@ function RadioMixPage() {
             type="button"
             onClick={handleSaveAsPlaylist}
             disabled={isSavingPlaylist || fullQueue.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-eyebrow text-xs uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-eyebrow text-caption uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
           >
             <PlusIconSVG className="w-3.5 h-3.5" />
             <span>{savedSuccess ? 'Saved to Playlists!' : isSavingPlaylist ? 'Saving...' : 'Save as Playlist'}</span>
           </button>
         </div>
 
-        <div className="font-mono text-xs text-muted-foreground">
+        <div className="font-mono text-caption text-muted-foreground">
           Seeded by: {seedSong?.artistStageName || 'Catalog'}
         </div>
       </div>
@@ -310,7 +310,7 @@ function RadioMixPage() {
           ))}
         </div>
       ) : errorMsg ? (
-        <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-xs rounded-lg">
+        <div className="p-6 border border-destructive/30 bg-destructive-soft text-destructive font-mono text-caption rounded-lg">
           {errorMsg}
         </div>
       ) : fullQueue.length === 0 ? (
@@ -321,18 +321,18 @@ function RadioMixPage() {
           <h3 className="font-serif italic text-lg text-foreground">
             No radio tracks found
           </h3>
-          <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto">
             We could not find matching continuous cuts for this song right now.
           </p>
           <Link
             to="/"
-            className="inline-block mt-2 font-eyebrow text-xs uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
+            className="inline-block mt-2 font-eyebrow text-caption uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
           >
             Return to Home
           </Link>
         </div>
       ) : (
-        <div className="border border-border bg-card rounded-xl overflow-hidden shadow-2xs divide-y divide-border/40">
+        <div className="border border-border bg-card rounded-xl overflow-hidden shadow-raised divide-y divide-border/40">
           {fullQueue.map((track, idx) => (
             <SongRow
               key={`${track.id}-${idx}`}

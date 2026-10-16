@@ -68,7 +68,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
       >
         {/* Top rule / close */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4 sm:px-8">
-          <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
             Groovy / {activeSubtitle}
           </span>
 
@@ -98,14 +98,14 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
             <div className="font-serif text-[29px] italic leading-none tracking-[-0.04em] text-foreground">
               Groovy
             </div>
-            <div className="mt-2 font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+            <div className="mt-2 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
               Sound Atelier
             </div>
           </div>
 
           {/* Heading */}
           <div className="mb-7">
-            <div className="mb-4 flex items-center gap-3 font-eyebrow text-[11px] uppercase tracking-widest text-primary">
+            <div className="mb-4 flex items-center gap-3 font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
               <span className="h-px w-7 bg-primary"></span>
               {activeCategory}
             </div>
@@ -117,7 +117,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
               {activeTitle}
             </h1>
 
-            <p className="mt-5 max-w-87.5 text-[13px] leading-6 text-muted-foreground">
+            <p className="mt-5 max-w-87.5 text-caption leading-6 text-muted-foreground">
               {activeDescription}
             </p>
           </div>
@@ -139,7 +139,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-foreground bg-foreground px-5 py-4 font-eyebrow text-[11px] uppercase tracking-wider text-background transition hover:bg-primary hover:border-primary cursor-pointer shadow-xs"
+              className="group rounded-lg flex w-full items-center justify-between border border-foreground bg-foreground px-5 py-4 font-eyebrow text-eyebrow uppercase tracking-wider text-background transition hover:bg-primary hover:border-primary cursor-pointer shadow-xs"
             >
               <span>Log in</span>
               <svg
@@ -170,7 +170,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-border bg-transparent px-5 py-4 font-eyebrow text-[11px] uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary cursor-pointer"
+              className="group rounded-lg flex w-full items-center justify-between border border-border bg-transparent px-5 py-4 font-eyebrow text-eyebrow uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary cursor-pointer"
             >
               <span>Create account</span>
               <svg
@@ -189,7 +189,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
           {/* Fine print */}
           <div className="mt-7 border-t border-border pt-5">
-            <p className="font-eyebrow text-[11px] uppercase leading-5 tracking-wider text-muted-foreground">
+            <p className="font-eyebrow text-eyebrow uppercase leading-5 tracking-wider text-muted-foreground">
               Free to join · High-fidelity streaming · Your library, everywhere
             </p>
           </div>
@@ -197,7 +197,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
         {/* Bottom metadata */}
         <div className="border-t border-border px-6 py-4 sm:px-8">
-          <div className="flex items-center justify-between font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+          <div className="flex items-center justify-between font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
             <span>Authentication</span>
             <span>Groovy Music</span>
           </div>

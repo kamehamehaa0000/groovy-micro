@@ -487,14 +487,14 @@ function HistoryPageComponent() {
         <h1 className="font-serif italic text-3xl font-medium text-foreground mb-3">
           Listening History
         </h1>
-        <p className="font-sans text-xs text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
+        <p className="font-sans text-caption text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
           Sign in to view every record and release spun across all your
           connected devices.
         </p>
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-caption uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -508,13 +508,13 @@ function HistoryPageComponent() {
       <div className="border-b border-border pb-6 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               ✦ Activity &amp; Listening Telemetry
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Releases Played
             </h1>
-            <p className="font-sans text-xs text-muted-foreground max-w-lg mt-2 leading-relaxed">
+            <p className="font-sans text-caption text-muted-foreground max-w-lg mt-2 leading-relaxed">
               A minimal archive of every record and release spun on your
               account, grouped chronologically.
             </p>
@@ -523,8 +523,8 @@ function HistoryPageComponent() {
           {/* Controls Bar: Group by Interval */}
           <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
             {/* Grouping Interval Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-lg shadow-2xs">
-              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/70 px-2 hidden sm:inline-block">
+            <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-lg shadow-raised">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground/70 px-2 hidden sm:inline-block">
                 Group by
               </span>
               {(['day', 'week', 'month', 'year'] as GroupByInterval[]).map(
@@ -535,7 +535,7 @@ function HistoryPageComponent() {
                       key={mode}
                       type="button"
                       onClick={() => setGroupBy(mode)}
-                      className={`font-eyebrow text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      className={`font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-foreground text-background font-semibold shadow-xs'
                           : 'text-muted-foreground hover:text-foreground hover:bg-background'
@@ -563,7 +563,7 @@ function HistoryPageComponent() {
         <div className="space-y-10">
           {[1, 2].map((groupIndex) => (
             <div key={groupIndex} className="space-y-4">
-              <div className="h-5 w-48 bg-border/40 rounded-xs animate-pulse" />
+              <div className="h-5 w-48 bg-border/40 rounded-control animate-pulse" />
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div
@@ -572,8 +572,8 @@ function HistoryPageComponent() {
                   >
                     <div className="w-12 h-12 bg-border/30 rounded-lg shrink-0" />
                     <div className="space-y-1.5 flex-1">
-                      <div className="h-3.5 bg-border/50 rounded-xs w-1/3" />
-                      <div className="h-2.5 bg-border/30 rounded-xs w-1/4" />
+                      <div className="h-3.5 bg-border/50 rounded-control w-1/3" />
+                      <div className="h-2.5 bg-border/30 rounded-control w-1/4" />
                     </div>
                   </div>
                 ))}
@@ -596,16 +596,16 @@ function HistoryPageComponent() {
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
-          <h2 className="font-serif italic text-xl text-foreground font-medium">
+          <h2 className="font-serif italic text-heading text-foreground font-medium">
             No listening history recorded yet
           </h2>
-          <p className="font-sans text-xs text-muted-foreground mt-1.5 max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
             Start playing records from the catalog or personal vault to see your
             releases organized here.
           </p>
           <Link
             to="/"
-            className="inline-block mt-6 font-eyebrow text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+            className="inline-block mt-6 font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
           >
             Explore Catalog
           </Link>
@@ -618,11 +618,11 @@ function HistoryPageComponent() {
               {/* Group Section Header */}
               <div className="flex items-baseline justify-between border-b border-border pb-2.5">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
                     {group.label}
                   </h2>
                 </div>
-                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'} •{' '}
                   {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
@@ -644,12 +644,12 @@ function HistoryPageComponent() {
                     return (
                       <div
                         key={release.releaseKey}
-                        className="group flex flex-col rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-2xs transition-all duration-200 overflow-hidden"
+                        className="group flex flex-col rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-raised transition-all duration-200 overflow-hidden"
                       >
                         {/* Row Bar */}
                         <div className="flex items-center gap-3.5 p-2.5 sm:px-4">
                           {/* Thumbnail Cover with Play button */}
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted border border-border shrink-0 group/cover shadow-2xs">
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted border border-border shrink-0 group/cover shadow-raised">
                             {release.coverImageUrl ? (
                               <img
                                 src={release.coverImageUrl}
@@ -695,21 +695,21 @@ function HistoryPageComponent() {
                                   params={{
                                     idOrSlug: release.slug || release.albumId,
                                   }}
-                                  className="text-xs sm:text-sm font-semibold text-foreground hover:text-primary truncate tracking-tight transition-colors"
+                                  className="text-caption sm:text-body font-semibold text-foreground hover:text-primary truncate tracking-tight transition-colors"
                                   title={release.title}
                                 >
                                   {release.title}
                                 </Link>
                               ) : (
                                 <span
-                                  className="text-xs sm:text-sm font-semibold text-foreground truncate tracking-tight"
+                                  className="text-caption sm:text-body font-semibold text-foreground truncate tracking-tight"
                                   title={release.title}
                                 >
                                   {release.title}
                                 </span>
                               )}
 
-                              <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                              <span className="shrink-0 px-1.5 py-0.5 rounded-control font-eyebrow text-eyebrow uppercase tracking-wider bg-background border border-border text-muted-foreground">
                                 {release.albumType}
                               </span>
                             </div>
@@ -718,19 +718,19 @@ function HistoryPageComponent() {
                               <Link
                                 to="/artists/$idOrSlug"
                                 params={{ idOrSlug: release.artistSlug }}
-                                className="text-[11px] text-muted-foreground hover:text-foreground truncate transition-colors mt-0.5"
+                                className="text-eyebrow text-muted-foreground hover:text-foreground truncate transition-colors mt-0.5"
                               >
                                 {release.artistName}
                               </Link>
                             ) : (
-                              <span className="text-[11px] text-muted-foreground truncate mt-0.5">
+                              <span className="text-eyebrow text-muted-foreground truncate mt-0.5">
                                 {release.artistName}
                               </span>
                             )}
                           </div>
 
                           {/* Right Metadata: Play count toggle & Timestamp */}
-                          <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-muted-foreground">
+                          <div className="flex items-center gap-4 shrink-0 font-mono text-eyebrow text-muted-foreground">
                             <button
                               type="button"
                               onClick={() =>
@@ -740,14 +740,14 @@ function HistoryPageComponent() {
                                     : `${group.key}:${release.releaseKey}`,
                                 )
                               }
-                              className="hover:text-foreground transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded bg-background border border-border"
+                              className="hover:text-foreground transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-control bg-background border border-border"
                               title="View tracks played"
                             >
                               <span>
                                 {release.playCount}{' '}
                                 {release.playCount === 1 ? 'play' : 'plays'}
                               </span>
-                              <span className="text-[11px] opacity-70">
+                              <span className="text-eyebrow opacity-70">
                                 {isExpanded ? '▲' : '▼'}
                               </span>
                             </button>
@@ -761,7 +761,7 @@ function HistoryPageComponent() {
                         {/* Expandable Tracks Accordion in List View */}
                         {isExpanded && (
                           <div className="bg-muted/40 border-t border-border px-4 py-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
                               Tracks played:
                             </span>
                             {release.tracksPlayed.map((t, idx) => {
@@ -779,24 +779,24 @@ function HistoryPageComponent() {
                                       release.tracksPlayed,
                                     )
                                   }
-                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-[11px] transition-colors cursor-pointer ${
+                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-eyebrow transition-colors cursor-pointer ${
                                     isPlayingThisTrack
                                       ? 'bg-primary/10 text-primary font-medium'
                                       : 'hover:bg-background text-muted-foreground hover:text-foreground'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
-                                    <span className="font-mono text-[11px] text-muted-foreground/60 w-4 text-right shrink-0">
+                                    <span className="font-mono text-eyebrow text-muted-foreground/60 w-4 text-right shrink-0">
                                       {idx + 1}
                                     </span>
-                                    <span className="shrink-0 text-[11px]">
+                                    <span className="shrink-0 text-eyebrow">
                                       {isPlayingThisTrack ? '▶' : '♪'}
                                     </span>
                                     <span className="truncate">
                                       {t.song.title}
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-3 shrink-0 font-mono text-[11px] opacity-70">
+                                  <div className="flex items-center gap-3 shrink-0 font-mono text-eyebrow opacity-70">
                                     <span>{formatPlayTime(t.playedAt)}</span>
                                     <span>
                                       {formatDurationSeconds(
@@ -822,13 +822,13 @@ function HistoryPageComponent() {
             className="py-8 flex flex-col items-center justify-center"
           >
             {isLoadingMore && (
-              <div className="flex items-center gap-2 font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+              <div className="flex items-center gap-2 font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>
             )}
             {!hasMore && items.length > 0 && (
-              <p className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground/60">
+              <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground/60">
                 ✦ Beginning of recorded history reached
               </p>
             )}

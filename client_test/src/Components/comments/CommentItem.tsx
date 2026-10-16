@@ -257,7 +257,7 @@ export function CommentItem({
     >
       {/* Pinned Header Badge */}
       {comment.isPinned && (
-        <div className="flex items-center gap-1.5 text-primary font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
+        <div className="flex items-center gap-1.5 text-primary font-eyebrow text-eyebrow uppercase tracking-wider font-semibold">
           <PinIcon filled className="w-3 h-3" />
           <span>Pinned by Creator</span>
         </div>
@@ -284,7 +284,7 @@ export function CommentItem({
                   className="w-7 h-7 rounded-full object-cover border border-border"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-secondary/40 border border-border flex items-center justify-center font-mono text-xs font-medium text-foreground">
+                <div className="w-7 h-7 rounded-full bg-secondary/40 border border-border flex items-center justify-center font-mono text-caption font-medium text-foreground">
                   {(comment.userName || "U").charAt(0).toUpperCase()}
                 </div>
               )}
@@ -293,21 +293,21 @@ export function CommentItem({
 
           <div className="flex items-center gap-2">
             {comment.isDeleted ? (
-              <span className="text-xs font-semibold text-muted-foreground">User</span>
+              <span className="text-caption font-semibold text-muted-foreground">User</span>
             ) : (
               <Link
                 to="/users/$id"
                 params={{ id: comment.userId }}
-                className="text-xs font-semibold text-foreground hover:text-primary transition-colors"
+                className="text-caption font-semibold text-foreground hover:text-primary transition-colors"
               >
                 {comment.userName}
               </Link>
             )}
-            <span className="font-mono text-[11px] text-muted-foreground">
+            <span className="font-mono text-eyebrow text-muted-foreground">
               {formatRelativeTime(comment.createdAt)}
             </span>
             {comment.isEdited && !comment.isDeleted && (
-              <span className="font-mono text-[11px] text-muted-foreground/70 italic">
+              <span className="font-mono text-eyebrow text-muted-foreground/70 italic">
                 (edited)
               </span>
             )}
@@ -321,7 +321,7 @@ export function CommentItem({
             type="button"
             onClick={handlePin}
             title={comment.isPinned ? "Unpin comment" : "Pin comment to top"}
-            className={`p-1 rounded cursor-pointer transition-colors ${
+            className={`p-1 rounded-control cursor-pointer transition-colors ${
               comment.isPinned
                 ? "text-primary bg-primary/10"
                 : "text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
@@ -344,7 +344,7 @@ export function CommentItem({
           />
         </div>
       ) : (
-        <div className="text-sm leading-relaxed text-foreground pl-9">
+        <div className="text-body leading-relaxed text-foreground pl-9">
           {comment.isDeleted ? (
             <span className="italic text-muted-foreground/70">[Comment deleted]</span>
           ) : (
@@ -363,20 +363,20 @@ export function CommentItem({
 
       {/* Action Bar (Votes, Reply, Edit, Delete) */}
       {!comment.isDeleted && !isEditing && (
-        <div className="flex items-center gap-4 pl-9 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4 pl-9 text-caption text-muted-foreground">
           {/* Upvote Button */}
           <button
             type="button"
             onClick={() => handleVote(1)}
             aria-label="Upvote"
-            className={`flex items-center gap-1.5 py-1 px-1.5 -ml-1.5 rounded transition-all cursor-pointer select-none ${
+            className={`flex items-center gap-1.5 py-1 px-1.5 -ml-1.5 rounded-control transition-all cursor-pointer select-none ${
               isUpvoted
                 ? "text-primary bg-primary/10 font-semibold"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
             }`}
           >
             <UpvoteIcon active={isUpvoted} className="w-3.5 h-3.5" />
-            <span className="font-mono text-[11px]">{likesCount}</span>
+            <span className="font-mono text-eyebrow">{likesCount}</span>
           </button>
 
           {/* Downvote Button */}
@@ -384,14 +384,14 @@ export function CommentItem({
             type="button"
             onClick={() => handleVote(-1)}
             aria-label="Downvote"
-            className={`flex items-center gap-1.5 py-1 px-1.5 rounded transition-all cursor-pointer select-none ${
+            className={`flex items-center gap-1.5 py-1 px-1.5 rounded-control transition-all cursor-pointer select-none ${
               isDownvoted
-                ? "text-red-500 bg-red-500/10 font-semibold"
+                ? "text-destructive bg-destructive-soft font-semibold"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
             }`}
           >
             <DownvoteIcon active={isDownvoted} className="w-3.5 h-3.5" />
-            <span className="font-mono text-[11px]">{dislikesCount}</span>
+            <span className="font-mono text-eyebrow">{dislikesCount}</span>
           </button>
 
           {/* Reply Button */}
@@ -401,7 +401,7 @@ export function CommentItem({
             className="flex items-center gap-1 hover:text-foreground cursor-pointer transition-colors"
           >
             <ReplyIcon className="w-3 h-3" />
-            <span className="font-mono text-[11px]">Reply</span>
+            <span className="font-mono text-eyebrow">Reply</span>
           </button>
 
           {/* Edit Button */}
@@ -409,7 +409,7 @@ export function CommentItem({
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="hover:text-foreground cursor-pointer font-mono text-[11px] transition-colors"
+              className="hover:text-foreground cursor-pointer font-mono text-eyebrow transition-colors"
             >
               Edit
             </button>
@@ -420,7 +420,7 @@ export function CommentItem({
             <button
               type="button"
               onClick={handleDelete}
-              className="hover:text-red-500 cursor-pointer font-mono text-[11px] transition-colors"
+              className="hover:text-destructive cursor-pointer font-mono text-eyebrow transition-colors"
             >
               Delete
             </button>
@@ -450,7 +450,7 @@ export function CommentItem({
             <button
               type="button"
               onClick={handleToggleReplies}
-              className="flex items-center gap-1.5 text-xs font-mono text-primary hover:underline cursor-pointer py-1"
+              className="flex items-center gap-1.5 text-caption font-mono text-primary hover:underline cursor-pointer py-1"
             >
               <span>
                 {showReplies
@@ -500,7 +500,7 @@ export function CommentItem({
                   type="button"
                   onClick={handleLoadMoreReplies}
                   disabled={isLoadingReplies}
-                  className="self-start text-xs font-mono text-muted-foreground hover:text-foreground cursor-pointer mt-1 underline"
+                  className="self-start text-caption font-mono text-muted-foreground hover:text-foreground cursor-pointer mt-1 underline"
                 >
                   {isLoadingReplies ? "Loading replies..." : "Load more replies"}
                 </button>

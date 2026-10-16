@@ -320,14 +320,14 @@ export function ImageCropModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
-      <div className="w-full max-w-lg border border-border bg-card p-4 sm:p-6 shadow-2xl relative flex flex-col gap-3.5 sm:gap-4.5 rounded-xs my-auto max-h-[94vh] overflow-y-auto">
+      <div className="w-full max-w-lg border border-border bg-card p-4 sm:p-6 shadow-2xl relative flex flex-col gap-3.5 sm:gap-4.5 rounded-control my-auto max-h-[94vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-border pb-2.5 sm:pb-3">
           <div className="pr-2 min-w-0">
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-0.5 truncate">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-0.5 truncate">
               {subtitle}
             </span>
-            <h2 className="font-serif italic text-lg sm:text-xl text-foreground truncate">
+            <h2 className="font-serif italic text-lg sm:text-heading text-foreground truncate">
               {title}
             </h2>
           </div>
@@ -335,7 +335,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-40 p-1.5 -mr-1 -mt-1 shrink-0"
+            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-40 p-1.5 -mr-1 -mt-1 shrink-0"
             aria-label="Close"
           >
             ✕
@@ -343,13 +343,13 @@ export function ImageCropModal({
         </div>
 
         {cropError && (
-          <div className="p-2.5 sm:p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[11px]">
+          <div className="p-2.5 sm:p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-eyebrow">
             {cropError}
           </div>
         )}
 
         {/* Viewport Guidance */}
-        <p className="font-sans text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+        <p className="font-sans text-eyebrow sm:text-caption text-muted-foreground leading-relaxed">
           Drag to reposition artwork. Use the slider or pinch to zoom.
         </p>
 
@@ -399,7 +399,7 @@ export function ImageCropModal({
             {isCircularMask && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 <div
-                  className="rounded-full border-2 border-dashed border-white/80 shadow-2xs pointer-events-none"
+                  className="rounded-full border-2 border-dashed border-white/80 shadow-raised pointer-events-none"
                   style={{
                     width: `${Math.min(boxWidth, boxHeight) * 0.94}px`,
                     height: `${Math.min(boxWidth, boxHeight) * 0.94}px`,
@@ -419,14 +419,14 @@ export function ImageCropModal({
         {/* Controls: Zoom & Reset */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 border-t border-border-soft">
           <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground shrink-0">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground shrink-0">
               Zoom:
             </span>
             <button
               type="button"
               disabled={zoom <= 1}
               onClick={() => setZoom((z) => Math.max(1, Number((z - 0.1).toFixed(2))))}
-              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-body sm:text-caption flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               aria-label="Zoom out"
             >
               −
@@ -444,12 +444,12 @@ export function ImageCropModal({
               type="button"
               disabled={zoom >= 3}
               onClick={() => setZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
-              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-body sm:text-caption flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               aria-label="Zoom in"
             >
               +
             </button>
-            <span className="font-mono text-[11px] text-muted-foreground w-8 text-right shrink-0">
+            <span className="font-mono text-eyebrow text-muted-foreground w-8 text-right shrink-0">
               {zoom.toFixed(1)}x
             </span>
           </div>
@@ -460,7 +460,7 @@ export function ImageCropModal({
               setZoom(1)
               setOffset({ x: 0, y: 0 })
             }}
-            className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border py-1.5 px-3 bg-background hover:bg-muted cursor-pointer text-center shrink-0 self-end sm:self-auto"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border py-1.5 px-3 bg-background hover:bg-muted cursor-pointer text-center shrink-0 self-end sm:self-auto"
           >
             Reset Framing
           </button>
@@ -472,7 +472,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 text-center"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 text-center"
           >
             Cancel
           </button>
@@ -480,7 +480,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting || !imageSize}
             onClick={handleConfirmCrop}
-            className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             {isSubmitting ? (
               <>

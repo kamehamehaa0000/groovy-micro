@@ -108,13 +108,13 @@ export function CreatePlaylistModal() {
 
       <div className="w-full max-w-md border border-border bg-card p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 z-10">
         <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
-          <h2 className="font-serif italic text-xl text-foreground">
+          <h2 className="font-serif italic text-heading text-foreground">
             Create New Playlist
           </h2>
           <button
             type="button"
             onClick={closeModal}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer"
             aria-label="Close dialog"
           >
             ✕
@@ -122,21 +122,21 @@ export function CreatePlaylistModal() {
         </div>
 
         {initialTrackIds.length > 0 && (
-          <div className="font-eyebrow text-[11px] uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded-control flex items-center justify-between">
             <span>Saving Active Queue</span>
             <span>{initialTrackIds.length} tracks</span>
           </div>
         )}
 
         {modalError && (
-          <div className="mb-4 p-3 border border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-[11px]">
+          <div className="mb-4 p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-eyebrow">
             {modalError}
           </div>
         )}
 
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
-            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
               Title *
             </label>
             <input
@@ -147,12 +147,12 @@ export function CreatePlaylistModal() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="e.g. Midnight Ambient &amp; Tape Loops"
-              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground"
+              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground"
             />
           </div>
 
           <div>
-            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
               Description
             </label>
             <textarea
@@ -161,18 +161,18 @@ export function CreatePlaylistModal() {
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               placeholder="Atmospheric soundscapes curated for deep work..."
-              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground resize-none"
+              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground resize-none"
             />
           </div>
 
           <div>
-            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
               Visibility
             </label>
             <select
               value={newVisibility}
               onChange={(e: any) => setNewVisibility(e.target.value)}
-              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
             >
               <option value="PUBLIC">Public</option>
               <option value="UNLISTED">Unlisted</option>
@@ -182,7 +182,7 @@ export function CreatePlaylistModal() {
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+              <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
                 Duplicate Songs
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
@@ -192,14 +192,14 @@ export function CreatePlaylistModal() {
                   onChange={(e) => setNewAllowDuplicates(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-[11px] text-foreground">
+                <span className="font-mono text-eyebrow text-foreground">
                   Allow Dups
                 </span>
               </label>
             </div>
 
             <div>
-              <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+              <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
                 Discussion &amp; Comments
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
@@ -209,7 +209,7 @@ export function CreatePlaylistModal() {
                   onChange={(e) => setNewAllowComments(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-[11px] text-foreground">
+                <span className="font-mono text-eyebrow text-foreground">
                   Allow Comments
                 </span>
               </label>
@@ -220,14 +220,14 @@ export function CreatePlaylistModal() {
             <button
               type="button"
               onClick={closeModal}
-              className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !newTitle.trim()}
-              className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Creating...' : 'Create Playlist'}
             </button>

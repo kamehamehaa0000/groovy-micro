@@ -64,7 +64,7 @@ export function MediaTile({
             </div>
           ) : (
             <div
-              className={`absolute inset-0 w-full h-full border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground select-none ${roundedClass}`}
+              className={`absolute inset-0 w-full h-full border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground select-none ${roundedClass}`}
             >
               {fallbackInitials || title.slice(0, 2).toUpperCase()}
             </div>
@@ -97,11 +97,11 @@ export function MediaTile({
 
         {/* Text information */}
         <div className="w-full">
-          <div className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+          <div className="font-semibold text-body text-foreground truncate group-hover:text-primary transition-colors">
             {title}
           </div>
           {subtitle && (
-            <div className="text-xs text-muted-foreground truncate mt-0.5">
+            <div className="text-caption text-muted-foreground truncate mt-0.5">
               {subtitle}
             </div>
           )}

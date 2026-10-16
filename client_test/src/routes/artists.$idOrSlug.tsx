@@ -487,7 +487,7 @@ function ArtistPublicProfileComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+      <div className="py-32 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
         Retrieving artist catalog & recordings...
       </div>
     )
@@ -496,20 +496,20 @@ function ArtistPublicProfileComponent() {
   if (queryError || !artist) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-eyebrow text-xs uppercase tracking-widest text-primary block mb-2">
+        <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
           404 Archive Notice
         </span>
         <h1 className="font-serif italic text-3xl text-foreground">
           Artist Profile Not Found
         </h1>
-        <p className="font-sans text-xs text-muted-foreground mt-3 leading-relaxed">
+        <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
           The requested artist identifier{' '}
           <span className="font-mono text-foreground">"{idOrSlug}"</span> could not be
           located in the registered roster.
         </p>
         <Link
           to="/artists"
-          className="inline-block mt-6 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
+          className="inline-block mt-6 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
         >
           &larr; Return to Roster
         </Link>
@@ -554,12 +554,12 @@ function ArtistPublicProfileComponent() {
             border border-border
             bg-background/80
             backdrop-blur-xs
-            font-mono text-[11px]
+            font-mono text-eyebrow
             uppercase tracking-wider
             text-foreground
             hover:bg-background
             transition-colors
-            shadow-2xs
+            shadow-raised
             cursor-pointer
           "
             >
@@ -584,7 +584,7 @@ function ArtistPublicProfileComponent() {
                     className="
                   inline-flex items-center gap-1.5
                   text-primary
-                  font-mono text-[11px]
+                  font-mono text-eyebrow
                   uppercase tracking-wider
                   font-semibold
                 "
@@ -621,7 +621,7 @@ function ArtistPublicProfileComponent() {
               gap-y-1.5
               mt-3
               font-mono
-              text-[11px]
+              text-eyebrow
               text-muted-foreground
             "
               >
@@ -654,7 +654,7 @@ function ArtistPublicProfileComponent() {
                 <button
                   type="button"
                   onClick={handlePlayArtistFromStart}
-                  className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-background font-eyebrow text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer
+                  className="rounded-control inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-raised cursor-pointer
               "
                 >
                   <PlayIconSVG className="w-3.5 h-3.5" />
@@ -664,7 +664,7 @@ function ArtistPublicProfileComponent() {
               {isOwner ? (
                 <Link
                   to="/studio"
-                  className="rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-5 bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider hover:opacity-90 transition-opacity whitespace-nowrap
+                  className="rounded-control inline-flex items-center justify-center min-h-10 px-4 sm:px-5 bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider hover:opacity-90 transition-opacity whitespace-nowrap
               "
                 >
                   <span className="sm:hidden">Studio</span>
@@ -675,10 +675,10 @@ function ArtistPublicProfileComponent() {
                   type="button"
                   disabled={isFollowLoading}
                   onClick={handleToggleFollow}
-                  className={`rounded inline-flex items-center justify-center min-h-10 px-4 sm:px-6 font-eyebrow text-[11px] uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap
+                  className={`rounded-control inline-flex items-center justify-center min-h-10 px-4 sm:px-6 font-eyebrow text-eyebrow uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap
                 ${
                   isFollowing
-                    ? ` border border-border bg-card text-foreground hover:border-red-400 hover:text-red-500`
+                    ? ` border border-border bg-card text-foreground hover:border-destructive hover:text-destructive`
                     : ` bg-foreground text-background hover:opacity-90`
                 }
               `}
@@ -703,15 +703,15 @@ function ArtistPublicProfileComponent() {
           {hasTopTracks && (
             <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-border-soft pb-2">
-                <h2 className="font-serif font-semibold  italic text-xl text-foreground">
+                <h2 className="font-serif font-semibold  italic text-heading text-foreground">
                   Popular Tracks
                 </h2>
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                   Ranked by Plays
                 </span>
               </div>
 
-              <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-2xs">
+              <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-raised">
                 {discography!.topTracks
                   .slice(0, showAllTopTracks ? undefined : 5)
                   .map((track, idx) => (
@@ -731,7 +731,7 @@ function ArtistPublicProfileComponent() {
                 <button
                   type="button"
                   onClick={() => setShowAllTopTracks((showAll) => !showAll)}
-                  className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
+                  className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
                 >
                   {showAllTopTracks ? 'Show less' : 'Show more'}
                 </button>
@@ -744,14 +744,14 @@ function ArtistPublicProfileComponent() {
             <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="font-serif italic text-lg sm:text-xl text-foreground font-semibold">
+                  <h2 className="font-serif italic text-lg sm:text-heading text-foreground font-semibold">
                     Upcoming Releases
                   </h2>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full font-semibold">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full font-semibold">
                     Pre-Save
                   </span>
                 </div>
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                   {discography!.upcoming!.length}{' '}
                   {discography!.upcoming!.length === 1
                     ? 'Scheduled Drop'
@@ -776,7 +776,7 @@ function ArtistPublicProfileComponent() {
                   return (
                     <div
                       key={up.id}
-                      className="border border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors rounded-lg p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group"
+                      className="border border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors rounded-lg p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-raised group"
                     >
                       <Link
                         to="/albums/$idOrSlug"
@@ -798,20 +798,20 @@ function ArtistPublicProfileComponent() {
                               className="w-full h-full rounded-none"
                             />
                           )}
-                          <div className="absolute top-0.5 left-0.5 font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-background/90 backdrop-blur-xs border border-border text-primary font-semibold rounded-xs">
+                          <div className="absolute top-0.5 left-0.5 font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background/90 backdrop-blur-xs border border-border text-primary font-semibold rounded-control">
                             {up.albumType}
                           </div>
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="font-eyebrow text-[11px] uppercase tracking-wider text-primary font-semibold flex items-center gap-1.5 mb-0.5">
+                          <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold flex items-center gap-1.5 mb-0.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                             <span>Drops {dropDateStr}</span>
                           </div>
-                          <h3 className="font-sans font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                          <h3 className="font-sans font-semibold text-body sm:text-title text-foreground group-hover:text-primary transition-colors truncate">
                             {up.title}
                           </h3>
-                          <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                          <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                             {up.totalTracks}{' '}
                             {up.totalTracks === 1 ? 'Cut' : 'Cuts'} &bull; Master
                             Audio Locked
@@ -828,7 +828,7 @@ function ArtistPublicProfileComponent() {
                             e.stopPropagation()
                             handleTogglePreSave(up)
                           }}
-                          className={`font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3.5 rounded border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs whitespace-nowrap ${
+                          className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3.5 rounded-control border transition-all cursor-pointer flex items-center gap-1.5 font-semibold shadow-raised whitespace-nowrap ${
                             isPreSaved
                               ? 'border-primary bg-primary text-background hover:opacity-90'
                               : 'border-foreground bg-foreground text-background hover:opacity-90'
@@ -837,7 +837,7 @@ function ArtistPublicProfileComponent() {
                           <span>
                             {isPreSaved ? '✓ Pre-Saved' : '✦ Pre-Save'}
                           </span>
-                          <span className="opacity-80 font-mono text-[11px]">
+                          <span className="opacity-80 font-mono text-eyebrow">
                             ({up.preSavesCount ?? 0})
                           </span>
                         </button>
@@ -855,7 +855,7 @@ function ArtistPublicProfileComponent() {
               {/* Header with Title & View Mode Toggle */}
               <div className="flex items-end justify-between border-b border-border pb-3">
                 <div>
-                  <p className="mb-1 text-[11px] font-eyebrow uppercase tracking-widest text-muted-foreground">
+                  <p className="mb-1 text-eyebrow font-eyebrow uppercase tracking-widest text-muted-foreground">
                     Catalog
                   </p>
                   <h2 className="font-serif italic text-2xl sm:text-3xl text-foreground font-normal">
@@ -871,7 +871,7 @@ function ArtistPublicProfileComponent() {
                     title="Grid view"
                     className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                       viewMode === 'grid'
-                        ? 'bg-background text-foreground shadow-2xs'
+                        ? 'bg-background text-foreground shadow-raised'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -883,7 +883,7 @@ function ArtistPublicProfileComponent() {
                     title="List view"
                     className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                       viewMode === 'list'
-                        ? 'bg-background text-foreground shadow-2xs'
+                        ? 'bg-background text-foreground shadow-raised'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -917,14 +917,14 @@ function ArtistPublicProfileComponent() {
                         setActiveTab(tab.id as any)
                         setVisibleCount(8)
                       }}
-                      className={`font-eyebrow text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                      className={`font-eyebrow text-eyebrow uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                         activeTab === tab.id
                           ? 'bg-foreground text-background font-semibold shadow-xs'
                           : 'bg-muted border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/40'
                       }`}
                     >
                       {tab.label}
-                      <span className="ml-1.5 opacity-60 text-[11px]">
+                      <span className="ml-1.5 opacity-60 text-eyebrow">
                         ({tab.count})
                       </span>
                     </button>
@@ -993,14 +993,14 @@ function ArtistPublicProfileComponent() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-sans font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                            <h3 className="font-sans font-semibold text-body sm:text-title text-foreground group-hover:text-primary transition-colors truncate">
                               {item.songTitle}
                             </h3>
-                            <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-primary/30 bg-primary/10 text-primary shrink-0 font-semibold">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-primary/30 bg-primary/10 text-primary shrink-0 font-semibold">
                               {item.role}
                             </span>
                           </div>
-                          <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                          <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                             {item.albumTitle ? `${item.albumTitle} · ` : ''}with{' '}
                             {item.primaryArtistName} &bull;{' '}
                             {formatDuration(item.songDuration)}
@@ -1063,16 +1063,16 @@ function ArtistPublicProfileComponent() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-sans font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                              <h3 className="font-sans font-semibold text-body sm:text-title text-foreground group-hover:text-primary transition-colors truncate">
                                 {album.title}
                               </h3>
                               {album.albumType && (
-                                <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-border bg-background text-muted-foreground shrink-0">
+                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-border bg-background text-muted-foreground shrink-0">
                                   {album.albumType}
                                 </span>
                               )}
                             </div>
-                            <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                            <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                               {album.releaseDate
                                 ? new Date(album.releaseDate).getFullYear()
                                 : 'Recent'}
@@ -1106,7 +1106,7 @@ function ArtistPublicProfileComponent() {
                       <button
                         type="button"
                         onClick={() => setVisibleCount((prev) => prev + 8)}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-5 border border-border bg-card hover:bg-muted text-foreground transition-colors cursor-pointer rounded-md font-medium"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 border border-border bg-card hover:bg-muted text-foreground transition-colors cursor-pointer rounded-md font-medium"
                       >
                         See More ({totalInActiveTab - visibleCount} remaining)
                       </button>
@@ -1120,7 +1120,7 @@ function ArtistPublicProfileComponent() {
                       <button
                         type="button"
                         onClick={() => setVisibleCount(8)}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
                         Show Less
                       </button>
@@ -1138,15 +1138,15 @@ function ArtistPublicProfileComponent() {
             <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-border pb-2">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="font-serif italic text-xl text-foreground font-semibold">
+                  <h2 className="font-serif italic text-heading text-foreground font-semibold">
                     In Your Personal Collection
                   </h2>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-full font-semibold">
                     Personal Vault
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     {discography!.inYourCollection!.length}{' '}
                     {discography!.inYourCollection!.length === 1
                       ? 'Track'
@@ -1154,14 +1154,14 @@ function ArtistPublicProfileComponent() {
                   </span>
                   <Link
                     to="/vault"
-                    className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline"
                   >
                     Vault &rarr;
                   </Link>
                 </div>
               </div>
 
-              <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-2xs">
+              <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-raised">
                 {discography!.inYourCollection!.map((track, idx) => (
                   <SongRow
                     key={track.id}
@@ -1184,14 +1184,14 @@ function ArtistPublicProfileComponent() {
             <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="font-serif italic text-lg sm:text-xl text-foreground font-semibold">
+                  <h2 className="font-serif italic text-lg sm:text-heading text-foreground font-semibold">
                     Collaborators &amp; Features
                   </h2>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-full font-semibold">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-full font-semibold">
                     Cross-Artist
                   </span>
                 </div>
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                   {collaboratedArtists.length}{' '}
                   {collaboratedArtists.length === 1 ? 'Artist' : 'Artists'}
                 </span>
@@ -1203,7 +1203,7 @@ function ArtistPublicProfileComponent() {
                     key={collab.slug || collab.id}
                     to="/artists/$idOrSlug"
                     params={{ idOrSlug: collab.slug || collab.id }}
-                    className="p-3 rounded-lg border border-border bg-card hover:bg-muted transition-all group text-inherit no-underline flex items-center gap-3 shadow-2xs"
+                    className="p-3 rounded-lg border border-border bg-card hover:bg-muted transition-all group text-inherit no-underline flex items-center gap-3 shadow-raised"
                   >
                     <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-muted border border-border shrink-0 overflow-hidden relative shadow-xs flex items-center justify-center">
                       {collab.avatarUrl ? (
@@ -1214,16 +1214,16 @@ function ArtistPublicProfileComponent() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center font-serif italic text-sm font-semibold text-muted-foreground">
+                        <div className="w-full h-full bg-muted flex items-center justify-center font-serif italic text-body font-semibold text-muted-foreground">
                           {collab.name.slice(0, 2).toUpperCase()}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-sans font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                      <h4 className="font-sans font-semibold text-body text-foreground group-hover:text-primary transition-colors truncate">
                         {collab.name}
                       </h4>
-                      <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                      <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                         {collab.count}{' '}
                         {collab.count === 1
                           ? 'collaboration'
@@ -1241,14 +1241,14 @@ function ArtistPublicProfileComponent() {
             <div className="space-y-3 px-1">
               <div className="flex justify-between items-baseline border-b border-border pb-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="font-serif italic text-lg sm:text-xl text-foreground font-semibold">
+                  <h2 className="font-serif italic text-lg sm:text-heading text-foreground font-semibold">
                     Fans Also Like
                   </h2>
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-full font-semibold">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-full font-semibold">
                     Similar Artists
                   </span>
                 </div>
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                   {similarArtists.length}{' '}
                   {similarArtists.length === 1 ? 'Artist' : 'Artists'}
                 </span>
@@ -1265,7 +1265,7 @@ function ArtistPublicProfileComponent() {
                         <span className="flex items-center justify-center gap-1">
                           <span>{simArtist.primaryGenre || 'Artist'}</span>
                           {simArtist.verified && (
-                            <span className="text-primary font-bold text-[11px]" title="Verified Artist">✓</span>
+                            <span className="text-primary font-bold text-eyebrow" title="Verified Artist">✓</span>
                           )}
                         </span>
                       }
@@ -1288,10 +1288,10 @@ function ArtistPublicProfileComponent() {
             collaboratedArtists.length === 0 &&
             similarArtists.length === 0 && (
               <div className="p-8 border border-dashed border-border bg-card/30 text-center">
-                <p className="font-serif italic text-base text-foreground">
+                <p className="font-serif italic text-title text-foreground">
                   Master Tracks & Albums In Preparation
                 </p>
-                <p className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mt-1">
+                <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1">
                   No public releases have been published to this catalog yet.
                 </p>
               </div>
@@ -1302,7 +1302,7 @@ function ArtistPublicProfileComponent() {
         <div className="flex flex-col gap-6">
           {/* ===================== ARTIST SPOTLIGHT / LATEST RELEASE ===================== */}
           {pinnedRelease && (
-            <div className="border border-border rounded-md bg-card p-4 sm:p-5 shadow-2xs space-y-3">
+            <div className="border border-border rounded-md bg-card p-4 sm:p-5 shadow-raised space-y-3">
               <div className="flex items-center justify-between gap-2 border-b border-border-soft pb-2.5">
                 <div className="flex items-center gap-2">
                   {isCustomPick && artist.avatarUrl && (
@@ -1314,19 +1314,19 @@ function ArtistPublicProfileComponent() {
                       />
                     </div>
                   )}
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
                     <span>{isCustomPick ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
                   </span>
                 </div>
                 {pinnedRelease.albumType && (
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-border bg-background text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-border bg-background text-muted-foreground">
                     {pinnedRelease.albumType}
                   </span>
                 )}
               </div>
 
               {isCustomPick && artist.pinnedComment && (
-                <p className="font-serif italic text-xs text-foreground/90 leading-relaxed bg-background/60 p-2.5 rounded border border-border-soft">
+                <p className="font-serif italic text-caption text-foreground/90 leading-relaxed bg-background/60 p-2.5 rounded-control border border-border-soft">
                   "{artist.pinnedComment}"
                 </p>
               )}
@@ -1353,10 +1353,10 @@ function ArtistPublicProfileComponent() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-sans font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                  <h3 className="font-sans font-semibold text-body sm:text-title text-foreground group-hover:text-primary transition-colors truncate">
                     {pinnedRelease.title}
                   </h3>
-                  <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                  <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                     {pinnedRelease.releaseDate
                       ? new Date(pinnedRelease.releaseDate).getFullYear()
                       : 'Recent'}{' '}
@@ -1374,16 +1374,16 @@ function ArtistPublicProfileComponent() {
             {/* About Blurb */}
             {artist.bio && (
               <div className="mb-5">
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground block mb-2">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-2">
                   About Artist
                 </span>
-                <p className="font-sans text-xs text-foreground leading-relaxed whitespace-pre-line">
+                <p className="font-sans text-caption text-foreground leading-relaxed whitespace-pre-line">
                   {artist.bio}
                 </p>
               </div>
             )}
 
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground block mb-3">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-3">
               Official Links & Press
             </span>
 
@@ -1396,7 +1396,7 @@ function ArtistPublicProfileComponent() {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between py-2 px-3 border border-border-soft bg-background hover:border-foreground text-foreground font-mono text-xs transition-colors group"
+                    className="flex items-center justify-between py-2 px-3 border border-border-soft bg-background hover:border-foreground text-foreground font-mono text-caption transition-colors group"
                   >
                     <span className="capitalize">{platform}</span>
                     <ExternalLinkSVG className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -1404,14 +1404,14 @@ function ArtistPublicProfileComponent() {
                 ))}
               </div>
             ) : (
-              <p className="font-sans text-xs text-muted-foreground italic">
+              <p className="font-sans text-caption text-muted-foreground italic">
                 No social profiles linked.
               </p>
             )}
           </div>
 
           {/* Registration Metadata */}
-          <div className="p-5 border border-border-soft bg-muted/50 text-muted-foreground font-mono text-[11px] flex flex-col gap-1.5">
+          <div className="p-5 border border-border-soft bg-muted/50 text-muted-foreground font-mono text-eyebrow flex flex-col gap-1.5">
             <div className="flex justify-between">
               <span>Member Since:</span>
               <span className="text-foreground">

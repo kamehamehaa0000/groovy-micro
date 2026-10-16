@@ -202,10 +202,10 @@ export function MobileMiniPlayer() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-xs sm:text-sm text-foreground dark:text-white truncate leading-tight">
+          <div className="font-semibold text-caption sm:text-body text-foreground dark:text-white truncate leading-tight">
             {currentTrack.title}
           </div>
-          <div className="text-xs text-muted-foreground dark:text-neutral-400 truncate mt-0.5 leading-tight">
+          <div className="text-caption text-muted-foreground truncate mt-0.5 leading-tight">
             {currentTrack.artistName}
           </div>
         </div>
@@ -231,7 +231,7 @@ export function MobileMiniPlayer() {
             className={`w-5 h-5 transition-transform ${
               isLiked
                 ? 'text-[#1ed760] fill-[#1ed760]'
-                : 'text-muted-foreground dark:text-neutral-300 hover:text-foreground dark:hover:text-white'
+                : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
             }`}
           />
         </button>

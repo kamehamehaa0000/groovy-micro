@@ -302,7 +302,7 @@ function PersonalCollectionExplorePage() {
               type="button"
               onClick={() => setActivePill('all')}
               aria-label="Clear active filter"
-              className="shrink-0 w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-xs font-bold cursor-pointer"
+              className="shrink-0 w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-caption font-bold cursor-pointer"
             >
               ✕
             </button>
@@ -316,7 +316,7 @@ function PersonalCollectionExplorePage() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActivePill(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -342,7 +342,7 @@ function PersonalCollectionExplorePage() {
                     ? 'Find in Vault Artists...'
                     : 'Find in Personal Collection...'
                 }
-                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
+                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
               />
               <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
@@ -350,7 +350,7 @@ function PersonalCollectionExplorePage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
                   title="Clear search"
                 >
                   ✕
@@ -363,7 +363,7 @@ function PersonalCollectionExplorePage() {
                 setIsSearchOpen(false)
                 setSearchQuery('')
               }}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
+              className="font-mono text-caption text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -372,7 +372,7 @@ function PersonalCollectionExplorePage() {
       </header>
 
       {/* ===================== CONTROLS BAR (Play, Shuffle, Manage & View Mode) ===================== */}
-      <div className="flex items-center justify-between py-3 px-1 text-xs select-none">
+      <div className="flex items-center justify-between py-3 px-1 text-caption select-none">
         {/* Left: Actions (Play, Shuffle, Manage) */}
         <div className="flex items-center gap-2">
           {personalReleases.length > 0 && (
@@ -380,7 +380,7 @@ function PersonalCollectionExplorePage() {
               <button
                 type="button"
                 onClick={() => handlePlayRelease(personalReleases[0])}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-background font-medium text-xs hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
+                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-background font-medium text-caption hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
               >
                 <PlayIconSVG className="w-3 h-3 text-background" />
                 <span>Play</span>
@@ -388,7 +388,7 @@ function PersonalCollectionExplorePage() {
               <button
                 type="button"
                 onClick={handleShuffleVault}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-foreground font-medium text-xs transition-colors cursor-pointer group"
+                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-foreground font-medium text-caption transition-colors cursor-pointer group"
                 title="Shuffle all vault releases"
               >
                 <ShuffleIconSVG className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -399,7 +399,7 @@ function PersonalCollectionExplorePage() {
 
           <Link
             to="/vault/manage"
-            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-xs transition-colors cursor-pointer"
+            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-caption transition-colors cursor-pointer"
             title="Manage storage and upload files"
           >
             <svg
@@ -419,7 +419,7 @@ function PersonalCollectionExplorePage() {
 
         {/* Right: Count and View Switcher */}
         <div className="flex items-center gap-2">
-          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hidden sm:inline">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hidden sm:inline">
             {activePill === 'artists'
               ? `${filteredArtists.length} ${filteredArtists.length === 1 ? 'Artist' : 'Artists'}`
               : `${filteredReleases.length} ${filteredReleases.length === 1 ? 'Release' : 'Releases'}`}
@@ -447,11 +447,11 @@ function PersonalCollectionExplorePage() {
         /* ===================== ARTISTS VIEW (Clean & Minimal) ===================== */
         <div>
           {isLoadingArtists ? (
-            <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+            <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading vault artists...
             </div>
           ) : filteredArtists.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground text-xs font-mono border border-border bg-card rounded-xl">
+            <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
               {searchQuery
                 ? `No artists match "${searchQuery}".`
                 : 'No personal artists found in your vault.'}
@@ -479,10 +479,10 @@ function PersonalCollectionExplorePage() {
                     )}
                   </div>
                   <div className="w-full">
-                    <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                    <div className="font-semibold text-body text-foreground group-hover:text-primary transition-colors truncate">
                       {artist.stageName}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate mt-0.5">
+                    <div className="text-caption text-muted-foreground truncate mt-0.5">
                       {artist.releaseCount}{' '}
                       {artist.releaseCount === 1 ? 'release' : 'releases'}
                     </div>
@@ -496,7 +496,7 @@ function PersonalCollectionExplorePage() {
         /* ===================== RELEASES VIEW ===================== */
         <div>
           {isLoadingReleases ? (
-            <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+            <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading personal vault...
             </div>
           ) : personalReleases.length === 0 ? (
@@ -509,21 +509,21 @@ function PersonalCollectionExplorePage() {
                 <h3 className="font-serif italic text-2xl text-foreground font-normal">
                   Your Personal Vault is Empty
                 </h3>
-                <p className="font-sans text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
                   Upload your offline audio files in the Locker Manager to start
                   building your private listening library.
                 </p>
               </div>
               <Link
                 to="/vault/manage"
-                className="mt-2 font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
+                className="mt-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Go to Locker Manager</span>
               </Link>
             </div>
           ) : filteredReleases.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground text-xs font-mono border border-border bg-card rounded-xl">
+            <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
               No releases match "{searchQuery}" under {activePill.toUpperCase()}
               .
             </div>
@@ -601,12 +601,12 @@ function PersonalCollectionExplorePage() {
                       <Link
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: release.slug || release.id }}
-                        className="font-semibold text-sm truncate group-hover:text-primary transition-colors block text-inherit no-underline"
+                        className="font-semibold text-body truncate group-hover:text-primary transition-colors block text-inherit no-underline"
                         title={release.title}
                       >
                         {release.title}
                       </Link>
-                      <div className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1.5">
+                      <div className="text-caption text-muted-foreground truncate mt-0.5 flex items-center gap-1.5">
                         <Link
                           to="/artists/$idOrSlug"
                           params={{
@@ -664,10 +664,10 @@ function PersonalCollectionExplorePage() {
 
                       {/* Text Information (NO release type bubble, NO cuts!) */}
                       <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                        <h3 className="font-semibold text-body text-foreground group-hover:text-primary transition-colors truncate">
                           {release.title}
                         </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 truncate">
+                        <div className="flex items-center gap-1.5 text-caption text-muted-foreground mt-0.5 truncate">
                           <span className="truncate">{release.artistName}</span>
                           {releaseYear && (
                             <>
@@ -681,7 +681,7 @@ function PersonalCollectionExplorePage() {
 
                     {/* Right Side: Duration & Global Action Menu */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
+                      <span className="font-mono text-caption text-muted-foreground hidden sm:inline">
                         {formatDuration(release.totalDurationSeconds)}
                       </span>
                       <ReleaseActionMenu
@@ -707,13 +707,13 @@ function PersonalCollectionExplorePage() {
             className="border border-border bg-card p-6 max-w-md w-full shadow-2xl space-y-4 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 text-red-500">
+            <div className="flex items-center gap-3 text-destructive">
               <TrashIconSVG className="w-5 h-5 shrink-0" />
               <h3 className="font-serif italic font-bold text-lg text-foreground">
                 Move Release to Recycle Bin?
               </h3>
             </div>
-            <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+            <p className="font-sans text-caption text-muted-foreground leading-relaxed">
               Are you sure you want to move{' '}
               <strong className="text-foreground font-semibold">
                 "{deleteConfirm.title}"
@@ -726,7 +726,7 @@ function PersonalCollectionExplorePage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 border border-border bg-card hover:bg-background text-foreground text-xs font-medium rounded-full cursor-pointer transition-colors"
+                className="px-4 py-2 border border-border bg-card hover:bg-background text-foreground text-caption font-medium rounded-full cursor-pointer transition-colors"
               >
                 Cancel
               </button>
@@ -734,7 +734,7 @@ function PersonalCollectionExplorePage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => handleDeleteRelease(deleteConfirm.id)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-full cursor-pointer transition-colors shadow-xs"
+                className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-caption font-semibold rounded-full cursor-pointer transition-colors shadow-xs"
               >
                 {isDeleting ? 'Moving to Trash...' : 'Move to Trash'}
               </button>
@@ -745,7 +745,7 @@ function PersonalCollectionExplorePage() {
 
       {/* ===================== TOAST NOTIFICATION ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
           {toastMessage}
         </div>
       )}

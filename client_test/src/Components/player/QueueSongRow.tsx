@@ -156,7 +156,7 @@ export const QueueSongRow = memo(function QueueSongRow({
       style={style}
       data-queue-row-index={index}
       data-user-queue={isUserQueue}
-      className={`relative select-none rounded transition-colors ${
+      className={`relative select-none rounded-control transition-colors ${
         isDragging
           ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-card opacity-95 scale-[1.01]'
           : ''
@@ -168,7 +168,7 @@ export const QueueSongRow = memo(function QueueSongRow({
       {/* 1. Left Swipe Reveal: Red Remove Action */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-red-500/90 text-white flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-r-md ${
+          className={`absolute inset-y-0 right-0 w-24 bg-destructive text-white flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-r-md ${
             swipeOffset < -15 ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -184,7 +184,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
           </svg>
-          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold">
             Remove
           </span>
         </div>
@@ -210,7 +210,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
           </svg>
-          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold">
             Playlist
           </span>
         </div>
@@ -256,7 +256,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 e.stopPropagation()
                 e.preventDefault()
               }}
-              className={`drag-grip -ml-1.5 w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 select-none touch-none rounded transition-colors cursor-grab active:cursor-grabbing ${
+              className={`drag-grip -ml-1.5 w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 select-none touch-none rounded-control transition-colors cursor-grab active:cursor-grabbing ${
                 isDragging
                   ? 'text-primary bg-primary/15 scale-110 shadow-xs'
                   : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
@@ -280,13 +280,13 @@ export const QueueSongRow = memo(function QueueSongRow({
               </svg>
             </div>
           ) : isContextQueue ? (
-            <span className="font-mono text-[11px] text-muted-foreground/60 w-4 text-center shrink-0">
+            <span className="font-mono text-eyebrow text-muted-foreground/60 w-4 text-center shrink-0">
               {index + 1}
             </span>
           ) : null}
 
           {/* Thumbnail Artwork with Play / Equalizer Overlay */}
-          <div className="relative w-8 h-8 rounded bg-background border border-border shrink-0 overflow-hidden group/thumb">
+          <div className="relative w-8 h-8 rounded-control bg-background border border-border shrink-0 overflow-hidden group/thumb">
             {track.coverImageUrl ? (
               <img
                 src={track.coverImageUrl}
@@ -294,7 +294,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
+              <div className="w-full h-full flex items-center justify-center font-serif italic text-caption text-muted-foreground">
                 ♪
               </div>
             )}
@@ -306,7 +306,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 <span className="w-0.5 h-2 bg-background rounded-full animate-pulse delay-150" />
               </div>
             ) : (
-              <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-[11px]">
+              <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-eyebrow">
                 ▶
               </div>
             )}
@@ -315,16 +315,16 @@ export const QueueSongRow = memo(function QueueSongRow({
           {/* Title & Artist info */}
           <div className="flex flex-col min-w-0">
             <span
-              className={`text-xs font-sans font-medium truncate transition-colors leading-tight ${
+              className={`text-caption font-sans font-medium truncate transition-colors leading-tight ${
                 isNowPlaying ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
               }`}
             >
               {track.title}
             </span>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate font-sans">
+            <div className="flex items-center gap-1.5 text-caption text-muted-foreground truncate font-sans">
               <span className="truncate">{track.artistName}</span>
               {isJamQueue && addedByDisplayName && (
-                <span className="text-emerald-700 dark:text-emerald-400 font-mono text-[11px] shrink-0">
+                <span className="text-success font-mono text-eyebrow shrink-0">
                   • by {addedByDisplayName}
                 </span>
               )}
@@ -339,7 +339,7 @@ export const QueueSongRow = memo(function QueueSongRow({
         >
           <SongActionMenu track={track} align="right" />
 
-          <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
+          <span className="font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
             {formatSeconds(track.durationSeconds)}
           </span>
 
@@ -351,7 +351,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 onRemove()
               }}
               title="Remove from queue"
-              className="p-1 text-muted-foreground/50 hover:text-red-500 cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded hover:bg-secondary/20"
+              className="p-1 text-muted-foreground/50 hover:text-destructive cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded-control hover:bg-secondary/20"
             >
               <svg
                 className="w-3.5 h-3.5"

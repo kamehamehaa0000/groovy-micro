@@ -181,14 +181,14 @@ function FollowedReleasesComponent() {
         <h1 className="font-serif italic text-3xl font-medium text-foreground mb-3">
           Artist Radar
         </h1>
-        <p className="font-sans text-xs text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
+        <p className="font-sans text-caption text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
           Sign in to view new releases dropped in the past 6 months by artists
           you follow.
         </p>
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-caption uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -205,12 +205,12 @@ function FollowedReleasesComponent() {
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Latest releases
             </h1>
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               ✦ Artist Radar
             </span>
           </div>
           {/* Controls Bar: Only View Mode (Grid / List) */}
-          <div className="flex w-fit items-center p-1 bg-card  rounded-lg self-start sm:self-auto shrink-0 shadow-2xs">
+          <div className="flex w-fit items-center p-1 bg-card  rounded-lg self-start sm:self-auto shrink-0 shadow-raised">
             <button
               type="button"
               onClick={() => {
@@ -237,7 +237,7 @@ function FollowedReleasesComponent() {
         <div className="space-y-10">
           {[1, 2].map((groupIndex) => (
             <div key={groupIndex} className="space-y-4">
-              <div className="h-5 w-44 bg-border/40 rounded-xs animate-pulse" />
+              <div className="h-5 w-44 bg-border/40 rounded-control animate-pulse" />
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -246,8 +246,8 @@ function FollowedReleasesComponent() {
                       className="p-3 rounded-xl bg-card/40 border border-border/40 animate-pulse space-y-2.5"
                     >
                       <div className="aspect-square bg-border/30 rounded-lg" />
-                      <div className="h-3.5 bg-border/50 rounded-xs w-4/5" />
-                      <div className="h-2.5 bg-border/30 rounded-xs w-1/2" />
+                      <div className="h-3.5 bg-border/50 rounded-control w-4/5" />
+                      <div className="h-2.5 bg-border/30 rounded-control w-1/2" />
                     </div>
                   ))}
                 </div>
@@ -260,8 +260,8 @@ function FollowedReleasesComponent() {
                     >
                       <div className="w-12 h-12 bg-border/30 rounded-lg shrink-0" />
                       <div className="space-y-1.5 flex-1">
-                        <div className="h-3.5 bg-border/50 rounded-xs w-1/3" />
-                        <div className="h-2.5 bg-border/30 rounded-xs w-1/4" />
+                        <div className="h-3.5 bg-border/50 rounded-control w-1/3" />
+                        <div className="h-2.5 bg-border/30 rounded-control w-1/4" />
                       </div>
                     </div>
                   ))}
@@ -285,16 +285,16 @@ function FollowedReleasesComponent() {
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
-          <h2 className="font-serif italic text-xl text-foreground font-medium">
+          <h2 className="font-serif italic text-heading text-foreground font-medium">
             No recent releases found
           </h2>
-          <p className="font-sans text-xs text-muted-foreground mt-1.5 max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
             None of your followed artists have released music in the past 6
             months, or you aren't following any artists yet.
           </p>
           <Link
             to="/artists"
-            className="inline-block mt-6 font-eyebrow text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+            className="inline-block mt-6 font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
           >
             Explore Artists Roster
           </Link>
@@ -306,10 +306,10 @@ function FollowedReleasesComponent() {
             <section key={group.key} className="space-y-4">
               {/* Group Section Header */}
               <div className="flex items-baseline justify-between border-b border-border pb-2.5">
-                <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
+                <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
                   {group.label}
                 </h2>
-                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'}
                 </span>
@@ -323,10 +323,10 @@ function FollowedReleasesComponent() {
                       key={release.id}
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: release.slug || release.id }}
-                      className="group relative flex flex-col p-2.5 rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer text-inherit no-underline"
+                      className="group relative flex flex-col p-2.5 rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-raised hover:shadow-sm transition-all duration-200 cursor-pointer text-inherit no-underline"
                     >
                       {/* Album Artwork */}
-                      <div className="aspect-square bg-muted border border-border relative overflow-hidden rounded-lg mb-2.5 shadow-2xs">
+                      <div className="aspect-square bg-muted border border-border relative overflow-hidden rounded-lg mb-2.5 shadow-raised">
                         {release.coverImageUrl ? (
                           <img
                             src={release.coverImageUrl}
@@ -343,7 +343,7 @@ function FollowedReleasesComponent() {
                         )}
 
                         {/* Release Type Badge (ALBUM, EP, SINGLE) */}
-                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background/90 backdrop-blur-xs text-muted-foreground border border-border/60">
+                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-control font-eyebrow text-eyebrow uppercase tracking-wider bg-background/90 backdrop-blur-xs text-muted-foreground border border-border/60">
                           {release.albumType}
                         </span>
                       </div>
@@ -351,18 +351,18 @@ function FollowedReleasesComponent() {
                       {/* Release Title & Artist */}
                       <div className="flex flex-col min-w-0 flex-1">
                         <span
-                          className="text-sm font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
+                          className="text-body font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
                           title={release.title}
                         >
                           {release.title}
                         </span>
 
-                        <span className="text-[11px] text-muted-foreground truncate mt-0.5">
+                        <span className="text-eyebrow text-muted-foreground truncate mt-0.5">
                           {release.artist?.name}
                         </span>
 
                         {/* Sub-bar: Release Date & Tracks Count */}
-                        <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground/70 border-t border-border-soft pt-1.5 mt-2">
+                        <div className="flex items-center justify-between font-mono text-eyebrow text-muted-foreground/70 border-t border-border-soft pt-1.5 mt-2">
                           <span>{formatReleaseDate(release.releaseDate)}</span>
                           {release.totalTracks > 0 && (
                             <span>
@@ -383,10 +383,10 @@ function FollowedReleasesComponent() {
                       key={release.id}
                       to="/albums/$idOrSlug"
                       params={{ idOrSlug: release.slug || release.id }}
-                      className="group flex items-center gap-3.5 p-2.5 sm:px-4 rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer text-inherit no-underline"
+                      className="group flex items-center gap-3.5 p-2.5 sm:px-4 rounded-xl border border-border bg-card/40 hover:bg-muted/80 hover:border-foreground/20 shadow-raised hover:shadow-sm transition-all duration-200 cursor-pointer text-inherit no-underline"
                     >
                       {/* Compact Thumbnail Cover */}
-                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted border border-border shrink-0 shadow-2xs">
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted border border-border shrink-0 shadow-raised">
                         {release.coverImageUrl ? (
                           <img
                             src={release.coverImageUrl}
@@ -407,24 +407,24 @@ function FollowedReleasesComponent() {
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span
-                            className="text-xs sm:text-sm font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
+                            className="text-caption sm:text-body font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
                             title={release.title}
                           >
                             {release.title}
                           </span>
 
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-control font-eyebrow text-eyebrow uppercase tracking-wider bg-background border border-border text-muted-foreground">
                             {release.albumType}
                           </span>
                         </div>
 
-                        <span className="text-[11px] text-muted-foreground truncate mt-0.5">
+                        <span className="text-eyebrow text-muted-foreground truncate mt-0.5">
                           {release.artist?.name}
                         </span>
                       </div>
 
                       {/* Right Metadata: Duration & Release Date */}
-                      <div className="flex items-center gap-4 shrink-0 font-mono text-[11px] text-muted-foreground">
+                      <div className="flex items-center gap-4 shrink-0 font-mono text-eyebrow text-muted-foreground">
                         {release.totalDurationSeconds > 0 && (
                           <span className="hidden sm:inline-block">
                             {formatDurationSeconds(
@@ -449,7 +449,7 @@ function FollowedReleasesComponent() {
             className="py-2 flex flex-col items-center justify-center"
           >
             {isLoadingMore && (
-              <div className="flex items-center gap-2 font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+              <div className="flex items-center gap-2 font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>

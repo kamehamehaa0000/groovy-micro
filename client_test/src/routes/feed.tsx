@@ -352,13 +352,13 @@ function UnifiedFeedComponent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
         <div className="border border-border bg-card p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
             Community &nbsp;·&nbsp; Social Circle
           </div>
           <h2 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal">
             Connect with Listeners
           </h2>
-          <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
+          <p className="font-sans text-caption sm:text-body text-muted-foreground leading-relaxed max-w-md mx-auto">
             Sign in to follow creators, tune in to live listening sessions with
             mutual friends, and receive real-time drops from your favorite
             artists.
@@ -367,7 +367,7 @@ function UnifiedFeedComponent() {
             <Link
               to="/login"
               search={{ redirect: '/feed' }}
-              className="inline-block bg-foreground text-background font-eyebrow text-xs uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl font-semibold shadow-xs"
+              className="inline-block bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In to Social Hub &rarr;
             </Link>
@@ -383,13 +383,13 @@ function UnifiedFeedComponent() {
       <section className="shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-1.5">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-1.5">
               Community &nbsp;·&nbsp; Socials &amp; Friends
             </div>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal leading-tight">
               Community Hub
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl leading-relaxed">
+            <p className="font-sans text-caption sm:text-body text-muted-foreground mt-1 max-w-xl leading-relaxed">
               Real-time playback telemetry, friend circles, and chronological
               drops from artists you follow.
             </p>
@@ -403,7 +403,7 @@ function UnifiedFeedComponent() {
                 fetchLiveActivities()
                 fetchRequests()
               }}
-              className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-3.5 border border-border bg-background hover:bg-muted text-foreground transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-2xs"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 border border-border bg-background hover:bg-muted text-foreground transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-raised"
             >
               <span>Refresh Pulse</span>
             </button>
@@ -416,7 +416,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('stream')}
-          className={`font-eyebrow bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'stream'
               ? 'bg-foreground text-background font-semibold shadow-xs'
               : 'text-muted-foreground hover:text-foreground'
@@ -428,7 +428,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('live')}
-          className={`font-eyebrow bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'live'
               ? 'bg-foreground text-background font-semibold shadow-xs'
               : 'text-muted-foreground hover:text-foreground'
@@ -440,7 +440,7 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('network')}
-          className={`font-eyebrow bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'network'
               ? 'bg-foreground text-background font-semibold shadow-xs'
               : 'text-muted-foreground hover:text-foreground'
@@ -448,7 +448,7 @@ function UnifiedFeedComponent() {
         >
           <span>Requests</span>
           {incomingRequests.length > 0 && (
-            <span className="bg-primary text-primary-foreground text-[11px] font-mono px-1.5 py-0.5 rounded-full font-bold">
+            <span className="bg-primary text-primary-foreground text-eyebrow font-mono px-1.5 py-0.5 rounded-full font-bold">
               {incomingRequests.length}
             </span>
           )}
@@ -469,7 +469,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('all')}
-                className={`font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'all'
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -480,7 +480,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('releases')}
-                className={`font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'releases'
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -491,7 +491,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('playlists')}
-                className={`font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'playlists'
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -502,7 +502,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={() => setStreamFilter('friends')}
-                className={`font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
+                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'friends'
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -512,7 +512,7 @@ function UnifiedFeedComponent() {
               </button>
             </div>
 
-            <div className="font-eyebrow text-[11px] text-muted-foreground uppercase tracking-wider hidden sm:block">
+            <div className="font-eyebrow text-eyebrow text-muted-foreground uppercase tracking-wider hidden sm:block">
               {feedItems.length} drops cached
             </div>
           </div>
@@ -521,7 +521,7 @@ function UnifiedFeedComponent() {
           {isLoadingFeed && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
-              <div className="font-eyebrow text-xs uppercase tracking-widest text-muted-foreground">
+              <div className="font-eyebrow text-caption uppercase tracking-widest text-muted-foreground">
                 Tuning into the stream...
               </div>
             </div>
@@ -529,7 +529,7 @@ function UnifiedFeedComponent() {
 
           {/* Error Feed State */}
           {feedError && !isLoadingFeed && (
-            <div className="p-4 border border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400 text-xs text-center rounded-xl">
+            <div className="p-4 border border-destructive/30 bg-destructive-soft text-destructive text-caption text-center rounded-xl">
               {feedError}
             </div>
           )}
@@ -540,21 +540,21 @@ function UnifiedFeedComponent() {
               <div className="font-serif italic text-2xl text-foreground">
                 No activity in this view yet
               </div>
-              <p className="font-sans text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
                 Follow more artists in the catalog or connect with listeners in
                 the directory to personalize your stream with fresh music drops.
               </p>
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   to="/"
-                  className="bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider px-4 py-2 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl"
+                  className="bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl"
                 >
                   Explore Catalog
                 </Link>
                 <button
                   type="button"
                   onClick={() => setMobileTab('network')}
-                  className="bg-card text-foreground font-eyebrow text-[11px] uppercase tracking-wider px-4 py-2 border border-border hover:bg-muted transition-colors rounded-xl cursor-pointer"
+                  className="bg-card text-foreground font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-border hover:bg-muted transition-colors rounded-xl cursor-pointer"
                 >
                   Discover Listeners
                 </button>
@@ -575,7 +575,7 @@ function UnifiedFeedComponent() {
                 return (
                   <div
                     key={item.id}
-                    className="border border-border bg-card p-4 sm:p-5 rounded-2xl shadow-2xs hover:border-foreground/40 transition-all space-y-3.5"
+                    className="border border-border bg-card p-4 sm:p-5 rounded-2xl shadow-raised hover:border-foreground/40 transition-all space-y-3.5"
                   >
                     {/* Event Actor Header */}
                     <div className="flex items-center justify-between">
@@ -593,7 +593,7 @@ function UnifiedFeedComponent() {
                                 className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground shrink-0">
                                 {item.actor.name[0]?.toUpperCase() || '?'}
                               </div>
                             )}
@@ -607,7 +607,7 @@ function UnifiedFeedComponent() {
                                 className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground shrink-0">
                                 {item.actor.name[0]?.toUpperCase() || '?'}
                               </div>
                             )}
@@ -615,7 +615,7 @@ function UnifiedFeedComponent() {
                         )}
 
                         {/* Actor Title & Action */}
-                        <div className="font-sans text-xs truncate">
+                        <div className="font-sans text-caption truncate">
                           {item.actor.isArtist && item.actor.slug ? (
                             <Link
                               to="/artists/$idOrSlug"
@@ -647,7 +647,7 @@ function UnifiedFeedComponent() {
                       </div>
 
                       {/* Relative Timestamp */}
-                      <span className="font-mono text-[11px] text-muted-foreground shrink-0 ml-2">
+                      <span className="font-mono text-eyebrow text-muted-foreground shrink-0 ml-2">
                         {formatRelativeTime(item.timestamp)}
                       </span>
                     </div>
@@ -663,7 +663,7 @@ function UnifiedFeedComponent() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-xl">
+                          <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-heading">
                             ♪
                           </div>
                         )}
@@ -696,17 +696,17 @@ function UnifiedFeedComponent() {
                       {/* Metadata */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-muted border border-border rounded text-muted-foreground">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-muted border border-border rounded-control text-muted-foreground">
                             {item.target.type}
                           </span>
                           {item.target.isExplicit && (
-                            <span className="font-eyebrow text-[11px] uppercase font-bold px-1 py-0.5 bg-foreground text-background rounded">
+                            <span className="font-eyebrow text-eyebrow uppercase font-bold px-1 py-0.5 bg-foreground text-background rounded-control">
                               E
                             </span>
                           )}
                         </div>
 
-                        <div className="font-sans font-semibold text-sm sm:text-base text-foreground truncate mt-1">
+                        <div className="font-sans font-semibold text-body sm:text-title text-foreground truncate mt-1">
                           {item.target.type === 'album' && item.target.slug ? (
                             <Link
                               to="/albums/$idOrSlug"
@@ -729,7 +729,7 @@ function UnifiedFeedComponent() {
                         </div>
 
                         {item.target.subtitle && (
-                          <div className="font-sans text-xs text-muted-foreground truncate mt-0.5">
+                          <div className="font-sans text-caption text-muted-foreground truncate mt-0.5">
                             {item.target.subtitle}
                           </div>
                         )}
@@ -764,7 +764,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/albums/$idOrSlug"
                             params={{ idOrSlug: item.target.slug }}
-                            className="font-eyebrow text-[11px] uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
                           >
                             View
                           </Link>
@@ -774,7 +774,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/playlists/$id"
                             params={{ id: item.target.id }}
-                            className="font-eyebrow text-[11px] uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
                           >
                             Listen
                           </Link>
@@ -792,7 +792,7 @@ function UnifiedFeedComponent() {
                     type="button"
                     onClick={() => fetchFeed(false, feedCursor || undefined)}
                     disabled={isLoadingMoreFeed}
-                    className="bg-card border border-border hover:bg-muted text-foreground font-eyebrow text-[11px] uppercase tracking-wider px-6 py-3 transition-colors cursor-pointer disabled:opacity-50 rounded-xl shadow-2xs"
+                    className="bg-card border border-border hover:bg-muted text-foreground font-eyebrow text-eyebrow uppercase tracking-wider px-6 py-3 transition-colors cursor-pointer disabled:opacity-50 rounded-xl shadow-raised"
                   >
                     {isLoadingMoreFeed
                       ? 'Loading more...'
@@ -812,10 +812,10 @@ function UnifiedFeedComponent() {
         >
           {/* ===================== DOCK 1: PENDING FOLLOW REQUESTS ===================== */}
           {(incomingRequests.length > 0 || mobileTab === 'network') && (
-            <div className="border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4">
+            <div className="border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-0.5">
+                  <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5">
                     Private Vault Requests
                   </div>
                   <h3 className="font-serif italic text-lg text-foreground font-normal">
@@ -823,14 +823,14 @@ function UnifiedFeedComponent() {
                   </h3>
                 </div>
                 {incomingRequests.length > 0 && (
-                  <span className="bg-primary/15 text-primary text-[11px] font-mono px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-primary/15 text-primary text-eyebrow font-mono px-2 py-0.5 rounded-full font-bold">
                     Action Needed
                   </span>
                 )}
               </div>
 
               {incomingRequests.length === 0 ? (
-                <div className="border border-border/60 bg-background p-4 text-center text-xs text-muted-foreground font-mono rounded-xl">
+                <div className="border border-border/60 bg-background p-4 text-center text-caption text-muted-foreground font-mono rounded-xl">
                   No pending follow requests at this time.
                 </div>
               ) : (
@@ -844,7 +844,7 @@ function UnifiedFeedComponent() {
                         className="p-3.5 flex items-center justify-between gap-3"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-xs font-semibold uppercase text-foreground overflow-hidden shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-caption font-semibold uppercase text-foreground overflow-hidden shrink-0">
                             {req.avatarUrl ? (
                               <img
                                 src={req.avatarUrl}
@@ -856,10 +856,10 @@ function UnifiedFeedComponent() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-foreground block truncate">
+                            <span className="font-semibold text-caption text-foreground block truncate">
                               {req.displayName}
                             </span>
-                            <span className="font-mono text-[11px] text-muted-foreground">
+                            <span className="font-mono text-eyebrow text-muted-foreground">
                               {formatRelativeTime(req.createdAt)}
                             </span>
                           </div>
@@ -870,7 +870,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleAcceptRequest(req.requesterId)}
-                            className="bg-foreground text-background hover:bg-primary px-2.5 py-1.5 font-eyebrow text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="bg-foreground text-background hover:bg-primary px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Accept
                           </button>
@@ -878,7 +878,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleRejectRequest(req.requesterId)}
-                            className="border border-border hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1.5 font-eyebrow text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="border border-border hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Decline
                           </button>
@@ -893,13 +893,13 @@ function UnifiedFeedComponent() {
 
           {/* ===================== DOCK 2: LIVE FRIENDS ACTIVITY ===================== */}
           <div
-            className={`border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4 ${
+            className={`border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4 ${
               mobileTab === 'network' ? 'hidden lg:block' : ''
             }`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-0.5 flex items-center gap-1.5">
+                <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5 flex items-center gap-1.5">
                   <span>Real-Time Presence</span>
                 </div>
                 <h3 className="font-serif italic text-lg text-foreground font-normal">
@@ -909,7 +909,7 @@ function UnifiedFeedComponent() {
               <button
                 type="button"
                 onClick={fetchLiveActivities}
-                className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 Pulse
               </button>
@@ -922,17 +922,17 @@ function UnifiedFeedComponent() {
                     key={i}
                     className="border border-border bg-background p-4 rounded-xl animate-pulse space-y-2"
                   >
-                    <div className="h-3 bg-secondary/20 rounded w-1/3" />
-                    <div className="h-10 bg-secondary/10 rounded" />
+                    <div className="h-3 bg-secondary/20 rounded-control w-1/3" />
+                    <div className="h-10 bg-secondary/10 rounded-control" />
                   </div>
                 ))}
               </div>
             ) : liveActivities.length === 0 ? (
               <div className="border border-border/60 bg-background p-6 text-center space-y-2 rounded-xl">
-                <div className="font-serif italic text-base text-foreground">
+                <div className="font-serif italic text-title text-foreground">
                   Quiet in the circle right now
                 </div>
-                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">
+                <p className="font-sans text-eyebrow text-muted-foreground leading-relaxed">
                   None of your mutual friends or followed listeners are
                   broadcasting active streams at this moment.
                 </p>
@@ -955,7 +955,7 @@ function UnifiedFeedComponent() {
                   return (
                     <div
                       key={item.user.id}
-                      className="border border-border bg-background p-3.5 rounded-xl shadow-2xs space-y-3 hover:border-foreground/40 transition-all"
+                      className="border border-border bg-background p-3.5 rounded-xl shadow-raised space-y-3 hover:border-foreground/40 transition-all"
                     >
                       {/* Friend Header */}
                       <div className="flex items-center justify-between">
@@ -964,7 +964,7 @@ function UnifiedFeedComponent() {
                           params={{ id: item.user.id }}
                           className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
                         >
-                          <div className="w-7 h-7 rounded-full bg-secondary/30 border border-border flex items-center justify-center font-eyebrow text-[11px] font-semibold text-foreground overflow-hidden uppercase shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-secondary/30 border border-border flex items-center justify-center font-eyebrow text-eyebrow font-semibold text-foreground overflow-hidden uppercase shrink-0">
                             {item.user.avatarUrl ? (
                               <img
                                 src={item.user.avatarUrl}
@@ -976,10 +976,10 @@ function UnifiedFeedComponent() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-foreground block truncate hover:text-primary transition-colors">
+                            <span className="font-semibold text-caption text-foreground block truncate hover:text-primary transition-colors">
                               {item.user.displayName}
                             </span>
-                            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                               {item.user.isMutualFriend
                                 ? 'Mutual Friend'
                                 : 'Followed'}
@@ -987,15 +987,15 @@ function UnifiedFeedComponent() {
                           </div>
                         </Link>
 
-                        <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-eyebrow text-[11px] uppercase tracking-wider shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <div className="flex items-center gap-1 bg-success-soft text-success border border-success/20 px-2 py-0.5 rounded-full font-eyebrow text-eyebrow uppercase tracking-wider shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                           <span>Streaming</span>
                         </div>
                       </div>
 
                       {/* Track Details */}
                       <div className="flex items-center gap-3 bg-card border border-border/70 p-2.5 rounded-lg">
-                        <div className="relative w-12 h-12 bg-secondary/20 border border-border rounded shrink-0 overflow-hidden">
+                        <div className="relative w-12 h-12 bg-secondary/20 border border-border rounded-control shrink-0 overflow-hidden">
                           {item.activity.coverImageUrl ? (
                             <img
                               src={item.activity.coverImageUrl}
@@ -1011,12 +1011,12 @@ function UnifiedFeedComponent() {
 
                         <div className="flex-1 min-w-0">
                           <h4
-                            className="font-sans font-semibold text-sm text-foreground truncate"
+                            className="font-sans font-semibold text-body text-foreground truncate"
                             title={item.activity.trackTitle}
                           >
                             {item.activity.trackTitle}
                           </h4>
-                          <p className="font-sans text-[11px] text-muted-foreground truncate">
+                          <p className="font-sans text-eyebrow text-muted-foreground truncate">
                             {item.activity.artistName}
                           </p>
 
@@ -1028,7 +1028,7 @@ function UnifiedFeedComponent() {
                                 style={{ width: `${progressPercent}%` }}
                               />
                             </div>
-                            <div className="flex justify-between font-mono text-[11px] text-muted-foreground/80">
+                            <div className="flex justify-between font-mono text-eyebrow text-muted-foreground/80">
                               <span>
                                 {formatElapsed(item.activity.progressMs)}
                               </span>
@@ -1045,7 +1045,7 @@ function UnifiedFeedComponent() {
                         <button
                           type="button"
                           onClick={() => handleListenAlong(item)}
-                          className={`shrink-0 px-2.5 py-1.5 font-eyebrow text-[11px] uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-2xs ${
+                          className={`shrink-0 px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-raised ${
                             isPlayingThis
                               ? 'border-primary bg-primary text-primary-foreground'
                               : 'border-border bg-background hover:bg-foreground hover:text-background hover:border-foreground text-foreground'
@@ -1063,12 +1063,12 @@ function UnifiedFeedComponent() {
 
           {/* ===================== DOCK 3: DISCOVER COMMUNITY MEMBERS ===================== */}
           <div
-            className={`border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4 ${
+            className={`border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4 ${
               mobileTab === 'live' ? 'hidden lg:block' : ''
             }`}
           >
             <div>
-              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-0.5">
+              <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5">
                 Directory &nbsp;·&nbsp; Network
               </div>
               <h3 className="font-serif italic text-lg text-foreground font-normal">
@@ -1096,7 +1096,7 @@ function UnifiedFeedComponent() {
                   searchCommunity(e.target.value)
                 }}
                 placeholder="Search community by name..."
-                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
+                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
               />
               {searchQuery && (
                 <button
@@ -1122,12 +1122,12 @@ function UnifiedFeedComponent() {
                     className="p-3 border border-border bg-background rounded-xl animate-pulse flex items-center gap-3"
                   >
                     <div className="w-8 h-8 rounded-full bg-secondary/20" />
-                    <div className="h-3 bg-secondary/20 rounded w-1/2" />
+                    <div className="h-3 bg-secondary/20 rounded-control w-1/2" />
                   </div>
                 ))}
               </div>
             ) : directoryUsers.length === 0 ? (
-              <div className="border border-border/60 bg-background p-4 text-center font-mono text-xs text-muted-foreground rounded-xl">
+              <div className="border border-border/60 bg-background p-4 text-center font-mono text-caption text-muted-foreground rounded-xl">
                 No matching members found.
               </div>
             ) : (
@@ -1145,7 +1145,7 @@ function UnifiedFeedComponent() {
                         params={{ id: member.id }}
                         className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
                       >
-                        <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-xs font-semibold uppercase text-foreground overflow-hidden shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-caption font-semibold uppercase text-foreground overflow-hidden shrink-0">
                           {member.avatarUrl ? (
                             <img
                               src={member.avatarUrl}
@@ -1158,10 +1158,10 @@ function UnifiedFeedComponent() {
                         </div>
 
                         <div className="min-w-0">
-                          <span className="font-semibold text-xs text-foreground block truncate hover:text-primary transition-colors">
+                          <span className="font-semibold text-caption text-foreground block truncate hover:text-primary transition-colors">
                             {member.displayName}
                           </span>
-                          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                             {member.relationship === 'FRIENDS'
                               ? 'Mutual Friend'
                               : member.relationship === 'FOLLOWING'
@@ -1180,12 +1180,12 @@ function UnifiedFeedComponent() {
                         type="button"
                         disabled={isActing}
                         onClick={() => handleToggleFollow(member)}
-                        className={`font-eyebrow text-[11px] uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
+                        className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
                           member.relationship === 'FRIENDS' ||
                           member.relationship === 'FOLLOWING'
-                            ? 'border-border bg-background hover:border-red-500 hover:text-red-500 text-muted-foreground'
+                            ? 'border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground'
                             : member.relationship === 'PENDING_SENT'
-                              ? 'border-border bg-secondary/20 text-muted-foreground hover:bg-red-900/10 hover:text-red-500'
+                              ? 'border-border bg-secondary/20 text-muted-foreground hover:bg-destructive/20 hover:text-destructive'
                               : 'border-foreground bg-foreground text-background hover:bg-primary hover:border-primary'
                         }`}
                       >

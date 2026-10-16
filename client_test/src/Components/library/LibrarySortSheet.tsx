@@ -49,7 +49,7 @@ export function LibrarySortSheet({
         {/* Mobile handle */}
         <div className="sm:hidden w-10 h-1 bg-border rounded-full mx-auto mb-3" />
 
-        <div className="text-xs font-eyebrow uppercase tracking-wider text-muted-foreground mb-3 px-1">
+        <div className="text-caption font-eyebrow uppercase tracking-wider text-muted-foreground mb-3 px-1">
           Sort by
         </div>
 
@@ -64,7 +64,7 @@ export function LibrarySortSheet({
                   onSelectSort(opt.key);
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-body transition-colors text-left ${
                   isSelected
                     ? "text-foreground font-semibold bg-background"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -73,7 +73,7 @@ export function LibrarySortSheet({
                 <span>{opt.label}</span>
                 {isSelected && (
                   <svg
-                    className="w-4 h-4 text-emerald-500"
+                    className="w-4 h-4 text-success"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"

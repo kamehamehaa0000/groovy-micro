@@ -143,7 +143,7 @@ export function LibraryItemCard({
     if (item.kind === "personal_collection") {
       return (
         <div
-          className={`${sizeClasses} bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center shadow-md select-none shrink-0 ${
+          className={`${sizeClasses} bg-gradient-to-br from-success via-primary to-primary-strong flex items-center justify-center shadow-md select-none shrink-0 ${
             item.isRoundImage ? "rounded-full" : "rounded-md"
           }`}
         >
@@ -170,7 +170,7 @@ export function LibraryItemCard({
     // Fallback initials placeholder
     return (
       <div
-        className={`${sizeClasses} bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground select-none shrink-0 ${
+        className={`${sizeClasses} bg-muted border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground select-none shrink-0 ${
           item.isRoundImage ? "rounded-full" : "rounded-md"
         }`}
       >
@@ -195,20 +195,20 @@ export function LibraryItemCard({
         <div
           className={`absolute inset-0 flex items-center justify-start pl-4 rounded-xl select-none transition-colors ${
             isPastThreshold
-              ? "bg-emerald-500/25 dark:bg-emerald-500/35"
-              : "bg-emerald-500/15 dark:bg-emerald-500/20"
+              ? "bg-success-soft"
+              : "bg-success-soft"
           }`}
           style={{
             opacity: Math.min(swipeOffset / 30, 1),
           }}
         >
           <div
-            className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold text-xs transition-transform"
+            className="flex items-center gap-2 text-success font-semibold text-caption transition-transform"
             style={{
               transform: `scale(${Math.min(0.85 + (swipeOffset / 60) * 0.25, 1.15)})`,
             }}
           >
-            <PinIconSVG className="w-4 h-4 text-emerald-500" />
+            <PinIconSVG className="w-4 h-4 text-success" />
             <span>{item.isPinned ? "Unpin" : "Pin to top"}</span>
           </div>
         </div>
@@ -232,16 +232,16 @@ export function LibraryItemCard({
 
             <div className="flex-1 min-w-0 pr-2">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-foreground truncate block">
+                <span className="font-semibold text-body text-foreground truncate block">
                   {item.title}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 truncate">
+              <div className="flex items-center gap-1.5 text-caption text-muted-foreground mt-0.5 truncate">
                 {item.isPinned && (
                   <span
                     title="Pinned to top"
-                    className="text-emerald-500 dark:text-emerald-400 shrink-0 inline-flex items-center"
+                    className="text-success shrink-0 inline-flex items-center"
                   >
                     <PinIconSVG className="w-3.5 h-3.5" />
                   </span>
@@ -266,7 +266,7 @@ export function LibraryItemCard({
           {item.isPinned && (
             <div
               title="Pinned to top"
-              className="absolute top-2 right-2 bg-card/90 backdrop-blur-md text-emerald-500 dark:text-emerald-400 p-1 rounded-full shadow-md border border-border/40"
+              className="absolute top-2 right-2 bg-card/90 backdrop-blur-md text-success p-1 rounded-full shadow-md border border-border/40"
             >
               <PinIconSVG className="w-3 h-3" />
             </div>
@@ -275,10 +275,10 @@ export function LibraryItemCard({
 
         {/* Text information */}
         <div className="w-full">
-          <div className="font-semibold text-sm text-foreground truncate">
+          <div className="font-semibold text-body text-foreground truncate">
             {item.title}
           </div>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
+          <div className="text-caption text-muted-foreground truncate mt-0.5">
             {item.subtitle}
           </div>
         </div>

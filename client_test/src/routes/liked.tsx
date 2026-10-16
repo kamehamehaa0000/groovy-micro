@@ -215,7 +215,7 @@ function LikedSongsPage() {
         <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground mb-3">
           Your Liked Songs
         </h1>
-        <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+        <p className="font-sans text-body text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
           Sign in or create an account to view and play all tracks you've saved
           across your listening sessions.
         </p>
@@ -230,7 +230,7 @@ function LikedSongsPage() {
                 'Sign in to access your personal collection of liked tracks.',
             })
           }
-          className="font-eyebrow text-xs uppercase tracking-wider py-3 px-8 bg-foreground text-background hover:opacity-90 font-semibold cursor-pointer shadow-sm"
+          className="font-eyebrow text-caption uppercase tracking-wider py-3 px-8 bg-foreground text-background hover:opacity-90 font-semibold cursor-pointer shadow-sm"
         >
           Sign In / Register
         </button>
@@ -256,7 +256,7 @@ function LikedSongsPage() {
           {/* Details & Actions */}
           <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
             {/* Badges */}
-            <div className="flex items-center gap-2.5 flex-wrap font-eyebrow text-[11px] uppercase tracking-wider">
+            <div className="flex items-center gap-2.5 flex-wrap font-eyebrow text-eyebrow uppercase tracking-wider">
               <span className="px-2.5 py-0.5 border border-border bg-background text-primary font-semibold">
                 Collection
               </span>
@@ -271,8 +271,8 @@ function LikedSongsPage() {
             </h1>
 
             {/* User Attribution & Total Stats */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-xs text-muted-foreground pt-1">
-              <span className="text-foreground font-serif italic text-sm">
+            <div className="flex items-center gap-2.5 flex-wrap font-mono text-caption text-muted-foreground pt-1">
+              <span className="text-foreground font-serif italic text-body">
                 {user?.displayName || 'Your Favorites'}
               </span>
               <span>&bull;</span>
@@ -291,7 +291,7 @@ function LikedSongsPage() {
                   <button
                     type="button"
                     onClick={handlePlayAll}
-                    className="font-eyebrow text-xs uppercase tracking-wider py-2.5 px-6 bg-primary text-background hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                    className="font-eyebrow text-caption uppercase tracking-wider py-2.5 px-6 bg-primary text-background hover:opacity-90 transition-opacity font-semibold shadow-raised flex items-center gap-2 cursor-pointer"
                   >
                     {isPlayingThisContext ? (
                       <PauseIconSVG className="w-4 h-4" />
@@ -316,14 +316,14 @@ function LikedSongsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter liked tracks by title, artist..."
-            className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
+            className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
           />
           <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
               title="Clear search"
             >
               ✕
@@ -333,14 +333,14 @@ function LikedSongsPage() {
 
         {/* Sort Options */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <SortIconSVG className="w-3.5 h-3.5" />
             Sort:
           </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="font-mono text-xs border border-border bg-background text-foreground py-1.5 px-3 focus:outline-none focus:border-foreground cursor-pointer"
+            className="font-mono text-caption border border-border bg-background text-foreground py-1.5 px-3 focus:outline-none focus:border-foreground cursor-pointer"
           >
             <option value="recent">Date Added</option>
             <option value="title">Title</option>
@@ -353,7 +353,7 @@ function LikedSongsPage() {
             onClick={() =>
               setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
             }
-            className="font-mono text-xs border border-border bg-background hover:bg-muted px-2.5 py-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
+            className="font-mono text-caption border border-border bg-background hover:bg-muted px-2.5 py-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
             title={`Toggle order (${sortOrder === 'asc' ? 'Ascending' : 'Descending'})`}
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
@@ -365,10 +365,10 @@ function LikedSongsPage() {
       <div className="space-y-4">
         <div className="flex justify-between items-baseline border-b border-border pb-3">
           <div className="flex items-center gap-3">
-            <h2 className="font-serif italic font-medium text-xl text-foreground">
+            <h2 className="font-serif italic font-medium text-heading text-foreground">
               Tracklist
             </h2>
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 border border-border bg-muted text-muted-foreground">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 border border-border bg-muted text-muted-foreground">
               {filteredAndSortedSongs.length}{' '}
               {filteredAndSortedSongs.length === 1 ? 'Cut' : 'Cuts'}
             </span>
@@ -385,7 +385,7 @@ function LikedSongsPage() {
             ))}
           </div>
         ) : errorMsg ? (
-          <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 font-mono text-xs">
+          <div className="p-6 border border-destructive/30 bg-destructive-soft text-destructive font-mono text-caption">
             {errorMsg}
           </div>
         ) : filteredAndSortedSongs.length === 0 ? (
@@ -398,13 +398,13 @@ function LikedSongsPage() {
                 <h3 className="font-serif italic text-lg text-foreground">
                   No matching tracks found
                 </h3>
-                <p className="font-sans text-xs text-muted-foreground">
+                <p className="font-sans text-caption text-muted-foreground">
                   No liked songs match your query "{searchQuery}".
                 </p>
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="font-mono text-xs text-primary hover:underline cursor-pointer"
+                  className="font-mono text-caption text-primary hover:underline cursor-pointer"
                 >
                   Clear filter
                 </button>
@@ -414,13 +414,13 @@ function LikedSongsPage() {
                 <h3 className="font-serif italic text-lg text-foreground">
                   Songs you like will appear here
                 </h3>
-                <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto">
+                <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto">
                   Save songs by tapping the heart icon on any release, album, or
                   player cut across Groovy.
                 </p>
                 <Link
                   to="/search"
-                  className="inline-block mt-2 font-eyebrow text-xs uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
+                  className="inline-block mt-2 font-eyebrow text-caption uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
                 >
                   Explore Music
                 </Link>
@@ -428,7 +428,7 @@ function LikedSongsPage() {
             )}
           </div>
         ) : (
-          <div className="border border-border bg-card overflow-hidden shadow-2xs divide-y divide-border/40">
+          <div className="border border-border bg-card overflow-hidden shadow-raised divide-y divide-border/40">
             {filteredAndSortedSongs.map((song, idx) => {
               const primaryCredits =
                 song.credits?.filter((c) => c.role === 'PRIMARY') || []
@@ -458,7 +458,7 @@ function LikedSongsPage() {
                         icon: (
                           <HeartIconSVG
                             filled={false}
-                            className="w-3.5 h-3.5 text-red-500"
+                            className="w-3.5 h-3.5 text-destructive"
                           />
                         ),
                         danger: true,

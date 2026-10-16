@@ -207,10 +207,10 @@ export function CommentSection({
       {/* Section Header: Title, Count, and Sort Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-3">
-          <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          <h3 className="font-serif text-heading sm:text-2xl font-bold tracking-tight text-foreground">
             Comments
           </h3>
-          <span className="font-mono text-xs text-muted-foreground bg-secondary/30 px-2 py-0.5 rounded-full">
+          <span className="font-mono text-caption text-muted-foreground bg-secondary/30 px-2 py-0.5 rounded-full">
             {totalCount}
           </span>
         </div>
@@ -218,13 +218,13 @@ export function CommentSection({
         {/* Sort Selector */}
         {allowComments && totalCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
               Sort by:
             </span>
             <select
               value={sort}
               onChange={(e) => handleSortChange(e.target.value as CommentSort)}
-              className="bg-card border border-border rounded px-2.5 py-1 text-xs font-mono text-foreground focus:outline-none focus:border-primary cursor-pointer"
+              className="bg-card border border-border rounded-control px-2.5 py-1 text-caption font-mono text-foreground focus:outline-none focus:border-primary cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -238,7 +238,7 @@ export function CommentSection({
 
       {/* Creator Disabled Comments Banner */}
       {!allowComments ? (
-        <div className="p-4 rounded-md border border-border bg-background/60 text-center text-xs font-mono text-muted-foreground">
+        <div className="p-4 rounded-md border border-border bg-background/60 text-center text-caption font-mono text-muted-foreground">
           Comments are disabled for this {targetType}.
         </div>
       ) : (
@@ -253,7 +253,7 @@ export function CommentSection({
               />
             </div>
           ) : (
-            <div className="mb-8 p-4 rounded-md border border-border bg-card text-center text-xs text-muted-foreground font-mono">
+            <div className="mb-8 p-4 rounded-md border border-border bg-card text-center text-caption text-muted-foreground font-mono">
               <span>Sign in to leave a comment and join the discussion.</span>
             </div>
           )}
@@ -268,9 +268,9 @@ export function CommentSection({
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-secondary/40" />
-                    <div className="h-3 w-28 bg-secondary/40 rounded" />
+                    <div className="h-3 w-28 bg-secondary/40 rounded-control" />
                   </div>
-                  <div className="h-3 w-3/4 bg-secondary/30 rounded ml-9" />
+                  <div className="h-3 w-3/4 bg-secondary/30 rounded-control ml-9" />
                 </div>
               ))}
             </div>
@@ -278,7 +278,7 @@ export function CommentSection({
 
           {/* Error Message */}
           {errorMsg && !isLoading && (
-            <div className="p-4 rounded-md border border-red-500/20 bg-red-500/5 text-red-500 text-xs font-mono mb-4">
+            <div className="p-4 rounded-md border border-destructive/20 bg-destructive-soft text-destructive text-caption font-mono mb-4">
               {errorMsg}
             </div>
           )}
@@ -287,7 +287,7 @@ export function CommentSection({
           {!isLoading && (comments?.length ?? 0) === 0 && (
             <div className="py-12 text-center text-muted-foreground">
               <p className="font-serif text-lg italic mb-1">Quiet in here...</p>
-              <p className="font-mono text-xs">
+              <p className="font-mono text-caption">
                 Be the first to leave a comment on this {targetType}!
               </p>
             </div>
@@ -315,7 +315,7 @@ export function CommentSection({
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
-                className="px-4 py-2 rounded border border-border bg-card hover:bg-secondary/20 font-mono text-xs font-medium text-foreground cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-control border border-border bg-card hover:bg-secondary/20 font-mono text-caption font-medium text-foreground cursor-pointer transition-colors"
               >
                 {isLoadingMore ? "Loading more..." : "Load more comments"}
               </button>

@@ -91,7 +91,7 @@ function ForgotPasswordComponent() {
           <h1 className="font-serif italic text-3xl tracking-[-0.03em] text-foreground">
             Forgot your password?
           </h1>
-          <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+          <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
             Enter the email address associated with your account, and we will
             dispatch a link to reset your credentials.
           </p>
@@ -100,10 +100,10 @@ function ForgotPasswordComponent() {
         {/* Status Notice */}
         {notice && (
           <div
-            className={`mb-6 p-3.5 border text-xs leading-relaxed ${
+            className={`mb-6 p-3.5 border text-caption leading-relaxed ${
               notice.type === 'success'
-                ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+                ? 'border-success/30 bg-success-soft text-success'
+                : 'border-destructive/30 bg-destructive-soft text-destructive'
             }`}
           >
             {notice.text}
@@ -114,7 +114,7 @@ function ForgotPasswordComponent() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="fp-email"
-              className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+              className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
             >
               Email Address
             </label>
@@ -126,14 +126,14 @@ function ForgotPasswordComponent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@domain.com"
-              className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+              className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting || cooldown > 0 || !email}
-            className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting
               ? 'Dispatching...'
@@ -143,7 +143,7 @@ function ForgotPasswordComponent() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-border/60 flex flex-col items-center gap-2 font-sans text-xs text-muted-foreground">
+        <div className="mt-8 pt-6 border-t border-border/60 flex flex-col items-center gap-2 font-sans text-caption text-muted-foreground">
           <div>
             Remember your credentials?{' '}
             <Link to="/login" className="text-primary hover:underline">

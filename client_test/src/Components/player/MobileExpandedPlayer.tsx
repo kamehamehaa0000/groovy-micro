@@ -357,14 +357,14 @@ export function MobileExpandedPlayer() {
             onClick={goToRelease}
             className="flex-1 min-w-0 text-center cursor-pointer group"
           >
-            <span className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground truncate group-hover:text-foreground transition-colors">
+            <span className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground truncate group-hover:text-foreground transition-colors">
               {contextTitle
                 ? 'Playing From'
                 : currentTrack.albumTitle
                   ? 'Playing From Album'
                   : 'Groovy Catalog'}
             </span>
-            <span className="block font-bold text-[13px] leading-tight text-foreground truncate mt-0.5 group-hover:underline">
+            <span className="block font-bold text-caption leading-tight text-foreground truncate mt-0.5 group-hover:underline">
               {contextTitle || currentTrack.albumTitle || 'Master Stream'}
             </span>
           </button>
@@ -482,7 +482,7 @@ export function MobileExpandedPlayer() {
               <HeartIconSVG
                 filled={isLiked}
                 className={`w-[clamp(22px,6.15vw,24px)] h-[clamp(22px,6.15vw,24px)] ${
-                  isLiked ? 'text-red-500 dark:text-red-400' : ''
+                  isLiked ? 'text-destructive' : ''
                 }`}
               />
             </button>
@@ -523,7 +523,7 @@ export function MobileExpandedPlayer() {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs font-mono text-muted-foreground -mt-1.5 tabular-nums">
+            <div className="flex items-center justify-between text-caption font-mono text-muted-foreground -mt-1.5 tabular-nums">
               <span>{formatTime(displayTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -644,7 +644,7 @@ export function MobileExpandedPlayer() {
                 <path d="M21 13v2a4 4 0 0 1-4 4H3" />
               </svg>
               {repeatMode === 'one' && (
-                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-primary text-background px-1 py-0.5 rounded-full">
+                <span className="absolute top-1.5 right-1 text-eyebrow leading-none font-mono font-bold bg-primary text-background px-1 py-0.5 rounded-full">
                   1
                 </span>
               )}
@@ -663,7 +663,7 @@ export function MobileExpandedPlayer() {
               }
               className={`w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
                 activeRoom
-                  ? 'text-emerald-500 bg-emerald-500/10'
+                  ? 'text-success bg-success-soft'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -708,46 +708,46 @@ export function MobileExpandedPlayer() {
           {/* LIVE JAM SESSION */}
           {activeRoom && (
             <div
-              className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-emerald-500/30 p-4 space-y-3 shadow-md`}
+              className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-success/30 p-4 space-y-3 shadow-md`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-success font-semibold">
                     Live Jam Active
                   </span>
                 </div>
-                <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control bg-success-soft text-success border border-success/20">
                   {activeRoom.privacy.replace('_', ' ')}
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-muted border border-border">
                 <div className="min-w-0">
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                     Invite Code
                   </span>
-                  <span className="font-mono font-bold text-sm text-foreground tracking-wider">
+                  <span className="font-mono font-bold text-body text-foreground tracking-wider">
                     {activeRoom.roomCode}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyJamLink}
-                  className="min-h-9 px-3 rounded-md text-[11px] font-eyebrow uppercase tracking-wider font-semibold border border-border hover:border-emerald-500 bg-card text-foreground transition-colors cursor-pointer"
+                  className="min-h-9 px-3 rounded-md text-eyebrow font-eyebrow uppercase tracking-wider font-semibold border border-border hover:border-success bg-card text-foreground transition-colors cursor-pointer"
                 >
                   {jamCopied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-foreground text-caption">
                   DJ:{' '}
                   <strong className="text-foreground font-semibold">
                     {isHost ? 'You (Host)' : activeRoom.hostName}
                   </strong>
                 </span>
-                <span className="text-xs font-mono text-muted-foreground">
+                <span className="text-caption font-mono text-muted-foreground">
                   {members.length}{' '}
                   {members.length === 1 ? 'listener' : 'listeners'}
                 </span>
@@ -759,7 +759,7 @@ export function MobileExpandedPlayer() {
                     <div
                       key={m.userId}
                       title={`${m.displayName}${m.role === 'HOST' ? ' (DJ)' : ''}`}
-                      className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-xs shrink-0 overflow-hidden"
+                      className="w-8 h-8 rounded-full bg-success-soft border border-success/30 text-success flex items-center justify-center font-mono font-bold text-caption shrink-0 overflow-hidden"
                     >
                       {m.avatarUrl ? (
                         <img
@@ -780,14 +780,14 @@ export function MobileExpandedPlayer() {
                   to="/jam/$code"
                   params={{ code: activeRoom.roomCode }}
                   onClick={closePlayer}
-                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-card font-eyebrow text-[11px] uppercase tracking-wider text-foreground font-semibold transition-colors"
+                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-card font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-semibold transition-colors"
                 >
                   Jam Page &rarr;
                 </Link>
                 <button
                   type="button"
                   onClick={leaveRoom}
-                  className="min-h-10 px-4 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-eyebrow text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  className="min-h-10 px-4 rounded-lg border border-destructive/30 bg-destructive-soft hover:bg-destructive/20 text-destructive font-eyebrow text-eyebrow uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                 >
                   Leave
                 </button>
@@ -801,7 +801,7 @@ export function MobileExpandedPlayer() {
               className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold">
                   About The Artist
                 </span>
                 <button
@@ -817,7 +817,7 @@ export function MobileExpandedPlayer() {
                       closePlayer,
                     )
                   }
-                  className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
+                  className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Profile &rarr;
                 </button>
@@ -846,7 +846,7 @@ export function MobileExpandedPlayer() {
               <div className="flex items-center justify-between gap-3 pt-1">
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base text-foreground truncate">
+                    <h3 className="font-bold text-title text-foreground truncate">
                       {artistDetails.stageName}
                     </h3>
                     {artistDetails.verified && (
@@ -854,7 +854,7 @@ export function MobileExpandedPlayer() {
                     )}
                   </div>
                   {artistDetails.monthlyListeners !== undefined && (
-                    <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
+                    <p className="font-mono text-eyebrow text-muted-foreground mt-0.5">
                       {artistDetails.monthlyListeners.toLocaleString()} monthly
                       listeners
                     </p>
@@ -865,9 +865,9 @@ export function MobileExpandedPlayer() {
                   type="button"
                   onClick={handleToggleFollow}
                   disabled={isFollowLoading}
-                  className={`min-h-9 font-eyebrow text-[11px] uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                  className={`min-h-9 font-eyebrow text-eyebrow uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                     isFollowing
-                      ? 'border-border bg-background text-foreground hover:border-red-400 hover:text-red-500'
+                      ? 'border-border bg-background text-foreground hover:border-destructive hover:text-destructive'
                       : 'border-foreground bg-foreground text-background hover:opacity-90'
                   }`}
                 >
@@ -880,7 +880,7 @@ export function MobileExpandedPlayer() {
               </div>
 
               {artistDetails.bio && (
-                <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">
+                <p className="text-caption text-muted-foreground leading-relaxed line-clamp-3">
                   {artistDetails.bio}
                 </p>
               )}
@@ -892,7 +892,7 @@ export function MobileExpandedPlayer() {
             <div
               className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
-              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold block">
                 Featured &amp; Collaborators
               </span>
 
@@ -913,7 +913,7 @@ export function MobileExpandedPlayer() {
                           onClick={() =>
                             navigateToArtist(collab, navigate, closePlayer)
                           }
-                          className="w-10 h-10 rounded-full bg-primary/10 text-primary font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20 active:scale-95 transition-transform cursor-pointer"
+                          className="w-10 h-10 rounded-full bg-primary/10 text-primary font-mono font-bold text-caption flex items-center justify-center shrink-0 border border-primary/20 active:scale-95 transition-transform cursor-pointer"
                         >
                           {collab.name.slice(0, 2).toUpperCase()}
                         </button>
@@ -924,7 +924,7 @@ export function MobileExpandedPlayer() {
                               onClick={() =>
                                 navigateToArtist(collab, navigate, closePlayer)
                               }
-                              className="font-bold text-[13px] text-foreground truncate hover:underline cursor-pointer text-left"
+                              className="font-bold text-caption text-foreground truncate hover:underline cursor-pointer text-left"
                             >
                               {collab.name}
                             </button>
@@ -932,7 +932,7 @@ export function MobileExpandedPlayer() {
                               <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                             )}
                           </div>
-                          <span className="font-eyebrow text-[11px] text-muted-foreground block uppercase tracking-wider truncate">
+                          <span className="font-eyebrow text-eyebrow text-muted-foreground block uppercase tracking-wider truncate">
                             {collab.role}
                           </span>
                         </div>
@@ -942,9 +942,9 @@ export function MobileExpandedPlayer() {
                         <button
                           type="button"
                           onClick={() => handleToggleArtistFollow(collab.id!)}
-                          className={`min-h-9 font-eyebrow text-[11px] uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                          className={`min-h-9 font-eyebrow text-eyebrow uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                             isCollabFollowing
-                              ? 'border-border bg-background text-foreground hover:text-red-500 hover:border-red-400'
+                              ? 'border-border bg-background text-foreground hover:text-destructive hover:border-destructive'
                               : 'border-foreground bg-foreground text-background hover:opacity-90'
                           }`}
                         >
@@ -964,13 +964,13 @@ export function MobileExpandedPlayer() {
               className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-2.5 shadow-sm`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold">
                   Next In Queue
                 </span>
                 <button
                   type="button"
                   onClick={toggleQueueDrawer}
-                  className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
+                  className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Open Queue
                 </button>
@@ -985,16 +985,16 @@ export function MobileExpandedPlayer() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-muted-foreground">
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-body text-muted-foreground">
                       ♪
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-sm text-foreground truncate">
+                  <div className="font-semibold text-body text-foreground truncate">
                     {nextTrack.title}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  <div className="text-caption text-muted-foreground truncate">
                     {nextTrack.artistName}
                   </div>
                 </div>
@@ -1004,9 +1004,9 @@ export function MobileExpandedPlayer() {
 
           {/* CREDITS & SPECS */}
           <div
-            className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-1 text-[13px] shadow-sm`}
+            className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-1 text-caption shadow-sm`}
           >
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block mb-2">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold block mb-2">
               Song Credits &amp; Specs
             </span>
 
@@ -1074,7 +1074,7 @@ export function MobileExpandedPlayer() {
 
             <div className="flex items-center justify-between gap-4 py-1.5">
               <span className="text-muted-foreground shrink-0">Audio Engine</span>
-              <span className="font-eyebrow text-[11px] text-primary font-bold uppercase tracking-wider text-right">
+              <span className="font-eyebrow text-eyebrow text-primary font-bold uppercase tracking-wider text-right">
                 {currentTrack.hlsManifestUrl
                   ? 'Hi-Res HLS Stream'
                   : 'Lossless FLAC Master'}

@@ -123,7 +123,7 @@ function RegisterComponent() {
           </Link>
           <Link
             to="/"
-            className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
@@ -133,13 +133,13 @@ function RegisterComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-4">
+          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
             A quiet space in the catalog.
           </h1>
-          <p className="font-sans text-sm leading-[1.7] text-muted-foreground max-w-sm">
+          <p className="font-sans text-body leading-[1.7] text-muted-foreground max-w-sm">
             Join the collective to access our full fidelity catalog, preserved
             experience, and dedicated personal archives.
           </p>
@@ -147,7 +147,7 @@ function RegisterComponent() {
         {/* Decorative Geometric Vinyl Record SVG Art */}
         <SvgArtworkSpiral />
 
-        <div className="flex justify-between items-center font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground relative z-10">
+        <div className="flex justify-between items-center font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground relative z-10">
           <span>© 2026 Groovy </span>
           <span>Est. MMXXVI</span>
         </div>
@@ -160,7 +160,7 @@ function RegisterComponent() {
           <div className="lg:hidden mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
+              className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 &larr;
@@ -175,34 +175,34 @@ function RegisterComponent() {
               <button
                 type="button"
                 onClick={() => setRegisteredEmail(null)}
-                className="self-start font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
+                className="self-start font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
               >
                 &larr; Back to form
               </button>
 
-              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+              <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
                 Correspondence · Account
               </div>
               <h2 className="font-serif italic font-medium text-3xl text-foreground mb-3 leading-tight">
                 Check your inbox
               </h2>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-6">
+              <p className="text-caption text-muted-foreground leading-relaxed mb-6">
                 We've dispatched a verification link to{' '}
-                <strong className="text-foreground font-mono text-[11px] block mt-1.5 p-2 bg-muted border border-border">
+                <strong className="text-foreground font-mono text-eyebrow block mt-1.5 p-2 bg-muted border border-border">
                   {registeredEmail}
                 </strong>
               </p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-6">
+              <p className="text-caption text-muted-foreground leading-relaxed mb-6">
                 Please follow the correspondence link in your message to
                 activate your membership before entering the Maison.
               </p>
 
               {resendNotice && (
                 <div
-                  className={`mb-6 p-3 border text-xs ${
+                  className={`mb-6 p-3 border text-caption ${
                     resendNotice.type === 'success'
-                      ? 'border-emerald-800/30 bg-emerald-900/10 text-emerald-600 dark:text-emerald-400'
-                      : 'border-red-800/30 bg-red-900/10 text-red-600 dark:text-red-400'
+                      ? 'border-success/30 bg-success-soft text-success'
+                      : 'border-destructive/30 bg-destructive-soft text-destructive'
                   }`}
                 >
                   {resendNotice.text}
@@ -213,7 +213,7 @@ function RegisterComponent() {
                 <Link
                   to="/login"
                   search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground"
+                  className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground"
                 >
                   Go to Sign In &rarr;
                 </Link>
@@ -222,7 +222,7 @@ function RegisterComponent() {
                   type="button"
                   onClick={handleResend}
                   disabled={isResending || cooldown > 0}
-                  className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-eyebrow text-[11px] uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+                  className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-eyebrow text-eyebrow uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {cooldown > 0
                     ? `Resend available in ${cooldown}s`
@@ -232,7 +232,7 @@ function RegisterComponent() {
                 </button>
               </div>
 
-              <div className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground text-center mt-6">
+              <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground text-center mt-6">
                 Wrong address?{' '}
                 <button
                   type="button"
@@ -251,11 +251,11 @@ function RegisterComponent() {
                 <Link
                   to="/login"
                   search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+                  className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Sign In
                 </Link>
-                <span className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
+                <span className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
                   Create Account
                 </span>
               </div>
@@ -263,14 +263,14 @@ function RegisterComponent() {
               <h2 className="font-serif italic font-medium text-2xl text-foreground mb-1.5">
                 Join the Maison
               </h2>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-7">
+              <p className="text-caption text-muted-foreground leading-relaxed mb-7">
                 A quiet, curated corner of the catalog — reserved once you're
                 in.
               </p>
 
               {/* Error Notice */}
               {error && (
-                <div className="mb-6 p-3.5 border border-red-800/30 bg-red-900/10 text-xs text-red-600 dark:text-red-400">
+                <div className="mb-6 p-3.5 border border-destructive/30 bg-destructive-soft text-caption text-destructive">
                   {error}
                 </div>
               )}
@@ -278,7 +278,7 @@ function RegisterComponent() {
               {/* Google OAuth Button */}
               <a
                 href="/api/v1/auth/google"
-                className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+                className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-caption font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-raised"
               >
                 <GoogleIcon />
                 Continue with Google
@@ -286,7 +286,7 @@ function RegisterComponent() {
 
               {/* Divider */}
               <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
-                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                   Or with credentials
                 </span>
               </div>
@@ -295,7 +295,7 @@ function RegisterComponent() {
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-name"
-                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                   >
                     Display Name
                   </label>
@@ -307,14 +307,14 @@ function RegisterComponent() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="How should we address you"
-                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-email"
-                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                   >
                     Email Address
                   </label>
@@ -326,14 +326,14 @@ function RegisterComponent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@domain.com"
-                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
+                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-password"
-                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
                   >
                     Password
                   </label>
@@ -347,17 +347,17 @@ function RegisterComponent() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
-                      className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
+                      className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-2.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="absolute right-0 top-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">
+                  <p className="text-eyebrow text-muted-foreground mt-1">
                     Require 1 uppercase, 1 lowercase, 1 number, min 8 chars.
                   </p>
                 </div>
@@ -365,13 +365,13 @@ function RegisterComponent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+                  className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Account'}
                 </button>
               </form>
 
-              <div className="font-sans text-xs text-muted-foreground text-center mt-7">
+              <div className="font-sans text-caption text-muted-foreground text-center mt-7">
                 Already a member?{' '}
                 <Link
                   to="/login"
@@ -382,7 +382,7 @@ function RegisterComponent() {
                 </Link>
               </div>
 
-              <p className="font-sans text-[11px] text-muted-foreground/80 text-center mt-5 leading-relaxed">
+              <p className="font-sans text-eyebrow text-muted-foreground/80 text-center mt-5 leading-relaxed">
                 By creating an account, you agree to the Maison terms of access
                 and privacy charter.
               </p>

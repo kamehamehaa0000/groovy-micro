@@ -105,7 +105,7 @@ function AdminVerificationDeskComponent() {
 
   if (isAuthLoading) {
     return (
-      <div className="py-32 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+      <div className="py-32 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
         Checking administrative clearance...
       </div>
     )
@@ -114,19 +114,19 @@ function AdminVerificationDeskComponent() {
   if (user?.role !== 'ADMIN') {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-eyebrow text-xs uppercase tracking-widest text-red-500 block mb-2">
+        <span className="font-eyebrow text-caption uppercase tracking-widest text-destructive block mb-2">
           403 Access Restricted
         </span>
         <h1 className="font-serif italic text-3xl text-foreground">
           Administrative Desk
         </h1>
-        <p className="font-sans text-xs text-muted-foreground mt-3 leading-relaxed">
+        <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
           Access to artist identity verification and credential audits requires
           administrative clearance.
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
+          className="inline-block mt-6 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
         >
           &larr; Return to Catalog
         </Link>
@@ -140,13 +140,13 @@ function AdminVerificationDeskComponent() {
       <div className="border-b border-border pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-1">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
               Groovy Administration
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Artist Verification Desk
             </h1>
-            <p className="font-sans text-xs text-muted-foreground mt-1">
+            <p className="font-sans text-caption text-muted-foreground mt-1">
               Review artist pitch materials, confirm external platform presence,
               and issue verified badges.
             </p>
@@ -154,14 +154,14 @@ function AdminVerificationDeskComponent() {
 
           <Link
             to="/studio"
-            className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
           >
             My Studio &rarr;
           </Link>
         </div>
 
         {/* Admin Desk Navigation Tabs */}
-        <div className="mt-6 flex items-center gap-6 border-b border-border pb-0 font-mono text-xs">
+        <div className="mt-6 flex items-center gap-6 border-b border-border pb-0 font-mono text-caption">
           <Link
             to="/admin/verification"
             className="pb-3 border-b-2 border-foreground text-foreground font-semibold tracking-wider uppercase transition-colors"
@@ -178,19 +178,19 @@ function AdminVerificationDeskComponent() {
 
         {/* Action Alerts */}
         {actionSuccess && (
-          <div className="mt-4 p-3 border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200 font-mono text-xs">
+          <div className="mt-4 p-3 border border-success/40 bg-success-soft text-success font-mono text-caption">
             {actionSuccess}
           </div>
         )}
         {actionError && (
-          <div className="mt-4 p-3 border border-red-300 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 font-mono text-xs">
+          <div className="mt-4 p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption">
             {actionError}
           </div>
         )}
 
         {/* Filter Tabs & Search Bar */}
         <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 border-b sm:border-b-0 border-border pb-2 sm:pb-0 font-mono text-xs">
+          <div className="flex items-center gap-1 border-b sm:border-b-0 border-border pb-2 sm:pb-0 font-mono text-caption">
             {(['PENDING', 'VERIFIED', 'REJECTED', 'ALL'] as const).map(
               (tab) => (
                 <button
@@ -215,7 +215,7 @@ function AdminVerificationDeskComponent() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter by artist, slug, or email..."
-              className="w-full font-mono text-xs py-1.5 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground"
+              className="w-full font-mono text-caption py-1.5 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground"
             />
           </div>
         </div>
@@ -223,7 +223,7 @@ function AdminVerificationDeskComponent() {
 
       {/* Applications List */}
       {isLoading ? (
-        <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+        <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
           Loading applications...
         </div>
       ) : applications.length === 0 ? (
@@ -231,7 +231,7 @@ function AdminVerificationDeskComponent() {
           <p className="font-serif italic text-lg text-foreground">
             No applications in this category
           </p>
-          <p className="font-mono text-xs text-muted-foreground mt-1">
+          <p className="font-mono text-caption text-muted-foreground mt-1">
             Status: {activeTab}
           </p>
         </div>
@@ -244,7 +244,7 @@ function AdminVerificationDeskComponent() {
             return (
               <div
                 key={app.id}
-                className="p-6 border border-border bg-card shadow-2xs flex flex-col gap-4"
+                className="p-6 border border-border bg-card shadow-raised flex flex-col gap-4"
               >
                 {/* Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border-soft">
@@ -253,7 +253,7 @@ function AdminVerificationDeskComponent() {
                       <Link
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: app.slug }}
-                        className="font-serif italic text-xl text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                        className="font-serif italic text-heading text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
                       >
                         <span>{app.stageName}</span>
                         <ExternalLinkSVG className="w-3.5 h-3.5 text-muted-foreground" />
@@ -262,7 +262,7 @@ function AdminVerificationDeskComponent() {
                         <VerifiedBadgeSVG className="w-4 h-4 text-primary" />
                       )}
                     </div>
-                    <div className="font-mono text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                    <div className="font-mono text-eyebrow text-muted-foreground flex items-center gap-2 mt-0.5">
                       <span>@{app.slug}</span>
                       <span>•</span>
                       <span>Owner: {app.ownerEmail}</span>
@@ -271,13 +271,13 @@ function AdminVerificationDeskComponent() {
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`font-eyebrow text-[11px] uppercase tracking-wider py-1 px-2.5 border ${
+                      className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border ${
                         app.verificationStatus === 'VERIFIED'
                           ? 'border-primary/30 bg-primary/10 text-primary font-semibold'
                           : app.verificationStatus === 'PENDING'
-                            ? 'border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold'
+                            ? 'border-warning/40 bg-warning-soft text-warning font-semibold'
                             : app.verificationStatus === 'REJECTED'
-                              ? 'border-red-400/40 bg-red-500/10 text-red-600 dark:text-red-400'
+                              ? 'border-destructive/40 bg-destructive-soft text-destructive'
                               : 'border-border text-muted-foreground'
                       }`}
                     >
@@ -289,10 +289,10 @@ function AdminVerificationDeskComponent() {
                 {/* Pitch Statement */}
                 {details?.message && (
                   <div>
-                    <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground block mb-1">
+                    <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-1">
                       Artist Pitch / Background
                     </span>
-                    <p className="font-sans text-xs text-foreground leading-relaxed whitespace-pre-line p-3 border border-border-soft bg-background">
+                    <p className="font-sans text-caption text-foreground leading-relaxed whitespace-pre-line p-3 border border-border-soft bg-background">
                       {details.message}
                     </p>
                   </div>
@@ -300,7 +300,7 @@ function AdminVerificationDeskComponent() {
 
                 {/* Contact Telemetry */}
                 {(details?.contactEmail || details?.contactPhone) && (
-                  <div className="flex items-center gap-4 font-mono text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-4 font-mono text-eyebrow text-muted-foreground">
                     {details.contactEmail && (
                       <span>
                         Email:{' '}
@@ -323,7 +323,7 @@ function AdminVerificationDeskComponent() {
                 {/* Proof Links */}
                 {details?.links && details.links.length > 0 && (
                   <div>
-                    <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground block mb-1.5">
+                    <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-1.5">
                       Proof &amp; Verification Links ({details.links.length})
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -333,7 +333,7 @@ function AdminVerificationDeskComponent() {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-[11px] py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground flex items-center gap-1.5 max-w-sm truncate"
+                          className="font-mono text-eyebrow py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground flex items-center gap-1.5 max-w-sm truncate"
                         >
                           <span className="truncate">{link}</span>
                           <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
@@ -345,7 +345,7 @@ function AdminVerificationDeskComponent() {
 
                 {/* Stored Rejection Reason if any */}
                 {app.rejectionReason && (
-                  <div className="p-3 border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/10 font-mono text-xs text-red-700 dark:text-red-300">
+                  <div className="p-3 border border-destructive/40 bg-destructive-soft font-mono text-caption text-destructive">
                     <span className="font-semibold">
                       Recorded Rejection Reason:
                     </span>{' '}
@@ -355,7 +355,7 @@ function AdminVerificationDeskComponent() {
 
                 {/* Admin Actions Bar */}
                 <div className="pt-3 border-t border-border-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                     Registered:{' '}
                     {new Date(app.createdAt).toLocaleString(undefined, {
                       dateStyle: 'medium',
@@ -369,7 +369,7 @@ function AdminVerificationDeskComponent() {
                         type="button"
                         disabled={isApprovingId === app.id}
                         onClick={() => handleApprove(app.id)}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
                       >
                         {isApprovingId === app.id
                           ? 'Approving...'
@@ -384,7 +384,7 @@ function AdminVerificationDeskComponent() {
                           setRejectingArtistId(app.id)
                           setRejectReason('')
                         }}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border text-red-600 hover:border-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-destructive hover:border-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
                       >
                         {app.verificationStatus === 'VERIFIED'
                           ? 'Revoke / Reject'
@@ -396,8 +396,8 @@ function AdminVerificationDeskComponent() {
 
                 {/* Inline Rejection Reason Form */}
                 {isRejectingThis && (
-                  <div className="p-4 border border-red-300 bg-red-50/30 dark:bg-red-950/10 flex flex-col gap-3">
-                    <label className="font-eyebrow text-[11px] uppercase tracking-wider text-red-700 dark:text-red-300 block">
+                  <div className="p-4 border border-destructive/40 bg-destructive-soft flex flex-col gap-3">
+                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-destructive block">
                       Provide Required Rejection Reason (Visible to Artist):
                     </label>
                     <textarea
@@ -406,21 +406,21 @@ function AdminVerificationDeskComponent() {
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
                       placeholder="e.g. Please provide a verified Spotify or Apple Music profile link with your active catalog."
-                      className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
+                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                     />
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         disabled={isRejecting || rejectReason.trim().length < 5}
                         onClick={handleConfirmReject}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-4 bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-4 bg-destructive text-destructive-foreground hover:bg-destructive/20 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setRejectingArtistId(null)}
-                        className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                       >
                         Cancel
                       </button>

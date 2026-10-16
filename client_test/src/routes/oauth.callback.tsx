@@ -69,7 +69,7 @@ function OAuthCallbackComponent() {
           <path d="M12 2a10 10 0 0 1 10 10" />
         </svg>
       </div>
-      <p className="font-eyebrow text-xs uppercase tracking-widest text-muted-foreground">
+      <p className="font-eyebrow text-caption uppercase tracking-widest text-muted-foreground">
         {statusText}
       </p>
     </div>
