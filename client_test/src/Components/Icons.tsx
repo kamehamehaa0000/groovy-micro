@@ -35,7 +35,7 @@ export const SvgArtworkSpiral = () => (
     <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
       <g
         stroke="currentColor"
-        className="text-stone dark:text-stone/40"
+        className="text-secondary dark:text-secondary/40"
         strokeWidth="0.5"
       >
         {[8, 15, 22, 29, 36, 43, 50].map((r) => (
@@ -48,7 +48,7 @@ export const SvgArtworkSpiral = () => (
         x2="100"
         y2="100"
         stroke="currentColor"
-        className="text-stone dark:text-stone/40"
+        className="text-secondary dark:text-secondary/40"
         strokeWidth="0.35"
         opacity="0.4"
       />
@@ -58,7 +58,7 @@ export const SvgArtworkSpiral = () => (
         x2="0"
         y2="100"
         stroke="currentColor"
-        className="text-stone dark:text-stone/40"
+        className="text-secondary dark:text-secondary/40"
         strokeWidth="0.35"
         opacity="0.4"
       />
@@ -69,7 +69,7 @@ export const SvgArtworkSpiral = () => (
 export const SpiralCoverArtBig = ({ i }: { i: number }) => (
   <svg
     viewBox="0 0 100 100"
-    className="w-24 h-24 text-stone dark:text-stone/30"
+    className="w-24 h-24 text-secondary dark:text-secondary/30"
     fill="none"
     stroke="currentColor"
     strokeWidth="0.5"

@@ -107,17 +107,17 @@ export function AddToPlaylistModal() {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={closeModal}
     >
       <div
-        className="w-full max-w-sm border border-line bg-panel p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[80vh]"
+        className="w-full max-w-sm border border-border bg-card p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
+        <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
           <div>
-            <h4 className="font-serif italic font-medium text-lg text-ink">Add to Playlist</h4>
-            <p className="font-mono text-[11px] text-ink-soft truncate max-w-[220px]">
+            <h4 className="font-serif italic font-medium text-lg text-foreground">Add to Playlist</h4>
+            <p className="font-mono text-[11px] text-muted-foreground truncate max-w-[220px]">
               {track.title}
             </p>
             {isPersonalCut && (
@@ -129,21 +129,21 @@ export function AddToPlaylistModal() {
           <button
             type="button"
             onClick={closeModal}
-            className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer p-1"
+            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer p-1"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-line/40 my-2">
+        <div className="flex-1 overflow-y-auto divide-y divide-border/40 my-2">
           {isLoadingPlaylists ? (
-            <div className="py-8 text-center font-mono text-xs text-ink-soft">
+            <div className="py-8 text-center font-mono text-xs text-muted-foreground">
               Loading playlists...
             </div>
           ) : eligiblePlaylists.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="font-serif italic text-sm text-ink-soft">
+              <p className="font-serif italic text-sm text-muted-foreground">
                 {isPersonalCut
                   ? "No private playlists found. Create a private playlist for your personal cuts."
                   : "No playlists found."}
@@ -155,7 +155,7 @@ export function AddToPlaylistModal() {
                   closeModal();
                   openCreatePlaylistModal(trackIdToAdd);
                 }}
-                className="mt-3 font-mono text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
+                className="mt-3 font-mono text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
               >
                 Create Playlist
               </button>
@@ -168,17 +168,17 @@ export function AddToPlaylistModal() {
                   type="button"
                   disabled={addingToPlaylistId === pl.id}
                   onClick={() => handleAddSongToPlaylist(pl)}
-                  className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-canvas-deep transition-colors text-left cursor-pointer group"
+                  className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-muted transition-colors text-left cursor-pointer group"
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <p className="font-medium text-xs text-ink group-hover:text-primary truncate">
+                    <p className="font-medium text-xs text-foreground group-hover:text-primary truncate">
                       {pl.title}
                     </p>
-                    <p className="font-mono text-[11px] text-ink-soft">
+                    <p className="font-mono text-[11px] text-muted-foreground">
                       {pl.savesCount ?? 0} saves &bull; {pl.tracksCount ?? 0} tracks
                     </p>
                   </div>
-                  <span className="font-mono text-[11px] text-ink-soft group-hover:text-ink shrink-0">
+                  <span className="font-mono text-[11px] text-muted-foreground group-hover:text-foreground shrink-0">
                     {addingToPlaylistId === pl.id ? "Adding..." : "+ Add"}
                   </span>
                 </button>
@@ -191,7 +191,7 @@ export function AddToPlaylistModal() {
                     closeModal();
                     openCreatePlaylistModal(trackIdToAdd);
                   }}
-                  className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-line bg-canvas hover:border-ink text-ink cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
+                  className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
                 >
                   <span>+</span>
                   <span>New Playlist</span>
@@ -203,7 +203,7 @@ export function AddToPlaylistModal() {
 
         {/* Visual Feedback Toast */}
         {toastMessage && (
-          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
             ✓ {toastMessage}
           </div>
         )}

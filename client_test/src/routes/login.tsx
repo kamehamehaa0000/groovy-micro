@@ -119,17 +119,17 @@ function LoginComponent() {
   }
 
   return (
-    <div className="rounded-lg  w-full max-w-5xl mx-auto my-4 border border-line bg-canvas shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-160 overflow-hidden">
+    <div className="rounded-lg  w-full max-w-5xl mx-auto my-4 border border-border bg-background shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-160 overflow-hidden">
       {/* ===================== BRAND PANEL ===================== */}
-      <div className="hidden  lg:flex flex-col justify-between p-12 bg-canvas-deep border-r border-line relative overflow-hidden select-none">
+      <div className="hidden  lg:flex flex-col justify-between p-12 bg-muted border-r border-border relative overflow-hidden select-none">
         <div className="flex items-center justify-between z-10">
           <Link
             to="/"
-            className="font-serif italic text-2xl text-ink hover:opacity-80 transition-opacity"
+            className="font-serif italic text-2xl text-foreground hover:opacity-80 transition-opacity"
           >
             Groovy
           </Link>
-          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors flex items-center gap-1.5 group">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group">
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
             </span>
@@ -141,10 +141,10 @@ function LoginComponent() {
           <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
-          <h1 className="font-serif italic text-4xl text-ink leading-[1.1] mb-4 font-normal">
+          <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
             The Collective keeps a seat for you.
           </h1>
-          <p className="font-sans text-sm leading-[1.7] text-ink-soft max-w-sm">
+          <p className="font-sans text-sm leading-[1.7] text-muted-foreground max-w-sm">
             A private catalog of unhurried, perfect music — kept, curated, and
             reserved for members. Sign in to pick up where the record left off.
           </p>
@@ -153,7 +153,7 @@ function LoginComponent() {
         {/* Decorative Geometric Vinyl Record SVG Art */}
         <SvgArtworkSpiral />
 
-        <div className="flex justify-between items-center font-mono text-[11px] uppercase tracking-widest text-ink-soft relative z-10">
+        <div className="flex justify-between items-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground relative z-10">
           <span>© 2026 Groovy </span>
           <span>Est. MMXXVI</span>
         </div>
@@ -166,7 +166,7 @@ function LoginComponent() {
           <div className="lg:hidden mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 &larr;
@@ -176,23 +176,23 @@ function LoginComponent() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-7 mb-8 border-b border-line">
-            <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-ink font-medium">
+          <div className="flex gap-7 mb-8 border-b border-border">
+            <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
               Sign In
             </span>
             <Link
               to="/register"
               search={redirectParam ? { redirect: redirectParam } : undefined}
-              className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors"
+              className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
             >
               Create Account
             </Link>
           </div>
 
-          <h2 className="font-serif italic font-medium text-2xl text-ink mb-1.5">
+          <h2 className="font-serif italic font-medium text-2xl text-foreground mb-1.5">
             Welcome back
           </h2>
-          <p className="text-xs text-ink-soft leading-relaxed mb-7">
+          <p className="text-xs text-muted-foreground leading-relaxed mb-7">
             Enter your <span className="italic">groove</span> with the account
             you keep on file.
           </p>
@@ -203,7 +203,7 @@ function LoginComponent() {
               <p>{error}</p>
               {isUnverifiedError && (
                 <div className="mt-3 pt-3 border-t border-red-800/20 flex items-center justify-between">
-                  <span className="text-[11px] text-ink-soft">
+                  <span className="text-[11px] text-muted-foreground">
                     Didn't receive the email?
                   </span>
                   <button
@@ -243,15 +243,15 @@ function LoginComponent() {
               const destination = resolveRedirectTarget(redirectParam)
               saveAuthRedirect(destination)
             }}
-            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-line bg-panel hover:bg-canvas-deep text-ink text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
+            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-xs font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-2xs"
           >
             <GoogleIcon />
             Continue with Google
           </a>
 
           {/* Divider */}
-          <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-line after:content-[''] after:flex-1 after:h-px after:bg-line">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+          <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
               Or with email
             </span>
           </div>
@@ -261,7 +261,7 @@ function LoginComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="si-email"
-                className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
+                className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
               >
                 Email Address
               </label>
@@ -273,7 +273,7 @@ function LoginComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
               />
             </div>
 
@@ -281,7 +281,7 @@ function LoginComponent() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="si-password"
-                  className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
+                  className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
                 >
                   Password
                 </label>
@@ -301,12 +301,12 @@ function LoginComponent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 pr-12 focus:border-ink placeholder:text-stone transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-2.5 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                  className="absolute right-0 top-2.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -316,13 +316,13 @@ function LoginComponent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 rounded-lg w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-50 cursor-pointer"
+              className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Entering...' : 'Enter the Maison'}
             </button>
           </form>
 
-          <div className="font-sans text-xs text-ink-soft text-center mt-7">
+          <div className="font-sans text-xs text-muted-foreground text-center mt-7">
             New here?{' '}
             <Link
               to="/register"

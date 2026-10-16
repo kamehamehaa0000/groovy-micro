@@ -5,84 +5,101 @@
 /* ============================================================================
    GROOVY — THEME
    ----------------------------------------------------------------------------
-   Layer 1 of 2.  To re-skin the app, edit THIS block only: replace the values
-   in `:root` (light) and `.dark` (dark). Every Tailwind utility and every
-   component reads from here, so nothing else needs to change.
+   Token vocabulary follows **shadcn/ui** so themes are portable: a palette
+   exported for shadcn (tweakcn.com, the shadcn registry, …) can be dropped
+   straight in. Values that shadcn does not define are marked `extension`.
 
-   Layer 2 is the `@theme inline` block further down, which maps these raw
-   variables onto Tailwind utilities (bg-canvas, text-ink, …). You only touch
-   it when you add a brand-new token.
+   Layer 1 of 2 — the values. To re-skin the whole app, edit ONLY `:root`
+   (light) and `.dark` (dark) below.
+
+   Layer 2 (`@theme inline`, further down) maps these variables onto Tailwind
+   utilities (bg-background, text-foreground, border-border, …). You only touch
+   it when adding a new token.
 
    Naming rule: tokens are named for their ROLE, never their hue.
-   ("primary", not "blue" — a hue name lies the instant the theme changes hue.)
-
-   Rules of voice ("hybrid editorial"):
-     - Fraunces  -> page display headings only
-     - Inter     -> all body + UI text
-     - IBM Plex  -> eyebrow labels + numerals/timestamps only
+   Voice: Fraunces (display) · Inter (body/UI) · IBM Plex Mono (eyebrows only).
    ========================================================================= */
 :root {
-  /* surfaces */
-  --canvas: #faf8f3;
-  --canvas-deep: #f1ece1;
-  --panel: #ffffff;
+  /* surfaces + text */
+  --background: #faf8f3;
+  --foreground: #17160f;
 
-  /* text */
-  --ink: #17160f;
-  --ink-soft: #79766d;
+  --card: #ffffff;
+  --card-foreground: #17160f;
 
-  /* neutral */
-  --stone: #d8d2c2;
+  --popover: #ffffff;
+  --popover-foreground: #17160f;
 
   /* brand accent — the single highlight colour */
   --primary: #1b5fa6;
-  --primary-strong: #123d6b;
+  --primary-strong: #123d6b; /* extension — pressed / hover */
   --primary-foreground: #faf8f3; /* text/icons placed ON --primary */
 
-  /* lines */
-  --line: rgba(23, 22, 15, 0.12);
-  --line-soft: rgba(23, 22, 15, 0.07);
+  /* neutral fills */
+  --secondary: #d8d2c2;
+  --secondary-foreground: #17160f;
+  --muted: #f1ece1;
+  --muted-foreground: #79766d;
+  --accent: #d8d2c2; /* subtle hover/selected surface */
+  --accent-foreground: #17160f;
 
-  /* semantic state (declared once, so raw red/green/amber stop leaking) */
+  /* destructive */
+  --destructive: #dc2626;
+  --destructive-soft: rgba(220, 38, 38, 0.12); /* extension — tinted fill */
+  --destructive-foreground: #ffffff;
+
+  /* lines */
+  --border: rgba(23, 22, 15, 0.12);
+  --border-soft: rgba(23, 22, 15, 0.07); /* extension — faint divider */
+  --input: rgba(23, 22, 15, 0.12);
+  --ring: #1b5fa6;
+
+  /* extensions — state shadcn does not ship */
   --success: #1ed760;
   --success-soft: rgba(30, 215, 96, 0.14);
-  --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.12);
-  --danger-foreground: #ffffff; /* text/icons placed ON --danger */
   --warning: #d97706;
   --warning-soft: rgba(217, 119, 6, 0.14);
-
-  /* overlay */
   --scrim: rgba(23, 22, 15, 0.45);
+
+  --radius: 0.5rem;
 }
 
 .dark {
-  --canvas: #171813;
-  --canvas-deep: #1c1d17;
-  --panel: #1c1d17;
+  --background: #171813;
+  --foreground: #f4f3eb;
 
-  --ink: #f4f3eb;
-  --ink-soft: #9a9a8e;
+  --card: #1c1d17;
+  --card-foreground: #f4f3eb;
 
-  --stone: #25261f;
+  --popover: #1c1d17;
+  --popover-foreground: #f4f3eb;
 
-  /* violet, not neon lime: the lime was too hot as a button background and
+  /* indigo, not neon lime: the lime was too hot as a button background and
      collided with the warning/success semantics. */
-  --primary: #8b7bf0;
-  --primary-strong: #7568e0;
+  --primary: #818cf8;
+  --primary-strong: #6d78f0;
   --primary-foreground: #171813;
 
-  --line: rgba(213, 214, 193, 0.16);
-  --line-soft: rgba(213, 214, 193, 0.09);
+  --secondary: #25261f;
+  --secondary-foreground: #f4f3eb;
+  --muted: #1c1d17;
+  --muted-foreground: #9a9a8e;
+  --accent: #25261f;
+  --accent-foreground: #f4f3eb;
+
+  --destructive: #f87171;
+  --destructive-soft: rgba(248, 113, 113, 0.16);
+  --destructive-foreground: #1a0f0f;
+
+  --border: rgba(213, 214, 193, 0.16);
+  --border-soft: rgba(213, 214, 193, 0.09);
+  --input: rgba(213, 214, 193, 0.16);
+  --ring: #818cf8;
 
   --success: #1ed760;
   --success-soft: rgba(30, 215, 96, 0.16);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.16);
-  --danger-foreground: #1a0f0f;
   --warning: #fbbf24;
   --warning-soft: rgba(251, 191, 36, 0.16);
-
   --scrim: rgba(0, 0, 0, 0.6);
 
   --shadow-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
@@ -90,35 +107,37 @@
 }
 
 /* ============================================================================
-   Layer 2 — raw theme variables -> Tailwind utilities.
+   Layer 2 — theme variables -> Tailwind utilities.
    `inline` makes each utility reference the raw variable directly, so the
    `.dark` overrides above take effect without re-declaring anything here.
    ========================================================================= */
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-canvas-deep: var(--canvas-deep);
-  --color-panel: var(--panel);
-
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-
-  --color-stone: var(--stone);
-
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
   --color-primary-foreground: var(--primary-foreground);
-
-  --color-line: var(--line);
-  --color-line-soft: var(--line-soft);
-
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --color-danger-foreground: var(--danger-foreground);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
-
   --color-scrim: var(--scrim);
 }
 
@@ -167,8 +186,8 @@
 
 html,
 body {
-  background-color: var(--canvas);
-  color: var(--ink);
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;

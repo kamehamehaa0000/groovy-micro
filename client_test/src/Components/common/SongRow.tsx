@@ -324,7 +324,7 @@ export const SongRow = memo(function SongRow({
       data-track-index={index}
       className={`relative select-none overflow-hidden ${
         isDragging
-          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-panel-elevated opacity-95 scale-[1.01]'
+          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-card opacity-95 scale-[1.01]'
           : ''
       } ${className}`}
       onTouchStart={handleTouchStart}
@@ -409,10 +409,10 @@ export const SongRow = memo(function SongRow({
             ? 'none'
             : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        className={`relative z-10 px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 bg-panel hover:bg-canvas-deep active:bg-canvas-deep/80 transition-colors group cursor-pointer ${
+        className={`relative z-10 px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 bg-card hover:bg-muted active:bg-muted/80 transition-colors group cursor-pointer ${
           isCurrentPlaying ? 'bg-primary/5' : ''
         } ${isLocked ? 'opacity-65' : ''} ${
-          isDragging ? 'bg-panel-elevated' : ''
+          isDragging ? 'bg-card' : ''
         }`}
       >
         {/* ==================== LEFT SECTION ==================== */}
@@ -435,7 +435,7 @@ export const SongRow = memo(function SongRow({
               className={`cursor-grab active:cursor-grabbing select-none font-mono text-xs px-1.5 py-1 transition-colors shrink-0 touch-none rounded ${
                 isDragging
                   ? 'text-primary bg-primary/15 scale-110 shadow-xs'
-                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-primary active:bg-primary/10'
+                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder tracks"
             >
@@ -445,7 +445,7 @@ export const SongRow = memo(function SongRow({
 
           {/* Leading Display: Thumbnail vs Track Number */}
           {showThumbnail ? (
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-canvas-deep border border-line rounded-xs overflow-hidden shrink-0 group/thumb">
+            <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-muted border border-border rounded-xs overflow-hidden shrink-0 group/thumb">
               {track.coverImageUrl ? (
                 <img
                   src={track.coverImageUrl}
@@ -468,7 +468,7 @@ export const SongRow = memo(function SongRow({
                 type="button"
                 onClick={handlePlayButtonClick}
                 aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
-                className={`absolute inset-0 bg-ink/40 flex items-center justify-center transition-opacity cursor-pointer ${
+                className={`absolute inset-0 bg-foreground/40 flex items-center justify-center transition-opacity cursor-pointer ${
                   isCurrentPlaying
                     ? 'opacity-100'
                     : 'opacity-0 group-hover:opacity-100 group-hover/thumb:opacity-100'
@@ -491,12 +491,12 @@ export const SongRow = memo(function SongRow({
               aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
               className={`w-9 h-9 flex items-center justify-center shrink-0 ${
                 isLocked
-                  ? 'text-ink-soft/50 cursor-not-allowed'
-                  : 'text-ink-soft group-hover:text-ink cursor-pointer'
+                  ? 'text-muted-foreground/50 cursor-not-allowed'
+                  : 'text-muted-foreground group-hover:text-foreground cursor-pointer'
               }`}
             >
               {isLocked ? (
-                <LockIconSVG className="w-3.5 h-3.5 text-ink-soft/60" />
+                <LockIconSVG className="w-3.5 h-3.5 text-muted-foreground/60" />
               ) : isCurrentPlaying ? (
                 <PauseIconSVG className="w-3.5 h-3.5 text-primary animate-pulse" />
               ) : (
@@ -508,7 +508,7 @@ export const SongRow = memo(function SongRow({
                   >
                     {String(trackNumberDisplay ?? index + 1).padStart(2, '0')}
                   </span>
-                  <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-ink ml-0.5" />
+                  <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-foreground ml-0.5" />
                 </>
               )}
             </button>
@@ -525,7 +525,7 @@ export const SongRow = memo(function SongRow({
                     ? 'text-primary'
                     : isCurrentLoaded
                       ? 'text-primary'
-                      : 'text-ink'
+                      : 'text-foreground'
                 }`}
               >
                 {track.title}
@@ -534,7 +534,7 @@ export const SongRow = memo(function SongRow({
               {isLocked && (
                 <span
                   title="Locked track"
-                  className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-ink-soft bg-canvas shrink-0 flex items-center gap-1"
+                  className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 flex items-center gap-1"
                 >
                   <LockIconSVG className="w-2.5 h-2.5" />
                   <span>
@@ -548,7 +548,7 @@ export const SongRow = memo(function SongRow({
               {track.isExplicit && (
                 <span
                   title="Explicit Content"
-                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-line text-ink-soft bg-canvas shrink-0 leading-none"
+                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
                 >
                   E
                 </span>
@@ -567,7 +567,7 @@ export const SongRow = memo(function SongRow({
             {/* Subtitle / Artist Credits Line */}
             {variant === 'album' ? (
               <MarqueeText
-                className="min-w-0 text-xs text-ink-soft"
+                className="min-w-0 text-xs text-muted-foreground"
                 innerClassName="inline-flex items-center gap-1"
               >
                 {/* Primary Artist(s) */}
@@ -579,7 +579,7 @@ export const SongRow = memo(function SongRow({
                           to="/artists/$idOrSlug"
                           params={{ idOrSlug: c.slug }}
                           onClick={(e) => e.stopPropagation()}
-                          className="hover:text-ink hover:underline decoration-line transition-colors"
+                          className="hover:text-foreground hover:underline decoration-border transition-colors"
                         >
                           {c.stageName}
                         </Link>
@@ -594,7 +594,7 @@ export const SongRow = memo(function SongRow({
                     to="/artists/$idOrSlug"
                     params={{ idOrSlug: track.artistSlug }}
                     onClick={(e) => e.stopPropagation()}
-                    className="hover:text-ink hover:underline decoration-line transition-colors"
+                    className="hover:text-foreground hover:underline decoration-border transition-colors"
                   >
                     {track.artistName}
                   </Link>
@@ -605,7 +605,7 @@ export const SongRow = memo(function SongRow({
                 {/* Featured Credits */}
                 {featuredCredits.length > 0 && (
                   <>
-                    <span className="text-ink-soft/70 font-mono text-[11px] ml-1">
+                    <span className="text-muted-foreground/70 font-mono text-[11px] ml-1">
                       feat.
                     </span>
                     {featuredCredits.map((c, i) => (
@@ -615,7 +615,7 @@ export const SongRow = memo(function SongRow({
                             to="/artists/$idOrSlug"
                             params={{ idOrSlug: c.slug }}
                             onClick={(e) => e.stopPropagation()}
-                            className="hover:text-ink hover:underline decoration-line transition-colors"
+                            className="hover:text-foreground hover:underline decoration-border transition-colors"
                           >
                             {c.stageName}
                           </Link>
@@ -631,7 +631,7 @@ export const SongRow = memo(function SongRow({
                 {/* Producer Credits */}
                 {producerCredits.length > 0 && (
                   <>
-                    <span className="text-ink-soft/70 font-mono text-[11px] ml-1">
+                    <span className="text-muted-foreground/70 font-mono text-[11px] ml-1">
                       prod.
                     </span>
                     {producerCredits.map((c, i) => (
@@ -641,7 +641,7 @@ export const SongRow = memo(function SongRow({
                             to="/artists/$idOrSlug"
                             params={{ idOrSlug: c.slug }}
                             onClick={(e) => e.stopPropagation()}
-                            className="hover:text-ink hover:underline decoration-line transition-colors"
+                            className="hover:text-foreground hover:underline decoration-border transition-colors"
                           >
                             {c.stageName}
                           </Link>
@@ -656,13 +656,13 @@ export const SongRow = memo(function SongRow({
               </MarqueeText>
             ) : (
               /* Standard / Playlist / Search / Artist Artist Subtitle */
-              <div className="font-sans text-xs text-ink-soft truncate flex items-center gap-1.5">
+              <div className="font-sans text-xs text-muted-foreground truncate flex items-center gap-1.5">
                 {track.artistSlug ? (
                   <Link
                     to="/artists/$idOrSlug"
                     params={{ idOrSlug: track.artistSlug }}
                     onClick={(e) => e.stopPropagation()}
-                    className="hover:text-ink hover:underline decoration-line transition-colors truncate"
+                    className="hover:text-foreground hover:underline decoration-border transition-colors truncate"
                   >
                     {track.artistName || 'Unknown Artist'}
                   </Link>
@@ -680,7 +680,7 @@ export const SongRow = memo(function SongRow({
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: albumSlug }}
                         onClick={(e) => e.stopPropagation()}
-                        className="hover:text-ink hover:underline decoration-line transition-colors truncate hidden sm:inline"
+                        className="hover:text-foreground hover:underline decoration-border transition-colors truncate hidden sm:inline"
                       >
                         {albumTitle}
                       </Link>
@@ -699,14 +699,14 @@ export const SongRow = memo(function SongRow({
         {/* ==================== MIDDLE SECTION ==================== */}
         {/* Plays count (for Artist top tracks or Album stream count) */}
         {playsCount !== undefined && (
-          <div className="hidden sm:block text-right font-mono text-xs text-ink-soft shrink-0 w-24">
+          <div className="hidden sm:block text-right font-mono text-xs text-muted-foreground shrink-0 w-24">
             {playsCount.toLocaleString()}
           </div>
         )}
 
         {/* Added by (for Collaborative Playlists) */}
         {addedByDisplayName && (
-          <div className="hidden md:block text-right font-mono text-[11px] text-ink-soft/70 shrink-0 max-w-35 truncate">
+          <div className="hidden md:block text-right font-mono text-[11px] text-muted-foreground/70 shrink-0 max-w-35 truncate">
             Added by {addedByDisplayName}
           </div>
         )}
@@ -714,7 +714,7 @@ export const SongRow = memo(function SongRow({
         {/* ==================== RIGHT SECTION ==================== */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-3 shrink-0">
           {/* Duration (Hidden on extra small mobile screens for compact density) */}
-          <span className="hidden sm:inline-block font-mono text-[11px] text-ink-soft text-right w-11">
+          <span className="hidden sm:inline-block font-mono text-[11px] text-muted-foreground text-right w-11">
             {formatDuration(track.durationSeconds || 0)}
           </span>
 
@@ -747,7 +747,7 @@ export const SongRow = memo(function SongRow({
                 className={`w-3.5 h-3.5 transition-colors ${
                   isLiked
                     ? 'text-red-500 fill-current'
-                    : 'text-neutral-400 hover:text-ink dark:text-neutral-300 dark:hover:text-white opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+                    : 'text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                 }`}
               />
             </button>

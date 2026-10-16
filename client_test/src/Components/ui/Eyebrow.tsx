@@ -12,11 +12,11 @@ export interface EyebrowProps {
 }
 
 const TONE: Record<EyebrowTone, string> = {
-  muted: 'text-ink-soft',
-  ink: 'text-ink',
+  muted: 'text-muted-foreground',
+  ink: 'text-foreground',
   brand: 'text-primary',
   success: 'text-success',
-  danger: 'text-danger',
+  danger: 'text-destructive',
 }
 
 /**

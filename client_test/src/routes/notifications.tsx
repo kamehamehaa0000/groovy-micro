@@ -124,14 +124,14 @@ function NotificationsPageComponent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
-        <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
+        <div className="border border-border bg-card p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
           <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
             Inbox &nbsp;·&nbsp; Activity Pulse
           </div>
-          <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
+          <h2 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal">
             Sign In for Notifications
           </h2>
-          <p className="font-sans text-xs sm:text-sm text-ink-soft leading-relaxed max-w-md mx-auto">
+          <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
             Stay tuned into your social circle, live listening sessions, new
             releases from artists you follow, and comment replies.
           </p>
@@ -139,7 +139,7 @@ function NotificationsPageComponent() {
             <Link
               to="/login"
               search={{ redirect: '/notifications' }}
-              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
+              className="inline-block bg-foreground text-background font-mono text-xs uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In &rarr;
             </Link>
@@ -168,7 +168,7 @@ function NotificationsPageComponent() {
               Inbox &nbsp;·&nbsp; Activity Pulse
             </div>
             <div className="flex items-center gap-3">
-              <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal leading-tight">
+              <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal leading-tight">
                 Notifications
               </h1>
               {unreadCount > 0 && (
@@ -177,7 +177,7 @@ function NotificationsPageComponent() {
                 </span>
               )}
             </div>
-            <p className="font-sans text-xs sm:text-sm text-ink-soft mt-1 max-w-xl leading-relaxed">
+            <p className="font-sans text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl leading-relaxed">
               Real-time activity alerts, follow requests, discussion replies,
               and catalog drops.
             </p>
@@ -192,8 +192,8 @@ function NotificationsPageComponent() {
                 justMarkedAll
                   ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold'
                   : hasUnread
-                    ? 'border-ink bg-ink text-canvas hover:bg-canvas hover:text-ink font-semibold'
-                    : 'border-line bg-canvas text-ink-soft opacity-50 cursor-not-allowed'
+                    ? 'border-foreground bg-foreground text-background hover:bg-background hover:text-foreground font-semibold'
+                    : 'border-border bg-background text-muted-foreground opacity-50 cursor-not-allowed'
               }`}
             >
               <svg
@@ -220,7 +220,7 @@ function NotificationsPageComponent() {
       </section>
 
       {/* ===================== FILTER PILLS & ACTION BAR ===================== */}
-      <div className="flex items-center justify-between border-b border-line pb-4 gap-3 flex-wrap">
+      <div className="flex items-center justify-between border-b border-border pb-4 gap-3 flex-wrap">
         <div className="flex items-center gap-2 overflow-x-auto">
           {filterTabs.map((tab) => (
             <button
@@ -229,8 +229,8 @@ function NotificationsPageComponent() {
               onClick={() => setFilter(tab.id)}
               className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer shrink-0 ${
                 filter === tab.id
-                  ? 'bg-ink text-canvas font-semibold shadow-xs'
-                  : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                  ? 'bg-foreground text-background font-semibold shadow-xs'
+                  : 'bg-card text-muted-foreground hover:text-foreground border border-border'
               }`}
             >
               {tab.label}
@@ -243,7 +243,7 @@ function NotificationsPageComponent() {
             type="button"
             onClick={handleMarkAll}
             disabled={isMarkingAll}
-            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink-soft hover:text-ink transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
+            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
           >
             <svg
               className="w-3 h-3 text-primary"
@@ -265,20 +265,20 @@ function NotificationsPageComponent() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="p-5 border border-line bg-panel rounded-2xl animate-pulse space-y-3"
+              className="p-5 border border-border bg-card rounded-2xl animate-pulse space-y-3"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-stone/20" />
-                <div className="h-3.5 bg-stone/20 rounded w-1/4" />
+                <div className="w-8 h-8 rounded-full bg-secondary/20" />
+                <div className="h-3.5 bg-secondary/20 rounded w-1/4" />
               </div>
-              <div className="h-4 bg-stone/10 rounded w-3/4" />
+              <div className="h-4 bg-secondary/10 rounded w-3/4" />
             </div>
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="border border-dashed border-line p-12 text-center rounded-2xl space-y-3">
-          <div className="font-serif italic text-2xl text-ink"></div>
-          <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-md mx-auto leading-relaxed">
+        <div className="border border-dashed border-border p-12 text-center rounded-2xl space-y-3">
+          <div className="font-serif italic text-2xl text-foreground"></div>
+          <p className="font-sans text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
             No notifications at the moment.
           </p>
         </div>
@@ -293,7 +293,7 @@ function NotificationsPageComponent() {
                 onClick={() => handleItemClick(item)}
                 className={`p-4 sm:p-5 border rounded-2xl transition-all cursor-pointer space-y-3 shadow-2xs ${
                   item.isRead
-                    ? 'border-line bg-panel hover:border-ink/40'
+                    ? 'border-border bg-card hover:border-foreground/40'
                     : 'border-primary/40 bg-primary/5 hover:border-primary/60'
                 }`}
               >
@@ -307,7 +307,7 @@ function NotificationsPageComponent() {
 
                     {/* Actor Avatar */}
                     {item.actor ? (
-                      <div className="w-8 h-8 rounded-full bg-stone/20 border border-line flex items-center justify-center font-mono text-xs font-semibold uppercase text-ink overflow-hidden shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-mono text-xs font-semibold uppercase text-foreground overflow-hidden shrink-0">
                         {item.actor.avatarUrl ? (
                           <img
                             src={item.actor.avatarUrl}
@@ -319,17 +319,17 @@ function NotificationsPageComponent() {
                         )}
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-stone/20 border border-line flex items-center justify-center font-serif italic text-ink text-sm shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-serif italic text-foreground text-sm shrink-0">
                         ♪
                       </div>
                     )}
 
                     <div className="min-w-0">
-                      <span className="font-sans font-semibold text-sm text-ink block truncate">
+                      <span className="font-sans font-semibold text-sm text-foreground block truncate">
                         {item.title}
                       </span>
                       {item.actor && (
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                           {item.actor.displayName}
                         </span>
                       )}
@@ -337,7 +337,7 @@ function NotificationsPageComponent() {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-mono text-[11px] text-ink-soft">
+                    <span className="font-mono text-[11px] text-muted-foreground">
                       {formatRelativeTime(item.createdAt)}
                     </span>
                     {!item.isRead && (
@@ -347,7 +347,7 @@ function NotificationsPageComponent() {
                           e.stopPropagation()
                           markAsRead(item.id)
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink px-2 py-1 border border-line rounded-md hover:bg-canvas transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground px-2 py-1 border border-border rounded-md hover:bg-background transition-colors cursor-pointer"
                         title="Mark as read"
                       >
                         Read
@@ -357,7 +357,7 @@ function NotificationsPageComponent() {
                 </div>
 
                 {/* Message Body */}
-                <p className="font-sans text-xs sm:text-sm text-ink-soft leading-relaxed pl-5 sm:pl-6 border-l border-line/60">
+                <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed pl-5 sm:pl-6 border-l border-border/60">
                   {item.body}
                 </p>
 
@@ -371,7 +371,7 @@ function NotificationsPageComponent() {
                       type="button"
                       disabled={isActing}
                       onClick={() => handleAcceptRequest(item)}
-                      className="bg-ink text-canvas hover:bg-primary px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
+                      className="bg-foreground text-background hover:bg-primary px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg shadow-2xs"
                     >
                       Accept Request
                     </button>
@@ -379,7 +379,7 @@ function NotificationsPageComponent() {
                       type="button"
                       disabled={isActing}
                       onClick={() => handleDeclineRequest(item)}
-                      className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                      className="border border-border hover:bg-muted text-muted-foreground hover:text-foreground px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                     >
                       Decline
                     </button>
@@ -419,7 +419,7 @@ function NotificationsPageComponent() {
                 type="button"
                 onClick={() => fetchNotifications(filter, false)}
                 disabled={isLoading}
-                className="font-mono text-[11px] uppercase tracking-wider px-6 py-3 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors rounded-xl cursor-pointer disabled:opacity-50 shadow-2xs"
+                className="font-mono text-[11px] uppercase tracking-wider px-6 py-3 border border-border bg-card hover:bg-muted text-foreground transition-colors rounded-xl cursor-pointer disabled:opacity-50 shadow-2xs"
               >
                 {isLoading
                   ? 'Loading older activity...'

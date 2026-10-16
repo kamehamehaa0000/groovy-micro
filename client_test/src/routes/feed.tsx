@@ -351,14 +351,14 @@ function UnifiedFeedComponent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
-        <div className="border border-line bg-panel p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
+        <div className="border border-border bg-card p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
           <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
             Community &nbsp;·&nbsp; Social Circle
           </div>
-          <h2 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal">
+          <h2 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal">
             Connect with Listeners
           </h2>
-          <p className="font-sans text-xs sm:text-sm text-ink-soft leading-relaxed max-w-md mx-auto">
+          <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
             Sign in to follow creators, tune in to live listening sessions with
             mutual friends, and receive real-time drops from your favorite
             artists.
@@ -367,7 +367,7 @@ function UnifiedFeedComponent() {
             <Link
               to="/login"
               search={{ redirect: '/feed' }}
-              className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl font-semibold shadow-xs"
+              className="inline-block bg-foreground text-background font-mono text-xs uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl font-semibold shadow-xs"
             >
               Sign In to Social Hub &rarr;
             </Link>
@@ -386,10 +386,10 @@ function UnifiedFeedComponent() {
             <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-1.5">
               Community &nbsp;·&nbsp; Socials &amp; Friends
             </div>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-normal leading-tight">
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal leading-tight">
               Community Hub
             </h1>
-            <p className="font-sans text-xs sm:text-sm text-ink-soft mt-1 max-w-xl leading-relaxed">
+            <p className="font-sans text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl leading-relaxed">
               Real-time playback telemetry, friend circles, and chronological
               drops from artists you follow.
             </p>
@@ -403,7 +403,7 @@ function UnifiedFeedComponent() {
                 fetchLiveActivities()
                 fetchRequests()
               }}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 border border-line bg-canvas hover:bg-canvas-deep text-ink transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-2xs"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 border border-border bg-background hover:bg-muted text-foreground transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-2xs"
             >
               <span>Refresh Pulse</span>
             </button>
@@ -416,10 +416,10 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('stream')}
-          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'stream'
-              ? 'bg-ink text-canvas font-semibold shadow-xs'
-              : 'text-ink-soft hover:text-ink'
+              ? 'bg-foreground text-background font-semibold shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <span>Activity</span>
@@ -428,10 +428,10 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('live')}
-          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'live'
-              ? 'bg-ink text-canvas font-semibold shadow-xs'
-              : 'text-ink-soft hover:text-ink'
+              ? 'bg-foreground text-background font-semibold shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <span>Live Now ({liveActivities.length})</span>
@@ -440,10 +440,10 @@ function UnifiedFeedComponent() {
         <button
           type="button"
           onClick={() => setMobileTab('network')}
-          className={`font-mono bg-canvas-deep border border-line text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
+          className={`font-mono bg-muted border border-border text-[11px] uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
             mobileTab === 'network'
-              ? 'bg-ink text-canvas font-semibold shadow-xs'
-              : 'text-ink-soft hover:text-ink'
+              ? 'bg-foreground text-background font-semibold shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <span>Requests</span>
@@ -464,15 +464,15 @@ function UnifiedFeedComponent() {
           }`}
         >
           {/* Stream Filter Pills */}
-          <div className="flex items-center justify-between border-b border-line pb-4 gap-3 flex-wrap">
+          <div className="flex items-center justify-between border-b border-border pb-4 gap-3 flex-wrap">
             <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setStreamFilter('all')}
                 className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'all'
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 All Drops
@@ -482,8 +482,8 @@ function UnifiedFeedComponent() {
                 onClick={() => setStreamFilter('releases')}
                 className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'releases'
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 Releases
@@ -493,8 +493,8 @@ function UnifiedFeedComponent() {
                 onClick={() => setStreamFilter('playlists')}
                 className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'playlists'
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 Playlists
@@ -504,15 +504,15 @@ function UnifiedFeedComponent() {
                 onClick={() => setStreamFilter('friends')}
                 className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
                   streamFilter === 'friends'
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 Friends
               </button>
             </div>
 
-            <div className="font-mono text-[11px] text-ink-soft uppercase tracking-wider hidden sm:block">
+            <div className="font-mono text-[11px] text-muted-foreground uppercase tracking-wider hidden sm:block">
               {feedItems.length} drops cached
             </div>
           </div>
@@ -520,8 +520,8 @@ function UnifiedFeedComponent() {
           {/* Loading Feed State */}
           {isLoadingFeed && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <div className="w-6 h-6 border-2 border-line border-t-ink rounded-full animate-spin" />
-              <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                 Tuning into the stream...
               </div>
             </div>
@@ -536,25 +536,25 @@ function UnifiedFeedComponent() {
 
           {/* Empty Feed State */}
           {!isLoadingFeed && !feedError && feedItems.length === 0 && (
-            <div className="border border-dashed border-line p-10 text-center rounded-2xl space-y-3">
-              <div className="font-serif italic text-2xl text-ink">
+            <div className="border border-dashed border-border p-10 text-center rounded-2xl space-y-3">
+              <div className="font-serif italic text-2xl text-foreground">
                 No activity in this view yet
               </div>
-              <p className="font-sans text-xs text-ink-soft max-w-md mx-auto leading-relaxed">
+              <p className="font-sans text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                 Follow more artists in the catalog or connect with listeners in
                 the directory to personalize your stream with fresh music drops.
               </p>
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   to="/"
-                  className="bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-ink hover:bg-canvas hover:text-ink transition-colors rounded-xl"
+                  className="bg-foreground text-background font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl"
                 >
                   Explore Catalog
                 </Link>
                 <button
                   type="button"
                   onClick={() => setMobileTab('network')}
-                  className="bg-panel text-ink font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-xl cursor-pointer"
+                  className="bg-card text-foreground font-mono text-[11px] uppercase tracking-wider px-4 py-2 border border-border hover:bg-muted transition-colors rounded-xl cursor-pointer"
                 >
                   Discover Listeners
                 </button>
@@ -575,7 +575,7 @@ function UnifiedFeedComponent() {
                 return (
                   <div
                     key={item.id}
-                    className="border border-line bg-panel p-4 sm:p-5 rounded-2xl shadow-2xs hover:border-ink/40 transition-all space-y-3.5"
+                    className="border border-border bg-card p-4 sm:p-5 rounded-2xl shadow-2xs hover:border-foreground/40 transition-all space-y-3.5"
                   >
                     {/* Event Actor Header */}
                     <div className="flex items-center justify-between">
@@ -590,10 +590,10 @@ function UnifiedFeedComponent() {
                               <img
                                 src={item.actor.avatarUrl}
                                 alt={item.actor.name}
-                                className="w-8 h-8 rounded-full object-cover border border-line hover:border-ink transition-colors shrink-0"
+                                className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-canvas-deep border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground shrink-0">
                                 {item.actor.name[0]?.toUpperCase() || '?'}
                               </div>
                             )}
@@ -604,10 +604,10 @@ function UnifiedFeedComponent() {
                               <img
                                 src={item.actor.avatarUrl}
                                 alt={item.actor.name}
-                                className="w-8 h-8 rounded-full object-cover border border-line hover:border-ink transition-colors shrink-0"
+                                className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-canvas-deep border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground shrink-0">
                                 {item.actor.name[0]?.toUpperCase() || '?'}
                               </div>
                             )}
@@ -620,7 +620,7 @@ function UnifiedFeedComponent() {
                             <Link
                               to="/artists/$idOrSlug"
                               params={{ idOrSlug: item.actor.slug }}
-                              className="font-medium text-ink hover:text-primary transition-colors"
+                              className="font-medium text-foreground hover:text-primary transition-colors"
                             >
                               {item.actor.name}
                             </Link>
@@ -628,13 +628,13 @@ function UnifiedFeedComponent() {
                             <Link
                               to="/users/$id"
                               params={{ id: item.actor.id }}
-                              className="font-medium text-ink hover:text-primary transition-colors"
+                              className="font-medium text-foreground hover:text-primary transition-colors"
                             >
                               {item.actor.name}
                             </Link>
                           )}
 
-                          <span className="text-ink-soft ml-1.5">
+                          <span className="text-muted-foreground ml-1.5">
                             {item.type === 'NEW_RELEASE' &&
                               'dropped a new release'}
                             {item.type === 'PLAYLIST_CREATED' &&
@@ -647,15 +647,15 @@ function UnifiedFeedComponent() {
                       </div>
 
                       {/* Relative Timestamp */}
-                      <span className="font-mono text-[11px] text-ink-soft shrink-0 ml-2">
+                      <span className="font-mono text-[11px] text-muted-foreground shrink-0 ml-2">
                         {formatRelativeTime(item.timestamp)}
                       </span>
                     </div>
 
                     {/* Target Content Card */}
-                    <div className="flex items-center gap-4 p-3 bg-canvas border border-line/70 rounded-xl">
+                    <div className="flex items-center gap-4 p-3 bg-background border border-border/70 rounded-xl">
                       {/* Artwork / Thumbnail */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-canvas-deep border border-line rounded-lg overflow-hidden group">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-muted border border-border rounded-lg overflow-hidden group">
                         {item.target.coverImageUrl ? (
                           <img
                             src={item.target.coverImageUrl}
@@ -663,7 +663,7 @@ function UnifiedFeedComponent() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center font-serif italic text-ink-soft text-xl">
+                          <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-xl">
                             ♪
                           </div>
                         )}
@@ -696,17 +696,17 @@ function UnifiedFeedComponent() {
                       {/* Metadata */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas-deep border border-line rounded text-ink-soft">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-muted border border-border rounded text-muted-foreground">
                             {item.target.type}
                           </span>
                           {item.target.isExplicit && (
-                            <span className="font-mono text-[11px] uppercase font-bold px-1 py-0.5 bg-ink text-canvas rounded">
+                            <span className="font-mono text-[11px] uppercase font-bold px-1 py-0.5 bg-foreground text-background rounded">
                               E
                             </span>
                           )}
                         </div>
 
-                        <div className="font-sans font-semibold text-sm sm:text-base text-ink truncate mt-1">
+                        <div className="font-sans font-semibold text-sm sm:text-base text-foreground truncate mt-1">
                           {item.target.type === 'album' && item.target.slug ? (
                             <Link
                               to="/albums/$idOrSlug"
@@ -729,7 +729,7 @@ function UnifiedFeedComponent() {
                         </div>
 
                         {item.target.subtitle && (
-                          <div className="font-sans text-xs text-ink-soft truncate mt-0.5">
+                          <div className="font-sans text-xs text-muted-foreground truncate mt-0.5">
                             {item.target.subtitle}
                           </div>
                         )}
@@ -741,7 +741,7 @@ function UnifiedFeedComponent() {
                           <button
                             type="button"
                             onClick={() => handleQueueFeedTrack(item)}
-                            className="p-2 text-ink-soft hover:text-ink border border-line bg-canvas hover:bg-canvas-deep transition-colors cursor-pointer rounded-lg"
+                            className="p-2 text-muted-foreground hover:text-foreground border border-border bg-background hover:bg-muted transition-colors cursor-pointer rounded-lg"
                             title="Add to queue"
                           >
                             <svg
@@ -764,7 +764,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/albums/$idOrSlug"
                             params={{ idOrSlug: item.target.slug }}
-                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
+                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
                           >
                             View
                           </Link>
@@ -774,7 +774,7 @@ function UnifiedFeedComponent() {
                           <Link
                             to="/playlists/$id"
                             params={{ id: item.target.id }}
-                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-line hover:bg-canvas-deep transition-colors rounded-lg"
+                            className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
                           >
                             Listen
                           </Link>
@@ -792,7 +792,7 @@ function UnifiedFeedComponent() {
                     type="button"
                     onClick={() => fetchFeed(false, feedCursor || undefined)}
                     disabled={isLoadingMoreFeed}
-                    className="bg-panel border border-line hover:bg-canvas-deep text-ink font-mono text-[11px] uppercase tracking-wider px-6 py-3 transition-colors cursor-pointer disabled:opacity-50 rounded-xl shadow-2xs"
+                    className="bg-card border border-border hover:bg-muted text-foreground font-mono text-[11px] uppercase tracking-wider px-6 py-3 transition-colors cursor-pointer disabled:opacity-50 rounded-xl shadow-2xs"
                   >
                     {isLoadingMoreFeed
                       ? 'Loading more...'
@@ -812,13 +812,13 @@ function UnifiedFeedComponent() {
         >
           {/* ===================== DOCK 1: PENDING FOLLOW REQUESTS ===================== */}
           {(incomingRequests.length > 0 || mobileTab === 'network') && (
-            <div className="border border-line bg-panel p-5 rounded-2xl shadow-2xs space-y-4">
+            <div className="border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5">
                     Private Vault Requests
                   </div>
-                  <h3 className="font-serif italic text-lg text-ink font-normal">
+                  <h3 className="font-serif italic text-lg text-foreground font-normal">
                     Follow Requests ({incomingRequests.length})
                   </h3>
                 </div>
@@ -830,11 +830,11 @@ function UnifiedFeedComponent() {
               </div>
 
               {incomingRequests.length === 0 ? (
-                <div className="border border-line/60 bg-canvas p-4 text-center text-xs text-ink-soft font-mono rounded-xl">
+                <div className="border border-border/60 bg-background p-4 text-center text-xs text-muted-foreground font-mono rounded-xl">
                   No pending follow requests at this time.
                 </div>
               ) : (
-                <div className="divide-y divide-line/60 border border-line/80 bg-canvas rounded-xl overflow-hidden">
+                <div className="divide-y divide-border/60 border border-border/80 bg-background rounded-xl overflow-hidden">
                   {incomingRequests.map((req) => {
                     const isProcessing = processingRequestId === req.requesterId
 
@@ -844,7 +844,7 @@ function UnifiedFeedComponent() {
                         className="p-3.5 flex items-center justify-between gap-3"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-stone/20 border border-line flex items-center justify-center font-mono text-xs font-semibold uppercase text-ink overflow-hidden shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-mono text-xs font-semibold uppercase text-foreground overflow-hidden shrink-0">
                             {req.avatarUrl ? (
                               <img
                                 src={req.avatarUrl}
@@ -856,10 +856,10 @@ function UnifiedFeedComponent() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-ink block truncate">
+                            <span className="font-semibold text-xs text-foreground block truncate">
                               {req.displayName}
                             </span>
-                            <span className="font-mono text-[11px] text-ink-soft">
+                            <span className="font-mono text-[11px] text-muted-foreground">
                               {formatRelativeTime(req.createdAt)}
                             </span>
                           </div>
@@ -870,7 +870,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleAcceptRequest(req.requesterId)}
-                            className="bg-ink text-canvas hover:bg-primary px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="bg-foreground text-background hover:bg-primary px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Accept
                           </button>
@@ -878,7 +878,7 @@ function UnifiedFeedComponent() {
                             type="button"
                             disabled={isProcessing}
                             onClick={() => handleRejectRequest(req.requesterId)}
-                            className="border border-line hover:bg-canvas-deep text-ink-soft hover:text-ink px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
+                            className="border border-border hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
                           >
                             Decline
                           </button>
@@ -893,7 +893,7 @@ function UnifiedFeedComponent() {
 
           {/* ===================== DOCK 2: LIVE FRIENDS ACTIVITY ===================== */}
           <div
-            className={`border border-line bg-panel p-5 rounded-2xl shadow-2xs space-y-4 ${
+            className={`border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4 ${
               mobileTab === 'network' ? 'hidden lg:block' : ''
             }`}
           >
@@ -902,14 +902,14 @@ function UnifiedFeedComponent() {
                 <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5 flex items-center gap-1.5">
                   <span>Real-Time Presence</span>
                 </div>
-                <h3 className="font-serif italic text-lg text-ink font-normal">
+                <h3 className="font-serif italic text-lg text-foreground font-normal">
                   Live Listening ({liveActivities.length})
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={fetchLiveActivities}
-                className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 Pulse
               </button>
@@ -920,19 +920,19 @@ function UnifiedFeedComponent() {
                 {Array.from({ length: 2 }).map((_, i) => (
                   <div
                     key={i}
-                    className="border border-line bg-canvas p-4 rounded-xl animate-pulse space-y-2"
+                    className="border border-border bg-background p-4 rounded-xl animate-pulse space-y-2"
                   >
-                    <div className="h-3 bg-stone/20 rounded w-1/3" />
-                    <div className="h-10 bg-stone/10 rounded" />
+                    <div className="h-3 bg-secondary/20 rounded w-1/3" />
+                    <div className="h-10 bg-secondary/10 rounded" />
                   </div>
                 ))}
               </div>
             ) : liveActivities.length === 0 ? (
-              <div className="border border-line/60 bg-canvas p-6 text-center space-y-2 rounded-xl">
-                <div className="font-serif italic text-base text-ink">
+              <div className="border border-border/60 bg-background p-6 text-center space-y-2 rounded-xl">
+                <div className="font-serif italic text-base text-foreground">
                   Quiet in the circle right now
                 </div>
-                <p className="font-sans text-[11px] text-ink-soft leading-relaxed">
+                <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">
                   None of your mutual friends or followed listeners are
                   broadcasting active streams at this moment.
                 </p>
@@ -955,7 +955,7 @@ function UnifiedFeedComponent() {
                   return (
                     <div
                       key={item.user.id}
-                      className="border border-line bg-canvas p-3.5 rounded-xl shadow-2xs space-y-3 hover:border-ink/40 transition-all"
+                      className="border border-border bg-background p-3.5 rounded-xl shadow-2xs space-y-3 hover:border-foreground/40 transition-all"
                     >
                       {/* Friend Header */}
                       <div className="flex items-center justify-between">
@@ -964,7 +964,7 @@ function UnifiedFeedComponent() {
                           params={{ id: item.user.id }}
                           className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
                         >
-                          <div className="w-7 h-7 rounded-full bg-stone/30 border border-line flex items-center justify-center font-mono text-[11px] font-semibold text-ink overflow-hidden uppercase shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-secondary/30 border border-border flex items-center justify-center font-mono text-[11px] font-semibold text-foreground overflow-hidden uppercase shrink-0">
                             {item.user.avatarUrl ? (
                               <img
                                 src={item.user.avatarUrl}
@@ -976,10 +976,10 @@ function UnifiedFeedComponent() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-ink block truncate hover:text-primary transition-colors">
+                            <span className="font-semibold text-xs text-foreground block truncate hover:text-primary transition-colors">
                               {item.user.displayName}
                             </span>
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                               {item.user.isMutualFriend
                                 ? 'Mutual Friend'
                                 : 'Followed'}
@@ -994,8 +994,8 @@ function UnifiedFeedComponent() {
                       </div>
 
                       {/* Track Details */}
-                      <div className="flex items-center gap-3 bg-panel border border-line/70 p-2.5 rounded-lg">
-                        <div className="relative w-12 h-12 bg-stone/20 border border-line rounded shrink-0 overflow-hidden">
+                      <div className="flex items-center gap-3 bg-card border border-border/70 p-2.5 rounded-lg">
+                        <div className="relative w-12 h-12 bg-secondary/20 border border-border rounded shrink-0 overflow-hidden">
                           {item.activity.coverImageUrl ? (
                             <img
                               src={item.activity.coverImageUrl}
@@ -1003,7 +1003,7 @@ function UnifiedFeedComponent() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-ink-soft text-lg">
+                            <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-lg">
                               ♪
                             </div>
                           )}
@@ -1011,24 +1011,24 @@ function UnifiedFeedComponent() {
 
                         <div className="flex-1 min-w-0">
                           <h4
-                            className="font-sans font-semibold text-sm text-ink truncate"
+                            className="font-sans font-semibold text-sm text-foreground truncate"
                             title={item.activity.trackTitle}
                           >
                             {item.activity.trackTitle}
                           </h4>
-                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground truncate">
                             {item.activity.artistName}
                           </p>
 
                           {/* Progress bar */}
                           <div className="mt-1.5 space-y-0.5">
-                            <div className="w-full h-1 bg-stone/20 rounded-full overflow-hidden">
+                            <div className="w-full h-1 bg-secondary/20 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-primary transition-all duration-300"
                                 style={{ width: `${progressPercent}%` }}
                               />
                             </div>
-                            <div className="flex justify-between font-mono text-[11px] text-ink-soft/80">
+                            <div className="flex justify-between font-mono text-[11px] text-muted-foreground/80">
                               <span>
                                 {formatElapsed(item.activity.progressMs)}
                               </span>
@@ -1048,7 +1048,7 @@ function UnifiedFeedComponent() {
                           className={`shrink-0 px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-2xs ${
                             isPlayingThis
                               ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-line bg-canvas hover:bg-ink hover:text-canvas hover:border-ink text-ink'
+                              : 'border-border bg-background hover:bg-foreground hover:text-background hover:border-foreground text-foreground'
                           }`}
                         >
                           {isPlayingThis ? 'Playing' : 'Listen Along'}
@@ -1063,7 +1063,7 @@ function UnifiedFeedComponent() {
 
           {/* ===================== DOCK 3: DISCOVER COMMUNITY MEMBERS ===================== */}
           <div
-            className={`border border-line bg-panel p-5 rounded-2xl shadow-2xs space-y-4 ${
+            className={`border border-border bg-card p-5 rounded-2xl shadow-2xs space-y-4 ${
               mobileTab === 'live' ? 'hidden lg:block' : ''
             }`}
           >
@@ -1071,7 +1071,7 @@ function UnifiedFeedComponent() {
               <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-0.5">
                 Directory &nbsp;·&nbsp; Network
               </div>
-              <h3 className="font-serif italic text-lg text-ink font-normal">
+              <h3 className="font-serif italic text-lg text-foreground font-normal">
                 Discover Listeners
               </h3>
             </div>
@@ -1079,7 +1079,7 @@ function UnifiedFeedComponent() {
             {/* Standard Search Bar */}
             <div className="relative">
               <svg
-                className="w-4 h-4 text-ink-soft/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                className="w-4 h-4 text-muted-foreground/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1096,7 +1096,7 @@ function UnifiedFeedComponent() {
                   searchCommunity(e.target.value)
                 }}
                 placeholder="Search community by name..."
-                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-canvas rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
+                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
@@ -1105,7 +1105,7 @@ function UnifiedFeedComponent() {
                     setSearchQuery('')
                     searchCommunity('')
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   title="Clear search"
                 >
                   ✕
@@ -1119,33 +1119,33 @@ function UnifiedFeedComponent() {
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="p-3 border border-line bg-canvas rounded-xl animate-pulse flex items-center gap-3"
+                    className="p-3 border border-border bg-background rounded-xl animate-pulse flex items-center gap-3"
                   >
-                    <div className="w-8 h-8 rounded-full bg-stone/20" />
-                    <div className="h-3 bg-stone/20 rounded w-1/2" />
+                    <div className="w-8 h-8 rounded-full bg-secondary/20" />
+                    <div className="h-3 bg-secondary/20 rounded w-1/2" />
                   </div>
                 ))}
               </div>
             ) : directoryUsers.length === 0 ? (
-              <div className="border border-line/60 bg-canvas p-4 text-center font-mono text-xs text-ink-soft rounded-xl">
+              <div className="border border-border/60 bg-background p-4 text-center font-mono text-xs text-muted-foreground rounded-xl">
                 No matching members found.
               </div>
             ) : (
-              <div className="divide-y divide-line/60 border border-line/80 bg-canvas rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+              <div className="divide-y divide-border/60 border border-border/80 bg-background rounded-xl overflow-hidden max-h-96 overflow-y-auto">
                 {directoryUsers.slice(0, 10).map((member) => {
                   const isActing = actingUserId === member.id
 
                   return (
                     <div
                       key={member.id}
-                      className="p-3 flex items-center justify-between gap-3 hover:bg-canvas-deep/40 transition-colors"
+                      className="p-3 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors"
                     >
                       <Link
                         to="/users/$id"
                         params={{ id: member.id }}
                         className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
                       >
-                        <div className="w-8 h-8 rounded-full bg-stone/20 border border-line flex items-center justify-center font-mono text-xs font-semibold uppercase text-ink overflow-hidden shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-mono text-xs font-semibold uppercase text-foreground overflow-hidden shrink-0">
                           {member.avatarUrl ? (
                             <img
                               src={member.avatarUrl}
@@ -1158,10 +1158,10 @@ function UnifiedFeedComponent() {
                         </div>
 
                         <div className="min-w-0">
-                          <span className="font-semibold text-xs text-ink block truncate hover:text-primary transition-colors">
+                          <span className="font-semibold text-xs text-foreground block truncate hover:text-primary transition-colors">
                             {member.displayName}
                           </span>
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                             {member.relationship === 'FRIENDS'
                               ? 'Mutual Friend'
                               : member.relationship === 'FOLLOWING'
@@ -1183,10 +1183,10 @@ function UnifiedFeedComponent() {
                         className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
                           member.relationship === 'FRIENDS' ||
                           member.relationship === 'FOLLOWING'
-                            ? 'border-line bg-canvas hover:border-red-500 hover:text-red-500 text-ink-soft'
+                            ? 'border-border bg-background hover:border-red-500 hover:text-red-500 text-muted-foreground'
                             : member.relationship === 'PENDING_SENT'
-                              ? 'border-line bg-stone/20 text-ink-soft hover:bg-red-900/10 hover:text-red-500'
-                              : 'border-ink bg-ink text-canvas hover:bg-primary hover:border-primary'
+                              ? 'border-border bg-secondary/20 text-muted-foreground hover:bg-red-900/10 hover:text-red-500'
+                              : 'border-foreground bg-foreground text-background hover:bg-primary hover:border-primary'
                         }`}
                       >
                         {member.relationship === 'FRIENDS'

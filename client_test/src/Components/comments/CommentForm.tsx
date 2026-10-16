@@ -47,7 +47,7 @@ export function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-2">
       {replyToUserName && (
-        <div className="flex items-center justify-between text-xs font-mono text-ink-soft">
+        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
           <span>
             Replying to <span className="text-primary font-medium">@{replyToUserName}</span>
           </span>
@@ -55,7 +55,7 @@ export function CommentForm({
             <button
               type="button"
               onClick={onCancel}
-              className="hover:text-ink cursor-pointer underline text-[11px]"
+              className="hover:text-foreground cursor-pointer underline text-[11px]"
             >
               Cancel
             </button>
@@ -63,7 +63,7 @@ export function CommentForm({
         </div>
       )}
 
-      <div className="relative rounded-md border border-line bg-panel focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+      <div className="relative rounded-md border border-border bg-card focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -71,10 +71,10 @@ export function CommentForm({
           autoFocus={autoFocus}
           rows={replyToUserName || onCancel ? 2 : 3}
           maxLength={2000}
-          className="w-full bg-transparent p-3 text-sm text-ink placeholder:text-ink-soft/60 focus:outline-none resize-y min-h-[60px]"
+          className="w-full bg-transparent p-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-y min-h-[60px]"
         />
 
-        <div className="flex items-center justify-between px-3 py-2 border-t border-line-soft bg-canvas/40">
+        <div className="flex items-center justify-between px-3 py-2 border-t border-border-soft bg-background/40">
           <div className="flex items-center gap-2">
             <span
               className={`font-mono text-[11px] ${
@@ -82,7 +82,7 @@ export function CommentForm({
                   ? "text-red-500 font-semibold"
                   : charCount > 1800
                   ? "text-amber-500"
-                  : "text-ink-soft/60"
+                  : "text-muted-foreground/60"
               }`}
             >
               {charCount} / 2000
@@ -98,7 +98,7 @@ export function CommentForm({
                 type="button"
                 onClick={onCancel}
                 disabled={isSubmitting}
-                className="px-3 py-1 text-xs font-mono text-ink-soft hover:text-ink cursor-pointer transition-colors"
+                className="px-3 py-1 text-xs font-mono text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
               >
                 Cancel
               </button>
@@ -108,8 +108,8 @@ export function CommentForm({
               disabled={isEmpty || isOverLimit || isSubmitting}
               className={`px-3.5 py-1 text-xs font-mono rounded font-medium cursor-pointer transition-all ${
                 isEmpty || isOverLimit || isSubmitting
-                  ? "bg-stone/40 text-ink-soft/50 cursor-not-allowed"
-                  : "bg-ink text-canvas hover:bg-ink/80 active:scale-95"
+                  ? "bg-secondary/40 text-muted-foreground/50 cursor-not-allowed"
+                  : "bg-foreground text-background hover:bg-foreground/80 active:scale-95"
               }`}
             >
               {isSubmitting ? "Posting..." : submitLabel}

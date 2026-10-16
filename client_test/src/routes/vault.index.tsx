@@ -263,7 +263,7 @@ function PersonalCollectionExplorePage() {
   return (
     <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS (Matched to /library) ===================== */}
-      <header className="sticky top-14 z-30 bg-canvas backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
+      <header className="sticky top-14 z-30 bg-background backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {/* Quick Search Toggle Button */}
@@ -278,8 +278,8 @@ function PersonalCollectionExplorePage() {
             aria-label="Search in vault"
             className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
               isSearchActive
-                ? 'bg-ink text-canvas shadow-xs'
-                : 'bg-panel border border-line text-ink-soft hover:text-ink hover:bg-canvas-soft'
+                ? 'bg-foreground text-background shadow-xs'
+                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
             <svg
@@ -302,7 +302,7 @@ function PersonalCollectionExplorePage() {
               type="button"
               onClick={() => setActivePill('all')}
               aria-label="Clear active filter"
-              className="shrink-0 w-9 h-9 rounded-md bg-canvas border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors font-mono text-xs font-bold cursor-pointer"
+              className="shrink-0 w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-xs font-bold cursor-pointer"
             >
               ✕
             </button>
@@ -318,8 +318,8 @@ function PersonalCollectionExplorePage() {
                 onClick={() => setActivePill(isSelected ? 'all' : pill.key)}
                 className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 {pill.label}
@@ -342,15 +342,15 @@ function PersonalCollectionExplorePage() {
                     ? 'Find in Vault Artists...'
                     : 'Find in Personal Collection...'
                 }
-                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
+                className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
               />
-              <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
                   title="Clear search"
                 >
                   ✕
@@ -363,7 +363,7 @@ function PersonalCollectionExplorePage() {
                 setIsSearchOpen(false)
                 setSearchQuery('')
               }}
-              className="font-mono text-xs text-ink-soft hover:text-ink px-2 py-1.5 transition-colors cursor-pointer"
+              className="font-mono text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -380,18 +380,18 @@ function PersonalCollectionExplorePage() {
               <button
                 type="button"
                 onClick={() => handlePlayRelease(personalReleases[0])}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-canvas font-medium text-xs hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
+                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-background font-medium text-xs hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
               >
-                <PlayIconSVG className="w-3 h-3 text-canvas" />
+                <PlayIconSVG className="w-3 h-3 text-background" />
                 <span>Play</span>
               </button>
               <button
                 type="button"
                 onClick={handleShuffleVault}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-line bg-panel hover:bg-canvas-soft text-ink font-medium text-xs transition-colors cursor-pointer group"
+                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-foreground font-medium text-xs transition-colors cursor-pointer group"
                 title="Shuffle all vault releases"
               >
-                <ShuffleIconSVG className="w-3.5 h-3.5 text-ink-soft group-hover:text-ink transition-colors" />
+                <ShuffleIconSVG className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 <span>Shuffle</span>
               </button>
             </>
@@ -399,11 +399,11 @@ function PersonalCollectionExplorePage() {
 
           <Link
             to="/vault/manage"
-            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-line bg-panel hover:bg-canvas-soft text-ink-soft hover:text-ink text-xs transition-colors cursor-pointer"
+            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-xs transition-colors cursor-pointer"
             title="Manage storage and upload files"
           >
             <svg
-              className="w-3.5 h-3.5 text-ink-soft"
+              className="w-3.5 h-3.5 text-muted-foreground"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -419,7 +419,7 @@ function PersonalCollectionExplorePage() {
 
         {/* Right: Count and View Switcher */}
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden sm:inline">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hidden sm:inline">
             {activePill === 'artists'
               ? `${filteredArtists.length} ${filteredArtists.length === 1 ? 'Artist' : 'Artists'}`
               : `${filteredReleases.length} ${filteredReleases.length === 1 ? 'Release' : 'Releases'}`}
@@ -430,7 +430,7 @@ function PersonalCollectionExplorePage() {
               type="button"
               onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
               aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               {viewMode === 'list' ? (
                 <GridIconSVG className="w-5 h-5" />
@@ -447,11 +447,11 @@ function PersonalCollectionExplorePage() {
         /* ===================== ARTISTS VIEW (Clean & Minimal) ===================== */
         <div>
           {isLoadingArtists ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading vault artists...
             </div>
           ) : filteredArtists.length === 0 ? (
-            <div className="p-12 text-center text-ink-soft text-xs font-mono border border-line bg-panel rounded-xl">
+            <div className="p-12 text-center text-muted-foreground text-xs font-mono border border-border bg-card rounded-xl">
               {searchQuery
                 ? `No artists match "${searchQuery}".`
                 : 'No personal artists found in your vault.'}
@@ -463,9 +463,9 @@ function PersonalCollectionExplorePage() {
                   key={artist.id}
                   to="/artists/$idOrSlug"
                   params={{ idOrSlug: artist.slug || artist.id }}
-                  className="group relative flex flex-col items-center p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none text-center"
+                  className="group relative flex flex-col items-center p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none text-center"
                 >
-                  <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden rounded-full border border-line bg-canvas shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden rounded-full border border-border bg-background shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300">
                     {artist.bannerUrl ? (
                       <img
                         src={artist.bannerUrl}
@@ -479,10 +479,10 @@ function PersonalCollectionExplorePage() {
                     )}
                   </div>
                   <div className="w-full">
-                    <div className="font-semibold text-sm text-ink group-hover:text-primary transition-colors truncate">
+                    <div className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                       {artist.stageName}
                     </div>
-                    <div className="text-xs text-ink-soft truncate mt-0.5">
+                    <div className="text-xs text-muted-foreground truncate mt-0.5">
                       {artist.releaseCount}{' '}
                       {artist.releaseCount === 1 ? 'release' : 'releases'}
                     </div>
@@ -496,34 +496,34 @@ function PersonalCollectionExplorePage() {
         /* ===================== RELEASES VIEW ===================== */
         <div>
           {isLoadingReleases ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading personal vault...
             </div>
           ) : personalReleases.length === 0 ? (
             /* Empty Collection State */
-            <div className="p-12 border border-dashed border-line bg-panel/40 text-center space-y-4 my-6 rounded-2xl select-none">
-              <div className="w-14 h-14 bg-panel border border-line text-primary flex items-center justify-center mx-auto rounded-full shadow-md">
+            <div className="p-12 border border-dashed border-border bg-card/40 text-center space-y-4 my-6 rounded-2xl select-none">
+              <div className="w-14 h-14 bg-card border border-border text-primary flex items-center justify-center mx-auto rounded-full shadow-md">
                 <UploadCloudSVG className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif italic text-2xl text-ink font-normal">
+                <h3 className="font-serif italic text-2xl text-foreground font-normal">
                   Your Personal Vault is Empty
                 </h3>
-                <p className="font-sans text-xs text-ink-soft max-w-md mx-auto leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                   Upload your offline audio files in the Locker Manager to start
                   building your private listening library.
                 </p>
               </div>
               <Link
                 to="/vault/manage"
-                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
+                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Go to Locker Manager</span>
               </Link>
             </div>
           ) : filteredReleases.length === 0 ? (
-            <div className="p-12 text-center text-ink-soft text-xs font-mono border border-line bg-panel rounded-xl">
+            <div className="p-12 text-center text-muted-foreground text-xs font-mono border border-border bg-card rounded-xl">
               No releases match "{searchQuery}" under {activePill.toUpperCase()}
               .
             </div>
@@ -538,10 +538,10 @@ function PersonalCollectionExplorePage() {
                 return (
                   <div
                     key={release.id}
-                    className="group relative flex flex-col p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none"
+                    className="group relative flex flex-col p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none"
                   >
                     {/* Artwork Container */}
-                    <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden rounded-md bg-panel shadow-sm">
+                    <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden rounded-md bg-card shadow-sm">
                       <Link
                         to="/albums/$idOrSlug"
                         params={{ idOrSlug: release.slug || release.id }}
@@ -572,7 +572,7 @@ function PersonalCollectionExplorePage() {
                           e.stopPropagation()
                           handlePlayRelease(release)
                         }}
-                        className={`absolute bottom-2 right-2 w-9 h-9 bg-primary text-canvas rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`absolute bottom-2 right-2 w-9 h-9 bg-primary text-background rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer ${
                           isPlayingThisRelease
                             ? 'opacity-100 scale-100 ring-2 ring-white/50'
                             : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 scale-100 sm:scale-90 sm:group-hover:scale-100 hover:scale-105'
@@ -591,7 +591,7 @@ function PersonalCollectionExplorePage() {
                         <ReleaseActionMenu
                           release={release}
                           onDeleteRequest={setDeleteConfirm}
-                          buttonClassName="w-9 h-9 rounded-full bg-canvas/80 backdrop-blur-xs border border-line/60 text-ink shadow-sm flex items-center justify-center hover:bg-canvas transition-colors cursor-pointer"
+                          buttonClassName="w-9 h-9 rounded-full bg-background/80 backdrop-blur-xs border border-border/60 text-foreground shadow-sm flex items-center justify-center hover:bg-background transition-colors cursor-pointer"
                         />
                       </div>
                     </div>
@@ -606,13 +606,13 @@ function PersonalCollectionExplorePage() {
                       >
                         {release.title}
                       </Link>
-                      <div className="text-xs text-ink-soft truncate mt-0.5 flex items-center gap-1.5">
+                      <div className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1.5">
                         <Link
                           to="/artists/$idOrSlug"
                           params={{
                             idOrSlug: release.artistSlug || release.artistId,
                           }}
-                          className="hover:underline hover:text-ink truncate text-inherit no-underline"
+                          className="hover:underline hover:text-foreground truncate text-inherit no-underline"
                           title={release.artistName}
                         >
                           {release.artistName}
@@ -636,7 +636,7 @@ function PersonalCollectionExplorePage() {
                 return (
                   <div
                     key={release.id}
-                    className="group flex items-center justify-between p-2 rounded-xl hover:bg-canvas-soft/80 active:scale-[0.99] transition-all select-none"
+                    className="group flex items-center justify-between p-2 rounded-xl hover:bg-muted/80 active:scale-[0.99] transition-all select-none"
                   >
                     <Link
                       to="/albums/$idOrSlug"
@@ -644,7 +644,7 @@ function PersonalCollectionExplorePage() {
                       className="flex items-center gap-3.5 flex-1 min-w-0 text-inherit no-underline"
                     >
                       {/* Thumbnail Artwork */}
-                      <div className="w-12 h-12 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                      <div className="w-12 h-12 rounded-md bg-muted border border-border shrink-0 overflow-hidden relative shadow-xs">
                         {release.coverImageUrl ? (
                           <img
                             src={release.coverImageUrl}
@@ -664,10 +664,10 @@ function PersonalCollectionExplorePage() {
 
                       {/* Text Information (NO release type bubble, NO cuts!) */}
                       <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="font-semibold text-sm text-ink group-hover:text-primary transition-colors truncate">
+                        <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                           {release.title}
                         </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-ink-soft mt-0.5 truncate">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 truncate">
                           <span className="truncate">{release.artistName}</span>
                           {releaseYear && (
                             <>
@@ -681,7 +681,7 @@ function PersonalCollectionExplorePage() {
 
                     {/* Right Side: Duration & Global Action Menu */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-xs text-ink-soft hidden sm:inline">
+                      <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
                         {formatDuration(release.totalDurationSeconds)}
                       </span>
                       <ReleaseActionMenu
@@ -700,22 +700,22 @@ function PersonalCollectionExplorePage() {
       {/* ===================== DELETE CONFIRMATION MODAL ===================== */}
       {deleteConfirm && (
         <div
-          className="fixed inset-0 bg-ink/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-foreground/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150"
           onClick={() => !isDeleting && setDeleteConfirm(null)}
         >
           <div
-            className="border border-line bg-panel p-6 max-w-md w-full shadow-2xl space-y-4 rounded-xl"
+            className="border border-border bg-card p-6 max-w-md w-full shadow-2xl space-y-4 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 text-red-500">
               <TrashIconSVG className="w-5 h-5 shrink-0" />
-              <h3 className="font-serif italic font-bold text-lg text-ink">
+              <h3 className="font-serif italic font-bold text-lg text-foreground">
                 Move Release to Recycle Bin?
               </h3>
             </div>
-            <p className="font-sans text-xs text-ink-soft leading-relaxed">
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed">
               Are you sure you want to move{' '}
-              <strong className="text-ink font-semibold">
+              <strong className="text-foreground font-semibold">
                 "{deleteConfirm.title}"
               </strong>{' '}
               to the 30-day recycle bin? You can restore it anytime within 30
@@ -726,7 +726,7 @@ function PersonalCollectionExplorePage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 border border-line bg-panel hover:bg-canvas text-ink text-xs font-medium rounded-full cursor-pointer transition-colors"
+                className="px-4 py-2 border border-border bg-card hover:bg-background text-foreground text-xs font-medium rounded-full cursor-pointer transition-colors"
               >
                 Cancel
               </button>
@@ -745,7 +745,7 @@ function PersonalCollectionExplorePage() {
 
       {/* ===================== TOAST NOTIFICATION ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
           {toastMessage}
         </div>
       )}

@@ -266,7 +266,7 @@ export function PlaylistTrackReorderList({
   return (
     <div
       ref={containerRef}
-      className="border border-line bg-panel divide-y divide-line/60 shadow-xs relative"
+      className="border border-border bg-card divide-y divide-border/60 shadow-xs relative"
     >
       {tracks.map((track, idx) => {
         const entryId = track.id || (track as any).entryId

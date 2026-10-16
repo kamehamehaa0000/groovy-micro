@@ -81,7 +81,7 @@ function AdminSubscriptionsDeskComponent() {
 
   if (isAuthLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
         Checking administrative clearance...
       </div>
     )
@@ -93,16 +93,16 @@ function AdminSubscriptionsDeskComponent() {
         <span className="font-mono text-xs uppercase tracking-widest text-red-500 block mb-2">
           403 Access Restricted
         </span>
-        <h1 className="font-serif italic text-3xl text-ink">
+        <h1 className="font-serif italic text-3xl text-foreground">
           Administrative Desk
         </h1>
-        <p className="font-sans text-xs text-ink-soft mt-3 leading-relaxed">
+        <p className="font-sans text-xs text-muted-foreground mt-3 leading-relaxed">
           Access to subscription plans and dynamic feature catalog requires
           administrative clearance.
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
         >
           &larr; Return to Catalog
         </Link>
@@ -246,16 +246,16 @@ function AdminSubscriptionsDeskComponent() {
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">
       {/* Header */}
-      <div className="border-b border-line pb-6 mb-8">
+      <div className="border-b border-border pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
               Groovy Administration
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Subscriptions &amp; Feature Catalog
             </h1>
-            <p className="font-sans text-xs text-ink-soft mt-1">
+            <p className="font-sans text-xs text-muted-foreground mt-1">
               Configure subscription tiers, manage pricing, and define dynamic
               perks and capabilities for the entitlement engine.
             </p>
@@ -263,7 +263,7 @@ function AdminSubscriptionsDeskComponent() {
 
           <Link
             to="/admin/verification"
-            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
+            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
           >
             Artist Verifications &rarr;
           </Link>
@@ -283,15 +283,15 @@ function AdminSubscriptionsDeskComponent() {
         )}
 
         {/* Admin Desk Navigation Tabs */}
-        <div className="mt-8 flex items-center justify-between border-b border-line pb-0 flex-wrap gap-4">
+        <div className="mt-8 flex items-center justify-between border-b border-border pb-0 flex-wrap gap-4">
           <div className="flex items-center gap-6 font-mono text-xs">
             <button
               type="button"
               onClick={() => setActiveTab('plans')}
               className={`pb-3 border-b-2 font-medium tracking-wider uppercase transition-colors cursor-pointer ${
                 activeTab === 'plans'
-                  ? 'border-ink text-ink font-semibold'
-                  : 'border-transparent text-ink-soft hover:text-ink'
+                  ? 'border-foreground text-foreground font-semibold'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               Subscription Plans ({plans.length})
@@ -301,8 +301,8 @@ function AdminSubscriptionsDeskComponent() {
               onClick={() => setActiveTab('features')}
               className={`pb-3 border-b-2 font-medium tracking-wider uppercase transition-colors cursor-pointer ${
                 activeTab === 'features'
-                  ? 'border-ink text-ink font-semibold'
-                  : 'border-transparent text-ink-soft hover:text-ink'
+                  ? 'border-foreground text-foreground font-semibold'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               Feature Catalog &amp; Perks ({features.length})
@@ -314,7 +314,7 @@ function AdminSubscriptionsDeskComponent() {
               <button
                 type="button"
                 onClick={handleOpenCreatePlan}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer font-semibold"
               >
                 + New Subscription Plan
               </button>
@@ -322,7 +322,7 @@ function AdminSubscriptionsDeskComponent() {
               <button
                 type="button"
                 onClick={() => setIsCreateFeatureOpen(true)}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer font-semibold"
               >
                 + Register New Feature
               </button>
@@ -335,12 +335,12 @@ function AdminSubscriptionsDeskComponent() {
       {activeTab === 'plans' && (
         <div className="space-y-6">
           {isLoading ? (
-            <div className="py-20 text-center font-mono text-xs text-ink-soft animate-pulse">
+            <div className="py-20 text-center font-mono text-xs text-muted-foreground animate-pulse">
               Loading active subscription tiers...
             </div>
           ) : plans.length === 0 ? (
-            <div className="p-12 border border-dashed border-line bg-panel text-center">
-              <p className="font-serif italic text-lg text-ink">
+            <div className="p-12 border border-dashed border-border bg-card text-center">
+              <p className="font-serif italic text-lg text-foreground">
                 No subscription plans configured yet
               </p>
               <button
@@ -356,11 +356,11 @@ function AdminSubscriptionsDeskComponent() {
               {plans.map((plan) => (
                 <div
                   key={plan.id}
-                  className="border border-line bg-panel p-6 shadow-2xs flex flex-col justify-between space-y-6"
+                  className="border border-border bg-card p-6 shadow-2xs flex flex-col justify-between space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas text-primary font-semibold">
+                      <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-border bg-background text-primary font-semibold">
                         {plan.id}
                       </span>
                       <span
@@ -375,11 +375,11 @@ function AdminSubscriptionsDeskComponent() {
                     </div>
 
                     <div>
-                      <h3 className="font-serif italic text-2xl text-ink font-medium">
+                      <h3 className="font-serif italic text-2xl text-foreground font-medium">
                         {plan.name}
                       </h3>
-                      <div className="mt-1 font-mono text-xs text-ink-soft">
-                        <span className="text-lg font-semibold text-ink">
+                      <div className="mt-1 font-mono text-xs text-muted-foreground">
+                        <span className="text-lg font-semibold text-foreground">
                           {(plan.priceCents / 100).toLocaleString(undefined, {
                             style: 'currency',
                             currency: plan.currency || 'USD',
@@ -390,20 +390,20 @@ function AdminSubscriptionsDeskComponent() {
                     </div>
 
                     {/* Feature Matrix Breakdown */}
-                    <div className="pt-3 border-t border-line-soft space-y-2">
-                      <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
+                    <div className="pt-3 border-t border-border-soft space-y-2">
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block">
                         Assigned Capabilities
                       </span>
-                      <div className="space-y-1.5 font-sans text-xs text-ink">
+                      <div className="space-y-1.5 font-sans text-xs text-foreground">
                         {Object.entries(plan.features).map(([fKey, fVal]) => (
                           <div
                             key={fKey}
-                            className="flex items-center justify-between gap-2 py-0.5 border-b border-line-soft/40"
+                            className="flex items-center justify-between gap-2 py-0.5 border-b border-border-soft/40"
                           >
-                            <span className="font-mono text-[11px] text-ink-soft">
+                            <span className="font-mono text-[11px] text-muted-foreground">
                               {fKey}
                             </span>
-                            <span className="font-mono text-[11px] font-semibold text-ink">
+                            <span className="font-mono text-[11px] font-semibold text-foreground">
                               {typeof fVal === 'boolean'
                                 ? fVal
                                   ? '✓ Yes'
@@ -416,11 +416,11 @@ function AdminSubscriptionsDeskComponent() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-line">
+                  <div className="pt-4 border-t border-border">
                     <button
                       type="button"
                       onClick={() => handleOpenEditPlan(plan)}
-                      className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer text-center"
+                      className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors cursor-pointer text-center"
                     >
                       Edit Plan &amp; Features
                     </button>
@@ -435,13 +435,13 @@ function AdminSubscriptionsDeskComponent() {
       {/* TAB CONTENT: FEATURE CATALOG */}
       {activeTab === 'features' && (
         <div className="space-y-6">
-          <div className="border border-line bg-panel p-5 shadow-2xs">
+          <div className="border border-border bg-card p-5 shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h3 className="font-serif italic text-xl text-ink">
+                <h3 className="font-serif italic text-xl text-foreground">
                   Dynamic Feature Catalog
                 </h3>
-                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">
                   Registered features can be dynamically assigned to plans and
                   are checked at runtime by the Entitlement Guard.
                 </p>
@@ -451,7 +451,7 @@ function AdminSubscriptionsDeskComponent() {
             <div className="overflow-x-auto">
               <table className="w-full text-left font-sans text-xs">
                 <thead>
-                  <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  <tr className="border-b border-border font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                     <th className="py-2.5 px-3">Feature Key</th>
                     <th className="py-2.5 px-3">Display Name</th>
                     <th className="py-2.5 px-3">Type</th>
@@ -461,29 +461,29 @@ function AdminSubscriptionsDeskComponent() {
                     <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line-soft">
+                <tbody className="divide-y divide-border-soft">
                   {features.map((feat) => (
-                    <tr key={feat.key} className="hover:bg-canvas/40 transition-colors">
-                      <td className="py-3 px-3 font-mono font-medium text-ink">
+                    <tr key={feat.key} className="hover:bg-background/40 transition-colors">
+                      <td className="py-3 px-3 font-mono font-medium text-foreground">
                         {feat.key}
                       </td>
                       <td className="py-3 px-3">
-                        <div className="font-medium text-ink">{feat.name}</div>
+                        <div className="font-medium text-foreground">{feat.name}</div>
                         {feat.description && (
-                          <div className="text-[11px] text-ink-soft line-clamp-1">
+                          <div className="text-[11px] text-muted-foreground line-clamp-1">
                             {feat.description}
                           </div>
                         )}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background">
                           {feat.valueType}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-ink">
+                      <td className="py-3 px-3 font-mono text-foreground">
                         {String(feat.defaultValue)}
                       </td>
-                      <td className="py-3 px-3 font-mono text-ink-soft">
+                      <td className="py-3 px-3 font-mono text-muted-foreground">
                         {feat.category}
                       </td>
                       <td className="py-3 px-3">
@@ -501,7 +501,7 @@ function AdminSubscriptionsDeskComponent() {
                         <button
                           type="button"
                           onClick={() => handleToggleFeatureActive(feat)}
-                          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                         >
                           {feat.isActive ? 'Deactivate' : 'Activate'}
                         </button>
@@ -517,21 +517,21 @@ function AdminSubscriptionsDeskComponent() {
 
       {/* CREATE FEATURE MODAL */}
       {isCreateFeatureOpen && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-lg w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-5 my-auto">
-            <div className="flex items-center justify-between border-b border-line pb-3">
+        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-lg w-full bg-card border-2 border-border shadow-2xl p-6 sm:p-7 space-y-5 my-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block">
                   Catalog Registry
                 </span>
-                <h3 className="font-serif italic text-2xl text-ink">
+                <h3 className="font-serif italic text-2xl text-foreground">
                   Register New Dynamic Feature
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateFeatureOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 ✕ Close
               </button>
@@ -539,7 +539,7 @@ function AdminSubscriptionsDeskComponent() {
 
             <form onSubmit={handleCreateFeature} className="space-y-4">
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                   Feature Key <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -548,15 +548,15 @@ function AdminSubscriptionsDeskComponent() {
                   value={newFeatureKey}
                   onChange={(e) => setNewFeatureKey(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                   placeholder="e.g. stems_download, spatial_audio"
-                  className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                  className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                 />
-                <p className="font-mono text-[11px] text-ink-soft mt-1">
+                <p className="font-mono text-[11px] text-muted-foreground mt-1">
                   Unique programmatic identifier checked by requireEntitlement(key).
                 </p>
               </div>
 
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                   Display Label <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -565,12 +565,12 @@ function AdminSubscriptionsDeskComponent() {
                   value={newFeatureName}
                   onChange={(e) => setNewFeatureName(e.target.value)}
                   placeholder="e.g. Stems & Acapella Isolation"
-                  className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                  className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                   Description / Marketing Copy
                 </label>
                 <textarea
@@ -578,19 +578,19 @@ function AdminSubscriptionsDeskComponent() {
                   value={newFeatureDesc}
                   onChange={(e) => setNewFeatureDesc(e.target.value)}
                   placeholder="Explains what this perk allows for listeners or artists..."
-                  className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
+                  className="w-full font-sans text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Value Type
                   </label>
                   <select
                     value={newFeatureType}
                     onChange={(e) => setNewFeatureType(e.target.value as FeatureValueType)}
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   >
                     <option value="BOOLEAN">Boolean (Yes / No)</option>
                     <option value="NUMERIC">Numeric (Limit / Count)</option>
@@ -598,7 +598,7 @@ function AdminSubscriptionsDeskComponent() {
                 </div>
 
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Category
                   </label>
                   <input
@@ -606,13 +606,13 @@ function AdminSubscriptionsDeskComponent() {
                     value={newFeatureCategory}
                     onChange={(e) => setNewFeatureCategory(e.target.value)}
                     placeholder="e.g. streaming, jam, audio"
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                   Default Value (Fallback for Unassigned Plans)
                 </label>
                 {newFeatureType === 'BOOLEAN' ? (
@@ -622,7 +622,7 @@ function AdminSubscriptionsDeskComponent() {
                       checked={newFeatureDefaultBool}
                       onChange={(e) => setNewFeatureDefaultBool(e.target.checked)}
                     />
-                    <span className="font-mono text-xs text-ink">
+                    <span className="font-mono text-xs text-foreground">
                       {newFeatureDefaultBool ? 'Default: Enabled (true)' : 'Default: Disabled (false)'}
                     </span>
                   </label>
@@ -631,23 +631,23 @@ function AdminSubscriptionsDeskComponent() {
                     type="number"
                     value={newFeatureDefaultNum}
                     onChange={(e) => setNewFeatureDefaultNum(Number(e.target.value))}
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   />
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsCreateFeatureOpen(false)}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFeature}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
                 >
                   {isSubmittingFeature ? 'Registering...' : '✦ Register Feature'}
                 </button>
@@ -659,21 +659,21 @@ function AdminSubscriptionsDeskComponent() {
 
       {/* CREATE / EDIT PLAN MODAL */}
       {isPlanModalOpen && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-5 my-auto max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-line pb-3">
+        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full bg-card border-2 border-border shadow-2xl p-6 sm:p-7 space-y-5 my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block">
                   Plan Configuration
                 </span>
-                <h3 className="font-serif italic text-2xl text-ink">
+                <h3 className="font-serif italic text-2xl text-foreground">
                   {editingPlanId ? `Edit Plan: ${planFormName}` : 'Create Subscription Plan'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsPlanModalOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 ✕ Close
               </button>
@@ -682,7 +682,7 @@ function AdminSubscriptionsDeskComponent() {
             <form onSubmit={handleSavePlan} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Plan ID <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -692,12 +692,12 @@ function AdminSubscriptionsDeskComponent() {
                     value={planFormId}
                     onChange={(e) => setPlanFormId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="e.g. premium_individual"
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-60"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Plan Display Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -706,14 +706,14 @@ function AdminSubscriptionsDeskComponent() {
                     value={planFormName}
                     onChange={(e) => setPlanFormName(e.target.value)}
                     placeholder="e.g. Groovy Premium"
-                    className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Price (USD)
                   </label>
                   <input
@@ -722,18 +722,18 @@ function AdminSubscriptionsDeskComponent() {
                     min="0"
                     value={planFormPrice}
                     onChange={(e) => setPlanFormPrice(e.target.value)}
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     Billing Interval
                   </label>
                   <select
                     value={planFormInterval}
                     onChange={(e) => setPlanFormInterval(e.target.value as any)}
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   >
                     <option value="month">Monthly</option>
                     <option value="year">Yearly</option>
@@ -743,21 +743,21 @@ function AdminSubscriptionsDeskComponent() {
               </div>
 
               {/* Dynamic Feature Assignment Checkboxes */}
-              <div className="pt-3 border-t border-line-soft space-y-3">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink block">
+              <div className="pt-3 border-t border-border-soft space-y-3">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-foreground block">
                   Assign Dynamic Feature Entitlements
                 </span>
                 <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                   {features.map((feat) => (
                     <div
                       key={feat.key}
-                      className="p-3 border border-line bg-canvas flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="p-3 border border-border bg-background flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div>
-                        <div className="font-serif italic text-sm text-ink">
+                        <div className="font-serif italic text-sm text-foreground">
                           {feat.name}
                         </div>
-                        <div className="font-mono text-[11px] text-ink-soft">
+                        <div className="font-mono text-[11px] text-muted-foreground">
                           key: {feat.key} &bull; category: {feat.category}
                         </div>
                       </div>
@@ -779,7 +779,7 @@ function AdminSubscriptionsDeskComponent() {
                           </label>
                         ) : (
                           <div className="flex items-center gap-1.5 font-mono text-xs">
-                            <span className="text-ink-soft text-[11px]">Limit:</span>
+                            <span className="text-muted-foreground text-[11px]">Limit:</span>
                             <input
                               type="number"
                               value={Number(planFormFeatures[feat.key] ?? feat.defaultValue)}
@@ -789,7 +789,7 @@ function AdminSubscriptionsDeskComponent() {
                                   [feat.key]: Number(e.target.value),
                                 })
                               }
-                              className="w-20 py-1 px-2 border border-line bg-panel text-ink text-right"
+                              className="w-20 py-1 px-2 border border-border bg-card text-foreground text-right"
                             />
                           </div>
                         )}
@@ -799,18 +799,18 @@ function AdminSubscriptionsDeskComponent() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsPlanModalOpen(false)}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPlan}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer font-semibold disabled:opacity-50"
                 >
                   {isSubmittingPlan ? 'Saving Plan...' : '✦ Save Plan'}
                 </button>

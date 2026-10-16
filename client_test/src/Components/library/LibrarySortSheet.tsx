@@ -45,11 +45,11 @@ export function LibrarySortSheet({
       />
 
       {/* Sheet Content */}
-      <div className="relative w-full sm:max-w-xs max-h-[80vh] overflow-y-auto bg-panel border-t sm:border border-line sm:rounded-2xl rounded-t-2xl shadow-2xl p-4 sm:p-5 pb-safe z-10 transition-transform select-none">
+      <div className="relative w-full sm:max-w-xs max-h-[80vh] overflow-y-auto bg-card border-t sm:border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl p-4 sm:p-5 pb-safe z-10 transition-transform select-none">
         {/* Mobile handle */}
-        <div className="sm:hidden w-10 h-1 bg-line rounded-full mx-auto mb-3" />
+        <div className="sm:hidden w-10 h-1 bg-border rounded-full mx-auto mb-3" />
 
-        <div className="text-xs font-mono uppercase tracking-wider text-ink-soft mb-3 px-1">
+        <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3 px-1">
           Sort by
         </div>
 
@@ -66,8 +66,8 @@ export function LibrarySortSheet({
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
                   isSelected
-                    ? "text-ink font-semibold bg-canvas"
-                    : "text-ink-soft hover:text-ink hover:bg-canvas-soft"
+                    ? "text-foreground font-semibold bg-background"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <span>{opt.label}</span>

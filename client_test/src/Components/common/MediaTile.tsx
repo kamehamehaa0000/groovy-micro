@@ -40,7 +40,7 @@ export function MediaTile({
 
         {/* Artwork wrapper with aspect square and optional badge indicator */}
         <div
-          className={`relative aspect-square w-full mb-2.5 overflow-hidden ${roundedClass} bg-canvas-deep`}
+          className={`relative aspect-square w-full mb-2.5 overflow-hidden ${roundedClass} bg-muted`}
         >
           {customCover ? (
             <div className="absolute inset-0 w-full h-full flex items-center justify-center">
@@ -64,7 +64,7 @@ export function MediaTile({
             </div>
           ) : (
             <div
-              className={`absolute inset-0 w-full h-full border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft select-none ${roundedClass}`}
+              className={`absolute inset-0 w-full h-full border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground select-none ${roundedClass}`}
             >
               {fallbackInitials || title.slice(0, 2).toUpperCase()}
             </div>
@@ -97,11 +97,11 @@ export function MediaTile({
 
         {/* Text information */}
         <div className="w-full">
-          <div className="font-semibold text-sm text-ink truncate group-hover:text-primary transition-colors">
+          <div className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
             {title}
           </div>
           {subtitle && (
-            <div className="text-xs text-ink-soft truncate mt-0.5">
+            <div className="text-xs text-muted-foreground truncate mt-0.5">
               {subtitle}
             </div>
           )}
@@ -111,7 +111,7 @@ export function MediaTile({
 
     return (
       <div
-        className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-stone/30 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
+        className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-secondary/30 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
       >
         {to ? (
           <Link

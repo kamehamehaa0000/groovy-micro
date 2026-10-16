@@ -1492,7 +1492,7 @@ function StudioComponent() {
 
   if (isAuthLoading || (user?.role === 'ARTIST' && isLoadingProfile)) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
         Initializing Creator Studio...
       </div>
     )
@@ -1502,7 +1502,7 @@ function StudioComponent() {
 
   if (isLoadingProfile) {
     return (
-      <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
         Retrieving artist credentials &amp; studio workspace...
       </div>
     )
@@ -1555,14 +1555,14 @@ function StudioComponent() {
 
     return (
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-12">
-        <div className="border-b border-line pb-6 mb-8">
+        <div className="border-b border-border pb-6 mb-8">
           <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
             Maison Creator Studio
           </span>
-          <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
+          <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
             Launch Your Artist Identity
           </h1>
-          <p className="font-sans text-xs text-ink-soft mt-2 leading-relaxed">
+          <p className="font-sans text-xs text-muted-foreground mt-2 leading-relaxed">
             Upgrade instantly from a listener account to an official Groovy
             artist profile. Release master tracks, manage your presence, and
             curate your discography.
@@ -1576,9 +1576,9 @@ function StudioComponent() {
         )}
 
         <form onSubmit={handleInstantUpgrade} className="flex flex-col gap-6">
-          <div className="p-6 border border-line bg-panel flex flex-col gap-5 shadow-2xs">
+          <div className="p-6 border border-border bg-card flex flex-col gap-5 shadow-2xs">
             <div>
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-2">
+              <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-2">
                 Stage / Ensemble Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -1587,16 +1587,16 @@ function StudioComponent() {
                 value={stageName}
                 onChange={(e) => setStageName(e.target.value)}
                 placeholder="e.g. Hélène Vane, The Cinematic Trio"
-                className="w-full font-serif italic text-base py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink transition-colors"
+                className="w-full font-serif italic text-base py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                   Vanity Handle (Slug)
                 </label>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Auto-generated if blank
                 </span>
               </div>
@@ -1605,9 +1605,9 @@ function StudioComponent() {
                 value={customSlug}
                 onChange={(e) => setCustomSlug(e.target.value)}
                 placeholder="e.g. helene-vane"
-                className="w-full font-mono text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink transition-colors"
+                className="w-full font-mono text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
               />
-              <div className="mt-2 font-mono text-[11px] text-ink-soft flex items-center gap-1">
+              <div className="mt-2 font-mono text-[11px] text-muted-foreground flex items-center gap-1">
                 <span>Public profile URL:</span>
                 <span className="text-primary font-semibold">
                   groovy.app/artists/{previewSlug}
@@ -1616,7 +1616,7 @@ function StudioComponent() {
             </div>
 
             <div>
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-2">
+              <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-2">
                 Artist Biography
               </label>
               <textarea
@@ -1624,17 +1624,17 @@ function StudioComponent() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Share your musical background, style, influences, or instruments..."
-                className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink transition-colors resize-y leading-relaxed"
+                className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors resize-y leading-relaxed"
               />
             </div>
 
-            <div className="pt-4 border-t border-line-soft">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-3">
+            <div className="pt-4 border-t border-border-soft">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-3">
                 Official Channels (Optional)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                     Instagram URL
                   </label>
                   <input
@@ -1642,11 +1642,11 @@ function StudioComponent() {
                     value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
                     placeholder="https://instagram.com/..."
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                     Website URL
                   </label>
                   <input
@@ -1654,11 +1654,11 @@ function StudioComponent() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     placeholder="https://yourwebsite.com"
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                     Spotify Artist URL
                   </label>
                   <input
@@ -1666,7 +1666,7 @@ function StudioComponent() {
                     value={spotify}
                     onChange={(e) => setSpotify(e.target.value)}
                     placeholder="https://open.spotify.com/artist/..."
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
               </div>
@@ -1676,7 +1676,7 @@ function StudioComponent() {
           <button
             type="submit"
             disabled={isSubmittingUpgrade}
-            className="w-full font-mono text-xs uppercase tracking-widest py-3.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+            className="w-full font-mono text-xs uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
           >
             {isSubmittingUpgrade
               ? 'Activating Studio...'
@@ -1693,10 +1693,10 @@ function StudioComponent() {
   if (!artistProfile) {
     return (
       <div className="max-w-xl mx-auto py-24 text-center">
-        <p className="font-serif italic text-lg text-ink">
+        <p className="font-serif italic text-lg text-foreground">
           No artist profile detected.
         </p>
-        <p className="font-mono text-xs text-ink-soft mt-1">
+        <p className="font-mono text-xs text-muted-foreground mt-1">
           Please try refreshing the page.
         </p>
       </div>
@@ -1936,20 +1936,20 @@ function StudioComponent() {
       )}
 
       {/* Studio Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border mb-8">
         <div>
           <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
             Maison Studio Suite
           </span>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="font-serif italic text-3xl text-ink">
+            <h1 className="font-serif italic text-3xl text-foreground">
               {artistProfile.stageName}
             </h1>
             {artistProfile.verified && (
               <VerifiedBadgeSVG className="w-5 h-5 text-primary" />
             )}
           </div>
-          <span className="font-mono text-xs text-ink-soft">
+          <span className="font-mono text-xs text-muted-foreground">
             @{artistProfile.slug}
           </span>
         </div>
@@ -1958,23 +1958,23 @@ function StudioComponent() {
           <Link
             to="/artists/$idOrSlug"
             params={{ idOrSlug: artistProfile.slug }}
-            className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors flex items-center gap-1.5"
+            className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors flex items-center gap-1.5"
           >
             <span>Public Profile</span>
-            <ExternalLinkSVG className="w-3 h-3 text-ink-soft" />
+            <ExternalLinkSVG className="w-3 h-3 text-muted-foreground" />
           </Link>
         </div>
       </div>
 
       {/* Studio Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-line pb-px mb-8 font-mono text-xs uppercase tracking-wider overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-border pb-px mb-8 font-mono text-xs uppercase tracking-wider overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('releases')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'releases'
-              ? 'border-primary text-ink font-semibold'
-              : 'border-transparent text-ink-soft hover:text-ink'
+              ? 'border-primary text-foreground font-semibold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           Catalog & Releases ({albums.length})
@@ -1985,8 +1985,8 @@ function StudioComponent() {
           onClick={() => setActiveTab('trash')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'trash'
-              ? 'border-primary text-ink font-semibold'
-              : 'border-transparent text-ink-soft hover:text-ink'
+              ? 'border-primary text-foreground font-semibold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           30-Day Trash ({trashAlbums.length + trashSongs.length})
@@ -1997,8 +1997,8 @@ function StudioComponent() {
           onClick={() => setActiveTab('profile')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'border-primary text-ink font-semibold'
-              : 'border-transparent text-ink-soft hover:text-ink'
+              ? 'border-primary text-foreground font-semibold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           Profile & Branding
@@ -2009,8 +2009,8 @@ function StudioComponent() {
           onClick={() => setActiveTab('verification')}
           className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
             activeTab === 'verification'
-              ? 'border-primary text-ink font-semibold'
-              : 'border-transparent text-ink-soft hover:text-ink'
+              ? 'border-primary text-foreground font-semibold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           Verification Desk
@@ -2025,10 +2025,10 @@ function StudioComponent() {
           {/* Top Actions & Overview */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="font-serif italic text-2xl text-ink">
+              <h2 className="font-serif italic text-2xl text-foreground">
                 Master Releases & Recordings
               </h2>
-              <p className="font-sans text-xs text-ink-soft mt-0.5">
+              <p className="font-sans text-xs text-muted-foreground mt-0.5">
                 Manage your studio master tapes, published albums, and
                 standalone singles.
               </p>
@@ -2041,7 +2041,7 @@ function StudioComponent() {
                   resetReleaseForm()
                   setIsCreateReleaseOpen(true)
                 }}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-2xs font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-2xs font-semibold"
               >
                 <PlusIconSVG className="w-3.5 h-3.5" />
                 <span>✦ New Release</span>
@@ -2051,15 +2051,15 @@ function StudioComponent() {
 
           {/* Unified Master Release Modal */}
           {isCreateReleaseOpen && (
-            <div className="p-6 border-2 border-line bg-panel shadow-md space-y-6">
-              <div className="flex items-center justify-between border-b border-line pb-3">
+            <div className="p-6 border-2 border-border bg-card shadow-md space-y-6">
+              <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
-                  <h3 className="font-serif italic text-xl text-ink">
+                  <h3 className="font-serif italic text-xl text-foreground">
                     {releaseType === 'SINGLE'
                       ? 'Publish Standalone Single Release'
                       : `Publish New Master ${releaseType}`}
                   </h3>
-                  <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+                  <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
                     {releaseType === 'SINGLE'
                       ? 'Streamlined single release with dedicated master artwork, R2 lossless audio, and collaborator credits.'
                       : 'Multi-cut studio release with sequential tracklist ordering, R2 master cuts, and contributor attribution.'}
@@ -2068,7 +2068,7 @@ function StudioComponent() {
                 <button
                   type="button"
                   onClick={() => setIsCreateReleaseOpen(false)}
-                  className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                  className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   ✕ Close
                 </button>
@@ -2076,7 +2076,7 @@ function StudioComponent() {
 
               {/* Release Format / Type Selector */}
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-2">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-2">
                   Release Format / Type
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -2087,8 +2087,8 @@ function StudioComponent() {
                       onClick={() => setReleaseType(type)}
                       className={`font-mono text-xs uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
                         releaseType === type
-                          ? 'border-ink bg-ink text-canvas font-semibold'
-                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                          ? 'border-foreground bg-foreground text-background font-semibold'
+                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {type === 'SINGLE' ? '✦ Single (1 Cut)' : type}
@@ -2121,24 +2121,24 @@ function StudioComponent() {
                     handleBatchImportFiles(droppedFiles)
                   }
                 }}
-                className="p-4 border-2 border-dashed border-line hover:border-ink bg-canvas/60 transition-colors flex flex-col sm:flex-row items-center justify-between gap-4"
+                className="p-4 border-2 border-dashed border-border hover:border-foreground bg-background/60 transition-colors flex flex-col sm:flex-row items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 border border-line bg-panel flex items-center justify-center shrink-0">
-                    <UploadCloudSVG className="w-5 h-5 text-ink" />
+                  <div className="w-10 h-10 border border-border bg-card flex items-center justify-center shrink-0">
+                    <UploadCloudSVG className="w-5 h-5 text-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-mono text-xs uppercase tracking-wider text-ink font-semibold flex items-center gap-1.5">
+                    <div className="font-mono text-xs uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
                       <span>✦ Quick Start: Auto-Fill from Audio Metadata</span>
                     </div>
-                    <p className="font-sans text-xs text-ink-soft mt-0.5">
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5">
                       Drop audio file{releaseType !== 'SINGLE' ? 's' : ''} or browse to auto-extract release title, embedded artwork, track titles, genres, and durations. All prefilled fields remain completely editable.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="font-mono text-xs uppercase tracking-wider py-2 px-3.5 border border-ink bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
+                  <label className="font-mono text-xs uppercase tracking-wider py-2 px-3.5 border border-foreground bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
                     <span>
                       {isBatchImporting || isUploadingSingleAudio
                         ? 'Extracting & Uploading...'
@@ -2174,7 +2174,7 @@ function StudioComponent() {
                 {/* Basic Release Metadata */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
                       <span className="text-red-500">*</span>
                     </label>
@@ -2188,12 +2188,12 @@ function StudioComponent() {
                           ? 'e.g. Autumn in Saint-Germain'
                           : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
                       }
-                      className="w-full font-serif italic text-base py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      className="w-full font-serif italic text-base py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Release Timing
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -2202,8 +2202,8 @@ function StudioComponent() {
                         onClick={() => setReleaseMode('IMMEDIATE')}
                         className={`font-mono text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
                           releaseMode === 'IMMEDIATE'
-                            ? 'border-ink bg-ink text-canvas font-semibold'
-                            : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                            ? 'border-foreground bg-foreground text-background font-semibold'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
                         }`}
                       >
                         Immediate
@@ -2220,8 +2220,8 @@ function StudioComponent() {
                         }}
                         className={`font-mono text-xs uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                           releaseMode === 'SCHEDULED'
-                            ? 'border-ink bg-ink text-canvas font-semibold'
-                            : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                            ? 'border-foreground bg-foreground text-background font-semibold'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
                         }`}
                       >
                         <CalendarIconSVG className="w-3.5 h-3.5" />
@@ -2238,12 +2238,12 @@ function StudioComponent() {
                       <CalendarIconSVG className="w-3.5 h-3.5" />
                       <span>Scheduled Drop & Pre-Save Configuration</span>
                     </div>
-                    <p className="font-sans text-xs text-ink-soft">
+                    <p className="font-sans text-xs text-muted-foreground">
                       Specify when your {releaseType.toLowerCase()} officially drops. Listeners can pre-save the release to their library immediately. Full audio playback remains locked until this exact timestamp.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                           Release Date (Local) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2252,11 +2252,11 @@ function StudioComponent() {
                           min={new Date().toISOString().split('T')[0]}
                           value={scheduledDate}
                           onChange={(e) => setScheduledDate(e.target.value)}
-                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                           Release Time (Local) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2264,7 +2264,7 @@ function StudioComponent() {
                           required
                           value={scheduledTime}
                           onChange={(e) => setScheduledTime(e.target.value)}
-                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                     </div>
@@ -2273,7 +2273,7 @@ function StudioComponent() {
 
                 {/* Catalog Visibility Tier Selector */}
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Catalog Visibility Tier
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -2300,19 +2300,19 @@ function StudioComponent() {
                         onClick={() => setReleaseVisibility(opt.key as ReleaseVisibility)}
                         className={`text-left p-3 border transition-colors cursor-pointer ${
                           releaseVisibility === opt.key
-                            ? 'border-ink bg-canvas shadow-2xs ring-1 ring-ink'
-                            : 'border-line bg-panel hover:bg-canvas'
+                            ? 'border-foreground bg-background shadow-2xs ring-1 ring-foreground'
+                            : 'border-border bg-card hover:bg-background'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink">
+                          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
                             {opt.label}
                           </span>
                           {releaseVisibility === opt.key && (
                             <span className="font-mono text-xs text-primary">●</span>
                           )}
                         </div>
-                        <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                        <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                           {opt.desc}
                         </p>
                       </button>
@@ -2322,15 +2322,15 @@ function StudioComponent() {
 
                 {/* Release Artwork Upload (Square 1:1) */}
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                     {releaseType === 'SINGLE' ? 'Single Cover Artwork (Cloudflare R2)' : 'Release Cover Artwork (Cloudflare R2)'}{' '}
                     <span className="text-red-500">*</span>
                   </label>
-                  <p className="font-sans text-xs text-ink-soft mb-2">
+                  <p className="font-sans text-xs text-muted-foreground mb-2">
                     Square artwork (1:1 ratio), minimum 1400x1400px recommended (JPEG, PNG, or WebP). Stored on Cloudflare R2 edge CDN.
                   </p>
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {releaseCoverPreview || releaseCoverUrl ? (
                         <img
                           src={releaseCoverPreview || releaseCoverUrl}
@@ -2338,12 +2338,12 @@ function StudioComponent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <DiscIconSVG className="w-8 h-8 text-ink-soft/40" />
+                        <DiscIconSVG className="w-8 h-8 text-muted-foreground/40" />
                       )}
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
-                        <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                        <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
                           <span>
                             {isUploadingCover
                               ? 'Uploading to R2...'
@@ -2364,13 +2364,13 @@ function StudioComponent() {
                           <button
                             type="button"
                             onClick={handleRemoveCover}
-                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
                           >
                             Remove
                           </button>
                         )}
                       </div>
-                      <span className="font-mono text-[11px] text-ink-soft">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         {releaseCoverPreview || releaseCoverUrl
                           ? '✓ Artwork attached to release'
                           : 'Official release artwork required'}
@@ -2380,11 +2380,11 @@ function StudioComponent() {
                 </div>
 
                 {/* Release Taxonomy & Classification */}
-                <div className="space-y-4 pt-2 border-t border-line-soft">
+                <div className="space-y-4 pt-2 border-t border-border-soft">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Primary Genre Dropdown */}
                     <div>
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                         Primary Genre
                       </label>
                       <select
@@ -2393,7 +2393,7 @@ function StudioComponent() {
                           setReleasePrimaryGenre(e.target.value)
                           setReleaseSubGenre('')
                         }}
-                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       >
                         <option value="">Select Primary Genre...</option>
                         {PRIMARY_GENRES.map((g) => (
@@ -2406,14 +2406,14 @@ function StudioComponent() {
 
                     {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
                     <div>
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                         Sub-Genre (Optional)
                       </label>
                       <select
                         value={releaseSubGenre}
                         onChange={(e) => setReleaseSubGenre(e.target.value)}
                         disabled={!releasePrimaryGenre || !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length}
-                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                       >
                         <option value="">Select Sub-Genre...</option>
                         {releasePrimaryGenre &&
@@ -2429,10 +2429,10 @@ function StudioComponent() {
                   {/* Mood Selection (1-3 optional) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                         Musical Moods (Select 1 to 3)
                       </label>
-                      <span className="font-mono text-[11px] text-ink-soft">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         {releaseMoods.length}/3 selected
                       </span>
                     </div>
@@ -2452,8 +2452,8 @@ function StudioComponent() {
                             }}
                             className={`font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
                               isSelected
-                                ? 'border-ink bg-ink text-canvas font-semibold'
-                                : 'border-line bg-canvas text-ink-soft hover:text-ink hover:border-ink/50'
+                                ? 'border-foreground bg-foreground text-background font-semibold'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
                             }`}
                           >
                             {mood}
@@ -2465,7 +2465,7 @@ function StudioComponent() {
 
                   {/* Custom Tags */}
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Catalog Tags (Press Enter to add)
                     </label>
                     <div className="flex items-center gap-2 mb-2">
@@ -2484,7 +2484,7 @@ function StudioComponent() {
                           }
                         }}
                         placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       />
                       <button
                         type="button"
@@ -2495,7 +2495,7 @@ function StudioComponent() {
                             setReleaseTagInput('')
                           }
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
                       >
                         + Add Tag
                       </button>
@@ -2505,13 +2505,13 @@ function StudioComponent() {
                         {releaseTags.map((tag) => (
                           <span
                             key={tag}
-                            className="font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink flex items-center gap-1.5"
+                            className="font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
                           >
                             <span>#{tag}</span>
                             <button
                               type="button"
                               onClick={() => setReleaseTags(releaseTags.filter((t) => t !== tag))}
-                              className="text-ink-soft hover:text-red-500 cursor-pointer ml-1"
+                              className="text-muted-foreground hover:text-red-500 cursor-pointer ml-1"
                             >
                               ×
                             </button>
@@ -2524,7 +2524,7 @@ function StudioComponent() {
 
                 {/* Liner Notes & Description */}
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Liner Notes & Description (Optional)
                   </label>
                   <textarea
@@ -2532,17 +2532,17 @@ function StudioComponent() {
                     value={releaseDescription}
                     onChange={(e) => setReleaseDescription(e.target.value)}
                     placeholder="Recording location, inspiration, gear, or credits..."
-                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
+                    className="w-full font-sans text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                   />
                 </div>
 
                 {/* Creator Governance: Comments & Discussions */}
-                <div className="p-3.5 border border-line bg-panel flex items-center justify-between">
+                <div className="p-3.5 border border-border bg-card flex items-center justify-between">
                   <div>
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-ink block font-semibold">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-foreground block font-semibold">
                       Discussion &amp; Comments
                     </span>
-                    <p className="font-sans text-xs text-ink-soft">
+                    <p className="font-sans text-xs text-muted-foreground">
                       Allow listeners and curators to post comments and replies on this release.
                     </p>
                   </div>
@@ -2553,7 +2553,7 @@ function StudioComponent() {
                       onChange={(e) => setReleaseAllowComments(e.target.checked)}
                       className="accent-primary w-4 h-4"
                     />
-                    <span className="font-mono text-xs text-ink font-medium">
+                    <span className="font-mono text-xs text-foreground font-medium">
                       {releaseAllowComments ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
@@ -2561,18 +2561,18 @@ function StudioComponent() {
 
                 {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
                 {releaseType === 'SINGLE' ? (
-                  <div className="pt-4 border-t border-line-soft space-y-4">
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-ink block">
+                  <div className="pt-4 border-t border-border-soft space-y-4">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-foreground block">
                       Single Master Recording
                     </span>
 
                     {/* Master Audio Section */}
-                    <div className="p-3.5 border border-line bg-canvas space-y-3">
+                    <div className="p-3.5 border border-border bg-background space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-ink font-semibold">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-foreground font-semibold">
                           Master Audio Recording
                         </span>
-                        <label className="font-mono text-xs uppercase tracking-wider text-ink-soft flex items-center gap-1.5 cursor-pointer">
+                        <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={singleTrackExplicit}
@@ -2585,14 +2585,14 @@ function StudioComponent() {
                       {singleTrackAudioKey || singleTrackAudioUrl ? (
                         <div className="p-3 border border-green-500/40 bg-green-500/10 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-green-600 text-canvas flex items-center justify-center font-mono text-xs font-bold shrink-0">
+                            <span className="w-5 h-5 rounded-full bg-green-600 text-background flex items-center justify-center font-mono text-xs font-bold shrink-0">
                               ✓
                             </span>
                             <div className="min-w-0">
-                              <div className="font-sans font-semibold text-sm text-ink truncate">
+                              <div className="font-sans font-semibold text-sm text-foreground truncate">
                                 {singleTrackAudioFileName || releaseTitle || 'Master Audio Track'}
                               </div>
-                              <div className="font-mono text-[11px] text-ink-soft">
+                              <div className="font-mono text-[11px] text-muted-foreground">
                                 Audio file added successfully &bull; Duration: {formatDuration(singleTrackDuration)}
                               </div>
                             </div>
@@ -2602,7 +2602,7 @@ function StudioComponent() {
                             <button
                               type="button"
                               disabled
-                              className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                              className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
                               title="An audio master is already uploaded. Reset audio to choose another."
                             >
                               ✓ Audio Attached
@@ -2610,7 +2610,7 @@ function StudioComponent() {
                             <button
                               type="button"
                               onClick={handleResetSingleAudio}
-                              className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
+                              className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 bg-card cursor-pointer transition-colors"
                               title="Remove uploaded audio and select a new file"
                             >
                               ✕ Reset Audio
@@ -2618,8 +2618,8 @@ function StudioComponent() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-dashed border-line bg-panel">
-                          <label className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-2 self-start">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-dashed border-border bg-card">
+                          <label className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-2 self-start">
                             <span>
                               {isUploadingSingleAudio
                                 ? 'Uploading Master Audio to R2...'
@@ -2634,7 +2634,7 @@ function StudioComponent() {
                               className="hidden"
                             />
                           </label>
-                          <span className="font-mono text-[11px] text-ink-soft">
+                          <span className="font-mono text-[11px] text-muted-foreground">
                             Lossless FLAC, WAV, or 320kbps MP3
                           </span>
                         </div>
@@ -2644,7 +2644,7 @@ function StudioComponent() {
                     {/* Genre, BPM & Musical Key */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                           Track Genre
                         </label>
                         <input
@@ -2652,11 +2652,11 @@ function StudioComponent() {
                           value={singleTrackGenre}
                           onChange={(e) => setSingleTrackGenre(e.target.value)}
                           placeholder={releasePrimaryGenre || 'e.g. Modern Jazz'}
-                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                           BPM (Tempo)
                         </label>
                         <input
@@ -2668,11 +2668,11 @@ function StudioComponent() {
                             setSingleTrackBpm(e.target.value ? Number(e.target.value) : null)
                           }
                           placeholder="e.g. 120"
-                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1">
                           Musical Key
                         </label>
                         <input
@@ -2680,14 +2680,14 @@ function StudioComponent() {
                           value={singleTrackKey}
                           onChange={(e) => setSingleTrackKey(e.target.value)}
                           placeholder="e.g. C min, F# maj"
-                          className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                          className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                     </div>
 
                     {/* Collaborator & Credit Attribution */}
-                    <div className="pt-2 border-t border-line-soft">
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1.5">
+                    <div className="pt-2 border-t border-border-soft">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1.5">
                         Collaborators & Credits (Featured / Producers / Composers / Lyricists / Engineers)
                       </span>
                       <ArtistCreditPicker
@@ -2699,13 +2699,13 @@ function StudioComponent() {
                   </div>
                 ) : (
                   /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */
-                  <div className="pt-4 border-t border-line-soft space-y-4">
+                  <div className="pt-4 border-t border-border-soft space-y-4">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                         Master Cuts / Tracklist ({draftTracks.length})
                       </span>
                       <div className="flex items-center gap-2">
-                        <label className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1 font-medium">
+                        <label className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1 font-medium">
                           <span>{isBatchImporting ? 'Importing Cuts...' : '✦ Batch Import Cuts'}</span>
                           <input
                             ref={batchCutsInputRef}
@@ -2735,7 +2735,7 @@ function StudioComponent() {
                               },
                             ])
                           }
-                          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink cursor-pointer"
+                          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer"
                         >
                           + Add Cut
                         </button>
@@ -2756,7 +2756,7 @@ function StudioComponent() {
                         <button
                           type="button"
                           onClick={() => setDuplicateNotice(null)}
-                          className="font-mono text-[11px] text-ink-soft hover:text-ink cursor-pointer ml-auto shrink-0"
+                          className="font-mono text-[11px] text-muted-foreground hover:text-foreground cursor-pointer ml-auto shrink-0"
                         >
                           ✕
                         </button>
@@ -2767,10 +2767,10 @@ function StudioComponent() {
                       {draftTracks.map((draft, idx) => (
                         <div
                           key={draft.id}
-                          className="p-3.5 border border-line bg-canvas space-y-3"
+                          className="p-3.5 border border-border bg-background space-y-3"
                         >
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-xs text-ink-soft w-6">
+                            <span className="font-mono text-xs text-muted-foreground w-6">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
 
@@ -2788,7 +2788,7 @@ function StudioComponent() {
                                     ),
                                   )
                                 }}
-                                className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                                className="font-serif italic text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <input
@@ -2803,11 +2803,11 @@ function StudioComponent() {
                                     ),
                                   )
                                 }}
-                                className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                                className="font-mono text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <div className="flex items-center gap-2">
-                                <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
+                                <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
                                   <input
                                     type="checkbox"
                                     checked={draft.isExplicit}
@@ -2826,7 +2826,7 @@ function StudioComponent() {
                                 </label>
 
                                 {draft.durationSeconds > 0 && (
-                                  <span className="font-mono text-[11px] text-ink-soft ml-auto">
+                                  <span className="font-mono text-[11px] text-muted-foreground ml-auto">
                                     {formatDuration(draft.durationSeconds)}
                                   </span>
                                 )}
@@ -2844,7 +2844,7 @@ function StudioComponent() {
                                   <button
                                     type="button"
                                     disabled
-                                    className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-canvas text-ink-soft/60 cursor-not-allowed"
+                                    className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
                                     title="Master audio attached. Use reset to replace."
                                   >
                                     Attached
@@ -2852,14 +2852,14 @@ function StudioComponent() {
                                   <button
                                     type="button"
                                     onClick={() => handleResetDraftAudio(draft.id)}
-                                    className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-panel cursor-pointer transition-colors"
+                                    className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 bg-card cursor-pointer transition-colors"
                                     title="Reset audio file for this cut"
                                   >
                                     ✕ Reset
                                   </button>
                                 </div>
                               ) : (
-                                <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2.5 border border-line bg-panel hover:border-ink text-ink cursor-pointer">
+                                <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2.5 border border-border bg-card hover:border-foreground text-foreground cursor-pointer">
                                   <span>
                                     {draft.isUploadingAudio
                                       ? 'Uploading...'
@@ -2881,7 +2881,7 @@ function StudioComponent() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveDraftCut(draft.id)}
-                                  className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                                  className="p-1 text-muted-foreground hover:text-red-500 cursor-pointer"
                                   title="Remove Cut"
                                 >
                                   ✕
@@ -2891,12 +2891,12 @@ function StudioComponent() {
                           </div>
 
                           {/* Acoustic Details (BPM & Musical Key) */}
-                          <div className="flex items-center gap-3 pt-1 border-t border-line-soft/40">
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                          <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                               Acoustics:
                             </span>
                             <div className="flex items-center gap-1.5">
-                              <label className="font-mono text-[11px] uppercase text-ink-soft">BPM</label>
+                              <label className="font-mono text-[11px] uppercase text-muted-foreground">BPM</label>
                               <input
                                 type="number"
                                 min={30}
@@ -2909,11 +2909,11 @@ function StudioComponent() {
                                     prev.map((t) => (t.id === draft.id ? { ...t, bpm: val } : t)),
                                   )
                                 }}
-                                className="w-20 font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink"
+                                className="w-20 font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground"
                               />
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <label className="font-mono text-[11px] uppercase text-ink-soft">Key</label>
+                              <label className="font-mono text-[11px] uppercase text-muted-foreground">Key</label>
                               <input
                                 type="text"
                                 placeholder="e.g. C min"
@@ -2924,15 +2924,15 @@ function StudioComponent() {
                                     prev.map((t) => (t.id === draft.id ? { ...t, musicalKey: val } : t)),
                                   )
                                 }}
-                                className="w-24 font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink"
+                                className="w-24 font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground"
                               />
                             </div>
                           </div>
 
                           {/* Collaborator & Credit Attribution */}
-                          <div className="pt-2 border-t border-line-soft/60">
+                          <div className="pt-2 border-t border-border-soft/60">
                             <div className="flex items-center justify-between mb-1.5">
-                              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                                 Collaborators & Credits (Featured / Producers / Composers)
                               </span>
                             </div>
@@ -2954,11 +2954,11 @@ function StudioComponent() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 pt-3 border-t border-line">
+                <div className="flex items-center gap-3 pt-3 border-t border-border">
                   <button
                     type="submit"
                     disabled={isSubmittingRelease}
-                    className="font-mono text-xs uppercase tracking-widest py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                    className="font-mono text-xs uppercase tracking-widest py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
                   >
                     {isSubmittingRelease ? (
                       <span>
@@ -2980,7 +2980,7 @@ function StudioComponent() {
                   <button
                     type="button"
                     onClick={() => setIsCreateReleaseOpen(false)}
-                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2991,21 +2991,21 @@ function StudioComponent() {
 
           {/* Releases List */}
           <div className="space-y-4">
-            <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               Active Releases ({albums.length})
             </h3>
 
             {isLoadingReleases ? (
-              <div className="p-8 text-center font-mono text-xs text-ink-soft animate-pulse">
+              <div className="p-8 text-center font-mono text-xs text-muted-foreground animate-pulse">
                 Querying studio releases...
               </div>
             ) : albums.length === 0 ? (
-              <div className="p-10 border border-dashed border-line bg-panel text-center">
-                <DiscIconSVG className="w-10 h-10 text-ink-soft/40 mx-auto mb-2" />
-                <p className="font-serif italic text-base text-ink">
+              <div className="p-10 border border-dashed border-border bg-card text-center">
+                <DiscIconSVG className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="font-serif italic text-base text-foreground">
                   No active master releases yet
                 </p>
-                <p className="font-mono text-[11px] uppercase tracking-wider text-ink-soft mt-1">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mt-1">
                   Click "+ New Release" above to release your first album, EP or
                   single.
                 </p>
@@ -3019,11 +3019,11 @@ function StudioComponent() {
                   return (
                     <div
                       key={album.id}
-                      className="border border-line bg-panel p-4 sm:p-5 shadow-2xs space-y-4"
+                      className="border border-border bg-card p-4 sm:p-5 shadow-2xs space-y-4"
                     >
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4 min-w-0">
-                          <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden relative">
+                          <div className="w-16 h-16 bg-muted border border-border shrink-0 overflow-hidden relative">
                             {album.coverImageUrl ? (
                               <img
                                 src={album.coverImageUrl}
@@ -3032,14 +3032,14 @@ function StudioComponent() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                                <DiscIconSVG className="w-6 h-6 text-muted-foreground/40" />
                               </div>
                             )}
                           </div>
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-primary font-semibold">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background text-primary font-semibold">
                                 {album.albumType}
                               </span>
 
@@ -3084,7 +3084,7 @@ function StudioComponent() {
                                       ? 'border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300'
                                       : album.visibility === 'PRIVATE'
                                         ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
-                                        : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
                                   }`}
                                   title="Change release visibility tier"
                                 >
@@ -3096,12 +3096,12 @@ function StudioComponent() {
 
                               {/* Pre-saves Count for Scheduled Releases */}
                               {album.status === 'SCHEDULED' && (
-                                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-line bg-canvas text-ink-soft">
+                                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background text-muted-foreground">
                                   ✦ {album.preSavesCount ?? 0} Pre-saves
                                 </span>
                               )}
 
-                              <span className="font-mono text-[11px] text-ink-soft">
+                              <span className="font-mono text-[11px] text-muted-foreground">
                                 {album.releaseDate
                                   ? new Date(
                                       album.releaseDate,
@@ -3109,10 +3109,10 @@ function StudioComponent() {
                                   : 'Recent'}
                               </span>
                             </div>
-                            <h4 className="font-sans font-semibold text-base sm:text-lg text-ink truncate mt-0.5">
+                            <h4 className="font-sans font-semibold text-base sm:text-lg text-foreground truncate mt-0.5">
                               {album.title}
                             </h4>
-                            <div className="font-mono text-[11px] text-ink-soft">
+                            <div className="font-mono text-[11px] text-muted-foreground">
                               {album.totalTracks} cuts &bull;{' '}
                               {formatDuration(album.totalDurationSeconds)}{' '}
                               &bull; {album.likesCount} likes
@@ -3141,26 +3141,26 @@ function StudioComponent() {
                             to="/albums/$idOrSlug"
                             params={{ idOrSlug: album.slug }}
                             search={album.shareToken ? { shareToken: album.shareToken } : {}}
-                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors flex items-center gap-1"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1"
                           >
                             <span>View</span>
-                            <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
+                            <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground" />
                           </Link>
 
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(album)}
-                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors flex items-center gap-1.5 cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1.5 cursor-pointer"
                             title="Edit release metadata, artwork, genre, credits and visibility"
                           >
-                            <EditIconSVG className="w-3 h-3 text-ink-soft" />
+                            <EditIconSVG className="w-3 h-3 text-muted-foreground" />
                             <span>Edit</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleToggleAlbumExpand(album.id)}
-                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer"
+                            className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
                           >
                             {isExpanded ? 'Hide Cuts' : 'Inspect Cuts'}
                           </button>
@@ -3174,7 +3174,7 @@ function StudioComponent() {
                                 album.totalTracks || tracks.length || 1,
                               )
                             }
-                            className="p-1.5 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                            className="p-1.5 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
                             title="Move to 30-Day Trash"
                           >
                             <TrashIconSVG className="w-3.5 h-3.5" />
@@ -3184,44 +3184,44 @@ function StudioComponent() {
 
                       {/* Expanded Tracklist & Detach Feature */}
                       {isExpanded && (
-                        <div className="pt-3 border-t border-line-soft space-y-2">
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-2">
+                        <div className="pt-3 border-t border-border-soft space-y-2">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-2">
                             Included Master Cuts ({tracks.length})
                           </span>
 
                           {isLoadingAlbumTracks && tracks.length === 0 ? (
-                            <div className="font-mono text-xs text-ink-soft animate-pulse">
+                            <div className="font-mono text-xs text-muted-foreground animate-pulse">
                               Loading tracks...
                             </div>
                           ) : tracks.length === 0 ? (
-                            <div className="font-sans text-xs text-ink-soft italic">
+                            <div className="font-sans text-xs text-muted-foreground italic">
                               No tracks in this album.
                             </div>
                           ) : (
-                            <div className="divide-y divide-line/40 border border-line-soft bg-canvas">
+                            <div className="divide-y divide-border/40 border border-border-soft bg-background">
                               {tracks.map((track, i) => (
                                 <div
                                   key={track.id}
                                   className="p-2.5 flex items-center justify-between text-xs gap-3"
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0">
-                                    <span className="font-mono text-[11px] text-ink-soft w-5">
+                                    <span className="font-mono text-[11px] text-muted-foreground w-5">
                                       {String(
                                         track.trackNumber || i + 1,
                                       ).padStart(2, '0')}
                                     </span>
-                                    <span className="font-sans font-medium text-xs text-ink truncate">
+                                    <span className="font-sans font-medium text-xs text-foreground truncate">
                                       {track.title}
                                     </span>
                                     {track.isExplicit && (
-                                      <span className="font-mono text-[11px] px-1 border border-line text-ink-soft">
+                                      <span className="font-mono text-[11px] px-1 border border-border text-muted-foreground">
                                         E
                                       </span>
                                     )}
                                   </div>
 
                                   <div className="flex items-center gap-3 shrink-0">
-                                    <span className="font-mono text-[11px] text-ink-soft">
+                                    <span className="font-mono text-[11px] text-muted-foreground">
                                       {formatDuration(track.durationSeconds)}
                                     </span>
 
@@ -3231,7 +3231,7 @@ function StudioComponent() {
                                         onClick={() =>
                                           handleOpenDetachModal(track, album)
                                         }
-                                        className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-line-soft bg-panel hover:border-ink text-ink-soft hover:text-ink cursor-pointer"
+                                        className="font-mono text-[11px] uppercase tracking-wider py-1 px-2 border border-border-soft bg-card hover:border-foreground text-muted-foreground hover:text-foreground cursor-pointer"
                                         title="Detach cut and spin off into standalone single with optional custom artwork"
                                       >
                                         Detach Cut
@@ -3248,7 +3248,7 @@ function StudioComponent() {
                                           tracks.length,
                                         )
                                       }
-                                      className="p-1 text-ink-soft hover:text-red-500 cursor-pointer"
+                                      className="p-1 text-muted-foreground hover:text-red-500 cursor-pointer"
                                       title="Trash track"
                                     >
                                       <TrashIconSVG className="w-3 h-3" />
@@ -3298,16 +3298,16 @@ function StudioComponent() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               Archived Releases ({trashAlbums.length})
             </h3>
 
             {isLoadingTrash ? (
-              <div className="p-6 text-center font-mono text-xs text-ink-soft animate-pulse">
+              <div className="p-6 text-center font-mono text-xs text-muted-foreground animate-pulse">
                 Loading trash archive...
               </div>
             ) : trashAlbums.length === 0 ? (
-              <div className="p-6 border border-line bg-panel text-center font-mono text-xs text-ink-soft">
+              <div className="p-6 border border-border bg-card text-center font-mono text-xs text-muted-foreground">
                 Trash is empty. No deleted albums found.
               </div>
             ) : (
@@ -3315,18 +3315,18 @@ function StudioComponent() {
                 {trashAlbums.map((album) => (
                   <div
                     key={album.id}
-                    className="p-4 border border-line bg-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="p-4 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-canvas border border-line text-ink-soft">
+                        <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground">
                           {album.albumType}
                         </span>
-                        <h4 className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
+                        <h4 className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
                           {album.title}
                         </h4>
                       </div>
-                      <span className="font-mono text-[11px] text-ink-soft mt-0.5 block">
+                      <span className="font-mono text-[11px] text-muted-foreground mt-0.5 block">
                         Deleted:{' '}
                         {album.deletedAt
                           ? new Date(album.deletedAt).toLocaleDateString()
@@ -3338,7 +3338,7 @@ function StudioComponent() {
                       <button
                         type="button"
                         onClick={() => handleRestoreAlbum(album.id)}
-                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 bg-ink text-canvas hover:opacity-90 cursor-pointer flex items-center gap-1.5"
+                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
                       >
                         <UndoIconSVG className="w-3 h-3" />
                         <span>Restore Release</span>
@@ -3366,8 +3366,8 @@ function StudioComponent() {
 
           {/* Archived Songs */}
           {trashSongs.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-line-soft">
-              <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            <div className="space-y-3 pt-4 border-t border-border-soft">
+              <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 Archived Master Cuts ({trashSongs.length})
               </h3>
 
@@ -3375,13 +3375,13 @@ function StudioComponent() {
                 {trashSongs.map((song) => (
                   <div
                     key={song.id}
-                    className="p-3 border border-line bg-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="p-3 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
-                      <span className="font-sans font-semibold text-sm text-ink truncate block">
+                      <span className="font-sans font-semibold text-sm text-foreground truncate block">
                         {song.title}
                       </span>
-                      <span className="font-mono text-[11px] text-ink-soft">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         Deleted:{' '}
                         {song.deletedAt
                           ? new Date(song.deletedAt).toLocaleDateString()
@@ -3393,7 +3393,7 @@ function StudioComponent() {
                       <button
                         type="button"
                         onClick={() => handleRestoreSong(song.id)}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer flex items-center gap-1"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer flex items-center gap-1"
                       >
                         <UndoIconSVG className="w-3 h-3" />
                         <span>Restore</span>
@@ -3428,13 +3428,13 @@ function StudioComponent() {
       {activeTab === 'profile' && (
         <div className="space-y-10">
           {/* Avatar Customizer */}
-          <div className="p-6 border border-line bg-panel shadow-2xs">
+          <div className="p-6 border border-border bg-card shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
               <div>
-                <h2 className="font-serif italic text-xl text-ink">
+                <h2 className="font-serif italic text-xl text-foreground">
                   Artist Avatar / Profile Picture
                 </h2>
-                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">
                   Square profile artwork used for artist credits, jam sessions, and search results.
                 </p>
               </div>
@@ -3445,7 +3445,7 @@ function StudioComponent() {
                     type="button"
                     disabled={isUploadingAvatar}
                     onClick={handleRemoveAvatar}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-canvas hover:border-red-500/40 hover:text-red-500 text-ink-soft transition-colors cursor-pointer disabled:opacity-50"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-red-500/40 hover:text-red-500 text-muted-foreground transition-colors cursor-pointer disabled:opacity-50"
                   >
                     Remove
                   </button>
@@ -3454,7 +3454,7 @@ function StudioComponent() {
                   type="button"
                   disabled={isUploadingAvatar}
                   onClick={() => avatarInputRef.current?.click()}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0 shadow-xs"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0 shadow-xs"
                 >
                   <UploadCloudSVG className="w-4 h-4" />
                   <span>
@@ -3472,7 +3472,7 @@ function StudioComponent() {
             </div>
 
             <div className="flex items-center gap-5">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-line bg-canvas-deep overflow-hidden relative shrink-0 flex items-center justify-center shadow-inner">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-border bg-muted overflow-hidden relative shrink-0 flex items-center justify-center shadow-inner">
                 {artistProfile.avatarUrl ? (
                   <img
                     src={artistProfile.avatarUrl}
@@ -3480,22 +3480,22 @@ function StudioComponent() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="font-serif italic text-3xl sm:text-4xl text-ink-soft select-none">
+                  <span className="font-serif italic text-3xl sm:text-4xl text-muted-foreground select-none">
                     {artistProfile.stageName.charAt(0).toUpperCase()}
                   </span>
                 )}
                 {isUploadingAvatar && (
-                  <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-[11px] text-ink animate-pulse text-center p-1">
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center font-mono text-[11px] text-foreground animate-pulse text-center p-1">
                     Uploading...
                   </div>
                 )}
               </div>
 
-              <div className="font-mono text-xs text-ink-soft space-y-1">
-                <div className="text-ink font-serif italic text-base">
+              <div className="font-mono text-xs text-muted-foreground space-y-1">
+                <div className="text-foreground font-serif italic text-base">
                   {artistProfile.stageName}
                 </div>
-                <p className="text-[11px] text-ink-soft/80">
+                <p className="text-[11px] text-muted-foreground/80">
                   Recommended: Minimum 500 × 500px square image. An interactive cropper with circular guide is provided before upload.
                 </p>
               </div>
@@ -3503,13 +3503,13 @@ function StudioComponent() {
           </div>
 
           {/* Banner Customizer */}
-          <div className="p-6 border border-line bg-panel shadow-2xs">
+          <div className="p-6 border border-border bg-card shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
-                <h2 className="font-serif italic text-xl text-ink">
+                <h2 className="font-serif italic text-xl text-foreground">
                   Artist Profile Banner
                 </h2>
-                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">
                   Panoramic cover displayed across your public artist page. Interactive cropping and framing preview is provided before upload.
                 </p>
               </div>
@@ -3518,7 +3518,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isUploadingBanner}
                 onClick={() => bannerInputRef.current?.click()}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>
@@ -3534,7 +3534,7 @@ function StudioComponent() {
               />
             </div>
 
-            <div className="w-full h-44 sm:h-56 bg-canvas-deep border border-line overflow-hidden relative">
+            <div className="w-full h-44 sm:h-56 bg-muted border border-border overflow-hidden relative">
               {artistProfile.bannerUrl ? (
                 <img
                   src={artistProfile.bannerUrl}
@@ -3542,13 +3542,13 @@ function StudioComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-ink-soft font-mono text-xs">
+                <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground font-mono text-xs">
                   <UploadCloudSVG className="w-8 h-8 opacity-40 mb-2" />
                   <span>No banner uploaded yet</span>
                 </div>
               )}
               {isUploadingBanner && (
-                <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-xs text-ink animate-pulse">
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center font-mono text-xs text-foreground animate-pulse">
                   Transferring asset to Cloudflare R2 storage...
                 </div>
               )}
@@ -3556,13 +3556,13 @@ function StudioComponent() {
           </div>
 
           {/* Identity & Details Editor */}
-          <div className="p-6 border border-line bg-panel shadow-2xs">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-line-soft">
+          <div className="p-6 border border-border bg-card shadow-2xs">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
               <div>
-                <h2 className="font-serif italic text-xl text-ink">
+                <h2 className="font-serif italic text-xl text-foreground">
                   Identity & Presentation
                 </h2>
-                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">
                   Customize your public stage name, biography, and external links.
                 </p>
               </div>
@@ -3571,7 +3571,7 @@ function StudioComponent() {
                 <button
                   type="button"
                   onClick={() => setIsEditingProfile(true)}
-                  className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink transition-colors cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors cursor-pointer"
                 >
                   Edit Details
                 </button>
@@ -3582,7 +3582,7 @@ function StudioComponent() {
               <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Stage Name
                     </label>
                     <input
@@ -3590,12 +3590,12 @@ function StudioComponent() {
                       required
                       value={editStageName}
                       onChange={(e) => setEditStageName(e.target.value)}
-                      className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Vanity Slug
                     </label>
                     <input
@@ -3603,26 +3603,26 @@ function StudioComponent() {
                       required
                       value={editSlug}
                       onChange={(e) => setEditSlug(e.target.value)}
-                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Biography
                   </label>
                   <textarea
                     rows={4}
                     value={editBio}
                     onChange={(e) => setEditBio(e.target.value)}
-                    className="w-full font-sans text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                    className="w-full font-sans text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                       Instagram
                     </label>
                     <input
@@ -3630,11 +3630,11 @@ function StudioComponent() {
                       value={editInstagram}
                       onChange={(e) => setEditInstagram(e.target.value)}
                       placeholder="https://instagram.com/..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                       Website
                     </label>
                     <input
@@ -3642,11 +3642,11 @@ function StudioComponent() {
                       value={editWebsite}
                       onChange={(e) => setEditWebsite(e.target.value)}
                       placeholder="https://..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                       Spotify
                     </label>
                     <input
@@ -3654,7 +3654,7 @@ function StudioComponent() {
                       value={editSpotify}
                       onChange={(e) => setEditSpotify(e.target.value)}
                       placeholder="https://open.spotify.com/..."
-                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-line bg-canvas text-ink"
+                      className="w-full font-mono text-xs py-1.5 px-2.5 border border-border bg-background text-foreground"
                     />
                   </div>
                 </div>
@@ -3663,26 +3663,26 @@ function StudioComponent() {
                   <button
                     type="submit"
                     disabled={isSavingEdit}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                   >
                     {isSavingEdit ? 'Saving...' : 'Save Profile Changes'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditingProfile(false)}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     Cancel
                   </button>
                 </div>
               </form>
             ) : (
-              <div className="flex flex-col gap-4 text-xs font-sans text-ink">
+              <div className="flex flex-col gap-4 text-xs font-sans text-foreground">
                 <div>
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                     Biography
                   </span>
-                  <p className="leading-relaxed whitespace-pre-line text-ink-soft">
+                  <p className="leading-relaxed whitespace-pre-line text-muted-foreground">
                     {artistProfile.bio || 'No biography set yet.'}
                   </p>
                 </div>
@@ -3690,7 +3690,7 @@ function StudioComponent() {
                 {artistProfile.socialLinks &&
                   Object.keys(artistProfile.socialLinks).length > 0 && (
                     <div>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-2">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-2">
                         Social Channels
                       </span>
                       <div className="flex flex-wrap gap-2">
@@ -3701,10 +3701,10 @@ function StudioComponent() {
                               href={v}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-mono text-[11px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink capitalize inline-flex items-center gap-1"
+                              className="font-mono text-[11px] py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground capitalize inline-flex items-center gap-1"
                             >
                               <span>{k}</span>
-                              <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft" />
+                              <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground" />
                             </a>
                           ),
                         )}
@@ -3725,9 +3725,9 @@ function StudioComponent() {
               spotlightComment.trim() !== (artistProfile.pinnedComment || '')
 
             return (
-              <div className="p-6 sm:p-7 border border-line bg-panel shadow-2xs space-y-6 relative rounded-xs">
+              <div className="p-6 sm:p-7 border border-border bg-card shadow-2xs space-y-6 relative rounded-xs">
                 {/* Header & Status Indicator */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line-soft">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-soft">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-semibold px-2 py-0.5 rounded border border-primary/30 bg-primary/10">
@@ -3741,7 +3741,7 @@ function StudioComponent() {
                           </span>
                         </span>
                       ) : (
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft bg-canvas border border-line px-2 py-0.5 rounded flex items-center gap-1.5">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground bg-background border border-border px-2 py-0.5 rounded flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           <span>Active: Automatic Latest Drop</span>
                         </span>
@@ -3753,10 +3753,10 @@ function StudioComponent() {
                         </span>
                       )}
                     </div>
-                    <h2 className="font-serif italic text-xl text-ink">
+                    <h2 className="font-serif italic text-xl text-foreground">
                       Artist Pick &amp; Spotlight
                     </h2>
-                    <p className="font-sans text-xs text-ink-soft mt-0.5 max-w-xl">
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5 max-w-xl">
                       Feature a chosen release and personal note at the top of your public artist profile. When none is selected, your newest release is showcased automatically.
                     </p>
                   </div>
@@ -3766,7 +3766,7 @@ function StudioComponent() {
                       type="button"
                       disabled={isSavingSpotlight}
                       onClick={handleClearSpotlight}
-                      className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-red-400 hover:text-red-500 text-ink-soft transition-colors cursor-pointer self-start sm:self-auto rounded shrink-0"
+                      className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-red-400 hover:text-red-500 text-muted-foreground transition-colors cursor-pointer self-start sm:self-auto rounded shrink-0"
                     >
                       Reset to Latest Release
                     </button>
@@ -3834,11 +3834,11 @@ function StudioComponent() {
                     {/* Release Selector */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                           Spotlighted Release
                         </label>
                         {isLoadingReleases && (
-                          <span className="font-mono text-[11px] text-ink-soft animate-pulse">
+                          <span className="font-mono text-[11px] text-muted-foreground animate-pulse">
                             Loading catalog...
                           </span>
                         )}
@@ -3849,7 +3849,7 @@ function StudioComponent() {
                           setSpotlightReleaseId(e.target.value)
                           setSpotlightStatus('idle')
                         }}
-                        className="w-full font-serif italic text-sm py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink rounded-xs transition-colors"
+                        className="w-full font-serif italic text-sm py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-xs transition-colors"
                       >
                         <option value="">
                           -- Automatic Default: Always show latest release --
@@ -3864,7 +3864,7 @@ function StudioComponent() {
                           </option>
                         ))}
                       </select>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1.5">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1.5">
                         {spotlightReleaseId
                           ? 'Pinned release stays locked at the top of your right column until changed or deleted.'
                           : 'Dynamic mode: Groovy automatically presents your newest published drop.'}
@@ -3879,7 +3879,7 @@ function StudioComponent() {
                     {/* Optional Comment / Note */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                        <label className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                           Artist Note / Quote (Optional)
                         </label>
                         {spotlightReleaseId && (
@@ -3887,7 +3887,7 @@ function StudioComponent() {
                             className={`font-mono text-[11px] ${
                               spotlightComment.length > 250
                                 ? 'text-amber-500 font-semibold'
-                                : 'text-ink-soft'
+                                : 'text-muted-foreground'
                             }`}
                           >
                             {spotlightComment.length}/280
@@ -3909,7 +3909,7 @@ function StudioComponent() {
                               ? 'e.g. Turn the volume up! Celebrating our new drop with you all.'
                               : 'Select a specific release first to add a custom quote'
                           }
-                          className="w-full font-sans text-xs py-2 pl-3 pr-8 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50 disabled:bg-canvas-deep rounded-xs transition-colors"
+                          className="w-full font-sans text-xs py-2 pl-3 pr-8 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50 disabled:bg-muted rounded-xs transition-colors"
                         />
                         {spotlightReleaseId && spotlightComment && (
                           <button
@@ -3918,14 +3918,14 @@ function StudioComponent() {
                               setSpotlightComment('')
                               setSpotlightStatus('idle')
                             }}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink text-xs font-mono cursor-pointer"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs font-mono cursor-pointer"
                             title="Clear note"
                           >
                             ✕
                           </button>
                         )}
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1.5">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1.5">
                         {spotlightReleaseId
                           ? 'Appears in italic quotation marks directly above the release card.'
                           : 'Notes are exclusive to manually pinned releases.'}
@@ -3942,10 +3942,10 @@ function StudioComponent() {
                     if (!previewRelease) {
                       return (
                         <div className="pt-2">
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-2">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-2">
                             Public Profile Live Preview
                           </span>
-                          <div className="max-w-md border border-dashed border-line rounded-md bg-canvas/40 p-5 text-center text-ink-soft font-mono text-xs">
+                          <div className="max-w-md border border-dashed border-border rounded-md bg-background/40 p-5 text-center text-muted-foreground font-mono text-xs">
                             Upload a release to preview the spotlight card here.
                           </div>
                         </div>
@@ -3955,7 +3955,7 @@ function StudioComponent() {
                     return (
                       <div className="pt-2">
                         <div className="flex items-center justify-between gap-2 max-w-md mb-2">
-                          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                             Public Profile Live Preview &bull; Right Column Top
                           </span>
                           {artistProfile.slug && (
@@ -3971,11 +3971,11 @@ function StudioComponent() {
                           )}
                         </div>
 
-                        <div className="max-w-md border border-line rounded-md bg-canvas p-4 sm:p-5 shadow-2xs space-y-3">
-                          <div className="flex items-center justify-between gap-2 border-b border-line-soft pb-2.5">
+                        <div className="max-w-md border border-border rounded-md bg-background p-4 sm:p-5 shadow-2xs space-y-3">
+                          <div className="flex items-center justify-between gap-2 border-b border-border-soft pb-2.5">
                             <div className="flex items-center gap-2">
                               {artistProfile.avatarUrl && (
-                                <div className="w-5 h-5 rounded-full overflow-hidden border border-line bg-canvas shrink-0">
+                                <div className="w-5 h-5 rounded-full overflow-hidden border border-border bg-background shrink-0">
                                   <img
                                     src={artistProfile.avatarUrl}
                                     alt={artistProfile.stageName}
@@ -3988,20 +3988,20 @@ function StudioComponent() {
                               </span>
                             </div>
                             {previewRelease.albumType && (
-                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-canvas text-ink-soft">
+                              <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-border bg-background text-muted-foreground">
                                 {previewRelease.albumType}
                               </span>
                             )}
                           </div>
 
                           {spotlightReleaseId && spotlightComment.trim() && (
-                            <p className="font-serif italic text-xs text-ink/90 leading-relaxed bg-panel p-2.5 rounded border border-line-soft">
+                            <p className="font-serif italic text-xs text-foreground/90 leading-relaxed bg-card p-2.5 rounded border border-border-soft">
                               "{spotlightComment.trim()}"
                             </p>
                           )}
 
                           <div className="flex items-center gap-3.5 group">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-canvas-deep border border-line shrink-0 overflow-hidden relative shadow-xs">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-md bg-muted border border-border shrink-0 overflow-hidden relative shadow-xs">
                               {previewRelease.coverImageUrl ? (
                                 <img
                                   src={previewRelease.coverImageUrl}
@@ -4018,10 +4018,10 @@ function StudioComponent() {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
+                              <h4 className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
                                 {previewRelease.title}
                               </h4>
-                              <p className="font-mono text-[11px] text-ink-soft truncate mt-0.5">
+                              <p className="font-mono text-[11px] text-muted-foreground truncate mt-0.5">
                                 {previewRelease.releaseDate
                                   ? new Date(previewRelease.releaseDate).getFullYear()
                                   : 'Recent'}{' '}
@@ -4044,13 +4044,13 @@ function StudioComponent() {
                         spotlightStatus === 'saved'
                           ? 'bg-emerald-600 text-white border border-emerald-500 shadow-sm'
                           : isSpotlightDirty
-                            ? 'bg-ink text-canvas hover:bg-primary hover:text-primary-foreground shadow-sm'
-                            : 'bg-ink text-canvas hover:opacity-90'
+                            ? 'bg-foreground text-background hover:bg-primary hover:text-primary-foreground shadow-sm'
+                            : 'bg-foreground text-background hover:opacity-90'
                       } disabled:opacity-50`}
                     >
                       {isSavingSpotlight ? (
                         <>
-                          <span className="w-3 h-3 border-2 border-canvas border-t-transparent rounded-full animate-spin inline-block" />
+                          <span className="w-3 h-3 border-2 border-background border-t-transparent rounded-full animate-spin inline-block" />
                           <span>Saving Changes...</span>
                         </>
                       ) : spotlightStatus === 'saved' ? (
@@ -4072,7 +4072,7 @@ function StudioComponent() {
                         type="button"
                         onClick={handleDiscardSpotlightChanges}
                         disabled={isSavingSpotlight}
-                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-canvas hover:bg-panel text-ink-soft transition-colors cursor-pointer rounded"
+                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-background hover:bg-card text-muted-foreground transition-colors cursor-pointer rounded"
                       >
                         Revert Changes
                       </button>
@@ -4089,12 +4089,12 @@ function StudioComponent() {
       {/* TAB 4: VERIFICATION DESK */}
       {/* ========================================================================= */}
       {activeTab === 'verification' && (
-        <div className="p-6 border border-line bg-panel shadow-2xs">
-          <div className="mb-6 pb-4 border-b border-line-soft">
-            <h2 className="font-serif italic text-xl text-ink">
+        <div className="p-6 border border-border bg-card shadow-2xs">
+          <div className="mb-6 pb-4 border-b border-border-soft">
+            <h2 className="font-serif italic text-xl text-foreground">
               Creator Verification
             </h2>
-            <p className="font-sans text-xs text-ink-soft mt-0.5">
+            <p className="font-sans text-xs text-muted-foreground mt-0.5">
               Verified badges certify official recording artists and unlock
               prominent catalog placement.
             </p>
@@ -4104,10 +4104,10 @@ function StudioComponent() {
             <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
               <VerifiedBadgeSVG className="w-8 h-8 text-primary shrink-0" />
               <div>
-                <h3 className="font-serif italic text-base text-ink">
+                <h3 className="font-serif italic text-base text-foreground">
                   Officially Verified Artist
                 </h3>
-                <p className="font-sans text-xs text-ink-soft mt-0.5">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5">
                   Your artist profile has been verified by the administration desk.
                   The verified emblem is active on your public profile and catalog
                   releases.
@@ -4118,17 +4118,17 @@ function StudioComponent() {
             <div className="p-6 border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-                <h3 className="font-serif italic text-base text-ink">
+                <h3 className="font-serif italic text-base text-foreground">
                   Application Under Review
                 </h3>
               </div>
-              <p className="font-sans text-xs text-ink-soft leading-relaxed">
+              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
                 Your verification application was received and is queued for
                 administrative audit. Proof links and official artist identities
                 are usually reviewed within 24-48 hours.
               </p>
               {artistProfile.verificationDetails?.message && (
-                <div className="mt-2 p-3 border border-line-soft bg-canvas/60 font-sans text-xs text-ink-soft italic">
+                <div className="mt-2 p-3 border border-border-soft bg-background/60 font-sans text-xs text-muted-foreground italic">
                   "{artistProfile.verificationDetails.message}"
                 </div>
               )}
@@ -4140,11 +4140,11 @@ function StudioComponent() {
                 <h3 className="font-serif italic text-base text-red-600 dark:text-red-400">
                   Application Needs Revision
                 </h3>
-                <p className="font-sans text-xs text-ink-soft mt-1">
+                <p className="font-sans text-xs text-muted-foreground mt-1">
                   The administrative review requested adjustments to your
                   verification materials:
                 </p>
-                <div className="mt-2 p-3 border border-red-200 dark:border-red-900/40 bg-canvas font-mono text-xs text-red-700 dark:text-red-300">
+                <div className="mt-2 p-3 border border-red-200 dark:border-red-900/40 bg-background font-mono text-xs text-red-700 dark:text-red-300">
                   {artistProfile.rejectionReason ||
                     'Please provide verifiable official links.'}
                 </div>
@@ -4161,7 +4161,7 @@ function StudioComponent() {
                     setVerifyLinks(artistProfile.verificationDetails.links)
                   }
                 }}
-                className="self-start font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer"
+                className="self-start font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Update & Resubmit Application &rarr;
               </button>
@@ -4172,7 +4172,7 @@ function StudioComponent() {
               className="flex flex-col gap-5"
             >
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                   Verification Pitch / Artist Background{' '}
                   <span className="text-red-500">*</span>
                 </label>
@@ -4182,13 +4182,13 @@ function StudioComponent() {
                   value={verifyPitch}
                   onChange={(e) => setVerifyPitch(e.target.value)}
                   placeholder="Briefly describe your musical career, past releases, live performances, or label affiliations..."
-                  className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                  className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Contact Email
                   </label>
                   <input
@@ -4196,11 +4196,11 @@ function StudioComponent() {
                     value={verifyContactEmail}
                     onChange={(e) => setVerifyContactEmail(e.target.value)}
                     placeholder="artist@example.com"
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Contact Phone (Optional)
                   </label>
                   <input
@@ -4208,17 +4208,17 @@ function StudioComponent() {
                     value={verifyContactPhone}
                     onChange={(e) => setVerifyContactPhone(e.target.value)}
                     placeholder="+1 555-0199"
-                    className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                    className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                   Official Proof & Portfolio Links{' '}
                   <span className="text-red-500">*</span>
                 </label>
-                <p className="font-sans text-xs text-ink-soft mb-3">
+                <p className="font-sans text-xs text-muted-foreground mb-3">
                   Include links to verified Spotify, Apple Music, Bandcamp,
                   official website, or press articles.
                 </p>
@@ -4236,7 +4236,7 @@ function StudioComponent() {
                           setVerifyLinks(copy)
                         }}
                         placeholder="https://open.spotify.com/artist/..."
-                        className="flex-1 font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                        className="flex-1 font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                       />
                       {verifyLinks.length > 1 && (
                         <button
@@ -4246,7 +4246,7 @@ function StudioComponent() {
                               verifyLinks.filter((_, i) => i !== idx),
                             )
                           }}
-                          className="font-mono text-xs py-2 px-3 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                          className="font-mono text-xs py-2 px-3 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
                         >
                           Remove
                         </button>
@@ -4258,7 +4258,7 @@ function StudioComponent() {
                     <button
                       type="button"
                       onClick={() => setVerifyLinks([...verifyLinks, ''])}
-                      className="self-start font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer mt-1"
+                      className="self-start font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer mt-1"
                     >
                       + Add Another Link
                     </button>
@@ -4270,7 +4270,7 @@ function StudioComponent() {
                 <button
                   type="submit"
                   disabled={isSubmittingVerify}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
                 >
                   {isSubmittingVerify
                     ? 'Submitting...'
@@ -4280,7 +4280,7 @@ function StudioComponent() {
                   <button
                     type="button"
                     onClick={() => setShowResubmitForm(false)}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -4293,14 +4293,14 @@ function StudioComponent() {
 
       {/* Detach Cut Modal */}
       {detachModalData && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-panel border-2 border-line shadow-2xl p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-line pb-3">
+        <div className="fixed inset-0 bg-foreground/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-card border-2 border-border shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block">
                   Catalog Action &bull; Spin-off Single
                 </span>
-                <h3 className="font-serif italic text-xl text-ink">
+                <h3 className="font-serif italic text-xl text-foreground">
                   Detach Cut
                 </h3>
               </div>
@@ -4308,23 +4308,23 @@ function StudioComponent() {
                 type="button"
                 onClick={handleCloseDetachModal}
                 disabled={isSubmittingDetach}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
               >
                 ✕ Close
               </button>
             </div>
 
-            <p className="font-sans text-xs text-ink-soft leading-relaxed">
-              Detaching <strong className="text-ink font-medium font-serif italic">"{detachModalData.song.title}"</strong> from <strong className="text-ink font-medium font-serif italic">{detachModalData.parentAlbum.title}</strong> will turn it into an independent standalone <span className="font-mono text-[11px] font-semibold text-ink">SINGLE</span> release.
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed">
+              Detaching <strong className="text-foreground font-medium font-serif italic">"{detachModalData.song.title}"</strong> from <strong className="text-foreground font-medium font-serif italic">{detachModalData.parentAlbum.title}</strong> will turn it into an independent standalone <span className="font-mono text-[11px] font-semibold text-foreground">SINGLE</span> release.
             </p>
 
             {/* Artwork Selection */}
-            <div className="space-y-3 pt-1 border-t border-line-soft">
-              <label className="font-mono text-[11px] uppercase tracking-wider text-ink block">
+            <div className="space-y-3 pt-1 border-t border-border-soft">
+              <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block">
                 Cover Artwork for New Single
               </label>
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 border border-line bg-canvas-deep flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
                   {detachCoverUrl || detachModalData.parentAlbum.coverImageUrl ? (
                     <img
                       src={
@@ -4336,12 +4336,12 @@ function StudioComponent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <DiscIconSVG className="w-8 h-8 text-ink-soft/40" />
+                    <DiscIconSVG className="w-8 h-8 text-muted-foreground/40" />
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
                       <span>
                         {isUploadingDetachCover
                           ? 'Uploading to R2...'
@@ -4366,13 +4366,13 @@ function StudioComponent() {
                           if (detachCoverInputRef.current)
                             detachCoverInputRef.current.value = ''
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2 border border-line text-ink-soft hover:text-red-500 hover:border-red-400 cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-2 border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 cursor-pointer"
                       >
                         Revert to Album Art
                       </button>
                     )}
                   </div>
-                  <p className="font-mono text-[11px] text-ink-soft">
+                  <p className="font-mono text-[11px] text-muted-foreground">
                     {detachCoverUrl
                       ? 'Custom cover uploaded (Cloudflare R2 edge).'
                       : 'Will inherit parent album cover if no custom image is uploaded.'}
@@ -4381,12 +4381,12 @@ function StudioComponent() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={handleCloseDetachModal}
                 disabled={isSubmittingDetach}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -4394,7 +4394,7 @@ function StudioComponent() {
                 type="button"
                 onClick={handleConfirmDetach}
                 disabled={isSubmittingDetach || isUploadingDetachCover}
-                className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
               >
                 {isSubmittingDetach
                   ? 'Detaching Cut...'
@@ -4407,15 +4407,15 @@ function StudioComponent() {
 
       {/* Edit Master Release Modal */}
       {editingAlbum && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="max-w-3xl w-full bg-panel border-2 border-line shadow-2xl p-6 sm:p-7 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="max-w-3xl w-full bg-card border-2 border-border shadow-2xl p-6 sm:p-7 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-line pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block">
                   Studio Suite &bull; Master Release Editor
                 </span>
-                <h3 className="font-serif italic text-2xl text-ink">
+                <h3 className="font-serif italic text-2xl text-foreground">
                   Edit Release: {editingAlbum.title}
                 </h3>
               </div>
@@ -4423,14 +4423,14 @@ function StudioComponent() {
                 type="button"
                 onClick={handleCloseEditModal}
                 disabled={isSavingRelease}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
               >
                 ✕ Close
               </button>
             </div>
 
             {isLoadingEditData ? (
-              <div className="py-16 text-center font-mono text-xs text-ink-soft animate-pulse">
+              <div className="py-16 text-center font-mono text-xs text-muted-foreground animate-pulse">
                 Loading release details, master cuts &amp; collaborator credits...
               </div>
             ) : (
@@ -4438,7 +4438,7 @@ function StudioComponent() {
                 {/* Basic Metadata Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Release Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -4447,18 +4447,18 @@ function StudioComponent() {
                       value={editReleaseTitle}
                       onChange={(e) => setEditReleaseTitle(e.target.value)}
                       placeholder="Release title"
-                      className="w-full font-serif italic text-base py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      className="w-full font-serif italic text-base py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     />
                   </div>
 
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Release Format
                     </label>
                     <select
                       value={editReleaseType}
                       onChange={(e) => setEditReleaseType(e.target.value as AlbumType)}
-                      className="w-full font-mono text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                      className="w-full font-mono text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     >
                       {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
                         <option key={type} value={type}>
@@ -4470,11 +4470,11 @@ function StudioComponent() {
                 </div>
 
                 {/* Taxonomy & Classification Row */}
-                <div className="space-y-4 pt-2 border-t border-line-soft">
+                <div className="space-y-4 pt-2 border-t border-border-soft">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Primary Genre Dropdown */}
                     <div>
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                         Primary Genre
                       </label>
                       <select
@@ -4483,7 +4483,7 @@ function StudioComponent() {
                           setEditReleasePrimaryGenre(e.target.value)
                           setEditReleaseSubGenre('')
                         }}
-                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       >
                         <option value="">Select Primary Genre...</option>
                         {PRIMARY_GENRES.map((g) => (
@@ -4492,21 +4492,21 @@ function StudioComponent() {
                           </option>
                         ))}
                       </select>
-                      <p className="font-mono text-[11px] text-ink-soft mt-1.5">
+                      <p className="font-mono text-[11px] text-muted-foreground mt-1.5">
                         Used for catalog indexing, genre discovery &amp; radio curation.
                       </p>
                     </div>
 
                     {/* Sub-Genre Dropdown */}
                     <div>
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                         Sub-Genre (Optional)
                       </label>
                       <select
                         value={editReleaseSubGenre}
                         onChange={(e) => setEditReleaseSubGenre(e.target.value)}
                         disabled={!editReleasePrimaryGenre || !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.length}
-                        className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink disabled:opacity-50"
+                        className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                       >
                         <option value="">Select Sub-Genre...</option>
                         {editReleasePrimaryGenre &&
@@ -4522,10 +4522,10 @@ function StudioComponent() {
                   {/* Mood Selection (1-3 optional) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                         Musical Moods (Select 1 to 3)
                       </label>
-                      <span className="font-mono text-[11px] text-ink-soft">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         {editReleaseMoods.length}/3 selected
                       </span>
                     </div>
@@ -4545,8 +4545,8 @@ function StudioComponent() {
                             }}
                             className={`font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
                               isSelected
-                                ? 'border-ink bg-ink text-canvas font-semibold'
-                                : 'border-line bg-canvas text-ink-soft hover:text-ink hover:border-ink/50'
+                                ? 'border-foreground bg-foreground text-background font-semibold'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
                             }`}
                           >
                             {mood}
@@ -4558,7 +4558,7 @@ function StudioComponent() {
 
                   {/* Custom Tags */}
                   <div>
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                       Catalog Tags (Press Enter to add)
                     </label>
                     <div className="flex items-center gap-2 mb-2">
@@ -4577,7 +4577,7 @@ function StudioComponent() {
                           }
                         }}
                         placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+                        className="flex-1 font-mono text-xs py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       />
                       <button
                         type="button"
@@ -4588,7 +4588,7 @@ function StudioComponent() {
                             setEditReleaseTagInput('')
                           }
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas text-ink cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
                       >
                         + Add Tag
                       </button>
@@ -4598,13 +4598,13 @@ function StudioComponent() {
                         {editReleaseTags.map((tag) => (
                           <span
                             key={tag}
-                            className="font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink flex items-center gap-1.5"
+                            className="font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
                           >
                             <span>#{tag}</span>
                             <button
                               type="button"
                               onClick={() => setEditReleaseTags(editReleaseTags.filter((t) => t !== tag))}
-                              className="text-ink-soft hover:text-red-500 cursor-pointer ml-1"
+                              className="text-muted-foreground hover:text-red-500 cursor-pointer ml-1"
                             >
                               ×
                             </button>
@@ -4616,12 +4616,12 @@ function StudioComponent() {
                 </div>
 
                 {/* Master Cover Artwork */}
-                <div className="pt-2 border-t border-line-soft">
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                <div className="pt-2 border-t border-border-soft">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Master Cover Artwork
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-canvas-deep border border-line shrink-0 overflow-hidden flex items-center justify-center">
+                    <div className="w-16 h-16 bg-muted border border-border shrink-0 overflow-hidden flex items-center justify-center">
                       {editReleaseCoverUrl ? (
                         <img
                           src={editReleaseCoverUrl}
@@ -4629,11 +4629,11 @@ function StudioComponent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <DiscIconSVG className="w-6 h-6 text-ink-soft/40" />
+                        <DiscIconSVG className="w-6 h-6 text-muted-foreground/40" />
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-canvas hover:border-ink text-ink cursor-pointer inline-flex items-center gap-1.5">
+                      <label className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
                         <span>
                           {isUploadingEditCover
                             ? 'Uploading to R2...'
@@ -4648,7 +4648,7 @@ function StudioComponent() {
                           className="hidden"
                         />
                       </label>
-                      <p className="font-mono text-[11px] text-ink-soft">
+                      <p className="font-mono text-[11px] text-muted-foreground">
                         Direct Cloudflare R2 upload (PNG, JPG, WEBP).
                       </p>
                     </div>
@@ -4656,13 +4656,13 @@ function StudioComponent() {
                 </div>
 
                 {/* Catalog Visibility Tier Selector */}
-                <div className="space-y-2 pt-2 border-t border-line-soft">
+                <div className="space-y-2 pt-2 border-t border-border-soft">
                   <div className="flex items-center justify-between">
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                    <label className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                       Catalog Visibility Tier
                     </label>
-                    <span className="font-mono text-[11px] text-ink-soft">
-                      Current: <strong className="text-ink">{editReleaseVisibility}</strong>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      Current: <strong className="text-foreground">{editReleaseVisibility}</strong>
                     </span>
                   </div>
 
@@ -4673,13 +4673,13 @@ function StudioComponent() {
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'PUBLIC'
                           ? 'border-emerald-500/60 bg-emerald-500/10 dark:bg-emerald-950/20'
-                          : 'border-line bg-canvas hover:border-ink/50'
+                          : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
-                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
                         <span>🌍 Public</span>
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-snug">
                         Discoverable on artist profile, search, and algorithmic radio.
                       </p>
                     </button>
@@ -4690,13 +4690,13 @@ function StudioComponent() {
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'UNLISTED'
                           ? 'border-purple-500/60 bg-purple-500/10 dark:bg-purple-950/20'
-                          : 'border-line bg-canvas hover:border-ink/50'
+                          : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
-                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
                         <span>🔗 Unlisted</span>
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-snug">
                         Hidden from search and profile. Accessible only via secret token URL.
                       </p>
                     </button>
@@ -4707,14 +4707,14 @@ function StudioComponent() {
                       className={`p-3 border text-left cursor-pointer transition-colors ${
                         editReleaseVisibility === 'PRIVATE'
                           ? 'border-red-500/60 bg-red-500/10 dark:bg-red-950/20'
-                          : 'border-line bg-canvas hover:border-ink/50'
+                          : 'border-border bg-background hover:border-foreground/50'
                       }`}
                     >
-                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
                         <LockIconSVG className="w-3 h-3 text-red-500" />
                         <span>Private</span>
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-snug">
                         Strictly confidential. Visible only in your Studio suite.
                       </p>
                     </button>
@@ -4722,8 +4722,8 @@ function StudioComponent() {
 
                   {editReleaseVisibility === 'UNLISTED' && editingAlbum.shareToken && (
                     <div className="p-3 border border-purple-500/30 bg-purple-500/5 flex items-center justify-between gap-3 mt-2">
-                      <div className="min-w-0 font-mono text-[11px] text-ink truncate">
-                        <span className="text-ink-soft">Secret Link: </span>
+                      <div className="min-w-0 font-mono text-[11px] text-foreground truncate">
+                        <span className="text-muted-foreground">Secret Link: </span>
                         <span className="underline">
                           {window.location.origin}/albums/{editingAlbum.slug}?shareToken={editingAlbum.shareToken}
                         </span>
@@ -4744,8 +4744,8 @@ function StudioComponent() {
                 </div>
 
                 {/* Release Timing & Scheduling */}
-                <div className="space-y-3 pt-2 border-t border-line-soft">
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block">
+                <div className="space-y-3 pt-2 border-t border-border-soft">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block">
                     Release Timing &amp; Drop Scheduling
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -4754,8 +4754,8 @@ function StudioComponent() {
                       onClick={() => setEditReleaseMode('IMMEDIATE')}
                       className={`font-mono text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
                         editReleaseMode === 'IMMEDIATE'
-                          ? 'border-ink bg-ink text-canvas font-semibold'
-                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                          ? 'border-foreground bg-foreground text-background font-semibold'
+                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       Immediate / Published
@@ -4772,8 +4772,8 @@ function StudioComponent() {
                       }}
                       className={`font-mono text-xs uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                         editReleaseMode === 'SCHEDULED'
-                          ? 'border-ink bg-ink text-canvas font-semibold'
-                          : 'border-line bg-canvas text-ink-soft hover:text-ink'
+                          ? 'border-foreground bg-foreground text-background font-semibold'
+                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <CalendarIconSVG className="w-3.5 h-3.5" />
@@ -4785,7 +4785,7 @@ function StudioComponent() {
                     <div className="p-3.5 border border-primary/30 bg-primary/5 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                          <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                             Drop Date
                           </label>
                           <input
@@ -4793,22 +4793,22 @@ function StudioComponent() {
                             min={new Date().toISOString().split('T')[0]}
                             value={editReleaseDate}
                             onChange={(e) => setEditReleaseDate(e.target.value)}
-                            className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                            className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                           />
                         </div>
                         <div>
-                          <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1">
+                          <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                             Drop Time (Local)
                           </label>
                           <input
                             type="time"
                             value={editReleaseTime}
                             onChange={(e) => setEditReleaseTime(e.target.value)}
-                            className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink"
+                            className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground"
                           />
                         </div>
                       </div>
-                      <p className="font-mono text-[11px] text-ink-soft">
+                      <p className="font-mono text-[11px] text-muted-foreground">
                         Fans can pre-save this release. The automated BullMQ scheduler will automatically release it to listeners at the specified time.
                       </p>
                     </div>
@@ -4816,8 +4816,8 @@ function StudioComponent() {
                 </div>
 
                 {/* Description & Liner Notes */}
-                <div className="pt-2 border-t border-line-soft">
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-ink block mb-1.5">
+                <div className="pt-2 border-t border-border-soft">
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-foreground block mb-1.5">
                     Release Description / Liner Notes
                   </label>
                   <textarea
@@ -4825,17 +4825,17 @@ function StudioComponent() {
                     value={editReleaseDescription}
                     onChange={(e) => setEditReleaseDescription(e.target.value)}
                     placeholder="Liner notes, studio sessions, recording personnel, narrative..."
-                    className="w-full font-sans text-xs py-2.5 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y leading-relaxed"
+                    className="w-full font-sans text-xs py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                   />
                 </div>
 
                 {/* Creator Governance: Comments & Discussions */}
-                <div className="p-3.5 border border-line bg-canvas flex items-center justify-between">
+                <div className="p-3.5 border border-border bg-background flex items-center justify-between">
                   <div>
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-ink block font-semibold">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-foreground block font-semibold">
                       Discussion &amp; Comments
                     </span>
-                    <p className="font-sans text-xs text-ink-soft">
+                    <p className="font-sans text-xs text-muted-foreground">
                       Allow listeners and curators to post comments and replies on this release.
                     </p>
                   </div>
@@ -4846,7 +4846,7 @@ function StudioComponent() {
                       onChange={(e) => setEditReleaseAllowComments(e.target.checked)}
                       className="accent-primary w-4 h-4"
                     />
-                    <span className="font-mono text-xs text-ink font-medium">
+                    <span className="font-mono text-xs text-foreground font-medium">
                       {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
@@ -4854,12 +4854,12 @@ function StudioComponent() {
 
                 {/* Master Cuts & Collaborator Credits */}
                 {editTracks.length > 0 && (
-                  <div className="space-y-4 pt-2 border-t border-line-soft">
+                  <div className="space-y-4 pt-2 border-t border-border-soft">
                     <div className="flex items-center justify-between">
-                      <label className="font-mono text-[11px] uppercase tracking-wider text-ink">
+                      <label className="font-mono text-[11px] uppercase tracking-wider text-foreground">
                         Master Cuts &amp; Collaborator Credits ({editTracks.length})
                       </label>
-                      <span className="font-mono text-[11px] text-ink-soft">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         Edit titles, individual genres, explicit tags &amp; contributor credits
                       </span>
                     </div>
@@ -4868,10 +4868,10 @@ function StudioComponent() {
                       {editTracks.map((track, idx) => (
                         <div
                           key={track.id}
-                          className="p-3.5 border border-line bg-canvas space-y-3"
+                          className="p-3.5 border border-border bg-background space-y-3"
                         >
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-xs text-ink-soft w-6">
+                            <span className="font-mono text-xs text-muted-foreground w-6">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
 
@@ -4889,7 +4889,7 @@ function StudioComponent() {
                                   )
                                 }}
                                 placeholder="Cut Title"
-                                className="font-serif italic text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                                className="font-serif italic text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <input
@@ -4904,11 +4904,11 @@ function StudioComponent() {
                                   )
                                 }}
                                 placeholder="Genre (e.g. Ambient)"
-                                className="font-mono text-xs py-1.5 px-2.5 border border-line bg-panel text-ink"
+                                className="font-mono text-xs py-1.5 px-2.5 border border-border bg-card text-foreground"
                               />
 
                               <div className="flex items-center gap-2">
-                                <label className="font-mono text-[11px] uppercase tracking-wider text-ink-soft flex items-center gap-1 cursor-pointer">
+                                <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
                                   <input
                                     type="checkbox"
                                     checked={track.isExplicit}
@@ -4925,7 +4925,7 @@ function StudioComponent() {
                                 </label>
 
                                 {track.durationSeconds > 0 && (
-                                  <span className="font-mono text-[11px] text-ink-soft ml-auto">
+                                  <span className="font-mono text-[11px] text-muted-foreground ml-auto">
                                     {formatDuration(track.durationSeconds)}
                                   </span>
                                 )}
@@ -4934,12 +4934,12 @@ function StudioComponent() {
                           </div>
 
                           {/* Acoustic Details (BPM & Musical Key) */}
-                          <div className="flex items-center gap-3 pt-1 border-t border-line-soft/40">
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                          <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                               Acoustics:
                             </span>
                             <div className="flex items-center gap-1.5">
-                              <label className="font-mono text-[11px] uppercase text-ink-soft">BPM</label>
+                              <label className="font-mono text-[11px] uppercase text-muted-foreground">BPM</label>
                               <input
                                 type="number"
                                 min={30}
@@ -4952,11 +4952,11 @@ function StudioComponent() {
                                     prev.map((t) => (t.id === track.id ? { ...t, bpm: val } : t)),
                                   )
                                 }}
-                                className="w-20 font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink"
+                                className="w-20 font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground"
                               />
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <label className="font-mono text-[11px] uppercase text-ink-soft">Key</label>
+                              <label className="font-mono text-[11px] uppercase text-muted-foreground">Key</label>
                               <input
                                 type="text"
                                 placeholder="e.g. C min"
@@ -4967,14 +4967,14 @@ function StudioComponent() {
                                     prev.map((t) => (t.id === track.id ? { ...t, musicalKey: val } : t)),
                                   )
                                 }}
-                                className="w-24 font-mono text-[11px] py-0.5 px-2 border border-line bg-panel text-ink"
+                                className="w-24 font-mono text-[11px] py-0.5 px-2 border border-border bg-card text-foreground"
                               />
                             </div>
                           </div>
 
                           {/* Collaborator & Credit Attribution */}
-                          <div className="pt-2 border-t border-line-soft/60">
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block mb-1.5">
+                          <div className="pt-2 border-t border-border-soft/60">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1.5">
                               Collaborator Credits (Featured / Producers / Composers / Lyricists)
                             </span>
                             <ArtistCreditPicker
@@ -4996,19 +4996,19 @@ function StudioComponent() {
                 )}
 
                 {/* Submit / Cancel Actions */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                   <button
                     type="button"
                     onClick={handleCloseEditModal}
                     disabled={isSavingRelease}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSavingRelease || isUploadingEditCover}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
                   >
                     {isSavingRelease ? (
                       <span>Saving Changes...</span>
@@ -5025,23 +5025,23 @@ function StudioComponent() {
 
       {/* Soft Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
+          <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-xs">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-red-500 shrink-0">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-serif italic text-lg text-ink font-normal">
+                <h4 className="font-serif italic text-lg text-foreground font-normal">
                   {deleteConfirm.type === 'album'
                     ? 'Move Release to Trash?'
                     : 'Move Master Track to Trash?'}
                 </h4>
-                <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-1 leading-relaxed">
                   {deleteConfirm.type === 'album' ? (
                     <>
                       Are you sure you want to move{' '}
-                      <strong className="text-ink font-semibold">
+                      <strong className="text-foreground font-semibold">
                         "{deleteConfirm.title}"
                       </strong>{' '}
                       and its {deleteConfirm.trackCount || 'associated'} cut(s) to the 30-day trash? You can restore it anytime within 30 days.
@@ -5049,16 +5049,16 @@ function StudioComponent() {
                   ) : (
                     <>
                       Are you sure you want to move{' '}
-                      <strong className="text-ink font-semibold">
+                      <strong className="text-foreground font-semibold">
                         "{deleteConfirm.title}"
                       </strong>{' '}
                       to the 30-day trash?
                       {deleteConfirm.trackCount === 1 ? (
-                        <span className="block text-ink font-medium mt-1">
+                        <span className="block text-foreground font-medium mt-1">
                           Since this is the only cut in this release, the parent release will also be moved to the 30-day trash.
                         </span>
                       ) : (
-                        <span className="block text-ink-soft mt-1">
+                        <span className="block text-muted-foreground mt-1">
                           You can restore it anytime within 30 days.
                         </span>
                       )}
@@ -5073,7 +5073,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isDeletingItem}
                 onClick={() => setDeleteConfirm(null)}
-                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -5092,21 +5092,21 @@ function StudioComponent() {
 
       {/* Permanent Delete / Empty Trash Confirmation Modal */}
       {trashConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-line bg-canvas p-6 shadow-2xl space-y-4 rounded-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
+          <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-xs">
             <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-line bg-panel flex items-center justify-center text-red-500 shrink-0">
+              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-red-500 shrink-0">
                 <TrashIconSVG className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-serif italic text-lg text-ink font-normal">
+                <h4 className="font-serif italic text-lg text-foreground font-normal">
                   {trashConfirm.type === 'empty'
                     ? 'Empty Studio Trash?'
                     : trashConfirm.type === 'permanent_release'
                       ? 'Permanently Delete Release?'
                       : 'Permanently Delete Master Cut?'}
                 </h4>
-                <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-1 leading-relaxed">
                   {trashConfirm.type === 'empty'
                     ? 'Are you sure you want to permanently delete all items in the studio trash? All associated master audio recordings and artwork will be permanently purged from cloud storage. This action cannot be undone.'
                     : trashConfirm.type === 'permanent_release'
@@ -5121,7 +5121,7 @@ function StudioComponent() {
                 type="button"
                 disabled={isPurging}
                 onClick={() => setTrashConfirm(null)}
-                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-line text-ink-soft hover:text-ink bg-panel transition-colors cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
               >
                 Cancel
               </button>

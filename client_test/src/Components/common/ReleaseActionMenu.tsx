@@ -16,7 +16,7 @@ export interface ReleaseActionMenuProps {
 
 export function ReleaseActionMenu({
   release,
-  buttonClassName = 'p-1.5 text-ink-soft hover:text-ink transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-canvas-soft/80',
+  buttonClassName = 'p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-muted/80',
   align = 'right',
   onDeleteRequest,
 }: ReleaseActionMenuProps) {
@@ -311,7 +311,7 @@ export function ReleaseActionMenu({
         createPortal(
           <div
             style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded shadow-2xl animate-in fade-in duration-150 pointer-events-none"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 bg-foreground text-background font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded shadow-2xl animate-in fade-in duration-150 pointer-events-none"
           >
             {toastMessage}
           </div>,
@@ -334,14 +334,14 @@ export function ReleaseActionMenu({
               left: `${dropdownPos.left}px`,
               zIndex: 99999,
             }}
-            className="hidden sm:block w-52 border border-line bg-panel shadow-2xl py-1 divide-y divide-line/40 rounded-lg font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-lg font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="py-1">
               <button
                 type="button"
                 onClick={handlePlayRelease}
-                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
               >
                 <PlayIconSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Play Release</span>
@@ -349,14 +349,14 @@ export function ReleaseActionMenu({
               <button
                 type="button"
                 onClick={handlePlayNext}
-                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                  className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                 >
                   <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
                   <line x1="19" y1="5" x2="19" y2="19" strokeWidth="2.5" />
@@ -366,14 +366,14 @@ export function ReleaseActionMenu({
               <button
                 type="button"
                 onClick={handleAddToQueue}
-                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                  className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                 >
                   <line x1="8" y1="6" x2="21" y2="6" />
                   <line x1="8" y1="12" x2="21" y2="12" />
@@ -390,23 +390,23 @@ export function ReleaseActionMenu({
               <button
                 type="button"
                 onClick={handleGoToRelease}
-                className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
               >
-                <DiscIconSVG className="w-3.5 h-3.5 text-ink-soft shrink-0" />
+                <DiscIconSVG className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <span className="truncate">Go to Release</span>
               </button>
               {(release.artistSlug || release.artistId) && (
                 <button
                   type="button"
                   onClick={handleGoToArtist}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   >
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
@@ -445,7 +445,7 @@ export function ReleaseActionMenu({
           >
             {/* Dimmed backdrop with dynamic drag-opacity */}
             <div
-              className="fixed inset-0 bg-ink/20 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+              className="fixed inset-0 bg-foreground/20 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
               style={{
                 opacity: Math.max(0, 1 - sheetTranslateY / 260),
                 transition: isDraggingSheet ? 'none' : 'opacity 0.2s ease-out',
@@ -471,7 +471,7 @@ export function ReleaseActionMenu({
                   ? 'none'
                   : 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)',
               }}
-              className="relative z-10 w-full max-h-[85vh] bg-panel border-t border-line shadow-2xl rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
+              className="relative z-10 w-full max-h-[85vh] bg-card border-t border-border shadow-2xl rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Grab indicator pill zone */}
@@ -483,18 +483,18 @@ export function ReleaseActionMenu({
                 onTouchCancel={handleSheetTouchEnd}
                 onClick={handleCloseSheet}
               >
-                <div className="w-12 h-1.5 bg-ink-soft/30 hover:bg-ink-soft/50 rounded-full transition-colors" />
+                <div className="w-12 h-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50 rounded-full transition-colors" />
               </div>
 
               {/* Release context header */}
               <div
-                className="px-5 py-3 flex items-center gap-3.5 border-b border-line/60 touch-none select-none"
+                className="px-5 py-3 flex items-center gap-3.5 border-b border-border/60 touch-none select-none"
                 onTouchStart={handleSheetTouchStart}
                 onTouchMove={handleSheetTouchMove}
                 onTouchEnd={handleSheetTouchEnd}
                 onTouchCancel={handleSheetTouchEnd}
               >
-                <div className="w-12 h-12 bg-canvas-deep border border-line rounded overflow-hidden shrink-0">
+                <div className="w-12 h-12 bg-muted border border-border rounded overflow-hidden shrink-0">
                   {release.coverImageUrl ? (
                     <img
                       src={release.coverImageUrl}
@@ -511,10 +511,10 @@ export function ReleaseActionMenu({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
+                  <p className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
                     {release.title}
                   </p>
-                  <p className="font-sans text-xs text-ink-soft truncate">
+                  <p className="font-sans text-xs text-muted-foreground truncate">
                     {release.artistName || 'Unknown Artist'}
                   </p>
                 </div>
@@ -522,14 +522,14 @@ export function ReleaseActionMenu({
 
               {/* Action rows */}
               <div
-                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-line/30 font-sans text-sm overscroll-contain"
+                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-border/30 font-sans text-sm overscroll-contain"
                 style={{ touchAction: 'pan-y' }}
               >
                 <div className="py-1">
                   <button
                     type="button"
                     onClick={handlePlayRelease}
-                    className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
+                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                   >
                     <PlayIconSVG className="w-4 h-4 text-primary shrink-0" />
                     <span>Play Release</span>
@@ -537,14 +537,14 @@ export function ReleaseActionMenu({
                   <button
                     type="button"
                     onClick={handlePlayNext}
-                    className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
+                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                   >
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="w-4 h-4 text-ink-soft shrink-0"
+                      className="w-4 h-4 text-muted-foreground shrink-0"
                     >
                       <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
                       <line x1="19" y1="5" x2="19" y2="19" strokeWidth="2.5" />
@@ -554,14 +554,14 @@ export function ReleaseActionMenu({
                   <button
                     type="button"
                     onClick={handleAddToQueue}
-                    className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
+                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                   >
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="w-4 h-4 text-ink-soft shrink-0"
+                      className="w-4 h-4 text-muted-foreground shrink-0"
                     >
                       <line x1="8" y1="6" x2="21" y2="6" />
                       <line x1="8" y1="12" x2="21" y2="12" />
@@ -578,23 +578,23 @@ export function ReleaseActionMenu({
                   <button
                     type="button"
                     onClick={handleGoToRelease}
-                    className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
+                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                   >
-                    <DiscIconSVG className="w-4 h-4 text-ink-soft shrink-0" />
+                    <DiscIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span>Go to Release</span>
                   </button>
                   {(release.artistSlug || release.artistId) && (
                     <button
                       type="button"
                       onClick={handleGoToArtist}
-                      className="w-full text-left px-5 py-3.5 hover:bg-canvas-deep flex items-center gap-3.5 text-ink cursor-pointer active:bg-canvas-deep"
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-4 h-4 text-ink-soft shrink-0"
+                        className="w-4 h-4 text-muted-foreground shrink-0"
                       >
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />

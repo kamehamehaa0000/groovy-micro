@@ -64,7 +64,7 @@ export function Sheet({
       />
       <div
         className={cn(
-          'relative z-10 flex max-h-[85dvh] w-full flex-col overflow-hidden border-line bg-panel shadow-floating',
+          'relative z-10 flex max-h-[85dvh] w-full flex-col overflow-hidden border-border bg-card shadow-floating',
           isBottom
             ? 'mt-auto rounded-t-2xl border-t pb-safe'
             : 'mx-4 m-auto rounded-surface border',
@@ -73,8 +73,8 @@ export function Sheet({
         )}
       >
         {title ? (
-          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-            <span className="font-mono text-eyebrow font-semibold uppercase text-ink">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <span className="font-mono text-eyebrow font-semibold uppercase text-foreground">
               {title}
             </span>
           </div>

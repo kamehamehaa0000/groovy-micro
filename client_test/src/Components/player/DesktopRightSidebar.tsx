@@ -17,7 +17,7 @@ export function DesktopRightSidebar() {
           ? "calc(100vh - 3.5rem - 5rem)"
           : "calc(100vh - 3.5rem)",
       }}
-      className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-panel border-l border-line transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
+      className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-card border-l border-border transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
         isOpen
           ? "w-95 lg:w-100 opacity-100"
           : "w-0 opacity-0 border-l-0 pointer-events-none"

@@ -173,18 +173,18 @@ export function MobileMiniPlayer() {
         transition:
           dragX === 0 ? 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)' : 'none',
       }}
-      className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom))] left-2 right-2 z-40 md:hidden h-14 bg-panel/95 dark:bg-[#282828]/95 backdrop-blur-xl border border-line/60 dark:border-white/10 rounded-lg shadow-lg dark:shadow-2xl shadow-black/10 dark:shadow-black/50 flex items-center justify-between px-2.5 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
+      className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom))] left-2 right-2 z-40 md:hidden h-14 bg-card/95 dark:bg-[#282828]/95 backdrop-blur-xl border border-border/60 dark:border-white/10 rounded-lg shadow-lg dark:shadow-2xl shadow-black/10 dark:shadow-black/50 flex items-center justify-between px-2.5 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
     >
       {/* 2px Hairline Progress Bar along the bottom of the card */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-line/20 dark:bg-white/10 overflow-hidden rounded-b-lg pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-border/20 dark:bg-white/10 overflow-hidden rounded-b-lg pointer-events-none">
         <div
-          className="h-full bg-ink dark:bg-[#1ed760] transition-[width] duration-150 ease-linear"
+          className="h-full bg-foreground dark:bg-[#1ed760] transition-[width] duration-150 ease-linear"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
       {/* Left: Thumbnail & Song Info */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
-        <div className="w-10 h-10 rounded-md bg-canvas-deep border border-line/40 dark:border-white/10 shrink-0 overflow-hidden shadow-xs flex items-center justify-center">
+        <div className="w-10 h-10 rounded-md bg-muted border border-border/40 dark:border-white/10 shrink-0 overflow-hidden shadow-xs flex items-center justify-center">
           {currentTrack.coverImageUrl ? (
             <img
               src={currentTrack.coverImageUrl}
@@ -202,10 +202,10 @@ export function MobileMiniPlayer() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-xs sm:text-sm text-ink dark:text-white truncate leading-tight">
+          <div className="font-semibold text-xs sm:text-sm text-foreground dark:text-white truncate leading-tight">
             {currentTrack.title}
           </div>
-          <div className="text-xs text-ink-soft dark:text-neutral-400 truncate mt-0.5 leading-tight">
+          <div className="text-xs text-muted-foreground dark:text-neutral-400 truncate mt-0.5 leading-tight">
             {currentTrack.artistName}
           </div>
         </div>
@@ -224,14 +224,14 @@ export function MobileMiniPlayer() {
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
           aria-label={isLiked ? 'Unlike song' : 'Like song'}
-          className="w-11 h-11 flex items-center justify-center text-ink-soft hover:text-ink active:scale-80 transition-all cursor-pointer"
+          className="w-11 h-11 flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-80 transition-all cursor-pointer"
         >
           <HeartIconSVG
             filled={isLiked}
             className={`w-5 h-5 transition-transform ${
               isLiked
                 ? 'text-[#1ed760] fill-[#1ed760]'
-                : 'text-ink-soft dark:text-neutral-300 hover:text-ink dark:hover:text-white'
+                : 'text-muted-foreground dark:text-neutral-300 hover:text-foreground dark:hover:text-white'
             }`}
           />
         </button>
@@ -244,14 +244,14 @@ export function MobileMiniPlayer() {
           onTouchEnd={(e) => e.stopPropagation()}
           disabled={isLoading}
           aria-label={isPlaying ? 'Pause' : 'Play'}
-          className="w-11 h-11 flex items-center justify-center text-ink dark:text-white active:scale-85 transition-transform cursor-pointer"
+          className="w-11 h-11 flex items-center justify-center text-foreground dark:text-white active:scale-85 transition-transform cursor-pointer"
         >
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-ink dark:border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-foreground dark:border-white border-t-transparent rounded-full animate-spin" />
           ) : isPlaying ? (
-            <PauseIconSVG className="w-5 h-5 text-ink dark:text-white fill-current" />
+            <PauseIconSVG className="w-5 h-5 text-foreground dark:text-white fill-current" />
           ) : (
-            <PlayIconSVG className="w-5 h-5 text-ink dark:text-white fill-current ml-0.5" />
+            <PlayIconSVG className="w-5 h-5 text-foreground dark:text-white fill-current ml-0.5" />
           )}
         </button>
       </div>

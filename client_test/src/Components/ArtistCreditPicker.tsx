@@ -117,16 +117,16 @@ export function ArtistCreditPicker({
           {credits.map((c) => (
             <div
               key={c.artistId}
-              className="inline-flex items-center gap-2 py-1 px-2.5 border border-line bg-canvas font-mono text-[11px] shadow-2xs"
+              className="inline-flex items-center gap-2 py-1 px-2.5 border border-border bg-background font-mono text-[11px] shadow-2xs"
             >
-              <span className="font-serif italic font-medium text-ink flex items-center gap-1">
+              <span className="font-serif italic font-medium text-foreground flex items-center gap-1">
                 {c.stageName}
                 {c.verified && (
                   <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />
                 )}
               </span>
 
-              <span className="text-ink-soft text-[11px]">@{c.slug}</span>
+              <span className="text-muted-foreground text-[11px]">@{c.slug}</span>
 
               {/* Role Select Dropdown */}
               <select
@@ -134,7 +134,7 @@ export function ArtistCreditPicker({
                 onChange={(e) =>
                   handleRoleChange(c.artistId, e.target.value as CreditRole)
                 }
-                className="bg-panel border border-line-soft text-ink font-mono text-[11px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
+                className="bg-card border border-border-soft text-foreground font-mono text-[11px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
               >
                 <option value="FEATURED">Featured</option>
                 <option value="PRODUCER">Producer</option>
@@ -148,7 +148,7 @@ export function ArtistCreditPicker({
               <button
                 type="button"
                 onClick={() => handleRemoveCredit(c.artistId)}
-                className="text-ink-soft hover:text-red-500 cursor-pointer p-0.5 ml-0.5"
+                className="text-muted-foreground hover:text-red-500 cursor-pointer p-0.5 ml-0.5"
                 title="Remove credit"
               >
                 ✕
@@ -163,24 +163,24 @@ export function ArtistCreditPicker({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-line text-ink-soft hover:text-ink hover:border-ink cursor-pointer inline-flex items-center gap-1"
+          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer inline-flex items-center gap-1"
         >
           <span>+ Add Collaborator / Credit</span>
         </button>
       ) : (
         <div className="relative max-w-md">
-          <div className="flex items-center gap-1.5 border border-line bg-canvas px-2.5 py-1.5 shadow-2xs">
-            <span className="font-mono text-[11px] text-ink-soft">Search:</span>
+          <div className="flex items-center gap-1.5 border border-border bg-background px-2.5 py-1.5 shadow-2xs">
+            <span className="font-mono text-[11px] text-muted-foreground">Search:</span>
             <input
               type="text"
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search stage name or @handle..."
-              className="flex-1 font-sans text-xs bg-transparent text-ink focus:outline-none"
+              className="flex-1 font-sans text-xs bg-transparent text-foreground focus:outline-none"
             />
             {isSearching ? (
-              <span className="font-mono text-[11px] text-ink-soft animate-pulse">
+              <span className="font-mono text-[11px] text-muted-foreground animate-pulse">
                 ...
               </span>
             ) : (
@@ -190,7 +190,7 @@ export function ArtistCreditPicker({
                   setIsOpen(false)
                   setQuery('')
                 }}
-                className="font-mono text-[11px] text-ink-soft hover:text-ink cursor-pointer px-1"
+                className="font-mono text-[11px] text-muted-foreground hover:text-foreground cursor-pointer px-1"
               >
                 ✕
               </button>
@@ -199,17 +199,17 @@ export function ArtistCreditPicker({
 
           {/* Autocomplete Results Panel */}
           {query.trim().length >= 2 && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-panel border border-line shadow-md divide-y divide-line/40 max-h-56 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-card border border-border shadow-md divide-y divide-border/40 max-h-56 overflow-y-auto">
               {results.length > 0 ? (
                 results.map((artist) => (
                   <button
                     key={artist.id}
                     type="button"
                     onClick={() => handleSelectArtist(artist)}
-                    className="w-full text-left px-3 py-2 hover:bg-canvas-deep flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-full bg-canvas border border-line flex items-center justify-center font-serif italic text-xs shrink-0 overflow-hidden">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center font-serif italic text-xs shrink-0 overflow-hidden">
                         {artist.avatarUrl || artist.bannerUrl ? (
                           <img
                             src={(artist.avatarUrl || artist.bannerUrl)!}
@@ -222,13 +222,13 @@ export function ArtistCreditPicker({
                       </div>
 
                       <div className="truncate">
-                        <div className="font-serif italic text-xs text-ink flex items-center gap-1">
+                        <div className="font-serif italic text-xs text-foreground flex items-center gap-1">
                           <span className="truncate">{artist.stageName}</span>
                           {artist.verified && (
                             <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />
                           )}
                         </div>
-                        <span className="font-mono text-[11px] text-ink-soft">
+                        <span className="font-mono text-[11px] text-muted-foreground">
                           @{artist.slug}
                         </span>
                       </div>
@@ -241,12 +241,12 @@ export function ArtistCreditPicker({
                 ))
               ) : hasSearched && !isSearching ? (
                 <div className="p-3 text-left">
-                  <div className="font-mono text-[11px] text-ink flex items-center gap-1">
+                  <div className="font-mono text-[11px] text-foreground flex items-center gap-1">
                     <span>Artist not found on Groovy</span>
                   </div>
-                  <p className="font-sans text-xs text-ink-soft mt-1 leading-relaxed">
+                  <p className="font-sans text-xs text-muted-foreground mt-1 leading-relaxed">
                     No registered artist matches "
-                    <span className="font-mono text-ink">{query}</span>". To
+                    <span className="font-mono text-foreground">{query}</span>". To
                     receive discography credits, collaborators must have an
                     active Groovy profile.
                   </p>

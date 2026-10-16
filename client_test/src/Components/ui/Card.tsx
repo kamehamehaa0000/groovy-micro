@@ -10,10 +10,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const VARIANT: Record<CardVariant, string> = {
-  plain: 'border-line bg-panel',
-  muted: 'border-line bg-panel/40',
+  plain: 'border-border bg-card',
+  muted: 'border-border bg-card/40',
   interactive:
-    'border-line bg-panel/40 transition-colors hover:border-ink/20 hover:bg-canvas',
+    'border-border bg-card/40 transition-colors hover:border-foreground/20 hover:bg-background',
 }
 
 const PADDING: Record<CardPadding, string> = {

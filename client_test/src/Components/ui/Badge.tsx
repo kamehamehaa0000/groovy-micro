@@ -16,12 +16,12 @@ export interface BadgeProps {
 }
 
 const TONE: Record<BadgeTone, string> = {
-  neutral: 'border-line bg-stone/30 text-ink-soft',
-  ink: 'border-ink bg-ink text-canvas',
+  neutral: 'border-border bg-secondary/30 text-muted-foreground',
+  ink: 'border-foreground bg-foreground text-background',
   brand: 'border-primary/30 bg-primary/10 text-primary',
   success: 'border-success/30 bg-success-soft text-success',
   warning: 'border-warning/30 bg-warning-soft text-warning',
-  danger: 'border-danger/30 bg-danger-soft text-danger',
+  danger: 'border-destructive/30 bg-destructive-soft text-destructive',
 }
 
 export function Badge({ children, tone = 'neutral', className }: BadgeProps) {

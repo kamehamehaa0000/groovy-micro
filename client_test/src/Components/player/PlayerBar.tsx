@@ -73,7 +73,7 @@ const ShuffleIcon = ({
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`${className} ${active ? 'text-primary stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
+    className={`${className} ${active ? 'text-primary stroke-[2.5]' : 'text-muted-foreground hover:text-foreground'}`}
   >
     <polyline points="16 3 21 3 21 8" />
     <line x1="4" y1="20" x2="21" y2="3" />
@@ -98,7 +98,7 @@ const RepeatIcon = ({
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`${className} ${mode !== 'off' ? 'text-primary stroke-[2.5]' : 'text-ink-soft hover:text-ink'}`}
+      className={`${className} ${mode !== 'off' ? 'text-primary stroke-[2.5]' : 'text-muted-foreground hover:text-foreground'}`}
     >
       <polyline points="17 1 21 5 17 9" />
       <path d="M3 11V9a4 4 0 0 1 4-4h14" />
@@ -106,7 +106,7 @@ const RepeatIcon = ({
       <path d="M21 13v2a4 4 0 0 1-4 4H3" />
     </svg>
     {mode === 'one' && (
-      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-primary bg-panel px-0.5 rounded">
+      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-primary bg-card px-0.5 rounded">
         1
       </span>
     )}
@@ -203,7 +203,7 @@ const HeartIcon = ({
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`${className} ${filled ? 'text-red-500 fill-red-500' : 'text-neutral-400 hover:text-ink dark:text-neutral-300 dark:hover:text-white'}`}
+    className={`${className} ${filled ? 'text-red-500 fill-red-500' : 'text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white'}`}
   >
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
   </svg>
@@ -279,16 +279,16 @@ export function PlayerBar() {
     <>
       {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION BANNER ===================== */}
       {supersededByDevice && (
-        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-20 left-0 right-0 z-40 bg-canvas-deep/95 backdrop-blur-md border-t border-line px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
-          <div className="flex items-center gap-2.5 text-xs text-ink max-w-[70%] truncate">
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-20 left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+          <div className="flex items-center gap-2.5 text-xs text-foreground max-w-[70%] truncate">
             <span className="flex h-2 w-2 relative shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
               Listening on
             </span>
-            <strong className="font-semibold text-ink truncate">
+            <strong className="font-semibold text-foreground truncate">
               {supersededByDevice.deviceName}
             </strong>
           </div>
@@ -297,14 +297,14 @@ export function PlayerBar() {
             <button
               type="button"
               onClick={() => takeoverPlayback()}
-              className="bg-ink text-canvas hover:bg-primary hover:text-primary-foreground px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+              className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
             >
               Play here instead
             </button>
             <button
               type="button"
               onClick={() => dismissSuperseded()}
-              className="text-ink-soft hover:text-ink p-1 cursor-pointer"
+              className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
               aria-label="Dismiss"
             >
               <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
@@ -329,11 +329,11 @@ export function PlayerBar() {
 
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[calc(5rem+env(safe-area-inset-bottom))] pb-safe bg-panel/95 backdrop-blur-md border-t border-line px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[calc(5rem+env(safe-area-inset-bottom))] pb-safe bg-card/95 backdrop-blur-md border-t border-border px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
       >
         {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
         <div
-          className="absolute top-0 left-0 right-0 h-1 bg-stone/20 cursor-pointer group z-20"
+          className="absolute top-0 left-0 right-0 h-1 bg-secondary/20 cursor-pointer group z-20"
           onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect()
             const clickX = e.clientX - rect.left
@@ -355,10 +355,10 @@ export function PlayerBar() {
           <button
             type="button"
             onClick={() => toggleDesktopRightSidebar('now-playing')}
-            className={`group relative w-12 h-12 rounded bg-stone/40 border transition-all shrink-0 overflow-hidden shadow-xs cursor-pointer ${
+            className={`group relative w-12 h-12 rounded bg-secondary/40 border transition-all shrink-0 overflow-hidden shadow-xs cursor-pointer ${
               desktopRightSidebarView === 'now-playing'
                 ? 'border-primary ring-1 ring-primary/50'
-                : 'border-line hover:border-ink/40'
+                : 'border-border hover:border-foreground/40'
             }`}
             title={
               desktopRightSidebarView === 'now-playing'
@@ -373,7 +373,7 @@ export function PlayerBar() {
                 className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-ink-soft">
+              <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-muted-foreground">
                 ♪
               </div>
             )}
@@ -401,28 +401,28 @@ export function PlayerBar() {
               <Link
                 to="/albums/$idOrSlug"
                 params={{ idOrSlug: albumTarget }}
-                className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight hover:text-primary transition-colors block"
+                className="text-xs sm:text-sm font-semibold text-foreground truncate tracking-tight hover:text-primary transition-colors block"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
               </Link>
             ) : (
               <span
-                className="text-xs sm:text-sm font-semibold text-ink truncate tracking-tight"
+                className="text-xs sm:text-sm font-semibold text-foreground truncate tracking-tight"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
               </span>
             )}
 
-            <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate mt-0.5">
               {currentTrack.artistId ? (
                 <Link
                   to="/artists/$idOrSlug"
                   params={{
                     idOrSlug: currentTrack.artistSlug || currentTrack.artistId,
                   }}
-                  className="hover:text-ink truncate transition-colors"
+                  className="hover:text-foreground truncate transition-colors"
                 >
                   {currentTrack.artistName}
                 </Link>
@@ -431,13 +431,13 @@ export function PlayerBar() {
               )}
               {currentTrack.albumTitle && (
                 <>
-                  <span className="text-xs text-ink-soft/40 hidden sm:inline">
+                  <span className="text-xs text-muted-foreground/40 hidden sm:inline">
                     •
                   </span>
                   <Link
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: albumTarget || '' }}
-                    className="truncate text-ink-soft/80 hover:text-ink transition-colors hidden sm:inline"
+                    className="truncate text-muted-foreground/80 hover:text-foreground transition-colors hidden sm:inline"
                     title={currentTrack.albumTitle}
                   >
                     {currentTrack.albumTitle}
@@ -452,7 +452,7 @@ export function PlayerBar() {
             type="button"
             onClick={handleToggleLike}
             aria-label={isLiked ? 'Unlike song' : 'Like song'}
-            className="p-1.5 rounded-full hover:bg-stone/20 cursor-pointer transition-colors shrink-0"
+            className="p-1.5 rounded-full hover:bg-secondary/20 cursor-pointer transition-colors shrink-0"
             title={
               isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
             }
@@ -474,14 +474,14 @@ export function PlayerBar() {
             disabled={isLoading}
             aria-label={isPlaying ? 'Pause' : 'Play'}
             title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-            className="w-9 h-9 rounded-full bg-ink text-canvas flex items-center justify-center active:scale-95 cursor-pointer shadow-md transition-all"
+            className="w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center active:scale-95 cursor-pointer shadow-md transition-all"
           >
             {isLoading ? (
-              <div className="w-3.5 h-3.5 border-2 border-canvas border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-background border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
-              <PauseIcon className="w-4 h-4 text-canvas" />
+              <PauseIcon className="w-4 h-4 text-background" />
             ) : (
-              <PlayIcon className="w-4 h-4 text-canvas ml-0.5" />
+              <PlayIcon className="w-4 h-4 text-background ml-0.5" />
             )}
           </button>
 
@@ -492,7 +492,7 @@ export function PlayerBar() {
             className={`relative p-1.5 rounded-md transition-colors cursor-pointer ${
               isQueueOpen
                 ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-ink-soft hover:text-ink'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <QueueIcon className="w-5 h-5" />
@@ -518,7 +518,7 @@ export function PlayerBar() {
               type="button"
               onClick={previous}
               title="Previous (Shift + ←)"
-              className="text-ink-soft hover:text-ink cursor-pointer transition-colors p-1"
+              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors p-1"
             >
               <SkipBackIcon className="w-4 h-4" />
             </button>
@@ -536,14 +536,14 @@ export function PlayerBar() {
                     : 'Play (Space)'
               }
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-10 h-10 rounded-full bg-ink text-canvas flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-md transition-all duration-150"
+              className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-md transition-all duration-150"
             >
               {isLoading ? (
-                <div className="w-4 h-4 border-2 border-canvas border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
               ) : isPlaying ? (
-                <PauseIcon className="w-4 h-4 text-canvas" />
+                <PauseIcon className="w-4 h-4 text-background" />
               ) : (
-                <PlayIcon className="w-4 h-4 text-canvas ml-0.5" />
+                <PlayIcon className="w-4 h-4 text-background ml-0.5" />
               )}
             </button>
 
@@ -552,7 +552,7 @@ export function PlayerBar() {
               type="button"
               onClick={next}
               title="Next (Shift + →)"
-              className="text-ink-soft hover:text-ink cursor-pointer transition-colors p-1"
+              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors p-1"
             >
               <SkipForwardIcon className="w-4 h-4" />
             </button>
@@ -569,12 +569,12 @@ export function PlayerBar() {
           </div>
 
           {/* Progress Bar & Timestamps */}
-          <div className="w-full flex items-center gap-2.5 text-[11px] font-mono text-ink-soft">
+          <div className="w-full flex items-center gap-2.5 text-[11px] font-mono text-muted-foreground">
             <span className="w-10 text-right select-none">
               {formatTime(currentTime)}
             </span>
             <div
-              className="relative flex-1 h-1.5 bg-stone/40 rounded-full cursor-pointer group flex items-center"
+              className="relative flex-1 h-1.5 bg-secondary/40 rounded-full cursor-pointer group flex items-center"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect()
                 const clickX = e.clientX - rect.left
@@ -583,11 +583,11 @@ export function PlayerBar() {
               }}
             >
               <div
-                className="h-full bg-ink rounded-full relative transition-all duration-75"
+                className="h-full bg-foreground rounded-full relative transition-all duration-75"
                 style={{ width: `${progressPercent}%` }}
               >
                 {/* Scrubber Knob */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-ink rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-foreground rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
             <span className="w-10 select-none">{formatTime(duration)}</span>
@@ -614,7 +614,7 @@ export function PlayerBar() {
           ) : (
             <span
               title="Direct Progressive Audio Stream (MP3 320k)"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase text-ink-soft/70 px-1.5 py-0.5 rounded border border-line"
+              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase text-muted-foreground/70 px-1.5 py-0.5 rounded border border-border"
             >
               MP3 320K
             </span>
@@ -627,7 +627,7 @@ export function PlayerBar() {
               onClick={toggleMute}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
               title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
-              className="text-ink-soft hover:text-ink cursor-pointer p-1 transition-colors"
+              className="text-muted-foreground hover:text-foreground cursor-pointer p-1 transition-colors"
             >
               <VolumeIcon muted={isMuted} volume={volume} className="w-4 h-4" />
             </button>
@@ -639,7 +639,7 @@ export function PlayerBar() {
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               aria-label="Volume"
-              className="w-16 md:w-24 h-1 bg-stone/40 rounded-lg appearance-none cursor-pointer accent-primary"
+              className="w-16 md:w-24 h-1 bg-secondary/40 rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>
 
@@ -655,7 +655,7 @@ export function PlayerBar() {
             className={`relative p-2 rounded-md transition-colors cursor-pointer ${
               activeRoom
                 ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30'
-                : 'text-ink-soft hover:text-ink hover:bg-stone/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/20'
             }`}
           >
             <span className="text-sm">🎧</span>
@@ -672,7 +672,7 @@ export function PlayerBar() {
             className={`relative p-2 rounded-md transition-colors cursor-pointer ${
               desktopRightSidebarView === 'queue'
                 ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-ink-soft hover:text-ink hover:bg-stone/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/20'
             }`}
           >
             <QueueIcon className="w-5 h-5" />

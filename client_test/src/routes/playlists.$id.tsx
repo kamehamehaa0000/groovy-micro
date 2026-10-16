@@ -592,7 +592,7 @@ function PlaylistDetailComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
         Retrieving playlist acoustics &amp; curation...
       </div>
     )
@@ -604,16 +604,16 @@ function PlaylistDetailComponent() {
         <span className="font-mono text-xs uppercase tracking-widest text-primary block mb-2">
           404 Catalog Notice
         </span>
-        <h1 className="font-serif italic text-3xl text-ink">
+        <h1 className="font-serif italic text-3xl text-foreground">
           Playlist Not Found
         </h1>
-        <p className="font-sans text-xs text-ink-soft mt-3 leading-relaxed">
+        <p className="font-sans text-xs text-muted-foreground mt-3 leading-relaxed">
           {errorMessage ||
             'The requested playlist could not be located in the archive.'}
         </p>
         <Link
           to="/playlists"
-          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors rounded"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors rounded"
         >
           &larr; Return to Playlists
         </Link>
@@ -650,7 +650,7 @@ function PlaylistDetailComponent() {
               <h4 className="font-serif italic text-base text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
                 <span>✓</span> You are a Collaborator on this playlist
               </h4>
-              <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+              <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
                 You have already joined as a collaborator. You can add tracks
                 and reorder the tracklist.
               </p>
@@ -666,10 +666,10 @@ function PlaylistDetailComponent() {
         <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-4">
           <div className="p-4 border border-primary bg-primary/10 flex items-center justify-between gap-4 flex-wrap rounded-lg shadow-xs">
             <div>
-              <h4 className="font-serif italic text-base text-ink">
+              <h4 className="font-serif italic text-base text-foreground">
                 Collaborator Invitation
               </h4>
-              <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+              <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
                 You were invited to contribute tracks and curate this playlist
                 with the community.
               </p>
@@ -678,7 +678,7 @@ function PlaylistDetailComponent() {
               type="button"
               disabled={isJoiningCollab}
               onClick={handleJoinCollaboration}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-primary text-canvas font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs rounded"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-primary text-background font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs rounded"
             >
               {isJoiningCollab
                 ? 'Joining...'
@@ -697,9 +697,9 @@ function PlaylistDetailComponent() {
       )}
 
       {/* ===================== PLAYLIST HERO HEADER ===================== */}
-      <section className="relative overflow-hidden border-b border-line bg-canvas">
+      <section className="relative overflow-hidden border-b border-border bg-background">
         {/* Ambient / Atmospheric Banner */}
-        <div className="relative h-44 overflow-hidden bg-canvas-deep">
+        <div className="relative h-44 overflow-hidden bg-muted">
           {playlist.coverImageUrl ? (
             <img
               src={playlist.coverImageUrl}
@@ -717,21 +717,21 @@ function PlaylistDetailComponent() {
           ) : (
             <div className="w-full h-full relative flex items-center justify-center">
               <SvgArtworkSpiral />
-              <span className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-ink-soft/10 select-none">
+              <span className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-muted-foreground/10 select-none">
                 {playlist.title}
               </span>
             </div>
           )}
 
           {/* Editorial gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-canvas via-canvas/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
 
           {/* Top-Right Floating Share Button */}
           <div className="absolute top-4 left-4 right-4 flex justify-end pointer-events-none">
             <button
               type="button"
               onClick={handleCopyShareLink}
-              className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-line bg-canvas/80 backdrop-blur-xs font-mono text-[11px] uppercase tracking-wider text-ink hover:bg-canvas transition-colors shadow-2xs cursor-pointer rounded"
+              className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-border bg-background/80 backdrop-blur-xs font-mono text-[11px] uppercase tracking-wider text-foreground hover:bg-background transition-colors shadow-2xs cursor-pointer rounded"
             >
               {copiedLink ? '✓ Copied' : 'Share'}
             </button>
@@ -742,7 +742,7 @@ function PlaylistDetailComponent() {
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
           <div className="relative -mt-20 sm:-mt-24 md:-mt-28 pb-6 sm:pb-8 flex flex-col md:flex-row md:items-end gap-6 sm:gap-8">
             {/* Cover Art Container with Pencil Overlay */}
-            <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-md bg-canvas-deep border border-line shadow-md overflow-hidden shrink-0 relative group mx-auto md:mx-0">
+            <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-md bg-muted border border-border shadow-md overflow-hidden shrink-0 relative group mx-auto md:mx-0">
               <PlaylistCover
                 coverImageUrl={playlist.coverImageUrl}
                 mosaicCovers={mosaicCovers}
@@ -769,45 +769,45 @@ function PlaylistDetailComponent() {
               {/* Badges / Eyebrow */}
 
               {/* Title */}
-              <h1 className="font-serif italic text-3xl sm:text-5xl md:text-6xl leading-[0.95] tracking-tight text-ink wrap-break-words">
+              <h1 className="font-serif italic text-3xl sm:text-5xl md:text-6xl leading-[0.95] tracking-tight text-foreground wrap-break-words">
                 {playlist.title}
               </h1>
 
               {/* Curator Attribution & Aggregate Stats */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1.5 mt-3 font-mono text-[11px] text-ink-soft">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2.5 gap-y-1.5 mt-3 font-mono text-[11px] text-muted-foreground">
                 {playlist.ownerId ? (
                   <Link
                     to="/users/$id"
                     params={{ id: playlist.ownerId }}
-                    className="font-serif italic text-base sm:text-lg text-ink hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                    className="font-serif italic text-base sm:text-lg text-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
                   >
                     <span>
                       Curated by {playlist.ownerDisplayName || 'Curator'}
                     </span>
                   </Link>
                 ) : (
-                  <span className="font-serif italic text-base sm:text-lg text-ink">
+                  <span className="font-serif italic text-base sm:text-lg text-foreground">
                     Curated by {playlist.ownerDisplayName || 'Curator'}
                   </span>
                 )}
-                <span className="font-mono text-2xs uppercase tracking-wider px-2 py-0.5 border border-line text-ink-soft rounded">
+                <span className="font-mono text-2xs uppercase tracking-wider px-2 py-0.5 border border-border text-muted-foreground rounded">
                   {playlist.visibility}
                 </span>
 
-                <span className="text-ink-soft/50">&bull;</span>
+                <span className="text-muted-foreground/50">&bull;</span>
 
                 <span>
                   {(playlist.tracks ?? []).length}{' '}
                   {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
                 </span>
 
-                <span className="text-ink-soft/50">&bull;</span>
+                <span className="text-muted-foreground/50">&bull;</span>
 
                 <span>
                   {formatDuration(playlist.totalDurationSeconds ?? 0)}
                 </span>
 
-                <span className="text-ink-soft/50">&bull;</span>
+                <span className="text-muted-foreground/50">&bull;</span>
 
                 <span>
                   {(playlist.savesCount ?? 0).toLocaleString()}{' '}
@@ -816,7 +816,7 @@ function PlaylistDetailComponent() {
               </div>
 
               {playlist.description && (
-                <p className="font-sans text-xs text-ink-soft leading-relaxed mt-2.5 max-w-2xl mx-auto md:mx-0">
+                <p className="font-sans text-xs text-muted-foreground leading-relaxed mt-2.5 max-w-2xl mx-auto md:mx-0">
                   {playlist.description}
                 </p>
               )}
@@ -828,7 +828,7 @@ function PlaylistDetailComponent() {
                   <button
                     type="button"
                     onClick={handlePlayPlaylistFromStart}
-                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-background font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
                     <span>Play</span>
@@ -845,7 +845,7 @@ function PlaylistDetailComponent() {
                 >
                   <HeartIconSVG
                     filled={saved}
-                    className={`w-5 h-5 ${saved ? 'text-red-500' : 'text-ink-soft'}`}
+                    className={`w-5 h-5 ${saved ? 'text-red-500' : 'text-muted-foreground'}`}
                   />
                 </button>
 
@@ -854,9 +854,9 @@ function PlaylistDetailComponent() {
                   <button
                     type="button"
                     onClick={() => setIsAddTracksModalOpen(true)}
-                    className="rounded inline-flex items-center justify-center  min-h-10 px-4 sm:px-5 font-mono text-[11px] uppercase tracking-wider  text-ink hover:border-ink transition-colors cursor-pointer shadow-2xs"
+                    className="rounded inline-flex items-center justify-center  min-h-10 px-4 sm:px-5 font-mono text-[11px] uppercase tracking-wider  text-foreground hover:border-foreground transition-colors cursor-pointer shadow-2xs"
                   >
-                    <PlusIconSVG className="w-5 h-5 text-ink-soft" />
+                    <PlusIconSVG className="w-5 h-5 text-muted-foreground" />
                   </button>
                 )}
                 {/* 5. Action Menu (3-dot menu with Clone to Library, Queueing, Sharing, etc.) */}
@@ -869,7 +869,7 @@ function PlaylistDetailComponent() {
                   onOpenSettings={() => setIsSettingsModalOpen(true)}
                   onDeleteRequest={handleDeletePlaylist}
                   align="right"
-                  buttonClassName="rounded rotate-90 inline-flex items-center justify-center min-h-5 min-w-5 px-3  hover:bg-canvas text-ink transition-colors shadow-2xs cursor-pointer"
+                  buttonClassName="rounded rotate-90 inline-flex items-center justify-center min-h-5 min-w-5 px-3  hover:bg-background text-foreground transition-colors shadow-2xs cursor-pointer"
                 />
               </div>
             </div>
@@ -883,19 +883,19 @@ function PlaylistDetailComponent() {
         <div className="space-y-3 px-1">
           <div className="flex justify-between items-baseline  pb-2">
             <div className="flex items-center gap-2">
-              <h2 className="font-serif italic text-xl sm:text-2xl text-ink font-semibold">
+              <h2 className="font-serif italic text-xl sm:text-2xl text-foreground font-semibold">
                 Master Tracklist
               </h2>
             </div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               {(playlist.tracks ?? []).length}{' '}
               {(playlist.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
           </div>
 
           {(playlist.tracks ?? []).length === 0 ? (
-            <div className="p-12 rounded-md border border-dashed border-line bg-panel/30 text-center overflow-hidden">
-              <p className="font-serif italic text-base text-ink">
+            <div className="p-12 rounded-md border border-dashed border-border bg-card/30 text-center overflow-hidden">
+              <p className="font-serif italic text-base text-foreground">
                 This playlist is currently empty.
               </p>
               {canEdit ? (
@@ -903,13 +903,13 @@ function PlaylistDetailComponent() {
                   <button
                     type="button"
                     onClick={() => setIsAddTracksModalOpen(true)}
-                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas rounded hover:opacity-90 transition-opacity cursor-pointer font-medium"
+                    className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background rounded hover:opacity-90 transition-opacity cursor-pointer font-medium"
                   >
                     + Add Songs
                   </button>
                 </div>
               ) : (
-                <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1">
+                <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mt-1">
                   Check back soon as the curator adds more cuts.
                 </p>
               )}
@@ -917,7 +917,7 @@ function PlaylistDetailComponent() {
           ) : (
             <div className=" rounded-md overflow-hidden  shadow-2xs">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-line/60 bg-canvas/40 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-border/60 bg-background/40 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <span className="w-6 text-center">#</span>
                   <span>Title &amp; Artist</span>
@@ -954,21 +954,21 @@ function PlaylistDetailComponent() {
       {/* ===================== SINGLE SCROLLABLE SETTINGS MODAL ===================== */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-xl border border-line bg-panel rounded-2xl shadow-2xl relative flex flex-col max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-xl border border-border bg-card rounded-2xl shadow-2xl relative flex flex-col max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Sticky Modal Header */}
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-line bg-panel shrink-0">
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border bg-card shrink-0">
               <div>
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1 font-semibold">
                   Playlist Settings
                 </span>
-                <h3 className="font-serif italic text-2xl sm:text-3xl text-ink font-semibold">
+                <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground font-semibold">
                   Settings &amp; Curation
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="p-1.5 text-ink-soft hover:text-ink rounded-full hover:bg-canvas-soft transition-colors cursor-pointer text-base"
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors cursor-pointer text-base"
                 title="Close"
               >
                 ✕
@@ -980,17 +980,17 @@ function PlaylistDetailComponent() {
               {/* SECTION 1: ARTWORK STUDIO */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+                  <label className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                     Playlist Artwork
                   </label>
-                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-canvas text-ink-soft">
+                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-border bg-background text-muted-foreground">
                     {editCoverUrl ? 'Custom Cover' : 'Dynamic 2x2 Mosaic'}
                   </span>
                 </div>
 
-                <div className="p-4 border border-line rounded-xl bg-canvas flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="p-4 border border-border rounded-xl bg-background flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   {/* Artwork Preview */}
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-canvas-deep border border-line overflow-hidden shrink-0 relative shadow-sm">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-muted border border-border overflow-hidden shrink-0 relative shadow-sm">
                     <PlaylistCover
                       coverImageUrl={editCoverUrl}
                       mosaicCovers={mosaicCovers}
@@ -998,7 +998,7 @@ function PlaylistDetailComponent() {
                       className="w-full h-full"
                     />
                     {isUploadingArtwork && (
-                      <div className="absolute inset-0 bg-canvas/80 backdrop-blur-xs flex items-center justify-center font-mono text-[11px] text-ink animate-pulse text-center p-1">
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center font-mono text-[11px] text-foreground animate-pulse text-center p-1">
                         Uploading...
                       </div>
                     )}
@@ -1011,7 +1011,7 @@ function PlaylistDetailComponent() {
                         type="button"
                         disabled={isUploadingArtwork}
                         onClick={() => artworkFileInputRef.current?.click()}
-                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 bg-ink text-canvas rounded-xl hover:opacity-90 transition-opacity cursor-pointer font-medium flex items-center gap-2 shadow-2xs"
+                        className="font-mono text-[11px] uppercase tracking-wider py-2 px-3.5 bg-foreground text-background rounded-xl hover:opacity-90 transition-opacity cursor-pointer font-medium flex items-center gap-2 shadow-2xs"
                       >
                         <UploadCloudSVG className="w-3.5 h-3.5" />
                         <span>
@@ -1026,13 +1026,13 @@ function PlaylistDetailComponent() {
                           type="button"
                           disabled={isUploadingArtwork}
                           onClick={handleRemoveArtwork}
-                          className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-panel hover:bg-canvas-soft text-ink-soft hover:text-ink rounded-xl transition-colors cursor-pointer"
+                          className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl transition-colors cursor-pointer"
                         >
                           Revert to Mosaic
                         </button>
                       )}
                     </div>
-                    <p className="font-sans text-xs text-ink-soft leading-relaxed">
+                    <p className="font-sans text-xs text-muted-foreground leading-relaxed">
                       Recommended: 1000 × 1000px square image (JPG, PNG, WEBP).
                       An interactive 1:1 cropper will guide you before upload.
                     </p>
@@ -1042,12 +1042,12 @@ function PlaylistDetailComponent() {
 
               {/* SECTION 2: NAME & DESCRIPTION */}
               <div className="space-y-4 pt-1">
-                <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
+                <label className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                   Curation Details
                 </label>
 
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                     Playlist Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1056,12 +1056,12 @@ function PlaylistDetailComponent() {
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     placeholder="e.g. Late Night Synthwave"
-                    className="w-full font-sans text-sm p-3 border border-line bg-canvas rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors font-medium"
+                    className="w-full font-sans text-sm p-3 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground transition-colors font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                     Description
                   </label>
                   <textarea
@@ -1069,25 +1069,25 @@ function PlaylistDetailComponent() {
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     placeholder="Add an optional description or notes about this curation..."
-                    className="w-full font-sans text-xs p-3 border border-line bg-canvas rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink transition-colors resize-none leading-relaxed"
+                    className="w-full font-sans text-xs p-3 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground transition-colors resize-none leading-relaxed"
                   />
                 </div>
               </div>
 
               {/* SECTION 3: ACCESS & RULES */}
               <div className="space-y-4 pt-1">
-                <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
+                <label className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                   Access &amp; Rules
                 </label>
 
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                     Visibility Mode
                   </label>
                   <select
                     value={editVisibility}
                     onChange={(e: any) => setEditVisibility(e.target.value)}
-                    className="w-full font-mono text-xs p-3 border border-line bg-canvas rounded-xl text-ink cursor-pointer focus:outline-none focus:border-ink"
+                    className="w-full font-mono text-xs p-3 border border-border bg-background rounded-xl text-foreground cursor-pointer focus:outline-none focus:border-foreground"
                   >
                     <option value="PUBLIC">
                       Public &bull; Discoverable by all listeners on /playlists
@@ -1102,7 +1102,7 @@ function PlaylistDetailComponent() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="flex items-start gap-3 p-3.5 border border-line bg-canvas rounded-xl cursor-pointer hover:border-ink/60 transition-colors">
+                  <label className="flex items-start gap-3 p-3.5 border border-border bg-background rounded-xl cursor-pointer hover:border-foreground/60 transition-colors">
                     <input
                       type="checkbox"
                       checked={editAllowDuplicates}
@@ -1110,17 +1110,17 @@ function PlaylistDetailComponent() {
                       className="accent-primary mt-0.5"
                     />
                     <div>
-                      <span className="font-mono text-xs text-ink font-semibold block">
+                      <span className="font-mono text-xs text-foreground font-semibold block">
                         Allow Duplicate Songs
                       </span>
-                      <span className="font-sans text-xs text-ink-soft mt-0.5 block">
+                      <span className="font-sans text-xs text-muted-foreground mt-0.5 block">
                         Permit adding the same cut multiple times to this
                         playlist.
                       </span>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 p-3.5 border border-line bg-canvas rounded-xl cursor-pointer hover:border-ink/60 transition-colors">
+                  <label className="flex items-start gap-3 p-3.5 border border-border bg-background rounded-xl cursor-pointer hover:border-foreground/60 transition-colors">
                     <input
                       type="checkbox"
                       checked={editAllowComments}
@@ -1128,10 +1128,10 @@ function PlaylistDetailComponent() {
                       className="accent-primary mt-0.5"
                     />
                     <div>
-                      <span className="font-mono text-xs text-ink font-semibold block">
+                      <span className="font-mono text-xs text-foreground font-semibold block">
                         Allow Discussion &amp; Comments
                       </span>
-                      <span className="font-sans text-xs text-ink-soft mt-0.5 block">
+                      <span className="font-sans text-xs text-muted-foreground mt-0.5 block">
                         Enable community listeners and collaborators to leave
                         comments.
                       </span>
@@ -1142,18 +1142,18 @@ function PlaylistDetailComponent() {
 
               {/* SECTION 4: COLLABORATION */}
               <div className="space-y-4 pt-1">
-                <label className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
+                <label className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                   Collaboration
                 </label>
 
                 {/* Toggle Collaboration (Owner only) */}
                 {isOwner && (
-                  <div className="flex items-center justify-between p-4 border border-line bg-canvas rounded-xl gap-4">
+                  <div className="flex items-center justify-between p-4 border border-border bg-background rounded-xl gap-4">
                     <div>
-                      <h4 className="font-serif italic text-base text-ink font-medium">
+                      <h4 className="font-serif italic text-base text-foreground font-medium">
                         Collaborative Curation
                       </h4>
-                      <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+                      <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
                         When enabled, invited users can add, remove, and reorder
                         tracks.
                       </p>
@@ -1164,8 +1164,8 @@ function PlaylistDetailComponent() {
                       onClick={handleToggleCollabSetting}
                       className={`font-mono text-[11px] uppercase tracking-wider py-2 px-4 border rounded-full transition-colors cursor-pointer shrink-0 font-medium ${
                         playlist.isCollaborative
-                          ? 'border-primary bg-primary text-canvas'
-                          : 'border-line bg-panel text-ink-soft hover:text-ink'
+                          ? 'border-primary bg-primary text-background'
+                          : 'border-border bg-card text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {playlist.isCollaborative ? 'Enabled' : 'Disabled'}
@@ -1175,8 +1175,8 @@ function PlaylistDetailComponent() {
 
                 {/* Invite Link Section */}
                 {playlist.isCollaborative && playlist.collaborationToken && (
-                  <div className="space-y-2 p-4 border border-line rounded-xl bg-canvas/40">
-                    <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+                  <div className="space-y-2 p-4 border border-border rounded-xl bg-background/40">
+                    <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                       Collaboration Invite Link
                     </label>
                     <div className="flex items-center gap-2">
@@ -1184,7 +1184,7 @@ function PlaylistDetailComponent() {
                         type="text"
                         readOnly
                         value={`${window.location.origin}/playlists/${playlist.id}?collabToken=${playlist.collaborationToken}`}
-                        className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink select-all rounded-xl"
+                        className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground select-all rounded-xl"
                       />
                       <button
                         type="button"
@@ -1196,7 +1196,7 @@ function PlaylistDetailComponent() {
                             'success',
                           )
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-ink text-canvas shrink-0 cursor-pointer rounded-xl font-medium"
+                        className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-foreground text-background shrink-0 cursor-pointer rounded-xl font-medium"
                       >
                         Copy
                       </button>
@@ -1220,25 +1220,25 @@ function PlaylistDetailComponent() {
                 {/* Active Collaborators */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                       Active Collaborators (
                       {(playlist.collaborators ?? []).length})
                     </span>
                   </div>
 
                   {(playlist.collaborators ?? []).length === 0 ? (
-                    <div className="p-4 border border-dashed border-line rounded-xl text-center font-mono text-xs text-ink-soft">
+                    <div className="p-4 border border-dashed border-border rounded-xl text-center font-mono text-xs text-muted-foreground">
                       No collaborators have joined this playlist yet.
                     </div>
                   ) : (
-                    <div className="border border-line rounded-xl overflow-hidden divide-y divide-line/60 bg-canvas">
+                    <div className="border border-border rounded-xl overflow-hidden divide-y divide-border/60 bg-background">
                       {(playlist.collaborators ?? []).map((collab: any) => (
                         <div
                           key={collab.userId}
                           className="p-3 flex items-center justify-between gap-3"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-panel border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft overflow-hidden shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground overflow-hidden shrink-0">
                               {collab.user?.avatarUrl ? (
                                 <img
                                   src={collab.user.avatarUrl}
@@ -1251,10 +1251,10 @@ function PlaylistDetailComponent() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-sans font-medium text-sm text-ink truncate">
+                              <div className="font-sans font-medium text-sm text-foreground truncate">
                                 {collab.user?.displayName || 'Collaborator'}
                               </div>
-                              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                                 Joined{' '}
                                 {new Date(collab.joinedAt).toLocaleDateString()}
                               </div>
@@ -1291,7 +1291,7 @@ function PlaylistDetailComponent() {
                       <h4 className="font-serif italic text-base text-red-600 dark:text-red-400 font-semibold">
                         Delete this Playlist
                       </h4>
-                      <p className="font-sans text-xs text-ink-soft mt-0.5">
+                      <p className="font-sans text-xs text-muted-foreground mt-0.5">
                         Permanently remove this playlist, track listings, and
                         collaborator permissions.
                       </p>
@@ -1314,11 +1314,11 @@ function PlaylistDetailComponent() {
             </div>
 
             {/* Sticky Modal Actions Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-line bg-panel shrink-0">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-card shrink-0">
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="font-mono text-xs uppercase tracking-wider py-2.5 px-5 border border-line text-ink-soft hover:text-ink rounded-xl transition-colors cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2.5 px-5 border border-border text-muted-foreground hover:text-foreground rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1326,7 +1326,7 @@ function PlaylistDetailComponent() {
                 type="button"
                 disabled={isSavingSettings}
                 onClick={() => handleSaveSettings()}
-                className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-ink text-canvas font-semibold hover:opacity-90 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-foreground text-background font-semibold hover:opacity-90 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {isSavingSettings ? 'Saving...' : 'Save Settings'}
               </button>
@@ -1356,15 +1356,15 @@ function PlaylistDetailComponent() {
       {/* ===================== ADD SONGS MODAL ===================== */}
       {isAddTracksModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-lg border border-line bg-panel p-6 rounded-2xl shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
-              <h3 className="font-serif italic text-xl text-ink font-semibold">
+          <div className="w-full max-w-lg border border-border bg-card p-6 rounded-2xl shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+              <h3 className="font-serif italic text-xl text-foreground font-semibold">
                 Add Tracks to Playlist
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddTracksModalOpen(false)}
-                className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+                className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 ✕
               </button>
@@ -1382,18 +1382,18 @@ function PlaylistDetailComponent() {
                 value={songSearchQuery}
                 onChange={(e) => setSongSearchQuery(e.target.value)}
                 placeholder="Search catalog by song title or artist..."
-                className="w-full font-mono text-xs p-2.5 border border-line bg-canvas rounded-xl text-ink focus:outline-none focus:border-ink"
+                className="w-full font-mono text-xs p-2.5 border border-border bg-background rounded-xl text-foreground focus:outline-none focus:border-foreground"
                 autoFocus
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-line/60 border border-line rounded-xl mb-4 min-h-[160px] bg-canvas">
+            <div className="flex-1 overflow-y-auto divide-y divide-border/60 border border-border rounded-xl mb-4 min-h-[160px] bg-background">
               {isSearchingSongs ? (
-                <div className="p-8 text-center font-mono text-xs text-ink-soft">
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">
                   Searching cuts...
                 </div>
               ) : searchSongResults.length === 0 ? (
-                <div className="p-8 text-center font-mono text-xs text-ink-soft">
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">
                   {songSearchQuery.trim()
                     ? 'No songs match your query'
                     : 'Type to search available master tracks'}
@@ -1411,15 +1411,15 @@ function PlaylistDetailComponent() {
                             : [...prev, s.id],
                         )
                       }}
-                      className={`p-3 flex items-center justify-between cursor-pointer hover:bg-canvas-soft transition-colors ${
+                      className={`p-3 flex items-center justify-between cursor-pointer hover:bg-muted transition-colors ${
                         isSelected ? 'bg-primary/10' : ''
                       }`}
                     >
                       <div className="min-w-0 pr-3">
-                        <div className="font-sans font-semibold text-sm text-ink truncate">
+                        <div className="font-sans font-semibold text-sm text-foreground truncate">
                           {s.title}
                         </div>
-                        <div className="font-mono text-[11px] text-ink-soft">
+                        <div className="font-mono text-[11px] text-muted-foreground">
                           {formatDuration(s.durationSeconds)}
                         </div>
                       </div>
@@ -1435,15 +1435,15 @@ function PlaylistDetailComponent() {
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-line">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                 {selectedSongIds.length} tracks selected
               </span>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddTracksModalOpen(false)}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft rounded-xl cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1451,7 +1451,7 @@ function PlaylistDetailComponent() {
                   type="button"
                   disabled={selectedSongIds.length === 0 || isAddingTracks}
                   onClick={handleAddTracksSubmit}
-                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 disabled:opacity-50 rounded-xl cursor-pointer"
+                  className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 disabled:opacity-50 rounded-xl cursor-pointer"
                 >
                   {isAddingTracks ? 'Adding...' : 'Add to Tracklist'}
                 </button>
@@ -1464,18 +1464,18 @@ function PlaylistDetailComponent() {
       {/* Confirmation Modal */}
       {confirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm border border-line bg-panel p-6 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="font-serif italic text-xl text-ink font-semibold mb-2">
+          <div className="w-full max-w-sm border border-border bg-card p-6 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="font-serif italic text-xl text-foreground font-semibold mb-2">
               {confirmModal.title}
             </h3>
-            <p className="font-sans text-xs text-ink-soft leading-relaxed mb-6">
+            <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-6">
               {confirmModal.description}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmModal(null)}
-                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink rounded-xl cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -1488,7 +1488,7 @@ function PlaylistDetailComponent() {
                 className={`font-mono text-xs uppercase tracking-wider py-2 px-5 rounded-xl font-semibold cursor-pointer ${
                   confirmModal.isDestructive
                     ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-ink text-canvas hover:opacity-90'
+                    : 'bg-foreground text-background hover:opacity-90'
                 }`}
               >
                 {confirmModal.confirmLabel || 'Confirm'}
@@ -1500,7 +1500,7 @@ function PlaylistDetailComponent() {
 
       {/* Floating Toast Notification */}
       {toastNotice && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 bg-ink text-canvas font-mono text-xs px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-mono text-xs px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
           {toastNotice.message}
         </div>
       )}

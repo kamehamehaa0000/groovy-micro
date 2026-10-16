@@ -57,18 +57,18 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
     >
       {/* Backdrop overlay (dismiss on click without interrupting background audio) */}
       <div
-        className="absolute inset-0 bg-ink/45 backdrop-blur-[3px] animate-in fade-in duration-150 cursor-pointer"
+        className="absolute inset-0 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150 cursor-pointer"
         onClick={handleClose}
       />
 
       {/* Dialog card styled to match Groovy Sound Atelier reference design */}
       <section
-        className="relative rounded-lg w-full max-w-115 border border-line bg-canvas shadow-[0_24px_80px_rgba(23,22,15,0.20)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.6)] animate-in zoom-in-95 duration-150 overflow-hidden select-none"
+        className="relative rounded-lg w-full max-w-115 border border-border bg-background shadow-[0_24px_80px_rgba(23,22,15,0.20)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.6)] animate-in zoom-in-95 duration-150 overflow-hidden select-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top rule / close */}
-        <div className="flex items-center justify-between border-b border-line px-6 py-4 sm:px-8">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 sm:px-8">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
             Groovy / {activeSubtitle}
           </span>
 
@@ -76,7 +76,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
             type="button"
             onClick={handleClose}
             aria-label="Close"
-            className="group rounded-lg flex h-7 w-7 items-center justify-center text-ink-soft transition hover:text-ink cursor-pointer"
+            className="group rounded-lg flex h-7 w-7 items-center justify-center text-muted-foreground transition hover:text-foreground cursor-pointer"
           >
             <svg
               className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"
@@ -95,10 +95,10 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
         <div className="px-6 py-9 sm:px-10 sm:py-11">
           {/* Brand */}
           <div className="mb-8">
-            <div className="font-serif text-[29px] italic leading-none tracking-[-0.04em] text-ink">
+            <div className="font-serif text-[29px] italic leading-none tracking-[-0.04em] text-foreground">
               Groovy
             </div>
-            <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+            <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               Sound Atelier
             </div>
           </div>
@@ -112,12 +112,12 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
 
             <h1
               id="auth-dialog-title"
-              className="font-serif text-[39px] font-normal leading-[0.98] tracking-[-0.035em] sm:text-[43px] text-ink"
+              className="font-serif text-[39px] font-normal leading-[0.98] tracking-[-0.035em] sm:text-[43px] text-foreground"
             >
               {activeTitle}
             </h1>
 
-            <p className="mt-5 max-w-87.5 text-[13px] leading-6 text-ink-soft">
+            <p className="mt-5 max-w-87.5 text-[13px] leading-6 text-muted-foreground">
               {activeDescription}
             </p>
           </div>
@@ -139,7 +139,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-ink bg-ink px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-canvas transition hover:bg-primary hover:border-primary cursor-pointer shadow-xs"
+              className="group rounded-lg flex w-full items-center justify-between border border-foreground bg-foreground px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-background transition hover:bg-primary hover:border-primary cursor-pointer shadow-xs"
             >
               <span>Log in</span>
               <svg
@@ -170,7 +170,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
                     : undefined,
                 })
               }}
-              className="group rounded-lg flex w-full items-center justify-between border border-line bg-transparent px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-ink transition hover:border-primary hover:text-primary cursor-pointer"
+              className="group rounded-lg flex w-full items-center justify-between border border-border bg-transparent px-5 py-4 font-mono text-[11px] uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary cursor-pointer"
             >
               <span>Create account</span>
               <svg
@@ -188,16 +188,16 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
           </div>
 
           {/* Fine print */}
-          <div className="mt-7 border-t border-line pt-5">
-            <p className="font-mono text-[11px] uppercase leading-5 tracking-wider text-ink-soft">
+          <div className="mt-7 border-t border-border pt-5">
+            <p className="font-mono text-[11px] uppercase leading-5 tracking-wider text-muted-foreground">
               Free to join · High-fidelity streaming · Your library, everywhere
             </p>
           </div>
         </div>
 
         {/* Bottom metadata */}
-        <div className="border-t border-line px-6 py-4 sm:px-8">
-          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+        <div className="border-t border-border px-6 py-4 sm:px-8">
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
             <span>Authentication</span>
             <span>Groovy Music</span>
           </div>

@@ -37,7 +37,7 @@ export interface SongActionMenuProps {
 
 export function SongActionMenu({
   track,
-  buttonClassName = 'p-2 sm:p-1.5 text-ink-soft hover:text-ink transition-colors cursor-pointer rounded flex items-center justify-center',
+  buttonClassName = 'p-2 sm:p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded flex items-center justify-center',
   align = 'right',
   isLocked: propIsLocked,
   isScheduled: propIsScheduled,
@@ -408,7 +408,7 @@ export function SongActionMenu({
               left: `${dropdownPos.left}px`,
               zIndex: 99999,
             }}
-            className="hidden sm:block w-52 border border-line bg-panel shadow-2xl py-1 divide-y divide-line/40 rounded-sm font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-sm font-sans text-xs animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
             {!isLocked && (
@@ -416,7 +416,7 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handlePlayNow}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <PlayIconSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span>Play Now</span>
@@ -424,14 +424,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handlePlayNext}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   >
                     <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
                     <line x1="19" y1="5" x2="19" y2="19" strokeWidth="2.5" />
@@ -441,14 +441,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleAddToQueue}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   >
                     <line x1="8" y1="6" x2="21" y2="6" />
                     <line x1="8" y1="12" x2="21" y2="12" />
@@ -477,14 +477,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleToggleLike}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <HeartIconSVG
                     filled={isLiked}
                     className={`w-3.5 h-3.5 shrink-0 ${
                       isLiked
                         ? 'text-red-500 fill-current'
-                        : 'text-ink-soft dark:text-neutral-300'
+                        : 'text-muted-foreground dark:text-neutral-300'
                     }`}
                   />
                   <span>
@@ -496,14 +496,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleOpenPlaylistModal}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   >
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
@@ -543,7 +543,7 @@ export function SongActionMenu({
                   className={`w-full text-left px-3.5 py-2 flex items-center gap-2.5 cursor-pointer ${
                     act.danger
                       ? 'text-red-500 hover:bg-red-500/10'
-                      : 'text-ink hover:bg-canvas-deep'
+                      : 'text-foreground hover:bg-muted'
                   }`}
                 >
                   {act.icon && (
@@ -569,14 +569,14 @@ export function SongActionMenu({
                           name: parsedCredits.primary.name || track.artistName,
                         })
                       }
-                      className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                      className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                        className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                       >
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
@@ -598,14 +598,14 @@ export function SongActionMenu({
                           name: collab.name,
                         })
                       }
-                      className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                      className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                        className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                       >
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
@@ -623,9 +623,9 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleGoToAlbum}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer truncate"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
                 >
-                  <DiscIconSVG className="w-3.5 h-3.5 text-ink-soft shrink-0" />
+                  <DiscIconSVG className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   <span className="truncate">Go to Release</span>
                 </button>
               )}
@@ -633,14 +633,14 @@ export function SongActionMenu({
                 <button
                   type="button"
                   onClick={handleShareTrack}
-                  className="w-full text-left px-3.5 py-2 hover:bg-canvas-deep flex items-center gap-2.5 text-ink cursor-pointer"
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   >
                     <circle cx="18" cy="5" r="3" />
                     <circle cx="6" cy="12" r="3" />
@@ -669,7 +669,7 @@ export function SongActionMenu({
           >
             {/* Dimmed backdrop with dynamic drag-opacity */}
             <div
-              className="fixed inset-0 bg-ink/20 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+              className="fixed inset-0 bg-foreground/20 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
               style={{
                 opacity: Math.max(0, 1 - sheetTranslateY / 260),
                 transition: isDraggingSheet ? 'none' : 'opacity 0.2s ease-out',
@@ -695,7 +695,7 @@ export function SongActionMenu({
                   ? 'none'
                   : 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)',
               }}
-              className="relative z-10 w-full max-h-[85vh] bg-panel border-t border-line shadow-2xl rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
+              className="relative z-10 w-full max-h-[85vh] bg-card border-t border-border shadow-2xl rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Grab indicator pill zone */}
@@ -707,18 +707,18 @@ export function SongActionMenu({
                 onTouchCancel={handleSheetTouchEnd}
                 onClick={handleCloseSheet}
               >
-                <div className="w-12 h-1.5 bg-ink-soft/30 hover:bg-ink-soft/50 rounded-full transition-colors" />
+                <div className="w-12 h-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50 rounded-full transition-colors" />
               </div>
 
               {/* Track context header (also draggable on mobile) */}
               <div
-                className="px-5 py-3 flex items-center gap-3.5 border-b border-line/60 touch-none select-none"
+                className="px-5 py-3 flex items-center gap-3.5 border-b border-border/60 touch-none select-none"
                 onTouchStart={handleSheetTouchStart}
                 onTouchMove={handleSheetTouchMove}
                 onTouchEnd={handleSheetTouchEnd}
                 onTouchCancel={handleSheetTouchEnd}
               >
-                <div className="w-12 h-12 bg-canvas-deep border border-line rounded overflow-hidden shrink-0">
+                <div className="w-12 h-12 bg-muted border border-border rounded overflow-hidden shrink-0">
                   {track.coverImageUrl ? (
                     <img
                       src={track.coverImageUrl}
@@ -735,10 +735,10 @@ export function SongActionMenu({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-sans font-semibold text-sm sm:text-base text-ink truncate">
+                  <p className="font-sans font-semibold text-sm sm:text-base text-foreground truncate">
                     {track.title}
                   </p>
-                  <p className="font-sans text-xs text-ink-soft truncate">
+                  <p className="font-sans text-xs text-muted-foreground truncate">
                     {track.artistName || 'Unknown Artist'}
                   </p>
                 </div>
@@ -746,7 +746,7 @@ export function SongActionMenu({
 
               {/* Action rows */}
               <div
-                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-line/30 font-sans text-sm overscroll-contain"
+                className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-border/30 font-sans text-sm overscroll-contain"
                 style={{ touchAction: 'pan-y' }}
               >
                 <div className="py-1">
@@ -754,14 +754,14 @@ export function SongActionMenu({
                     <button
                       type="button"
                       onClick={handleToggleLike}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                     >
                       <HeartIconSVG
                         filled={isLiked}
                         className={`w-5 h-5 shrink-0 ${
                           isLiked
                             ? 'text-red-500 fill-current'
-                            : 'text-ink-soft dark:text-neutral-300'
+                            : 'text-muted-foreground dark:text-neutral-300'
                         }`}
                       />
                       <span className="font-medium">
@@ -777,7 +777,7 @@ export function SongActionMenu({
                       <button
                         type="button"
                         onClick={handlePlayNow}
-                        className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                        className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                       >
                         <PlayIconSVG className="w-5 h-5 text-primary shrink-0" />
                         <span>Play Now</span>
@@ -785,14 +785,14 @@ export function SongActionMenu({
                       <button
                         type="button"
                         onClick={handlePlayNext}
-                        className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                        className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                       >
                         <svg
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="w-5 h-5 text-ink-soft shrink-0"
+                          className="w-5 h-5 text-muted-foreground shrink-0"
                         >
                           <polygon
                             points="5 4 15 12 5 20 5 4"
@@ -811,14 +811,14 @@ export function SongActionMenu({
                       <button
                         type="button"
                         onClick={handleAddToQueue}
-                        className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                        className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                       >
                         <svg
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="w-5 h-5 text-ink-soft shrink-0"
+                          className="w-5 h-5 text-muted-foreground shrink-0"
                         >
                           <line x1="8" y1="6" x2="21" y2="6" />
                           <line x1="8" y1="12" x2="21" y2="12" />
@@ -866,14 +866,14 @@ export function SongActionMenu({
                     <button
                       type="button"
                       onClick={handleOpenPlaylistModal}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-5 h-5 text-ink-soft shrink-0"
+                        className="w-5 h-5 text-muted-foreground shrink-0"
                       >
                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                       </svg>
@@ -913,7 +913,7 @@ export function SongActionMenu({
                       className={`w-full h-12 px-5 flex items-center gap-3.5 text-left cursor-pointer ${
                         act.danger
                           ? 'text-red-500 hover:bg-red-500/10 active:bg-red-500/10'
-                          : 'text-ink hover:bg-canvas-deep active:bg-canvas-deep'
+                          : 'text-foreground hover:bg-muted active:bg-muted'
                       }`}
                     >
                       {act.icon && (
@@ -939,14 +939,14 @@ export function SongActionMenu({
                               name: parsedCredits.primary.name || track.artistName,
                             })
                           }
-                          className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                          className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                         >
                           <svg
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
-                            className="w-5 h-5 text-ink-soft shrink-0"
+                            className="w-5 h-5 text-muted-foreground shrink-0"
                           >
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
@@ -968,14 +968,14 @@ export function SongActionMenu({
                               name: collab.name,
                             })
                           }
-                          className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                          className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                         >
                           <svg
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
-                            className="w-5 h-5 text-ink-soft shrink-0"
+                            className="w-5 h-5 text-muted-foreground shrink-0"
                           >
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                             <circle cx="9" cy="7" r="4" />
@@ -993,9 +993,9 @@ export function SongActionMenu({
                     <button
                       type="button"
                       onClick={handleGoToAlbum}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                     >
-                      <DiscIconSVG className="w-5 h-5 text-ink-soft shrink-0" />
+                      <DiscIconSVG className="w-5 h-5 text-muted-foreground shrink-0" />
                       <span className="truncate">Go to Release</span>
                     </button>
                   )}
@@ -1003,14 +1003,14 @@ export function SongActionMenu({
                     <button
                       type="button"
                       onClick={handleShareTrack}
-                      className="w-full h-12 px-5 flex items-center gap-3.5 text-ink hover:bg-canvas-deep active:bg-canvas-deep transition-colors text-left cursor-pointer"
+                      className="w-full h-12 px-5 flex items-center gap-3.5 text-foreground hover:bg-muted active:bg-muted transition-colors text-left cursor-pointer"
                     >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-5 h-5 text-ink-soft shrink-0"
+                        className="w-5 h-5 text-muted-foreground shrink-0"
                       >
                         <circle cx="18" cy="5" r="3" />
                         <circle cx="6" cy="12" r="3" />
@@ -1034,7 +1034,7 @@ export function SongActionMenu({
         createPortal(
           <div
             style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-ink text-canvas shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
           >
             ✓ {toastMessage}
           </div>,

@@ -190,18 +190,18 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-panel text-ink">
+    <div className="flex-1 flex flex-col min-h-0 bg-card text-foreground">
       {/* ===================== TOP HEADER & TABS ===================== */}
-      <div className="h-14 border-b border-line px-4 sm:px-5 flex items-center justify-between shrink-0 gap-2 select-none">
+      <div className="h-14 border-b border-border px-4 sm:px-5 flex items-center justify-between shrink-0 gap-2 select-none">
         {/* Left: Tab Switcher (Queue / History) */}
-        <div className="flex items-center gap-1 bg-canvas p-0.5 rounded">
+        <div className="flex items-center gap-1 bg-background p-0.5 rounded">
           <button
             type="button"
             onClick={() => setActiveTab('queue')}
             className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
               activeTab === 'queue'
-                ? 'bg-panel text-ink font-semibold shadow-2xs'
-                : 'text-ink-soft hover:text-ink'
+                ? 'bg-card text-foreground font-semibold shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <ListMusic className="w-5 h-5" />
@@ -211,8 +211,8 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             onClick={() => setActiveTab('history')}
             className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer ${
               activeTab === 'history'
-                ? 'bg-panel text-ink font-semibold shadow-2xs'
-                : 'text-ink-soft hover:text-ink'
+                ? 'bg-card text-foreground font-semibold shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <RotateCcwClock className="w-5 h-5" />
@@ -234,7 +234,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
               className={`font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1.5  ${
                 isShuffle
                   ? 'bg-primary/15 text-primary border-primary/40 font-semibold'
-                  : 'text-ink-soft bg-canvas hover:bg-canvas-deep border-line hover:text-ink'
+                  : 'text-muted-foreground bg-background hover:bg-muted border-border hover:text-foreground'
               }`}
             >
               {isShuffle ? (
@@ -254,7 +254,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   ? 'Save priority queue songs as a new playlist'
                   : 'Save active queue as a new playlist'
               }
-              className="font-mono text-xs uppercase tracking-wider text-ink-soft bg-canvas hover:bg-canvas-deep  px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+              className="font-mono text-xs uppercase tracking-wider text-muted-foreground bg-background hover:bg-muted  px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
             >
               <CirclePlus className="w-5 h-5" />
             </button>
@@ -264,7 +264,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             <button
               type="button"
               onClick={clearUserQueue}
-              className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-red-500 cursor-pointer px-2 py-1 rounded transition-colors"
+              className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-red-500 cursor-pointer px-2 py-1 rounded transition-colors"
               title="Clear user-queued songs"
             >
               <Eraser className="w-5 h-5" />
@@ -276,7 +276,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             onClick={onClose}
             aria-label="Close Queue"
             title="Close Queue"
-            className="p-1.5 rounded-md text-ink-soft hover:text-ink hover:bg-canvas cursor-pointer transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-background cursor-pointer transition-colors"
           >
             {mode === 'mobile' ? (
               <ChevronDown className="w-6 h-6" />
@@ -292,12 +292,12 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
         <div
           ref={activeListRef}
           data-queue-list="true"
-          className="flex-1 overflow-y-auto px-4 sm:px-5 py-3.5 flex flex-col gap-5 divide-y divide-line/60 min-h-0 overscroll-contain"
+          className="flex-1 overflow-y-auto px-4 sm:px-5 py-3.5 flex flex-col gap-5 divide-y divide-border/60 min-h-0 overscroll-contain"
           style={{ touchAction: 'pan-y' }}
         >
           {/* Queue Telemetry Meta */}
           {totalUpcomingTracks > 0 && (
-            <div className="flex items-center justify-between text-ink-soft font-mono text-[11px] uppercase tracking-wider pb-1">
+            <div className="flex items-center justify-between text-muted-foreground font-mono text-[11px] uppercase tracking-wider pb-1">
               <span>{totalUpcomingTracks} tracks in session</span>
               <span>{formatTotalTime(totalUpcomingSeconds)} remaining</span>
             </div>
@@ -312,7 +312,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             {currentTrack ? (
               <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/20 shadow-2xs">
                 {/* Artwork with Equalizer Indicator */}
-                <div className="relative w-12 h-12 rounded bg-canvas border border-line shrink-0 overflow-hidden">
+                <div className="relative w-12 h-12 rounded bg-background border border-border shrink-0 overflow-hidden">
                   {currentTrack.coverImageUrl ? (
                     <img
                       src={currentTrack.coverImageUrl}
@@ -320,25 +320,25 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-ink-soft">
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-muted-foreground">
                       ♪
                     </div>
                   )}
                   {playbackStatus === 'playing' && (
-                    <div className="absolute inset-0 bg-ink/45 flex items-center justify-center gap-0.5">
-                      <span className="w-0.5 h-3 bg-canvas rounded-full animate-pulse" />
-                      <span className="w-0.5 h-4 bg-canvas rounded-full animate-pulse delay-75" />
-                      <span className="w-0.5 h-2 bg-canvas rounded-full animate-pulse delay-150" />
+                    <div className="absolute inset-0 bg-foreground/45 flex items-center justify-center gap-0.5">
+                      <span className="w-0.5 h-3 bg-background rounded-full animate-pulse" />
+                      <span className="w-0.5 h-4 bg-background rounded-full animate-pulse delay-75" />
+                      <span className="w-0.5 h-2 bg-background rounded-full animate-pulse delay-150" />
                     </div>
                   )}
                 </div>
 
                 {/* Title & Artist */}
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-xs font-serif italic font-semibold text-ink truncate leading-tight">
+                  <span className="text-xs font-serif italic font-semibold text-foreground truncate leading-tight">
                     {currentTrack.title}
                   </span>
-                  <span className="text-[11px] text-ink-soft truncate font-sans">
+                  <span className="text-[11px] text-muted-foreground truncate font-sans">
                     {currentTrack.artistName}
                   </span>
                 </div>
@@ -353,13 +353,13 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                         ? 'Remove from Liked Songs'
                         : 'Save to Liked Songs'
                     }
-                    className="p-1 cursor-pointer transition-colors text-ink-soft hover:text-ink"
+                    className="p-1 cursor-pointer transition-colors text-muted-foreground hover:text-foreground"
                   >
                     <svg
                       className={`w-3.5 h-3.5 transition-colors ${
                         likedSongIds.has(currentTrack.id)
                           ? 'fill-red-500 text-red-500'
-                          : 'fill-transparent text-neutral-400 hover:text-ink dark:text-neutral-300 dark:hover:text-white'
+                          : 'fill-transparent text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white'
                       }`}
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -373,13 +373,13 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
                   <SongActionMenu track={currentTrack} align="right" />
 
-                  <span className="font-mono text-[11px] text-ink-soft shrink-0 select-none">
+                  <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
                     {formatSeconds(currentTrack.durationSeconds)}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="py-6 text-center text-ink-soft italic font-serif text-xs border border-dashed border-line rounded">
+              <div className="py-6 text-center text-muted-foreground italic font-serif text-xs border border-dashed border-border rounded">
                 No track currently loaded
               </div>
             )}
@@ -393,13 +393,13 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Jam Queue ({jamQueue.length})
                 </span>
-                <span className="text-[11px] text-ink-soft font-mono">
+                <span className="text-[11px] text-muted-foreground font-mono">
                   Room: {activeJamRoom.roomCode}
                 </span>
               </div>
 
               {jamQueue.length === 0 ? (
-                <p className="text-xs text-ink-soft/70 italic py-2">
+                <p className="text-xs text-muted-foreground/70 italic py-2">
                   No tracks in Jam queue yet. Use "Add to Jam Queue" on any song
                   to contribute!
                 </p>
@@ -423,17 +423,17 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           {/* SECTION 3: NEXT IN QUEUE (User Priority Queue) */}
           <div className="flex flex-col gap-2 pt-3">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink font-semibold">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-foreground font-semibold">
                 Next In Queue ({userQueue.length})
               </span>
             </div>
 
             {userQueue.length === 0 ? (
-              <div className="py-5 px-3 rounded border border-dashed border-line text-center space-y-1">
-                <p className="font-serif italic text-xs text-ink-soft">
+              <div className="py-5 px-3 rounded border border-dashed border-border text-center space-y-1">
+                <p className="font-serif italic text-xs text-muted-foreground">
                   Priority queue is empty
                 </p>
-                <p className="font-sans text-[11px] text-ink-soft/70">
+                <p className="font-sans text-[11px] text-muted-foreground/70">
                   Swipe left on songs across Groovy or tap "Play Next" to add
                   them here.
                 </p>
@@ -452,18 +452,18 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           {/* SECTION 4: NEXT FROM CONTEXT (Album / Playlist) */}
           <div className="flex flex-col gap-2 pt-3">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold truncate">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold truncate">
                 {contextTitle
                   ? `Next from: ${contextTitle}`
                   : 'Next from Context'}
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft/70">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground/70">
                 {upcomingContext.length} upcoming
               </span>
             </div>
 
             {upcomingContext.length === 0 ? (
-              <p className="text-xs text-ink-soft/70 italic py-2">
+              <p className="text-xs text-muted-foreground/70 italic py-2">
                 End of album / playlist playback.
               </p>
             ) : (
@@ -491,21 +491,21 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
           className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 flex flex-col gap-3 min-h-0 overscroll-contain"
           style={{ touchAction: 'pan-y' }}
         >
-          <div className="flex items-center justify-between border-b border-line pb-2">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink font-semibold">
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-foreground font-semibold">
               Recently Listened
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
               Past Sessions
             </span>
           </div>
 
           {!isAuthenticated ? (
             <div className="py-8 px-4 text-center space-y-3">
-              <p className="font-serif italic text-sm text-ink-soft">
+              <p className="font-serif italic text-sm text-muted-foreground">
                 Listening history requires an account
               </p>
-              <p className="text-xs text-ink-soft/80 max-w-xs mx-auto">
+              <p className="text-xs text-muted-foreground/80 max-w-xs mx-auto">
                 Sign in to track recently played records, synchronize playbacks,
                 and revisit past sessions.
               </p>
@@ -518,17 +518,17 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       'Sign in to synchronize your listening history across devices.',
                   })
                 }
-                className="font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 bg-ink text-canvas rounded hover:bg-canvas hover:text-ink border border-ink transition-colors cursor-pointer"
+                className="font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 bg-foreground text-background rounded hover:bg-background hover:text-foreground border border-foreground transition-colors cursor-pointer"
               >
                 Sign In
               </button>
             </div>
           ) : isLoadingHistory ? (
-            <div className="py-8 text-center font-mono text-[11px] uppercase tracking-wider text-ink-soft animate-pulse">
+            <div className="py-8 text-center font-mono text-[11px] uppercase tracking-wider text-muted-foreground animate-pulse">
               Loading listening history...
             </div>
           ) : historyItems.length === 0 ? (
-            <div className="py-8 text-center text-ink-soft italic font-serif text-xs">
+            <div className="py-8 text-center text-muted-foreground italic font-serif text-xs">
               No listening history recorded yet. Start spinning some records!
             </div>
           ) : (
@@ -539,11 +539,11 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   <div
                     key={`hist-${item.song.id}-${idx}`}
                     onClick={() => playTrack(playerTrack)}
-                    className="group flex items-center justify-between gap-2.5 p-2 rounded-md hover:bg-canvas-deep bg-panel transition-colors cursor-pointer border border-transparent hover:border-line"
+                    className="group flex items-center justify-between gap-2.5 p-2 rounded-md hover:bg-muted bg-card transition-colors cursor-pointer border border-transparent hover:border-border"
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {/* Artwork */}
-                      <div className="relative w-8 h-8 rounded bg-canvas border border-line shrink-0 overflow-hidden group/thumb">
+                      <div className="relative w-8 h-8 rounded bg-background border border-border shrink-0 overflow-hidden group/thumb">
                         {playerTrack.coverImageUrl ? (
                           <img
                             src={playerTrack.coverImageUrl}
@@ -551,26 +551,26 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
+                          <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
                             ♪
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-canvas text-[11px]">
+                        <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-[11px]">
                           ▶
                         </div>
                       </div>
 
                       {/* Song info & timestamp */}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-medium truncate text-ink group-hover:text-primary transition-colors leading-tight">
+                        <span className="text-xs font-sans font-medium truncate text-foreground group-hover:text-primary transition-colors leading-tight">
                           {playerTrack.title}
                         </span>
-                        <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate font-sans">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate font-sans">
                           <span className="truncate">
                             {playerTrack.artistName}
                           </span>
                           {item.playedAt && (
-                            <span className="font-mono text-[11px] text-ink-soft/70 shrink-0">
+                            <span className="font-mono text-[11px] text-muted-foreground/70 shrink-0">
                               • {formatRelativeTime(item.playedAt)}
                             </span>
                           )}
@@ -584,7 +584,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <SongActionMenu track={playerTrack} align="right" />
-                      <span className="font-mono text-[11px] text-ink-soft shrink-0 select-none">
+                      <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
                         {formatSeconds(playerTrack.durationSeconds)}
                       </span>
                     </div>
@@ -616,7 +616,7 @@ export function QueueDesktopSection() {
           ? 'calc(100vh - 3.5rem - 5rem)'
           : 'calc(100vh - 3.5rem)',
       }}
-      className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-panel border-l border-line transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
+      className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-card border-l border-border transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
         isQueueOpen
           ? 'w-95 lg:w-100 opacity-100'
           : 'w-0 opacity-0 border-l-0 pointer-events-none'
@@ -826,7 +826,7 @@ export function QueueDrawer() {
             ? 'none'
             : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
-        className="fixed inset-x-0 bottom-0 top-14 sm:top-16 z-50 bg-panel border-t border-line rounded-t-2xl sm:rounded-t-3xl shadow-2xl flex flex-col overflow-hidden pb-safe select-none"
+        className="fixed inset-x-0 bottom-0 top-14 sm:top-16 z-50 bg-card border-t border-border rounded-t-2xl sm:rounded-t-3xl shadow-2xl flex flex-col overflow-hidden pb-safe select-none"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -837,7 +837,7 @@ export function QueueDrawer() {
           className="pt-3 pb-2 flex justify-center cursor-pointer select-none touch-none w-full shrink-0"
           onClick={handleClose}
         >
-          <div className="w-12 h-1.5 bg-stone/40 hover:bg-stone/60 rounded-full transition-colors" />
+          <div className="w-12 h-1.5 bg-secondary/40 hover:bg-secondary/60 rounded-full transition-colors" />
         </div>
 
         <QueueContent mode="mobile" onClose={handleClose} listRef={listRef} />

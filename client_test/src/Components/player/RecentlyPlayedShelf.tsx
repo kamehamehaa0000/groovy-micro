@@ -55,16 +55,16 @@ export function RecentlyPlayedShelf({
   return (
     <section className={`space-y-4 ${className}`}>
       {/* Header */}
-      <div className="flex justify-between items-baseline border-b border-line pb-3">
+      <div className="flex justify-between items-baseline border-b border-border pb-3">
         <div>
-          <h2 className="font-serif italic font-medium text-xl text-ink">
+          <h2 className="font-serif italic font-medium text-xl text-foreground">
             {title}
           </h2>
           {subtitle && (
-            <p className="font-sans text-xs text-ink-soft mt-0.5">{subtitle}</p>
+            <p className="font-sans text-xs text-muted-foreground mt-0.5">{subtitle}</p>
           )}
         </div>
-        <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+        <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
           {displayedItems.length}{' '}
           {displayedItems.length === 1 ? 'release' : 'releases'}
         </span>
@@ -77,12 +77,12 @@ export function RecentlyPlayedShelf({
             {Array.from({ length: Math.min(limit, 6) }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-center h-13 sm:h-14 rounded-md bg-panel/40 border border-line/40 animate-pulse overflow-hidden"
+                className="flex items-center h-13 sm:h-14 rounded-md bg-card/40 border border-border/40 animate-pulse overflow-hidden"
               >
-                <div className="w-13 h-13 sm:w-14 sm:h-14 bg-line/40 shrink-0" />
+                <div className="w-13 h-13 sm:w-14 sm:h-14 bg-border/40 shrink-0" />
                 <div className="flex-1 min-w-0 px-2.5 space-y-1.5">
-                  <div className="h-3 bg-line/50 rounded-xs w-3/4" />
-                  <div className="h-2 bg-line/30 rounded-xs w-1/2" />
+                  <div className="h-3 bg-border/50 rounded-xs w-3/4" />
+                  <div className="h-2 bg-border/30 rounded-xs w-1/2" />
                 </div>
               </div>
             ))}
@@ -93,11 +93,11 @@ export function RecentlyPlayedShelf({
             {Array.from({ length: limit }).map((_, i) => (
               <div
                 key={i}
-                className="p-2.5 rounded-xl bg-panel/40 animate-pulse space-y-2.5"
+                className="p-2.5 rounded-xl bg-card/40 animate-pulse space-y-2.5"
               >
-                <div className="aspect-square bg-line/40 rounded-md" />
-                <div className="h-3 bg-line/50 rounded-xs w-3/4" />
-                <div className="h-2.5 bg-line/30 rounded-xs w-1/2" />
+                <div className="aspect-square bg-border/40 rounded-md" />
+                <div className="h-3 bg-border/50 rounded-xs w-3/4" />
+                <div className="h-2.5 bg-border/30 rounded-xs w-1/2" />
               </div>
             ))}
           </div>
@@ -120,10 +120,10 @@ export function RecentlyPlayedShelf({
                   key={item.historyId}
                   to="/albums/$idOrSlug"
                   params={{ idOrSlug: releaseSlug }}
-                  className="group flex items-center h-13 sm:h-14 rounded-md overflow-hidden bg-panel/70 hover:bg-canvas-soft border border-line/50 active:scale-[0.98] transition-all duration-150 text-inherit no-underline select-none cursor-pointer"
+                  className="group flex items-center h-13 sm:h-14 rounded-md overflow-hidden bg-card/70 hover:bg-muted border border-border/50 active:scale-[0.98] transition-all duration-150 text-inherit no-underline select-none cursor-pointer"
                 >
                   {/* Square Cover Flush Left */}
-                  <div className="relative w-13 h-13 sm:w-14 sm:h-14 bg-canvas-deep shrink-0 overflow-hidden">
+                  <div className="relative w-13 h-13 sm:w-14 sm:h-14 bg-muted shrink-0 overflow-hidden">
                     {releaseCover ? (
                       <img
                         src={releaseCover}
@@ -143,12 +143,12 @@ export function RecentlyPlayedShelf({
                   {/* Title & Artist */}
                   <div className="flex flex-col justify-center min-w-0 flex-1 px-2.5 py-1">
                     <span
-                      className="text-xs font-semibold text-ink group-hover:text-primary truncate tracking-tight transition-colors"
+                      className="text-xs font-semibold text-foreground group-hover:text-primary truncate tracking-tight transition-colors"
                       title={releaseTitle}
                     >
                       {releaseTitle}
                     </span>
-                    <span className="text-xs text-ink-soft truncate mt-0.5 leading-tight">
+                    <span className="text-xs text-muted-foreground truncate mt-0.5 leading-tight">
                       {item.song.artistName} · {releaseType}
                     </span>
                   </div>

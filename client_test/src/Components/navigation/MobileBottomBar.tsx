@@ -23,15 +23,15 @@ export function MobileBottomBar() {
   return (
     <nav
       aria-label="Mobile Bottom Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-safe bg-panel/95 backdrop-blur-md border-t border-line z-40 flex items-center justify-around px-2 select-none shadow-lg transition-colors duration-200"
+      className="md:hidden fixed bottom-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-safe bg-card/95 backdrop-blur-md border-t border-border z-40 flex items-center justify-around px-2 select-none shadow-lg transition-colors duration-200"
     >
       {/* 1. Catalog / Home */}
       <Link
         to="/"
         className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
           isCatalogActive
-            ? 'text-ink font-semibold'
-            : 'text-ink-soft hover:text-ink'
+            ? 'text-foreground font-semibold'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         <svg
@@ -56,8 +56,8 @@ export function MobileBottomBar() {
         to="/search"
         className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
           isSearchActive
-            ? 'text-ink font-semibold'
-            : 'text-ink-soft hover:text-ink'
+            ? 'text-foreground font-semibold'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         <svg
@@ -82,8 +82,8 @@ export function MobileBottomBar() {
         to="/library"
         className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
           isLibraryActive
-            ? 'text-ink font-semibold'
-            : 'text-ink-soft hover:text-ink'
+            ? 'text-foreground font-semibold'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         <svg

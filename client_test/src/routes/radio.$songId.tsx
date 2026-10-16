@@ -204,10 +204,10 @@ function RadioMixPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 select-none">
       {/* ===================== HERO HEADER ===================== */}
-      <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
+      <div className="border border-border bg-card p-6 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
           {/* Artwork Container */}
-          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 border border-line shadow-md overflow-hidden relative rounded-xl bg-canvas-deep flex items-center justify-center select-none">
+          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 border border-border shadow-md overflow-hidden relative rounded-xl bg-muted flex items-center justify-center select-none">
             {seedSong?.coverImageUrl ? (
               <img
                 src={seedSong.coverImageUrl}
@@ -235,23 +235,23 @@ function RadioMixPage() {
               Personalized Dynamic Mix &bull; Continuous Flow
             </div>
 
-            <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-tight truncate">
+            <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-foreground leading-tight truncate">
               {seedSong ? `${seedSong.title} Radio` : 'Radio Mix'}
             </h1>
 
-            <p className="font-sans text-xs sm:text-sm text-ink-soft line-clamp-2 max-w-2xl leading-relaxed">
+            <p className="font-sans text-xs sm:text-sm text-muted-foreground line-clamp-2 max-w-2xl leading-relaxed">
               Harmonic queue seeded from{' '}
-              <span className="font-semibold text-ink">
+              <span className="font-semibold text-foreground">
                 {seedSong?.title || 'selected cut'}
               </span>{' '}
               by{' '}
-              <span className="font-semibold text-ink">
+              <span className="font-semibold text-foreground">
                 {seedSong?.artistStageName || 'Groovy Artist'}
               </span>
               . Continuously generated based on tempo, mood alignment, and playlist co-occurrences.
             </p>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-ink-soft pt-1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted-foreground pt-1">
               <span>{fullQueue.length} Works</span>
               <span>&bull;</span>
               <span>{formatTotalDuration(totalDurationSeconds)}</span>
@@ -265,7 +265,7 @@ function RadioMixPage() {
       </div>
 
       {/* ===================== ACTION CONTROLS ===================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           {/* Big Play / Pause Button */}
           <button
@@ -287,14 +287,14 @@ function RadioMixPage() {
             type="button"
             onClick={handleSaveAsPlaylist}
             disabled={isSavingPlaylist || fullQueue.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-line bg-panel hover:bg-canvas-deep text-ink font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
           >
             <PlusIconSVG className="w-3.5 h-3.5" />
             <span>{savedSuccess ? 'Saved to Playlists!' : isSavingPlaylist ? 'Saving...' : 'Save as Playlist'}</span>
           </button>
         </div>
 
-        <div className="font-mono text-xs text-ink-soft">
+        <div className="font-mono text-xs text-muted-foreground">
           Seeded by: {seedSong?.artistStageName || 'Catalog'}
         </div>
       </div>
@@ -305,7 +305,7 @@ function RadioMixPage() {
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="h-16 border border-line/40 bg-panel/50 animate-pulse rounded-lg"
+              className="h-16 border border-border/40 bg-card/50 animate-pulse rounded-lg"
             />
           ))}
         </div>
@@ -314,25 +314,25 @@ function RadioMixPage() {
           {errorMsg}
         </div>
       ) : fullQueue.length === 0 ? (
-        <div className="border border-line bg-panel p-12 text-center space-y-4 rounded-xl">
-          <div className="w-12 h-12 mx-auto rounded-full bg-canvas-deep flex items-center justify-center text-ink-soft">
+        <div className="border border-border bg-card p-12 text-center space-y-4 rounded-xl">
+          <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
             <DiscIconSVG className="w-6 h-6" />
           </div>
-          <h3 className="font-serif italic text-lg text-ink">
+          <h3 className="font-serif italic text-lg text-foreground">
             No radio tracks found
           </h3>
-          <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto">
+          <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto">
             We could not find matching continuous cuts for this song right now.
           </p>
           <Link
             to="/"
-            className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
+            className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
           >
             Return to Home
           </Link>
         </div>
       ) : (
-        <div className="border border-line bg-panel rounded-xl overflow-hidden shadow-2xs divide-y divide-line/40">
+        <div className="border border-border bg-card rounded-xl overflow-hidden shadow-2xs divide-y divide-border/40">
           {fullQueue.map((track, idx) => (
             <SongRow
               key={`${track.id}-${idx}`}

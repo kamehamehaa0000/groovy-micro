@@ -105,7 +105,7 @@ function AdminVerificationDeskComponent() {
 
   if (isAuthLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+      <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
         Checking administrative clearance...
       </div>
     )
@@ -117,16 +117,16 @@ function AdminVerificationDeskComponent() {
         <span className="font-mono text-xs uppercase tracking-widest text-red-500 block mb-2">
           403 Access Restricted
         </span>
-        <h1 className="font-serif italic text-3xl text-ink">
+        <h1 className="font-serif italic text-3xl text-foreground">
           Administrative Desk
         </h1>
-        <p className="font-sans text-xs text-ink-soft mt-3 leading-relaxed">
+        <p className="font-sans text-xs text-muted-foreground mt-3 leading-relaxed">
           Access to artist identity verification and credential audits requires
           administrative clearance.
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line bg-panel hover:bg-canvas text-ink transition-colors"
+          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors"
         >
           &larr; Return to Catalog
         </Link>
@@ -137,16 +137,16 @@ function AdminVerificationDeskComponent() {
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">
       {/* Header */}
-      <div className="border-b border-line pb-6 mb-8">
+      <div className="border-b border-border pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
               Groovy Administration
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Artist Verification Desk
             </h1>
-            <p className="font-sans text-xs text-ink-soft mt-1">
+            <p className="font-sans text-xs text-muted-foreground mt-1">
               Review artist pitch materials, confirm external platform presence,
               and issue verified badges.
             </p>
@@ -154,23 +154,23 @@ function AdminVerificationDeskComponent() {
 
           <Link
             to="/studio"
-            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-line bg-panel text-ink hover:bg-canvas transition-colors hidden sm:inline-block"
+            className="font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
           >
             My Studio &rarr;
           </Link>
         </div>
 
         {/* Admin Desk Navigation Tabs */}
-        <div className="mt-6 flex items-center gap-6 border-b border-line pb-0 font-mono text-xs">
+        <div className="mt-6 flex items-center gap-6 border-b border-border pb-0 font-mono text-xs">
           <Link
             to="/admin/verification"
-            className="pb-3 border-b-2 border-ink text-ink font-semibold tracking-wider uppercase transition-colors"
+            className="pb-3 border-b-2 border-foreground text-foreground font-semibold tracking-wider uppercase transition-colors"
           >
             Artist Verifications
           </Link>
           <Link
             to="/admin/subscriptions"
-            className="pb-3 border-b-2 border-transparent text-ink-soft hover:text-ink tracking-wider uppercase transition-colors"
+            className="pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground tracking-wider uppercase transition-colors"
           >
             Subscription Plans &amp; Feature Catalog
           </Link>
@@ -190,7 +190,7 @@ function AdminVerificationDeskComponent() {
 
         {/* Filter Tabs & Search Bar */}
         <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 border-b sm:border-b-0 border-line pb-2 sm:pb-0 font-mono text-xs">
+          <div className="flex items-center gap-1 border-b sm:border-b-0 border-border pb-2 sm:pb-0 font-mono text-xs">
             {(['PENDING', 'VERIFIED', 'REJECTED', 'ALL'] as const).map(
               (tab) => (
                 <button
@@ -199,8 +199,8 @@ function AdminVerificationDeskComponent() {
                   onClick={() => setActiveTab(tab)}
                   className={`py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer ${
                     activeTab === tab
-                      ? 'border-b-2 border-primary text-ink font-semibold'
-                      : 'text-ink-soft hover:text-ink'
+                      ? 'border-b-2 border-primary text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {tab}
@@ -215,7 +215,7 @@ function AdminVerificationDeskComponent() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter by artist, slug, or email..."
-              className="w-full font-mono text-xs py-1.5 px-3 border border-line bg-panel text-ink focus:outline-none focus:border-ink"
+              className="w-full font-mono text-xs py-1.5 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground"
             />
           </div>
         </div>
@@ -223,15 +223,15 @@ function AdminVerificationDeskComponent() {
 
       {/* Applications List */}
       {isLoading ? (
-        <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-ink-soft animate-pulse">
+        <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
           Loading applications...
         </div>
       ) : applications.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-line p-8 bg-panel/30">
-          <p className="font-serif italic text-lg text-ink">
+        <div className="py-20 text-center border border-dashed border-border p-8 bg-card/30">
+          <p className="font-serif italic text-lg text-foreground">
             No applications in this category
           </p>
-          <p className="font-mono text-xs text-ink-soft mt-1">
+          <p className="font-mono text-xs text-muted-foreground mt-1">
             Status: {activeTab}
           </p>
         </div>
@@ -244,25 +244,25 @@ function AdminVerificationDeskComponent() {
             return (
               <div
                 key={app.id}
-                className="p-6 border border-line bg-panel shadow-2xs flex flex-col gap-4"
+                className="p-6 border border-border bg-card shadow-2xs flex flex-col gap-4"
               >
                 {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-line-soft">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border-soft">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: app.slug }}
-                        className="font-serif italic text-xl text-ink hover:text-primary transition-colors flex items-center gap-1.5"
+                        className="font-serif italic text-xl text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
                       >
                         <span>{app.stageName}</span>
-                        <ExternalLinkSVG className="w-3.5 h-3.5 text-ink-soft" />
+                        <ExternalLinkSVG className="w-3.5 h-3.5 text-muted-foreground" />
                       </Link>
                       {app.verified && (
                         <VerifiedBadgeSVG className="w-4 h-4 text-primary" />
                       )}
                     </div>
-                    <div className="font-mono text-[11px] text-ink-soft flex items-center gap-2 mt-0.5">
+                    <div className="font-mono text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
                       <span>@{app.slug}</span>
                       <span>•</span>
                       <span>Owner: {app.ownerEmail}</span>
@@ -278,7 +278,7 @@ function AdminVerificationDeskComponent() {
                             ? 'border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold'
                             : app.verificationStatus === 'REJECTED'
                               ? 'border-red-400/40 bg-red-500/10 text-red-600 dark:text-red-400'
-                              : 'border-line text-ink-soft'
+                              : 'border-border text-muted-foreground'
                       }`}
                     >
                       {app.verificationStatus}
@@ -289,10 +289,10 @@ function AdminVerificationDeskComponent() {
                 {/* Pitch Statement */}
                 {details?.message && (
                   <div>
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-1">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block mb-1">
                       Artist Pitch / Background
                     </span>
-                    <p className="font-sans text-xs text-ink leading-relaxed whitespace-pre-line p-3 border border-line-soft bg-canvas">
+                    <p className="font-sans text-xs text-foreground leading-relaxed whitespace-pre-line p-3 border border-border-soft bg-background">
                       {details.message}
                     </p>
                   </div>
@@ -300,11 +300,11 @@ function AdminVerificationDeskComponent() {
 
                 {/* Contact Telemetry */}
                 {(details?.contactEmail || details?.contactPhone) && (
-                  <div className="flex items-center gap-4 font-mono text-[11px] text-ink-soft">
+                  <div className="flex items-center gap-4 font-mono text-[11px] text-muted-foreground">
                     {details.contactEmail && (
                       <span>
                         Email:{' '}
-                        <strong className="text-ink">
+                        <strong className="text-foreground">
                           {details.contactEmail}
                         </strong>
                       </span>
@@ -312,7 +312,7 @@ function AdminVerificationDeskComponent() {
                     {details.contactPhone && (
                       <span>
                         Phone:{' '}
-                        <strong className="text-ink">
+                        <strong className="text-foreground">
                           {details.contactPhone}
                         </strong>
                       </span>
@@ -323,7 +323,7 @@ function AdminVerificationDeskComponent() {
                 {/* Proof Links */}
                 {details?.links && details.links.length > 0 && (
                   <div>
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block mb-1.5">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block mb-1.5">
                       Proof &amp; Verification Links ({details.links.length})
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -333,10 +333,10 @@ function AdminVerificationDeskComponent() {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-[11px] py-1 px-2.5 border border-line bg-canvas hover:border-ink text-ink flex items-center gap-1.5 max-w-sm truncate"
+                          className="font-mono text-[11px] py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground flex items-center gap-1.5 max-w-sm truncate"
                         >
                           <span className="truncate">{link}</span>
-                          <ExternalLinkSVG className="w-2.5 h-2.5 text-ink-soft shrink-0" />
+                          <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                         </a>
                       ))}
                     </div>
@@ -354,8 +354,8 @@ function AdminVerificationDeskComponent() {
                 )}
 
                 {/* Admin Actions Bar */}
-                <div className="pt-3 border-t border-line-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                <div className="pt-3 border-t border-border-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                     Registered:{' '}
                     {new Date(app.createdAt).toLocaleString(undefined, {
                       dateStyle: 'medium',
@@ -369,7 +369,7 @@ function AdminVerificationDeskComponent() {
                         type="button"
                         disabled={isApprovingId === app.id}
                         onClick={() => handleApprove(app.id)}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
                       >
                         {isApprovingId === app.id
                           ? 'Approving...'
@@ -384,7 +384,7 @@ function AdminVerificationDeskComponent() {
                           setRejectingArtistId(app.id)
                           setRejectReason('')
                         }}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line text-red-600 hover:border-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border text-red-600 hover:border-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
                       >
                         {app.verificationStatus === 'VERIFIED'
                           ? 'Revoke / Reject'
@@ -406,7 +406,7 @@ function AdminVerificationDeskComponent() {
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
                       placeholder="e.g. Please provide a verified Spotify or Apple Music profile link with your active catalog."
-                      className="w-full font-mono text-xs py-2 px-3 border border-line bg-canvas text-ink focus:outline-none focus:border-ink resize-y"
+                      className="w-full font-mono text-xs py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                     />
                     <div className="flex items-center gap-2">
                       <button
@@ -420,7 +420,7 @@ function AdminVerificationDeskComponent() {
                       <button
                         type="button"
                         onClick={() => setRejectingArtistId(null)}
-                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line text-ink-soft hover:text-ink cursor-pointer"
+                        className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
                       >
                         Cancel
                       </button>

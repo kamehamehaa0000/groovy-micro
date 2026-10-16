@@ -102,19 +102,19 @@ export function CreatePlaylistModal() {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-sm select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm select-none">
       {/* Click backdrop to close */}
       <div className="fixed inset-0" onClick={closeModal} />
 
-      <div className="w-full max-w-md border border-line bg-panel p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 z-10">
-        <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
-          <h2 className="font-serif italic text-xl text-ink">
+      <div className="w-full max-w-md border border-border bg-card p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 z-10">
+        <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+          <h2 className="font-serif italic text-xl text-foreground">
             Create New Playlist
           </h2>
           <button
             type="button"
             onClick={closeModal}
-            className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer"
+            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
             aria-label="Close dialog"
           >
             ✕
@@ -136,7 +136,7 @@ export function CreatePlaylistModal() {
 
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Title *
             </label>
             <input
@@ -147,12 +147,12 @@ export function CreatePlaylistModal() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="e.g. Midnight Ambient &amp; Tape Loops"
-              className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink"
+              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground"
             />
           </div>
 
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Description
             </label>
             <textarea
@@ -161,18 +161,18 @@ export function CreatePlaylistModal() {
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               placeholder="Atmospheric soundscapes curated for deep work..."
-              className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink resize-none"
+              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground resize-none"
             />
           </div>
 
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Visibility
             </label>
             <select
               value={newVisibility}
               onChange={(e: any) => setNewVisibility(e.target.value)}
-              className="w-full font-mono text-xs p-2.5 border border-line bg-canvas text-ink focus:outline-none focus:border-ink"
+              className="w-full font-mono text-xs p-2.5 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
             >
               <option value="PUBLIC">Public</option>
               <option value="UNLISTED">Unlisted</option>
@@ -182,52 +182,52 @@ export function CreatePlaylistModal() {
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+              <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                 Duplicate Songs
               </label>
-              <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
+              <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
                 <input
                   type="checkbox"
                   checked={newAllowDuplicates}
                   onChange={(e) => setNewAllowDuplicates(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-[11px] text-ink">
+                <span className="font-mono text-[11px] text-foreground">
                   Allow Dups
                 </span>
               </label>
             </div>
 
             <div>
-              <label className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1.5">
+              <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                 Discussion &amp; Comments
               </label>
-              <label className="flex items-center gap-2 p-2.5 border border-line bg-canvas cursor-pointer hover:border-ink transition-colors">
+              <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
                 <input
                   type="checkbox"
                   checked={newAllowComments}
                   onChange={(e) => setNewAllowComments(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-[11px] text-ink">
+                <span className="font-mono text-[11px] text-foreground">
                   Allow Comments
                 </span>
               </label>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-line mt-6">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border mt-6">
             <button
               type="button"
               onClick={closeModal}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !newTitle.trim()}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Creating...' : 'Create Playlist'}
             </button>

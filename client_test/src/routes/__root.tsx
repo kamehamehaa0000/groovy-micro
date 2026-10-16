@@ -176,14 +176,14 @@ function RootComponent() {
     : undefined
 
   return (
-    <div className="min-h-dvh bg-canvas text-ink font-sans flex flex-col transition-colors duration-200">
+    <div className="min-h-dvh bg-background text-foreground font-sans flex flex-col transition-colors duration-200">
       {/* ===================== TOP HEADER ===================== */}
       {isAuthPage ? (
         /* Dedicated Auth Header with Back to Home & Theme Toggle */
-        <header className="w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0">
+        <header className="w-full h-14 border-b border-border bg-background/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-soft hover:text-ink transition-colors group"
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
@@ -194,7 +194,7 @@ function RootComponent() {
           <div className="flex items-center gap-4">
             <Link
               to="/"
-              className="font-serif italic text-lg tracking-tight text-ink hover:opacity-80 transition-opacity"
+              className="font-serif italic text-lg tracking-tight text-foreground hover:opacity-80 transition-opacity"
             >
               Groovy
             </Link>
@@ -202,7 +202,7 @@ function RootComponent() {
               type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              className="w-8 h-8 rounded-full border border-line flex items-center justify-center text-ink-soft hover:text-ink hover:border-ink transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer"
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? <LightModeSVG /> : <DarkModeSVG />}
@@ -211,7 +211,7 @@ function RootComponent() {
         </header>
       ) : (
         /* ===================== TOP NAVIGATION HEADER ===================== */
-        <header className="sticky top-0 z-40 w-full h-14 border-b border-line bg-canvas/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
+        <header className="sticky top-0 z-40 w-full h-14 border-b border-border bg-background/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
           {/* ---------------- MOBILE TOP BAR (< md) ---------------- */}
           <div className="md:hidden flex items-center justify-between w-full">
             {/* Left: Profile Icon (Left Sidebar Toggle) */}
@@ -219,7 +219,7 @@ function RootComponent() {
               type="button"
               onClick={() => setLeftSidebarOpen(true)}
               aria-label="Open profile and navigation menu"
-              className="w-8 h-8 rounded-full border border-line bg-panel hover:border-ink flex items-center justify-center overflow-hidden cursor-pointer shadow-2xs transition-colors shrink-0"
+              className="w-8 h-8 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center overflow-hidden cursor-pointer shadow-2xs transition-colors shrink-0"
             >
               {isAuthenticated && user?.avatarUrl ? (
                 <img
@@ -228,12 +228,12 @@ function RootComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : isAuthenticated && user ? (
-                <span className="font-serif italic text-xs font-bold text-ink">
+                <span className="font-serif italic text-xs font-bold text-foreground">
                   {user.displayName.charAt(0).toUpperCase()}
                 </span>
               ) : (
                 <svg
-                  className="w-4 h-4 text-ink-soft"
+                  className="w-4 h-4 text-muted-foreground"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -252,7 +252,7 @@ function RootComponent() {
                 className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
                   pathname === '/'
                     ? 'bg-[#1ed760] text-black shadow-xs font-bold'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border/70'
                 }`}
               >
                 Home
@@ -262,7 +262,7 @@ function RootComponent() {
                 className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
                   pathname.startsWith('/releases')
                     ? 'bg-[#1ed760] text-black shadow-xs font-bold'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line/70'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border/70'
                 }`}
               >
                 Following
@@ -275,7 +275,7 @@ function RootComponent() {
                 type="button"
                 onClick={() => setRightActionDrawerOpen(true)}
                 aria-label="Create and quick actions"
-                className="w-8 h-8 rounded-full hover:border-ink hover:text-ink text-ink-soft flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                className="w-8 h-8 rounded-full hover:border-foreground hover:text-foreground text-muted-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
               >
                 <PlusIconSVG className="w-7 h-7" />
               </button>
@@ -290,21 +290,21 @@ function RootComponent() {
                 to="/"
                 className="flex items-center gap-2.5 text-inherit no-underline group"
               >
-                <span className="font-serif italic text-lg tracking-tight text-ink">
+                <span className="font-serif italic text-lg tracking-tight text-foreground">
                   Groovy
                 </span>
               </Link>
 
               {/* Top Route Navigation Links */}
-              <nav className="flex items-center gap-5 pl-4 border-l border-line font-mono text-[11px] uppercase tracking-wider">
+              <nav className="flex items-center gap-5 pl-4 border-l border-border font-mono text-[11px] uppercase tracking-wider">
                 <Link
                   to="/"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-primary pb-0.5',
+                      'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -314,10 +314,10 @@ function RootComponent() {
                   to="/artists"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-primary pb-0.5',
+                      'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -327,10 +327,10 @@ function RootComponent() {
                   to="/playlists"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-primary pb-0.5',
+                      'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -340,10 +340,10 @@ function RootComponent() {
                   to="/library"
                   activeProps={{
                     className:
-                      'text-ink font-semibold border-b border-primary pb-0.5',
+                      'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-ink-soft hover:text-ink pb-0.5',
+                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -356,10 +356,10 @@ function RootComponent() {
                       to="/feed"
                       activeProps={{
                         className:
-                          'text-ink font-semibold border-b border-primary pb-0.5',
+                          'text-foreground font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
-                        className: 'text-ink-soft hover:text-ink pb-0.5',
+                        className: 'text-muted-foreground hover:text-foreground pb-0.5',
                       }}
                       className="transition-colors"
                     >
@@ -369,10 +369,10 @@ function RootComponent() {
                       to="/vault"
                       activeProps={{
                         className:
-                          'text-ink font-semibold border-b border-primary pb-0.5',
+                          'text-foreground font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
-                        className: 'text-ink-soft hover:text-ink pb-0.5',
+                        className: 'text-muted-foreground hover:text-foreground pb-0.5',
                       }}
                       className="transition-colors"
                     >
@@ -389,10 +389,10 @@ function RootComponent() {
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2.5 bg-panel border border-line hover:border-ink/60 px-3 py-1.5 rounded-full text-xs text-ink-soft transition-all cursor-pointer shadow-2xs hover:text-ink w-36 md:w-52"
+                className="flex items-center gap-2.5 bg-card border border-border hover:border-foreground/60 px-3 py-1.5 rounded-full text-xs text-muted-foreground transition-all cursor-pointer shadow-2xs hover:text-foreground w-36 md:w-52"
               >
                 <svg
-                  className="w-3.5 h-3.5 text-ink-soft shrink-0"
+                  className="w-3.5 h-3.5 text-muted-foreground shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -404,7 +404,7 @@ function RootComponent() {
                 <span className="truncate text-[11px] font-sans">
                   Search...
                 </span>
-                <kbd className="ml-auto font-mono text-[11px] border border-line bg-canvas px-1.5 py-0.5 rounded text-ink-soft/80">
+                <kbd className="ml-auto font-mono text-[11px] border border-border bg-background px-1.5 py-0.5 rounded text-muted-foreground/80">
                   ⌘K
                 </kbd>
               </button>
@@ -418,15 +418,15 @@ function RootComponent() {
                   aria-haspopup="menu"
                   aria-expanded={createMenuOpen}
                   title="Create"
-                  className={`w-8 h-8 rounded-full border bg-panel flex items-center justify-center transition-all cursor-pointer shadow-2xs relative group ${
+                  className={`w-8 h-8 rounded-full border bg-card flex items-center justify-center transition-all cursor-pointer shadow-2xs relative group ${
                     createMenuOpen
-                      ? 'border-ink text-ink bg-canvas-deep'
-                      : 'border-line hover:border-ink hover:bg-canvas text-ink-soft hover:text-ink'
+                      ? 'border-foreground text-foreground bg-muted'
+                      : 'border-border hover:border-foreground hover:bg-background text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      createMenuOpen ? 'rotate-45 text-ink' : ''
+                      createMenuOpen ? 'rotate-45 text-foreground' : ''
                     }`}
                     viewBox="0 0 24 24"
                     fill="none"
@@ -442,13 +442,13 @@ function RootComponent() {
                   <span className="sr-only">Create and quick actions</span>
 
                   {activeJamRoom && !createMenuOpen && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-panel animate-pulse" />
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-card animate-pulse" />
                   )}
 
                   {!createMenuOpen && (
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
+                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
                     >
                       Create
                     </span>
@@ -459,21 +459,21 @@ function RootComponent() {
                   <div
                     role="menu"
                     aria-orientation="vertical"
-                    className="absolute right-0 top-full mt-4 w-64 bg-panel border border-line shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
+                    className="absolute right-0 top-full mt-4 w-64 bg-card border border-border shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
                   >
                     {/* Creation Header */}
-                    <div className="px-2.5 py-2 border-b border-line mb-1">
+                    <div className="px-2.5 py-2 border-b border-border mb-1">
                       <div className="flex items-center gap-2.5 mb-1.5">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-serif italic text-xs font-semibold text-ink truncate">
+                            <span className="font-serif italic text-xs font-semibold text-foreground truncate">
                               Creation Desk
                             </span>{' '}
-                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                               Quick Actions
                             </span>
                           </div>
-                          <div className="font-mono text-[11px] text-ink-soft truncate">
+                          <div className="font-mono text-[11px] text-muted-foreground truncate">
                             Create &amp; broadcast
                           </div>
                         </div>
@@ -496,9 +496,9 @@ function RootComponent() {
                         setCreateMenuOpen(false)
                         useJamStore.getState().openModal()
                       }}
-                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
+                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group"
                     >
-                      <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                      <div className="w-7 h-7 rounded border border-border bg-background flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                         <svg
                           className="w-3.5 h-3.5"
                           viewBox="0 0 24 24"
@@ -514,7 +514,7 @@ function RootComponent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Live Jam
                           </span>
                           {activeJamRoom && (
@@ -524,7 +524,7 @@ function RootComponent() {
                             </span>
                           )}
                         </div>
-                        <p className="font-sans text-[11px] text-ink-soft truncate">
+                        <p className="font-sans text-[11px] text-muted-foreground truncate">
                           {activeJamRoom
                             ? 'Active room session'
                             : 'Synchronized social session'}
@@ -548,9 +548,9 @@ function RootComponent() {
                         }
                         openCreatePlaylistModal()
                       }}
-                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group"
+                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group"
                     >
-                      <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                      <div className="w-7 h-7 rounded border border-border bg-background flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                         <svg
                           className="w-3.5 h-3.5"
                           viewBox="0 0 24 24"
@@ -566,10 +566,10 @@ function RootComponent() {
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                           Create Playlist
                         </span>
-                        <p className="font-sans text-[11px] text-ink-soft truncate">
+                        <p className="font-sans text-[11px] text-muted-foreground truncate">
                           Curate track collections &amp; mixes
                         </p>
                       </div>
@@ -587,14 +587,14 @@ function RootComponent() {
                 onClick={toggleTheme}
                 aria-label="Toggle theme mode"
                 title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-                className="w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink flex items-center justify-center text-ink-soft hover:text-ink transition-colors cursor-pointer shadow-2xs"
+                className="w-8 h-8 rounded-full border border-border bg-card hover:bg-background hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-2xs"
               >
                 {theme === 'dark' ? <DarkModeSVG /> : <LightModeSVG />}
               </button>
 
               {/* User Auth Section */}
               {isLoading ? (
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft animate-pulse px-2">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground animate-pulse px-2">
                   Authenticating...
                 </span>
               ) : isAuthenticated && user ? (
@@ -605,9 +605,9 @@ function RootComponent() {
                     aria-expanded={userMenuOpen}
                     aria-haspopup="menu"
                     aria-label="User account menu"
-                    className="flex items-center gap-2.5 text-inherit no-underline group cursor-pointer focus:outline-none rounded-full py-0.5 px-1 hover:bg-canvas transition-colors"
+                    className="flex items-center gap-2.5 text-inherit no-underline group cursor-pointer focus:outline-none rounded-full py-0.5 px-1 hover:bg-background transition-colors"
                   >
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-line group-hover:border-ink transition-colors shadow-2xs shrink-0">
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-border group-hover:border-foreground transition-colors shadow-2xs shrink-0">
                       {user.avatarUrl ? (
                         <img
                           src={user.avatarUrl}
@@ -615,7 +615,7 @@ function RootComponent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-panel text-ink flex items-center justify-center font-serif italic text-xs">
+                        <div className="w-full h-full bg-card text-foreground flex items-center justify-center font-serif italic text-xs">
                           {user.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -626,12 +626,12 @@ function RootComponent() {
                     <div
                       role="menu"
                       aria-orientation="vertical"
-                      className="absolute right-0 top-full mt-4 w-64 bg-panel border border-line shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
+                      className="absolute right-0 top-full mt-4 w-64 bg-card border border-border shadow-2xl rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-1"
                     >
                       {/* User Identity Header */}
-                      <div className="px-2.5 py-2 border-b border-line mb-1">
+                      <div className="px-2.5 py-2 border-b border-border mb-1">
                         <div className="flex items-center gap-2.5 mb-1.5">
-                          <div className="w-8 h-8 rounded-full overflow-hidden border border-line shrink-0">
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-border shrink-0">
                             {user.avatarUrl ? (
                               <img
                                 src={user.avatarUrl}
@@ -639,22 +639,22 @@ function RootComponent() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-canvas text-ink flex items-center justify-center font-serif italic text-xs">
+                              <div className="w-full h-full bg-background text-foreground flex items-center justify-center font-serif italic text-xs">
                                 {user.displayName.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-serif italic text-xs font-semibold text-ink truncate">
+                            <div className="font-serif italic text-xs font-semibold text-foreground truncate">
                               {user.displayName}
                             </div>
-                            <div className="font-mono text-[11px] text-ink-soft truncate">
+                            <div className="font-mono text-[11px] text-muted-foreground truncate">
                               {user.email}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-canvas border border-line text-ink-soft">
+                          <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                             {user.role}
                           </span>
                           {user.isEmailVerified && (
@@ -670,9 +670,9 @@ function RootComponent() {
                         to="/profile"
                         role="menuitem"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7  flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -687,10 +687,10 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Profile
                           </span>
-                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground truncate">
                             Preferences &amp; Settings
                           </p>
                         </div>
@@ -700,9 +700,9 @@ function RootComponent() {
                         to="/history"
                         role="menuitem"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7 rounded-full  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7 rounded-full  flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -716,10 +716,10 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Recents
                           </span>
-                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground truncate">
                             Listening History
                           </p>
                         </div>
@@ -730,9 +730,9 @@ function RootComponent() {
                         to="/releases"
                         role="menuitem"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7 flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7 flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -750,10 +750,10 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Releases
                           </span>
-                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground truncate">
                             New from followed artists
                           </p>
                         </div>
@@ -763,9 +763,9 @@ function RootComponent() {
                         to="/studio"
                         role="menuitem"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group no-underline"
                       >
-                        <div className="w-7 h-7  flex items-center justify-center text-ink-soft group-hover:text-ink group-hover:border-ink/50 transition-colors shrink-0">
+                        <div className="w-7 h-7  flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -779,10 +779,10 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-ink block">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Studio
                           </span>
-                          <p className="font-sans text-[11px] text-ink-soft truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground truncate">
                             Artist &amp; catalog management
                           </p>
                         </div>
@@ -794,7 +794,7 @@ function RootComponent() {
                           to="/admin/verification"
                           role="menuitem"
                           onClick={() => setUserMenuOpen(false)}
-                          className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink transition-colors cursor-pointer group no-underline"
+                          className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground transition-colors cursor-pointer group no-underline"
                         >
                           <div className="w-7 h-7  flex items-center justify-center text-primary group-hover:border-primary/50 transition-colors shrink-0">
                             <svg
@@ -813,7 +813,7 @@ function RootComponent() {
                             <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-primary block">
                               Admin Desk
                             </span>
-                            <p className="font-sans text-[11px] text-ink-soft truncate">
+                            <p className="font-sans text-[11px] text-muted-foreground truncate">
                               Manage Platform
                             </p>
                           </div>
@@ -821,7 +821,7 @@ function RootComponent() {
                       )}
 
                       {/* Divider */}
-                      <div className="border-t border-line my-1" />
+                      <div className="border-t border-border my-1" />
 
                       {/* Sign Out */}
                       <button
@@ -831,9 +831,9 @@ function RootComponent() {
                           setUserMenuOpen(false)
                           logout()
                         }}
-                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-canvas text-ink hover:text-red-500 transition-colors cursor-pointer group"
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xs text-left hover:bg-background text-foreground hover:text-red-500 transition-colors cursor-pointer group"
                       >
-                        <div className="w-7 h-7 rounded border border-line bg-canvas flex items-center justify-center text-ink-soft group-hover:text-red-500 group-hover:border-red-500/50 transition-colors shrink-0">
+                        <div className="w-7 h-7 rounded border border-border bg-background flex items-center justify-center text-muted-foreground group-hover:text-red-500 group-hover:border-red-500/50 transition-colors shrink-0">
                           <svg
                             className="w-3.5 h-3.5"
                             viewBox="0 0 24 24"
@@ -852,7 +852,7 @@ function RootComponent() {
                           <span className="font-mono text-[11px] uppercase tracking-wider font-medium block">
                             Sign Out
                           </span>
-                          <p className="font-sans text-[11px] text-ink-soft group-hover:text-red-400/80 truncate">
+                          <p className="font-sans text-[11px] text-muted-foreground group-hover:text-red-400/80 truncate">
                             End current session
                           </p>
                         </div>
@@ -865,14 +865,14 @@ function RootComponent() {
                   <Link
                     to="/login"
                     search={currentRedirect ? { redirect: currentRedirect } : undefined}
-                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-line bg-panel hover:bg-canvas-deep text-ink transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-foreground transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
                     search={currentRedirect ? { redirect: currentRedirect } : undefined}
-                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 bg-ink text-canvas border border-ink hover:bg-canvas hover:text-ink font-medium transition-colors"
+                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 bg-foreground text-background border border-foreground hover:bg-background hover:text-foreground font-medium transition-colors"
                   >
                     Join
                   </Link>
@@ -887,27 +887,27 @@ function RootComponent() {
       {!isAuthPage && leftSidebarOpen && (
         <div
           onClick={() => setLeftSidebarOpen(false)}
-          className="md:hidden fixed inset-0 bg-ink/40 backdrop-blur-xs z-50 transition-opacity"
+          className="md:hidden fixed inset-0 bg-foreground/40 backdrop-blur-xs z-50 transition-opacity"
         />
       )}
 
       {!isAuthPage && (
         <aside
           aria-label="Navigation and profile drawer"
-          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-panel border-r border-line p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out ${
+          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-card border-r border-border p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out ${
             leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <div className="space-y-5 overflow-y-auto">
             {/* Drawer Header: Profile / User Info */}
-            <div className="flex items-center justify-between border-b border-line pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               {isAuthenticated && user ? (
                 <Link
                   to="/profile"
                   onClick={() => setLeftSidebarOpen(false)}
                   className="flex items-center gap-3 min-w-0 flex-1 group"
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-line group-hover:border-ink transition-colors shadow-2xs shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-border group-hover:border-foreground transition-colors shadow-2xs shrink-0">
                     {user.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
@@ -915,23 +915,23 @@ function RootComponent() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-canvas-deep text-ink flex items-center justify-center font-serif italic text-sm">
+                      <div className="w-full h-full bg-muted text-foreground flex items-center justify-center font-serif italic text-sm">
                         {user.displayName.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-sans text-sm font-semibold text-ink truncate group-hover:text-primary transition-colors">
+                    <div className="font-sans text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                       {user.displayName}
                     </div>
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft truncate">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground truncate">
                       {user.role} • View Profile &rarr;
                     </div>
                   </div>
                 </Link>
               ) : (
                 <div className="flex-1 min-w-0">
-                  <div className="font-sans text-base font-semibold text-ink">
+                  <div className="font-sans text-base font-semibold text-foreground">
                     Groovy Guest
                   </div>
                 </div>
@@ -940,7 +940,7 @@ function RootComponent() {
               <button
                 type="button"
                 onClick={() => setLeftSidebarOpen(false)}
-                className="p-1.5 text-ink-soft hover:text-ink border border-line hover:border-ink rounded cursor-pointer transition-colors shrink-0 ml-2"
+                className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded cursor-pointer transition-colors shrink-0 ml-2"
                 aria-label="Close navigation menu"
               >
                 <svg
@@ -957,12 +957,12 @@ function RootComponent() {
 
             {/* Guest Auth Action Buttons */}
             {!isAuthenticated && (
-              <div className="grid grid-cols-2 gap-2 border-b border-line pb-4">
+              <div className="grid grid-cols-2 gap-2 border-b border-border pb-4">
                 <Link
                   to="/login"
                   search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 border border-line bg-canvas hover:bg-panel text-ink transition-colors"
+                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-card text-foreground transition-colors"
                 >
                   Sign In
                 </Link>
@@ -970,7 +970,7 @@ function RootComponent() {
                   to="/register"
                   search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 bg-ink text-canvas hover:bg-canvas hover:text-ink border border-ink font-semibold transition-colors"
+                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 bg-foreground text-background hover:bg-background hover:text-foreground border border-foreground font-semibold transition-colors"
                 >
                   Join
                 </Link>
@@ -986,42 +986,42 @@ function RootComponent() {
                 <Link
                   to="/"
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                 >
                   <span>Catalog Overview</span>
-                  <span className="text-ink-soft">&rarr;</span>
+                  <span className="text-muted-foreground">&rarr;</span>
                 </Link>
                 <Link
                   to="/search"
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                 >
                   <span>Search Catalog</span>
-                  <span className="text-ink-soft">&rarr;</span>
+                  <span className="text-muted-foreground">&rarr;</span>
                 </Link>
                 <Link
                   to="/artists"
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                 >
                   <span>Artists Roster</span>
-                  <span className="text-ink-soft">&rarr;</span>
+                  <span className="text-muted-foreground">&rarr;</span>
                 </Link>
                 <Link
                   to="/playlists"
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                 >
                   <span>Public Playlists</span>
-                  <span className="text-ink-soft">&rarr;</span>
+                  <span className="text-muted-foreground">&rarr;</span>
                 </Link>
                 <Link
                   to="/library"
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                  className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                 >
                   <span>Your Library</span>
-                  <span className="text-ink-soft">&rarr;</span>
+                  <span className="text-muted-foreground">&rarr;</span>
                 </Link>
 
                 {isAuthenticated && (
@@ -1032,56 +1032,56 @@ function RootComponent() {
                     <Link
                       to="/releases"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Artist Radar / Releases</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     <Link
                       to="/history"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Listening History</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     <Link
                       to="/feed"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Community Feed</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     <Link
                       to="/profile"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Profile &amp; Vault</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     <Link
                       to="/studio"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Artist Studio</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     <Link
                       to="/vault"
                       onClick={() => setLeftSidebarOpen(false)}
-                      className="flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line"
+                      className="flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border"
                     >
                       <span>Personal Vault</span>
-                      <span className="text-ink-soft">&rarr;</span>
+                      <span className="text-muted-foreground">&rarr;</span>
                     </Link>
                     {user?.role === 'ADMIN' && (
                       <Link
                         to="/admin/verification"
                         onClick={() => setLeftSidebarOpen(false)}
-                        className="flex items-center justify-between p-2 text-primary hover:bg-canvas rounded border border-transparent hover:border-primary/30"
+                        className="flex items-center justify-between p-2 text-primary hover:bg-background rounded border border-transparent hover:border-primary/30"
                       >
                         <span>Admin Desk</span>
                         <span className="text-primary">&rarr;</span>
@@ -1094,17 +1094,17 @@ function RootComponent() {
           </div>
 
           {/* Drawer Bottom Controls: Theme Switcher & Sign Out */}
-          <div className="pt-4 border-t border-line space-y-2 shrink-0">
+          <div className="pt-4 border-t border-border space-y-2 shrink-0">
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between p-2 font-mono text-xs uppercase tracking-wider text-ink hover:bg-canvas rounded border border-line cursor-pointer"
+              className="w-full flex items-center justify-between p-2 font-mono text-xs uppercase tracking-wider text-foreground hover:bg-background rounded border border-border cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 {theme === 'dark' ? <LightModeSVG /> : <DarkModeSVG />}
                 <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
               </span>
-              <span className="text-[11px] text-ink-soft font-sans">
+              <span className="text-[11px] text-muted-foreground font-sans">
                 Toggle
               </span>
             </button>

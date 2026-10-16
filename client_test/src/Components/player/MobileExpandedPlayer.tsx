@@ -320,7 +320,7 @@ export function MobileExpandedPlayer() {
       role="dialog"
       aria-modal="true"
       aria-label="Now Playing View"
-      className="fixed inset-0 z-50 bg-canvas text-ink flex flex-col md:hidden select-none overflow-hidden"
+      className="fixed inset-0 z-50 bg-background text-foreground flex flex-col md:hidden select-none overflow-hidden"
       style={{
         height: '100dvh',
         transform: `translateY(${dragY}px)`,
@@ -333,7 +333,7 @@ export function MobileExpandedPlayer() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Ambient background tint */}
-      <div className="absolute inset-0 bg-linear-to-b from-panel via-canvas to-canvas pointer-events-none opacity-60" />
+      <div className="absolute inset-0 bg-linear-to-b from-card via-background to-background pointer-events-none opacity-60" />
 
       {/* ===================== HEADER (56px + safe area) ===================== */}
       <header
@@ -347,7 +347,7 @@ export function MobileExpandedPlayer() {
             type="button"
             onClick={triggerDismiss}
             aria-label="Collapse Player"
-            className="w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center text-ink hover:text-ink active:scale-90 transition-transform cursor-pointer shrink-0"
+            className="w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center text-foreground hover:text-foreground active:scale-90 transition-transform cursor-pointer shrink-0"
           >
             <ChevronDownIconSVG className="w-6 h-6" />
           </button>
@@ -357,14 +357,14 @@ export function MobileExpandedPlayer() {
             onClick={goToRelease}
             className="flex-1 min-w-0 text-center cursor-pointer group"
           >
-            <span className="block font-mono text-[11px] uppercase tracking-widest text-ink-soft truncate group-hover:text-ink transition-colors">
+            <span className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground truncate group-hover:text-foreground transition-colors">
               {contextTitle
                 ? 'Playing From'
                 : currentTrack.albumTitle
                   ? 'Playing From Album'
                   : 'Groovy Catalog'}
             </span>
-            <span className="block font-bold text-[13px] leading-tight text-ink truncate mt-0.5 group-hover:underline">
+            <span className="block font-bold text-[13px] leading-tight text-foreground truncate mt-0.5 group-hover:underline">
               {contextTitle || currentTrack.albumTitle || 'Master Stream'}
             </span>
           </button>
@@ -392,7 +392,7 @@ export function MobileExpandedPlayer() {
             className={`${CONTENT} flex-1 flex items-center justify-center py-[clamp(8px,2.5dvh,24px)]`}
           >
             <div
-              className="rounded-lg overflow-hidden shadow-2xl bg-panel relative flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform shrink-0"
+              className="rounded-lg overflow-hidden shadow-2xl bg-card relative flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform shrink-0"
               style={{
                 // Square: limited by screen width (minus gutters), 480px max,
                 // and by height left after header, info, scrubber and controls.
@@ -408,7 +408,7 @@ export function MobileExpandedPlayer() {
                   draggable={false}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center font-serif italic text-6xl text-ink-soft/40">
+                <div className="w-full h-full flex items-center justify-center font-serif italic text-6xl text-muted-foreground/40">
                   ♪
                 </div>
               )}
@@ -423,11 +423,11 @@ export function MobileExpandedPlayer() {
               <button
                 type="button"
                 onClick={goToRelease}
-                className="font-serif italic font-bold text-[clamp(1.25rem,6.15vw,1.5rem)] text-ink truncate leading-tight cursor-pointer text-left block max-w-full"
+                className="font-serif italic font-bold text-[clamp(1.25rem,6.15vw,1.5rem)] text-foreground truncate leading-tight cursor-pointer text-left block max-w-full"
               >
                 {currentTrack.title}
               </button>
-              <div className="flex items-center flex-wrap gap-x-1 text-[clamp(0.875rem,4.1vw,1rem)] text-ink-soft mt-0.5 leading-snug">
+              <div className="flex items-center flex-wrap gap-x-1 text-[clamp(0.875rem,4.1vw,1rem)] text-muted-foreground mt-0.5 leading-snug">
                 {parsedCredits.all.length > 0 ? (
                   parsedCredits.all.map((artist, idx) => (
                     <span
@@ -439,12 +439,12 @@ export function MobileExpandedPlayer() {
                         onClick={() =>
                           navigateToArtist(artist, navigate, closePlayer)
                         }
-                        className="hover:text-ink transition-colors truncate cursor-pointer text-left"
+                        className="hover:text-foreground transition-colors truncate cursor-pointer text-left"
                       >
                         {artist.name}
                       </button>
                       {idx < parsedCredits.all.length - 1 && (
-                        <span className="text-ink-soft/60 ml-1 select-none">
+                        <span className="text-muted-foreground/60 ml-1 select-none">
                           {idx === 0 ? 'feat.' : '&'}
                         </span>
                       )}
@@ -464,7 +464,7 @@ export function MobileExpandedPlayer() {
                         closePlayer,
                       )
                     }
-                    className="hover:text-ink transition-colors truncate cursor-pointer text-left"
+                    className="hover:text-foreground transition-colors truncate cursor-pointer text-left"
                   >
                     {currentTrack.artistName || 'Unknown Artist'}
                   </button>
@@ -477,7 +477,7 @@ export function MobileExpandedPlayer() {
               onClick={handleToggleLike}
               aria-label={isLiked ? 'Unlike song' : 'Like song'}
               aria-pressed={isLiked}
-              className="w-11 h-11 -mr-2.5 rounded-full flex items-center justify-center text-ink-soft hover:text-ink active:scale-125 transition-transform shrink-0 cursor-pointer"
+              className="w-11 h-11 -mr-2.5 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-125 transition-transform shrink-0 cursor-pointer"
             >
               <HeartIconSVG
                 filled={isLiked}
@@ -506,14 +506,14 @@ export function MobileExpandedPlayer() {
               onPointerUp={handleScrubEnd}
               onPointerCancel={handleScrubEnd}
             >
-              <div className="w-full h-1 bg-line/50 rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-border/50 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-ink rounded-full"
+                  className="h-full bg-foreground rounded-full"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
               <div
-                className={`absolute top-1/2 -translate-y-1/2 bg-ink rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
+                className={`absolute top-1/2 -translate-y-1/2 bg-foreground rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
                   isScrubbing ? 'w-4 h-4' : 'w-3 h-3'
                 }`}
                 style={{
@@ -523,7 +523,7 @@ export function MobileExpandedPlayer() {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs font-mono text-ink-soft -mt-1.5 tabular-nums">
+            <div className="flex items-center justify-between text-xs font-mono text-muted-foreground -mt-1.5 tabular-nums">
               <span>{formatTime(displayTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -539,7 +539,7 @@ export function MobileExpandedPlayer() {
               aria-label={isShuffle ? 'Shuffle on' : 'Shuffle off'}
               aria-pressed={isShuffle}
               className={`w-11 h-11 -ml-2.5 flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
-                isShuffle ? 'text-primary' : 'text-ink-soft'
+                isShuffle ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <svg
@@ -563,7 +563,7 @@ export function MobileExpandedPlayer() {
               type="button"
               onClick={previous}
               aria-label="Previous track"
-              className="w-14 h-14 flex items-center justify-center text-ink active:scale-90 transition-transform cursor-pointer"
+              className="w-14 h-14 flex items-center justify-center text-foreground active:scale-90 transition-transform cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -587,14 +587,14 @@ export function MobileExpandedPlayer() {
               onClick={togglePlay}
               disabled={isLoading}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-[clamp(56px,16.4vw,64px)] h-[clamp(56px,16.4vw,64px)] rounded-full bg-ink text-canvas flex items-center justify-center active:scale-95 transition-transform cursor-pointer shrink-0"
+              className="w-[clamp(56px,16.4vw,64px)] h-[clamp(56px,16.4vw,64px)] rounded-full bg-foreground text-background flex items-center justify-center active:scale-95 transition-transform cursor-pointer shrink-0"
             >
               {isLoading ? (
-                <div className="w-6 h-6 border-[3px] border-canvas border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-[3px] border-background border-t-transparent rounded-full animate-spin" />
               ) : isPlaying ? (
-                <PauseIconSVG className="w-[44%] h-[44%] text-canvas" />
+                <PauseIconSVG className="w-[44%] h-[44%] text-background" />
               ) : (
-                <PlayIconSVG className="w-[44%] h-[44%] text-canvas ml-[4%]" />
+                <PlayIconSVG className="w-[44%] h-[44%] text-background ml-[4%]" />
               )}
             </button>
 
@@ -602,7 +602,7 @@ export function MobileExpandedPlayer() {
               type="button"
               onClick={next}
               aria-label="Next track"
-              className="w-14 h-14 flex items-center justify-center text-ink active:scale-90 transition-transform cursor-pointer"
+              className="w-14 h-14 flex items-center justify-center text-foreground active:scale-90 transition-transform cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -626,7 +626,7 @@ export function MobileExpandedPlayer() {
               onClick={toggleRepeat}
               aria-label={`Repeat mode: ${repeatMode}`}
               className={`w-11 h-11 -mr-2.5 flex items-center justify-center transition-colors active:scale-90 relative cursor-pointer ${
-                repeatMode !== 'off' ? 'text-primary' : 'text-ink-soft'
+                repeatMode !== 'off' ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <svg
@@ -644,7 +644,7 @@ export function MobileExpandedPlayer() {
                 <path d="M21 13v2a4 4 0 0 1-4 4H3" />
               </svg>
               {repeatMode === 'one' && (
-                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-primary text-canvas px-1 py-0.5 rounded-full">
+                <span className="absolute top-1.5 right-1 text-[10px] leading-none font-mono font-bold bg-primary text-background px-1 py-0.5 rounded-full">
                   1
                 </span>
               )}
@@ -664,7 +664,7 @@ export function MobileExpandedPlayer() {
               className={`w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
                 activeRoom
                   ? 'text-emerald-500 bg-emerald-500/10'
-                  : 'text-ink-soft hover:text-ink'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <span className="text-[clamp(18px,5.4vw,22px)] leading-none">
@@ -676,7 +676,7 @@ export function MobileExpandedPlayer() {
               type="button"
               onClick={toggleQueueDrawer}
               aria-label="Open queue"
-              className="w-11 h-11 -mr-2.5 flex items-center justify-center text-ink-soft hover:text-ink active:scale-90 transition-transform cursor-pointer"
+              className="w-11 h-11 -mr-2.5 flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-transform cursor-pointer"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -708,7 +708,7 @@ export function MobileExpandedPlayer() {
           {/* LIVE JAM SESSION */}
           {activeRoom && (
             <div
-              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-emerald-500/30 p-4 space-y-3 shadow-md`}
+              className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-emerald-500/30 p-4 space-y-3 shadow-md`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -722,32 +722,32 @@ export function MobileExpandedPlayer() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-canvas-deep border border-line">
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-muted border border-border">
                 <div className="min-w-0">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                     Invite Code
                   </span>
-                  <span className="font-mono font-bold text-sm text-ink tracking-wider">
+                  <span className="font-mono font-bold text-sm text-foreground tracking-wider">
                     {activeRoom.roomCode}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyJamLink}
-                  className="min-h-9 px-3 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-line hover:border-emerald-500 bg-panel text-ink transition-colors cursor-pointer"
+                  className="min-h-9 px-3 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-border hover:border-emerald-500 bg-card text-foreground transition-colors cursor-pointer"
                 >
                   {jamCopied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-ink-soft text-xs">
+                <span className="text-muted-foreground text-xs">
                   DJ:{' '}
-                  <strong className="text-ink font-semibold">
+                  <strong className="text-foreground font-semibold">
                     {isHost ? 'You (Host)' : activeRoom.hostName}
                   </strong>
                 </span>
-                <span className="text-xs font-mono text-ink-soft">
+                <span className="text-xs font-mono text-muted-foreground">
                   {members.length}{' '}
                   {members.length === 1 ? 'listener' : 'listeners'}
                 </span>
@@ -780,7 +780,7 @@ export function MobileExpandedPlayer() {
                   to="/jam/$code"
                   params={{ code: activeRoom.roomCode }}
                   onClick={closePlayer}
-                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-line bg-canvas hover:bg-panel font-mono text-[11px] uppercase tracking-wider text-ink font-semibold transition-colors"
+                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-card font-mono text-[11px] uppercase tracking-wider text-foreground font-semibold transition-colors"
                 >
                   Jam Page &rarr;
                 </Link>
@@ -798,10 +798,10 @@ export function MobileExpandedPlayer() {
           {/* ABOUT THE ARTIST */}
           {artistDetails && (
             <div
-              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md`}
+              className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                   About The Artist
                 </span>
                 <button
@@ -823,7 +823,7 @@ export function MobileExpandedPlayer() {
                 </button>
               </div>
 
-              <div className="w-full aspect-video rounded-lg bg-canvas-deep overflow-hidden relative border border-line/40">
+              <div className="w-full aspect-video rounded-lg bg-muted overflow-hidden relative border border-border/40">
                 {artistDetails.bannerUrl ? (
                   <img
                     src={artistDetails.bannerUrl}
@@ -837,7 +837,7 @@ export function MobileExpandedPlayer() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center font-serif italic text-3xl text-ink-soft/40">
+                  <div className="w-full h-full flex items-center justify-center font-serif italic text-3xl text-muted-foreground/40">
                     {artistDetails.stageName.slice(0, 2).toUpperCase()}
                   </div>
                 )}
@@ -846,7 +846,7 @@ export function MobileExpandedPlayer() {
               <div className="flex items-center justify-between gap-3 pt-1">
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base text-ink truncate">
+                    <h3 className="font-bold text-base text-foreground truncate">
                       {artistDetails.stageName}
                     </h3>
                     {artistDetails.verified && (
@@ -854,7 +854,7 @@ export function MobileExpandedPlayer() {
                     )}
                   </div>
                   {artistDetails.monthlyListeners !== undefined && (
-                    <p className="font-mono text-[11px] text-ink-soft mt-0.5">
+                    <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
                       {artistDetails.monthlyListeners.toLocaleString()} monthly
                       listeners
                     </p>
@@ -867,8 +867,8 @@ export function MobileExpandedPlayer() {
                   disabled={isFollowLoading}
                   className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                     isFollowing
-                      ? 'border-line bg-canvas text-ink hover:border-red-400 hover:text-red-500'
-                      : 'border-ink bg-ink text-canvas hover:opacity-90'
+                      ? 'border-border bg-background text-foreground hover:border-red-400 hover:text-red-500'
+                      : 'border-foreground bg-foreground text-background hover:opacity-90'
                   }`}
                 >
                   {isFollowLoading
@@ -880,7 +880,7 @@ export function MobileExpandedPlayer() {
               </div>
 
               {artistDetails.bio && (
-                <p className="text-[13px] text-ink-soft leading-relaxed line-clamp-3">
+                <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">
                   {artistDetails.bio}
                 </p>
               )}
@@ -890,9 +890,9 @@ export function MobileExpandedPlayer() {
           {/* COLLABORATORS */}
           {parsedCredits.collaborators.length > 0 && (
             <div
-              className={`${CONTENT} rounded-xl overflow-hidden bg-panel border border-line p-4 space-y-3 shadow-md`}
+              className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                 Featured &amp; Collaborators
               </span>
 
@@ -905,7 +905,7 @@ export function MobileExpandedPlayer() {
                   return (
                     <div
                       key={collab.name + idx}
-                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-canvas-deep border border-line/60"
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-muted border border-border/60"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <button
@@ -924,7 +924,7 @@ export function MobileExpandedPlayer() {
                               onClick={() =>
                                 navigateToArtist(collab, navigate, closePlayer)
                               }
-                              className="font-bold text-[13px] text-ink truncate hover:underline cursor-pointer text-left"
+                              className="font-bold text-[13px] text-foreground truncate hover:underline cursor-pointer text-left"
                             >
                               {collab.name}
                             </button>
@@ -932,7 +932,7 @@ export function MobileExpandedPlayer() {
                               <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                             )}
                           </div>
-                          <span className="font-mono text-[11px] text-ink-soft block uppercase tracking-wider truncate">
+                          <span className="font-mono text-[11px] text-muted-foreground block uppercase tracking-wider truncate">
                             {collab.role}
                           </span>
                         </div>
@@ -944,8 +944,8 @@ export function MobileExpandedPlayer() {
                           onClick={() => handleToggleArtistFollow(collab.id!)}
                           className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                             isCollabFollowing
-                              ? 'border-line bg-canvas text-ink hover:text-red-500 hover:border-red-400'
-                              : 'border-ink bg-ink text-canvas hover:opacity-90'
+                              ? 'border-border bg-background text-foreground hover:text-red-500 hover:border-red-400'
+                              : 'border-foreground bg-foreground text-background hover:opacity-90'
                           }`}
                         >
                           {isCollabFollowing ? 'Following' : 'Follow'}
@@ -961,10 +961,10 @@ export function MobileExpandedPlayer() {
           {/* NEXT IN QUEUE */}
           {nextTrack && (
             <div
-              className={`${CONTENT} rounded-xl bg-panel border border-line p-4 space-y-2.5 shadow-sm`}
+              className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-2.5 shadow-sm`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                   Next In Queue
                 </span>
                 <button
@@ -977,7 +977,7 @@ export function MobileExpandedPlayer() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-md bg-canvas-deep border border-line/60 overflow-hidden shrink-0">
+                <div className="w-12 h-12 rounded-md bg-muted border border-border/60 overflow-hidden shrink-0">
                   {nextTrack.coverImageUrl ? (
                     <img
                       src={nextTrack.coverImageUrl}
@@ -985,16 +985,16 @@ export function MobileExpandedPlayer() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-ink-soft">
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-sm text-muted-foreground">
                       ♪
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-sm text-ink truncate">
+                  <div className="font-semibold text-sm text-foreground truncate">
                     {nextTrack.title}
                   </div>
-                  <div className="text-xs text-ink-soft truncate">
+                  <div className="text-xs text-muted-foreground truncate">
                     {nextTrack.artistName}
                   </div>
                 </div>
@@ -1004,29 +1004,29 @@ export function MobileExpandedPlayer() {
 
           {/* CREDITS & SPECS */}
           <div
-            className={`${CONTENT} rounded-xl bg-panel border border-line p-4 space-y-1 text-[13px] shadow-sm`}
+            className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-1 text-[13px] shadow-sm`}
           >
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold block mb-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block mb-2">
               Song Credits &amp; Specs
             </span>
 
-            <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
-              <span className="text-ink-soft shrink-0">Primary Artist</span>
+            <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
+              <span className="text-muted-foreground shrink-0">Primary Artist</span>
               <button
                 type="button"
                 onClick={() =>
                   navigateToArtist(parsedCredits.primary, navigate, closePlayer)
                 }
-                className="font-medium text-ink hover:text-primary hover:underline cursor-pointer text-right min-w-0 wrap-break-word"
+                className="font-medium text-foreground hover:text-primary hover:underline cursor-pointer text-right min-w-0 wrap-break-word"
               >
                 {parsedCredits.primary.name}
               </button>
             </div>
 
             {parsedCredits.collaborators.length > 0 && (
-              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
-                <span className="text-ink-soft shrink-0">Featured</span>
-                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground shrink-0">Featured</span>
+                <span className="font-medium text-foreground text-right min-w-0 wrap-break-word">
                   {parsedCredits.collaborators.map((c, idx) => (
                     <span key={c.name + idx}>
                       <button
@@ -1046,34 +1046,34 @@ export function MobileExpandedPlayer() {
             )}
 
             {parsedCredits.producers.length > 0 && (
-              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
-                <span className="text-ink-soft shrink-0">Production</span>
-                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground shrink-0">Production</span>
+                <span className="font-medium text-foreground text-right min-w-0 wrap-break-word">
                   {parsedCredits.producers.map((p) => p.name).join(', ')}
                 </span>
               </div>
             )}
 
             {parsedCredits.writers.length > 0 && (
-              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
-                <span className="text-ink-soft shrink-0">Writing</span>
-                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground shrink-0">Writing</span>
+                <span className="font-medium text-foreground text-right min-w-0 wrap-break-word">
                   {parsedCredits.writers.map((w) => w.name).join(', ')}
                 </span>
               </div>
             )}
 
             {currentTrack.albumTitle && (
-              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-line/40">
-                <span className="text-ink-soft shrink-0">Release</span>
-                <span className="font-medium text-ink text-right min-w-0 wrap-break-word">
+              <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground shrink-0">Release</span>
+                <span className="font-medium text-foreground text-right min-w-0 wrap-break-word">
                   {currentTrack.albumTitle}
                 </span>
               </div>
             )}
 
             <div className="flex items-center justify-between gap-4 py-1.5">
-              <span className="text-ink-soft shrink-0">Audio Engine</span>
+              <span className="text-muted-foreground shrink-0">Audio Engine</span>
               <span className="font-mono text-[11px] text-primary font-bold uppercase tracking-wider text-right">
                 {currentTrack.hlsManifestUrl
                   ? 'Hi-Res HLS Stream'

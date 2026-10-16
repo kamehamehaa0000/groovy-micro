@@ -53,7 +53,7 @@ function Section({
     <section className="flex flex-col gap-3">
       <div>
         <Eyebrow tone="brand">{title}</Eyebrow>
-        {hint ? <p className="mt-0.5 text-caption text-ink-soft">{hint}</p> : null}
+        {hint ? <p className="mt-0.5 text-caption text-muted-foreground">{hint}</p> : null}
       </div>
       <Card padding="lg" className="flex flex-col gap-5">
         {children}
@@ -63,7 +63,7 @@ function Section({
 }
 
 function Token({ children }: { children: ReactNode }) {
-  return <code className="font-mono text-caption text-ink-soft">{children}</code>
+  return <code className="font-mono text-caption text-muted-foreground">{children}</code>
 }
 
 function SwatchGrid({
@@ -77,7 +77,7 @@ function SwatchGrid({
         <div key={item.token} className="flex flex-col gap-1.5">
           <div
             className={cn(
-              'h-14 w-full rounded-inset border border-line',
+              'h-14 w-full rounded-inset border border-border',
               item.className,
             )}
           />
@@ -93,12 +93,12 @@ function SwatchGrid({
 /* ------------------------------------------------------------------ */
 
 const SURFACES = [
-  { token: 'canvas', className: 'bg-canvas' },
-  { token: 'canvas-deep', className: 'bg-canvas-deep' },
-  { token: 'panel', className: 'bg-panel' },
-  { token: 'stone', className: 'bg-stone' },
-  { token: 'ink', className: 'bg-ink' },
-  { token: 'ink-soft', className: 'bg-ink-soft' },
+  { token: 'canvas', className: 'bg-background' },
+  { token: 'canvas-deep', className: 'bg-muted' },
+  { token: 'panel', className: 'bg-card' },
+  { token: 'stone', className: 'bg-secondary' },
+  { token: 'ink', className: 'bg-foreground' },
+  { token: 'ink-soft', className: 'bg-muted-foreground' },
   { token: 'primary (accent)', className: 'bg-primary' },
   { token: 'primary-strong', className: 'bg-primary-strong' },
 ]
@@ -106,8 +106,8 @@ const SURFACES = [
 const SEMANTICS = [
   { token: 'success', className: 'bg-success' },
   { token: 'success-soft', className: 'bg-success-soft' },
-  { token: 'danger', className: 'bg-danger' },
-  { token: 'danger-soft', className: 'bg-danger-soft' },
+  { token: 'danger', className: 'bg-destructive' },
+  { token: 'danger-soft', className: 'bg-destructive-soft' },
   { token: 'warning', className: 'bg-warning' },
   { token: 'warning-soft', className: 'bg-warning-soft' },
   { token: 'scrim', className: 'bg-scrim' },
@@ -221,7 +221,7 @@ function DesignPlayground() {
     return (
       <div className="p-8">
         <Eyebrow tone="muted">dev only</Eyebrow>
-        <p className="mt-2 text-body text-ink-soft">
+        <p className="mt-2 text-body text-muted-foreground">
           The design playground is only available in development.
         </p>
       </div>
@@ -234,8 +234,8 @@ function DesignPlayground() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow tone="brand">design system</Eyebrow>
-          <h1 className="font-serif text-display text-ink">Playground</h1>
-          <p className="mt-1 max-w-prose text-body text-ink-soft">
+          <h1 className="font-serif text-display text-foreground">Playground</h1>
+          <p className="mt-1 max-w-prose text-body text-muted-foreground">
             Every token and primitive in one screen, rendered with the system
             itself. Toggle the theme to check both surfaces.
           </p>
@@ -258,25 +258,25 @@ function DesignPlayground() {
         <div className="flex flex-col gap-4">
           <div>
             <Token>text-display · Fraunces</Token>
-            <p className="font-serif text-display text-ink">Groovy</p>
+            <p className="font-serif text-display text-foreground">Groovy</p>
           </div>
           <div>
             <Token>text-heading · Inter</Token>
-            <h2 className="text-heading font-semibold text-ink">Section heading</h2>
+            <h2 className="text-heading font-semibold text-foreground">Section heading</h2>
           </div>
           <div>
             <Token>text-title · Inter</Token>
-            <h3 className="text-title font-medium text-ink">Card title</h3>
+            <h3 className="text-title font-medium text-foreground">Card title</h3>
           </div>
           <div>
             <Token>text-body · Inter</Token>
-            <p className="text-body text-ink">
+            <p className="text-body text-foreground">
               Body copy — the default reading size across the app.
             </p>
           </div>
           <div>
             <Token>text-caption · Inter</Token>
-            <p className="text-caption text-ink-soft">Caption / secondary metadata.</p>
+            <p className="text-caption text-muted-foreground">Caption / secondary metadata.</p>
           </div>
           <div>
             <Token>text-eyebrow · IBM Plex Mono</Token>
@@ -297,7 +297,7 @@ function DesignPlayground() {
         <SwatchGrid items={SEMANTICS} />
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-success text-body">Success text</span>
-          <span className="text-danger text-body">Danger text</span>
+          <span className="text-destructive text-body">Danger text</span>
           <span className="text-warning text-body">Warning text</span>
           <span className="text-primary text-body">Brand text</span>
         </div>
@@ -374,15 +374,15 @@ function DesignPlayground() {
               key={size}
               size={size}
               aria-label={`Play (${size})`}
-              className="border border-line bg-panel"
+              className="border border-border bg-card"
             >
               <PlayIconSVG className="h-4 w-4" />
             </IconButton>
           ))}
-          <IconButton aria-label="Like" className="border border-line bg-panel">
+          <IconButton aria-label="Like" className="border border-border bg-card">
             <HeartIconSVG className="h-4 w-4" />
           </IconButton>
-          <IconButton aria-label="Search" className="border border-line bg-panel">
+          <IconButton aria-label="Search" className="border border-border bg-card">
             <SearchIconSVG className="h-4 w-4" />
           </IconButton>
         </div>
@@ -405,8 +405,8 @@ function DesignPlayground() {
           {(['plain', 'muted', 'interactive'] as const).map((variant) => (
             <Card key={variant} variant={variant} padding="md">
               <Eyebrow>{variant}</Eyebrow>
-              <h4 className="mt-1 text-title font-medium text-ink">Release title</h4>
-              <p className="mt-0.5 text-caption text-ink-soft">
+              <h4 className="mt-1 text-title font-medium text-foreground">Release title</h4>
+              <p className="mt-0.5 text-caption text-muted-foreground">
                 Artist · 2026 · 12 tracks
               </p>
             </Card>
@@ -419,10 +419,10 @@ function DesignPlayground() {
         title="Song rows — variants"
         hint="One row component, five context views: standard, album, playlist, artist, search."
       >
-        <div className="overflow-hidden rounded-surface border border-line">
+        <div className="overflow-hidden rounded-surface border border-border">
           {SONG_VARIANTS.map((variant, i) => (
-            <div key={variant} className="border-b border-line last:border-b-0">
-              <div className="bg-canvas-deep/50 px-4 py-1">
+            <div key={variant} className="border-b border-border last:border-b-0">
+              <div className="bg-muted/50 px-4 py-1">
                 <Eyebrow tone="muted">variant · {variant}</Eyebrow>
               </div>
               <SongRow
@@ -441,7 +441,7 @@ function DesignPlayground() {
         title="Song rows — states & metadata"
         hint="Plays count, artist/producer credits, scheduled (locked), added-by, reorder grip."
       >
-        <div className="overflow-hidden rounded-surface border border-line">
+        <div className="overflow-hidden rounded-surface border border-border">
           <SongRow
             track={SAMPLE_TRACKS[0]}
             index={0}
@@ -541,7 +541,7 @@ function DesignPlayground() {
         title="A composed section"
         hint="SectionHeader + tile grid = a real browse section, built from primitives."
       >
-        <div className="overflow-hidden rounded-surface border border-line">
+        <div className="overflow-hidden rounded-surface border border-border">
           <SectionHeader
             eyebrow="for you"
             title="New releases"
@@ -586,7 +586,7 @@ function DesignPlayground() {
         title="Section header"
         hint="One header for every page — no more per-page sticky chrome."
       >
-        <div className="overflow-hidden rounded-surface border border-line">
+        <div className="overflow-hidden rounded-surface border border-border">
           <SectionHeader
             eyebrow="your vault"
             title="Personal vault"
@@ -597,7 +597,7 @@ function DesignPlayground() {
               </Button>
             }
           />
-          <div className="p-4 text-body text-ink-soft">
+          <div className="p-4 text-body text-muted-foreground">
             Page content sits under the header.
           </div>
         </div>
@@ -615,7 +615,7 @@ function DesignPlayground() {
             ] as const
           ).map(([label, cls]) => (
             <div key={label} className="flex flex-col items-center gap-2">
-              <div className={cn('h-16 w-16 border border-line bg-panel', cls)} />
+              <div className={cn('h-16 w-16 border border-border bg-card', cls)} />
               <Token>{label}</Token>
             </div>
           ))}
@@ -631,7 +631,7 @@ function DesignPlayground() {
             <div key={label} className="flex flex-col items-center gap-2">
               <div
                 className={cn(
-                  'flex h-16 w-full items-center justify-center rounded-surface border-line bg-panel text-caption text-ink-soft',
+                  'flex h-16 w-full items-center justify-center rounded-surface border-border bg-card text-caption text-muted-foreground',
                   cls,
                 )}
               >
@@ -661,7 +661,7 @@ function DesignPlayground() {
         title="Bottom sheet"
       >
         <div className="flex flex-col gap-3 p-4">
-          <p className="text-body text-ink-soft">
+          <p className="text-body text-muted-foreground">
             Slides from the bottom, respects the home indicator, caps at 85dvh.
           </p>
           <div className="flex flex-col gap-1">
@@ -670,16 +670,16 @@ function DesignPlayground() {
                 key={label}
                 type="button"
                 onClick={() => setBottomSheet(false)}
-                className="flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-ink transition-colors hover:bg-stone/20"
+                className="flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-foreground transition-colors hover:bg-secondary/20"
               >
-                <PlusIconSVG className="h-4 w-4 text-ink-soft" />
+                <PlusIconSVG className="h-4 w-4 text-muted-foreground" />
                 {label}
               </button>
             ))}
             <button
               type="button"
               onClick={() => setBottomSheet(false)}
-              className="mt-1 flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-danger transition-colors hover:bg-danger-soft"
+              className="mt-1 flex items-center gap-3 rounded-inset px-3 py-3 text-left text-body text-destructive transition-colors hover:bg-destructive-soft"
             >
               <TrashIconSVG className="h-4 w-4" />
               Remove

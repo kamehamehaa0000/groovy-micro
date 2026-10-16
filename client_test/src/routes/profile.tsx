@@ -46,13 +46,13 @@ function ToggleSwitch({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-line transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-        checked ? 'bg-ink' : 'bg-canvas-deep'
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-border transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+        checked ? 'bg-foreground' : 'bg-muted'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span
         aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-canvas shadow-xs transition duration-200 ease-in-out border border-line/40 ${
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-xs transition duration-200 ease-in-out border border-border/40 ${
           checked ? 'translate-x-5' : 'translate-x-0.5'
         } mt-0.2`}
       />
@@ -218,7 +218,7 @@ function ProfileComponent() {
 
   if (isLoading || !user) {
     return (
-      <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
+      <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
         Retrieving member records...
       </div>
     )
@@ -454,11 +454,11 @@ function ProfileComponent() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-2 pb-24 md:pb-16 select-none space-y-6">
       {/* ===================== HERO PROFILE BANNER ===================== */}
-      <div className="bg-panel border border-line rounded-2xl p-5 sm:p-7 shadow-xs">
+      <div className="bg-card border border-border rounded-2xl p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
           {/* Avatar with Camera Overlay */}
           <div className="relative group shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-line bg-canvas-deep flex items-center justify-center shadow-xs">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center shadow-xs">
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -466,7 +466,7 @@ function ProfileComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-serif italic text-2xl sm:text-3xl font-semibold text-ink">
+                <span className="font-serif italic text-2xl sm:text-3xl font-semibold text-foreground">
                   {user.displayName.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -483,12 +483,12 @@ function ProfileComponent() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingAvatar}
-              className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-ink text-canvas border-2 border-panel flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-xs disabled:opacity-50"
+              className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-foreground text-background border-2 border-card flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-xs disabled:opacity-50"
               title="Change Avatar"
               aria-label="Change Avatar"
             >
               {isUploadingAvatar ? (
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-canvas/30 border-t-canvas animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-background/30 border-t-background animate-spin" />
               ) : (
                 <svg
                   className="w-3.5 h-3.5"
@@ -509,7 +509,7 @@ function ProfileComponent() {
           {/* Identity & Status */}
           <div className="flex-1 text-center sm:text-left min-w-0">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-              <h1 className="text-xl sm:text-2xl font-bold font-sans text-ink tracking-tight truncate">
+              <h1 className="text-xl sm:text-2xl font-bold font-sans text-foreground tracking-tight truncate">
                 {user.displayName}
               </h1>
               {user.isEmailVerified ? (
@@ -524,14 +524,14 @@ function ProfileComponent() {
               )}
             </div>
 
-            <p className="text-xs text-ink-soft font-sans truncate mb-3">
+            <p className="text-xs text-muted-foreground font-sans truncate mb-3">
               {user.email}
             </p>
 
             {/* Quick Status Badges & CTAs */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line bg-canvas text-ink-soft">
-                Role: <strong className="text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
+              <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-border bg-background text-muted-foreground">
+                Role: <strong className="text-foreground">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
               </span>
               <span className="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary font-semibold">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
@@ -540,7 +540,7 @@ function ProfileComponent() {
                 <Link
                   to="/users/$id"
                   params={{ id: user.id }}
-                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/50 bg-canvas text-ink transition-colors no-underline"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-border hover:border-foreground/50 bg-background text-foreground transition-colors no-underline"
                 >
                   <span>Public Profile</span>
                   <span className="text-[11px]">↗</span>
@@ -557,7 +557,7 @@ function ProfileComponent() {
               ) : (
                 <Link
                   to="/studio"
-                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-line hover:border-ink/40 bg-canvas text-ink-soft hover:text-ink transition-colors no-underline"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full border border-border hover:border-foreground/40 bg-background text-muted-foreground hover:text-foreground transition-colors no-underline"
                 >
                   <span>Become Artist</span>
                 </Link>
@@ -568,7 +568,7 @@ function ProfileComponent() {
       </div>
 
       {/* ===================== STICKY TAB NAVIGATION ===================== */}
-      <div className="sticky top-14 z-30 bg-canvas/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-line/40">
+      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-border/40">
         <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {[
             { id: 'account' as const, label: 'Account' },
@@ -585,8 +585,8 @@ function ProfileComponent() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium whitespace-nowrap ${
                   isActive
-                    ? 'bg-ink text-canvas font-semibold shadow-xs'
-                    : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                    ? 'bg-foreground text-background font-semibold shadow-xs'
+                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 {tab.label}
@@ -614,16 +614,16 @@ function ProfileComponent() {
           )}
 
           {/* Edit Display Name */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-foreground">
                 Curator Display Name
               </h3>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                 Public Identity
               </span>
             </div>
-            <p className="font-sans text-xs text-ink-soft mb-5">
+            <p className="font-sans text-xs text-muted-foreground mb-5">
               This name will be displayed across your public playlists, comments, and community interactions.
             </p>
 
@@ -631,7 +631,7 @@ function ProfileComponent() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="edit-display-name"
-                  className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
+                  className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block"
                 >
                   Name
                 </label>
@@ -641,7 +641,7 @@ function ProfileComponent() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors placeholder:text-ink-soft/50 font-sans"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/50 font-sans"
                   placeholder="Your curator name"
                 />
               </div>
@@ -650,7 +650,7 @@ function ProfileComponent() {
                 <button
                   type="submit"
                   disabled={isUpdatingProfile}
-                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto bg-foreground text-background font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
                 >
                   {isUpdatingProfile ? 'Saving...' : 'Save Identity'}
                 </button>
@@ -659,17 +659,17 @@ function ProfileComponent() {
           </div>
 
           {/* Musician or Recording Artist Card (Moved to Account View) */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-1">
                 Maison Artist Presence
               </div>
-              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-foreground">
                 {isArtist
                   ? 'Artist Studio Suite Active'
                   : 'Musician or Recording Artist?'}
               </h3>
-              <p className="font-sans text-xs text-ink-soft mt-0.5 max-w-xl leading-relaxed">
+              <p className="font-sans text-xs text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
                 {isArtist
                   ? artistProfile
                     ? `Publishing as "${artistProfile.stageName}". Manage stage identity, discographies, verification badge, and listener telemetry.`
@@ -692,36 +692,36 @@ function ProfileComponent() {
 
             <Link
               to="/studio"
-              className="self-start sm:self-auto shrink-0 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 rounded-full bg-ink text-canvas hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
+              className="self-start sm:self-auto shrink-0 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
             >
               {isArtist ? 'Open Artist Studio →' : '✦ Become an Artist'}
             </Link>
           </div>
 
           {/* Account Overview Card */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
-            <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
+            <h3 className="font-sans font-bold text-base sm:text-lg text-foreground">
               Account Overview
             </h3>
 
-            <div className="divide-y divide-line/60 font-sans text-xs">
+            <div className="divide-y divide-border/60 font-sans text-xs">
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-ink-soft">Email Address</span>
-                <span className="text-ink font-medium">{user.email}</span>
+                <span className="text-muted-foreground">Email Address</span>
+                <span className="text-foreground font-medium">{user.email}</span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-ink-soft">Email Verification</span>
+                <span className="text-muted-foreground">Email Verification</span>
                 <span className={user.isEmailVerified ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-amber-600 dark:text-amber-400 font-semibold"}>
                   {user.isEmailVerified ? "Verified" : "Unverified"}
                 </span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-ink-soft">Role</span>
-                <span className="font-mono text-[11px] uppercase text-ink">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</span>
+                <span className="text-muted-foreground">Role</span>
+                <span className="font-mono text-[11px] uppercase text-foreground">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</span>
               </div>
               {isArtist && (
                 <div className="py-3 flex items-center justify-between gap-4">
-                  <span className="text-ink-soft">Artist Profile</span>
+                  <span className="text-muted-foreground">Artist Profile</span>
                   <span className="font-mono text-[11px] text-purple-600 dark:text-purple-400 font-semibold">
                     {isLoadingArtistProfile
                       ? 'Verifying...'
@@ -732,14 +732,14 @@ function ProfileComponent() {
                 </div>
               )}
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-ink-soft">Active Plan</span>
+                <span className="text-muted-foreground">Active Plan</span>
                 <span className="font-mono text-[11px] uppercase text-primary font-semibold">
                   {entitlements?.planName || user.plan?.name || 'Groovy Free'}
                 </span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-ink-soft">Pre-Saved Releases</span>
-                <span className="font-mono text-[11px] text-ink font-medium">
+                <span className="text-muted-foreground">Pre-Saved Releases</span>
+                <span className="font-mono text-[11px] text-foreground font-medium">
                   {isLoadingPreSaves ? 'Loading...' : `${preSaves.length} drops scheduled`}
                 </span>
               </div>
@@ -764,25 +764,25 @@ function ProfileComponent() {
           )}
 
           {/* Active Plan Card */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
               <div>
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
                   Active Subscription Tier
                 </span>
                 <div className="flex items-center gap-2.5">
-                  <h3 className="font-serif italic text-2xl sm:text-3xl text-ink font-normal">
+                  <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground font-normal">
                     {entitlements?.planName || user.plan?.name || 'Groovy Free'}
                   </h3>
                   <span
                     className={`font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                       isLoadingEntitlements
-                        ? 'border-line bg-canvas text-ink-soft animate-pulse'
+                        ? 'border-border bg-background text-muted-foreground animate-pulse'
                         : entitlements?.status === 'active'
                           ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                           : entitlements?.cancelAtPeriodEnd
                             ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                            : 'border-line bg-canvas text-ink-soft'
+                            : 'border-border bg-background text-muted-foreground'
                     }`}
                   >
                     {isLoadingEntitlements
@@ -793,7 +793,7 @@ function ProfileComponent() {
                   </span>
                 </div>
                 {entitlements?.currentPeriodEnd && (
-                  <p className="font-mono text-[11px] text-ink-soft mt-1">
+                  <p className="font-mono text-[11px] text-muted-foreground mt-1">
                     Current billing period ends:{' '}
                     {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
                   </p>
@@ -804,7 +804,7 @@ function ProfileComponent() {
                 <button
                   type="button"
                   onClick={handleOpenUpgradeModal}
-                  className="bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
+                  className="bg-foreground text-background font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
                 >
                   ✦ Change Plan / Upgrade
                 </button>
@@ -814,7 +814,7 @@ function ProfileComponent() {
                     <button
                       type="button"
                       onClick={handleCancelSubscription}
-                      className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-line text-ink-soft hover:text-red-500 hover:border-red-400 bg-canvas transition-colors cursor-pointer"
+                      className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-border text-muted-foreground hover:text-red-500 hover:border-red-400 bg-background transition-colors cursor-pointer"
                     >
                       Cancel Plan
                     </button>
@@ -824,35 +824,35 @@ function ProfileComponent() {
 
             {/* Audio & Perks Checklist */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-              <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+              <div className="p-3 rounded-xl bg-background border border-border">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                   Audio Quality
                 </span>
-                <span className="font-mono text-sm font-bold text-ink mt-0.5 block">
+                <span className="font-mono text-sm font-bold text-foreground mt-0.5 block">
                   {entitlements?.features?.max_bitrate_kbps ?? 128} kbps
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+              <div className="p-3 rounded-xl bg-background border border-border">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                   Lossless FLAC
                 </span>
-                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                   {entitlements?.features?.lossless ? 'Enabled ✓' : 'Standard'}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+              <div className="p-3 rounded-xl bg-background border border-border">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                   Live Jam Rooms
                 </span>
-                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                   {entitlements?.features?.can_host_jam ? `Host (${entitlements.features.max_jam_participants ?? 3})` : 'Listener'}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-canvas border border-line">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft block">
+              <div className="p-3 rounded-xl bg-background border border-border">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
                   Ad-Free Audio
                 </span>
-                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'}`}>
+                <span className={`font-mono text-sm font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                   {entitlements?.features?.ad_free ? 'Ad-Free ✓' : 'Sponsored'}
                 </span>
               </div>
@@ -878,23 +878,23 @@ function ProfileComponent() {
 
           <form onSubmit={handleUpdatePrivacy} className="space-y-6">
             {/* Account Privacy Toggle */}
-            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs flex items-center justify-between gap-3 min-w-0">
+            <div className="border border-border bg-card p-5 sm:p-6 rounded-2xl shadow-xs flex items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-sans text-sm sm:text-base font-bold text-ink">
+                  <span className="font-sans text-sm sm:text-base font-bold text-foreground">
                     Private Account
                   </span>
                   <span
                     className={`font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                       isPrivateAccount
                         ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        : 'border-line bg-canvas text-ink-soft'
+                        : 'border-border bg-background text-muted-foreground'
                     }`}
                   >
                     {isPrivateAccount ? 'Gated Approval' : 'Open / Public'}
                   </span>
                 </div>
-                <p className="font-sans text-xs text-ink-soft max-w-xl leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground max-w-xl leading-relaxed">
                   When your account is private, other curators must request to follow you. You review each follow request in your Activity desk before they gain access to your follower-only library.
                 </p>
               </div>
@@ -908,12 +908,12 @@ function ProfileComponent() {
             </div>
 
             {/* Live Listening Presence Tier */}
-            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
+            <div className="border border-border bg-card p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
               <div>
-                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                <span className="font-sans text-sm sm:text-base font-bold text-foreground block">
                   Live Turntable &bull; Listening Activity
                 </span>
-                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Choose who can see your real-time playback in the &quot;What Friends Are Listening To&quot; live deck.
                 </p>
               </div>
@@ -944,15 +944,15 @@ function ProfileComponent() {
                       onClick={() => setListeningActivityPrivacy(opt.id)}
                       className={`p-3.5 text-left rounded-xl border transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-ink bg-canvas shadow-xs font-medium'
-                          : 'border-line bg-canvas/40 hover:border-ink/40'
+                          ? 'border-foreground bg-background shadow-xs font-medium'
+                          : 'border-border bg-background/40 hover:border-foreground/40'
                       }`}
                     >
-                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-foreground flex items-center justify-between">
                         <span>{opt.title}</span>
                         {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-snug">
                         {opt.desc}
                       </p>
                     </button>
@@ -962,12 +962,12 @@ function ProfileComponent() {
             </div>
 
             {/* Library Privacy Tier */}
-            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
+            <div className="border border-border bg-card p-5 sm:p-6 rounded-2xl shadow-xs space-y-3">
               <div>
-                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                <span className="font-sans text-sm sm:text-base font-bold text-foreground block">
                   Library &amp; Presaves Visibility
                 </span>
-                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Choose who can browse your public playlists, liked songs, and pre-saved releases.
                 </p>
               </div>
@@ -998,15 +998,15 @@ function ProfileComponent() {
                       onClick={() => setLibraryPrivacy(opt.id)}
                       className={`p-3.5 text-left rounded-xl border transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-ink bg-canvas shadow-xs font-medium'
-                          : 'border-line bg-canvas/40 hover:border-ink/40'
+                          ? 'border-foreground bg-background shadow-xs font-medium'
+                          : 'border-border bg-background/40 hover:border-foreground/40'
                       }`}
                     >
-                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-ink flex items-center justify-between">
+                      <div className="font-mono text-[11px] uppercase tracking-wider font-semibold text-foreground flex items-center justify-between">
                         <span>{opt.title}</span>
                         {isSelected && <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>}
                       </div>
-                      <p className="font-sans text-[11px] text-ink-soft mt-1 leading-snug">
+                      <p className="font-sans text-[11px] text-muted-foreground mt-1 leading-snug">
                         {opt.desc}
                       </p>
                     </button>
@@ -1016,29 +1016,29 @@ function ProfileComponent() {
             </div>
 
             {/* Personal Audio Locker & Offline Music Controls */}
-            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
+            <div className="border border-border bg-card p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-sans text-sm sm:text-base font-bold text-ink">
+                  <span className="font-sans text-sm sm:text-base font-bold text-foreground">
                     Personal Collection &amp; Audio Vault
                   </span>
                   <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
                     Sandboxed Storage
                   </span>
                 </div>
-                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Granularly control where your privately uploaded audio collection surfaces throughout Groovy.
                 </p>
               </div>
 
-              <div className="space-y-3 divide-y divide-line/60">
+              <div className="space-y-3 divide-y divide-border/60">
                 {/* Toggle 1: Search */}
                 <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Include in Global Search
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Surface personal collection tracks in your own search bar (never visible to other curators).
                     </p>
                   </div>
@@ -1052,10 +1052,10 @@ function ProfileComponent() {
                 {/* Toggle 2: Recently Played */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Include in Recently Played &amp; Activity
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Record personal collection playback on your Recent shelf and listening history.
                     </p>
                   </div>
@@ -1069,10 +1069,10 @@ function ProfileComponent() {
                 {/* Toggle 3: Home Feed */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Mix with Home Feed &amp; Recommendations
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Blend your personal collection uploads into home discovery shelves and mixes.
                     </p>
                   </div>
@@ -1086,10 +1086,10 @@ function ProfileComponent() {
                 {/* Toggle 4: Verified Artists Link */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Link to Verified Global Artists
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Show an &quot;In Your Collection&quot; shelf on verified artist pages when you have personal tracks matching that artist.
                     </p>
                   </div>
@@ -1106,7 +1106,7 @@ function ProfileComponent() {
               <button
                 type="submit"
                 disabled={isSavingPrivacy}
-                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                className="w-full sm:w-auto bg-foreground text-background font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
               </button>
@@ -1131,24 +1131,24 @@ function ProfileComponent() {
           )}
 
           <form onSubmit={handleUpdateNotifPrefs} className="space-y-6">
-            <div className="border border-line bg-panel p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
+            <div className="border border-border bg-card p-5 sm:p-6 rounded-2xl shadow-xs space-y-4">
               <div>
-                <span className="font-sans text-sm sm:text-base font-bold text-ink block">
+                <span className="font-sans text-sm sm:text-base font-bold text-foreground block">
                   Notification Channels &amp; Delivery
                 </span>
-                <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+                <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Configure real-time alerts for release drops, social interactions, and community jams.
                 </p>
               </div>
 
-              <div className="space-y-3 divide-y divide-line/60">
+              <div className="space-y-3 divide-y divide-border/60">
                 {/* Toggle 1: Catalog Drops */}
                 <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Catalog Drops &amp; New Releases
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Alerts when followed artists publish new albums, singles, or EPs.
                     </p>
                   </div>
@@ -1164,10 +1164,10 @@ function ProfileComponent() {
                 {/* Toggle 2: Discussion Replies */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Discussion Replies &amp; Mentions
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Alerts when curators reply to your comments on tracks and public playlists.
                     </p>
                   </div>
@@ -1183,10 +1183,10 @@ function ProfileComponent() {
                 {/* Toggle 3: Social Circles */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Social Circles &amp; Follow Requests
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Alerts for incoming follow requests on private accounts and newly joined followers.
                     </p>
                   </div>
@@ -1202,10 +1202,10 @@ function ProfileComponent() {
                 {/* Toggle 4: Jam Invites */}
                 <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-ink font-medium">
+                    <div className="font-mono text-[11px] uppercase tracking-wider text-foreground font-medium">
                       Live Jam Session Invites
                     </div>
-                    <p className="font-sans text-[11px] text-ink-soft leading-snug">
+                    <p className="font-sans text-[11px] text-muted-foreground leading-snug">
                       Real-time pulses when friends invite you to synchronize playback in a shared listening room.
                     </p>
                   </div>
@@ -1224,7 +1224,7 @@ function ProfileComponent() {
               <button
                 type="submit"
                 disabled={isSavingNotifPrefs}
-                className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                className="w-full sm:w-auto bg-foreground text-background font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
                 {isSavingNotifPrefs
                   ? 'Saving Preferences...'
@@ -1251,11 +1251,11 @@ function ProfileComponent() {
           )}
 
           {/* Change Password */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs">
-            <h3 className="font-sans font-bold text-base sm:text-lg text-ink mb-1">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs">
+            <h3 className="font-sans font-bold text-base sm:text-lg text-foreground mb-1">
               Change Password
             </h3>
-            <p className="font-sans text-xs text-ink-soft mb-5">
+            <p className="font-sans text-xs text-muted-foreground mb-5">
               Update your account credentials to keep your session and collection safe.
             </p>
 
@@ -1264,7 +1264,7 @@ function ProfileComponent() {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="curr-pass"
-                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
+                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block"
                   >
                     Current Password
                   </label>
@@ -1274,14 +1274,14 @@ function ProfileComponent() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors font-sans"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label
                     htmlFor="new-pass"
-                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft block"
+                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground block"
                   >
                     New Password
                   </label>
@@ -1292,7 +1292,7 @@ function ProfileComponent() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-line bg-canvas px-4 py-2.5 sm:py-3 text-sm text-ink focus:outline-none focus:border-primary transition-colors font-sans"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
                   />
                 </div>
               </div>
@@ -1303,9 +1303,9 @@ function ProfileComponent() {
                     type="checkbox"
                     checked={revokeOthers}
                     onChange={(e) => setRevokeOthers(e.target.checked)}
-                    className="accent-ink w-4 h-4 rounded cursor-pointer"
+                    className="accent-foreground w-4 h-4 rounded cursor-pointer"
                   />
-                  <span className="font-sans text-xs text-ink-soft">
+                  <span className="font-sans text-xs text-muted-foreground">
                     Revoke all other active sessions across devices
                   </span>
                 </label>
@@ -1313,7 +1313,7 @@ function ProfileComponent() {
                 <button
                   type="button"
                   onClick={() => setShowPasswords(!showPasswords)}
-                  className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer self-start sm:self-auto"
+                  className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer self-start sm:self-auto"
                 >
                   {showPasswords ? 'Hide Passwords' : 'Show Passwords'}
                 </button>
@@ -1323,7 +1323,7 @@ function ProfileComponent() {
                 <button
                   type="submit"
                   disabled={isUpdatingPassword}
-                  className="w-full sm:w-auto bg-ink text-canvas font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto bg-foreground text-background font-mono text-[11px] uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
                 >
                   {isUpdatingPassword ? 'Updating...' : 'Update Password'}
                 </button>
@@ -1332,12 +1332,12 @@ function ProfileComponent() {
           </div>
 
           {/* Session & Device Controls */}
-          <div className="border border-line bg-panel p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
+          <div className="border border-border bg-card p-5 sm:p-7 rounded-2xl shadow-xs space-y-4">
             <div>
-              <h3 className="font-sans font-bold text-base sm:text-lg text-ink">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-foreground">
                 Session &amp; Device Controls
               </h3>
-              <p className="font-sans text-xs text-ink-soft mt-0.5 leading-relaxed">
+              <p className="font-sans text-xs text-muted-foreground mt-0.5 leading-relaxed">
                 Manage active authentication tokens and sign out of remote browsers.
               </p>
             </div>
@@ -1346,7 +1346,7 @@ function ProfileComponent() {
               <button
                 type="button"
                 onClick={() => logout()}
-                className="font-mono text-[11px] uppercase tracking-wider border border-line bg-canvas hover:bg-canvas-soft text-ink px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
+                className="font-mono text-[11px] uppercase tracking-wider border border-border bg-background hover:bg-muted text-foreground px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
               >
                 Sign Out This Device
               </button>
@@ -1364,28 +1364,28 @@ function ProfileComponent() {
 
       {/* ===================== UPGRADE / CHANGE PLAN MODAL ===================== */}
       {isUpgradeModalOpen && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="max-w-4xl w-full bg-panel border border-line rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-line pb-4">
+        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="max-w-4xl w-full bg-card border border-border rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-1">
                   Maison Sound Tiers &bull; Dev Mock Checkout
                 </span>
-                <h3 className="font-serif italic text-2xl sm:text-3xl text-ink">
+                <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground">
                   Select Your Audio Experience
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsUpgradeModalOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-ink hover:bg-canvas-soft transition-colors text-sm font-bold cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {isLoadingPlans ? (
-              <div className="py-20 text-center font-mono text-xs text-ink-soft animate-pulse">
+              <div className="py-20 text-center font-mono text-xs text-muted-foreground animate-pulse">
                 Querying active subscription tiers and feature catalog...
               </div>
             ) : (
@@ -1397,13 +1397,13 @@ function ProfileComponent() {
                       key={plan.id}
                       className={`p-5 rounded-2xl border flex flex-col justify-between space-y-5 transition-all ${
                         isCurrent
-                          ? 'border-ink bg-canvas shadow-xs'
-                          : 'border-line bg-panel hover:border-ink/50'
+                          ? 'border-foreground bg-background shadow-xs'
+                          : 'border-border bg-card hover:border-foreground/50'
                       }`}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-line bg-panel font-semibold text-primary">
+                          <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-border bg-card font-semibold text-primary">
                             {plan.id}
                           </span>
                           {isCurrent && (
@@ -1414,11 +1414,11 @@ function ProfileComponent() {
                         </div>
 
                         <div>
-                          <h4 className="font-serif italic text-2xl text-ink font-medium">
+                          <h4 className="font-serif italic text-2xl text-foreground font-medium">
                             {plan.name}
                           </h4>
-                          <div className="font-mono text-xs text-ink-soft mt-1">
-                            <span className="text-xl font-bold text-ink">
+                          <div className="font-mono text-xs text-muted-foreground mt-1">
+                            <span className="text-xl font-bold text-foreground">
                               {(plan.priceCents / 100).toLocaleString(
                                 undefined,
                                 {
@@ -1432,7 +1432,7 @@ function ProfileComponent() {
                         </div>
 
                         {/* Feature comparison checklist */}
-                        <div className="pt-3 border-t border-line-soft space-y-2 font-sans text-xs">
+                        <div className="pt-3 border-t border-border-soft space-y-2 font-sans text-xs">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                               ✓
@@ -1449,7 +1449,7 @@ function ProfileComponent() {
                               className={`font-mono font-bold ${
                                 plan.features.lossless
                                   ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-ink-soft/40'
+                                  : 'text-muted-foreground/40'
                               }`}
                             >
                               {plan.features.lossless ? '✓' : '✕'}
@@ -1457,8 +1457,8 @@ function ProfileComponent() {
                             <span
                               className={
                                 plan.features.lossless
-                                  ? 'text-ink'
-                                  : 'text-ink-soft line-through'
+                                  ? 'text-foreground'
+                                  : 'text-muted-foreground line-through'
                               }
                             >
                               FLAC Lossless Audio
@@ -1469,7 +1469,7 @@ function ProfileComponent() {
                               className={`font-mono font-bold ${
                                 plan.features.can_host_jam
                                   ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-ink-soft/40'
+                                  : 'text-muted-foreground/40'
                               }`}
                             >
                               {plan.features.can_host_jam ? '✓' : '✕'}
@@ -1477,8 +1477,8 @@ function ProfileComponent() {
                             <span
                               className={
                                 plan.features.can_host_jam
-                                  ? 'text-ink'
-                                  : 'text-ink-soft line-through'
+                                  ? 'text-foreground'
+                                  : 'text-muted-foreground line-through'
                               }
                             >
                               Host Live Jams ({plan.features.max_jam_participants ?? 3} listeners)
@@ -1489,7 +1489,7 @@ function ProfileComponent() {
                               className={`font-mono font-bold ${
                                 plan.features.ad_free
                                   ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-ink-soft/40'
+                                  : 'text-muted-foreground/40'
                               }`}
                             >
                               {plan.features.ad_free ? '✓' : '✕'}
@@ -1497,8 +1497,8 @@ function ProfileComponent() {
                             <span
                               className={
                                 plan.features.ad_free
-                                  ? 'text-ink'
-                                  : 'text-ink-soft'
+                                  ? 'text-foreground'
+                                  : 'text-muted-foreground'
                               }
                             >
                               {plan.features.ad_free
@@ -1531,7 +1531,7 @@ function ProfileComponent() {
                                   <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                                     ✓
                                   </span>
-                                  <span className="font-mono text-[11px] text-ink">
+                                  <span className="font-mono text-[11px] text-foreground">
                                     {featDef?.name || k}:{' '}
                                     {typeof v === 'boolean'
                                       ? v
@@ -1545,15 +1545,15 @@ function ProfileComponent() {
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-line">
+                      <div className="pt-3 border-t border-border">
                         <button
                           type="button"
                           disabled={isCurrent || isUpgradingPlan}
                           onClick={() => handleSwitchPlan(plan.id)}
                           className={`w-full font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 rounded-full transition-all cursor-pointer font-semibold ${
                             isCurrent
-                              ? 'bg-line/40 text-ink-soft cursor-not-allowed border border-line'
-                              : 'bg-ink text-canvas hover:opacity-90'
+                              ? 'bg-border/40 text-muted-foreground cursor-not-allowed border border-border'
+                              : 'bg-foreground text-background hover:opacity-90'
                           }`}
                         >
                           {isCurrent

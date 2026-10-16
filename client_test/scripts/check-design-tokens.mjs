@@ -36,7 +36,7 @@ const RULES = [
   {
     id: 'raw-palette-color',
     re: /(?<![\w-])(?:text|bg|border|ring|fill|stroke|from|via|to)-(?:red|green|emerald|amber|yellow|zinc|slate|gray|neutral)-\d{2,3}(?:\/\d+)?/g,
-    hint: 'success / danger / warning semantic tokens',
+    hint: 'success / destructive / warning semantic tokens',
   },
 ]
 

@@ -158,7 +158,7 @@ export const QueueSongRow = memo(function QueueSongRow({
       data-user-queue={isUserQueue}
       className={`relative select-none rounded transition-colors ${
         isDragging
-          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-panel-elevated opacity-95 scale-[1.01]'
+          ? 'z-40 shadow-2xl ring-2 ring-primary/60 bg-card opacity-95 scale-[1.01]'
           : ''
       } ${
         isRemoving ? 'opacity-0 -translate-x-full duration-200' : ''
@@ -193,7 +193,7 @@ export const QueueSongRow = memo(function QueueSongRow({
       {/* 2. Right Swipe Reveal: Add to Playlist Action */}
       {canSwipeRight && (
         <div
-          className={`absolute inset-y-0 left-0 w-24 bg-panel border-r border-line text-ink flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-l-md ${
+          className={`absolute inset-y-0 left-0 w-24 bg-card border-r border-border text-foreground flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-l-md ${
             swipeOffset > 15 ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -230,8 +230,8 @@ export const QueueSongRow = memo(function QueueSongRow({
           isNowPlaying
             ? 'bg-primary/8 border border-primary/25'
             : isDragging
-            ? 'bg-panel-elevated'
-            : 'hover:bg-canvas-deep bg-panel'
+            ? 'bg-card'
+            : 'hover:bg-muted bg-card'
         }`}
       >
         {/* Left: Drag Handle (User Queue) or Context Number */}
@@ -259,7 +259,7 @@ export const QueueSongRow = memo(function QueueSongRow({
               className={`drag-grip -ml-1.5 w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 select-none touch-none rounded transition-colors cursor-grab active:cursor-grabbing ${
                 isDragging
                   ? 'text-primary bg-primary/15 scale-110 shadow-xs'
-                  : 'text-ink-soft/50 hover:text-ink hover:bg-canvas active:text-primary active:bg-primary/10'
+                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder"
             >
@@ -280,13 +280,13 @@ export const QueueSongRow = memo(function QueueSongRow({
               </svg>
             </div>
           ) : isContextQueue ? (
-            <span className="font-mono text-[11px] text-ink-soft/60 w-4 text-center shrink-0">
+            <span className="font-mono text-[11px] text-muted-foreground/60 w-4 text-center shrink-0">
               {index + 1}
             </span>
           ) : null}
 
           {/* Thumbnail Artwork with Play / Equalizer Overlay */}
-          <div className="relative w-8 h-8 rounded bg-canvas border border-line shrink-0 overflow-hidden group/thumb">
+          <div className="relative w-8 h-8 rounded bg-background border border-border shrink-0 overflow-hidden group/thumb">
             {track.coverImageUrl ? (
               <img
                 src={track.coverImageUrl}
@@ -294,19 +294,19 @@ export const QueueSongRow = memo(function QueueSongRow({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-ink-soft">
+              <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
                 ♪
               </div>
             )}
 
             {isNowPlaying && isPlaying ? (
-              <div className="absolute inset-0 bg-ink/50 flex items-center justify-center gap-0.5">
-                <span className="w-0.5 h-2.5 bg-canvas rounded-full animate-pulse" />
-                <span className="w-0.5 h-3.5 bg-canvas rounded-full animate-pulse delay-75" />
-                <span className="w-0.5 h-2 bg-canvas rounded-full animate-pulse delay-150" />
+              <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center gap-0.5">
+                <span className="w-0.5 h-2.5 bg-background rounded-full animate-pulse" />
+                <span className="w-0.5 h-3.5 bg-background rounded-full animate-pulse delay-75" />
+                <span className="w-0.5 h-2 bg-background rounded-full animate-pulse delay-150" />
               </div>
             ) : (
-              <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-canvas text-[11px]">
+              <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-[11px]">
                 ▶
               </div>
             )}
@@ -316,12 +316,12 @@ export const QueueSongRow = memo(function QueueSongRow({
           <div className="flex flex-col min-w-0">
             <span
               className={`text-xs font-sans font-medium truncate transition-colors leading-tight ${
-                isNowPlaying ? 'text-primary font-semibold' : 'text-ink group-hover:text-primary'
+                isNowPlaying ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
               }`}
             >
               {track.title}
             </span>
-            <div className="flex items-center gap-1.5 text-xs text-ink-soft truncate font-sans">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate font-sans">
               <span className="truncate">{track.artistName}</span>
               {isJamQueue && addedByDisplayName && (
                 <span className="text-emerald-700 dark:text-emerald-400 font-mono text-[11px] shrink-0">
@@ -339,7 +339,7 @@ export const QueueSongRow = memo(function QueueSongRow({
         >
           <SongActionMenu track={track} align="right" />
 
-          <span className="font-mono text-[11px] text-ink-soft shrink-0 select-none">
+          <span className="font-mono text-[11px] text-muted-foreground shrink-0 select-none">
             {formatSeconds(track.durationSeconds)}
           </span>
 
@@ -351,7 +351,7 @@ export const QueueSongRow = memo(function QueueSongRow({
                 onRemove()
               }}
               title="Remove from queue"
-              className="p-1 text-ink-soft/50 hover:text-red-500 cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded hover:bg-stone/20"
+              className="p-1 text-muted-foreground/50 hover:text-red-500 cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded hover:bg-secondary/20"
             >
               <svg
                 className="w-3.5 h-3.5"

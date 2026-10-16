@@ -19,9 +19,9 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
           ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
           : 'Notifications'
       }
-      className={`relative w-8 h-8 rounded-full border border-line bg-panel hover:bg-canvas hover:border-ink flex items-center justify-center text-ink-soft hover:text-ink transition-colors cursor-pointer shadow-2xs ${
+      className={`relative w-8 h-8 rounded-full border border-border bg-card hover:bg-background hover:border-foreground flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-2xs ${
         isNotificationsActive
-          ? 'border-ink text-ink bg-canvas ring-1 ring-ink/20'
+          ? 'border-foreground text-foreground bg-background ring-1 ring-foreground/20'
           : ''
       } ${className}`}
     >

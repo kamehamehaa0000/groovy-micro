@@ -60,16 +60,16 @@ function ArtistsDirectoryComponent() {
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full ">
       {/* Maison Hero Header */}
-      <div className="border-b border-line pb-8 mb-8">
+      <div className="border-b border-border pb-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
               Groovy Artists Index
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink tracking-tight">
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               The Roster
             </h1>
-            <p className="font-sans text-xs text-ink-soft max-w-lg mt-2 leading-relaxed">
+            <p className="font-sans text-xs text-muted-foreground max-w-lg mt-2 leading-relaxed">
               Discover verified recording artists, composers, and personal
               collection creators shaping the Groovy acoustics.
             </p>
@@ -79,7 +79,7 @@ function ArtistsDirectoryComponent() {
           {user?.role === 'LISTENER' && !user?.artistProfile && (
             <Link
               to="/studio"
-              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-ink text-canvas hover:opacity-90 transition-opacity shrink-0"
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 transition-opacity shrink-0"
             >
               <span>✦ Become an Artist</span>
             </Link>
@@ -87,7 +87,7 @@ function ArtistsDirectoryComponent() {
         </div>
 
         {/* Scope Filter Tabs */}
-        <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-line pb-4">
+        <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-border pb-4">
           <button
             type="button"
             onClick={() => {
@@ -96,8 +96,8 @@ function ArtistsDirectoryComponent() {
             }}
             className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'GLOBAL'
-                ? 'bg-ink text-canvas font-semibold shadow-xs'
-                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                ? 'bg-foreground text-background font-semibold shadow-xs'
+                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
             }`}
           >
             Groovy Artists
@@ -110,8 +110,8 @@ function ArtistsDirectoryComponent() {
             }}
             className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'PERSONAL'
-                ? 'bg-ink text-canvas font-semibold shadow-xs'
-                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                ? 'bg-foreground text-background font-semibold shadow-xs'
+                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
             }`}
           >
             Personal Collection
@@ -124,8 +124,8 @@ function ArtistsDirectoryComponent() {
             }}
             className={`font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
               scope === 'ALL'
-                ? 'bg-ink text-canvas font-semibold shadow-xs'
-                : 'bg-panel text-ink-soft hover:text-ink border border-line'
+                ? 'bg-foreground text-background font-semibold shadow-xs'
+                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
             }`}
           >
             All Artists
@@ -143,9 +143,9 @@ function ArtistsDirectoryComponent() {
                 setPage(1)
               }}
               placeholder="Search by artist name or vanity handle..."
-              className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
+              className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
             />
-            <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             {search && (
               <button
                 type="button"
@@ -153,7 +153,7 @@ function ArtistsDirectoryComponent() {
                   setSearch('')
                   setPage(1)
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
                 title="Clear search"
               >
                 ✕
@@ -165,7 +165,7 @@ function ArtistsDirectoryComponent() {
             <div className="flex items-center gap-2">
               <label
                 htmlFor="artist-sort"
-                className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
+                className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
               >
                 Sort:
               </label>
@@ -176,7 +176,7 @@ function ArtistsDirectoryComponent() {
                   setSort(e.target.value as any)
                   setPage(1)
                 }}
-                className="font-mono rounded-xl text-xs py-2 px-3 border border-line bg-panel text-ink focus:outline-none focus:border-ink transition-colors cursor-pointer"
+                className="font-mono rounded-xl text-xs py-2 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground transition-colors cursor-pointer"
               >
                 <option value="listeners">Monthly Listeners</option>
                 <option value="followers">Followers</option>
@@ -185,7 +185,7 @@ function ArtistsDirectoryComponent() {
               </select>
             </div>
 
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft ml-2 shrink-0 border-l border-line pl-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground ml-2 shrink-0 border-l border-border pl-3">
               {totalCount} {totalCount === 1 ? 'Artist' : 'Artists'}
             </span>
           </div>
@@ -194,13 +194,13 @@ function ArtistsDirectoryComponent() {
 
       {/* Grid of Artists */}
       {isLoading ? (
-        <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-ink-soft animate-pulse">
+        <div className="py-24 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
           Fetching curated roster...
         </div>
       ) : artists.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-line p-10 bg-panel/40">
-          <p className="font-serif italic text-lg text-ink">No artists found</p>
-          <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mt-1">
+        <div className="py-20 text-center border border-dashed border-border p-10 bg-card/40">
+          <p className="font-serif italic text-lg text-foreground">No artists found</p>
+          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mt-1">
             {search
               ? 'Try adjusting your search query'
               : scope === 'PERSONAL' && !user
@@ -235,10 +235,10 @@ function ArtistsDirectoryComponent() {
                 key={artist.id}
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: artist.slug }}
-                className="group block rounded-md overflow-clip border border-line bg-panel hover:border-ink transition-all duration-200  text-inherit no-underline shadow-2xs hover:shadow-sm"
+                className="group block rounded-md overflow-clip border border-border bg-card hover:border-foreground transition-all duration-200  text-inherit no-underline shadow-2xs hover:shadow-sm"
               >
                 {/* Card Banner Preview */}
-                <div className="h-28 w-full bg-canvas-deep relative overflow-hidden border-b border-line-soft">
+                <div className="h-28 w-full bg-muted relative overflow-hidden border-b border-border-soft">
                   {artist.bannerUrl ? (
                     <img
                       src={artist.bannerUrl}
@@ -246,18 +246,18 @@ function ArtistsDirectoryComponent() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-ink-soft/30 font-serif italic text-3xl select-none">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 font-serif italic text-3xl select-none">
                       {artist.stageName.charAt(0)}
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-linear-to-t from-panel/70 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-card/70 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Card Meta Content */}
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-sans font-semibold text-base sm:text-lg text-ink group-hover:text-primary transition-colors">
+                      <h3 className="font-sans font-semibold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors">
                         {artist.stageName}
                       </h3>
                       {artist.verified && (
@@ -278,23 +278,23 @@ function ArtistsDirectoryComponent() {
                     </div>
                   </div>
 
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-soft mt-0.5">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mt-0.5">
                     @{artist.slug}
                   </div>
 
                   {artist.bio ? (
-                    <p className="font-sans text-xs text-ink-soft mt-3 line-clamp-2 leading-relaxed">
+                    <p className="font-sans text-xs text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
                       {artist.bio}
                     </p>
                   ) : (
-                    <p className="font-sans text-xs italic text-ink-soft/60 mt-3">
+                    <p className="font-sans text-xs italic text-muted-foreground/60 mt-3">
                       {artist.scope === 'PERSONAL'
                         ? 'Personal collection artist.'
                         : 'Recording artist on Groovy.'}
                     </p>
                   )}
 
-                  <div className="mt-4 pt-3 border-t border-line-soft flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                  <div className="mt-4 pt-3 border-t border-border-soft flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                     <span>
                       {artist.scope === 'PERSONAL'
                         ? 'Personal Artist'
@@ -311,23 +311,23 @@ function ArtistsDirectoryComponent() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="mt-10 pt-6 border-t border-line flex items-center justify-between">
+            <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
               <button
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-border bg-card text-foreground hover:border-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
               >
                 &larr; Previous
               </button>
-              <span className="font-mono text-xs text-ink-soft">
+              <span className="font-mono text-xs text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-line bg-panel text-ink hover:border-ink transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                className="font-mono text-xs uppercase tracking-wider py-2 px-4 border border-border bg-card text-foreground hover:border-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
               >
                 Next &rarr;
               </button>

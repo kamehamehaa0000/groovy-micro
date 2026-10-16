@@ -64,10 +64,10 @@ function JamRouteComponent() {
   if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6 select-none">
-        <div className="w-12 h-12 rounded-full border-2 border-line border-t-emerald-600 animate-spin mb-4" />
-        <h2 className="font-serif italic text-2xl text-ink mb-1">Connecting to Live Jam</h2>
-        <p className="text-xs font-mono text-ink-soft tracking-widest">{code.toUpperCase()}</p>
-        <p className="font-mono text-[11px] text-ink-soft/70 mt-2">
+        <div className="w-12 h-12 rounded-full border-2 border-border border-t-emerald-600 animate-spin mb-4" />
+        <h2 className="font-serif italic text-2xl text-foreground mb-1">Connecting to Live Jam</h2>
+        <p className="text-xs font-mono text-muted-foreground tracking-widest">{code.toUpperCase()}</p>
+        <p className="font-mono text-[11px] text-muted-foreground/70 mt-2">
           Calibrating clock offset and synchronizing audio stream...
         </p>
       </div>
@@ -80,13 +80,13 @@ function JamRouteComponent() {
         <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center text-xl font-bold mb-4">
           ✕
         </div>
-        <h2 className="font-serif italic text-2xl text-ink mb-2">Could Not Join Jam</h2>
-        <p className="text-xs text-ink-soft max-w-md mb-6 leading-relaxed">{error}</p>
+        <h2 className="font-serif italic text-2xl text-foreground mb-2">Could Not Join Jam</h2>
+        <p className="text-xs text-muted-foreground max-w-md mb-6 leading-relaxed">{error}</p>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate({ to: "/" })}
-            className="px-4 py-2 rounded-xs border border-line bg-panel hover:bg-canvas text-ink font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+            className="px-4 py-2 rounded-xs border border-border bg-card hover:bg-background text-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
           >
             &larr; Back to Catalog
           </button>
@@ -99,7 +99,7 @@ function JamRouteComponent() {
                   search: { redirect: `/jam/${code}` },
                 })
               }
-              className="px-4 py-2 rounded-xs bg-ink hover:bg-primary text-canvas hover:text-primary-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+              className="px-4 py-2 rounded-xs bg-foreground hover:bg-primary text-background hover:text-primary-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
             >
               Sign In
             </button>
@@ -112,7 +112,7 @@ function JamRouteComponent() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       {/* Session Hero Banner */}
-      <div className="p-6 sm:p-8 rounded-xs bg-panel border border-line shadow-xs relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-xs bg-card border border-border shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] uppercase tracking-wider font-semibold mb-3">
@@ -120,16 +120,16 @@ function JamRouteComponent() {
               <span>Live Listening Session</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-serif italic text-ink tracking-tight flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-serif italic text-foreground tracking-tight flex flex-wrap items-center gap-3">
               <span>Room {activeRoom?.roomCode}</span>
-              <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-xs bg-stone/20 dark:bg-stone/40 text-ink-soft border border-line not-italic font-normal">
+              <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-xs bg-secondary/20 dark:bg-secondary/40 text-muted-foreground border border-border not-italic font-normal">
                 {activeRoom?.privacy.replace("_", " ")}
               </span>
             </h1>
 
-            <div className="text-xs text-ink-soft mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+            <div className="text-xs text-muted-foreground mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
               <span>
-                DJ: <strong className="text-ink font-semibold">{isHost ? "You (Host)" : activeRoom?.hostName}</strong>
+                DJ: <strong className="text-foreground font-semibold">{isHost ? "You (Host)" : activeRoom?.hostName}</strong>
               </span>
               <span>•</span>
               <span>{members.length} {members.length === 1 ? "listener" : "listeners"} connected</span>
@@ -148,7 +148,7 @@ function JamRouteComponent() {
                       </span>
                     )}
                     {syncStatus === "syncing" && (
-                      <span className="px-1.5 py-0.5 rounded-xs bg-stone/20 text-ink-soft border border-line">
+                      <span className="px-1.5 py-0.5 rounded-xs bg-secondary/20 text-muted-foreground border border-border">
                         ○ Calibrating
                       </span>
                     )}
@@ -162,7 +162,7 @@ function JamRouteComponent() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-3.5 py-1.5 rounded-xs border border-line bg-panel hover:bg-canvas hover:border-ink text-ink font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
             >
               <span>{copied ? "Copied Link!" : "Copy Invite Link"}</span>
             </button>
@@ -185,9 +185,9 @@ function JamRouteComponent() {
         {/* Left 2 Cols: Now Playing & Collaborative Queue */}
         <div className="lg:col-span-2 space-y-6">
           {/* Current Playing Card */}
-          <div className="p-5 sm:p-6 rounded-xs bg-panel border border-line space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+          <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Now Playing in Jam
               </span>
               <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -197,7 +197,7 @@ function JamRouteComponent() {
 
             {currentTrack ? (
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xs bg-stone/20 overflow-hidden border border-line shrink-0 shadow-xs">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xs bg-secondary/20 overflow-hidden border border-border shrink-0 shadow-xs">
                   {currentTrack.coverImageUrl ? (
                     <img
                       src={currentTrack.coverImageUrl}
@@ -205,45 +205,45 @@ function JamRouteComponent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif text-2xl text-ink-soft italic">
+                    <div className="w-full h-full flex items-center justify-center font-serif text-2xl text-muted-foreground italic">
                       🎵
                     </div>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-sans font-semibold text-xl sm:text-2xl text-ink truncate leading-tight">
+                  <h3 className="font-sans font-semibold text-xl sm:text-2xl text-foreground truncate leading-tight">
                     {currentTrack.title}
                   </h3>
-                  <p className="text-sm text-ink-soft truncate mt-1">
+                  <p className="text-sm text-muted-foreground truncate mt-1">
                     {currentTrack.artistName || "Unknown Artist"}
                   </p>
                   {currentTrack.albumTitle && (
-                    <p className="font-mono text-[11px] text-ink-soft/70 truncate mt-0.5">
+                    <p className="font-mono text-[11px] text-muted-foreground/70 truncate mt-0.5">
                       {currentTrack.albumTitle}
                     </p>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="py-8 text-center text-ink-soft italic font-serif text-sm">
+              <div className="py-8 text-center text-muted-foreground italic font-serif text-sm">
                 No track currently playing. The DJ can select a track from the catalog to start the music.
               </div>
             )}
           </div>
 
           {/* Collaborative Jam Queue */}
-          <div className="p-5 sm:p-6 rounded-xs bg-panel border border-line space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+          <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Up Next in Jam ({jamQueue.length})
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                 Collaborative Queue
               </span>
             </div>
 
             {jamQueue.length === 0 ? (
-              <p className="text-xs text-ink-soft italic py-6 text-center font-serif">
+              <p className="text-xs text-muted-foreground italic py-6 text-center font-serif">
                 The Jam queue is currently empty. Browse the catalog and click "Add to Jam Queue" on any song to contribute!
               </p>
             ) : (
@@ -251,19 +251,19 @@ function JamRouteComponent() {
                 {jamQueue.map((track, idx) => (
                   <div
                     key={`${track.id}-${idx}`}
-                    className="flex items-center justify-between p-3 rounded-xs bg-canvas border border-line hover:border-ink/20 transition text-xs"
+                    className="flex items-center justify-between p-3 rounded-xs bg-background border border-border hover:border-foreground/20 transition text-xs"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="font-mono text-ink-soft text-xs w-5 shrink-0">{idx + 1}</span>
+                      <span className="font-mono text-muted-foreground text-xs w-5 shrink-0">{idx + 1}</span>
                       <div className="min-w-0">
-                        <div className="font-medium text-ink truncate">{track.title}</div>
-                        <div className="text-[11px] text-ink-soft truncate">{track.artistName}</div>
+                        <div className="font-medium text-foreground truncate">{track.title}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">{track.artistName}</div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       {track.addedByDisplayName && (
-                        <span className="font-mono text-[11px] text-ink-soft bg-stone/20 px-1.5 py-0.5 rounded-xs border border-line">
+                        <span className="font-mono text-[11px] text-muted-foreground bg-secondary/20 px-1.5 py-0.5 rounded-xs border border-border">
                           Added by {track.addedByDisplayName}
                         </span>
                       )}
@@ -277,9 +277,9 @@ function JamRouteComponent() {
 
         {/* Right Col: Connected Listeners & Room Details */}
         <div className="space-y-6">
-          <div className="p-5 sm:p-6 rounded-xs bg-panel border border-line space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft font-semibold">
+          <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Members ({members.length})
               </span>
               <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -291,7 +291,7 @@ function JamRouteComponent() {
               {members.map((m) => (
                 <div
                   key={m.userId}
-                  className="flex items-center justify-between p-2.5 rounded-xs bg-canvas border border-line text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xs bg-background border border-border text-xs"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-xs shrink-0 overflow-hidden">
@@ -301,8 +301,8 @@ function JamRouteComponent() {
                         m.displayName.charAt(0).toUpperCase()
                       )}
                     </div>
-                    <span className="font-medium text-ink truncate">
-                      {m.displayName} {m.userId === useAuthStore.getState().user?.id && <span className="text-ink-soft text-[11px]">(You)</span>}
+                    <span className="font-medium text-foreground truncate">
+                      {m.displayName} {m.userId === useAuthStore.getState().user?.id && <span className="text-muted-foreground text-[11px]">(You)</span>}
                     </span>
                   </div>
 
@@ -316,7 +316,7 @@ function JamRouteComponent() {
                         <button
                           type="button"
                           onClick={() => transferHost(m.userId)}
-                          className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-line hover:border-emerald-500 bg-panel hover:bg-emerald-500 hover:text-white text-ink-soft transition cursor-pointer"
+                          className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-border hover:border-emerald-500 bg-card hover:bg-emerald-500 hover:text-white text-muted-foreground transition cursor-pointer"
                           title="Pass the DJ control to this listener"
                         >
                           Pass Aux

@@ -185,18 +185,18 @@ function UserProfileComponent() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="animate-pulse space-y-6">
-          <div className="flex items-center gap-6 pb-8 border-b border-line">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-stone/20" />
+          <div className="flex items-center gap-6 pb-8 border-b border-border">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-secondary/20" />
             <div className="space-y-3 flex-1">
-              <div className="h-4 bg-stone/20 rounded w-24" />
-              <div className="h-8 bg-stone/20 rounded w-64" />
-              <div className="h-4 bg-stone/20 rounded w-48" />
+              <div className="h-4 bg-secondary/20 rounded w-24" />
+              <div className="h-8 bg-secondary/20 rounded w-64" />
+              <div className="h-4 bg-secondary/20 rounded w-48" />
             </div>
           </div>
-          <div className="h-10 bg-stone/20 rounded w-72" />
+          <div className="h-10 bg-secondary/20 rounded w-72" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 bg-stone/20 rounded" />
+              <div key={i} className="h-48 bg-secondary/20 rounded" />
             ))}
           </div>
         </div>
@@ -207,13 +207,13 @@ function UserProfileComponent() {
   if (!profile) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="font-serif italic text-3xl text-ink mb-3">User Not Found</div>
-        <p className="font-sans text-sm text-ink-soft mb-6">
+        <div className="font-serif italic text-3xl text-foreground mb-3">User Not Found</div>
+        <p className="font-sans text-sm text-muted-foreground mb-6">
           The listener or artist profile you are looking for does not exist or has been deactivated.
         </p>
         <Link
           to="/"
-          className="inline-block bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors"
+          className="inline-block bg-foreground text-background font-mono text-xs uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors"
         >
           Return Home
         </Link>
@@ -233,17 +233,17 @@ function UserProfileComponent() {
       <div className="mb-6">
         <Link
           to="/feed"
-          className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink transition-colors"
+          className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
         >
           <span>← Back to Community</span>
         </Link>
       </div>
 
       {/* User Hero Header */}
-      <div className="border border-line bg-panel p-6 sm:p-8 shadow-xs mb-8">
+      <div className="border border-border bg-card p-6 sm:p-8 shadow-xs mb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
           {/* Avatar */}
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-canvas-deep border-2 border-line overflow-hidden shrink-0 flex items-center justify-center font-mono text-3xl sm:text-4xl font-semibold text-ink-soft shadow-inner">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-muted border-2 border-border overflow-hidden shrink-0 flex items-center justify-center font-mono text-3xl sm:text-4xl font-semibold text-muted-foreground shadow-inner">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
@@ -258,11 +258,11 @@ function UserProfileComponent() {
           {/* User Bio & Actions */}
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
-              <span className="bg-canvas border border-line text-ink-soft font-mono text-[11px] uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+              <span className="bg-background border border-border text-muted-foreground font-mono text-[11px] uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                 {profile.role}
               </span>
               {profile.isPrivateAccount && (
-                <span className="flex items-center gap-1 bg-stone/20 text-ink-soft font-mono text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 bg-secondary/20 text-muted-foreground font-mono text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                   <LockIconSVG className="w-2.5 h-2.5" />
                   Private Account
                 </span>
@@ -275,39 +275,39 @@ function UserProfileComponent() {
               )}
             </div>
 
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-ink font-semibold mb-2">
+            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-semibold mb-2">
               {profile.displayName}
             </h1>
 
-            <p className="font-mono text-[11px] text-ink-soft mb-6">
+            <p className="font-mono text-[11px] text-muted-foreground mb-6">
               Member since {formatDate(profile.createdAt)}
             </p>
 
             {/* Metrics Strip */}
-            <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-8 border-t border-line/60 pt-4">
+            <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-8 border-t border-border/60 pt-4">
               <div>
-                <span className="font-mono text-base sm:text-lg font-bold text-ink block">
+                <span className="font-mono text-base sm:text-lg font-bold text-foreground block">
                   {profile.followersCount}
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Followers
                 </span>
               </div>
-              <div className="h-6 w-px bg-line" />
+              <div className="h-6 w-px bg-border" />
               <div>
-                <span className="font-mono text-base sm:text-lg font-bold text-ink block">
+                <span className="font-mono text-base sm:text-lg font-bold text-foreground block">
                   {profile.followingCount}
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Following
                 </span>
               </div>
-              <div className="h-6 w-px bg-line" />
+              <div className="h-6 w-px bg-border" />
               <div>
-                <span className="font-mono text-base sm:text-lg font-bold text-ink block">
+                <span className="font-mono text-base sm:text-lg font-bold text-foreground block">
                   {profile.publicPlaylistsCount}
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Playlists
                 </span>
               </div>
@@ -319,7 +319,7 @@ function UserProfileComponent() {
             {isOwnProfile ? (
               <Link
                 to="/profile"
-                className="bg-canvas border border-line text-ink hover:border-ink font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-colors shadow-2xs"
+                className="bg-background border border-border text-foreground hover:border-foreground font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-colors shadow-2xs"
               >
                 Edit Profile
               </Link>
@@ -329,7 +329,7 @@ function UserProfileComponent() {
                   type="button"
                   disabled={isActing}
                   onClick={handleAcceptRequest}
-                  className="bg-ink text-canvas hover:bg-ink/80 font-mono text-xs uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
+                  className="bg-foreground text-background hover:bg-foreground/80 font-mono text-xs uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
                 >
                   Accept
                 </button>
@@ -337,7 +337,7 @@ function UserProfileComponent() {
                   type="button"
                   disabled={isActing}
                   onClick={handleRejectRequest}
-                  className="bg-canvas border border-line text-ink-soft hover:text-ink font-mono text-xs uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
+                  className="bg-background border border-border text-muted-foreground hover:text-foreground font-mono text-xs uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
                 >
                   Decline
                 </button>
@@ -347,7 +347,7 @@ function UserProfileComponent() {
                 type="button"
                 disabled={isActing}
                 onClick={handleFollowAction}
-                className="group bg-canvas-deep border border-line text-ink-soft font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-colors cursor-pointer hover:border-red-500/40 hover:text-red-500"
+                className="group bg-muted border border-border text-muted-foreground font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-colors cursor-pointer hover:border-red-500/40 hover:text-red-500"
               >
                 <span className="group-hover:hidden">Requested</span>
                 <span className="hidden group-hover:inline">Cancel Request</span>
@@ -357,7 +357,7 @@ function UserProfileComponent() {
                 type="button"
                 disabled={isActing}
                 onClick={handleFollowAction}
-                className="group bg-panel border border-line text-ink font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-all cursor-pointer hover:border-red-500/40 hover:text-red-500"
+                className="group bg-card border border-border text-foreground font-mono text-xs uppercase tracking-wider px-5 py-2.5 transition-all cursor-pointer hover:border-red-500/40 hover:text-red-500"
               >
                 <span className="group-hover:hidden">
                   {relationship === "FRIENDS" ? "Friends" : "Following"}
@@ -369,7 +369,7 @@ function UserProfileComponent() {
                 type="button"
                 disabled={isActing}
                 onClick={handleFollowAction}
-                className="bg-ink text-canvas hover:bg-ink/80 font-mono text-xs uppercase tracking-wider px-6 py-2.5 transition-colors cursor-pointer shadow-xs"
+                className="bg-foreground text-background hover:bg-foreground/80 font-mono text-xs uppercase tracking-wider px-6 py-2.5 transition-colors cursor-pointer shadow-xs"
               >
                 {profile.isPrivateAccount ? "Request Follow" : "Follow"}
               </button>
@@ -382,16 +382,16 @@ function UserProfileComponent() {
       <div>
         {/* If Library is Forbidden */}
         {libraryError?.isForbidden ? (
-          <div className="border border-line bg-panel p-8 sm:p-12 text-center shadow-xs">
-            <div className="w-12 h-12 rounded-full bg-stone/20 border border-line flex items-center justify-center mx-auto mb-4 text-ink-soft">
+          <div className="border border-border bg-card p-8 sm:p-12 text-center shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-secondary/20 border border-border flex items-center justify-center mx-auto mb-4 text-muted-foreground">
               <LockIconSVG className="w-6 h-6" />
             </div>
-            <h3 className="font-serif italic text-2xl text-ink mb-2">
+            <h3 className="font-serif italic text-2xl text-foreground mb-2">
               {libraryError.privacy === "FOLLOWERS_ONLY"
                 ? "Followers-Only Library"
                 : "Private Library"}
             </h3>
-            <p className="font-sans text-xs text-ink-soft max-w-md mx-auto mb-6 leading-relaxed">
+            <p className="font-sans text-xs text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
               {libraryError.privacy === "FOLLOWERS_ONLY"
                 ? `Follow ${profile.displayName} to unlock access to their shared playlists, saved albums, and liked tracks.`
                 : `${profile.displayName} has chosen to keep their music library private.`}
@@ -404,12 +404,12 @@ function UserProfileComponent() {
                     type="button"
                     disabled={isActing}
                     onClick={handleFollowAction}
-                    className="bg-ink text-canvas font-mono text-xs uppercase tracking-wider px-6 py-3 border border-ink hover:bg-canvas hover:text-ink transition-colors cursor-pointer"
+                    className="bg-foreground text-background font-mono text-xs uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors cursor-pointer"
                   >
                     Follow to Unlock
                   </button>
                 ) : relationship === "PENDING_SENT" ? (
-                  <span className="font-mono text-xs uppercase tracking-wider text-ink-soft border border-line px-4 py-2 bg-canvas inline-block">
+                  <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground border border-border px-4 py-2 bg-background inline-block">
                     Follow Request Pending
                   </span>
                 ) : null}
@@ -419,20 +419,20 @@ function UserProfileComponent() {
         ) : isLoadingLibrary ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-pulse">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 bg-stone/20 rounded" />
+              <div key={i} className="h-48 bg-secondary/20 rounded" />
             ))}
           </div>
         ) : library ? (
           <div>
             {/* Library Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-line pb-px mb-6 overflow-x-auto">
+            <div className="flex items-center gap-2 border-b border-border pb-px mb-6 overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab("playlists")}
                 className={`font-mono text-xs uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === "playlists"
-                    ? "border-ink text-ink font-semibold"
-                    : "border-transparent text-ink-soft hover:text-ink"
+                    ? "border-foreground text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Playlists ({totalPlaylistsCount})
@@ -442,8 +442,8 @@ function UserProfileComponent() {
                 onClick={() => setActiveTab("albums")}
                 className={`font-mono text-xs uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === "albums"
-                    ? "border-ink text-ink font-semibold"
-                    : "border-transparent text-ink-soft hover:text-ink"
+                    ? "border-foreground text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Albums & Releases ({savedAlbumsCount})
@@ -453,8 +453,8 @@ function UserProfileComponent() {
                 onClick={() => setActiveTab("liked")}
                 className={`font-mono text-xs uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === "liked"
-                    ? "border-ink text-ink font-semibold"
-                    : "border-transparent text-ink-soft hover:text-ink"
+                    ? "border-foreground text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Liked Songs ({likedSongsCount})
@@ -466,12 +466,12 @@ function UserProfileComponent() {
               <div className="space-y-10">
                 {/* Created Playlists */}
                 <div>
-                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
+                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
                     Created by {profile.displayName} ({createdCount})
                   </h3>
 
                   {createdCount === 0 ? (
-                    <div className="border border-line bg-panel p-8 text-center text-xs text-ink-soft">
+                    <div className="border border-border bg-card p-8 text-center text-xs text-muted-foreground">
                       No public playlists created yet.
                     </div>
                   ) : (
@@ -494,7 +494,7 @@ function UserProfileComponent() {
                 {/* Saved Playlists */}
                 {savedPlaylistsCount > 0 && (
                   <div>
-                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
+                    <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
                       Saved Playlists ({savedPlaylistsCount})
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -535,7 +535,7 @@ function UserProfileComponent() {
                           imageUrl={album.coverImageUrl}
                           artistName={album.artistName}
                           badge={
-                            <span className="bg-panel/90 backdrop-blur-md text-primary text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-line/40 font-semibold">
+                            <span className="bg-card/90 backdrop-blur-md text-primary text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm border border-border/40 font-semibold">
                               Pre-Saved
                             </span>
                           }
@@ -547,12 +547,12 @@ function UserProfileComponent() {
 
                 {/* Saved Albums */}
                 <div>
-                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
+                  <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
                     Saved Albums ({library.savedAlbums?.length || 0})
                   </h3>
 
                   {!library.savedAlbums || library.savedAlbums.length === 0 ? (
-                    <div className="border border-line bg-panel p-8 text-center text-xs text-ink-soft">
+                    <div className="border border-border bg-card p-8 text-center text-xs text-muted-foreground">
                       No saved albums found in library.
                     </div>
                   ) : (
@@ -577,16 +577,16 @@ function UserProfileComponent() {
             {/* TAB 3: LIKED SONGS */}
             {activeTab === "liked" && (
               <div>
-                <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-4">
+                <h3 className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
                   Recent Liked Songs ({library.likedSongs?.items?.length || 0})
                 </h3>
 
                 {!library.likedSongs?.items || library.likedSongs.items.length === 0 ? (
-                  <div className="border border-line bg-panel p-8 text-center text-xs text-ink-soft">
+                  <div className="border border-border bg-card p-8 text-center text-xs text-muted-foreground">
                     No public liked tracks in this library.
                   </div>
                 ) : (
-                  <div className="border border-line bg-panel shadow-xs divide-y divide-line">
+                  <div className="border border-border bg-card shadow-xs divide-y divide-border">
                     {library.likedSongs.items.map((song, index) => {
                       const playerTrackData: PlayerTrack = {
                         id: song.id,

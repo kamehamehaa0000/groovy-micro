@@ -21,15 +21,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANT: Record<ButtonVariant, string> = {
   /* Groovy's signature CTA: solid ink, brand-primary on hover. */
   primary:
-    'border-ink bg-ink text-canvas hover:border-primary hover:bg-primary hover:text-primary-foreground',
+    'border-foreground bg-foreground text-background hover:border-primary hover:bg-primary hover:text-primary-foreground',
   brand:
     'border-primary bg-primary text-primary-foreground hover:border-primary-strong hover:bg-primary-strong',
   outline:
-    'border-line bg-transparent text-ink hover:border-primary hover:text-primary',
+    'border-border bg-transparent text-foreground hover:border-primary hover:text-primary',
   ghost:
-    'border-transparent bg-transparent text-ink-soft hover:bg-stone/20 hover:text-ink',
+    'border-transparent bg-transparent text-muted-foreground hover:bg-secondary/20 hover:text-foreground',
   danger:
-    'border-danger/40 bg-transparent text-danger hover:border-danger hover:bg-danger hover:text-danger-foreground',
+    'border-destructive/40 bg-transparent text-destructive hover:border-destructive hover:bg-destructive hover:text-destructive-foreground',
 }
 
 const SIZE: Record<ButtonSize, string> = {

@@ -251,8 +251,8 @@ export function CommentItem({
     <div
       className={`group flex flex-col gap-2 ${
         isRoot
-          ? "border-b border-line-soft pb-4 pt-3"
-          : "ml-6 pl-3 border-l-2 border-line-soft/80 py-2"
+          ? "border-b border-border-soft pb-4 pt-3"
+          : "ml-6 pl-3 border-l-2 border-border-soft/80 py-2"
       }`}
     >
       {/* Pinned Header Badge */}
@@ -268,8 +268,8 @@ export function CommentItem({
         <div className="flex items-center gap-2.5">
           {/* Avatar / Generic User Icon for Deleted / Fallback Initials */}
           {comment.isDeleted ? (
-            <div className="w-7 h-7 rounded-full bg-stone/25 border border-line flex items-center justify-center text-ink-soft">
-              <UserIcon className="w-3.5 h-3.5 text-ink-soft" />
+            <div className="w-7 h-7 rounded-full bg-secondary/25 border border-border flex items-center justify-center text-muted-foreground">
+              <UserIcon className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
           ) : (
             <Link
@@ -281,10 +281,10 @@ export function CommentItem({
                 <img
                   src={comment.userAvatarUrl}
                   alt={comment.userName}
-                  className="w-7 h-7 rounded-full object-cover border border-line"
+                  className="w-7 h-7 rounded-full object-cover border border-border"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-stone/40 border border-line flex items-center justify-center font-mono text-xs font-medium text-ink">
+                <div className="w-7 h-7 rounded-full bg-secondary/40 border border-border flex items-center justify-center font-mono text-xs font-medium text-foreground">
                   {(comment.userName || "U").charAt(0).toUpperCase()}
                 </div>
               )}
@@ -293,21 +293,21 @@ export function CommentItem({
 
           <div className="flex items-center gap-2">
             {comment.isDeleted ? (
-              <span className="text-xs font-semibold text-ink-soft">User</span>
+              <span className="text-xs font-semibold text-muted-foreground">User</span>
             ) : (
               <Link
                 to="/users/$id"
                 params={{ id: comment.userId }}
-                className="text-xs font-semibold text-ink hover:text-primary transition-colors"
+                className="text-xs font-semibold text-foreground hover:text-primary transition-colors"
               >
                 {comment.userName}
               </Link>
             )}
-            <span className="font-mono text-[11px] text-ink-soft">
+            <span className="font-mono text-[11px] text-muted-foreground">
               {formatRelativeTime(comment.createdAt)}
             </span>
             {comment.isEdited && !comment.isDeleted && (
-              <span className="font-mono text-[11px] text-ink-soft/70 italic">
+              <span className="font-mono text-[11px] text-muted-foreground/70 italic">
                 (edited)
               </span>
             )}
@@ -324,7 +324,7 @@ export function CommentItem({
             className={`p-1 rounded cursor-pointer transition-colors ${
               comment.isPinned
                 ? "text-primary bg-primary/10"
-                : "text-ink-soft/40 hover:text-ink hover:bg-stone/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                : "text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             }`}
           >
             <PinIcon filled={comment.isPinned} className="w-3.5 h-3.5" />
@@ -344,9 +344,9 @@ export function CommentItem({
           />
         </div>
       ) : (
-        <div className="text-sm leading-relaxed text-ink pl-9">
+        <div className="text-sm leading-relaxed text-foreground pl-9">
           {comment.isDeleted ? (
-            <span className="italic text-ink-soft/70">[Comment deleted]</span>
+            <span className="italic text-muted-foreground/70">[Comment deleted]</span>
           ) : (
             <p className="whitespace-pre-wrap break-words">
               {/* If this is a reply with a recipient username, show mention tag */}
@@ -363,7 +363,7 @@ export function CommentItem({
 
       {/* Action Bar (Votes, Reply, Edit, Delete) */}
       {!comment.isDeleted && !isEditing && (
-        <div className="flex items-center gap-4 pl-9 text-xs text-ink-soft">
+        <div className="flex items-center gap-4 pl-9 text-xs text-muted-foreground">
           {/* Upvote Button */}
           <button
             type="button"
@@ -372,7 +372,7 @@ export function CommentItem({
             className={`flex items-center gap-1.5 py-1 px-1.5 -ml-1.5 rounded transition-all cursor-pointer select-none ${
               isUpvoted
                 ? "text-primary bg-primary/10 font-semibold"
-                : "text-ink-soft hover:text-ink hover:bg-stone/20"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
             }`}
           >
             <UpvoteIcon active={isUpvoted} className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export function CommentItem({
             className={`flex items-center gap-1.5 py-1 px-1.5 rounded transition-all cursor-pointer select-none ${
               isDownvoted
                 ? "text-red-500 bg-red-500/10 font-semibold"
-                : "text-ink-soft hover:text-ink hover:bg-stone/20"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
             }`}
           >
             <DownvoteIcon active={isDownvoted} className="w-3.5 h-3.5" />
@@ -398,7 +398,7 @@ export function CommentItem({
           <button
             type="button"
             onClick={() => setIsReplying(!isReplying)}
-            className="flex items-center gap-1 hover:text-ink cursor-pointer transition-colors"
+            className="flex items-center gap-1 hover:text-foreground cursor-pointer transition-colors"
           >
             <ReplyIcon className="w-3 h-3" />
             <span className="font-mono text-[11px]">Reply</span>
@@ -409,7 +409,7 @@ export function CommentItem({
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="hover:text-ink cursor-pointer font-mono text-[11px] transition-colors"
+              className="hover:text-foreground cursor-pointer font-mono text-[11px] transition-colors"
             >
               Edit
             </button>
@@ -500,7 +500,7 @@ export function CommentItem({
                   type="button"
                   onClick={handleLoadMoreReplies}
                   disabled={isLoadingReplies}
-                  className="self-start text-xs font-mono text-ink-soft hover:text-ink cursor-pointer mt-1 underline"
+                  className="self-start text-xs font-mono text-muted-foreground hover:text-foreground cursor-pointer mt-1 underline"
                 >
                   {isLoadingReplies ? "Loading replies..." : "Load more replies"}
                 </button>

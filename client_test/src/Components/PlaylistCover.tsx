@@ -31,7 +31,7 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
   // 2. Client-side dynamic 2x2 CSS grid mosaic cover
   if (mosaicCovers && mosaicCovers.length >= 4) {
     return (
-      <div className={`w-full h-full grid grid-cols-2 grid-rows-2 overflow-hidden bg-canvas-deep ${className}`}>
+      <div className={`w-full h-full grid grid-cols-2 grid-rows-2 overflow-hidden bg-muted ${className}`}>
         {mosaicCovers.slice(0, 4).map((imgUrl, index) => (
           <img
             key={index}
@@ -60,10 +60,10 @@ export const PlaylistCover: React.FC<PlaylistCoverProps> = ({
   // 4. Fallback placeholder (Vinyl record / playlist groove icon)
   return (
     <div
-      className={`w-full h-full flex items-center justify-center bg-canvas-deep border border-line ${className}`}
+      className={`w-full h-full flex items-center justify-center bg-muted border border-border ${className}`}
     >
       <svg
-        className="w-8 h-8 sm:w-10 sm:h-10 text-ink-soft/40"
+        className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/40"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

@@ -212,10 +212,10 @@ function LikedSongsPage() {
         <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-indigo-700 via-indigo-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
           <HeartIconSVG filled={true} className="w-10 h-10" />
         </div>
-        <h1 className="font-serif italic text-3xl sm:text-4xl text-ink mb-3">
+        <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground mb-3">
           Your Liked Songs
         </h1>
-        <p className="font-sans text-sm text-ink-soft max-w-md mx-auto mb-8 leading-relaxed">
+        <p className="font-sans text-sm text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
           Sign in or create an account to view and play all tracks you've saved
           across your listening sessions.
         </p>
@@ -230,7 +230,7 @@ function LikedSongsPage() {
                 'Sign in to access your personal collection of liked tracks.',
             })
           }
-          className="font-mono text-xs uppercase tracking-wider py-3 px-8 bg-ink text-canvas hover:opacity-90 font-semibold cursor-pointer shadow-sm"
+          className="font-mono text-xs uppercase tracking-wider py-3 px-8 bg-foreground text-background hover:opacity-90 font-semibold cursor-pointer shadow-sm"
         >
           Sign In / Register
         </button>
@@ -241,10 +241,10 @@ function LikedSongsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 select-none">
       {/* ===================== HERO HEADER ===================== */}
-      <div className="border border-line bg-panel p-6 sm:p-10 shadow-xs relative overflow-hidden">
+      <div className="border border-border bg-card p-6 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
           {/* Gradient Cover Container */}
-          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-linear-to-br from-indigo-800 via-indigo-600 to-blue-500 border border-line shadow-md overflow-hidden relative flex items-center justify-center select-none shadow-inner">
+          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-linear-to-br from-indigo-800 via-indigo-600 to-blue-500 border border-border shadow-md overflow-hidden relative flex items-center justify-center select-none shadow-inner">
             <div className="text-white scale-125 transform hover:scale-135 transition-transform duration-200">
               <HeartIconSVG
                 filled={true}
@@ -257,22 +257,22 @@ function LikedSongsPage() {
           <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
             {/* Badges */}
             <div className="flex items-center gap-2.5 flex-wrap font-mono text-[11px] uppercase tracking-wider">
-              <span className="px-2.5 py-0.5 border border-line bg-canvas text-primary font-semibold">
+              <span className="px-2.5 py-0.5 border border-border bg-background text-primary font-semibold">
                 Collection
               </span>
-              <span className="px-2 py-0.5 border border-line text-ink-soft">
+              <span className="px-2 py-0.5 border border-border text-muted-foreground">
                 Private
               </span>
             </div>
 
             {/* Title */}
-            <h1 className="font-serif italic text-3xl sm:text-5xl text-ink tracking-tight leading-tight truncate">
+            <h1 className="font-serif italic text-3xl sm:text-5xl text-foreground tracking-tight leading-tight truncate">
               Liked Songs
             </h1>
 
             {/* User Attribution & Total Stats */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-xs text-ink-soft pt-1">
-              <span className="text-ink font-serif italic text-sm">
+            <div className="flex items-center gap-2.5 flex-wrap font-mono text-xs text-muted-foreground pt-1">
+              <span className="text-foreground font-serif italic text-sm">
                 {user?.displayName || 'Your Favorites'}
               </span>
               <span>&bull;</span>
@@ -291,7 +291,7 @@ function LikedSongsPage() {
                   <button
                     type="button"
                     onClick={handlePlayAll}
-                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-primary text-canvas hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
+                    className="font-mono text-xs uppercase tracking-wider py-2.5 px-6 bg-primary text-background hover:opacity-90 transition-opacity font-semibold shadow-2xs flex items-center gap-2 cursor-pointer"
                   >
                     {isPlayingThisContext ? (
                       <PauseIconSVG className="w-4 h-4" />
@@ -308,7 +308,7 @@ function LikedSongsPage() {
       </div>
 
       {/* ===================== FILTER & SORT TOOLBAR ===================== */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-line pb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-border pb-4">
         {/* Search within Liked Songs */}
         <div className="relative flex-1 max-w-sm">
           <input
@@ -316,14 +316,14 @@ function LikedSongsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter liked tracks by title, artist..."
-            className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-line bg-panel rounded-xl text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-ink/70 transition-all shadow-2xs"
+            className="w-full font-mono text-xs py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-2xs"
           />
-          <SearchIconSVG className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors cursor-pointer text-xs p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs p-1"
               title="Clear search"
             >
               ✕
@@ -333,14 +333,14 @@ function LikedSongsPage() {
 
         {/* Sort Options */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft flex items-center gap-1">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <SortIconSVG className="w-3.5 h-3.5" />
             Sort:
           </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="font-mono text-xs border border-line bg-canvas text-ink py-1.5 px-3 focus:outline-none focus:border-ink cursor-pointer"
+            className="font-mono text-xs border border-border bg-background text-foreground py-1.5 px-3 focus:outline-none focus:border-foreground cursor-pointer"
           >
             <option value="recent">Date Added</option>
             <option value="title">Title</option>
@@ -353,7 +353,7 @@ function LikedSongsPage() {
             onClick={() =>
               setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
             }
-            className="font-mono text-xs border border-line bg-canvas hover:bg-canvas-deep px-2.5 py-1.5 text-ink-soft hover:text-ink cursor-pointer"
+            className="font-mono text-xs border border-border bg-background hover:bg-muted px-2.5 py-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
             title={`Toggle order (${sortOrder === 'asc' ? 'Ascending' : 'Descending'})`}
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
@@ -363,12 +363,12 @@ function LikedSongsPage() {
 
       {/* ===================== TRACKLIST SECTION ===================== */}
       <div className="space-y-4">
-        <div className="flex justify-between items-baseline border-b border-line pb-3">
+        <div className="flex justify-between items-baseline border-b border-border pb-3">
           <div className="flex items-center gap-3">
-            <h2 className="font-serif italic font-medium text-xl text-ink">
+            <h2 className="font-serif italic font-medium text-xl text-foreground">
               Tracklist
             </h2>
-            <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-line bg-canvas-deep text-ink-soft">
+            <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-border bg-muted text-muted-foreground">
               {filteredAndSortedSongs.length}{' '}
               {filteredAndSortedSongs.length === 1 ? 'Cut' : 'Cuts'}
             </span>
@@ -380,7 +380,7 @@ function LikedSongsPage() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="h-16 border border-line/40 bg-panel/50 animate-pulse"
+                className="h-16 border border-border/40 bg-card/50 animate-pulse"
               />
             ))}
           </div>
@@ -389,16 +389,16 @@ function LikedSongsPage() {
             {errorMsg}
           </div>
         ) : filteredAndSortedSongs.length === 0 ? (
-          <div className="border border-line bg-panel p-12 text-center space-y-4">
-            <div className="w-12 h-12 mx-auto rounded-full bg-canvas-deep flex items-center justify-center text-ink-soft">
+          <div className="border border-border bg-card p-12 text-center space-y-4">
+            <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
               <DiscIconSVG className="w-6 h-6" />
             </div>
             {searchQuery ? (
               <>
-                <h3 className="font-serif italic text-lg text-ink">
+                <h3 className="font-serif italic text-lg text-foreground">
                   No matching tracks found
                 </h3>
-                <p className="font-sans text-xs text-ink-soft">
+                <p className="font-sans text-xs text-muted-foreground">
                   No liked songs match your query "{searchQuery}".
                 </p>
                 <button
@@ -411,16 +411,16 @@ function LikedSongsPage() {
               </>
             ) : (
               <>
-                <h3 className="font-serif italic text-lg text-ink">
+                <h3 className="font-serif italic text-lg text-foreground">
                   Songs you like will appear here
                 </h3>
-                <p className="font-sans text-xs text-ink-soft max-w-sm mx-auto">
+                <p className="font-sans text-xs text-muted-foreground max-w-sm mx-auto">
                   Save songs by tapping the heart icon on any release, album, or
                   player cut across Groovy.
                 </p>
                 <Link
                   to="/search"
-                  className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-line bg-canvas hover:bg-canvas-deep text-ink cursor-pointer transition-colors"
+                  className="inline-block mt-2 font-mono text-xs uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
                 >
                   Explore Music
                 </Link>
@@ -428,7 +428,7 @@ function LikedSongsPage() {
             )}
           </div>
         ) : (
-          <div className="border border-line bg-panel overflow-hidden shadow-2xs divide-y divide-line/40">
+          <div className="border border-border bg-card overflow-hidden shadow-2xs divide-y divide-border/40">
             {filteredAndSortedSongs.map((song, idx) => {
               const primaryCredits =
                 song.credits?.filter((c) => c.role === 'PRIMARY') || []
@@ -440,7 +440,7 @@ function LikedSongsPage() {
               return (
                 <div
                   key={song.id}
-                  className="relative group transition-colors hover:bg-canvas-deep/40"
+                  className="relative group transition-colors hover:bg-muted/40"
                 >
                   <SongRow
                     track={toPlayerTrack(song)}

@@ -63,30 +63,30 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-ink/40 backdrop-blur-xs z-50 transition-opacity"
+        className="fixed inset-0 bg-foreground/40 backdrop-blur-xs z-50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Slide-out Drawer from Right */}
       <aside
         aria-label="Quick Actions Drawer"
-        className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-panel border-l border-line p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out"
+        className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-card border-l border-border p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out"
       >
         <div className="space-y-5 overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-line pb-4">
+          <div className="flex items-center justify-between border-b border-border pb-4">
             <div>
               <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
                 Quick Actions
               </div>
-              <h3 className="font-serif italic text-base font-bold text-ink">
+              <h3 className="font-serif italic text-base font-bold text-foreground">
                 Create &amp; Collect
               </h3>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-ink-soft hover:text-ink border border-line hover:border-ink rounded cursor-pointer transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded cursor-pointer transition-colors"
               aria-label="Close action drawer"
             >
               <svg
@@ -110,7 +110,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
               <button
                 type="button"
                 onClick={handleOpenJam}
-                className="w-full flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <span>Start / Join Live Jam</span>
@@ -118,32 +118,32 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   )}
                 </span>
-                <span className="text-ink-soft">&rarr;</span>
+                <span className="text-muted-foreground">&rarr;</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCreatePlaylist}
-                className="w-full flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span>Create Playlist</span>
-                <span className="text-ink-soft">&rarr;</span>
+                <span className="text-muted-foreground">&rarr;</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleOpenCollection}
-                className="w-full flex items-center justify-between p-2 text-ink hover:bg-canvas rounded border border-transparent hover:border-line text-left cursor-pointer transition-colors"
+                className="w-full flex items-center justify-between p-2 text-foreground hover:bg-background rounded border border-transparent hover:border-border text-left cursor-pointer transition-colors"
               >
                 <span>Personal Vault</span>
-                <span className="text-ink-soft">&rarr;</span>
+                <span className="text-muted-foreground">&rarr;</span>
               </button>
             </nav>
           </div>
         </div>
 
         {/* Footer info */}
-        <div className="pt-4 border-t border-line font-mono text-[11px] uppercase tracking-wider text-ink-soft text-center">
+        <div className="pt-4 border-t border-border font-mono text-[11px] uppercase tracking-wider text-muted-foreground text-center">
           Groovy High-Fidelity Creation Desk
         </div>
       </aside>

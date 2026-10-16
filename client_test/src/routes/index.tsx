@@ -205,14 +205,14 @@ function HomeComponent() {
       {/* Editorial Hero Section (Unauthenticated Visitors)             */}
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
-        <section className="border border-line bg-panel p-8 sm:p-12 shadow-xs relative overflow-hidden">
+        <section className="border border-border bg-card p-8 sm:p-12 shadow-xs relative overflow-hidden">
           <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
-          <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-ink leading-[1.08] mb-4 max-w-2xl">
+          <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-foreground leading-[1.08] mb-4 max-w-2xl">
             A collection of sounds, Straight to your ears.
           </h1>
-          <p className="font-sans text-xs sm:text-sm text-ink-soft max-w-xl leading-relaxed mb-8">
+          <p className="font-sans text-xs sm:text-sm text-muted-foreground max-w-xl leading-relaxed mb-8">
             Crafted for uninterrupted listening. Powered by the community of
             listeners, curators and creators. Explore and experience the sound
             with never-before-felt experience.
@@ -222,14 +222,14 @@ function HomeComponent() {
             <Link
               to="/login"
               search={{ redirect: '/' }}
-              className="bg-ink text-canvas border border-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink shadow-2xs"
+              className="bg-foreground text-background border border-foreground py-3 px-6 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground shadow-2xs"
             >
               Enter the collective &rarr;
             </Link>
             <Link
               to="/register"
               search={{ redirect: '/' }}
-              className="border border-line bg-panel hover:bg-canvas-deep text-ink py-3 px-6 font-mono text-[11px] uppercase tracking-wider transition-all shadow-2xs"
+              className="border border-border bg-card hover:bg-muted text-foreground py-3 px-6 font-mono text-[11px] uppercase tracking-wider transition-all shadow-2xs"
             >
               Join the Collective
             </Link>
@@ -249,12 +249,12 @@ function HomeComponent() {
           {/* 4. Global Hits Matching Your Taste */}
           {feed?.globalHits && feed.globalHits.length > 0 && (
             <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                 <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                     Global Hits For You
                   </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  <p className="font-sans text-xs text-muted-foreground mt-0.5">
                     Trending cuts in your favorite genres
                   </p>
                 </div>
@@ -303,12 +303,12 @@ function HomeComponent() {
           {/* 2. New Releases For You */}
           {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
             <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                 <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                     New Releases For You
                   </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  <p className="font-sans text-xs text-muted-foreground mt-0.5">
                     Fresh albums & singles matching your sonic profile
                   </p>
                 </div>
@@ -334,18 +334,18 @@ function HomeComponent() {
           {/* 2. New Releases From Followed Artists (Release Radar) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
             <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                 <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                     Release Radar
                   </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  <p className="font-sans text-xs text-muted-foreground mt-0.5">
                     New drops from artists you follow
                   </p>
                 </div>
                 <Link
                   to="/releases"
-                  className="font-mono text-[11px] hover:underline uppercase tracking-wider text-ink-soft shrink-0"
+                  className="font-mono text-[11px] hover:underline uppercase tracking-wider text-muted-foreground shrink-0"
                 >
                   Release Archive
                 </Link>
@@ -373,19 +373,19 @@ function HomeComponent() {
             feed.similarArtists.artists &&
             feed.similarArtists.artists.length > 0 && (
               <section className="space-y-3">
-                <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+                <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                   <div>
-                    <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                    <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                       Similar to {feed.similarArtists.seedArtist.stageName}
                     </h2>
-                    <p className="font-sans text-xs text-ink-soft mt-0.5">
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5">
                       Curated artists sharing soundscapes, energy, and
                       subculture
                     </p>
                   </div>
                   <Link
                     to="/artists"
-                    className="font-mono hover:underline text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
+                    className="font-mono hover:underline text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
                   >
                     Explore Artists
                   </Link>
@@ -432,18 +432,18 @@ function HomeComponent() {
             feed.moreLikeSong.tracks &&
             feed.moreLikeSong.tracks.length > 0 && (
               <section className="space-y-3">
-                <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+                <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                   <div>
-                    <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                    <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                       More Like "{feed.moreLikeSong.seedSong.title}"
                     </h2>
-                    <p className="font-sans text-xs text-ink-soft mt-0.5">
+                    <p className="font-sans text-xs text-muted-foreground mt-0.5">
                       Harmonic continuity matching your repeat spin
                     </p>
                   </div>
                   <Link
                     to="/search"
-                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0"
+                    className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
                   >
                     Explore more
                   </Link>
@@ -492,16 +492,16 @@ function HomeComponent() {
           {/* 7. My Saved or Created Playlists */}
           {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
             <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                 <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                     Your Playlists
                   </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  <p className="font-sans text-xs text-muted-foreground mt-0.5">
                     Jump back into your personal and saved playlists
                   </p>
                 </div>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-ink-soft shrink-0">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground shrink-0">
                   Library
                 </span>
               </div>
@@ -526,12 +526,12 @@ function HomeComponent() {
           {/* 8. Radio Mixes (Kept at the end as requested) */}
           {feed?.radioMixes && feed.radioMixes.length > 0 && (
             <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-line pb-2.5">
+              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
                 <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-ink">
+                  <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                     Personalized Radio Mixes
                   </h2>
-                  <p className="font-sans text-xs text-ink-soft mt-0.5">
+                  <p className="font-sans text-xs text-muted-foreground mt-0.5">
                     Infinite flow seeded from 5 diverse songs in your rotation
                   </p>
                 </div>
@@ -548,7 +548,7 @@ function HomeComponent() {
                       imageUrl={mix.coverImageUrl}
                       artistName={mix.seedArtistName}
                       badge={
-                        <span className="px-1.5 py-0.5 rounded text-xs font-mono tracking-wider uppercase bg-ink/40 text-accent font-bold shadow-xs">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono tracking-wider uppercase bg-foreground/40 text-accent font-bold shadow-xs">
                           RADIO
                         </span>
                       }
@@ -562,7 +562,7 @@ function HomeComponent() {
 
           {/* Loading indicator if feed is still fetching */}
           {isLoadingFeed && (
-            <div className="py-12 text-center font-mono text-xs text-ink-soft animate-pulse">
+            <div className="py-12 text-center font-mono text-xs text-muted-foreground animate-pulse">
               Curating your personalized groove stream...
             </div>
           )}
@@ -576,19 +576,19 @@ function HomeComponent() {
         <>
           {/* Featured Master Releases Row */}
           <section className="space-y-4">
-            <div className="flex justify-between items-baseline border-b border-line pb-3">
+            <div className="flex justify-between items-baseline border-b border-border pb-3">
               <div className="flex items-center gap-3">
-                <h2 className="font-serif italic font-medium text-xl text-ink">
+                <h2 className="font-serif italic font-medium text-xl text-foreground">
                   Featured Master Releases
                 </h2>
               </div>
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 Archive MMXXVI
               </span>
             </div>
 
             {isLoadingCatalog ? (
-              <div className="py-8 text-center font-mono text-xs text-ink-soft animate-pulse">
+              <div className="py-8 text-center font-mono text-xs text-muted-foreground animate-pulse">
                 Loading master releases...
               </div>
             ) : liveAlbums.length > 0 ? (
@@ -606,8 +606,8 @@ function HomeComponent() {
                 ))}
               </div>
             ) : (
-              <div className="border border-line bg-panel divide-y divide-line/60">
-                <h3 className="font-serif font-medium text-sm text-ink p-5">
+              <div className="border border-border bg-card divide-y divide-border/60">
+                <h3 className="font-serif font-medium text-sm text-foreground p-5">
                   No releases found
                 </h3>
               </div>
@@ -616,11 +616,11 @@ function HomeComponent() {
 
           {/* Master Tapes Correspondence Slip */}
           <section className="space-y-4">
-            <div className="flex justify-between items-baseline border-b border-line pb-3">
-              <h2 className="font-serif italic font-medium text-xl text-ink">
+            <div className="flex justify-between items-baseline border-b border-border pb-3">
+              <h2 className="font-serif italic font-medium text-xl text-foreground">
                 Correspondence Slip &bull; Master Recordings
               </h2>
-              <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 {liveSongs.length > 0
                   ? `${liveSongs.length} Master Works`
                   : '6 Showcase Works'}
@@ -628,7 +628,7 @@ function HomeComponent() {
             </div>
 
             {liveSongs.length > 0 ? (
-              <div className="border border-line rounded-lg overflow-clip bg-panel divide-y divide-line/60 shadow-xs">
+              <div className="border border-border rounded-lg overflow-clip bg-card divide-y divide-border/60 shadow-xs">
                 {liveSongs.map((t, idx) => (
                   <SongRow
                     key={t.id}
@@ -640,8 +640,8 @@ function HomeComponent() {
                 ))}
               </div>
             ) : (
-              <div className="border border-line bg-panel divide-y divide-line/60">
-                <h3 className="font-serif font-medium text-sm text-ink p-5">
+              <div className="border border-border bg-card divide-y divide-border/60">
+                <h3 className="font-serif font-medium text-sm text-foreground p-5">
                   No tracks found
                 </h3>
               </div>

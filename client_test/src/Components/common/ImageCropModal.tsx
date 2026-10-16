@@ -319,15 +319,15 @@ export function ImageCropModal({
   const displayHeight = imageSize ? imageSize.height * scale : boxHeight
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-canvas/80 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
-      <div className="w-full max-w-lg border border-line bg-panel p-4 sm:p-6 shadow-2xl relative flex flex-col gap-3.5 sm:gap-4.5 rounded-xs my-auto max-h-[94vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
+      <div className="w-full max-w-lg border border-border bg-card p-4 sm:p-6 shadow-2xl relative flex flex-col gap-3.5 sm:gap-4.5 rounded-xs my-auto max-h-[94vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-line pb-2.5 sm:pb-3">
+        <div className="flex items-start justify-between border-b border-border pb-2.5 sm:pb-3">
           <div className="pr-2 min-w-0">
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-0.5 truncate">
               {subtitle}
             </span>
-            <h2 className="font-serif italic text-lg sm:text-xl text-ink truncate">
+            <h2 className="font-serif italic text-lg sm:text-xl text-foreground truncate">
               {title}
             </h2>
           </div>
@@ -335,7 +335,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-mono text-xs text-ink-soft hover:text-ink cursor-pointer disabled:opacity-40 p-1.5 -mr-1 -mt-1 shrink-0"
+            className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-40 p-1.5 -mr-1 -mt-1 shrink-0"
             aria-label="Close"
           >
             ✕
@@ -349,7 +349,7 @@ export function ImageCropModal({
         )}
 
         {/* Viewport Guidance */}
-        <p className="font-sans text-[11px] sm:text-xs text-ink-soft leading-relaxed">
+        <p className="font-sans text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
           Drag to reposition artwork. Use the slider or pinch to zoom.
         </p>
 
@@ -362,7 +362,7 @@ export function ImageCropModal({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="relative bg-canvas-deep border border-line overflow-hidden flex items-center justify-center select-none touch-none cursor-grab active:cursor-grabbing shadow-inner shrink-0"
+            className="relative bg-muted border border-border overflow-hidden flex items-center justify-center select-none touch-none cursor-grab active:cursor-grabbing shadow-inner shrink-0"
             style={{ width: `${boxWidth}px`, height: `${boxHeight}px` }}
           >
             {/* Loaded Image */}
@@ -383,7 +383,7 @@ export function ImageCropModal({
             )}
 
             {/* Rule of Thirds Grid Overlay */}
-            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none border border-line-soft/80">
+            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none border border-border-soft/80">
               <div className="border-r border-b border-white/20" />
               <div className="border-r border-b border-white/20" />
               <div className="border-b border-white/20" />
@@ -417,16 +417,16 @@ export function ImageCropModal({
         </div>
 
         {/* Controls: Zoom & Reset */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 border-t border-line-soft">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 border-t border-border-soft">
           <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft shrink-0">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground shrink-0">
               Zoom:
             </span>
             <button
               type="button"
               disabled={zoom <= 1}
               onClick={() => setZoom((z) => Math.max(1, Number((z - 0.1).toFixed(2))))}
-              className="w-7 h-7 sm:w-6 sm:h-6 border border-line bg-canvas hover:border-ink text-ink font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               aria-label="Zoom out"
             >
               −
@@ -444,12 +444,12 @@ export function ImageCropModal({
               type="button"
               disabled={zoom >= 3}
               onClick={() => setZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
-              className="w-7 h-7 sm:w-6 sm:h-6 border border-line bg-canvas hover:border-ink text-ink font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-7 h-7 sm:w-6 sm:h-6 border border-border bg-background hover:border-foreground text-foreground font-mono text-sm sm:text-xs flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               aria-label="Zoom in"
             >
               +
             </button>
-            <span className="font-mono text-[11px] text-ink-soft w-8 text-right shrink-0">
+            <span className="font-mono text-[11px] text-muted-foreground w-8 text-right shrink-0">
               {zoom.toFixed(1)}x
             </span>
           </div>
@@ -460,19 +460,19 @@ export function ImageCropModal({
               setZoom(1)
               setOffset({ x: 0, y: 0 })
             }}
-            className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink border border-line py-1.5 px-3 bg-canvas hover:bg-canvas-deep cursor-pointer text-center shrink-0 self-end sm:self-auto"
+            className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border py-1.5 px-3 bg-background hover:bg-muted cursor-pointer text-center shrink-0 self-end sm:self-auto"
           >
             Reset Framing
           </button>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t border-line">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t border-border">
           <button
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-line text-ink-soft hover:text-ink cursor-pointer disabled:opacity-50 text-center"
+            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 text-center"
           >
             Cancel
           </button>
@@ -480,11 +480,11 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting || !imageSize}
             onClick={handleConfirmCrop}
-            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-ink text-canvas font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             {isSubmitting ? (
               <>
-                <span className="inline-block w-3 h-3 border-2 border-canvas border-t-transparent rounded-full animate-spin" />
+                <span className="inline-block w-3 h-3 border-2 border-background border-t-transparent rounded-full animate-spin" />
                 <span>Uploading...</span>
               </>
             ) : (

@@ -22,10 +22,13 @@ eyebrow labels and numerals.
 | Primitives | `src/Components/ui/*` |
 | Guard script | `scripts/check-design-tokens.mjs` |
 
-**Re-skinning the app means editing one block.** The colours live only in
-`:root` (light) and `.dark` (dark) in `src/index.css`; the `@theme inline` block
-below them just publishes those variables as Tailwind utilities
-(`bg-canvas`, `text-ink`, …). Change the values, and every component follows.
+**Re-skinning the app means editing one block.** Colours live only in `:root`
+(light) and `.dark` (dark); the `@theme inline` block just publishes them as
+Tailwind utilities. Change the values, and every component follows.
+
+The vocabulary is **shadcn/ui's**, so a palette exported for shadcn
+(tweakcn.com, the shadcn registry, …) drops straight in. Tokens shadcn does not
+define are marked *extension*.
 
 ## 2. Type roles
 
@@ -40,20 +43,21 @@ below them just publishes those variables as Tailwind utilities
 
 ## 3. Color roles
 
-Surfaces/ink: `canvas`, `canvas-deep`, `panel`, `ink`, `ink-soft`, `stone`,
-`line`, `line-soft`.
-
-Accent: `primary` (the single brand highlight) · `primary-strong`
-(pressed/hover) · `primary-foreground` (text/icons placed **on** `primary`).
-
-Semantic state — use these instead of raw Tailwind palette colors:
-
-| Token | Meaning |
+| Token | Role |
 | --- | --- |
-| `success` / `success-soft` | Likes, saved, positive |
-| `danger` / `danger-soft` / `danger-foreground` | Delete, destructive, errors |
-| `warning` / `warning-soft` | Pending, scheduled, caution |
-| `scrim` | Modal/sheet backdrop |
+| `background` / `foreground` | Page base surface + primary text |
+| `card` / `card-foreground` | Raised surfaces (cards, rows) |
+| `popover` / `popover-foreground` | Floating surfaces (menus, popovers) |
+| `primary` / `primary-strong` / `primary-foreground` | Brand accent · pressed/hover · text on it |
+| `secondary` / `secondary-foreground` | Neutral fill (chips, avatars, skeletons) |
+| `muted` / `muted-foreground` | Recessed surface · secondary text |
+| `accent` / `accent-foreground` | Subtle hover / selected surface |
+| `destructive` / `destructive-soft` / `destructive-foreground` | Delete, errors |
+| `border` · `border-soft` *(extension)* | Default border · faint divider |
+| `input` · `ring` | Form border · focus ring |
+| `success` / `success-soft` *(extension)* | Likes, saved, positive |
+| `warning` / `warning-soft` *(extension)* | Pending, scheduled, caution |
+| `scrim` *(extension)* | Modal / sheet backdrop |
 
 Tokens are named for their **role, never their hue** (`primary`, not `blue`) —
 a hue name lies the moment the theme changes hue.
@@ -79,17 +83,20 @@ Everything else is flat + bordered.
 3. **Never** write `shadow-2xs` — use an elevation role.
 4. **Never** write raw `red-*`/`green-*`/`emerald-*`/`amber-*` — use a semantic token.
 5. Text on a filled accent surface uses `text-primary-foreground` (or
-   `text-danger-foreground`), never hard-coded `text-white`.
-6. New tokens belong in `index.css`; new patterns belong in a primitive.
+   `text-destructive-foreground`), never hard-coded `text-white`.
+6. **Never** reference a token that is not defined here — an unknown utility
+   compiles to nothing and fails silently.
+7. New tokens belong in `index.css`; new patterns belong in a primitive.
 
 Run `npm run lint:design` (report) or `npm run lint:design -- --strict` (gate).
 
 ## 7. Migration status
 
-- [x] **Phase 1 — Foundation**: tokens + primitives + guard. No call sites changed.
-- [x] **Phase 1.5 — Naming & theme structure**: accent renamed `blue` →
-  `primary` (~490 call sites); `index.css` restructured into the two-layer
-  contract (`:root` / `.dark` values → `@theme inline` mapping).
+- [x] **Phase 1 — Foundation**: tokens + primitives + guard.
+- [x] **Phase 1.5 — Vocabulary**: adopted the shadcn/ui token set and
+  restructured `index.css` into the two-layer contract (`:root` / `.dark` →
+  `@theme inline`). Renamed ~5,300 class tokens; repaired `canvas-soft` /
+  `panel-elevated`, which referenced tokens that were never defined (no-ops).
 - [ ] **Phase 2 — Call-site migration** (by leverage):
   `studio.tsx` → `vault.manage.tsx` → `profile.tsx` → `playlists.$id.tsx` → `feed.tsx` → …
 - [ ] **Phase 3 — Enforcement**: wire `lint:design --strict` into `lint`.

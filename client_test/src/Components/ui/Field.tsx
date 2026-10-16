@@ -7,7 +7,7 @@ import type {
 import { cn } from './cn'
 
 const CONTROL =
-  'w-full rounded-control border border-line bg-panel px-3 py-2 text-body text-ink transition-colors placeholder:text-ink-soft/50 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
+  'w-full rounded-control border border-border bg-card px-3 py-2 text-body text-foreground transition-colors placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement>
 
@@ -54,16 +54,16 @@ export function Field({
       {label ? (
         <label
           htmlFor={htmlFor}
-          className="font-mono text-eyebrow font-medium uppercase text-ink-soft"
+          className="font-mono text-eyebrow font-medium uppercase text-muted-foreground"
         >
           {label}
         </label>
       ) : null}
       {children}
       {error ? (
-        <p className="text-caption text-danger">{error}</p>
+        <p className="text-caption text-destructive">{error}</p>
       ) : hint ? (
-        <p className="text-caption text-ink-soft">{hint}</p>
+        <p className="text-caption text-muted-foreground">{hint}</p>
       ) : null}
     </div>
   )

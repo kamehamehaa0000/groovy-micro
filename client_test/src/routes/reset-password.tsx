@@ -66,12 +66,12 @@ function ResetPasswordComponent() {
 
   return (
     <div className="w-full max-w-[480px] mx-auto my-12 px-4 select-none">
-      <div className="border border-line bg-canvas p-8 sm:p-10 shadow-xs">
+      <div className="border border-border bg-background p-8 sm:p-10 shadow-xs">
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link
             to="/"
-            className="font-serif italic text-3xl tracking-[-0.03em] text-ink hover:opacity-80 transition-opacity"
+            className="font-serif italic text-3xl tracking-[-0.03em] text-foreground hover:opacity-80 transition-opacity"
           >
             Groov<span className="not-italic text-primary font-serif">y</span>
           </Link>
@@ -89,7 +89,7 @@ function ResetPasswordComponent() {
             </div>
             <Link
               to="/forgot-password"
-              className="inline-block w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink cursor-pointer"
+              className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground cursor-pointer"
             >
               Request New Link
             </Link>
@@ -98,10 +98,10 @@ function ResetPasswordComponent() {
           /* Form State */
           <>
             <div className="text-center mb-6">
-              <h1 className="font-serif text-2xl text-ink font-normal mb-2">
+              <h1 className="font-serif text-2xl text-foreground font-normal mb-2">
                 Choose a new password
               </h1>
-              <p className="font-sans text-xs text-ink-soft leading-relaxed max-w-sm mx-auto">
+              <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
                 Set a strong, unique password for your Groovy account. All other active sessions will be revoked for your security.
               </p>
             </div>
@@ -132,14 +132,14 @@ function ResetPasswordComponent() {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="rp-password"
-                    className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
+                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
                   >
                     New Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="font-mono text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer"
+                    className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -152,7 +152,7 @@ function ResetPasswordComponent() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
               </div>
 
@@ -160,7 +160,7 @@ function ResetPasswordComponent() {
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="rp-confirm-password"
-                  className="font-mono text-[11px] uppercase tracking-widest text-ink-soft"
+                  className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
                 >
                   Confirm New Password
                 </label>
@@ -172,18 +172,18 @@ function ResetPasswordComponent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full border-0 border-b border-line bg-transparent outline-none font-sans text-sm text-ink py-2 focus:border-ink placeholder:text-stone transition-colors"
+                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-sm text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
                 />
               </div>
 
               {/* Strength Checklist */}
-              <div className="p-3 bg-canvas-deep/60 border border-line/60 flex flex-col gap-1 text-[11px] font-sans">
-                <div className="font-mono text-[11px] uppercase tracking-widest text-ink-soft mb-1">
+              <div className="p-3 bg-muted/60 border border-border/60 flex flex-col gap-1 text-[11px] font-sans">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
                   Password Requirements:
                 </div>
                 <div
                   className={`flex items-center gap-2 ${
-                    hasMinLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'
+                    hasMinLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
                   }`}
                 >
                   <span>{hasMinLength ? '✔' : '○'}</span>
@@ -193,7 +193,7 @@ function ResetPasswordComponent() {
                   className={`flex items-center gap-2 ${
                     hasUpperCase && hasLowerCase
                       ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-ink-soft'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   <span>{hasUpperCase && hasLowerCase ? '✔' : '○'}</span>
@@ -201,7 +201,7 @@ function ResetPasswordComponent() {
                 </div>
                 <div
                   className={`flex items-center gap-2 ${
-                    hasDigit ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-soft'
+                    hasDigit ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
                   }`}
                 >
                   <span>{hasDigit ? '✔' : '○'}</span>
@@ -211,7 +211,7 @@ function ResetPasswordComponent() {
                   className={`flex items-center gap-2 ${
                     passwordsMatch
                       ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-ink-soft'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   <span>{passwordsMatch ? '✔' : '○'}</span>
@@ -222,13 +222,13 @@ function ResetPasswordComponent() {
               <button
                 type="submit"
                 disabled={!isFormValid || isSubmitting || !!success}
-                className="mt-2 w-full bg-ink text-canvas border border-ink py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-canvas hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? 'Resetting Password...' : 'Update Password'}
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-line/60 text-center font-sans text-xs text-ink-soft">
+            <div className="mt-8 pt-6 border-t border-border/60 text-center font-sans text-xs text-muted-foreground">
               Remember your password?{' '}
               <Link to="/login" className="text-primary hover:underline">
                 Sign In

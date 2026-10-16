@@ -160,7 +160,7 @@ export function LibraryItemCard({
           src={item.imageUrl}
           alt={item.title}
           loading="lazy"
-          className={`${sizeClasses} object-cover shadow-sm shrink-0 bg-panel ${
+          className={`${sizeClasses} object-cover shadow-sm shrink-0 bg-card ${
             item.isRoundImage ? "rounded-full" : "rounded-md"
           }`}
         />
@@ -170,7 +170,7 @@ export function LibraryItemCard({
     // Fallback initials placeholder
     return (
       <div
-        className={`${sizeClasses} bg-canvas-soft border border-line flex items-center justify-center font-mono text-xs font-semibold text-ink-soft select-none shrink-0 ${
+        className={`${sizeClasses} bg-muted border border-border flex items-center justify-center font-mono text-xs font-semibold text-muted-foreground select-none shrink-0 ${
           item.isRoundImage ? "rounded-full" : "rounded-md"
         }`}
       >
@@ -221,7 +221,7 @@ export function LibraryItemCard({
               ? "none"
               : "transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1)",
           }}
-          className="relative z-10 bg-canvas flex items-center justify-between p-2 rounded-xl hover:bg-canvas-soft/80 active:scale-[0.99] transition-colors"
+          className="relative z-10 bg-background flex items-center justify-between p-2 rounded-xl hover:bg-muted/80 active:scale-[0.99] transition-colors"
         >
           <Link
             to={item.linkTo}
@@ -232,12 +232,12 @@ export function LibraryItemCard({
 
             <div className="flex-1 min-w-0 pr-2">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-ink truncate block">
+                <span className="font-semibold text-sm text-foreground truncate block">
                   {item.title}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs text-ink-soft mt-0.5 truncate">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 truncate">
                 {item.isPinned && (
                   <span
                     title="Pinned to top"
@@ -257,7 +257,7 @@ export function LibraryItemCard({
 
   // 2. GRID / TILED VIEW (No pin/unpin/share options, pure clean card)
   return (
-    <div className="group relative flex flex-col p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none">
+    <div className="group relative flex flex-col p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none">
       <Link to={item.linkTo} className="flex flex-col w-full">
         {/* Artwork wrapper with aspect square and pin badge indicator if already pinned */}
         <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center">
@@ -266,7 +266,7 @@ export function LibraryItemCard({
           {item.isPinned && (
             <div
               title="Pinned to top"
-              className="absolute top-2 right-2 bg-panel/90 backdrop-blur-md text-emerald-500 dark:text-emerald-400 p-1 rounded-full shadow-md border border-line/40"
+              className="absolute top-2 right-2 bg-card/90 backdrop-blur-md text-emerald-500 dark:text-emerald-400 p-1 rounded-full shadow-md border border-border/40"
             >
               <PinIconSVG className="w-3 h-3" />
             </div>
@@ -275,10 +275,10 @@ export function LibraryItemCard({
 
         {/* Text information */}
         <div className="w-full">
-          <div className="font-semibold text-sm text-ink truncate">
+          <div className="font-semibold text-sm text-foreground truncate">
             {item.title}
           </div>
-          <div className="text-xs text-ink-soft truncate mt-0.5">
+          <div className="text-xs text-muted-foreground truncate mt-0.5">
             {item.subtitle}
           </div>
         </div>
