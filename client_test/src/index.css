@@ -164,7 +164,7 @@
   --font-sans:
     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* body + UI */
   --font-mono:
-    'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace; /* numerals + code */
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* numerals + code */
 
   /* Family used by every small-caps label role (Eyebrow, Button, Badge, Field
      labels, SectionHeader eyebrows). Swap this ONE line to re-voice them all:

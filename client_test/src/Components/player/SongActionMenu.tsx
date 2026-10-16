@@ -33,6 +33,7 @@ export interface SongActionMenuProps {
   hideShare?: boolean
   onRemoveFromPlaylist?: (track: PlayerTrack) => void
   customActions?: SongActionCustomItem[]
+  triggerIcon?: React.ReactNode
 }
 
 export function SongActionMenu({
@@ -49,6 +50,7 @@ export function SongActionMenu({
   hideShare = false,
   onRemoveFromPlaylist,
   customActions,
+  triggerIcon,
 }: SongActionMenuProps) {
   const isPersonal = Boolean(
     propIsPersonal ||
@@ -385,11 +387,13 @@ export function SongActionMenu({
         className={buttonClassName}
         title="More options"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-          <circle cx="12" cy="5" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="12" cy="19" r="2" />
-        </svg>
+        {triggerIcon || (
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+            <circle cx="12" cy="5" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="12" cy="19" r="2" />
+          </svg>
+        )}
       </button>
 
       {/* ==================== DESKTOP FLOATING DROPDOWN VIA PORTAL ==================== */}

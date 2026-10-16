@@ -7,6 +7,24 @@ import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { SongActionMenu } from './SongActionMenu'
 import { LiveJamBar } from '../jam/LiveJamBar'
 import { MobileMiniPlayer } from './MobileMiniPlayer'
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Repeat1,
+  Volume2,
+  Volume1,
+  VolumeX,
+  Heart,
+  ListMusic,
+  Headphones,
+  ChevronUp,
+  MoreHorizontal,
+  X,
+} from 'lucide-react'
 
 function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
@@ -14,200 +32,6 @@ function formatTime(totalSeconds: number): string {
   const secs = Math.floor(totalSeconds % 60)
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`
 }
-
-// Icons
-const PlayIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <polygon points="6 4 20 12 6 20 6 4" />
-  </svg>
-)
-
-const PauseIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <rect x="6" y="4" width="4" height="16" />
-    <rect x="14" y="4" width="4" height="16" />
-  </svg>
-)
-
-const SkipForwardIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <polygon points="5 4 15 12 5 20 5 4" />
-    <line
-      x1="19"
-      y1="5"
-      x2="19"
-      y2="19"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
-)
-
-const SkipBackIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <polygon points="19 20 9 12 19 4 19 20" />
-    <line
-      x1="5"
-      y1="5"
-      x2="5"
-      y2="19"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
-)
-
-const ShuffleIcon = ({
-  active,
-  className = 'w-4 h-4',
-}: {
-  active: boolean
-  className?: string
-}) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={`${className} ${active ? 'text-primary stroke-[2.5]' : 'text-muted-foreground hover:text-foreground'}`}
-  >
-    <polyline points="16 3 21 3 21 8" />
-    <line x1="4" y1="20" x2="21" y2="3" />
-    <polyline points="21 16 21 21 16 21" />
-    <line x1="15" y1="15" x2="21" y2="21" />
-    <line x1="4" y1="4" x2="9" y2="9" />
-  </svg>
-)
-
-const RepeatIcon = ({
-  mode,
-  className = 'w-4 h-4',
-}: {
-  mode: 'off' | 'all' | 'one'
-  className?: string
-}) => (
-  <div className="relative flex items-center justify-center">
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`${className} ${mode !== 'off' ? 'text-primary stroke-[2.5]' : 'text-muted-foreground hover:text-foreground'}`}
-    >
-      <polyline points="17 1 21 5 17 9" />
-      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-      <polyline points="7 23 3 19 7 15" />
-      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-    </svg>
-    {mode === 'one' && (
-      <span className="absolute -top-1.5 -right-2 text-[11px] leading-none font-mono font-bold text-primary bg-card px-0.5 rounded">
-        1
-      </span>
-    )}
-  </div>
-)
-
-const VolumeIcon = ({
-  muted,
-  volume,
-  className = 'w-4 h-4',
-}: {
-  muted: boolean
-  volume: number
-  className?: string
-}) => {
-  if (muted || volume === 0) {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-      >
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <line x1="23" y1="9" x2="17" y2="15" />
-        <line x1="17" y1="9" x2="23" y2="15" />
-      </svg>
-    )
-  }
-  if (volume < 0.5) {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-      >
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-      </svg>
-    )
-  }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-    </svg>
-  )
-}
-
-const QueueIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    aria-hidden="true"
-  >
-    <path d="M3.75 12h16.5" />
-    <path d="M3.75 15.75h16.5" />
-    <path d="M3.75 19.5h16.5" />
-    <path d="M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
-  </svg>
-)
-
-const HeartIcon = ({
-  filled,
-  className = 'w-4 h-4',
-}: {
-  filled: boolean
-  className?: string
-}) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill={filled ? 'currentColor' : 'none'}
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={`${className} ${filled ? 'text-red-500 fill-red-500' : 'text-neutral-400 hover:text-foreground dark:text-neutral-300 dark:hover:text-white'}`}
-  >
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-)
 
 export function PlayerBar() {
   const currentTrack = usePlayerStore((s) => s.currentTrack)
@@ -275,17 +99,24 @@ export function PlayerBar() {
     }
   }
 
+  /* ── Volume icon picker ────────────────────────────────────────────── */
+  const VolumeIcon =
+    isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2
+
+  /* ── Repeat icon picker ────────────────────────────────────────────── */
+  const RepeatIcon = repeatMode === 'one' ? Repeat1 : Repeat
+
   return (
     <>
-      {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION BANNER ===================== */}
+      {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION ===================== */}
       {supersededByDevice && (
-        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-20 left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
-          <div className="flex items-center gap-2.5 text-xs text-foreground max-w-[70%] truncate">
-            <span className="flex h-2 w-2 relative shrink-0">
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+          <div className="flex items-center gap-3 text-caption text-foreground max-w-[70%] truncate">
+            <span className="flex h-2.5 w-2.5 relative shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
             </span>
-            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
               Listening on
             </span>
             <strong className="font-semibold text-foreground truncate">
@@ -293,136 +124,107 @@ export function PlayerBar() {
             </strong>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => takeoverPlayback()}
-              className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3 py-1 font-eyebrow text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+              className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors rounded-control cursor-pointer shadow-raised font-medium"
             >
               Play here instead
             </button>
             <button
               type="button"
               onClick={() => dismissSuperseded()}
-              className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+              className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors"
               aria-label="Dismiss"
             >
-              <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
-                <path
-                  d="M4 4L12 12M12 4L4 12"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                />
-              </svg>
+              <X size={15} strokeWidth={2} />
             </button>
           </div>
         </div>
       )}
 
       {/* Live Jam Floating Bar */}
-      <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-20 md:left-0 md:right-0 z-40 select-none pointer-events-auto">
+      <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-[92px] md:left-0 md:right-0 z-40 select-none pointer-events-auto">
         <LiveJamBar />
       </div>
 
       {/* Mobile Floating Mini Player (docked above bottom nav bar) */}
       <MobileMiniPlayer />
 
+      {/* ===================== DESKTOP BOTTOM PLAYER BAR ===================== */}
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[calc(5rem+env(safe-area-inset-bottom))] pb-safe bg-card/95 backdrop-blur-md border-t border-border px-5 lg:px-8 items-center justify-between shadow-2xl transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[88px] pb-safe bg-card/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
       >
-        {/* Pinned Top Scrubber Bar (Interactive & visible across all screens) */}
-        <div
-          className="absolute top-0 left-0 right-0 h-1 bg-secondary/20 cursor-pointer group z-20"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect()
-            const clickX = e.clientX - rect.left
-            const ratio = Math.max(0, Math.min(1, clickX / rect.width))
-            seek(ratio * duration)
-          }}
-        >
-          <div
-            className="h-full bg-primary transition-all duration-75 relative"
-            style={{ width: `${progressPercent}%` }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
-          </div>
-        </div>
-
-        {/* LEFT: Track Artwork & Info + Like Button + Action Menu */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 sm:flex-initial sm:w-1/4">
-          {/* Cover Art (Click to expand / collapse Now Playing View on desktop) */}
+        {/* ━━━━━━━━ LEFT: Track Artwork & Info + Actions ━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className="flex items-center gap-3.5 min-w-0 w-[30%] min-w-[220px] max-w-[360px]">
+          {/* Cover Art (56x56px) — toggles Now Playing view */}
           <button
             type="button"
             onClick={() => toggleDesktopRightSidebar('now-playing')}
-            className={`group relative w-12 h-12 rounded bg-secondary/40 border transition-all shrink-0 overflow-hidden shadow-xs cursor-pointer ${
+            className={`group relative w-14 h-14 rounded-md bg-secondary/40 border transition-all shrink-0 overflow-hidden shadow-sm cursor-pointer ${
               desktopRightSidebarView === 'now-playing'
-                ? 'border-primary ring-1 ring-primary/50'
-                : 'border-border hover:border-foreground/40'
+                ? 'border-primary ring-2 ring-primary/30'
+                : 'border-border/80 hover:border-foreground/30'
             }`}
             title={
               desktopRightSidebarView === 'now-playing'
-                ? 'Collapse Now Playing View'
-                : 'Expand Now Playing View'
+                ? 'Collapse Now Playing'
+                : 'Expand Now Playing'
             }
           >
             {currentTrack.coverImageUrl ? (
               <img
                 src={currentTrack.coverImageUrl}
                 alt={currentTrack.title}
-                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-serif italic text-base text-muted-foreground">
+              <div className="w-full h-full flex items-center justify-center font-serif italic text-lg text-muted-foreground">
                 ♪
               </div>
             )}
-            {/* Spotify-style hover expand overlay chevron */}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`w-4 h-4 transition-transform duration-200 ${
+            {/* Hover overlay with chevron */}
+            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+              <ChevronUp
+                size={18}
+                strokeWidth={2.5}
+                className={`transition-transform duration-200 ${
                   desktopRightSidebarView === 'now-playing' ? 'rotate-180' : ''
                 }`}
-              >
-                <polyline points="18 15 12 9 6 15" />
-              </svg>
+              />
             </div>
           </button>
 
-          {/* Metadata */}
-          <div className="flex flex-col min-w-0 pr-1 flex-1">
+          {/* Title & Artist */}
+          <div className="flex flex-col min-w-0 flex-1 justify-center">
             {albumTarget ? (
               <Link
                 to="/albums/$idOrSlug"
                 params={{ idOrSlug: albumTarget }}
-                className="text-xs sm:text-sm font-semibold text-foreground truncate tracking-tight hover:text-primary transition-colors block"
+                className="font-sans text-sm font-semibold text-foreground truncate tracking-tight hover:underline transition-colors leading-snug"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
               </Link>
             ) : (
               <span
-                className="text-xs sm:text-sm font-semibold text-foreground truncate tracking-tight"
+                className="font-sans text-sm font-semibold text-foreground truncate tracking-tight leading-snug"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
               </span>
             )}
 
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate mt-0.5 leading-normal">
               {currentTrack.artistId ? (
                 <Link
                   to="/artists/$idOrSlug"
                   params={{
                     idOrSlug: currentTrack.artistSlug || currentTrack.artistId,
                   }}
-                  className="hover:text-foreground truncate transition-colors"
+                  className="hover:text-foreground hover:underline truncate transition-colors"
                 >
                   {currentTrack.artistName}
                 </Link>
@@ -431,13 +233,13 @@ export function PlayerBar() {
               )}
               {currentTrack.albumTitle && (
                 <>
-                  <span className="text-xs text-muted-foreground/40 hidden sm:inline">
+                  <span className="text-muted-foreground/40 hidden sm:inline">
                     •
                   </span>
                   <Link
                     to="/albums/$idOrSlug"
                     params={{ idOrSlug: albumTarget || '' }}
-                    className="truncate text-muted-foreground/80 hover:text-foreground transition-colors hidden sm:inline"
+                    className="truncate text-muted-foreground/70 hover:text-foreground hover:underline transition-colors hidden sm:inline"
                     title={currentTrack.albumTitle}
                   >
                     {currentTrack.albumTitle}
@@ -447,26 +249,41 @@ export function PlayerBar() {
             </div>
           </div>
 
-          {/* Like Button */}
-          <button
-            type="button"
-            onClick={handleToggleLike}
-            aria-label={isLiked ? 'Unlike song' : 'Like song'}
-            className="p-1.5 rounded-full hover:bg-secondary/20 cursor-pointer transition-colors shrink-0"
-            title={
-              isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
-            }
-          >
-            <HeartIcon filled={isLiked} className="w-4 h-4" />
-          </button>
+          {/* Quick Actions: Like Button & 3-Dot Menu */}
+          <div className="flex items-center gap-0.5 shrink-0 ml-1">
+            <button
+              type="button"
+              onClick={handleToggleLike}
+              aria-label={isLiked ? 'Unlike song' : 'Like song'}
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
+              title={
+                isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
+              }
+            >
+              <Heart
+                size={20}
+                strokeWidth={isLiked ? 0 : 2}
+                fill={isLiked ? 'currentColor' : 'none'}
+                className={
+                  isLiked
+                    ? 'text-red-500 fill-red-500'
+                    : 'text-muted-foreground hover:text-foreground transition-colors'
+                }
+              />
+            </button>
 
-          {/* Action Menu (Play Next, Add to Queue, Add to Playlist...) */}
-          <div className="shrink-0 hidden xs:block">
-            <SongActionMenu track={currentTrack} align="left" />
+            <div className="shrink-0 hidden xs:block">
+              <SongActionMenu
+                track={currentTrack}
+                align="left"
+                buttonClassName="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
+                triggerIcon={<MoreHorizontal size={20} strokeWidth={2} />}
+              />
+            </div>
           </div>
         </div>
 
-        {/* MOBILE RIGHT CONTROLS: Compact Play/Pause & Queue Toggle (< sm) */}
+        {/* ── MOBILE RIGHT CONTROLS (< sm breakpoint) ───────────────── */}
         <div className="flex sm:hidden items-center gap-2 shrink-0">
           <button
             type="button"
@@ -474,14 +291,14 @@ export function PlayerBar() {
             disabled={isLoading}
             aria-label={isPlaying ? 'Pause' : 'Play'}
             title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-            className="w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center active:scale-95 cursor-pointer shadow-md transition-all"
+            className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center active:scale-95 cursor-pointer shadow-md transition-all"
           >
             {isLoading ? (
-              <div className="w-3.5 h-3.5 border-2 border-background border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
-              <PauseIcon className="w-4 h-4 text-background" />
+              <Pause size={18} fill="currentColor" strokeWidth={0} />
             ) : (
-              <PlayIcon className="w-4 h-4 text-background ml-0.5" />
+              <Play size={18} fill="currentColor" strokeWidth={0} className="ml-0.5" />
             )}
           </button>
 
@@ -489,28 +306,39 @@ export function PlayerBar() {
             type="button"
             onClick={toggleQueueDrawer}
             title="Toggle Queue"
-            className={`relative p-1.5 rounded-md transition-colors cursor-pointer ${
+            className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
               isQueueOpen
-                ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
-            <QueueIcon className="w-5 h-5" />
+            <ListMusic size={20} strokeWidth={2} />
           </button>
         </div>
 
-        {/* DESKTOP CENTER: Playback Controls & Scrubber (hidden on mobile, sm:flex) */}
-        <div className="hidden sm:flex flex-col items-center gap-1.5 w-2/4 max-w-xl px-2">
-          {/* Button Controls */}
-          <div className="flex items-center gap-4 sm:gap-6">
+        {/* ━━━━━━━━ CENTER: Playback Controls & Scrubber ━━━━━━━━━━━━━ */}
+        <div className="hidden sm:flex flex-1 max-w-[700px] flex-col items-center justify-center px-4">
+          {/* Transport buttons row */}
+          <div className="flex items-center gap-5 sm:gap-6">
             {/* Shuffle */}
             <button
               type="button"
               onClick={toggleShuffle}
               title={isShuffle ? 'Shuffle on (S)' : 'Shuffle off (S)'}
-              className="p-1 cursor-pointer transition-colors"
+              className="relative w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-secondary/40"
             >
-              <ShuffleIcon active={isShuffle} className="w-4 h-4" />
+              <Shuffle
+                size={19}
+                strokeWidth={isShuffle ? 2.5 : 2}
+                className={
+                  isShuffle
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground transition-colors'
+                }
+              />
+              {isShuffle && (
+                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />
+              )}
             </button>
 
             {/* Previous */}
@@ -518,12 +346,12 @@ export function PlayerBar() {
               type="button"
               onClick={previous}
               title="Previous (Shift + ←)"
-              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors p-1"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/40 active:scale-90 transition-all cursor-pointer"
             >
-              <SkipBackIcon className="w-4 h-4" />
+              <SkipBack size={21} fill="currentColor" strokeWidth={2} />
             </button>
 
-            {/* Play / Pause Circular Button */}
+            {/* Play / Pause Circular Hero Button */}
             <button
               type="button"
               onClick={togglePlay}
@@ -536,14 +364,14 @@ export function PlayerBar() {
                     : 'Play (Space)'
               }
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-md transition-all duration-150"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 shadow-md hover:shadow-lg transition-all duration-150 cursor-pointer"
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
               ) : isPlaying ? (
-                <PauseIcon className="w-4 h-4 text-background" />
+                <Pause size={22} fill="currentColor" strokeWidth={0} />
               ) : (
-                <PlayIcon className="w-4 h-4 text-background ml-0.5" />
+                <Play size={22} fill="currentColor" strokeWidth={0} className="ml-0.5" />
               )}
             </button>
 
@@ -552,9 +380,9 @@ export function PlayerBar() {
               type="button"
               onClick={next}
               title="Next (Shift + →)"
-              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors p-1"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/40 active:scale-90 transition-all cursor-pointer"
             >
-              <SkipForwardIcon className="w-4 h-4" />
+              <SkipForward size={21} fill="currentColor" strokeWidth={2} />
             </button>
 
             {/* Repeat */}
@@ -562,19 +390,32 @@ export function PlayerBar() {
               type="button"
               onClick={toggleRepeat}
               title={`Repeat mode: ${repeatMode} (R)`}
-              className="p-1 cursor-pointer transition-colors"
+              className="relative w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-secondary/40"
             >
-              <RepeatIcon mode={repeatMode} className="w-4 h-4" />
+              <RepeatIcon
+                size={19}
+                strokeWidth={repeatMode !== 'off' ? 2.5 : 2}
+                className={
+                  repeatMode !== 'off'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground transition-colors'
+                }
+              />
+              {repeatMode !== 'off' && (
+                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />
+              )}
             </button>
           </div>
 
-          {/* Progress Bar & Timestamps */}
-          <div className="w-full flex items-center gap-2.5 text-[11px] font-mono text-muted-foreground">
-            <span className="w-10 text-right select-none">
+          {/* Progress bar & timestamps row */}
+          <div className="w-full flex items-center gap-3 mt-1.5 select-none">
+            <span className="w-11 text-right text-[11px] font-mono text-muted-foreground/80 tabular-nums">
               {formatTime(currentTime)}
             </span>
+
+            {/* Scrubber track container with comfortable hit padding */}
             <div
-              className="relative flex-1 h-1.5 bg-secondary/40 rounded-full cursor-pointer group flex items-center"
+              className="relative flex-1 py-2 flex items-center cursor-pointer group"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect()
                 const clickX = e.clientX - rect.left
@@ -582,65 +423,53 @@ export function PlayerBar() {
                 seek(ratio * duration)
               }}
             >
-              <div
-                className="h-full bg-foreground rounded-full relative transition-all duration-75"
-                style={{ width: `${progressPercent}%` }}
-              >
-                {/* Scrubber Knob */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-foreground rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Background track */}
+              <div className="w-full h-1 group-hover:h-1.5 bg-secondary/50 rounded-full overflow-hidden transition-all duration-150">
+                {/* Active progress fill */}
+                <div
+                  className="h-full bg-foreground group-hover:bg-primary rounded-full transition-[width] duration-75 relative"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
+
+              {/* Scrubber thumb knob on hover */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-foreground group-hover:bg-primary rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ left: `${progressPercent}%` }}
+              />
             </div>
-            <span className="w-10 select-none">{formatTime(duration)}</span>
+
+            <span className="w-11 text-left text-[11px] font-mono text-muted-foreground/80 tabular-nums">
+              {formatTime(duration)}
+            </span>
           </div>
         </div>
 
-        {/* DESKTOP RIGHT: Quality Badge, Volume Slider & Queue Drawer Toggle */}
-        <div className="hidden sm:flex items-center justify-end gap-3.5 w-1/4">
-          {/* Stream Quality Tag */}
-          {/* {streamQuality === 'lossless' ? (
-            <span
-              title="Hi-Res Lossless FLAC Quality Stream"
-              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-primary text-primary bg-primary/10"
-            >
-              Hi-Fi FLAC
-            </span>
-          ) : streamFormat === 'hls' ? (
-            <span
-              title="Adaptive Bitrate HLS Stream (up to 320 kbps AAC)"
-              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
-            >
-              HLS ABR
-            </span>
-          ) : (
-            <span
-              title="Direct Progressive Audio Stream (MP3 320k)"
-              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase text-muted-foreground/70 px-1.5 py-0.5 rounded border border-border"
-            >
-              MP3 320K
-            </span>
-          )} */}
-
+        {/* ━━━━━━━━ RIGHT: Volume Slider, Jam, Queue ━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className="hidden sm:flex items-center justify-end gap-2 w-[30%] min-w-[220px] max-w-[360px]">
           {/* Volume Control */}
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-1.5 group/vol">
             <button
               type="button"
               onClick={toggleMute}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
               title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
-              className="text-muted-foreground hover:text-foreground cursor-pointer p-1 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/40 cursor-pointer transition-colors"
             >
-              <VolumeIcon muted={isMuted} volume={volume} className="w-4 h-4" />
+              <VolumeIcon size={20} strokeWidth={2} />
             </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              aria-label="Volume"
-              className="w-16 md:w-24 h-1 bg-secondary/40 rounded-lg appearance-none cursor-pointer accent-primary"
-            />
+            <div className="relative flex items-center py-2">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                aria-label="Volume"
+                className="w-24 lg:w-28 h-1 bg-secondary/50 hover:bg-secondary/70 rounded-full appearance-none cursor-pointer accent-primary transition-all"
+              />
+            </div>
           </div>
 
           {/* Live Jam Button */}
@@ -652,15 +481,15 @@ export function PlayerBar() {
                 ? `Live Jam: ${activeRoom.roomCode}`
                 : 'Start or Join Live Jam'
             }
-            className={`relative p-2 rounded-md transition-colors cursor-pointer ${
+            className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all cursor-pointer ${
               activeRoom
-                ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/20'
+                ? 'bg-success/15 text-success ring-1 ring-success/30'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
-            <span className="text-sm">🎧</span>
+            <Headphones size={20} strokeWidth={2} />
             {activeRoom && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full animate-pulse ring-2 ring-card" />
             )}
           </button>
 
@@ -669,13 +498,13 @@ export function PlayerBar() {
             type="button"
             onClick={() => toggleDesktopRightSidebar('queue')}
             title="Toggle Queue"
-            className={`relative p-2 rounded-md transition-colors cursor-pointer ${
+            className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all cursor-pointer ${
               desktopRightSidebarView === 'queue'
-                ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/20'
+                ? 'bg-primary/15 text-primary ring-1 ring-primary/30'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
-            <QueueIcon className="w-5 h-5" />
+            <ListMusic size={20} strokeWidth={2} />
           </button>
         </div>
       </footer>

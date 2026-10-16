@@ -53,6 +53,9 @@
 # player
 
 1. play here option does not appear on phone.
+2. mute state getting synced between devices 
+3. play/pause when clicking on center of mini player bar on mobile cause play/pause button also gets clicked
+
 
 
 
