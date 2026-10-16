@@ -123,7 +123,7 @@ function RegisterComponent() {
           </Link>
           <Link
             to="/"
-            className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group"
+            className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
@@ -133,7 +133,7 @@ function RegisterComponent() {
         </div>
 
         <div className="max-w-md my-auto relative z-10">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-4">
+          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-4">
             Serentiy · Curation · Preservation
           </div>
           <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
@@ -147,7 +147,7 @@ function RegisterComponent() {
         {/* Decorative Geometric Vinyl Record SVG Art */}
         <SvgArtworkSpiral />
 
-        <div className="flex justify-between items-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground relative z-10">
+        <div className="flex justify-between items-center font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground relative z-10">
           <span>© 2026 Groovy </span>
           <span>Est. MMXXVI</span>
         </div>
@@ -160,7 +160,7 @@ function RegisterComponent() {
           <div className="lg:hidden mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
+              className="inline-flex items-center gap-1.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
             >
               <span className="transition-transform duration-200 group-hover:-translate-x-1">
                 &larr;
@@ -175,12 +175,12 @@ function RegisterComponent() {
               <button
                 type="button"
                 onClick={() => setRegisteredEmail(null)}
-                className="self-start font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
+                className="self-start font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
               >
                 &larr; Back to form
               </button>
 
-              <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
                 Correspondence · Account
               </div>
               <h2 className="font-serif italic font-medium text-3xl text-foreground mb-3 leading-tight">
@@ -213,7 +213,7 @@ function RegisterComponent() {
                 <Link
                   to="/login"
                   search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground"
+                  className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground"
                 >
                   Go to Sign In &rarr;
                 </Link>
@@ -222,7 +222,7 @@ function RegisterComponent() {
                   type="button"
                   onClick={handleResend}
                   disabled={isResending || cooldown > 0}
-                  className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-mono text-[11px] uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+                  className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-eyebrow text-[11px] uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {cooldown > 0
                     ? `Resend available in ${cooldown}s`
@@ -232,7 +232,7 @@ function RegisterComponent() {
                 </button>
               </div>
 
-              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground text-center mt-6">
+              <div className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground text-center mt-6">
                 Wrong address?{' '}
                 <button
                   type="button"
@@ -251,11 +251,11 @@ function RegisterComponent() {
                 <Link
                   to="/login"
                   search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+                  className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Sign In
                 </Link>
-                <span className="font-mono text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
+                <span className="font-eyebrow text-xs uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
                   Create Account
                 </span>
               </div>
@@ -286,7 +286,7 @@ function RegisterComponent() {
 
               {/* Divider */}
               <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                   Or with credentials
                 </span>
               </div>
@@ -295,7 +295,7 @@ function RegisterComponent() {
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-name"
-                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
                   >
                     Display Name
                   </label>
@@ -314,7 +314,7 @@ function RegisterComponent() {
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-email"
-                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
                   >
                     Email Address
                   </label>
@@ -333,7 +333,7 @@ function RegisterComponent() {
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="su-password"
-                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
                   >
                     Password
                   </label>
@@ -352,7 +352,7 @@ function RegisterComponent() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-2.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="absolute right-0 top-2.5 font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                     >
                       {showPassword ? 'Hide' : 'Show'}
                     </button>
@@ -365,7 +365,7 @@ function RegisterComponent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+                  className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Account'}
                 </button>

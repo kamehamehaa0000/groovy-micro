@@ -183,7 +183,7 @@ function RootComponent() {
         <header className="w-full h-14 border-b border-border bg-background/90 backdrop-blur-md px-5 sm:px-8 flex items-center justify-between shrink-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
+            className="inline-flex items-center gap-2 font-eyebrow text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
           >
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               &larr;
@@ -296,7 +296,7 @@ function RootComponent() {
               </Link>
 
               {/* Top Route Navigation Links */}
-              <nav className="flex items-center gap-5 pl-4 border-l border-border font-mono text-[11px] uppercase tracking-wider">
+              <nav className="flex items-center gap-5 pl-4 border-l border-border font-eyebrow text-[11px] uppercase tracking-wider">
                 <Link
                   to="/"
                   activeProps={{
@@ -448,7 +448,7 @@ function RootComponent() {
                   {!createMenuOpen && (
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
+                      className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
                     >
                       Create
                     </span>
@@ -469,7 +469,7 @@ function RootComponent() {
                             <span className="font-serif italic text-xs font-semibold text-foreground truncate">
                               Creation Desk
                             </span>{' '}
-                            <span className="px-1.5 py-0.5 rounded-md font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                            <span className="px-1.5 py-0.5 rounded-md font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                               Quick Actions
                             </span>
                           </div>
@@ -480,7 +480,7 @@ function RootComponent() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         {activeJamRoom && (
-                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded font-eyebrow text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             Jam Active
                           </span>
@@ -514,11 +514,11 @@ function RootComponent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Live Jam
                           </span>
                           {activeJamRoom && (
-                            <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[11px] font-mono uppercase tracking-wider border border-emerald-500/30 rounded">
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[11px] font-eyebrow uppercase tracking-wider border border-emerald-500/30 rounded">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                               Live
                             </span>
@@ -566,7 +566,7 @@ function RootComponent() {
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                        <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                           Create Playlist
                         </span>
                         <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -594,7 +594,7 @@ function RootComponent() {
 
               {/* User Auth Section */}
               {isLoading ? (
-                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground animate-pulse px-2">
+                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground animate-pulse px-2">
                   Authenticating...
                 </span>
               ) : isAuthenticated && user ? (
@@ -654,11 +654,11 @@ function RootComponent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                          <span className="px-1.5 py-0.5 rounded font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                             {user.role}
                           </span>
                           {user.isEmailVerified && (
-                            <span className="px-1.5 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            <span className="px-1.5 py-0.5 rounded font-eyebrow text-[11px] uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                               Verified
                             </span>
                           )}
@@ -687,7 +687,7 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Profile
                           </span>
                           <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -716,7 +716,7 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Recents
                           </span>
                           <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -750,7 +750,7 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Releases
                           </span>
                           <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -779,7 +779,7 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-foreground block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-foreground block">
                             Studio
                           </span>
                           <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -810,7 +810,7 @@ function RootComponent() {
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="font-mono text-[11px] uppercase tracking-wider font-medium text-primary block">
+                            <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium text-primary block">
                               Admin Desk
                             </span>
                             <p className="font-sans text-[11px] text-muted-foreground truncate">
@@ -849,7 +849,7 @@ function RootComponent() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-medium block">
+                          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-medium block">
                             Sign Out
                           </span>
                           <p className="font-sans text-[11px] text-muted-foreground group-hover:text-red-400/80 truncate">
@@ -865,14 +865,14 @@ function RootComponent() {
                   <Link
                     to="/login"
                     search={currentRedirect ? { redirect: currentRedirect } : undefined}
-                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-foreground transition-colors"
+                    className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-foreground transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
                     search={currentRedirect ? { redirect: currentRedirect } : undefined}
-                    className="font-mono text-[11px] uppercase tracking-wider py-1.5 px-3 bg-foreground text-background border border-foreground hover:bg-background hover:text-foreground font-medium transition-colors"
+                    className="font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3 bg-foreground text-background border border-foreground hover:bg-background hover:text-foreground font-medium transition-colors"
                   >
                     Join
                   </Link>
@@ -924,7 +924,7 @@ function RootComponent() {
                     <div className="font-sans text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                       {user.displayName}
                     </div>
-                    <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground truncate">
+                    <div className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground truncate">
                       {user.role} • View Profile &rarr;
                     </div>
                   </div>
@@ -962,7 +962,7 @@ function RootComponent() {
                   to="/login"
                   search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-card text-foreground transition-colors"
+                  className="font-eyebrow text-center text-xs uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-card text-foreground transition-colors"
                 >
                   Sign In
                 </Link>
@@ -970,7 +970,7 @@ function RootComponent() {
                   to="/register"
                   search={currentRedirect ? { redirect: currentRedirect } : undefined}
                   onClick={() => setLeftSidebarOpen(false)}
-                  className="font-mono text-center text-xs uppercase tracking-wider py-2 px-3 bg-foreground text-background hover:bg-background hover:text-foreground border border-foreground font-semibold transition-colors"
+                  className="font-eyebrow text-center text-xs uppercase tracking-wider py-2 px-3 bg-foreground text-background hover:bg-background hover:text-foreground border border-foreground font-semibold transition-colors"
                 >
                   Join
                 </Link>
@@ -979,10 +979,10 @@ function RootComponent() {
 
             {/* Navigation Directory */}
             <div className="space-y-1">
-              <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-2">
+              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-2">
                 Catalog &amp; Discovery
               </div>
-              <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider">
+              <nav className="flex flex-col gap-1 font-eyebrow text-xs uppercase tracking-wider">
                 <Link
                   to="/"
                   onClick={() => setLeftSidebarOpen(false)}
@@ -1026,7 +1026,7 @@ function RootComponent() {
 
                 {isAuthenticated && (
                   <>
-                    <div className="font-mono text-[11px] uppercase tracking-widest text-primary mt-4 mb-2">
+                    <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mt-4 mb-2">
                       Your Vault
                     </div>
                     <Link
@@ -1098,7 +1098,7 @@ function RootComponent() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between p-2 font-mono text-xs uppercase tracking-wider text-foreground hover:bg-background rounded border border-border cursor-pointer"
+              className="w-full flex items-center justify-between p-2 font-eyebrow text-xs uppercase tracking-wider text-foreground hover:bg-background rounded border border-border cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 {theme === 'dark' ? <LightModeSVG /> : <DarkModeSVG />}
@@ -1116,7 +1116,7 @@ function RootComponent() {
                   setLeftSidebarOpen(false)
                   logout()
                 }}
-                className="w-full py-2 px-3 font-mono text-xs uppercase tracking-wider text-red-500 hover:text-red-600 border border-red-500/20 hover:border-red-500/40 bg-red-500/5 hover:bg-red-500/10 rounded transition-colors cursor-pointer text-center"
+                className="w-full py-2 px-3 font-eyebrow text-xs uppercase tracking-wider text-red-500 hover:text-red-600 border border-red-500/20 hover:border-red-500/40 bg-red-500/5 hover:bg-red-500/10 rounded transition-colors cursor-pointer text-center"
               >
                 Sign Out
               </button>

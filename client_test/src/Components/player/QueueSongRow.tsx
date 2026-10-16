@@ -184,7 +184,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
           </svg>
-          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">
+          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
             Remove
           </span>
         </div>
@@ -210,7 +210,7 @@ export const QueueSongRow = memo(function QueueSongRow({
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
           </svg>
-          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">
+          <span className="font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
             Playlist
           </span>
         </div>

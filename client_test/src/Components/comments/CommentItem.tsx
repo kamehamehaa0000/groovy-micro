@@ -257,7 +257,7 @@ export function CommentItem({
     >
       {/* Pinned Header Badge */}
       {comment.isPinned && (
-        <div className="flex items-center gap-1.5 text-primary font-mono text-[11px] uppercase tracking-wider font-semibold">
+        <div className="flex items-center gap-1.5 text-primary font-eyebrow text-[11px] uppercase tracking-wider font-semibold">
           <PinIcon filled className="w-3 h-3" />
           <span>Pinned by Creator</span>
         </div>

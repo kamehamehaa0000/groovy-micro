@@ -243,7 +243,7 @@ function LibraryPageComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3.5 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3.5 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -309,7 +309,7 @@ function LibraryPageComponent() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -411,7 +411,7 @@ function LibraryPageComponent() {
           <button
             type="button"
             onClick={() => fetchLibrary(true)}
-            className="px-4 py-2 bg-primary text-background font-mono text-xs uppercase tracking-wider font-semibold rounded hover:opacity-90 cursor-pointer"
+            className="px-4 py-2 bg-primary text-background font-eyebrow text-xs uppercase tracking-wider font-semibold rounded hover:opacity-90 cursor-pointer"
           >
             Retry
           </button>

@@ -30,7 +30,7 @@ export function SectionHeader({
     >
       <div className="min-w-0">
         {eyebrow ? (
-          <div className="font-mono text-eyebrow font-medium uppercase text-muted-foreground">
+          <div className="font-eyebrow text-eyebrow font-medium uppercase text-muted-foreground">
             {eyebrow}
           </div>
         ) : null}

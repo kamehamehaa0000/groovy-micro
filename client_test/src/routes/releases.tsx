@@ -188,7 +188,7 @@ function FollowedReleasesComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -205,7 +205,7 @@ function FollowedReleasesComponent() {
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
               Latest releases
             </h1>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2">
               ✦ Artist Radar
             </span>
           </div>
@@ -294,7 +294,7 @@ function FollowedReleasesComponent() {
           </p>
           <Link
             to="/artists"
-            className="inline-block mt-6 font-mono text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+            className="inline-block mt-6 font-eyebrow text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
           >
             Explore Artists Roster
           </Link>
@@ -309,7 +309,7 @@ function FollowedReleasesComponent() {
                 <h2 className="font-serif italic font-medium text-lg sm:text-xl text-foreground">
                   {group.label}
                 </h2>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'}
                 </span>
@@ -343,7 +343,7 @@ function FollowedReleasesComponent() {
                         )}
 
                         {/* Release Type Badge (ALBUM, EP, SINGLE) */}
-                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-background/90 backdrop-blur-xs text-muted-foreground border border-border/60">
+                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background/90 backdrop-blur-xs text-muted-foreground border border-border/60">
                           {release.albumType}
                         </span>
                       </div>
@@ -413,7 +413,7 @@ function FollowedReleasesComponent() {
                             {release.title}
                           </span>
 
-                          <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                             {release.albumType}
                           </span>
                         </div>
@@ -449,7 +449,7 @@ function FollowedReleasesComponent() {
             className="py-2 flex flex-col items-center justify-center"
           >
             {isLoadingMore && (
-              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+              <div className="flex items-center gap-2 font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>

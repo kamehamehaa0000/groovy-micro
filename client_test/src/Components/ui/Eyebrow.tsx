@@ -22,6 +22,9 @@ const TONE: Record<EyebrowTone, string> = {
 /**
  * The single replacement for the `font-mono text-[11px] uppercase
  * tracking-wider` signature that was hand-written ~528 times.
+ *
+ * The family comes from the `font-eyebrow` token (Inter by default) — flip
+ * it in `index.css` to re-voice every label in the app.
  */
 export function Eyebrow({
   children,
@@ -32,7 +35,7 @@ export function Eyebrow({
   return (
     <Tag
       className={cn(
-        'font-mono text-eyebrow font-medium uppercase',
+        'font-eyebrow text-eyebrow font-medium uppercase',
         TONE[tone],
         className,
       )}

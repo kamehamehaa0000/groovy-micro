@@ -324,7 +324,7 @@ export function ImageCropModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-border pb-2.5 sm:pb-3">
           <div className="pr-2 min-w-0">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-0.5 truncate">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-0.5 truncate">
               {subtitle}
             </span>
             <h2 className="font-serif italic text-lg sm:text-xl text-foreground truncate">
@@ -419,7 +419,7 @@ export function ImageCropModal({
         {/* Controls: Zoom & Reset */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 border-t border-border-soft">
           <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground shrink-0">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground shrink-0">
               Zoom:
             </span>
             <button
@@ -460,7 +460,7 @@ export function ImageCropModal({
               setZoom(1)
               setOffset({ x: 0, y: 0 })
             }}
-            className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border py-1.5 px-3 bg-background hover:bg-muted cursor-pointer text-center shrink-0 self-end sm:self-auto"
+            className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border py-1.5 px-3 bg-background hover:bg-muted cursor-pointer text-center shrink-0 self-end sm:self-auto"
           >
             Reset Framing
           </button>
@@ -472,7 +472,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting}
             onClick={onClose}
-            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 text-center"
+            className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 text-center"
           >
             Cancel
           </button>
@@ -480,7 +480,7 @@ export function ImageCropModal({
             type="button"
             disabled={isSubmitting || !imageSize}
             onClick={handleConfirmCrop}
-            className="font-mono text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+            className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 sm:py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             {isSubmitting ? (
               <>

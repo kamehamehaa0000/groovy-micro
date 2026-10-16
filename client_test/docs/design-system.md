@@ -3,8 +3,10 @@
 The single source of truth for the client's visual language.
 
 **Voice: hybrid editorial.**
-Fraunces for page display, Inter for body/UI, IBM Plex Mono **only** for
-eyebrow labels and numerals.
+Fraunces for page display, Inter for body/UI, IBM Plex Mono for numerals and
+code. Small-caps label roles (eyebrows, badges, buttons, field labels) use the
+`font-eyebrow` token — Inter by default; flip it in one line to re-voice every
+label in the app.
 
 > Rule of thumb: if you are typing a raw size, radius, shadow or palette color
 > into a component, you are probably about to create drift. Reach for a token
@@ -39,7 +41,11 @@ define are marked *extension*.
 | Title | `text-title` | 16px | Inter | Card / row titles |
 | Body | `text-body` | 14px | Inter | Default text |
 | Caption | `text-caption` | 12px | Inter | Secondary text, hints |
-| Eyebrow | `text-eyebrow` | 11px · +0.05em | IBM Plex Mono | Uppercase labels/eyebrows |
+| Eyebrow | `text-eyebrow` | 11px · +0.05em | `font-eyebrow` | Uppercase labels/eyebrows |
+
+`font-eyebrow` is a **family role**, not a size: it resolves to Inter by default
+and is the one place to change the face of every label. `font-mono` stays for
+numerals, timestamps and code.
 
 ## 3. Color roles
 

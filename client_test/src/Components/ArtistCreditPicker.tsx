@@ -134,7 +134,7 @@ export function ArtistCreditPicker({
                 onChange={(e) =>
                   handleRoleChange(c.artistId, e.target.value as CreditRole)
                 }
-                className="bg-card border border-border-soft text-foreground font-mono text-[11px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
+                className="bg-card border border-border-soft text-foreground font-eyebrow text-[11px] uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
               >
                 <option value="FEATURED">Featured</option>
                 <option value="PRODUCER">Producer</option>
@@ -163,7 +163,7 @@ export function ArtistCreditPicker({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="font-mono text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer inline-flex items-center gap-1"
+          className="font-eyebrow text-[11px] uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer inline-flex items-center gap-1"
         >
           <span>+ Add Collaborator / Credit</span>
         </button>
@@ -234,7 +234,7 @@ export function ArtistCreditPicker({
                       </div>
                     </div>
 
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-primary shrink-0 pl-2">
+                    <span className="font-eyebrow text-[11px] uppercase tracking-wider text-primary shrink-0 pl-2">
                       + Credit
                     </span>
                   </button>

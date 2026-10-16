@@ -155,7 +155,7 @@ export function AddToPlaylistModal() {
                   closeModal();
                   openCreatePlaylistModal(trackIdToAdd);
                 }}
-                className="mt-3 font-mono text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
+                className="mt-3 font-eyebrow text-[11px] uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
               >
                 Create Playlist
               </button>
@@ -191,7 +191,7 @@ export function AddToPlaylistModal() {
                     closeModal();
                     openCreatePlaylistModal(trackIdToAdd);
                   }}
-                  className="w-full font-mono text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
+                  className="w-full font-eyebrow text-[11px] uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-xs flex items-center justify-center gap-1.5"
                 >
                   <span>+</span>
                   <span>New Playlist</span>
@@ -203,7 +203,7 @@ export function AddToPlaylistModal() {
 
         {/* Visual Feedback Toast */}
         {toastMessage && (
-          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150">
             ✓ {toastMessage}
           </div>
         )}

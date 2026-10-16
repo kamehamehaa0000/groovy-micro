@@ -64,7 +64,7 @@ export function RecentlyPlayedShelf({
             <p className="font-sans text-xs text-muted-foreground mt-0.5">{subtitle}</p>
           )}
         </div>
-        <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+        <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
           {displayedItems.length}{' '}
           {displayedItems.length === 1 ? 'release' : 'releases'}
         </span>

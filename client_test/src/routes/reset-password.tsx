@@ -75,7 +75,7 @@ function ResetPasswordComponent() {
           >
             Groov<span className="not-italic text-primary font-serif">y</span>
           </Link>
-          <div className="font-mono text-[11px] uppercase tracking-widest text-primary mt-2">
+          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mt-2">
             Security &nbsp;·&nbsp; Password Reset
           </div>
         </div>
@@ -89,7 +89,7 @@ function ResetPasswordComponent() {
             </div>
             <Link
               to="/forgot-password"
-              className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground cursor-pointer"
+              className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground cursor-pointer"
             >
               Request New Link
             </Link>
@@ -112,7 +112,7 @@ function ResetPasswordComponent() {
                 <p>{error}</p>
                 <Link
                   to="/forgot-password"
-                  className="inline-block mt-2 font-mono text-[11px] uppercase tracking-wider underline hover:opacity-80"
+                  className="inline-block mt-2 font-eyebrow text-[11px] uppercase tracking-wider underline hover:opacity-80"
                 >
                   Request a new reset link &rarr;
                 </Link>
@@ -132,14 +132,14 @@ function ResetPasswordComponent() {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="rp-password"
-                    className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                    className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
                   >
                     New Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -160,7 +160,7 @@ function ResetPasswordComponent() {
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="rp-confirm-password"
-                  className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                  className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
                 >
                   Confirm New Password
                 </label>
@@ -178,7 +178,7 @@ function ResetPasswordComponent() {
 
               {/* Strength Checklist */}
               <div className="p-3 bg-muted/60 border border-border/60 flex flex-col gap-1 text-[11px] font-sans">
-                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
+                <div className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
                   Password Requirements:
                 </div>
                 <div
@@ -222,7 +222,7 @@ function ResetPasswordComponent() {
               <button
                 type="submit"
                 disabled={!isFormValid || isSubmitting || !!success}
-                className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? 'Resetting Password...' : 'Update Password'}
               </button>

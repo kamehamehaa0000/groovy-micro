@@ -348,7 +348,7 @@ function AlbumDetailComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+      <div className="py-32 text-center font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
         Retrieving master recording & liner notes...
       </div>
     )
@@ -357,7 +357,7 @@ function AlbumDetailComponent() {
   if (queryError || !album) {
     return (
       <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-mono text-xs uppercase tracking-widest text-primary block mb-2">
+        <span className="font-eyebrow text-xs uppercase tracking-widest text-primary block mb-2">
           404 Catalog Notice
         </span>
         <h1 className="font-serif italic text-3xl text-foreground">
@@ -370,7 +370,7 @@ function AlbumDetailComponent() {
         </p>
         <Link
           to="/"
-          className="inline-block mt-6 font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors rounded"
+          className="inline-block mt-6 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors rounded"
         >
           &larr; Return to Catalog
         </Link>
@@ -417,7 +417,7 @@ function AlbumDetailComponent() {
               <button
                 type="button"
                 onClick={handleCopyShareLink}
-                className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-border bg-background/80 backdrop-blur-xs font-mono text-[11px] uppercase tracking-wider text-foreground hover:bg-background transition-colors shadow-2xs cursor-pointer rounded"
+                className="pointer-events-auto inline-flex items-center justify-center min-h-9 px-3.5 border border-border bg-background/80 backdrop-blur-xs font-eyebrow text-[11px] uppercase tracking-wider text-foreground hover:bg-background transition-colors shadow-2xs cursor-pointer rounded"
               >
                 {copiedLink ? '✓ Copied' : 'Share'}
               </button>
@@ -450,26 +450,26 @@ function AlbumDetailComponent() {
             <div className="min-w-0 flex-1 flex flex-col justify-end text-center md:text-left">
               {/* Badges / Eyebrow */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
-                <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-border bg-background text-primary font-semibold rounded">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 border border-border bg-background text-primary font-semibold rounded">
                   {album.albumType}
                 </span>
                 {(album as any).scope === 'PERSONAL' && (
-                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold rounded">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold rounded">
                     Personal Collection
                   </span>
                 )}
                 {album.isUpcoming && (
-                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-primary/30 bg-primary/10 text-primary font-semibold flex items-center gap-1 rounded">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 border border-primary/30 bg-primary/10 text-primary font-semibold flex items-center gap-1 rounded">
                     <CalendarIconSVG className="w-2.5 h-2.5" />
                     <span>Upcoming Drop</span>
                   </span>
                 )}
                 {album.visibility === 'UNLISTED' && (
-                  <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 border border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold rounded">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 border border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold rounded">
                     🔗 Unlisted Link
                   </span>
                 )}
-                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
                   Master Recording &bull; {releaseYear}
                 </span>
               </div>
@@ -524,7 +524,7 @@ function AlbumDetailComponent() {
                     type="button"
                     disabled={isPreSaveLoading}
                     onClick={handleTogglePreSave}
-                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all shadow-2xs cursor-pointer ${
+                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 font-eyebrow text-[11px] uppercase tracking-wider font-semibold transition-all shadow-2xs cursor-pointer ${
                       isPreSaved
                         ? 'border border-primary bg-primary text-background hover:opacity-90'
                         : 'bg-foreground text-background hover:opacity-90'
@@ -541,7 +541,7 @@ function AlbumDetailComponent() {
                   <button
                     type="button"
                     onClick={handlePlayAlbumFromStart}
-                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-background font-mono text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
+                    className="rounded inline-flex items-center justify-center gap-2 min-h-10 px-5 sm:px-6 bg-primary text-background font-eyebrow text-[11px] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity shadow-2xs cursor-pointer"
                   >
                     <PlayIconSVG className="w-3.5 h-3.5" />
                     <span>
@@ -557,7 +557,7 @@ function AlbumDetailComponent() {
                     type="button"
                     disabled={isLikeLoading}
                     onClick={handleToggleAlbumLike}
-                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-4 sm:px-5 font-mono text-[11px] uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+                    className={`rounded inline-flex items-center justify-center gap-2 min-h-10 px-4 sm:px-5 font-eyebrow text-[11px] uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
                       isLiked
                         ? 'border border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-600 hover:border-red-400'
                         : 'border border-border bg-card text-foreground hover:border-foreground'
@@ -582,7 +582,7 @@ function AlbumDetailComponent() {
         {album.isUpcoming && (
           <div className="border border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors rounded-lg p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-2xs">
             <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary font-semibold">
+              <div className="flex items-center gap-2 font-eyebrow text-[11px] uppercase tracking-widest text-primary font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                 <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
               </div>
@@ -610,7 +610,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {timeLeft.days}
                       </span>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                         Days
                       </span>
                     </div>
@@ -618,7 +618,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.hours).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                         Hours
                       </span>
                     </div>
@@ -626,7 +626,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.minutes).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                         Mins
                       </span>
                     </div>
@@ -634,7 +634,7 @@ function AlbumDetailComponent() {
                       <span className="font-mono text-base sm:text-lg font-bold text-primary block leading-none">
                         {String(timeLeft.seconds).padStart(2, '0')}
                       </span>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                         Secs
                       </span>
                     </div>
@@ -653,7 +653,7 @@ function AlbumDetailComponent() {
                 type="button"
                 disabled={isPreSaveLoading}
                 onClick={handleTogglePreSave}
-                className={`w-full md:w-auto rounded font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
+                className={`w-full md:w-auto rounded font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-6 border transition-all cursor-pointer font-semibold shadow-2xs flex items-center justify-center gap-2 ${
                   isPreSaved
                     ? 'border-primary bg-primary text-background hover:opacity-90'
                     : 'border-foreground bg-foreground text-background hover:opacity-90'
@@ -678,7 +678,7 @@ function AlbumDetailComponent() {
                 Master Tracklist
               </h2>
             </div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
               {(album.tracks ?? []).length}{' '}
               {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
             </span>
@@ -689,14 +689,14 @@ function AlbumDetailComponent() {
               <p className="font-serif italic text-base text-foreground">
                 No tracks uploaded to this release yet.
               </p>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mt-1">
+              <p className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mt-1">
                 Check back soon as the master tape transfers complete.
               </p>
             </div>
           ) : (
             <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-2xs">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-border/60 bg-background/40 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-border/60 bg-background/40 font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <span className="w-6 text-center">#</span>
                   <span>Title &amp; Credits</span>
@@ -753,7 +753,7 @@ function AlbumDetailComponent() {
               <Link
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: album.artistSlug || album.artistId }}
-                className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline"
+                className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline"
               >
                 View Discography &rarr;
               </Link>

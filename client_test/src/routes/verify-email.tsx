@@ -98,7 +98,7 @@ function VerifyEmailComponent() {
         <div className="font-serif italic text-3xl tracking-[-0.03em] text-foreground">
           Groov<span className="not-italic text-primary font-serif">y</span>
         </div>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mt-1.5">
+        <div className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mt-1.5">
           Sound Atelier
         </div>
       </div>
@@ -119,7 +119,7 @@ function VerifyEmailComponent() {
             </svg>
           </div>
 
-          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
             Correspondence · Cryptographic Check
           </div>
           <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
@@ -135,7 +135,7 @@ function VerifyEmailComponent() {
       {/* ================= STATE: SUCCESS ================= */}
       {status === 'success' && (
         <div className="border-y border-border py-8 text-center">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">
             Membership Confirmed · Est. MMXXVI
           </div>
           <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
@@ -147,7 +147,7 @@ function VerifyEmailComponent() {
           </p>
           <Link
             to="/profile"
-            className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground text-center"
+            className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground text-center"
           >
             Enter the Maison &rarr;
           </Link>
@@ -158,7 +158,7 @@ function VerifyEmailComponent() {
       {status === 'error' && (
         <div className="border-y border-border py-8">
           <div className="text-center mb-6">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">
+            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">
               Correspondence · Security Notice
             </div>
             <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
@@ -185,7 +185,7 @@ function VerifyEmailComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="resend-email"
-                className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
               >
                 Account Email
               </label>
@@ -203,7 +203,7 @@ function VerifyEmailComponent() {
             <button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
@@ -219,7 +219,7 @@ function VerifyEmailComponent() {
       {status === 'idle' && (
         <div className="border-y border-border py-8">
           <div className="text-center mb-6">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-2">
+            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-2">
               Correspondence · Dispatch
             </div>
             <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
@@ -247,7 +247,7 @@ function VerifyEmailComponent() {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="idle-email"
-                className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+                className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
               >
                 Account Email
               </label>
@@ -265,7 +265,7 @@ function VerifyEmailComponent() {
             <button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
@@ -289,7 +289,7 @@ function VerifyEmailComponent() {
 
       {/* Footer Info */}
       <div className="mt-8 text-center">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/70">
+        <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground/70">
           Maison Édition MMXXVI · Security & Correspondence
         </span>
       </div>

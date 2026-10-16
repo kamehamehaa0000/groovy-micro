@@ -316,7 +316,7 @@ function PersonalCollectionExplorePage() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActivePill(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-mono text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                className={`shrink-0 font-eyebrow text-[11px] rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
                   isSelected
                     ? 'bg-foreground text-background font-semibold shadow-xs'
                     : 'bg-card text-muted-foreground hover:text-foreground border border-border'
@@ -419,7 +419,7 @@ function PersonalCollectionExplorePage() {
 
         {/* Right: Count and View Switcher */}
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground hidden sm:inline">
+          <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground hidden sm:inline">
             {activePill === 'artists'
               ? `${filteredArtists.length} ${filteredArtists.length === 1 ? 'Artist' : 'Artists'}`
               : `${filteredReleases.length} ${filteredReleases.length === 1 ? 'Release' : 'Releases'}`}
@@ -447,7 +447,7 @@ function PersonalCollectionExplorePage() {
         /* ===================== ARTISTS VIEW (Clean & Minimal) ===================== */
         <div>
           {isLoadingArtists ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+            <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading vault artists...
             </div>
           ) : filteredArtists.length === 0 ? (
@@ -496,7 +496,7 @@ function PersonalCollectionExplorePage() {
         /* ===================== RELEASES VIEW ===================== */
         <div>
           {isLoadingReleases ? (
-            <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
+            <div className="py-24 text-center font-eyebrow text-xs uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading personal vault...
             </div>
           ) : personalReleases.length === 0 ? (
@@ -516,7 +516,7 @@ function PersonalCollectionExplorePage() {
               </div>
               <Link
                 to="/vault/manage"
-                className="mt-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
+                className="mt-2 font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
               >
                 <UploadCloudSVG className="w-4 h-4" />
                 <span>Go to Locker Manager</span>
@@ -745,7 +745,7 @@ function PersonalCollectionExplorePage() {
 
       {/* ===================== TOAST NOTIFICATION ===================== */}
       {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-mono text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
           {toastMessage}
         </div>
       )}

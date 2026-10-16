@@ -1034,7 +1034,7 @@ export function SongActionMenu({
         createPortal(
           <div
             style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 bg-foreground text-background shadow-xl rounded-md pointer-events-none animate-in fade-in duration-150"
           >
             ✓ {toastMessage}
           </div>,

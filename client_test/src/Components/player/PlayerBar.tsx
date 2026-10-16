@@ -285,7 +285,7 @@ export function PlayerBar() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
               Listening on
             </span>
             <strong className="font-semibold text-foreground truncate">
@@ -297,7 +297,7 @@ export function PlayerBar() {
             <button
               type="button"
               onClick={() => takeoverPlayback()}
-              className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
+              className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3 py-1 font-eyebrow text-[11px] uppercase tracking-wider transition-colors rounded-xs cursor-pointer shadow-xs font-medium"
             >
               Play here instead
             </button>
@@ -600,21 +600,21 @@ export function PlayerBar() {
           {/* {streamQuality === 'lossless' ? (
             <span
               title="Hi-Res Lossless FLAC Quality Stream"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-primary text-primary bg-primary/10"
+              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border border-primary text-primary bg-primary/10"
             >
               Hi-Fi FLAC
             </span>
           ) : streamFormat === 'hls' ? (
             <span
               title="Adaptive Bitrate HLS Stream (up to 320 kbps AAC)"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
+              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase font-bold text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10"
             >
               HLS ABR
             </span>
           ) : (
             <span
               title="Direct Progressive Audio Stream (MP3 320k)"
-              className="hidden lg:inline-flex items-center gap-1 font-mono text-[11px] uppercase text-muted-foreground/70 px-1.5 py-0.5 rounded border border-border"
+              className="hidden lg:inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase text-muted-foreground/70 px-1.5 py-0.5 rounded border border-border"
             >
               MP3 320K
             </span>

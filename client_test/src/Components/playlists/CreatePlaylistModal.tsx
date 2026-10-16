@@ -122,7 +122,7 @@ export function CreatePlaylistModal() {
         </div>
 
         {initialTrackIds.length > 0 && (
-          <div className="font-mono text-[11px] uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
+          <div className="font-eyebrow text-[11px] uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded flex items-center justify-between">
             <span>Saving Active Queue</span>
             <span>{initialTrackIds.length} tracks</span>
           </div>
@@ -136,7 +136,7 @@ export function CreatePlaylistModal() {
 
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Title *
             </label>
             <input
@@ -152,7 +152,7 @@ export function CreatePlaylistModal() {
           </div>
 
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Description
             </label>
             <textarea
@@ -166,7 +166,7 @@ export function CreatePlaylistModal() {
           </div>
 
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
               Visibility
             </label>
             <select
@@ -182,7 +182,7 @@ export function CreatePlaylistModal() {
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+              <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                 Duplicate Songs
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
@@ -199,7 +199,7 @@ export function CreatePlaylistModal() {
             </div>
 
             <div>
-              <label className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
+              <label className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground mb-1.5">
                 Discussion &amp; Comments
               </label>
               <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
@@ -220,14 +220,14 @@ export function CreatePlaylistModal() {
             <button
               type="button"
               onClick={closeModal}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+              className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !newTitle.trim()}
-              className="font-mono text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+              className="font-eyebrow text-[11px] uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Creating...' : 'Create Playlist'}
             </button>

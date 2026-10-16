@@ -86,7 +86,7 @@ function JamRouteComponent() {
           <button
             type="button"
             onClick={() => navigate({ to: "/" })}
-            className="px-4 py-2 rounded-xs border border-border bg-card hover:bg-background text-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+            className="px-4 py-2 rounded-xs border border-border bg-card hover:bg-background text-foreground font-eyebrow text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
           >
             &larr; Back to Catalog
           </button>
@@ -99,7 +99,7 @@ function JamRouteComponent() {
                   search: { redirect: `/jam/${code}` },
                 })
               }
-              className="px-4 py-2 rounded-xs bg-foreground hover:bg-primary text-background hover:text-primary-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+              className="px-4 py-2 rounded-xs bg-foreground hover:bg-primary text-background hover:text-primary-foreground font-eyebrow text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
             >
               Sign In
             </button>
@@ -115,14 +115,14 @@ function JamRouteComponent() {
       <div className="p-6 sm:p-8 rounded-xs bg-card border border-border shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] uppercase tracking-wider font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-eyebrow text-[11px] uppercase tracking-wider font-semibold mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
               <span>Live Listening Session</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-serif italic text-foreground tracking-tight flex flex-wrap items-center gap-3">
               <span>Room {activeRoom?.roomCode}</span>
-              <span className="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-xs bg-secondary/20 dark:bg-secondary/40 text-muted-foreground border border-border not-italic font-normal">
+              <span className="font-eyebrow text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-xs bg-secondary/20 dark:bg-secondary/40 text-muted-foreground border border-border not-italic font-normal">
                 {activeRoom?.privacy.replace("_", " ")}
               </span>
             </h1>
@@ -136,7 +136,7 @@ function JamRouteComponent() {
               {!isHost && (
                 <>
                   <span>•</span>
-                  <span className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 font-eyebrow text-[11px] uppercase tracking-wider">
                     {syncStatus === "synced" && (
                       <span className="px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                         ● Synced
@@ -162,7 +162,7 @@ function JamRouteComponent() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-3.5 py-1.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xs border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-eyebrow text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
             >
               <span>{copied ? "Copied Link!" : "Copy Invite Link"}</span>
             </button>
@@ -173,7 +173,7 @@ function JamRouteComponent() {
                 leaveRoom();
                 navigate({ to: "/" });
               }}
-              className="px-3.5 py-1.5 rounded-xs border border-red-500/25 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-xs uppercase tracking-wider font-semibold transition-colors cursor-pointer shadow-2xs"
+              className="px-3.5 py-1.5 rounded-xs border border-red-500/25 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-eyebrow text-xs uppercase tracking-wider font-semibold transition-colors cursor-pointer shadow-2xs"
             >
               Leave Jam
             </button>
@@ -187,10 +187,10 @@ function JamRouteComponent() {
           {/* Current Playing Card */}
           <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Now Playing in Jam
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                 Synchronized
               </span>
             </div>
@@ -234,10 +234,10 @@ function JamRouteComponent() {
           {/* Collaborative Jam Queue */}
           <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Up Next in Jam ({jamQueue.length})
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                 Collaborative Queue
               </span>
             </div>
@@ -279,10 +279,10 @@ function JamRouteComponent() {
         <div className="space-y-6">
           <div className="p-5 sm:p-6 rounded-xs bg-card border border-border space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Members ({members.length})
               </span>
-              <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                 Live
               </span>
             </div>
@@ -308,7 +308,7 @@ function JamRouteComponent() {
 
                   <div>
                     {m.role === "HOST" ? (
-                      <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
+                      <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
                         DJ
                       </span>
                     ) : (
@@ -316,7 +316,7 @@ function JamRouteComponent() {
                         <button
                           type="button"
                           onClick={() => transferHost(m.userId)}
-                          className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-border hover:border-emerald-500 bg-card hover:bg-emerald-500 hover:text-white text-muted-foreground transition cursor-pointer"
+                          className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs border border-border hover:border-emerald-500 bg-card hover:bg-emerald-500 hover:text-white text-muted-foreground transition cursor-pointer"
                           title="Pass the DJ control to this listener"
                         >
                           Pass Aux

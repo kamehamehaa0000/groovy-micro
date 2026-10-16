@@ -178,7 +178,7 @@ function PlaylistsDirectoryComponent() {
       <div className="border-b border-border pb-6 sm:pb-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2 font-medium">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2 font-medium">
               Groovy Playlists Index
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
@@ -194,7 +194,7 @@ function PlaylistsDirectoryComponent() {
           <button
             type="button"
             onClick={handleCreatePlaylistClick}
-            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
+            className="inline-flex items-center justify-center gap-2 font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
           >
             <PlusIconSVG className="w-3.5 h-3.5" />
             <span>New Playlist</span>
@@ -281,7 +281,7 @@ function PlaylistsDirectoryComponent() {
             </div>
 
             {/* Total Results Count */}
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground shrink-0 border-l border-border pl-3">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground shrink-0 border-l border-border pl-3">
               {totalCount} {totalCount === 1 ? 'Playlist' : 'Playlists'}
             </span>
           </div>
@@ -344,7 +344,7 @@ function PlaylistsDirectoryComponent() {
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="font-mono text-[11px] uppercase tracking-wider py-2.5 px-6 border border-border bg-card hover:bg-background text-foreground transition-all rounded-full shadow-2xs cursor-pointer disabled:opacity-50"
+                className="font-eyebrow text-[11px] uppercase tracking-wider py-2.5 px-6 border border-border bg-card hover:bg-background text-foreground transition-all rounded-full shadow-2xs cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? 'Loading Playlists...' : 'Load More Playlists ↓'}
               </button>
@@ -370,7 +370,7 @@ function PlaylistsDirectoryComponent() {
               <button
                 type="button"
                 onClick={() => handleSearchChange('')}
-                className="font-mono text-xs uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background rounded-full text-foreground transition-colors cursor-pointer"
+                className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background rounded-full text-foreground transition-colors cursor-pointer"
               >
                 Clear Search
               </button>
@@ -378,7 +378,7 @@ function PlaylistsDirectoryComponent() {
             <button
               type="button"
               onClick={handleCreatePlaylistClick}
-              className="font-mono text-xs uppercase tracking-wider px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-full transition-opacity cursor-pointer font-medium"
+              className="font-eyebrow text-xs uppercase tracking-wider px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-full transition-opacity cursor-pointer font-medium"
             >
               + Create Playlist
             </button>

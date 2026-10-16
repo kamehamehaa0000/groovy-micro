@@ -494,7 +494,7 @@ function HistoryPageComponent() {
         <button
           type="button"
           onClick={() => openAuthModal()}
-          className="font-mono text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="font-eyebrow text-xs uppercase tracking-widest font-semibold px-8 py-3 bg-primary text-background rounded-full shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           Sign in to Groovy
         </button>
@@ -508,7 +508,7 @@ function HistoryPageComponent() {
       <div className="border-b border-border pb-6 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-primary block mb-2">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-primary block mb-2">
               ✦ Activity &amp; Listening Telemetry
             </span>
             <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
@@ -524,7 +524,7 @@ function HistoryPageComponent() {
           <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
             {/* Grouping Interval Tabs */}
             <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-lg shadow-2xs">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground/70 px-2 hidden sm:inline-block">
+              <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground/70 px-2 hidden sm:inline-block">
                 Group by
               </span>
               {(['day', 'week', 'month', 'year'] as GroupByInterval[]).map(
@@ -535,7 +535,7 @@ function HistoryPageComponent() {
                       key={mode}
                       type="button"
                       onClick={() => setGroupBy(mode)}
-                      className={`font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      className={`font-eyebrow text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-foreground text-background font-semibold shadow-xs'
                           : 'text-muted-foreground hover:text-foreground hover:bg-background'
@@ -605,7 +605,7 @@ function HistoryPageComponent() {
           </p>
           <Link
             to="/"
-            className="inline-block mt-6 font-mono text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+            className="inline-block mt-6 font-eyebrow text-xs uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
           >
             Explore Catalog
           </Link>
@@ -622,7 +622,7 @@ function HistoryPageComponent() {
                     {group.label}
                   </h2>
                 </div>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'} •{' '}
                   {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
@@ -709,7 +709,7 @@ function HistoryPageComponent() {
                                 </span>
                               )}
 
-                              <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-mono text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
+                              <span className="shrink-0 px-1.5 py-0.5 rounded-xs font-eyebrow text-[11px] uppercase tracking-wider bg-background border border-border text-muted-foreground">
                                 {release.albumType}
                               </span>
                             </div>
@@ -761,7 +761,7 @@ function HistoryPageComponent() {
                         {/* Expandable Tracks Accordion in List View */}
                         {isExpanded && (
                           <div className="bg-muted/40 border-t border-border px-4 py-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
+                            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block mb-1">
                               Tracks played:
                             </span>
                             {release.tracksPlayed.map((t, idx) => {
@@ -822,13 +822,13 @@ function HistoryPageComponent() {
             className="py-8 flex flex-col items-center justify-center"
           >
             {isLoadingMore && (
-              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
+              <div className="flex items-center gap-2 font-eyebrow text-xs uppercase tracking-wider text-muted-foreground animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 <span>Loading earlier releases...</span>
               </div>
             )}
             {!hasMore && items.length > 0 && (
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
+              <p className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground/60">
                 ✦ Beginning of recorded history reached
               </p>
             )}

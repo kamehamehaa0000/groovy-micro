@@ -114,7 +114,7 @@ function ForgotPasswordComponent() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="fp-email"
-              className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+              className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground"
             >
               Email Address
             </label>
@@ -133,7 +133,7 @@ function ForgotPasswordComponent() {
           <button
             type="submit"
             disabled={isSubmitting || cooldown > 0 || !email}
-            className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSubmitting
               ? 'Dispatching...'

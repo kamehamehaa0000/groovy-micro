@@ -335,7 +335,7 @@ export const SongRow = memo(function SongRow({
       {/* Queued Feedback Banner */}
       {showQueuedBadge && (
         <div
-          className={`absolute inset-0 z-30 bg-primary/95 flex items-center justify-center gap-2 text-primary-foreground font-mono text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
+          className={`absolute inset-0 z-30 bg-primary/95 flex items-center justify-center gap-2 text-primary-foreground font-eyebrow text-xs uppercase tracking-wider pointer-events-none transition-opacity duration-100 ease-out ${
             isQueuedBadgeFading
               ? 'opacity-0'
               : 'opacity-100 animate-in fade-in duration-75'
@@ -357,7 +357,7 @@ export const SongRow = memo(function SongRow({
       {/* Swipe Left: Reveal "Add to Queue" (Blue accent on the right) */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-primary flex items-center justify-center gap-1.5 text-primary-foreground font-mono text-[11px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 right-0 w-24 bg-primary flex items-center justify-center gap-1.5 text-primary-foreground font-eyebrow text-[11px] uppercase tracking-wider transition-opacity ${
             swipeOffset < -20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -382,7 +382,7 @@ export const SongRow = memo(function SongRow({
       {/* Swipe Right: Reveal "Add to Playlist" (Emerald accent on the left) */}
       {canSwipeRight && (
         <div
-          className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-mono text-[11px] uppercase tracking-wider transition-opacity ${
+          className={`absolute inset-y-0 left-0 w-28 bg-emerald-600 flex items-center justify-center gap-1.5 text-white font-eyebrow text-[11px] uppercase tracking-wider transition-opacity ${
             swipeOffset > 20 ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -534,7 +534,7 @@ export const SongRow = memo(function SongRow({
               {isLocked && (
                 <span
                   title="Locked track"
-                  className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 flex items-center gap-1"
+                  className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 flex items-center gap-1"
                 >
                   <LockIconSVG className="w-2.5 h-2.5" />
                   <span>
@@ -548,7 +548,7 @@ export const SongRow = memo(function SongRow({
               {track.isExplicit && (
                 <span
                   title="Explicit Content"
-                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
+                  className="font-eyebrow text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
                 >
                   E
                 </span>
@@ -557,7 +557,7 @@ export const SongRow = memo(function SongRow({
               {(isPersonal || track.scope === 'PERSONAL') && (
                 <span
                   title="Personal Collection (Vault)"
-                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs leading-none"
+                  className="font-eyebrow text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-indigo-500/30 text-indigo-500 bg-indigo-500/10 shrink-0 rounded-xs leading-none"
                 >
                   V
                 </span>

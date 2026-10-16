@@ -49,7 +49,7 @@ export function LibrarySortSheet({
         {/* Mobile handle */}
         <div className="sm:hidden w-10 h-1 bg-border rounded-full mx-auto mb-3" />
 
-        <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-3 px-1">
+        <div className="text-xs font-eyebrow uppercase tracking-wider text-muted-foreground mb-3 px-1">
           Sort by
         </div>
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, CSSProperties } from 'react'
 import {
   Badge,
   Button,
@@ -216,6 +216,7 @@ function DesignPlayground() {
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
   const [bottomSheet, setBottomSheet] = useState(false)
   const [centerSheet, setCenterSheet] = useState(false)
+  const [eyebrowMono, setEyebrowMono] = useState(false)
 
   if (!import.meta.env.DEV) {
     return (
@@ -229,7 +230,14 @@ function DesignPlayground() {
   }
 
   return (
-    <div className="flex flex-col gap-10 py-6">
+    <div
+      className="flex flex-col gap-10 py-6"
+      style={
+        {
+          '--font-eyebrow': eyebrowMono ? 'var(--font-mono)' : 'var(--font-sans)',
+        } as CSSProperties
+      }
+    >
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -240,20 +248,29 @@ function DesignPlayground() {
             itself. Toggle the theme to check both surfaces.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleTheme}
-          leftIcon={<SortIconSVG className="h-3.5 w-3.5" />}
-        >
-          {theme === 'dark' ? 'Light' : 'Dark'} mode
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEyebrowMono((v) => !v)}
+          >
+            {eyebrowMono ? 'Eyebrow: Plex Mono' : 'Eyebrow: Inter'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleTheme}
+            leftIcon={<SortIconSVG className="h-3.5 w-3.5" />}
+          >
+            {theme === 'dark' ? 'Light' : 'Dark'} mode
+          </Button>
+        </div>
       </div>
 
       {/* Typography */}
       <Section
         title="Type roles"
-        hint="Fraunces for display, Inter for body/UI, IBM Plex Mono for eyebrows only."
+        hint="Fraunces for display, Inter for body/UI and labels, IBM Plex Mono for numerals and code. Use the header button to A/B the eyebrow face."
       >
         <div className="flex flex-col gap-4">
           <div>
@@ -279,8 +296,14 @@ function DesignPlayground() {
             <p className="text-caption text-muted-foreground">Caption / secondary metadata.</p>
           </div>
           <div>
-            <Token>text-eyebrow · IBM Plex Mono</Token>
+            <Token>text-eyebrow · font-eyebrow (Inter)</Token>
             <Eyebrow>Eyebrow label</Eyebrow>
+          </div>
+          <div>
+            <Token>numerals / code · font-mono (Plex Mono)</Token>
+            <p className="font-mono text-body text-foreground">
+              128 · 3:47 · 24.9k · JAM-8K2Q
+            </p>
           </div>
         </div>
       </Section>
@@ -312,7 +335,7 @@ function DesignPlayground() {
           {ACCENT_CANDIDATES.map((candidate) => (
             <div key={candidate.name} className="flex flex-col gap-2">
               <div
-                className="flex h-10 items-center justify-center rounded-control font-mono text-caption font-semibold uppercase"
+                className="flex h-10 items-center justify-center rounded-control font-eyebrow text-caption font-semibold uppercase"
                 style={{ background: candidate.hex, color: '#171813' }}
               >
                 Button

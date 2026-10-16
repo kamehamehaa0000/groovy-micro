@@ -54,7 +54,7 @@ export function Field({
       {label ? (
         <label
           htmlFor={htmlFor}
-          className="font-mono text-eyebrow font-medium uppercase text-muted-foreground"
+          className="font-eyebrow text-eyebrow font-medium uppercase text-muted-foreground"
         >
           {label}
         </label>

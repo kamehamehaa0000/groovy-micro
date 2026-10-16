@@ -76,7 +76,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
+              <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary">
                 Quick Actions
               </div>
               <h3 className="font-serif italic text-base font-bold text-foreground">
@@ -103,10 +103,10 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
 
           {/* Simple Navigation Actions matching Left Sidebar */}
           <div className="space-y-1">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-primary mb-2">
+            <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary mb-2">
               Creation Desk
             </div>
-            <nav className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider">
+            <nav className="flex flex-col gap-1 font-eyebrow text-xs uppercase tracking-wider">
               <button
                 type="button"
                 onClick={handleOpenJam}
@@ -143,7 +143,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
         </div>
 
         {/* Footer info */}
-        <div className="pt-4 border-t border-border font-mono text-[11px] uppercase tracking-wider text-muted-foreground text-center">
+        <div className="pt-4 border-t border-border font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground text-center">
           Groovy High-Fidelity Creation Desk
         </div>
       </aside>

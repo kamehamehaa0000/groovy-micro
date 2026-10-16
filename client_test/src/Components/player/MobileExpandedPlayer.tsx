@@ -357,7 +357,7 @@ export function MobileExpandedPlayer() {
             onClick={goToRelease}
             className="flex-1 min-w-0 text-center cursor-pointer group"
           >
-            <span className="block font-mono text-[11px] uppercase tracking-widest text-muted-foreground truncate group-hover:text-foreground transition-colors">
+            <span className="block font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground truncate group-hover:text-foreground transition-colors">
               {contextTitle
                 ? 'Playing From'
                 : currentTrack.albumTitle
@@ -713,18 +713,18 @@ export function MobileExpandedPlayer() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-semibold">
                     Live Jam Active
                   </span>
                 </div>
-                <span className="font-mono text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                   {activeRoom.privacy.replace('_', ' ')}
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-muted border border-border">
                 <div className="min-w-0">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground block">
+                  <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground block">
                     Invite Code
                   </span>
                   <span className="font-mono font-bold text-sm text-foreground tracking-wider">
@@ -734,7 +734,7 @@ export function MobileExpandedPlayer() {
                 <button
                   type="button"
                   onClick={handleCopyJamLink}
-                  className="min-h-9 px-3 rounded-md text-[11px] font-mono uppercase tracking-wider font-semibold border border-border hover:border-emerald-500 bg-card text-foreground transition-colors cursor-pointer"
+                  className="min-h-9 px-3 rounded-md text-[11px] font-eyebrow uppercase tracking-wider font-semibold border border-border hover:border-emerald-500 bg-card text-foreground transition-colors cursor-pointer"
                 >
                   {jamCopied ? 'Copied!' : 'Copy Link'}
                 </button>
@@ -780,14 +780,14 @@ export function MobileExpandedPlayer() {
                   to="/jam/$code"
                   params={{ code: activeRoom.roomCode }}
                   onClick={closePlayer}
-                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-card font-mono text-[11px] uppercase tracking-wider text-foreground font-semibold transition-colors"
+                  className="flex-1 min-h-10 inline-flex items-center justify-center rounded-lg border border-border bg-background hover:bg-card font-eyebrow text-[11px] uppercase tracking-wider text-foreground font-semibold transition-colors"
                 >
                   Jam Page &rarr;
                 </Link>
                 <button
                   type="button"
                   onClick={leaveRoom}
-                  className="min-h-10 px-4 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-mono text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  className="min-h-10 px-4 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-eyebrow text-[11px] uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                 >
                   Leave
                 </button>
@@ -801,7 +801,7 @@ export function MobileExpandedPlayer() {
               className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                   About The Artist
                 </span>
                 <button
@@ -817,7 +817,7 @@ export function MobileExpandedPlayer() {
                       closePlayer,
                     )
                   }
-                  className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
+                  className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Profile &rarr;
                 </button>
@@ -865,7 +865,7 @@ export function MobileExpandedPlayer() {
                   type="button"
                   onClick={handleToggleFollow}
                   disabled={isFollowLoading}
-                  className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                  className={`min-h-9 font-eyebrow text-[11px] uppercase tracking-wider px-4 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                     isFollowing
                       ? 'border-border bg-background text-foreground hover:border-red-400 hover:text-red-500'
                       : 'border-foreground bg-foreground text-background hover:opacity-90'
@@ -892,7 +892,7 @@ export function MobileExpandedPlayer() {
             <div
               className={`${CONTENT} rounded-xl overflow-hidden bg-card border border-border p-4 space-y-3 shadow-md`}
             >
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                 Featured &amp; Collaborators
               </span>
 
@@ -932,7 +932,7 @@ export function MobileExpandedPlayer() {
                               <VerifiedBadgeSVG className="w-3.5 h-3.5 text-primary shrink-0" />
                             )}
                           </div>
-                          <span className="font-mono text-[11px] text-muted-foreground block uppercase tracking-wider truncate">
+                          <span className="font-eyebrow text-[11px] text-muted-foreground block uppercase tracking-wider truncate">
                             {collab.role}
                           </span>
                         </div>
@@ -942,7 +942,7 @@ export function MobileExpandedPlayer() {
                         <button
                           type="button"
                           onClick={() => handleToggleArtistFollow(collab.id!)}
-                          className={`min-h-9 font-mono text-[11px] uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
+                          className={`min-h-9 font-eyebrow text-[11px] uppercase tracking-wider px-3.5 rounded-full border transition-all cursor-pointer font-semibold shrink-0 ${
                             isCollabFollowing
                               ? 'border-border bg-background text-foreground hover:text-red-500 hover:border-red-400'
                               : 'border-foreground bg-foreground text-background hover:opacity-90'
@@ -964,13 +964,13 @@ export function MobileExpandedPlayer() {
               className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-2.5 shadow-sm`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
                   Next In Queue
                 </span>
                 <button
                   type="button"
                   onClick={toggleQueueDrawer}
-                  className="font-mono text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
+                  className="font-eyebrow text-[11px] uppercase tracking-wider text-primary hover:underline cursor-pointer py-1"
                 >
                   Open Queue
                 </button>
@@ -1006,7 +1006,7 @@ export function MobileExpandedPlayer() {
           <div
             className={`${CONTENT} rounded-xl bg-card border border-border p-4 space-y-1 text-[13px] shadow-sm`}
           >
-            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block mb-2">
+            <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block mb-2">
               Song Credits &amp; Specs
             </span>
 
@@ -1074,7 +1074,7 @@ export function MobileExpandedPlayer() {
 
             <div className="flex items-center justify-between gap-4 py-1.5">
               <span className="text-muted-foreground shrink-0">Audio Engine</span>
-              <span className="font-mono text-[11px] text-primary font-bold uppercase tracking-wider text-right">
+              <span className="font-eyebrow text-[11px] text-primary font-bold uppercase tracking-wider text-right">
                 {currentTrack.hlsManifestUrl
                   ? 'Hi-Res HLS Stream'
                   : 'Lossless FLAC Master'}

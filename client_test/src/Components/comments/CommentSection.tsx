@@ -218,7 +218,7 @@ export function CommentSection({
         {/* Sort Selector */}
         {allowComments && totalCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground">
               Sort by:
             </span>
             <select

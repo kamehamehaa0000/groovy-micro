@@ -206,7 +206,7 @@ function HomeComponent() {
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
         <section className="border border-border bg-card p-8 sm:p-12 shadow-xs relative overflow-hidden">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-primary-strong mb-3">
+          <div className="font-eyebrow text-[11px] uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
           <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-foreground leading-[1.08] mb-4 max-w-2xl">
@@ -222,14 +222,14 @@ function HomeComponent() {
             <Link
               to="/login"
               search={{ redirect: '/' }}
-              className="bg-foreground text-background border border-foreground py-3 px-6 font-mono text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground shadow-2xs"
+              className="bg-foreground text-background border border-foreground py-3 px-6 font-eyebrow text-[11px] uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground shadow-2xs"
             >
               Enter the collective &rarr;
             </Link>
             <Link
               to="/register"
               search={{ redirect: '/' }}
-              className="border border-border bg-card hover:bg-muted text-foreground py-3 px-6 font-mono text-[11px] uppercase tracking-wider transition-all shadow-2xs"
+              className="border border-border bg-card hover:bg-muted text-foreground py-3 px-6 font-eyebrow text-[11px] uppercase tracking-wider transition-all shadow-2xs"
             >
               Join the Collective
             </Link>
@@ -345,7 +345,7 @@ function HomeComponent() {
                 </div>
                 <Link
                   to="/releases"
-                  className="font-mono text-[11px] hover:underline uppercase tracking-wider text-muted-foreground shrink-0"
+                  className="font-eyebrow text-[11px] hover:underline uppercase tracking-wider text-muted-foreground shrink-0"
                 >
                   Release Archive
                 </Link>
@@ -385,7 +385,7 @@ function HomeComponent() {
                   </div>
                   <Link
                     to="/artists"
-                    className="font-mono hover:underline text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
+                    className="font-eyebrow hover:underline text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
                   >
                     Explore Artists
                   </Link>
@@ -443,7 +443,7 @@ function HomeComponent() {
                   </div>
                   <Link
                     to="/search"
-                    className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
+                    className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground shrink-0"
                   >
                     Explore more
                   </Link>
@@ -501,7 +501,7 @@ function HomeComponent() {
                     Jump back into your personal and saved playlists
                   </p>
                 </div>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground shrink-0">
+                <span className="font-eyebrow text-[11px] uppercase tracking-wider text-muted-foreground shrink-0">
                   Library
                 </span>
               </div>
@@ -548,7 +548,7 @@ function HomeComponent() {
                       imageUrl={mix.coverImageUrl}
                       artistName={mix.seedArtistName}
                       badge={
-                        <span className="px-1.5 py-0.5 rounded text-xs font-mono tracking-wider uppercase bg-foreground/40 text-accent font-bold shadow-xs">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-eyebrow tracking-wider uppercase bg-foreground/40 text-accent font-bold shadow-xs">
                           RADIO
                         </span>
                       }
@@ -582,7 +582,7 @@ function HomeComponent() {
                   Featured Master Releases
                 </h2>
               </div>
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
                 Archive MMXXVI
               </span>
             </div>
@@ -620,7 +620,7 @@ function HomeComponent() {
               <h2 className="font-serif italic font-medium text-xl text-foreground">
                 Correspondence Slip &bull; Master Recordings
               </h2>
-              <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="font-eyebrow text-[11px] uppercase tracking-widest text-muted-foreground">
                 {liveSongs.length > 0
                   ? `${liveSongs.length} Master Works`
                   : '6 Showcase Works'}

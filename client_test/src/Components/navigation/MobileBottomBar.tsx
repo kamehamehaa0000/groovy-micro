@@ -46,7 +46,7 @@ export function MobileBottomBar() {
           <circle cx="12" cy="12" r="10" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-        <span className="font-mono text-[11px] uppercase tracking-wider">
+        <span className="font-eyebrow text-[11px] uppercase tracking-wider">
           Catalog
         </span>
       </Link>
@@ -72,7 +72,7 @@ export function MobileBottomBar() {
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <span className="font-mono text-[11px] uppercase tracking-wider">
+        <span className="font-eyebrow text-[11px] uppercase tracking-wider">
           Search
         </span>
       </Link>
@@ -103,7 +103,7 @@ export function MobileBottomBar() {
             fill={isLibraryActive ? 'currentColor' : 'none'}
           />
         </svg>
-        <span className="font-mono text-[11px] uppercase tracking-wider">
+        <span className="font-eyebrow text-[11px] uppercase tracking-wider">
           Library
         </span>
       </Link>
