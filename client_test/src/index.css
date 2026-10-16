@@ -62,6 +62,13 @@
   --scrim: rgba(23, 22, 15, 0.45);
 
   --radius: 0.5rem;
+
+  /* elevation — raw values, mapped onto the `shadow-*` utilities in
+     `@theme inline`. Tailwind inlines shadow values into the utility, so the
+     only way re-skinning (per theme, or per review variant) can reach them is
+     by keeping them as plain variables here. */
+  --elevation-raised: 0 1px 2px 0 rgba(23, 22, 15, 0.06);
+  --elevation-floating: 0 10px 30px -6px rgba(23, 22, 15, 0.2);
 }
 
 .dark {
@@ -102,8 +109,8 @@
   --warning-soft: rgba(251, 191, 36, 0.16);
   --scrim: rgba(0, 0, 0, 0.6);
 
-  --shadow-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
-  --shadow-floating: 0 10px 30px -6px rgba(0, 0, 0, 0.55);
+  --elevation-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
+  --elevation-floating: 0 10px 30px -6px rgba(0, 0, 0, 0.55);
 }
 
 /* ============================================================================
@@ -139,6 +146,10 @@
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-scrim: var(--scrim);
+
+  /* elevation (raw values live in :root / .dark, like the colours) */
+  --shadow-raised: var(--elevation-raised);
+  --shadow-floating: var(--elevation-floating);
 }
 
 /* ============================================================================
@@ -178,10 +189,6 @@
   --radius-control: 0.25rem; /* buttons, inputs */
   --radius-inset: 0.5rem; /* nested surfaces */
   --radius-surface: 0.75rem; /* cards, panels, sheets */
-
-  /* --- Elevation roles (dark overrides live in `.dark`) ------------------ */
-  --shadow-raised: 0 1px 2px 0 rgba(23, 22, 15, 0.06);
-  --shadow-floating: 0 10px 30px -6px rgba(23, 22, 15, 0.2);
 }
 
 html,

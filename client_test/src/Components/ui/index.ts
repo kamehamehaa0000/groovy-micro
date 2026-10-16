@@ -21,3 +21,6 @@ export type { SheetProps, SheetPlacement, SheetSize } from './Sheet'
 
 export { SectionHeader } from './SectionHeader'
 export type { SectionHeaderProps } from './SectionHeader'
+
+/* Canonical icon set — one geometry for the whole app. */
+export * from './Icon'

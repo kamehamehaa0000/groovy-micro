@@ -1,0 +1,137 @@
+/* ============================================================================
+   GROOVY — DESIGN REVIEW VARIANTS        (dev only, ships with /dev/design)
+   ----------------------------------------------------------------------------
+   The playground sets `document.body.dataset.style` to one of three values, so
+   the whole screen — including portal'd sheets, because it is scoped on
+   `body` — re-skins at once:
+
+     bordered   every surface keeps a hairline; one corner size (8px = lg);
+                depth comes from the outline, never a drop shadow
+     flat       no outlines at all; surfaces are told apart by tone, spacing
+                and elevation — fills replace outlines on controls
+     pixel      hard 2px ink strokes, square corners, offset shadows, and the
+                display face joins the monospace grid
+
+   It works in the same two layers as the real theme, and nothing else:
+     1. tokens on the scope — `--radius-*`, `--border*`, `--elevation-*`
+     2. a few targeted rules for looks a *utility* currently decides
+        (raw `rounded-*` classes, border width, control fills)
+
+   This file is a decision aid, not a shipped style. Whichever variant wins gets
+   folded into `index.css` + the primitives for real.
+   ========================================================================= */
+
+/* Every variant normalises the raw Tailwind radii that predate the token scale,
+   so no screen can show a 6px, a 9px and a 12px corner at once. `rounded-full`
+   is never touched — circles have to stay circles. */
+body[data-style] :is(
+    .rounded-xs,
+    .rounded-sm,
+    .rounded-md,
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl,
+    .rounded-4xl
+  ) {
+  border-radius: var(--variant-radius);
+}
+
+body[data-style] :is(.rounded-t-xl, .rounded-t-2xl, .rounded-t-3xl) {
+  border-top-left-radius: var(--variant-radius);
+  border-top-right-radius: var(--variant-radius);
+}
+
+/* ------------------------------------------------------------- 1 · bordered */
+
+body[data-style='bordered'] {
+  --variant-radius: 0.5rem; /* rounded-lg — the "one radius" candidate */
+  --radius-control: 0.5rem;
+  --radius-inset: 0.5rem;
+  --radius-surface: 0.5rem;
+  --border: rgba(23, 22, 15, 0.16);
+  --border-soft: rgba(23, 22, 15, 0.1);
+  --input: rgba(23, 22, 15, 0.16);
+  --elevation-raised: 0 0 #0000; /* the outline IS the elevation */
+}
+
+.dark body[data-style='bordered'] {
+  --border: rgba(244, 243, 235, 0.2);
+  --border-soft: rgba(244, 243, 235, 0.12);
+  --input: rgba(244, 243, 235, 0.2);
+}
+
+/* ----------------------------------------------------------------- 2 · flat */
+
+body[data-style='flat'] {
+  --variant-radius: 0.75rem;
+  --radius-control: 0.75rem;
+  --radius-inset: 0.75rem;
+  --radius-surface: 0.75rem;
+  --border: rgba(0, 0, 0, 0);
+  --border-soft: rgba(23, 22, 15, 0.07); /* the one line flat keeps: row dividers */
+  --input: rgba(0, 0, 0, 0);
+  --elevation-raised: 0 0 #0000;
+}
+
+/* In dark, `--card` and `--muted` are the same value — with no outlines that
+   leaves nothing to separate them, so flat deepens the canvas on purpose. */
+.dark body[data-style='flat'] {
+  --background: #121309;
+  --card: #1e1f17;
+  --muted: #191a13;
+}
+
+/* Controls trade their outline for a fill. */
+body[data-style='flat'] :is(input, textarea, select),
+body[data-style='flat'] button[data-variant='outline'],
+body[data-style='flat'] button[data-variant='danger'] {
+  background-color: var(--muted);
+}
+
+body[data-style='flat'] :is(input, textarea, select):focus {
+  background-color: var(--card);
+}
+
+/* Rows still need a hairline or a long list turns into one white slab. Tagged
+   `variant-list` in the playground so the rule stays honest and local. */
+body[data-style='flat'] .variant-list > * {
+  border-color: var(--border-soft);
+}
+
+/* ---------------------------------------------------------------- 3 · pixel */
+
+body[data-style='pixel'] {
+  --variant-radius: 0;
+  --radius-control: 0;
+  --radius-inset: 0;
+  --radius-surface: 0;
+  --border: var(--foreground);
+  --border-soft: var(--foreground);
+  --input: var(--foreground);
+  --elevation-raised: 2px 2px 0 0 var(--foreground);
+  --elevation-floating: 4px 4px 0 0 var(--foreground);
+  --font-serif: var(--font-mono); /* display type joins the pixel grid */
+}
+
+.dark body[data-style='pixel'] {
+  --border: rgba(244, 243, 235, 0.5);
+  --border-soft: rgba(244, 243, 235, 0.35);
+  --input: rgba(244, 243, 235, 0.5);
+  --elevation-raised: 2px 2px 0 0 #000;
+  --elevation-floating: 4px 4px 0 0 #000;
+}
+
+/* Chunky strokes: every border utility doubles up. `:is()` keeps this at
+   (0,2,0) so it beats Tailwind's single-class utilities without `!important`. */
+body[data-style='pixel'] :is(
+    .border,
+    .border-t,
+    .border-b,
+    .border-l,
+    .border-r,
+    .border-x,
+    .border-y
+  ) {
+  border-width: 2px;
+}
