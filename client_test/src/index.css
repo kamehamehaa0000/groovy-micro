@@ -2,25 +2,25 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================================
+   GROOVY — DESIGN TOKENS  (single source of truth)
+   ----------------------------------------------------------------------------
+   Voice: "hybrid editorial".
+     - Fraunces  -> page display headings only
+     - Inter     -> all body + UI text
+     - IBM Plex  -> eyebrow labels + numerals/timestamps only
+   Every token below has exactly ONE job. Do not invent one-off sizes, radii or
+   colors at call sites — extend this file instead. See docs/design-system.md.
+   ========================================================================= */
 @theme {
-  --font-serif: 'Fraunces', Georgia, serif;
+  /* --- Typefaces --------------------------------------------------------- */
+  --font-serif: 'Fraunces', Georgia, serif; /* display headings only */
   --font-sans:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* body + UI */
+  --font-mono:
+    'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace; /* eyebrows + numerals */
 
-  --color-canvas: var(--color-canvas);
-  --color-canvas-deep: var(--color-canvas-deep);
-  --color-panel: var(--color-panel);
-  --color-ink: var(--color-ink);
-  --color-ink-soft: var(--color-ink-soft);
-  --color-stone: var(--color-stone);
-  --color-blue: var(--color-blue);
-  --color-blue-deep: var(--color-blue-deep);
-  --color-line: var(--color-line);
-  --color-line-soft: var(--color-line-soft);
-}
-
-:root {
+  /* --- Surfaces, ink & lines -------------------------------------------- */
   --color-canvas: #faf8f3;
   --color-canvas-deep: #f1ece1;
   --color-panel: #ffffff;
@@ -31,22 +31,72 @@
   --color-blue-deep: #123d6b;
   --color-line: rgba(23, 22, 15, 0.12);
   --color-line-soft: rgba(23, 22, 15, 0.07);
+
+  /* --- Semantic state (declared once, so raw red/green/amber stop leaking) */
+  --color-success: #1ed760;
+  --color-success-soft: rgba(30, 215, 96, 0.14);
+  --color-danger: #dc2626;
+  --color-danger-soft: rgba(220, 38, 38, 0.12);
+  --color-warning: #d97706;
+  --color-warning-soft: rgba(217, 119, 6, 0.14);
+
+  /* --- Overlays ---------------------------------------------------------- */
+  --color-scrim: rgba(23, 22, 15, 0.45);
+
+  /* --- Type roles -------------------------------------------------------- */
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.015em;
+
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.4;
+
+  --text-title: 1rem;
+  --text-title--line-height: 1.5;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.55;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+
+  --text-eyebrow: 0.6875rem; /* 11px */
+  --text-eyebrow--line-height: 1rem;
+  --text-eyebrow--letter-spacing: 0.05em;
+
+  /* --- Radius roles ------------------------------------------------------ */
+  --radius-control: 0.25rem; /* buttons, inputs */
+  --radius-inset: 0.5rem; /* nested surfaces */
+  --radius-surface: 0.75rem; /* cards, panels, sheets */
+
+  /* --- Elevation roles --------------------------------------------------- */
+  --shadow-raised: 0 1px 2px 0 rgba(23, 22, 15, 0.06);
+  --shadow-floating: 0 10px 30px -6px rgba(23, 22, 15, 0.2);
 }
 
 .dark {
   --color-canvas: #171813;
   --color-canvas-deep: #1c1d17;
   --color-panel: #1c1d17;
-
   --color-ink: #f4f3eb;
   --color-ink-soft: #9a9a8e;
-
   --color-stone: #25261f;
-
   --color-blue: #c9ff35;
   --color-blue-deep: #a8d92d;
   --color-line: rgba(213, 214, 193, 0.16);
   --color-line-soft: rgba(213, 214, 193, 0.09);
+
+  --color-success: #1ed760;
+  --color-success-soft: rgba(30, 215, 96, 0.16);
+  --color-danger: #f87171;
+  --color-danger-soft: rgba(248, 113, 113, 0.16);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, 0.16);
+
+  --color-scrim: rgba(0, 0, 0, 0.6);
+
+  --shadow-raised: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
+  --shadow-floating: 0 10px 30px -6px rgba(0, 0, 0, 0.55);
 }
 
 html,
@@ -58,7 +108,7 @@ body {
   min-height: 100dvh;
 }
 
-/* Safe-area utilities (support iPhone notch / home indicator).
+/* Safe-area utilities (iPhone notch / home indicator).
    `viewport-fit=cover` is set in index.html, so env() resolves correctly. */
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
