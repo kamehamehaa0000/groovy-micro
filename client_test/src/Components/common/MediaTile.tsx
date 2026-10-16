@@ -111,7 +111,7 @@ export function MediaTile({
 
     return (
       <div
-        className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-canvas-soft/70 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
+        className={`group relative flex flex-col p-2.5 rounded-xl hover:bg-stone/30 active:scale-[0.98] transition-all duration-150 select-none ${className}`}
       >
         {to ? (
           <Link

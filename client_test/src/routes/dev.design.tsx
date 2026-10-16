@@ -15,7 +15,11 @@ import {
   Textarea,
 } from '../components/ui'
 import { cn } from '../components/ui/cn'
+import { MediaTile } from '../components/common/MediaTile'
+import type { MediaTileProps } from '../components/common/MediaTile'
+import { SongRow } from '../components/common/SongRow'
 import { useThemeStore } from '../stores/theme.store'
+import type { PlayerTrack } from '../types/player'
 import {
   ChevronDownIconSVG,
   EditIconSVG,
@@ -49,9 +53,7 @@ function Section({
     <section className="flex flex-col gap-3">
       <div>
         <Eyebrow tone="brand">{title}</Eyebrow>
-        {hint ? (
-          <p className="mt-0.5 text-caption text-ink-soft">{hint}</p>
-        ) : null}
+        {hint ? <p className="mt-0.5 text-caption text-ink-soft">{hint}</p> : null}
       </div>
       <Card padding="lg" className="flex flex-col gap-5">
         {children}
@@ -61,9 +63,7 @@ function Section({
 }
 
 function Token({ children }: { children: ReactNode }) {
-  return (
-    <code className="font-mono text-caption text-ink-soft">{children}</code>
-  )
+  return <code className="font-mono text-caption text-ink-soft">{children}</code>
 }
 
 function SwatchGrid({
@@ -99,7 +99,7 @@ const SURFACES = [
   { token: 'stone', className: 'bg-stone' },
   { token: 'ink', className: 'bg-ink' },
   { token: 'ink-soft', className: 'bg-ink-soft' },
-  { token: 'blue', className: 'bg-blue' },
+  { token: 'blue (accent)', className: 'bg-blue' },
   { token: 'blue-deep', className: 'bg-blue-deep' },
 ]
 
@@ -113,6 +113,13 @@ const SEMANTICS = [
   { token: 'scrim', className: 'bg-scrim' },
 ]
 
+const ACCENT_CANDIDATES = [
+  { name: 'Violet (current)', hex: '#8b7bf0' },
+  { name: 'Indigo', hex: '#818cf8' },
+  { name: 'Teal', hex: '#2fb8a8' },
+  { name: 'Rose', hex: '#e8796b' },
+]
+
 const BUTTON_VARIANTS = ['primary', 'brand', 'outline', 'ghost', 'danger'] as const
 const BUTTON_SIZES = ['sm', 'md'] as const
 const ICON_SIZES = ['sm', 'md', 'lg'] as const
@@ -124,6 +131,81 @@ const BADGE_TONES = [
   'warning',
   'danger',
 ] as const
+const SONG_VARIANTS = ['standard', 'album', 'playlist', 'artist', 'search'] as const
+
+const noop = () => {}
+
+const FUTURE = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString()
+
+const SAMPLE_TRACKS: PlayerTrack[] = [
+  {
+    id: 't1',
+    title: 'Neon Rain',
+    artistId: 'a1',
+    artistName: 'Nova',
+    artistSlug: 'nova',
+    albumId: 'al1',
+    albumTitle: 'Midnight Drive',
+    albumSlug: 'midnight-drive',
+    durationSeconds: 214,
+    isStreamable: true,
+    isExplicit: false,
+  },
+  {
+    id: 't2',
+    title: 'Velvet Static',
+    artistId: 'a2',
+    artistName: 'The Hollow Suns',
+    albumId: 'al2',
+    albumTitle: 'Analog Dreams',
+    albumSlug: 'analog-dreams',
+    durationSeconds: 187,
+    isStreamable: true,
+  },
+  {
+    id: 't3',
+    title: 'Paper Moons',
+    artistId: 'a1',
+    artistName: 'Nova',
+    albumId: 'al1',
+    albumTitle: 'Midnight Drive',
+    durationSeconds: 245,
+    isStreamable: false,
+    isExplicit: true,
+  },
+  {
+    id: 't4',
+    title: 'Gold Teeth',
+    artistId: 'a3',
+    artistName: 'Marlowe',
+    durationSeconds: 168,
+    isStreamable: true,
+  },
+]
+
+const SHELF_TILES: MediaTileProps[] = [
+  { title: 'Midnight Drive', subtitle: 'Album · Nova', artistName: 'Nova', onPlay: noop },
+  { title: 'Analog Dreams', subtitle: 'Album · The Hollow Suns', artistName: 'The Hollow Suns', onPlay: noop },
+  {
+    title: 'Late Night Mix',
+    subtitle: 'Playlist · 24 tracks',
+    artistName: 'Groovy',
+    badge: <Badge tone="brand">New</Badge>,
+    onPlay: noop,
+  },
+  { title: 'Marlowe', subtitle: 'Artist', artistName: 'Marlowe', isRoundImage: true, onPlay: noop },
+  { title: 'Rare B-Sides', subtitle: 'No artwork', fallbackInitials: 'RB', onPlay: noop },
+  { title: 'Sunroom', subtitle: 'Album · Iris', artistName: 'Iris', onPlay: noop },
+]
+
+const GRID_TILES: MediaTileProps[] = [
+  { title: 'Midnight Drive', subtitle: 'Nova', artistName: 'Nova', onPlay: noop },
+  { title: 'Analog Dreams', subtitle: 'The Hollow Suns', artistName: 'The Hollow Suns', onPlay: noop },
+  { title: 'Sunroom', subtitle: 'Iris', artistName: 'Iris', onPlay: noop },
+  { title: 'Gold Teeth', subtitle: 'Marlowe', artistName: 'Marlowe', onPlay: noop },
+  { title: 'Paper Moons', subtitle: 'Nova', artistName: 'Nova', onPlay: noop },
+  { title: 'Rare B-Sides', subtitle: 'Various', fallbackInitials: 'RB', onPlay: noop },
+]
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -180,9 +262,7 @@ function DesignPlayground() {
           </div>
           <div>
             <Token>text-heading · Inter</Token>
-            <h2 className="text-heading font-semibold text-ink">
-              Section heading
-            </h2>
+            <h2 className="text-heading font-semibold text-ink">Section heading</h2>
           </div>
           <div>
             <Token>text-title · Inter</Token>
@@ -196,9 +276,7 @@ function DesignPlayground() {
           </div>
           <div>
             <Token>text-caption · Inter</Token>
-            <p className="text-caption text-ink-soft">
-              Caption / secondary metadata.
-            </p>
+            <p className="text-caption text-ink-soft">Caption / secondary metadata.</p>
           </div>
           <div>
             <Token>text-eyebrow · IBM Plex Mono</Token>
@@ -208,10 +286,7 @@ function DesignPlayground() {
       </Section>
 
       {/* Color */}
-      <Section
-        title="Surfaces & ink"
-        hint="The working palette, unchanged from before the foundation."
-      >
+      <Section title="Surfaces & ink" hint="The working palette.">
         <SwatchGrid items={SURFACES} />
       </Section>
 
@@ -228,10 +303,40 @@ function DesignPlayground() {
         </div>
       </Section>
 
+      {/* Accent decision aid */}
+      <Section
+        title="Dark-mode accent candidates"
+        hint="Decision aid. Lime is gone; Violet is applied now. Pick one and it becomes the token."
+      >
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {ACCENT_CANDIDATES.map((candidate) => (
+            <div key={candidate.name} className="flex flex-col gap-2">
+              <div
+                className="flex h-10 items-center justify-center rounded-control font-mono text-caption font-semibold uppercase"
+                style={{ background: candidate.hex, color: '#171813' }}
+              >
+                Button
+              </div>
+              <div
+                className="h-2 rounded-full"
+                style={{ background: candidate.hex }}
+              />
+              <span
+                className="text-body font-medium"
+                style={{ color: candidate.hex }}
+              >
+                {candidate.name}
+              </span>
+              <Token>{candidate.hex}</Token>
+            </div>
+          ))}
+        </div>
+      </Section>
+
       {/* Buttons */}
       <Section
         title="Buttons"
-        hint="Primary is solid ink with a brand-blue hover — Groovy's signature CTA."
+        hint="Primary is solid ink with a brand-accent hover — Groovy's signature CTA."
       >
         <div className="flex flex-wrap items-center gap-3">
           {BUTTON_VARIANTS.map((variant) => (
@@ -246,10 +351,7 @@ function DesignPlayground() {
               size · {size}
             </Button>
           ))}
-          <Button
-            variant="primary"
-            leftIcon={<PlayIconSVG className="h-3.5 w-3.5" />}
-          >
+          <Button variant="primary" leftIcon={<PlayIconSVG className="h-3.5 w-3.5" />}>
             With icon
           </Button>
           <Button variant="outline" disabled>
@@ -280,10 +382,7 @@ function DesignPlayground() {
           <IconButton aria-label="Like" className="border border-line bg-panel">
             <HeartIconSVG className="h-4 w-4" />
           </IconButton>
-          <IconButton
-            aria-label="Search"
-            className="border border-line bg-panel"
-          >
+          <IconButton aria-label="Search" className="border border-line bg-panel">
             <SearchIconSVG className="h-4 w-4" />
           </IconButton>
         </div>
@@ -306,14 +405,158 @@ function DesignPlayground() {
           {(['plain', 'muted', 'interactive'] as const).map((variant) => (
             <Card key={variant} variant={variant} padding="md">
               <Eyebrow>{variant}</Eyebrow>
-              <h4 className="mt-1 text-title font-medium text-ink">
-                Release title
-              </h4>
+              <h4 className="mt-1 text-title font-medium text-ink">Release title</h4>
               <p className="mt-0.5 text-caption text-ink-soft">
                 Artist · 2026 · 12 tracks
               </p>
             </Card>
           ))}
+        </div>
+      </Section>
+
+      {/* Song rows — variants */}
+      <Section
+        title="Song rows — variants"
+        hint="One row component, five context views: standard, album, playlist, artist, search."
+      >
+        <div className="overflow-hidden rounded-surface border border-line">
+          {SONG_VARIANTS.map((variant, i) => (
+            <div key={variant} className="border-b border-line last:border-b-0">
+              <div className="bg-canvas-deep/50 px-4 py-1">
+                <Eyebrow tone="muted">variant · {variant}</Eyebrow>
+              </div>
+              <SongRow
+                track={SAMPLE_TRACKS[i % SAMPLE_TRACKS.length]}
+                index={i}
+                variant={variant}
+                trackNumberDisplay={i + 1}
+              />
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Song rows — states */}
+      <Section
+        title="Song rows — states & metadata"
+        hint="Plays count, artist/producer credits, scheduled (locked), added-by, reorder grip."
+      >
+        <div className="overflow-hidden rounded-surface border border-line">
+          <SongRow
+            track={SAMPLE_TRACKS[0]}
+            index={0}
+            variant="search"
+            playsCount={128400}
+          />
+          <SongRow
+            track={SAMPLE_TRACKS[3]}
+            index={1}
+            variant="search"
+            primaryCredits={[{ artistId: 'a1', stageName: 'Nova' }]}
+            featuredCredits={[{ artistId: 'a4', stageName: 'Iris' }]}
+            producerCredits={[{ artistId: 'a5', stageName: 'Kato' }]}
+          />
+          <SongRow
+            track={SAMPLE_TRACKS[2]}
+            index={2}
+            variant="search"
+            scheduledReleaseAt={FUTURE}
+          />
+          <SongRow
+            track={SAMPLE_TRACKS[1]}
+            index={3}
+            variant="playlist"
+            addedByDisplayName="Ava"
+            isDraggable
+            onGripPointerDown={noop}
+          />
+          <SongRow
+            track={SAMPLE_TRACKS[0]}
+            index={4}
+            variant="standard"
+            isPersonal
+            hideAddToPlaylist
+            onRemoveFromPlaylist={noop}
+          />
+        </div>
+      </Section>
+
+      {/* Media tiles — shelf */}
+      <Section
+        title="Media tiles — shelf"
+        hint="Horizontal scroll row, as used on home / browse."
+      >
+        <div className="no-scrollbar -mx-1 flex gap-1 overflow-x-auto pb-1">
+          {SHELF_TILES.map((tile) => (
+            <div key={tile.title} className="w-32 shrink-0 sm:w-36">
+              <MediaTile {...tile} />
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Media tiles — grid */}
+      <Section
+        title="Media tiles — grid"
+        hint="Responsive grid, as used on search / browse results."
+      >
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {GRID_TILES.map((tile) => (
+            <MediaTile key={tile.title} {...tile} />
+          ))}
+        </div>
+      </Section>
+
+      {/* Media tile variants */}
+      <Section
+        title="Media tile variants"
+        hint="Procedural artwork, round artist tile, badge, initials fallback, play affordance."
+      >
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+          <MediaTile title="Midnight Drive" subtitle="Album · Nova" artistName="Nova" />
+          <MediaTile
+            title="Nova"
+            subtitle="Artist"
+            artistName="Nova"
+            isRoundImage
+          />
+          <MediaTile
+            title="Late Night Mix"
+            subtitle="Playlist · 24 tracks"
+            artistName="Groovy"
+            badge={<Badge tone="brand">New</Badge>}
+          />
+          <MediaTile title="Rare B-Sides" subtitle="No artwork" fallbackInitials="RB" />
+          <MediaTile
+            title="Analog Dreams"
+            subtitle="Album · The Hollow Suns"
+            artistName="The Hollow Suns"
+            onPlay={noop}
+          />
+        </div>
+      </Section>
+
+      {/* Composed section */}
+      <Section
+        title="A composed section"
+        hint="SectionHeader + tile grid = a real browse section, built from primitives."
+      >
+        <div className="overflow-hidden rounded-surface border border-line">
+          <SectionHeader
+            eyebrow="for you"
+            title="New releases"
+            description="Fresh drops from artists you follow."
+            actions={
+              <Button size="sm" variant="outline">
+                See all
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 md:grid-cols-4">
+            {GRID_TILES.slice(0, 4).map((tile) => (
+              <MediaTile key={tile.title} {...tile} />
+            ))}
+          </div>
         </div>
       </Section>
 
@@ -372,12 +615,7 @@ function DesignPlayground() {
             ] as const
           ).map(([label, cls]) => (
             <div key={label} className="flex flex-col items-center gap-2">
-              <div
-                className={cn(
-                  'h-16 w-16 border border-line bg-panel',
-                  cls,
-                )}
-              />
+              <div className={cn('h-16 w-16 border border-line bg-panel', cls)} />
               <Token>{label}</Token>
             </div>
           ))}
@@ -405,10 +643,7 @@ function DesignPlayground() {
       </Section>
 
       {/* Sheets */}
-      <Section
-        title="Sheets"
-        hint="Scrim + Escape + body-scroll lock + safe-area, once."
-      >
+      <Section title="Sheets" hint="Scrim + Escape + body-scroll lock + safe-area, once.">
         <div className="flex flex-wrap gap-3">
           <Button variant="outline" onClick={() => setBottomSheet(true)}>
             <UploadCloudSVG className="h-4 w-4" /> Bottom sheet
@@ -465,11 +700,7 @@ function DesignPlayground() {
             <Input id="pl" placeholder="Late night mix" />
           </Field>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCenterSheet(false)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setCenterSheet(false)}>
               Cancel
             </Button>
             <Button

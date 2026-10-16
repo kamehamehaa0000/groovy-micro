@@ -27,7 +27,7 @@
   --color-ink: #17160f;
   --color-ink-soft: #79766d;
   --color-stone: #d8d2c2;
-  --color-blue: #1b5fa6;
+  --color-blue: #1b5fa6; /* brand accent */
   --color-blue-deep: #123d6b;
   --color-line: rgba(23, 22, 15, 0.12);
   --color-line-soft: rgba(23, 22, 15, 0.07);
@@ -81,8 +81,10 @@
   --color-ink: #f4f3eb;
   --color-ink-soft: #9a9a8e;
   --color-stone: #25261f;
-  --color-blue: #c9ff35;
-  --color-blue-deep: #a8d92d;
+  /* Dark accent: violet, not neon lime — the lime was too hot as a button bg
+     and collided with the warning/success semantics. */
+  --color-blue: #8b7bf0;
+  --color-blue-deep: #7568e0;
   --color-line: rgba(213, 214, 193, 0.16);
   --color-line-soft: rgba(213, 214, 193, 0.09);
 
