@@ -4,32 +4,24 @@ import { useAuthStore } from '../stores/auth.store'
 import { artistsApi, slugifyText } from '../lib/artists.api'
 import { catalogApi } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
-import type { Album, Song, ReleaseVisibility } from '../types/catalog'
-import {
-  BadgeCheck,
-  ExternalLink,
-  UploadCloud,
-  Disc3,
-  RotateCcw,
-} from 'lucide-react'
+import type { Album, Song } from '../types/catalog'
+import { BadgeCheck, ExternalLink, UploadCloud, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { ConfirmPurgeModal } from '../components/studio/ConfirmPurgeModal'
 import { ConfirmSoftDeleteModal } from '../components/studio/ConfirmSoftDeleteModal'
-import { CreateReleaseDrawer } from '../components/studio/CreateReleaseDrawer'
 import { DetachCutDrawer } from '../components/studio/DetachCutDrawer'
 import { EditReleaseDrawer } from '../components/studio/EditReleaseDrawer'
-import { ReleaseCard } from '../components/studio/ReleaseCard'
 import { StudioHeader } from '../components/studio/StudioHeader'
 import { StudioTabs } from '../components/studio/StudioTabs'
 import { StudioToaster } from '../components/studio/StudioToaster'
+import { useReleases } from '../components/studio/hooks/useReleases'
 import type {
-  DetachCutRequest,
-  ReleaseDeleteRequest,
   StudioTab,
   TrashPurgeRequest,
 } from '../components/studio/studio.types'
+import { ReleasesTab } from '../components/studio/tabs/ReleasesTab'
 
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
@@ -43,9 +35,22 @@ function StudioComponent() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [activeTab, setActiveTab] = useState<StudioTab>('releases')
 
-  // Catalog Releases State
-  const [albums, setAlbums] = useState<Album[]>([])
-  const [isLoadingReleases, setIsLoadingReleases] = useState(false)
+  const releases = useReleases()
+
+  const {
+    albums,
+    confirmSoftDelete,
+    deleteConfirm,
+    detachModalData,
+    editingAlbum,
+    isDeletingItem,
+    isLoadingReleases,
+    setAlbumTrackMap,
+    setDeleteConfirm,
+    setDetachModalData,
+    setEditingAlbum,
+    setIsCreateReleaseOpen,
+  } = releases
 
   // Trash Releases State
   const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
@@ -56,11 +61,6 @@ function StudioComponent() {
   )
   const [isPurging, setIsPurging] = useState(false)
 
-  // Soft Delete Confirmation State (Modal)
-  const [deleteConfirm, setDeleteConfirm] =
-    useState<ReleaseDeleteRequest | null>(null)
-  const [isDeletingItem, setIsDeletingItem] = useState(false)
-
   // Upgrade Form State (for Listeners)
   const [stageName, setStageName] = useState('')
   const [customSlug, setCustomSlug] = useState('')
@@ -69,16 +69,6 @@ function StudioComponent() {
   const [website, setWebsite] = useState('')
   const [spotify, setSpotify] = useState('')
   const [isSubmittingUpgrade, setIsSubmittingUpgrade] = useState(false)
-
-  // Release Creation Modal State (Unified Spotify-style Release Model)
-  const [isCreateReleaseOpen, setIsCreateReleaseOpen] = useState(false)
-
-  // Edit Release Modal State
-  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
-
-  // Detach Cut Modal State
-  const [detachModalData, setDetachModalData] =
-    useState<DetachCutRequest | null>(null)
 
   // Banner & Avatar Upload & Crop State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
@@ -118,22 +108,6 @@ function StudioComponent() {
     string | null
   >(null)
 
-  // Expanded album tracks view in Studio
-  const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
-  const [visibilityMenuId, setVisibilityMenuId] = useState<string | null>(null)
-  const [albumTrackMap, setAlbumTrackMap] = useState<Record<string, Song[]>>({})
-  const [isLoadingAlbumTracks, setIsLoadingAlbumTracks] = useState(false)
-
-  // Dismiss the visibility menu with Escape
-  useEffect(() => {
-    if (!visibilityMenuId) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setVisibilityMenuId(null)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [visibilityMenuId])
-
   // Authentication check
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -169,20 +143,6 @@ function StudioComponent() {
     }
   }, [user])
 
-  // Load Releases for the artist
-  const loadReleases = async () => {
-    if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
-    setIsLoadingReleases(true)
-    try {
-      const res = await catalogApi.getStudioReleases(false)
-      setAlbums(res.albums)
-    } catch (err: any) {
-      console.warn('Could not load releases:', err)
-    } finally {
-      setIsLoadingReleases(false)
-    }
-  }
-
   // Load Trash items
   const loadTrash = async () => {
     if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
@@ -201,114 +161,12 @@ function StudioComponent() {
   useEffect(() => {
     if (artistProfile) {
       if (activeTab === 'releases' || activeTab === 'profile') {
-        loadReleases()
+        releases.loadReleases()
       } else if (activeTab === 'trash') {
         loadTrash()
       }
     }
   }, [artistProfile, activeTab])
-
-  // Toggle expand album tracks
-  const handleToggleAlbumExpand = async (albumId: string) => {
-    if (expandedAlbumId === albumId) {
-      setExpandedAlbumId(null)
-      return
-    }
-
-    setExpandedAlbumId(albumId)
-    if (!albumTrackMap[albumId]) {
-      setIsLoadingAlbumTracks(true)
-      try {
-        const fullAlbum = await catalogApi.getAlbum(albumId)
-        setAlbumTrackMap((prev) => ({
-          ...prev,
-          [albumId]: fullAlbum.tracks,
-        }))
-      } catch (err: any) {
-        toast.error(err.message || 'Failed to load album tracks')
-      } finally {
-        setIsLoadingAlbumTracks(false)
-      }
-    }
-  }
-
-  // Open Detach Modal (only allowed on non-single releases)
-  const handleOpenDetachModal = (song: Song, parentAlbum: Album) => {
-    if (parentAlbum.albumType === 'SINGLE') {
-      toast.error('Cannot detach a track from a single release.')
-      return
-    }
-    setDetachModalData({ song, parentAlbum })
-    toast.dismiss()
-  }
-
-  // Trigger soft delete confirmation modal for an album release
-  const handleDeleteAlbum = (
-    albumId: string,
-    title?: string,
-    trackCount?: number,
-  ) => {
-    setDeleteConfirm({
-      type: 'album',
-      id: albumId,
-      title: title || 'Release',
-      trackCount: trackCount || 1,
-    })
-  }
-
-  // Trigger soft delete confirmation modal for a song
-  const handleDeleteSong = (
-    songId: string,
-    title?: string,
-    parentAlbumId?: string,
-    trackCount?: number,
-  ) => {
-    setDeleteConfirm({
-      type: 'song',
-      id: songId,
-      title: title || 'Master track',
-      parentAlbumId,
-      trackCount,
-    })
-  }
-
-  // Execute confirmed soft delete
-  const confirmSoftDelete = async () => {
-    if (!deleteConfirm) return
-
-    try {
-      setIsDeletingItem(true)
-      toast.dismiss()
-      if (deleteConfirm.type === 'album') {
-        await catalogApi.deleteAlbum(deleteConfirm.id)
-        toast.success(
-          'Release and all its cuts moved to 30-day trash. You can restore it anytime within 30 days.',
-        )
-      } else {
-        const res = await catalogApi.deleteSong(deleteConfirm.id)
-        toast.success(res.message || 'Master track moved to 30-day trash.')
-        if (deleteConfirm.parentAlbumId) {
-          try {
-            const fullAlbum = await catalogApi.getAlbum(
-              deleteConfirm.parentAlbumId,
-            )
-            setAlbumTrackMap((prev) => ({
-              ...prev,
-              [deleteConfirm.parentAlbumId!]: fullAlbum.tracks,
-            }))
-          } catch {
-            // Parent album may have been deleted if it was the last track
-          }
-        }
-      }
-      setDeleteConfirm(null)
-      loadReleases()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to archive item')
-    } finally {
-      setIsDeletingItem(false)
-    }
-  }
 
   // Execute confirmed permanent purge (empty trash, release, or single cut)
   const confirmPurge = () => {
@@ -389,38 +247,6 @@ function StudioComponent() {
       toast.error(err.message || 'Failed to empty studio trash')
     } finally {
       setIsPurging(false)
-    }
-  }
-
-  // Quick Visibility Changer from Release Card
-  const handleQuickChangeVisibility = async (
-    album: Album,
-    newVisibility: ReleaseVisibility,
-  ) => {
-    if (album.visibility === newVisibility) return
-    toast.dismiss()
-    try {
-      const updated = await catalogApi.updateAlbum(album.id, {
-        visibility: newVisibility,
-      })
-      setAlbums((prev) =>
-        prev.map((a) =>
-          a.id === album.id
-            ? {
-                ...a,
-                visibility: updated.visibility,
-                shareToken: updated.shareToken ?? a.shareToken,
-              }
-            : a,
-        ),
-      )
-      toast.success(
-        `Visibility for "${album.title}" updated to ${newVisibility}${
-          newVisibility === 'UNLISTED' ? ' (Secret share token generated)' : ''
-        }.`,
-      )
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update visibility')
     }
   }
 
@@ -882,107 +708,7 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {/* TAB 1: CATALOG & RELEASES */}
       {/* ========================================================================= */}
-      {activeTab === 'releases' && (
-        <div className="space-y-10">
-          {/* Top Overview */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="font-serif italic text-xl sm:text-2xl text-foreground font-semibold">
-                Master Releases & Recordings
-              </h2>
-              <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                Manage your studio master tapes, published albums, and
-                standalone singles.
-              </p>
-            </div>
-          </div>
-
-          {/* Unified Master Release Modal / Drawer */}
-          {isCreateReleaseOpen && (
-            <CreateReleaseDrawer
-              artistProfile={artistProfile}
-              onClose={() => setIsCreateReleaseOpen(false)}
-              onReleasesChanged={loadReleases}
-            />
-          )}
-
-          {/* Releases List */}
-          <div className="space-y-4">
-            <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-              Active Releases ({albums.length})
-            </h3>
-
-            {isLoadingReleases ? (
-              <div className="p-8 text-center font-mono text-caption text-muted-foreground animate-pulse">
-                Querying studio releases...
-              </div>
-            ) : albums.length === 0 ? (
-              <div className="p-10 border border-dashed border-border bg-card text-center">
-                <Disc3 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2 shrink-0" />
-                <p className="font-serif italic text-title text-foreground">
-                  No active master releases yet
-                </p>
-                <p className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-1">
-                  Click "+ New Release" above to release your first album, EP or
-                  single.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {albums.map((album) => {
-                  const isExpanded = expandedAlbumId === album.id
-                  const tracks = albumTrackMap[album.id] || []
-
-                  return (
-                    <ReleaseCard
-                      key={album.id}
-                      album={album}
-                      tracks={tracks}
-                      isLoadingTracks={isLoadingAlbumTracks}
-                      isExpanded={isExpanded}
-                      isVisibilityMenuOpen={visibilityMenuId === album.id}
-                      onToggleVisibilityMenu={() =>
-                        setVisibilityMenuId((cur) =>
-                          cur === album.id ? null : album.id,
-                        )
-                      }
-                      onCloseVisibilityMenu={() => setVisibilityMenuId(null)}
-                      onChangeVisibility={(nextVisibility) =>
-                        handleQuickChangeVisibility(album, nextVisibility)
-                      }
-                      onToggleExpand={() => handleToggleAlbumExpand(album.id)}
-                      onCopySecretLink={() => {
-                        const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
-                        navigator.clipboard.writeText(shareUrl)
-                        toast.success(
-                          `Copied secret share link for "${album.title}"!`,
-                        )
-                      }}
-                      onEdit={() => setEditingAlbum(album)}
-                      onDelete={() =>
-                        handleDeleteAlbum(
-                          album.id,
-                          album.title,
-                          album.totalTracks || tracks.length || 1,
-                        )
-                      }
-                      onDetachCut={(track) => handleOpenDetachModal(track, album)}
-                      onDeleteCut={(track) =>
-                        handleDeleteSong(
-                          track.id,
-                          track.title,
-                          album.id,
-                          tracks.length,
-                        )
-                      }
-                    />
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <ReleasesTab artistProfile={artistProfile} releases={releases} />
 
       {/* ========================================================================= */}
       {/* TAB 2: 30-DAY TRASH & ARCHIVE */}
@@ -1851,7 +1577,7 @@ function StudioComponent() {
 
           {artistProfile.verificationStatus === 'VERIFIED' ? (
             <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
-              <BadgeCheck className="w-8 h-8 text-primary shrink-0 shrink-0" />
+              <BadgeCheck className="w-8 h-8 text-primary shrink-0" />
               <div>
                 <h3 className="font-serif italic text-title text-foreground">
                   Officially Verified Artist
@@ -2045,7 +1771,7 @@ function StudioComponent() {
         <DetachCutDrawer
           request={detachModalData}
           onClose={() => setDetachModalData(null)}
-          onReleasesChanged={loadReleases}
+          onReleasesChanged={releases.loadReleases}
           onAlbumTracksChanged={(albumId, tracks) =>
             setAlbumTrackMap((prev) => ({ ...prev, [albumId]: tracks }))
           }
@@ -2058,7 +1784,7 @@ function StudioComponent() {
           request={editingAlbum}
           artistProfile={artistProfile}
           onClose={() => setEditingAlbum(null)}
-          onReleasesChanged={loadReleases}
+          onReleasesChanged={releases.loadReleases}
         />
       )}
 
