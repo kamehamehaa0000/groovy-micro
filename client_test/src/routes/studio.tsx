@@ -11,9 +11,8 @@ import {
   UploadCloud,
   Disc3,
   RotateCcw,
-  X,
-  Check,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { ConfirmPurgeModal } from '../components/studio/ConfirmPurgeModal'
@@ -24,6 +23,7 @@ import { EditReleaseDrawer } from '../components/studio/EditReleaseDrawer'
 import { ReleaseCard } from '../components/studio/ReleaseCard'
 import { StudioHeader } from '../components/studio/StudioHeader'
 import { StudioTabs } from '../components/studio/StudioTabs'
+import { StudioToaster } from '../components/studio/StudioToaster'
 import type {
   DetachCutRequest,
   ReleaseDeleteRequest,
@@ -42,8 +42,6 @@ function StudioComponent() {
   const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [activeTab, setActiveTab] = useState<StudioTab>('releases')
-  const [errorNotice, setErrorNotice] = useState<string | null>(null)
-  const [successNotice, setSuccessNotice] = useState<string | null>(null)
 
   // Catalog Releases State
   const [albums, setAlbums] = useState<Album[]>([])
@@ -210,17 +208,6 @@ function StudioComponent() {
     }
   }, [artistProfile, activeTab])
 
-  // Clear notice after 5 seconds
-  useEffect(() => {
-    if (successNotice || errorNotice) {
-      const t = setTimeout(() => {
-        setSuccessNotice(null)
-        setErrorNotice(null)
-      }, 5000)
-      return () => clearTimeout(t)
-    }
-  }, [successNotice, errorNotice])
-
   // Toggle expand album tracks
   const handleToggleAlbumExpand = async (albumId: string) => {
     if (expandedAlbumId === albumId) {
@@ -238,7 +225,7 @@ function StudioComponent() {
           [albumId]: fullAlbum.tracks,
         }))
       } catch (err: any) {
-        setErrorNotice(err.message || 'Failed to load album tracks')
+        toast.error(err.message || 'Failed to load album tracks')
       } finally {
         setIsLoadingAlbumTracks(false)
       }
@@ -248,11 +235,11 @@ function StudioComponent() {
   // Open Detach Modal (only allowed on non-single releases)
   const handleOpenDetachModal = (song: Song, parentAlbum: Album) => {
     if (parentAlbum.albumType === 'SINGLE') {
-      setErrorNotice('Cannot detach a track from a single release.')
+      toast.error('Cannot detach a track from a single release.')
       return
     }
     setDetachModalData({ song, parentAlbum })
-    setErrorNotice(null)
+    toast.dismiss()
   }
 
   // Trigger soft delete confirmation modal for an album release
@@ -291,15 +278,15 @@ function StudioComponent() {
 
     try {
       setIsDeletingItem(true)
-      setErrorNotice(null)
+      toast.dismiss()
       if (deleteConfirm.type === 'album') {
         await catalogApi.deleteAlbum(deleteConfirm.id)
-        setSuccessNotice(
+        toast.success(
           'Release and all its cuts moved to 30-day trash. You can restore it anytime within 30 days.',
         )
       } else {
         const res = await catalogApi.deleteSong(deleteConfirm.id)
-        setSuccessNotice(res.message || 'Master track moved to 30-day trash.')
+        toast.success(res.message || 'Master track moved to 30-day trash.')
         if (deleteConfirm.parentAlbumId) {
           try {
             const fullAlbum = await catalogApi.getAlbum(
@@ -317,7 +304,7 @@ function StudioComponent() {
       setDeleteConfirm(null)
       loadReleases()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to archive item')
+      toast.error(err.message || 'Failed to archive item')
     } finally {
       setIsDeletingItem(false)
     }
@@ -339,10 +326,10 @@ function StudioComponent() {
   const handleRestoreAlbum = async (albumId: string) => {
     try {
       await catalogApi.restoreAlbum(albumId)
-      setSuccessNotice('Release restored to active catalog.')
+      toast.success('Release restored to active catalog.')
       loadTrash()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to restore release')
+      toast.error(err.message || 'Failed to restore release')
     }
   }
 
@@ -350,10 +337,10 @@ function StudioComponent() {
   const handleRestoreSong = async (songId: string) => {
     try {
       await catalogApi.restoreSong(songId)
-      setSuccessNotice('Master track restored to active catalog.')
+      toast.success('Master track restored to active catalog.')
       loadTrash()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to restore track')
+      toast.error(err.message || 'Failed to restore track')
     }
   }
 
@@ -361,13 +348,13 @@ function StudioComponent() {
   const handlePermanentDeleteAlbum = async (albumId: string) => {
     try {
       setIsPurging(true)
-      setErrorNotice(null)
+      toast.dismiss()
       await catalogApi.permanentlyDeleteAlbum(albumId)
-      setSuccessNotice('Release and all associated tracks permanently deleted.')
+      toast.success('Release and all associated tracks permanently deleted.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to permanently delete release')
+      toast.error(err.message || 'Failed to permanently delete release')
     } finally {
       setIsPurging(false)
     }
@@ -377,13 +364,13 @@ function StudioComponent() {
   const handlePermanentDeleteSong = async (songId: string) => {
     try {
       setIsPurging(true)
-      setErrorNotice(null)
+      toast.dismiss()
       await catalogApi.permanentlyDeleteSong(songId)
-      setSuccessNotice('Master cut permanently deleted.')
+      toast.success('Master cut permanently deleted.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to permanently delete track')
+      toast.error(err.message || 'Failed to permanently delete track')
     } finally {
       setIsPurging(false)
     }
@@ -393,13 +380,13 @@ function StudioComponent() {
   const handleEmptyTrash = async () => {
     try {
       setIsPurging(true)
-      setErrorNotice(null)
+      toast.dismiss()
       const res = await catalogApi.emptyStudioTrash()
-      setSuccessNotice(res.message || 'Studio trash emptied permanently.')
+      toast.success(res.message || 'Studio trash emptied permanently.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to empty studio trash')
+      toast.error(err.message || 'Failed to empty studio trash')
     } finally {
       setIsPurging(false)
     }
@@ -411,7 +398,7 @@ function StudioComponent() {
     newVisibility: ReleaseVisibility,
   ) => {
     if (album.visibility === newVisibility) return
-    setErrorNotice(null)
+    toast.dismiss()
     try {
       const updated = await catalogApi.updateAlbum(album.id, {
         visibility: newVisibility,
@@ -427,13 +414,13 @@ function StudioComponent() {
             : a,
         ),
       )
-      setSuccessNotice(
+      toast.success(
         `Visibility for "${album.title}" updated to ${newVisibility}${
           newVisibility === 'UNLISTED' ? ' (Secret share token generated)' : ''
         }.`,
       )
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to update visibility')
+      toast.error(err.message || 'Failed to update visibility')
     }
   }
 
@@ -466,12 +453,12 @@ function StudioComponent() {
     const handleInstantUpgrade = async (e: React.FormEvent) => {
       e.preventDefault()
       if (!stageName.trim()) {
-        setErrorNotice('Please provide a stage name')
+        toast.error('Please provide a stage name')
         return
       }
 
       setIsSubmittingUpgrade(true)
-      setErrorNotice(null)
+      toast.dismiss()
 
       try {
         const socialLinks: Record<string, string> = {}
@@ -488,11 +475,11 @@ function StudioComponent() {
         })
 
         setArtistProfile(res.profile)
-        setSuccessNotice(
+        toast.success(
           '🎉 Welcome to Groovy Creator Studio! Your artist identity is live.',
         )
       } catch (err: any) {
-        setErrorNotice(
+        toast.error(
           err.message || 'Instant upgrade failed. Please check your details.',
         )
       } finally {
@@ -515,12 +502,6 @@ function StudioComponent() {
             curate your discography.
           </p>
         </div>
-
-        {errorNotice && (
-          <div className="p-4 mb-6 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption">
-            {errorNotice}
-          </div>
-        )}
 
         <form onSubmit={handleInstantUpgrade} className="flex flex-col gap-6">
           <div className="p-6 border border-border bg-card flex flex-col gap-5 shadow-raised">
@@ -631,6 +612,7 @@ function StudioComponent() {
               : '✦ Activate Artist Studio (Instant Upgrade)'}
           </button>
         </form>
+        <StudioToaster />
       </div>
     )
   }
@@ -663,7 +645,7 @@ function StudioComponent() {
   const handleBannerCropComplete = async (croppedFile: File) => {
     if (!artistProfile) return
     setIsUploadingBanner(true)
-    setErrorNotice(null)
+    toast.dismiss()
 
     try {
       const publicUrl = await artistsApi.uploadBanner(
@@ -673,12 +655,12 @@ function StudioComponent() {
       setArtistProfile((prev) =>
         prev ? { ...prev, bannerUrl: publicUrl } : null,
       )
-      setSuccessNotice(
+      toast.success(
         'Banner image cropped, uploaded to Cloudflare R2, and synced.',
       )
       setBannerCropFile(null)
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload banner')
+      toast.error(err.message || 'Failed to upload banner')
     } finally {
       setIsUploadingBanner(false)
     }
@@ -696,7 +678,7 @@ function StudioComponent() {
   const handleAvatarCropComplete = async (croppedFile: File) => {
     if (!artistProfile) return
     setIsUploadingAvatar(true)
-    setErrorNotice(null)
+    toast.dismiss()
 
     try {
       const publicUrl = await artistsApi.uploadAvatar(
@@ -706,12 +688,12 @@ function StudioComponent() {
       setArtistProfile((prev) =>
         prev ? { ...prev, avatarUrl: publicUrl } : null,
       )
-      setSuccessNotice(
+      toast.success(
         'Artist avatar cropped, uploaded to Cloudflare R2, and synced.',
       )
       setAvatarCropFile(null)
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to upload avatar')
+      toast.error(err.message || 'Failed to upload avatar')
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -721,13 +703,13 @@ function StudioComponent() {
   const handleRemoveAvatar = async () => {
     if (!artistProfile) return
     setIsUploadingAvatar(true)
-    setErrorNotice(null)
+    toast.dismiss()
     try {
       await artistsApi.updateMyProfile({ avatarUrl: null })
       setArtistProfile((prev) => (prev ? { ...prev, avatarUrl: null } : null))
-      setSuccessNotice('Artist avatar removed.')
+      toast.success('Artist avatar removed.')
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to remove avatar')
+      toast.error(err.message || 'Failed to remove avatar')
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -737,7 +719,7 @@ function StudioComponent() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSavingEdit(true)
-    setErrorNotice(null)
+    toast.dismiss()
 
     try {
       const socialLinks: Record<string, string> = {}
@@ -754,9 +736,9 @@ function StudioComponent() {
 
       setArtistProfile(res.profile)
       setIsEditingProfile(false)
-      setSuccessNotice('Artist profile details updated successfully.')
+      toast.success('Artist profile details updated successfully.')
     } catch (err: any) {
-      setErrorNotice(err.message || 'Failed to update profile')
+      toast.error(err.message || 'Failed to update profile')
     } finally {
       setIsSavingEdit(false)
     }
@@ -767,7 +749,7 @@ function StudioComponent() {
     e.preventDefault()
     if (!artistProfile) return
     setIsSavingSpotlight(true)
-    setErrorNotice(null)
+    toast.dismiss()
     setSpotlightStatus('idle')
     setSpotlightStatusMessage(null)
 
@@ -784,7 +766,7 @@ function StudioComponent() {
       const msg = spotlightReleaseId
         ? 'Artist Pick spotlight updated successfully.'
         : 'Artist Pick spotlight reset to automatic latest release.'
-      setSuccessNotice(msg)
+      toast.success(msg)
       setSpotlightStatus('saved')
       setSpotlightStatusMessage(
         spotlightReleaseId
@@ -796,7 +778,7 @@ function StudioComponent() {
       }, 4000)
     } catch (err: any) {
       const errMsg = err.message || 'Failed to update spotlight'
-      setErrorNotice(errMsg)
+      toast.error(errMsg)
       setSpotlightStatus('error')
       setSpotlightStatusMessage(errMsg)
     } finally {
@@ -808,7 +790,7 @@ function StudioComponent() {
   const handleClearSpotlight = async () => {
     if (!artistProfile) return
     setIsSavingSpotlight(true)
-    setErrorNotice(null)
+    toast.dismiss()
     setSpotlightStatus('idle')
     setSpotlightStatusMessage(null)
 
@@ -821,7 +803,7 @@ function StudioComponent() {
       setSpotlightReleaseId('')
       setSpotlightComment('')
       const msg = 'Artist Pick reset to automatic latest release.'
-      setSuccessNotice(msg)
+      toast.success(msg)
       setSpotlightStatus('cleared')
       setSpotlightStatusMessage('Reset to automatic latest release fallback.')
       setTimeout(() => {
@@ -829,7 +811,7 @@ function StudioComponent() {
       }, 4000)
     } catch (err: any) {
       const errMsg = err.message || 'Failed to reset spotlight'
-      setErrorNotice(errMsg)
+      toast.error(errMsg)
       setSpotlightStatus('error')
       setSpotlightStatusMessage(errMsg)
     } finally {
@@ -852,14 +834,14 @@ function StudioComponent() {
     const cleanLinks = verifyLinks.map((l) => l.trim()).filter(Boolean)
 
     if (cleanLinks.length === 0) {
-      setErrorNotice(
+      toast.error(
         'Please provide at least one proof link (e.g. Spotify, official website)',
       )
       return
     }
 
     setIsSubmittingVerify(true)
-    setErrorNotice(null)
+    toast.dismiss()
 
     try {
       const res = await artistsApi.requestVerification({
@@ -871,11 +853,11 @@ function StudioComponent() {
 
       setArtistProfile(res.profile)
       setShowResubmitForm(false)
-      setSuccessNotice(
+      toast.success(
         'Verification application submitted for administrative review.',
       )
     } catch (err: any) {
-      setErrorNotice(err.message || 'Verification submission failed')
+      toast.error(err.message || 'Verification submission failed')
     } finally {
       setIsSubmittingVerify(false)
     }
@@ -883,18 +865,6 @@ function StudioComponent() {
 
   return (
     <div className="max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 w-full overflow-x-hidden min-w-0">
-      {/* Toast Alerts */}
-      {successNotice && (
-        <div className="p-3.5 mb-6 border border-success/40 bg-success-soft text-success font-mono text-caption shadow-raised rounded-control">
-          {successNotice}
-        </div>
-      )}
-      {errorNotice && (
-        <div className="p-3.5 mb-6 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption shadow-raised rounded-control">
-          {errorNotice}
-        </div>
-      )}
-
       <StudioHeader
         stageName={artistProfile.stageName}
         slug={artistProfile.slug}
@@ -932,8 +902,6 @@ function StudioComponent() {
             <CreateReleaseDrawer
               artistProfile={artistProfile}
               onClose={() => setIsCreateReleaseOpen(false)}
-              onSuccess={setSuccessNotice}
-              onError={setErrorNotice}
               onReleasesChanged={loadReleases}
             />
           )}
@@ -986,7 +954,7 @@ function StudioComponent() {
                       onCopySecretLink={() => {
                         const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
                         navigator.clipboard.writeText(shareUrl)
-                        setSuccessNotice(
+                        toast.success(
                           `Copied secret share link for "${album.title}"!`,
                         )
                       }}
@@ -2077,8 +2045,6 @@ function StudioComponent() {
         <DetachCutDrawer
           request={detachModalData}
           onClose={() => setDetachModalData(null)}
-          onSuccess={setSuccessNotice}
-          onError={setErrorNotice}
           onReleasesChanged={loadReleases}
           onAlbumTracksChanged={(albumId, tracks) =>
             setAlbumTrackMap((prev) => ({ ...prev, [albumId]: tracks }))
@@ -2092,8 +2058,6 @@ function StudioComponent() {
           request={editingAlbum}
           artistProfile={artistProfile}
           onClose={() => setEditingAlbum(null)}
-          onSuccess={setSuccessNotice}
-          onError={setErrorNotice}
           onReleasesChanged={loadReleases}
         />
       )}
@@ -2148,27 +2112,7 @@ function StudioComponent() {
         onCropComplete={handleAvatarCropComplete}
       />
 
-      {/* ===================== VIEWPORT-WIDE FLOATING TOAST ===================== */}
-      {(successNotice || errorNotice) && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 font-eyebrow text-eyebrow uppercase tracking-wider py-3 px-6 shadow-2xl rounded-control pointer-events-none transition-all duration-200 border flex items-center gap-3 max-w-[92vw] text-center backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 ${
-            errorNotice
-              ? 'bg-destructive text-destructive-foreground border-destructive/50'
-              : 'bg-success text-success-foreground border-success/50'
-          }`}
-        >
-          <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 bg-background/25">
-            {errorNotice ? (
-              <X className="w-3 h-3" />
-            ) : (
-              <Check className="w-3 h-3" />
-            )}
-          </span>
-          <span className="truncate">{errorNotice || successNotice}</span>
-        </div>
-      )}
+      <StudioToaster />
     </div>
   )
 }

@@ -238,3 +238,21 @@ body {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* ----------------------------------------------------------------------------
+   Sonner toasts (studio).
+   The toast has to clear the mini player, which stays visible until `md`
+   (768px) — sonner's own mobile breakpoint is 600px, and it applies its offset
+   as an inline CSS variable on the toaster, so the `bottom` property is
+   re-pointed here instead. The `html` prefix is deliberate: it outranks
+   sonner's injected [data-sonner-toaster][data-y-position='bottom'] rule.
+   ---------------------------------------------------------------------------- */
+html [data-sonner-toaster][data-y-position='bottom'] {
+  bottom: calc(env(safe-area-inset-bottom) + 8rem);
+}
+
+@media (min-width: 768px) {
+  html [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: 3rem;
+  }
+}

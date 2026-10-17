@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { Disc3 } from 'lucide-react'
+import { toast } from 'sonner'
 import { catalogApi } from '../../lib/catalog.api'
 import type { Song } from '../../types/catalog'
 import type { DetachCutRequest } from './studio.types'
@@ -8,8 +9,6 @@ interface DetachCutDrawerProps {
   /** The cut to detach and the release it currently belongs to. */
   request: DetachCutRequest
   onClose: () => void
-  onSuccess: (message: string | null) => void
-  onError: (message: string | null) => void
   /** Fired after a successful detach so the route can refetch releases. */
   onReleasesChanged: () => void
   /** Replaces the cached cut list for the parent release after a detach. */
@@ -19,8 +18,6 @@ interface DetachCutDrawerProps {
 export function DetachCutDrawer({
   request,
   onClose,
-  onSuccess,
-  onError,
   onReleasesChanged,
   onAlbumTracksChanged,
 }: DetachCutDrawerProps) {
@@ -42,14 +39,14 @@ export function DetachCutDrawer({
     if (!file) return
 
     setIsUploadingDetachCover(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       const publicUrl = await catalogApi.uploadAlbumCover(file)
       setDetachCoverUrl(publicUrl)
-      onSuccess('Custom single artwork uploaded to Cloudflare R2.')
+      toast.success('Custom single artwork uploaded to Cloudflare R2.')
     } catch (err: any) {
-      onError(err.message || 'Failed to upload single artwork')
+      toast.error(err.message || 'Failed to upload single artwork')
     } finally {
       setIsUploadingDetachCover(false)
     }
@@ -58,7 +55,7 @@ export function DetachCutDrawer({
   const handleConfirmDetach = async () => {
 
     setIsSubmittingDetach(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       await catalogApi.updateSong(request.song.id, {
@@ -66,7 +63,7 @@ export function DetachCutDrawer({
         coverImageUrl: detachCoverUrl || undefined,
       })
 
-      onSuccess(
+      toast.success(
         `🎉 Master cut "${request.song.title}" detached and spun off into standalone SINGLE release!`,
       )
 
@@ -78,7 +75,7 @@ export function DetachCutDrawer({
       handleCloseDetachModal()
       onReleasesChanged()
     } catch (err: any) {
-      onError(err.message || 'Failed to detach track')
+      toast.error(err.message || 'Failed to detach track')
     } finally {
       setIsSubmittingDetach(false)
     }

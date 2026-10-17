@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Disc3, Lock, Calendar, X, Globe, Link2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { MarqueeText } from '../common/MarqueeText'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
@@ -32,8 +33,6 @@ interface EditReleaseDrawerProps {
   /** The signed-in artist, used to exclude them from credit candidates. */
   artistProfile: ArtistProfile
   onClose: () => void
-  onSuccess: (message: string | null) => void
-  onError: (message: string | null) => void
   /** Fired after a successful save so the route can refetch the catalog. */
   onReleasesChanged: () => void
 }
@@ -42,8 +41,6 @@ export function EditReleaseDrawer({
   request,
   artistProfile,
   onClose,
-  onSuccess,
-  onError,
   onReleasesChanged,
 }: EditReleaseDrawerProps) {
   // The form is seeded straight from the request, so the first paint is
@@ -103,7 +100,7 @@ export function EditReleaseDrawer({
   // Hydrate the cut list once. The drawer remounts for every release it
   // edits, so a mount-only effect is enough.
   useEffect(() => {
-    onError(null)
+    toast.dismiss()
     let cancelled = false
     const loadTracks = async () => {
       try {
@@ -151,7 +148,7 @@ export function EditReleaseDrawer({
     return () => {
       cancelled = true
     }
-  }, [request, onError])
+  }, [request])
 
   const handleCloseEditModal = () => {
     onClose()
@@ -166,14 +163,14 @@ export function EditReleaseDrawer({
     if (!file) return
 
     setIsUploadingEditCover(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       const publicUrl = await catalogApi.uploadAlbumCover(file)
       setEditReleaseCoverUrl(publicUrl)
-      onSuccess('Replacement cover artwork uploaded to Cloudflare R2.')
+      toast.success('Replacement cover artwork uploaded to Cloudflare R2.')
     } catch (err: any) {
-      onError(err.message || 'Failed to upload cover artwork')
+      toast.error(err.message || 'Failed to upload cover artwork')
     } finally {
       setIsUploadingEditCover(false)
     }
@@ -182,18 +179,18 @@ export function EditReleaseDrawer({
   const handleSaveReleaseEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editReleaseTitle.trim()) {
-      onError('Release title cannot be blank')
+      toast.error('Release title cannot be blank')
       return
     }
 
     setIsSavingRelease(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       let scheduledReleaseAtIso: string | null | undefined = undefined
       if (editReleaseMode === 'SCHEDULED') {
         if (!editReleaseDate || !editReleaseTime) {
-          onError(
+          toast.error(
             'Please select both a date and time for the scheduled drop',
           )
           setIsSavingRelease(false)
@@ -203,12 +200,12 @@ export function EditReleaseDrawer({
           `${editReleaseDate}T${editReleaseTime}`,
         ).getTime()
         if (isNaN(parsed)) {
-          onError('Invalid scheduled drop timestamp')
+          toast.error('Invalid scheduled drop timestamp')
           setIsSavingRelease(false)
           return
         }
         if (parsed <= Date.now()) {
-          onError('Scheduled release time must be in the future')
+          toast.error('Scheduled release time must be in the future')
           setIsSavingRelease(false)
           return
         }
@@ -259,13 +256,13 @@ export function EditReleaseDrawer({
         }
       }
 
-      onSuccess(
+      toast.success(
         `🎉 Master release "${editReleaseTitle}" updated successfully!`,
       )
       handleCloseEditModal()
       onReleasesChanged()
     } catch (err: any) {
-      onError(err.message || 'Failed to update release')
+      toast.error(err.message || 'Failed to update release')
     } finally {
       setIsSavingRelease(false)
     }
@@ -660,7 +657,7 @@ export function EditReleaseDrawer({
                         onClick={() => {
                           const url = `${window.location.origin}/albums/${request.slug}?shareToken=${request.shareToken}`
                           navigator.clipboard.writeText(url)
-                          onSuccess(
+                          toast.success(
                             'Copied secret share link to clipboard!',
                           )
                         }}

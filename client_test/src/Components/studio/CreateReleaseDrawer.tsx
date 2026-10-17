@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { UploadCloud, Disc3, Calendar, X, Check } from 'lucide-react'
+import { toast } from 'sonner'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
@@ -33,8 +34,6 @@ interface CreateReleaseDrawerProps {
   /** The signed-in artist, used for credit attribution on new tracks. */
   artistProfile: ArtistProfile
   onClose: () => void
-  onSuccess: (message: string | null) => void
-  onError: (message: string | null) => void
   /** Fired after a successful publish so the route can refetch the catalog. */
   onReleasesChanged: () => void
 }
@@ -42,8 +41,6 @@ interface CreateReleaseDrawerProps {
 export function CreateReleaseDrawer({
   artistProfile,
   onClose,
-  onSuccess,
-  onError,
   onReleasesChanged,
 }: CreateReleaseDrawerProps) {
   // Batch Deduplication Notice State
@@ -106,7 +103,7 @@ export function CreateReleaseDrawer({
     }
     setReleaseCoverFile(file)
     setReleaseCoverPreview(URL.createObjectURL(file))
-    onSuccess('Cover artwork selected for release.')
+    toast.success('Cover artwork selected for release.')
   }
   const handleRemoveCover = () => {
     if (releaseCoverPreview?.startsWith('blob:')) {
@@ -124,7 +121,7 @@ export function CreateReleaseDrawer({
         t.id === draftId ? { ...t, isUploadingAudio: true } : t,
       ),
     )
-    onError(null)
+    toast.dismiss()
 
     try {
       // 1. Extract metadata from audio file
@@ -188,11 +185,11 @@ export function CreateReleaseDrawer({
             : t,
         ),
       )
-      onSuccess(
+      toast.success(
         `Master audio "${file.name}" uploaded to R2 and metadata prefilled.`,
       )
     } catch (err: any) {
-      onError(err.message || 'Failed to upload audio cut')
+      toast.error(err.message || 'Failed to upload audio cut')
       setDraftTracks((prev) =>
         prev.map((t) =>
           t.id === draftId ? { ...t, isUploadingAudio: false } : t,
@@ -308,7 +305,7 @@ export function CreateReleaseDrawer({
   // Standalone Single Audio Upload & Metadata Prefill
   const handleSingleAudioFile = async (file: File) => {
     setIsUploadingSingleAudio(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       // 1. Extract metadata from audio file
@@ -392,11 +389,11 @@ export function CreateReleaseDrawer({
         setSingleTrackDuration(durationSeconds)
       }
 
-      onSuccess(
+      toast.success(
         `Audio master "${file.name}" uploaded and metadata prefilled. You can review or edit all details.`,
       )
     } catch (err: any) {
-      onError(err.message || 'Failed to upload audio')
+      toast.error(err.message || 'Failed to upload audio')
     } finally {
       setIsUploadingSingleAudio(false)
       if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
@@ -433,7 +430,7 @@ export function CreateReleaseDrawer({
   const handleBatchImportFiles = async (files: File[]) => {
     if (files.length === 0) return
     setIsBatchImporting(true)
-    onError(null)
+    toast.dismiss()
 
     try {
       // 1. Concurrently parse metadata for all selected audio files
@@ -548,7 +545,7 @@ export function CreateReleaseDrawer({
       }
 
       if (uniqueParsedList.length === 0) {
-        onError(
+        toast.error(
           `All ${parsedList.length} selected audio file(s) are duplicates of cuts already in this release draft.`,
         )
         return
@@ -668,13 +665,13 @@ export function CreateReleaseDrawer({
       )
       await Promise.all(workers)
 
-      onSuccess(
+      toast.success(
         duplicateNames.length > 0
           ? `Imported ${uniqueParsedList.length} cut(s) into release draft (${duplicateNames.length} duplicate(s) excluded).`
           : `Imported and extracted metadata for ${uniqueParsedList.length} cuts! All details can be reviewed and edited.`,
       )
     } catch (err: any) {
-      onError(err.message || 'Failed to batch import cuts')
+      toast.error(err.message || 'Failed to batch import cuts')
     } finally {
       setIsBatchImporting(false)
       if (batchCutsInputRef.current) batchCutsInputRef.current.value = ''
@@ -685,7 +682,7 @@ export function CreateReleaseDrawer({
   const handlePublishRelease = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!releaseTitle.trim()) {
-      onError(
+      toast.error(
         releaseType === 'SINGLE'
           ? 'Please provide a single title'
           : 'Please provide a release title',
@@ -693,19 +690,19 @@ export function CreateReleaseDrawer({
       return
     }
     if (!releaseCoverFile && !releaseCoverUrl) {
-      onError('Please provide cover artwork for the release')
+      toast.error('Please provide cover artwork for the release')
       return
     }
 
     setIsSubmittingRelease(true)
-    onError(null)
+    toast.dismiss()
 
     const todayDate = new Date().toISOString().split('T')[0]
 
     let scheduledReleaseAtIso: string | undefined = undefined
     if (releaseMode === 'SCHEDULED') {
       if (!scheduledDate || !scheduledTime) {
-        onError(
+        toast.error(
           'Please choose both a date and time for the scheduled release',
         )
         setIsSubmittingRelease(false)
@@ -715,12 +712,12 @@ export function CreateReleaseDrawer({
         `${scheduledDate}T${scheduledTime}`,
       ).getTime()
       if (isNaN(parsedTimestamp)) {
-        onError('Invalid scheduled release date/time')
+        toast.error('Invalid scheduled release date/time')
         setIsSubmittingRelease(false)
         return
       }
       if (parsedTimestamp <= Date.now()) {
-        onError('Scheduled release time must be in the future')
+        toast.error('Scheduled release time must be in the future')
         setIsSubmittingRelease(false)
         return
       }
@@ -737,7 +734,7 @@ export function CreateReleaseDrawer({
           setReleaseCoverUrl(finalCoverUrl)
           setReleaseCoverFile(null)
         } catch (covErr: any) {
-          onError(
+          toast.error(
             covErr.message || 'Failed to upload cover artwork to R2',
           )
           setIsSubmittingRelease(false)
@@ -749,14 +746,14 @@ export function CreateReleaseDrawer({
       }
 
       if (!finalCoverUrl) {
-        onError('Please provide cover artwork for the release')
+        toast.error('Please provide cover artwork for the release')
         setIsSubmittingRelease(false)
         return
       }
 
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
-          onError(
+          toast.error(
             'Please upload a master audio file for the single release',
           )
           setIsSubmittingRelease(false)
@@ -807,14 +804,14 @@ export function CreateReleaseDrawer({
           tracks: singleTrackPayload,
         })
 
-        onSuccess(
+        toast.success(
           releaseMode === 'SCHEDULED'
             ? `🗓️ Standalone single release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
             : `🎉 Standalone single release "${releaseTitle}" published successfully (${releaseVisibility})!`,
         )
       } else {
         if (draftTracks.length === 0) {
-          onError('Please add at least one cut to the release')
+          toast.error('Please add at least one cut to the release')
           setIsSubmittingRelease(false)
           return
         }
@@ -875,7 +872,7 @@ export function CreateReleaseDrawer({
           tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
         })
 
-        onSuccess(
+        toast.success(
           releaseMode === 'SCHEDULED'
             ? `🗓️ Master ${releaseType} release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
             : `🎉 Master ${releaseType} release "${releaseTitle}" published successfully (${releaseVisibility})!`,
@@ -886,7 +883,7 @@ export function CreateReleaseDrawer({
       resetReleaseForm()
       onReleasesChanged()
     } catch (err: any) {
-      onError(err.message || 'Failed to create release')
+      toast.error(err.message || 'Failed to create release')
     } finally {
       setIsSubmittingRelease(false)
     }
