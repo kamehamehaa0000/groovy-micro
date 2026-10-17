@@ -7,17 +7,22 @@ import { parseAudioFile, parseAudioFilesWithPool } from '../lib/audio-metadata'
 import type { ArtistProfile } from '../types/artist'
 import type { Album, Song, AlbumType, ReleaseVisibility } from '../types/catalog'
 import {
-  VerifiedBadgeSVG,
-  ExternalLinkSVG,
-  UploadCloudSVG,
-  DiscIconSVG,
-  TrashIconSVG,
-  UndoIconSVG,
-  PlusIconSVG,
-  LockIconSVG,
-  CalendarIconSVG,
-  EditIconSVG,
-} from '../components/icons'
+  BadgeCheck,
+  ExternalLink,
+  UploadCloud,
+  Disc3,
+  Trash2,
+  RotateCcw,
+  Plus,
+  Lock,
+  Calendar,
+  Pencil,
+  MoreVertical,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Link2,
+} from 'lucide-react'
 import {
   ArtistCreditPicker,
   type SelectedCredit,
@@ -240,6 +245,7 @@ function StudioComponent() {
 
   // Expanded album tracks view in Studio
   const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
+  const [actionSheetAlbum, setActionSheetAlbum] = useState<Album | null>(null)
   const [albumTrackMap, setAlbumTrackMap] = useState<Record<string, Song[]>>({})
   const [isLoadingAlbumTracks, setIsLoadingAlbumTracks] = useState(false)
 
@@ -1922,7 +1928,7 @@ function StudioComponent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 w-full">
+    <div className="max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 w-full overflow-x-hidden min-w-0">
       {/* Toast Alerts */}
       {successNotice && (
         <div className="p-4 mb-6 border border-success/40 bg-success-soft text-success font-mono text-caption shadow-raised">
@@ -1936,17 +1942,17 @@ function StudioComponent() {
       )}
 
       {/* Studio Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border mb-8">
-        <div>
-          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border mb-6">
+        <div className="min-w-0">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-0.5">
             Maison Studio Suite
           </span>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="font-serif italic text-3xl text-foreground">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <h1 className="font-serif italic text-2xl sm:text-3xl text-foreground font-semibold truncate">
               {artistProfile.stageName}
             </h1>
             {artistProfile.verified && (
-              <VerifiedBadgeSVG className="w-5 h-5 text-primary" />
+              <BadgeCheck className="w-5 h-5 text-primary shrink-0" />
             )}
           </div>
           <span className="font-mono text-caption text-muted-foreground">
@@ -1954,27 +1960,39 @@ function StudioComponent() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             to="/artists/$idOrSlug"
             params={{ idOrSlug: artistProfile.slug }}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors flex items-center gap-1.5"
+            className="flex-1 sm:flex-initial justify-center font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 sm:px-4 border border-border bg-card hover:bg-background text-foreground transition-colors flex items-center gap-1.5 rounded-control"
           >
             <span>Public Profile</span>
-            <ExternalLinkSVG className="w-3 h-3 text-muted-foreground" />
+            <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
           </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              resetReleaseForm()
+              setIsCreateReleaseOpen(true)
+            }}
+            className="flex-1 sm:flex-initial justify-center font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 sm:px-4 bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-raised font-semibold rounded-control"
+          >
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>New Release</span>
+          </button>
         </div>
       </div>
 
       {/* Studio Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-border pb-px mb-8 font-eyebrow text-caption uppercase tracking-wider overflow-x-auto">
+      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-border pb-2.5 mb-6 sm:mb-8 font-eyebrow text-caption uppercase tracking-wider overflow-x-auto no-scrollbar scroll-smooth">
         <button
           type="button"
           onClick={() => setActiveTab('releases')}
-          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'releases'
-              ? 'border-primary text-foreground font-semibold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-foreground text-background font-semibold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           Catalog & Releases ({albums.length})
@@ -1983,10 +2001,10 @@ function StudioComponent() {
         <button
           type="button"
           onClick={() => setActiveTab('trash')}
-          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'trash'
-              ? 'border-primary text-foreground font-semibold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-foreground text-background font-semibold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           30-Day Trash ({trashAlbums.length + trashSongs.length})
@@ -1995,10 +2013,10 @@ function StudioComponent() {
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'profile'
-              ? 'border-primary text-foreground font-semibold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-foreground text-background font-semibold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           Profile & Branding
@@ -2007,10 +2025,10 @@ function StudioComponent() {
         <button
           type="button"
           onClick={() => setActiveTab('verification')}
-          className={`py-2.5 px-4 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
             activeTab === 'verification'
-              ? 'border-primary text-foreground font-semibold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-foreground text-background font-semibold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           Verification Desk
@@ -2022,57 +2040,48 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {activeTab === 'releases' && (
         <div className="space-y-10">
-          {/* Top Actions & Overview */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Top Overview */}
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="font-serif italic text-2xl text-foreground">
+              <h2 className="font-serif italic text-xl sm:text-2xl text-foreground font-semibold">
                 Master Releases & Recordings
               </h2>
               <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                Manage your studio master tapes, published albums, and
-                standalone singles.
+                Manage your studio master tapes, published albums, and standalone singles.
               </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  resetReleaseForm()
-                  setIsCreateReleaseOpen(true)
-                }}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-raised font-semibold"
-              >
-                <PlusIconSVG className="w-3.5 h-3.5" />
-                <span>✦ New Release</span>
-              </button>
             </div>
           </div>
 
-          {/* Unified Master Release Modal */}
+          {/* Unified Master Release Modal / Drawer */}
           {isCreateReleaseOpen && (
-            <div className="p-6 border-2 border-border bg-card shadow-md space-y-6">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <div>
-                  <h3 className="font-serif italic text-heading text-foreground">
-                    {releaseType === 'SINGLE'
-                      ? 'Publish Standalone Single Release'
-                      : `Publish New Master ${releaseType}`}
-                  </h3>
-                  <p className="font-mono text-eyebrow text-muted-foreground mt-0.5">
-                    {releaseType === 'SINGLE'
-                      ? 'Streamlined single release with dedicated master artwork, R2 lossless audio, and collaborator credits.'
-                      : 'Multi-cut studio release with sequential tracklist ordering, R2 master cuts, and contributor attribution.'}
-                  </p>
+            <div className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+              <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-t-surface sm:rounded-surface shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
+                {/* Mobile Grab Handle */}
+                <div className="sm:hidden w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto my-2.5 shrink-0" />
+                
+                {/* Modal Header */}
+                <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border flex items-center justify-between shrink-0">
+                  <div className="min-w-0 pr-3">
+                    <h3 className="font-serif italic text-lg sm:text-xl text-foreground font-semibold truncate">
+                      {releaseType === 'SINGLE'
+                        ? 'Publish Standalone Single'
+                        : `Publish New ${releaseType}`}
+                    </h3>
+                    <p className="font-mono text-eyebrow text-muted-foreground truncate mt-0.5">
+                      Lossless R2 master pipeline &bull; Contributor attribution
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateReleaseOpen(false)}
+                    className="w-8 h-8 rounded-control border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateReleaseOpen(false)}
-                  className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  ✕ Close
-                </button>
-              </div>
+
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-6 overscroll-contain">
 
               {/* Release Format / Type Selector */}
               <div>
@@ -2125,7 +2134,7 @@ function StudioComponent() {
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-10 h-10 border border-border bg-card flex items-center justify-center shrink-0">
-                    <UploadCloudSVG className="w-5 h-5 text-foreground" />
+                    <UploadCloud className="w-5 h-5 text-foreground shrink-0" />
                   </div>
                   <div className="min-w-0">
                     <div className="font-eyebrow text-caption uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
@@ -2224,7 +2233,7 @@ function StudioComponent() {
                             : 'border-border bg-background text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        <CalendarIconSVG className="w-3.5 h-3.5" />
+                        <Calendar className="w-3.5 h-3.5 shrink-0" />
                         <span>Scheduled Drop</span>
                       </button>
                     </div>
@@ -2235,7 +2244,7 @@ function StudioComponent() {
                 {releaseMode === 'SCHEDULED' && (
                   <div className="p-4 border border-primary/40 bg-primary/5 space-y-3">
                     <div className="flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
-                      <CalendarIconSVG className="w-3.5 h-3.5" />
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
                       <span>Scheduled Drop & Pre-Save Configuration</span>
                     </div>
                     <p className="font-sans text-caption text-muted-foreground">
@@ -2338,7 +2347,7 @@ function StudioComponent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <DiscIconSVG className="w-8 h-8 text-muted-foreground/40" />
+                        <Disc3 className="w-8 h-8 text-muted-foreground/40 shrink-0" />
                       )}
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -2954,40 +2963,42 @@ function StudioComponent() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between gap-3 pt-4 border-t border-border shrink-0 pb-safe">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateReleaseOpen(false)}
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     disabled={isSubmittingRelease}
-                    className="font-eyebrow text-caption uppercase tracking-widest py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 font-semibold cursor-pointer disabled:opacity-50 shadow-raised flex items-center gap-2"
                   >
                     {isSubmittingRelease ? (
                       <span>
                         {releaseMode === 'SCHEDULED'
-                          ? 'Scheduling Master Release...'
-                          : 'Publishing Master Release...'}
+                          ? 'Scheduling...'
+                          : 'Publishing...'}
                       </span>
                     ) : releaseMode === 'SCHEDULED' ? (
                       <>
-                        <CalendarIconSVG className="w-3.5 h-3.5" />
+                        <Calendar className="w-3.5 h-3.5 shrink-0" />
                         <span>Schedule {releaseType === 'SINGLE' ? 'Single' : releaseType}</span>
                       </>
                     ) : releaseType === 'SINGLE' ? (
-                      <span>✦ Publish Single Release</span>
+                      <span>✦ Publish Single</span>
                     ) : (
-                      <span>Publish Master {releaseType}</span>
+                      <span>Publish {releaseType}</span>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateReleaseOpen(false)}
-                    className="font-eyebrow text-caption uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    Cancel
                   </button>
                 </div>
               </form>
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
           {/* Releases List */}
           <div className="space-y-4">
@@ -3001,7 +3012,7 @@ function StudioComponent() {
               </div>
             ) : albums.length === 0 ? (
               <div className="p-10 border border-dashed border-border bg-card text-center">
-                <DiscIconSVG className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                <Disc3 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2 shrink-0" />
                 <p className="font-serif italic text-title text-foreground">
                   No active master releases yet
                 </p>
@@ -3032,7 +3043,7 @@ function StudioComponent() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <DiscIconSVG className="w-6 h-6 text-muted-foreground/40" />
+                                <Disc3 className="w-6 h-6 text-muted-foreground/40 shrink-0" />
                               </div>
                             )}
                           </div>
@@ -3046,7 +3057,7 @@ function StudioComponent() {
                               {/* Status Badge */}
                               {album.status === 'SCHEDULED' ? (
                                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary font-semibold flex items-center gap-1">
-                                  <CalendarIconSVG className="w-2.5 h-2.5" />
+                                  <Calendar className="w-2.5 h-2.5 shrink-0" />
                                   <span>
                                     Scheduled &bull;{' '}
                                     {album.scheduledReleaseAt
@@ -3120,64 +3131,79 @@ function StudioComponent() {
                           </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
-                          {album.visibility === 'UNLISTED' && album.shareToken && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
-                                navigator.clipboard.writeText(shareUrl)
-                                setSuccessNotice(`Copied secret share link for "${album.title}"!`)
-                              }}
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors"
-                              title="Copy secret link with share token"
-                            >
-                              Copy Secret Link
-                            </button>
-                          )}
-
-                          <Link
-                            to="/albums/$idOrSlug"
-                            params={{ idOrSlug: album.slug }}
-                            search={album.shareToken ? { shareToken: album.shareToken } : {}}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1"
-                          >
-                            <span>View</span>
-                            <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground" />
-                          </Link>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(album)}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1.5 cursor-pointer"
-                            title="Edit release metadata, artwork, genre, credits and visibility"
-                          >
-                            <EditIconSVG className="w-3 h-3 text-muted-foreground" />
-                            <span>Edit</span>
-                          </button>
-
+                        {/* Actions: Desktop Row & Mobile Action Sheet trigger */}
+                        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto">
                           <button
                             type="button"
                             onClick={() => handleToggleAlbumExpand(album.id)}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
+                            className="flex-1 sm:flex-initial font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-muted text-foreground rounded-control transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            {isExpanded ? 'Hide Cuts' : 'Inspect Cuts'}
+                            <span>{isExpanded ? 'Hide Cuts' : `Cuts (${album.totalTracks || tracks.length || 0})`}</span>
+                            {isExpanded ? <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />}
                           </button>
 
+                          {/* Desktop Full Actions */}
+                          <div className="hidden sm:flex items-center gap-1.5">
+                            {album.visibility === 'UNLISTED' && album.shareToken && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+                                  navigator.clipboard.writeText(shareUrl)
+                                  setSuccessNotice(`Copied secret share link for "${album.title}"!`)
+                                }}
+                                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors rounded-control flex items-center gap-1"
+                                title="Copy secret link with share token"
+                              >
+                                <Link2 className="w-3 h-3 shrink-0" />
+                                <span>Copy Link</span>
+                              </button>
+                            )}
+
+                            <Link
+                              to="/albums/$idOrSlug"
+                              params={{ idOrSlug: album.slug }}
+                              search={album.shareToken ? { shareToken: album.shareToken } : {}}
+                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1 rounded-control"
+                            >
+                              <span>View</span>
+                              <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+                            </Link>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(album)}
+                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1.5 cursor-pointer rounded-control"
+                              title="Edit release metadata, artwork, genre, credits and visibility"
+                            >
+                              <Pencil className="w-3 h-3 text-muted-foreground shrink-0" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteAlbum(
+                                  album.id,
+                                  album.title,
+                                  album.totalTracks || tracks.length || 1,
+                                )
+                              }
+                              className="p-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
+                              title="Move to 30-Day Trash"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                            </button>
+                          </div>
+
+                          {/* Mobile 3-dot overflow menu trigger */}
                           <button
                             type="button"
-                            onClick={() =>
-                              handleDeleteAlbum(
-                                album.id,
-                                album.title,
-                                album.totalTracks || tracks.length || 1,
-                              )
-                            }
-                            className="p-1.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
-                            title="Move to 30-Day Trash"
+                            onClick={() => setActionSheetAlbum(album)}
+                            className="sm:hidden p-2 border border-border text-muted-foreground hover:text-foreground rounded-control bg-background cursor-pointer"
+                            aria-label="More options"
                           >
-                            <TrashIconSVG className="w-3.5 h-3.5" />
+                            <MoreVertical className="w-4 h-4 shrink-0" />
                           </button>
                         </div>
                       </div>
@@ -3251,7 +3277,7 @@ function StudioComponent() {
                                       className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
                                       title="Trash track"
                                     >
-                                      <TrashIconSVG className="w-3 h-3" />
+                                      <Trash2 className="w-3 h-3 shrink-0" />
                                     </button>
                                   </div>
                                 </div>
@@ -3340,7 +3366,7 @@ function StudioComponent() {
                         onClick={() => handleRestoreAlbum(album.id)}
                         className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
                       >
-                        <UndoIconSVG className="w-3 h-3" />
+                        <RotateCcw className="w-3 h-3 shrink-0" />
                         <span>Restore Release</span>
                       </button>
                       <button
@@ -3395,7 +3421,7 @@ function StudioComponent() {
                         onClick={() => handleRestoreSong(song.id)}
                         className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer flex items-center gap-1"
                       >
-                        <UndoIconSVG className="w-3 h-3" />
+                        <RotateCcw className="w-3 h-3 shrink-0" />
                         <span>Restore</span>
                       </button>
                       <button
@@ -3456,7 +3482,7 @@ function StudioComponent() {
                   onClick={() => avatarInputRef.current?.click()}
                   className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0 shadow-xs"
                 >
-                  <UploadCloudSVG className="w-4 h-4" />
+                  <UploadCloud className="w-4 h-4 shrink-0" />
                   <span>
                     {isUploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
                   </span>
@@ -3520,7 +3546,7 @@ function StudioComponent() {
                 onClick={() => bannerInputRef.current?.click()}
                 className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
               >
-                <UploadCloudSVG className="w-4 h-4" />
+                <UploadCloud className="w-4 h-4 shrink-0" />
                 <span>
                   {isUploadingBanner ? 'Uploading to R2...' : 'Upload Banner'}
                 </span>
@@ -3543,7 +3569,7 @@ function StudioComponent() {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground font-mono text-caption">
-                  <UploadCloudSVG className="w-8 h-8 opacity-40 mb-2" />
+                  <UploadCloud className="w-8 h-8 opacity-40 mb-2 shrink-0" />
                   <span>No banner uploaded yet</span>
                 </div>
               )}
@@ -3704,7 +3730,7 @@ function StudioComponent() {
                               className="font-mono text-eyebrow py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground capitalize inline-flex items-center gap-1"
                             >
                               <span>{k}</span>
-                              <ExternalLinkSVG className="w-2.5 h-2.5 text-muted-foreground" />
+                              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                             </a>
                           ),
                         )}
@@ -3795,7 +3821,7 @@ function StudioComponent() {
                         className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-success bg-background/50 hover:bg-success/20 rounded-control transition-colors shrink-0 flex items-center gap-1"
                       >
                         <span>View Live</span>
-                        <ExternalLinkSVG className="w-2.5 h-2.5" />
+                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                       </Link>
                     )}
                   </div>
@@ -3966,7 +3992,7 @@ function StudioComponent() {
                               className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline inline-flex items-center gap-1"
                             >
                               <span>View Live Profile</span>
-                              <ExternalLinkSVG className="w-2.5 h-2.5" />
+                              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                             </Link>
                           )}
                         </div>
@@ -4102,7 +4128,7 @@ function StudioComponent() {
 
           {artistProfile.verificationStatus === 'VERIFIED' ? (
             <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
-              <VerifiedBadgeSVG className="w-8 h-8 text-primary shrink-0" />
+              <BadgeCheck className="w-8 h-8 text-primary shrink-0 shrink-0" />
               <div>
                 <h3 className="font-serif italic text-title text-foreground">
                   Officially Verified Artist
@@ -4336,7 +4362,7 @@ function StudioComponent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <DiscIconSVG className="w-8 h-8 text-muted-foreground/40" />
+                    <Disc3 className="w-8 h-8 text-muted-foreground/40 shrink-0" />
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
@@ -4405,10 +4431,13 @@ function StudioComponent() {
         </div>
       )}
 
-      {/* Edit Master Release Modal */}
+      {/* Edit Master Release Modal / Drawer */}
       {editingAlbum && (
-        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="max-w-3xl w-full bg-card border-2 border-border shadow-2xl p-6 sm:p-7 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-foreground/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-t-surface sm:rounded-surface shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
+            {/* Mobile Drag Handle */}
+            <div className="sm:hidden w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto my-2.5 shrink-0" />
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 overscroll-contain">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
@@ -4629,7 +4658,7 @@ function StudioComponent() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <DiscIconSVG className="w-6 h-6 text-muted-foreground/40" />
+                        <Disc3 className="w-6 h-6 text-muted-foreground/40 shrink-0" />
                       )}
                     </div>
                     <div className="space-y-1.5">
@@ -4711,7 +4740,7 @@ function StudioComponent() {
                       }`}
                     >
                       <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
-                        <LockIconSVG className="w-3 h-3 text-destructive" />
+                        <Lock className="w-3 h-3 text-destructive shrink-0" />
                         <span>Private</span>
                       </div>
                       <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
@@ -4776,7 +4805,7 @@ function StudioComponent() {
                           : 'border-border bg-background text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <CalendarIconSVG className="w-3.5 h-3.5" />
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
                       <span>Scheduled Drop</span>
                     </button>
                   </div>
@@ -4996,19 +5025,19 @@ function StudioComponent() {
                 )}
 
                 {/* Submit / Cancel Actions */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <div className="flex items-center justify-between gap-3 pt-4 border-t border-border pb-safe">
                   <button
                     type="button"
                     onClick={handleCloseEditModal}
                     disabled={isSavingRelease}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSavingRelease || isUploadingEditCover}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2 shadow-raised"
                   >
                     {isSavingRelease ? (
                       <span>Saving Changes...</span>
@@ -5021,6 +5050,7 @@ function StudioComponent() {
             )}
           </div>
         </div>
+      </div>
       )}
 
       {/* Soft Delete Confirmation Modal */}
@@ -5029,7 +5059,7 @@ function StudioComponent() {
           <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
             <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
-                <TrashIconSVG className="w-4 h-4" />
+                <Trash2 className="w-4 h-4 shrink-0" />
               </div>
               <div>
                 <h4 className="font-serif italic text-lg text-foreground font-normal">
@@ -5096,7 +5126,7 @@ function StudioComponent() {
           <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
             <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
-                <TrashIconSVG className="w-4 h-4" />
+                <Trash2 className="w-4 h-4 shrink-0" />
               </div>
               <div>
                 <h4 className="font-serif italic text-lg text-foreground font-normal">
@@ -5181,6 +5211,97 @@ function StudioComponent() {
         isSubmitting={isUploadingAvatar}
         onCropComplete={handleAvatarCropComplete}
       />
+
+      {/* ===================== MOBILE RELEASE ACTION SHEET ===================== */}
+      {actionSheetAlbum && (
+        <div
+          className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-xs flex items-end justify-center sm:hidden animate-in fade-in duration-150"
+          onClick={() => setActionSheetAlbum(null)}
+        >
+          <div
+            className="w-full bg-card border-t border-border rounded-t-surface p-4 shadow-floating space-y-2 animate-in slide-in-from-bottom duration-200 pb-safe"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-2" />
+            <div className="px-2 pb-2 border-b border-border-soft flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
+                  {actionSheetAlbum.albumType} &bull; {actionSheetAlbum.visibility}
+                </span>
+                <h4 className="font-serif italic text-title font-semibold text-foreground truncate">
+                  {actionSheetAlbum.title}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActionSheetAlbum(null)}
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1 font-sans text-caption pt-1">
+              <Link
+                to="/albums/$idOrSlug"
+                params={{ idOrSlug: actionSheetAlbum.slug }}
+                search={actionSheetAlbum.shareToken ? { shareToken: actionSheetAlbum.shareToken } : {}}
+                onClick={() => setActionSheetAlbum(null)}
+                className="w-full py-2.5 px-3 rounded-control hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors"
+              >
+                <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span>View in Public Catalog</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const alb = actionSheetAlbum
+                  setActionSheetAlbum(null)
+                  handleOpenEditModal(alb)
+                }}
+                className="w-full py-2.5 px-3 rounded-control text-left hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors cursor-pointer"
+              >
+                <Pencil className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span>Edit Release &amp; Artwork</span>
+              </button>
+
+              {actionSheetAlbum.visibility === 'UNLISTED' && actionSheetAlbum.shareToken && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/albums/${actionSheetAlbum.slug}?shareToken=${actionSheetAlbum.shareToken}`
+                    navigator.clipboard.writeText(shareUrl)
+                    setSuccessNotice(`Copied secret share link for "${actionSheetAlbum.title}"!`)
+                    setActionSheetAlbum(null)
+                  }}
+                  className="w-full py-2.5 px-3 rounded-control text-left hover:bg-info-soft text-info flex items-center gap-2.5 transition-colors cursor-pointer"
+                >
+                  <Link2 className="w-4 h-4 shrink-0" />
+                  <span>Copy Secret Share Link</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const alb = actionSheetAlbum
+                  setActionSheetAlbum(null)
+                  handleDeleteAlbum(
+                    alb.id,
+                    alb.title,
+                    alb.totalTracks || (albumTrackMap[alb.id] || []).length || 1,
+                  )
+                }}
+                className="w-full py-2.5 px-3 rounded-control text-left hover:bg-destructive-soft text-destructive flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 shrink-0" />
+                <span>Move to 30-Day Trash</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===================== VIEWPORT-WIDE FLOATING TOAST ===================== */}
       {(successNotice || errorNotice) && (
