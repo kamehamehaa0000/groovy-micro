@@ -106,11 +106,16 @@ export function SerifInput({
 export interface MonoInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /**
-   * `md` is the stacked form control, `sm` a cut-row cell, `xs` an inline
-   * measurement (acoustics). Only `md` carries the focus ring: the dense row and
-   * acoustics inputs sit on `bg-card` and stay quiet at this size.
+   * `md` is the stacked form control, `sm` a compact one (cut-row cell or
+   * profile link field), `xs` an inline measurement (acoustics).
    */
   size?: 'md' | 'sm' | 'xs'
+  /**
+   * Fields on the page surface are standalone and announce focus; the compact
+   * ones on `bg-card` sit inside dense rows and stay quiet. Defaults to card for
+   * `xs` and the page surface otherwise.
+   */
+  surface?: 'background' | 'card'
   /** `xs` only — the two fixed widths the acoustics row uses. */
   width?: 'bpm' | 'key'
 }
@@ -118,19 +123,23 @@ export interface MonoInputProps
 /** Numerals, dates, keys and other compact machine values. */
 export function MonoInput({
   size = 'md',
+  surface,
   width,
   className,
   ...props
 }: MonoInputProps) {
+  const onCard = (surface ?? (size === 'xs' ? 'card' : 'background')) === 'card'
   return (
     <input
       className={cn(
         'font-mono border border-border text-foreground',
-        size === 'md' &&
-          'w-full text-caption py-2 px-3 bg-background focus:border-foreground focus:outline-none',
-        size === 'sm' && 'text-caption py-1.5 px-2.5 bg-card',
+        size === 'md' && 'w-full text-caption py-2 px-3',
+        size === 'sm' && 'w-full text-caption py-1.5 px-2.5',
         size === 'xs' &&
-          cn('text-eyebrow py-0.5 px-2 bg-card', width === 'key' ? 'w-24' : 'w-20'),
+          cn('text-eyebrow py-0.5 px-2', width === 'key' ? 'w-24' : 'w-20'),
+        onCard
+          ? 'bg-card'
+          : 'bg-background focus:border-foreground focus:outline-none',
         className,
       )}
       {...props}

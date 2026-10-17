@@ -75,6 +75,7 @@ export function TrackListEditor<T extends StudioTrackDraft>({
                 value={track.genre}
                 onChange={(e) => patch(track.id, { genre: e.target.value })}
                 size="sm"
+                surface="card"
               />
 
               <div className="flex items-center gap-2">

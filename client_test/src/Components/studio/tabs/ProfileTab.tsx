@@ -4,6 +4,7 @@ import { ProceduralCover } from '../../common/ProceduralCover'
 import type { ArtistProfile } from '../../../types/artist'
 import type { Album } from '../../../types/catalog'
 import type { ProfileState } from '../hooks/useProfileForm'
+import { FieldLabel, MonoInput, SerifInput, TextAreaField } from '../fields'
 
 interface ProfileTabProps {
   artistProfile: ArtistProfile
@@ -220,79 +221,71 @@ export function ProfileTab({
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Stage Name
-                </label>
-                <input
+                <FieldLabel>Stage Name</FieldLabel>
+                <SerifInput
+                  size="body"
                   type="text"
                   required
                   value={editStageName}
                   onChange={(e) => setEditStageName(e.target.value)}
-                  className="w-full font-serif italic text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
 
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Vanity Slug
-                </label>
-                <input
+                <FieldLabel>Vanity Slug</FieldLabel>
+                <MonoInput
                   type="text"
                   required
                   value={editSlug}
                   onChange={(e) => setEditSlug(e.target.value)}
-                  className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                Biography
-              </label>
-              <textarea
+              <FieldLabel>Biography</FieldLabel>
+              <TextAreaField
                 rows={4}
                 value={editBio}
                 onChange={(e) => setEditBio(e.target.value)}
-                className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                <FieldLabel tone="muted" spacing="tight">
                   Instagram
-                </label>
-                <input
+                </FieldLabel>
+                <MonoInput
+                  size="sm"
                   type="url"
                   value={editInstagram}
                   onChange={(e) => setEditInstagram(e.target.value)}
                   placeholder="https://instagram.com/..."
-                  className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                 />
               </div>
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                <FieldLabel tone="muted" spacing="tight">
                   Website
-                </label>
-                <input
+                </FieldLabel>
+                <MonoInput
+                  size="sm"
                   type="url"
                   value={editWebsite}
                   onChange={(e) => setEditWebsite(e.target.value)}
                   placeholder="https://..."
-                  className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                 />
               </div>
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                <FieldLabel tone="muted" spacing="tight">
                   Spotify
-                </label>
-                <input
+                </FieldLabel>
+                <MonoInput
+                  size="sm"
                   type="url"
                   value={editSpotify}
                   onChange={(e) => setEditSpotify(e.target.value)}
                   placeholder="https://open.spotify.com/..."
-                  className="w-full font-mono text-caption py-1.5 px-2.5 border border-border bg-background text-foreground"
                 />
               </div>
             </div>
