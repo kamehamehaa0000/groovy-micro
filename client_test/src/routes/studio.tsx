@@ -5,7 +5,12 @@ import { artistsApi, slugifyText } from '../lib/artists.api'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import { parseAudioFile, parseAudioFilesWithPool } from '../lib/audio-metadata'
 import type { ArtistProfile } from '../types/artist'
-import type { Album, Song, AlbumType, ReleaseVisibility } from '../types/catalog'
+import type {
+  Album,
+  Song,
+  AlbumType,
+  ReleaseVisibility,
+} from '../types/catalog'
 import {
   BadgeCheck,
   ExternalLink,
@@ -38,7 +43,6 @@ import {
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
 })
-
 
 type StudioTab = 'releases' | 'trash' | 'profile' | 'verification'
 
@@ -143,16 +147,21 @@ function StudioComponent() {
   const [releaseTagInput, setReleaseTagInput] = useState<string>('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
   const [releaseCoverFile, setReleaseCoverFile] = useState<File | null>(null)
-  const [releaseCoverPreview, setReleaseCoverPreview] = useState<string | null>(null)
+  const [releaseCoverPreview, setReleaseCoverPreview] = useState<string | null>(
+    null,
+  )
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
   // Scheduled Release & Visibility State
-  const [releaseMode, setReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
+  const [releaseMode, setReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>(
+    'IMMEDIATE',
+  )
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('')
-  const [releaseVisibility, setReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+  const [releaseVisibility, setReleaseVisibility] =
+    useState<ReleaseVisibility>('PUBLIC')
   const [releaseAllowComments, setReleaseAllowComments] = useState(true)
 
   // Edit Release Modal State
@@ -161,7 +170,8 @@ function StudioComponent() {
   const [editReleaseTitle, setEditReleaseTitle] = useState('')
   const [editReleaseType, setEditReleaseType] = useState<AlbumType>('ALBUM')
   const [editReleaseGenre, setEditReleaseGenre] = useState('')
-  const [editReleasePrimaryGenre, setEditReleasePrimaryGenre] = useState<string>('')
+  const [editReleasePrimaryGenre, setEditReleasePrimaryGenre] =
+    useState<string>('')
   const [editReleaseSubGenre, setEditReleaseSubGenre] = useState<string>('')
   const [editReleaseMoods, setEditReleaseMoods] = useState<string[]>([])
   const [editReleaseTags, setEditReleaseTags] = useState<string[]>([])
@@ -169,15 +179,17 @@ function StudioComponent() {
   const [editReleaseDescription, setEditReleaseDescription] = useState('')
   const [editReleaseCoverUrl, setEditReleaseCoverUrl] = useState('')
   const [isUploadingEditCover, setIsUploadingEditCover] = useState(false)
-  const [editReleaseVisibility, setEditReleaseVisibility] = useState<ReleaseVisibility>('PUBLIC')
+  const [editReleaseVisibility, setEditReleaseVisibility] =
+    useState<ReleaseVisibility>('PUBLIC')
   const [editReleaseAllowComments, setEditReleaseAllowComments] = useState(true)
-  const [editReleaseMode, setEditReleaseMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
+  const [editReleaseMode, setEditReleaseMode] = useState<
+    'IMMEDIATE' | 'SCHEDULED'
+  >('IMMEDIATE')
   const [editReleaseDate, setEditReleaseDate] = useState('')
   const [editReleaseTime, setEditReleaseTime] = useState('')
   const [editTracks, setEditTracks] = useState<EditTrackDraft[]>([])
   const [isSavingRelease, setIsSavingRelease] = useState(false)
   const editCoverInputRef = useRef<HTMLInputElement>(null)
-
 
   // Detach Cut Modal State
   const [detachModalData, setDetachModalData] = useState<{
@@ -200,7 +212,9 @@ function StudioComponent() {
   const [singleTrackCleanupToken, setSingleTrackCleanupToken] = useState('')
   const [singleTrackAudioFileName, setSingleTrackAudioFileName] = useState('')
   const [isUploadingSingleAudio, setIsUploadingSingleAudio] = useState(false)
-  const [singleTrackCredits, setSingleTrackCredits] = useState<SelectedCredit[]>([])
+  const [singleTrackCredits, setSingleTrackCredits] = useState<
+    SelectedCredit[]
+  >([])
   const singleAudioInputRef = useRef<HTMLInputElement>(null)
 
   // Multi-track draft cuts (when releaseType !== 'SINGLE')
@@ -240,8 +254,12 @@ function StudioComponent() {
   const [spotlightReleaseId, setSpotlightReleaseId] = useState('')
   const [spotlightComment, setSpotlightComment] = useState('')
   const [isSavingSpotlight, setIsSavingSpotlight] = useState(false)
-  const [spotlightStatus, setSpotlightStatus] = useState<'idle' | 'saved' | 'cleared' | 'error'>('idle')
-  const [spotlightStatusMessage, setSpotlightStatusMessage] = useState<string | null>(null)
+  const [spotlightStatus, setSpotlightStatus] = useState<
+    'idle' | 'saved' | 'cleared' | 'error'
+  >('idle')
+  const [spotlightStatusMessage, setSpotlightStatusMessage] = useState<
+    string | null
+  >(null)
 
   // Expanded album tracks view in Studio
   const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
@@ -375,7 +393,9 @@ function StudioComponent() {
     if (detachCoverInputRef.current) detachCoverInputRef.current.value = ''
   }
 
-  const handleDetachCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDetachCoverSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -410,7 +430,9 @@ function StudioComponent() {
       )
 
       // Refresh album details and releases
-      const fullAlbum = await catalogApi.getAlbum(detachModalData.parentAlbum.id)
+      const fullAlbum = await catalogApi.getAlbum(
+        detachModalData.parentAlbum.id,
+      )
       setAlbumTrackMap((prev) => ({
         ...prev,
         [detachModalData.parentAlbum.id]: fullAlbum.tracks,
@@ -562,7 +584,6 @@ function StudioComponent() {
     }
   }
 
-
   // Cover image select for new release (Deferred / Lazy Upload)
   const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -589,7 +610,9 @@ function StudioComponent() {
   // Audio file select for track draft in new release with metadata extraction
   const handleDraftAudioFile = async (draftId: string, file: File) => {
     setDraftTracks((prev) =>
-      prev.map((t) => (t.id === draftId ? { ...t, isUploadingAudio: true } : t)),
+      prev.map((t) =>
+        t.id === draftId ? { ...t, isUploadingAudio: true } : t,
+      ),
     )
     setErrorNotice(null)
 
@@ -605,7 +628,9 @@ function StudioComponent() {
       // Auto-prefill release cover artwork if empty (Deferred / Lazy preview)
       if (!releaseCoverFile && !releaseCoverUrl && parsed.coverFile) {
         setReleaseCoverFile(parsed.coverFile)
-        setReleaseCoverPreview(parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile))
+        setReleaseCoverPreview(
+          parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile),
+        )
       }
 
       // 2. Upload master audio to Cloudflare R2
@@ -614,10 +639,22 @@ function StudioComponent() {
 
       // If replacing previously uploaded audio cut, clean up previous file from R2
       const existingCut = draftTracks.find((t) => t.id === draftId)
-      if (existingCut?.rawAudioKey && existingCut?.cleanupToken && existingCut.rawAudioKey !== storageKey) {
-        catalogApi.cleanupUncommittedAudio(existingCut.rawAudioKey, existingCut.cleanupToken).catch((err) =>
-          console.warn(`Failed to cleanup replaced cut audio: ${existingCut.rawAudioKey}`, err),
-        )
+      if (
+        existingCut?.rawAudioKey &&
+        existingCut?.cleanupToken &&
+        existingCut.rawAudioKey !== storageKey
+      ) {
+        catalogApi
+          .cleanupUncommittedAudio(
+            existingCut.rawAudioKey,
+            existingCut.cleanupToken,
+          )
+          .catch((err) =>
+            console.warn(
+              `Failed to cleanup replaced cut audio: ${existingCut.rawAudioKey}`,
+              err,
+            ),
+          )
       }
 
       setDraftTracks((prev) =>
@@ -629,16 +666,21 @@ function StudioComponent() {
                 cleanupToken: cleanupToken,
                 audioUrl: publicUrl,
                 audioFileName: file.name,
-                durationSeconds: durationSeconds || parsed.durationSeconds || t.durationSeconds,
+                durationSeconds:
+                  durationSeconds ||
+                  parsed.durationSeconds ||
+                  t.durationSeconds,
                 title: t.title.trim() ? t.title : parsed.title,
-                genre: t.genre.trim() ? t.genre : (parsed.genre || ''),
+                genre: t.genre.trim() ? t.genre : parsed.genre || '',
                 isExplicit: t.isExplicit || parsed.isExplicit,
                 isUploadingAudio: false,
               }
             : t,
         ),
       )
-      setSuccessNotice(`Master audio "${file.name}" uploaded to R2 and metadata prefilled.`)
+      setSuccessNotice(
+        `Master audio "${file.name}" uploaded to R2 and metadata prefilled.`,
+      )
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to upload audio cut')
       setDraftTracks((prev) =>
@@ -661,9 +703,14 @@ function StudioComponent() {
   const handleResetDraftAudio = (draftId: string) => {
     const target = draftTracks.find((t) => t.id === draftId)
     if (target?.rawAudioKey && target?.cleanupToken) {
-      catalogApi.cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken).catch((err) =>
-        console.warn(`Failed to cleanup reset cut audio: ${target.rawAudioKey}`, err),
-      )
+      catalogApi
+        .cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken)
+        .catch((err) =>
+          console.warn(
+            `Failed to cleanup reset cut audio: ${target.rawAudioKey}`,
+            err,
+          ),
+        )
     }
     setDraftTracks((prev) =>
       prev.map((t) =>
@@ -684,9 +731,14 @@ function StudioComponent() {
   const handleRemoveDraftCut = (draftId: string) => {
     const target = draftTracks.find((t) => t.id === draftId)
     if (target?.rawAudioKey && target?.cleanupToken) {
-      catalogApi.cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken).catch((err) =>
-        console.warn(`Failed to cleanup removed cut audio: ${target.rawAudioKey}`, err),
-      )
+      catalogApi
+        .cleanupUncommittedAudio(target.rawAudioKey, target.cleanupToken)
+        .catch((err) =>
+          console.warn(
+            `Failed to cleanup removed cut audio: ${target.rawAudioKey}`,
+            err,
+          ),
+        )
     }
     setDraftTracks((prev) => prev.filter((t) => t.id !== draftId))
   }
@@ -748,7 +800,10 @@ function StudioComponent() {
       const parsed = await parseAudioFile(file)
 
       // Prefill Release Title if empty or equal to filename without extension
-      if (!releaseTitle.trim() || releaseTitle === file.name.replace(/\.[^/.]+$/, '')) {
+      if (
+        !releaseTitle.trim() ||
+        releaseTitle === file.name.replace(/\.[^/.]+$/, '')
+      ) {
         setReleaseTitle(parsed.title)
       }
 
@@ -762,7 +817,11 @@ function StudioComponent() {
           setReleaseSubGenre(parsed.subGenre)
         }
       }
-      if (releaseMoods.length === 0 && parsed.moods && parsed.moods.length > 0) {
+      if (
+        releaseMoods.length === 0 &&
+        parsed.moods &&
+        parsed.moods.length > 0
+      ) {
         setReleaseMoods(parsed.moods.slice(0, 3))
       }
       if (parsed.bpm) {
@@ -785,7 +844,9 @@ function StudioComponent() {
       // Prefill cover artwork if empty (Deferred / Lazy preview)
       if (!releaseCoverFile && !releaseCoverUrl && parsed.coverFile) {
         setReleaseCoverFile(parsed.coverFile)
-        setReleaseCoverPreview(parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile))
+        setReleaseCoverPreview(
+          parsed.coverPreviewUrl || URL.createObjectURL(parsed.coverFile),
+        )
       }
 
       // 2. Upload raw audio file to Cloudflare R2
@@ -793,10 +854,19 @@ function StudioComponent() {
         await catalogApi.uploadAudioRaw(file)
 
       // If replacing previously uploaded single audio, clean it up from R2
-      if (singleTrackAudioKey && singleTrackCleanupToken && singleTrackAudioKey !== storageKey) {
-        catalogApi.cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken).catch((err) =>
-          console.warn(`Failed to cleanup replaced single audio: ${singleTrackAudioKey}`, err),
-        )
+      if (
+        singleTrackAudioKey &&
+        singleTrackCleanupToken &&
+        singleTrackAudioKey !== storageKey
+      ) {
+        catalogApi
+          .cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken)
+          .catch((err) =>
+            console.warn(
+              `Failed to cleanup replaced single audio: ${singleTrackAudioKey}`,
+              err,
+            ),
+          )
       }
 
       setSingleTrackAudioKey(storageKey)
@@ -828,9 +898,14 @@ function StudioComponent() {
 
   const handleResetSingleAudio = () => {
     if (singleTrackAudioKey && singleTrackCleanupToken) {
-      catalogApi.cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken).catch((err) =>
-        console.warn(`Failed to cleanup reset single audio: ${singleTrackAudioKey}`, err),
-      )
+      catalogApi
+        .cleanupUncommittedAudio(singleTrackAudioKey, singleTrackCleanupToken)
+        .catch((err) =>
+          console.warn(
+            `Failed to cleanup reset single audio: ${singleTrackAudioKey}`,
+            err,
+          ),
+        )
     }
     setSingleTrackAudioKey('')
     setSingleTrackCleanupToken('')
@@ -878,13 +953,23 @@ function StudioComponent() {
       const existingDrafts = isInitialEmptyDraft ? [] : draftTracks
 
       const isMatch = (
-        candidate: { title: string; durationSeconds: number; fileName: string; fileSize: number },
-        existing: { title: string; durationSeconds: number; audioFileName?: string },
+        candidate: {
+          title: string
+          durationSeconds: number
+          fileName: string
+          fileSize: number
+        },
+        existing: {
+          title: string
+          durationSeconds: number
+          audioFileName?: string
+        },
       ) => {
         // Match 1: Exact audio filename match
         if (
           existing.audioFileName &&
-          candidate.fileName.toLowerCase() === existing.audioFileName.toLowerCase()
+          candidate.fileName.toLowerCase() ===
+            existing.audioFileName.toLowerCase()
         ) {
           return true
         }
@@ -991,7 +1076,9 @@ function StudioComponent() {
       }
       // Prefill Moods if empty
       if (releaseMoods.length === 0) {
-        const firstWithMoods = uniqueParsedList.find((t) => t.moods && t.moods.length > 0)
+        const firstWithMoods = uniqueParsedList.find(
+          (t) => t.moods && t.moods.length > 0,
+        )
         if (firstWithMoods && firstWithMoods.moods) {
           setReleaseMoods(firstWithMoods.moods.slice(0, 3))
         }
@@ -1050,7 +1137,10 @@ function StudioComponent() {
               ),
             )
           } catch (uploadErr: any) {
-            console.error(`Failed to upload ${parsedTrack.file.name}:`, uploadErr)
+            console.error(
+              `Failed to upload ${parsedTrack.file.name}:`,
+              uploadErr,
+            )
             setDraftTracks((prev) =>
               prev.map((t) =>
                 t.id === targetDraftId ? { ...t, isUploadingAudio: false } : t,
@@ -1104,11 +1194,15 @@ function StudioComponent() {
     let scheduledReleaseAtIso: string | undefined = undefined
     if (releaseMode === 'SCHEDULED') {
       if (!scheduledDate || !scheduledTime) {
-        setErrorNotice('Please choose both a date and time for the scheduled release')
+        setErrorNotice(
+          'Please choose both a date and time for the scheduled release',
+        )
         setIsSubmittingRelease(false)
         return
       }
-      const parsedTimestamp = new Date(`${scheduledDate}T${scheduledTime}`).getTime()
+      const parsedTimestamp = new Date(
+        `${scheduledDate}T${scheduledTime}`,
+      ).getTime()
       if (isNaN(parsedTimestamp)) {
         setErrorNotice('Invalid scheduled release date/time')
         setIsSubmittingRelease(false)
@@ -1132,7 +1226,9 @@ function StudioComponent() {
           setReleaseCoverUrl(finalCoverUrl)
           setReleaseCoverFile(null)
         } catch (covErr: any) {
-          setErrorNotice(covErr.message || 'Failed to upload cover artwork to R2')
+          setErrorNotice(
+            covErr.message || 'Failed to upload cover artwork to R2',
+          )
           setIsSubmittingRelease(false)
           setIsUploadingCover(false)
           return
@@ -1149,7 +1245,9 @@ function StudioComponent() {
 
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
-          setErrorNotice('Please upload a master audio file for the single release')
+          setErrorNotice(
+            'Please upload a master audio file for the single release',
+          )
           setIsSubmittingRelease(false)
           return
         }
@@ -1212,11 +1310,25 @@ function StudioComponent() {
 
         const tracksPayload = draftTracks.map((t, idx) => ({
           title: t.title.trim() || `Cut ${idx + 1}`,
-          genre: t.primaryGenre || t.genre.trim() || releasePrimaryGenre || undefined,
+          genre:
+            t.primaryGenre ||
+            t.genre.trim() ||
+            releasePrimaryGenre ||
+            undefined,
           primaryGenre: t.primaryGenre || releasePrimaryGenre || undefined,
           subGenre: t.subGenre || releaseSubGenre || undefined,
-          moods: (t.moods && t.moods.length > 0) ? t.moods : (releaseMoods.length > 0 ? releaseMoods : undefined),
-          tags: (t.tags && t.tags.length > 0) ? t.tags : (releaseTags.length > 0 ? releaseTags : undefined),
+          moods:
+            t.moods && t.moods.length > 0
+              ? t.moods
+              : releaseMoods.length > 0
+                ? releaseMoods
+                : undefined,
+          tags:
+            t.tags && t.tags.length > 0
+              ? t.tags
+              : releaseTags.length > 0
+                ? releaseTags
+                : undefined,
           bpm: t.bpm || undefined,
           musicalKey: t.musicalKey || undefined,
           durationSeconds: t.durationSeconds,
@@ -1293,9 +1405,7 @@ function StudioComponent() {
       )
       setSuccessNotice(
         `Visibility for "${album.title}" updated to ${newVisibility}${
-          newVisibility === 'UNLISTED'
-            ? ' (Secret share token generated)'
-            : ''
+          newVisibility === 'UNLISTED' ? ' (Secret share token generated)' : ''
         }.`,
       )
     } catch (err: any) {
@@ -1486,7 +1596,9 @@ function StudioComponent() {
         }
       }
 
-      setSuccessNotice(`🎉 Master release "${editReleaseTitle}" updated successfully!`)
+      setSuccessNotice(
+        `🎉 Master release "${editReleaseTitle}" updated successfully!`,
+      )
       handleCloseEditModal()
       loadReleases()
     } catch (err: any) {
@@ -1585,7 +1697,8 @@ function StudioComponent() {
           <div className="p-6 border border-border bg-card flex flex-col gap-5 shadow-raised">
             <div>
               <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
-                Stage / Ensemble Name <span className="text-destructive">*</span>
+                Stage / Ensemble Name{' '}
+                <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -1724,11 +1837,16 @@ function StudioComponent() {
     setErrorNotice(null)
 
     try {
-      const publicUrl = await artistsApi.uploadBanner(artistProfile.id, croppedFile)
+      const publicUrl = await artistsApi.uploadBanner(
+        artistProfile.id,
+        croppedFile,
+      )
       setArtistProfile((prev) =>
         prev ? { ...prev, bannerUrl: publicUrl } : null,
       )
-      setSuccessNotice('Banner image cropped, uploaded to Cloudflare R2, and synced.')
+      setSuccessNotice(
+        'Banner image cropped, uploaded to Cloudflare R2, and synced.',
+      )
       setBannerCropFile(null)
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to upload banner')
@@ -1752,11 +1870,16 @@ function StudioComponent() {
     setErrorNotice(null)
 
     try {
-      const publicUrl = await artistsApi.uploadAvatar(artistProfile.id, croppedFile)
+      const publicUrl = await artistsApi.uploadAvatar(
+        artistProfile.id,
+        croppedFile,
+      )
       setArtistProfile((prev) =>
         prev ? { ...prev, avatarUrl: publicUrl } : null,
       )
-      setSuccessNotice('Artist avatar cropped, uploaded to Cloudflare R2, and synced.')
+      setSuccessNotice(
+        'Artist avatar cropped, uploaded to Cloudflare R2, and synced.',
+      )
       setAvatarCropFile(null)
     } catch (err: any) {
       setErrorNotice(err.message || 'Failed to upload avatar')
@@ -1822,7 +1945,9 @@ function StudioComponent() {
     try {
       const res = await artistsApi.updateMyProfile({
         pinnedReleaseId: spotlightReleaseId || null,
-        pinnedComment: spotlightReleaseId ? (spotlightComment.trim() || null) : null,
+        pinnedComment: spotlightReleaseId
+          ? spotlightComment.trim() || null
+          : null,
       })
       setArtistProfile(res.profile)
       setSpotlightReleaseId(res.profile.pinnedReleaseId || '')
@@ -1835,7 +1960,7 @@ function StudioComponent() {
       setSpotlightStatusMessage(
         spotlightReleaseId
           ? 'Spotlight saved! Your public profile is now updated.'
-          : 'Reset to automatic latest release fallback.'
+          : 'Reset to automatic latest release fallback.',
       )
       setTimeout(() => {
         setSpotlightStatus((prev) => (prev === 'saved' ? 'idle' : prev))
@@ -2047,7 +2172,8 @@ function StudioComponent() {
                 Master Releases & Recordings
               </h2>
               <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                Manage your studio master tapes, published albums, and standalone singles.
+                Manage your studio master tapes, published albums, and
+                standalone singles.
               </p>
             </div>
           </div>
@@ -2055,10 +2181,10 @@ function StudioComponent() {
           {/* Unified Master Release Modal / Drawer */}
           {isCreateReleaseOpen && (
             <div className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-              <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-t-surface sm:rounded-surface shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
+              <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-control shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
                 {/* Mobile Grab Handle */}
                 <div className="sm:hidden w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto my-2.5 shrink-0" />
-                
+
                 {/* Modal Header */}
                 <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border flex items-center justify-between shrink-0">
                   <div className="min-w-0 pr-3">
@@ -2082,923 +2208,1044 @@ function StudioComponent() {
                 </div>
 
                 <div className="p-4 sm:p-6 overflow-y-auto space-y-6 overscroll-contain">
-
-              {/* Release Format / Type Selector */}
-              <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
-                  Release Format / Type
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setReleaseType(type)}
-                      className={`font-eyebrow text-caption uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
-                        releaseType === type
-                          ? 'border-foreground bg-foreground text-background font-semibold'
-                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {type === 'SINGLE' ? '✦ Single (1 Cut)' : type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Start: Auto-fill Metadata Assistant Dropzone */}
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const droppedFiles = Array.from(e.dataTransfer.files).filter(
-                    (f) =>
-                      f.type.startsWith('audio/') ||
-                      /\.(mp3|wav|flac|m4a|aac|ogg|wma)$/i.test(f.name),
-                  )
-                  if (droppedFiles.length === 0) return
-                  if (releaseType === 'SINGLE' && droppedFiles.length === 1) {
-                    handleSingleAudioFile(droppedFiles[0])
-                  } else {
-                    if (releaseType === 'SINGLE') {
-                      setReleaseType(droppedFiles.length <= 6 ? 'EP' : 'ALBUM')
-                    }
-                    handleBatchImportFiles(droppedFiles)
-                  }
-                }}
-                className="p-4 border-2 border-dashed border-border hover:border-foreground bg-background/60 transition-colors flex flex-col sm:flex-row items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 border border-border bg-card flex items-center justify-center shrink-0">
-                    <UploadCloud className="w-5 h-5 text-foreground shrink-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-eyebrow text-caption uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
-                      <span>✦ Quick Start: Auto-Fill from Audio Metadata</span>
+                  {/* Release Format / Type Selector */}
+                  <div>
+                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
+                      Release Format / Type
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          'SINGLE',
+                          'ALBUM',
+                          'EP',
+                          'LP',
+                          'MIXTAPE',
+                        ] as AlbumType[]
+                      ).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setReleaseType(type)}
+                          className={`font-eyebrow text-caption uppercase tracking-wider py-1.5 px-3.5 border transition-colors cursor-pointer ${
+                            releaseType === type
+                              ? 'border-foreground bg-foreground text-background font-semibold'
+                              : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {type === 'SINGLE' ? '✦ Single (1 Cut)' : type}
+                        </button>
+                      ))}
                     </div>
-                    <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                      Drop audio file{releaseType !== 'SINGLE' ? 's' : ''} or browse to auto-extract release title, embedded artwork, track titles, genres, and durations. All prefilled fields remain completely editable.
-                    </p>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <label className="font-eyebrow text-caption uppercase tracking-wider py-2 px-3.5 border border-foreground bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
-                    <span>
-                      {isBatchImporting || isUploadingSingleAudio
-                        ? 'Extracting & Uploading...'
-                        : releaseType === 'SINGLE'
-                          ? 'Select Single Audio'
-                          : 'Select Audio Cuts'}
-                    </span>
-                    <input
-                      ref={quickStartInputRef}
-                      type="file"
-                      accept="audio/*"
-                      multiple={releaseType !== 'SINGLE'}
-                      disabled={isBatchImporting || isUploadingSingleAudio}
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || [])
-                        if (files.length === 0) return
-                        if (releaseType === 'SINGLE' && files.length === 1) {
-                          handleSingleAudioFile(files[0])
-                        } else {
-                          if (releaseType === 'SINGLE') {
-                            setReleaseType(files.length <= 6 ? 'EP' : 'ALBUM')
-                          }
-                          handleBatchImportFiles(files)
+                  {/* Quick Start: Auto-fill Metadata Assistant Dropzone */}
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      const droppedFiles = Array.from(
+                        e.dataTransfer.files,
+                      ).filter(
+                        (f) =>
+                          f.type.startsWith('audio/') ||
+                          /\.(mp3|wav|flac|m4a|aac|ogg|wma)$/i.test(f.name),
+                      )
+                      if (droppedFiles.length === 0) return
+                      if (
+                        releaseType === 'SINGLE' &&
+                        droppedFiles.length === 1
+                      ) {
+                        handleSingleAudioFile(droppedFiles[0])
+                      } else {
+                        if (releaseType === 'SINGLE') {
+                          setReleaseType(
+                            droppedFiles.length <= 6 ? 'EP' : 'ALBUM',
+                          )
                         }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <form onSubmit={handlePublishRelease} className="space-y-6">
-                {/* Basic Release Metadata */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
-                      <span className="text-destructive">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={releaseTitle}
-                      onChange={(e) => setReleaseTitle(e.target.value)}
-                      placeholder={
-                        releaseType === 'SINGLE'
-                          ? 'e.g. Autumn in Saint-Germain'
-                          : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
+                        handleBatchImportFiles(droppedFiles)
                       }
-                      className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Release Timing
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setReleaseMode('IMMEDIATE')}
-                        className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
-                          releaseMode === 'IMMEDIATE'
-                            ? 'border-foreground bg-foreground text-background font-semibold'
-                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        Immediate
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setReleaseMode('SCHEDULED')
-                          if (!scheduledDate) {
-                            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
-                            setScheduledDate(tomorrow.toISOString().split('T')[0])
-                            setScheduledTime('00:00')
-                          }
-                        }}
-                        className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
-                          releaseMode === 'SCHEDULED'
-                            ? 'border-foreground bg-foreground text-background font-semibold'
-                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        <Calendar className="w-3.5 h-3.5 shrink-0" />
-                        <span>Scheduled Drop</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Scheduled Release Date & Time Settings */}
-                {releaseMode === 'SCHEDULED' && (
-                  <div className="p-4 border border-primary/40 bg-primary/5 space-y-3">
-                    <div className="flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
-                      <Calendar className="w-3.5 h-3.5 shrink-0" />
-                      <span>Scheduled Drop & Pre-Save Configuration</span>
-                    </div>
-                    <p className="font-sans text-caption text-muted-foreground">
-                      Specify when your {releaseType.toLowerCase()} officially drops. Listeners can pre-save the release to their library immediately. Full audio playback remains locked until this exact timestamp.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                          Release Date (Local) <span className="text-destructive">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          required
-                          min={new Date().toISOString().split('T')[0]}
-                          value={scheduledDate}
-                          onChange={(e) => setScheduledDate(e.target.value)}
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                        />
+                    }}
+                    className="p-4 border-2 border-dashed border-border hover:border-foreground bg-background/60 transition-colors flex flex-col sm:flex-row items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 border border-border bg-card flex items-center justify-center shrink-0">
+                        <UploadCloud className="w-5 h-5 text-foreground shrink-0" />
                       </div>
-                      <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                          Release Time (Local) <span className="text-destructive">*</span>
-                        </label>
-                        <input
-                          type="time"
-                          required
-                          value={scheduledTime}
-                          onChange={(e) => setScheduledTime(e.target.value)}
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Catalog Visibility Tier Selector */}
-                <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Catalog Visibility Tier
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    {[
-                      {
-                        key: 'PUBLIC',
-                        label: 'Public',
-                        desc: 'Discoverable in search, artist profile, and pre-save feeds.',
-                      },
-                      {
-                        key: 'UNLISTED',
-                        label: 'Unlisted',
-                        desc: 'Hidden from search; accessible only via private secret share token link.',
-                      },
-                      {
-                        key: 'PRIVATE',
-                        label: 'Private',
-                        desc: 'Strictly restricted to you and collaborators in Studio.',
-                      },
-                    ].map((opt) => (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => setReleaseVisibility(opt.key as ReleaseVisibility)}
-                        className={`text-left p-3 border transition-colors cursor-pointer ${
-                          releaseVisibility === opt.key
-                            ? 'border-foreground bg-background shadow-raised ring-1 ring-foreground'
-                            : 'border-border bg-card hover:bg-background'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-eyebrow text-caption font-semibold uppercase tracking-wider text-foreground">
-                            {opt.label}
-                          </span>
-                          {releaseVisibility === opt.key && (
-                            <span className="font-mono text-caption text-primary">●</span>
-                          )}
-                        </div>
-                        <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                          {opt.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Release Artwork Upload (Square 1:1) */}
-                <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                    {releaseType === 'SINGLE' ? 'Single Cover Artwork (Cloudflare R2)' : 'Release Cover Artwork (Cloudflare R2)'}{' '}
-                    <span className="text-destructive">*</span>
-                  </label>
-                  <p className="font-sans text-caption text-muted-foreground mb-2">
-                    Square artwork (1:1 ratio), minimum 1400x1400px recommended (JPEG, PNG, or WebP). Stored on Cloudflare R2 edge CDN.
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                      {releaseCoverPreview || releaseCoverUrl ? (
-                        <img
-                          src={releaseCoverPreview || releaseCoverUrl}
-                          alt="Cover preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Disc3 className="w-8 h-8 text-muted-foreground/40 shrink-0" />
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2">
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
+                      <div className="min-w-0">
+                        <div className="font-eyebrow text-caption uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
                           <span>
-                            {isUploadingCover
-                              ? 'Uploading to R2...'
-                              : releaseCoverPreview || releaseCoverUrl
-                                ? 'Replace Artwork'
-                                : 'Upload Cover Artwork'}
+                            ✦ Quick Start: Auto-Fill from Audio Metadata
                           </span>
-                          <input
-                            ref={coverInputRef}
-                            type="file"
-                            accept="image/*"
-                            disabled={isUploadingCover}
-                            onChange={handleCoverSelect}
-                            className="hidden"
-                          />
-                        </label>
-                        {(releaseCoverPreview || releaseCoverUrl) && (
-                          <button
-                            type="button"
-                            onClick={handleRemoveCover}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                        )}
+                        </div>
+                        <p className="font-sans text-caption text-muted-foreground mt-0.5">
+                          Drop audio file{releaseType !== 'SINGLE' ? 's' : ''}{' '}
+                          or browse to auto-extract release title, embedded
+                          artwork, track titles, genres, and durations. All
+                          prefilled fields remain completely editable.
+                        </p>
                       </div>
-                      <span className="font-mono text-eyebrow text-muted-foreground">
-                        {releaseCoverPreview || releaseCoverUrl
-                          ? '✓ Artwork attached to release'
-                          : 'Official release artwork required'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Release Taxonomy & Classification */}
-                <div className="space-y-4 pt-2 border-t border-border-soft">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Primary Genre Dropdown */}
-                    <div>
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                        Primary Genre
-                      </label>
-                      <select
-                        value={releasePrimaryGenre}
-                        onChange={(e) => {
-                          setReleasePrimaryGenre(e.target.value)
-                          setReleaseSubGenre('')
-                        }}
-                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                      >
-                        <option value="">Select Primary Genre...</option>
-                        {PRIMARY_GENRES.map((g) => (
-                          <option key={g} value={g}>
-                            {g}
-                          </option>
-                        ))}
-                      </select>
                     </div>
 
-                    {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
-                    <div>
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                        Sub-Genre (Optional)
-                      </label>
-                      <select
-                        value={releaseSubGenre}
-                        onChange={(e) => setReleaseSubGenre(e.target.value)}
-                        disabled={!releasePrimaryGenre || !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length}
-                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
-                      >
-                        <option value="">Select Sub-Genre...</option>
-                        {releasePrimaryGenre &&
-                          GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.map((sg) => (
-                            <option key={sg} value={sg}>
-                              {sg}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Mood Selection (1-3 optional) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                        Musical Moods (Select 1 to 3)
-                      </label>
-                      <span className="font-mono text-eyebrow text-muted-foreground">
-                        {releaseMoods.length}/3 selected
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {CATALOG_MOODS.map((mood) => {
-                        const isSelected = releaseMoods.includes(mood)
-                        return (
-                          <button
-                            key={mood}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                setReleaseMoods(releaseMoods.filter((m) => m !== mood))
-                              } else if (releaseMoods.length < 3) {
-                                setReleaseMoods([...releaseMoods, mood])
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="font-eyebrow text-caption uppercase tracking-wider py-2 px-3.5 border border-foreground bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5 font-semibold">
+                        <span>
+                          {isBatchImporting || isUploadingSingleAudio
+                            ? 'Extracting & Uploading...'
+                            : releaseType === 'SINGLE'
+                              ? 'Select Single Audio'
+                              : 'Select Audio Cuts'}
+                        </span>
+                        <input
+                          ref={quickStartInputRef}
+                          type="file"
+                          accept="audio/*"
+                          multiple={releaseType !== 'SINGLE'}
+                          disabled={isBatchImporting || isUploadingSingleAudio}
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || [])
+                            if (files.length === 0) return
+                            if (
+                              releaseType === 'SINGLE' &&
+                              files.length === 1
+                            ) {
+                              handleSingleAudioFile(files[0])
+                            } else {
+                              if (releaseType === 'SINGLE') {
+                                setReleaseType(
+                                  files.length <= 6 ? 'EP' : 'ALBUM',
+                                )
                               }
-                            }}
-                            className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
-                              isSelected
+                              handleBatchImportFiles(files)
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handlePublishRelease} className="space-y-6">
+                    {/* Basic Release Metadata */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                          {releaseType === 'SINGLE'
+                            ? 'Single Title'
+                            : 'Release Title'}{' '}
+                          <span className="text-destructive">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={releaseTitle}
+                          onChange={(e) => setReleaseTitle(e.target.value)}
+                          placeholder={
+                            releaseType === 'SINGLE'
+                              ? 'e.g. Autumn in Saint-Germain'
+                              : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
+                          }
+                          className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                          Release Timing
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setReleaseMode('IMMEDIATE')}
+                            className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
+                              releaseMode === 'IMMEDIATE'
                                 ? 'border-foreground bg-foreground text-background font-semibold'
-                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground'
                             }`}
                           >
-                            {mood}
+                            Immediate
                           </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Tags */}
-                  <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Catalog Tags (Press Enter to add)
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={releaseTagInput}
-                        onChange={(e) => setReleaseTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            const trimmed = releaseTagInput.trim().toLowerCase()
-                            if (trimmed && !releaseTags.includes(trimmed)) {
-                              setReleaseTags([...releaseTags, trimmed])
-                              setReleaseTagInput('')
-                            }
-                          }
-                        }}
-                        placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const trimmed = releaseTagInput.trim().toLowerCase()
-                          if (trimmed && !releaseTags.includes(trimmed)) {
-                            setReleaseTags([...releaseTags, trimmed])
-                            setReleaseTagInput('')
-                          }
-                        }}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
-                      >
-                        + Add Tag
-                      </button>
-                    </div>
-                    {releaseTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {releaseTags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReleaseMode('SCHEDULED')
+                              if (!scheduledDate) {
+                                const tomorrow = new Date(
+                                  Date.now() + 24 * 60 * 60 * 1000,
+                                )
+                                setScheduledDate(
+                                  tomorrow.toISOString().split('T')[0],
+                                )
+                                setScheduledTime('00:00')
+                              }
+                            }}
+                            className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                              releaseMode === 'SCHEDULED'
+                                ? 'border-foreground bg-foreground text-background font-semibold'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                            }`}
                           >
-                            <span>#{tag}</span>
-                            <button
-                              type="button"
-                              onClick={() => setReleaseTags(releaseTags.filter((t) => t !== tag))}
-                              className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
-                            >
-                              ×
-                            </button>
-                          </span>
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            <span>Scheduled Drop</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Scheduled Release Date & Time Settings */}
+                    {releaseMode === 'SCHEDULED' && (
+                      <div className="p-4 border border-primary/40 bg-primary/5 space-y-3">
+                        <div className="flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
+                          <Calendar className="w-3.5 h-3.5 shrink-0" />
+                          <span>Scheduled Drop & Pre-Save Configuration</span>
+                        </div>
+                        <p className="font-sans text-caption text-muted-foreground">
+                          Specify when your {releaseType.toLowerCase()}{' '}
+                          officially drops. Listeners can pre-save the release
+                          to their library immediately. Full audio playback
+                          remains locked until this exact timestamp.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                              Release Date (Local){' '}
+                              <span className="text-destructive">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              required
+                              min={new Date().toISOString().split('T')[0]}
+                              value={scheduledDate}
+                              onChange={(e) => setScheduledDate(e.target.value)}
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                              Release Time (Local){' '}
+                              <span className="text-destructive">*</span>
+                            </label>
+                            <input
+                              type="time"
+                              required
+                              value={scheduledTime}
+                              onChange={(e) => setScheduledTime(e.target.value)}
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Catalog Visibility Tier Selector */}
+                    <div>
+                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                        Catalog Visibility Tier
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {[
+                          {
+                            key: 'PUBLIC',
+                            label: 'Public',
+                            desc: 'Discoverable in search, artist profile, and pre-save feeds.',
+                          },
+                          {
+                            key: 'UNLISTED',
+                            label: 'Unlisted',
+                            desc: 'Hidden from search; accessible only via private secret share token link.',
+                          },
+                          {
+                            key: 'PRIVATE',
+                            label: 'Private',
+                            desc: 'Strictly restricted to you and collaborators in Studio.',
+                          },
+                        ].map((opt) => (
+                          <button
+                            key={opt.key}
+                            type="button"
+                            onClick={() =>
+                              setReleaseVisibility(opt.key as ReleaseVisibility)
+                            }
+                            className={`text-left p-3 border transition-colors cursor-pointer ${
+                              releaseVisibility === opt.key
+                                ? 'border-foreground bg-background shadow-raised ring-1 ring-foreground'
+                                : 'border-border bg-card hover:bg-background'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-eyebrow text-caption font-semibold uppercase tracking-wider text-foreground">
+                                {opt.label}
+                              </span>
+                              {releaseVisibility === opt.key && (
+                                <span className="font-mono text-caption text-primary">
+                                  ●
+                                </span>
+                              )}
+                            </div>
+                            <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
+                              {opt.desc}
+                            </p>
+                          </button>
                         ))}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Liner Notes & Description */}
-                <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Liner Notes & Description (Optional)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={releaseDescription}
-                    onChange={(e) => setReleaseDescription(e.target.value)}
-                    placeholder="Recording location, inspiration, gear, or credits..."
-                    className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
-                  />
-                </div>
-
-                {/* Creator Governance: Comments & Discussions */}
-                <div className="p-3.5 border border-border bg-card flex items-center justify-between">
-                  <div>
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
-                      Discussion &amp; Comments
-                    </span>
-                    <p className="font-sans text-caption text-muted-foreground">
-                      Allow listeners and curators to post comments and replies on this release.
-                    </p>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={releaseAllowComments}
-                      onChange={(e) => setReleaseAllowComments(e.target.checked)}
-                      className="accent-primary w-4 h-4"
-                    />
-                    <span className="font-mono text-caption text-foreground font-medium">
-                      {releaseAllowComments ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </label>
-                </div>
-
-                {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
-                {releaseType === 'SINGLE' ? (
-                  <div className="pt-4 border-t border-border-soft space-y-4">
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block">
-                      Single Master Recording
-                    </span>
-
-                    {/* Master Audio Section */}
-                    <div className="p-3.5 border border-border bg-background space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-semibold">
-                          Master Audio Recording
-                        </span>
-                        <label className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={singleTrackExplicit}
-                            onChange={(e) => setSingleTrackExplicit(e.target.checked)}
-                          />
-                          <span>Explicit Content</span>
-                        </label>
-                      </div>
-
-                      {singleTrackAudioKey || singleTrackAudioUrl ? (
-                        <div className="p-3 border border-success/40 bg-success-soft flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-success text-background flex items-center justify-center font-mono text-caption font-bold shrink-0">
-                              ✓
-                            </span>
-                            <div className="min-w-0">
-                              <div className="font-sans font-semibold text-body text-foreground truncate">
-                                {singleTrackAudioFileName || releaseTitle || 'Master Audio Track'}
-                              </div>
-                              <div className="font-mono text-eyebrow text-muted-foreground">
-                                Audio file added successfully &bull; Duration: {formatDuration(singleTrackDuration)}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              disabled
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
-                              title="An audio master is already uploaded. Reset audio to choose another."
-                            >
-                              ✓ Audio Attached
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleResetSingleAudio}
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
-                              title="Remove uploaded audio and select a new file"
-                            >
-                              ✕ Reset Audio
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-dashed border-border bg-card">
-                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-2 self-start">
-                            <span>
-                              {isUploadingSingleAudio
-                                ? 'Uploading Master Audio to R2...'
-                                : 'Select Audio Master (FLAC/WAV/MP3)'}
-                            </span>
-                            <input
-                              ref={singleAudioInputRef}
-                              type="file"
-                              accept="audio/*"
-                              disabled={isUploadingSingleAudio}
-                              onChange={handleSingleAudioSelect}
-                              className="hidden"
+                    {/* Release Artwork Upload (Square 1:1) */}
+                    <div>
+                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
+                        {releaseType === 'SINGLE'
+                          ? 'Single Cover Artwork (Cloudflare R2)'
+                          : 'Release Cover Artwork (Cloudflare R2)'}{' '}
+                        <span className="text-destructive">*</span>
+                      </label>
+                      <p className="font-sans text-caption text-muted-foreground mb-2">
+                        Square artwork (1:1 ratio), minimum 1400x1400px
+                        recommended (JPEG, PNG, or WebP). Stored on Cloudflare
+                        R2 edge CDN.
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                          {releaseCoverPreview || releaseCoverUrl ? (
+                            <img
+                              src={releaseCoverPreview || releaseCoverUrl}
+                              alt="Cover preview"
+                              className="w-full h-full object-cover"
                             />
-                          </label>
+                          ) : (
+                            <Disc3 className="w-8 h-8 text-muted-foreground/40 shrink-0" />
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
+                              <span>
+                                {isUploadingCover
+                                  ? 'Uploading to R2...'
+                                  : releaseCoverPreview || releaseCoverUrl
+                                    ? 'Replace Artwork'
+                                    : 'Upload Cover Artwork'}
+                              </span>
+                              <input
+                                ref={coverInputRef}
+                                type="file"
+                                accept="image/*"
+                                disabled={isUploadingCover}
+                                onChange={handleCoverSelect}
+                                className="hidden"
+                              />
+                            </label>
+                            {(releaseCoverPreview || releaseCoverUrl) && (
+                              <button
+                                type="button"
+                                onClick={handleRemoveCover}
+                                className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
                           <span className="font-mono text-eyebrow text-muted-foreground">
-                            Lossless FLAC, WAV, or 320kbps MP3
+                            {releaseCoverPreview || releaseCoverUrl
+                              ? '✓ Artwork attached to release'
+                              : 'Official release artwork required'}
                           </span>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Genre, BPM & Musical Key */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                          Track Genre
-                        </label>
-                        <input
-                          type="text"
-                          value={singleTrackGenre}
-                          onChange={(e) => setSingleTrackGenre(e.target.value)}
-                          placeholder={releasePrimaryGenre || 'e.g. Modern Jazz'}
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                          BPM (Tempo)
-                        </label>
-                        <input
-                          type="number"
-                          min={30}
-                          max={300}
-                          value={singleTrackBpm ?? ''}
-                          onChange={(e) =>
-                            setSingleTrackBpm(e.target.value ? Number(e.target.value) : null)
-                          }
-                          placeholder="e.g. 120"
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                          Musical Key
-                        </label>
-                        <input
-                          type="text"
-                          value={singleTrackKey}
-                          onChange={(e) => setSingleTrackKey(e.target.value)}
-                          placeholder="e.g. C min, F# maj"
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                        />
                       </div>
                     </div>
 
-                    {/* Collaborator & Credit Attribution */}
-                    <div className="pt-2 border-t border-border-soft">
-                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
-                        Collaborators & Credits (Featured / Producers / Composers / Lyricists / Engineers)
-                      </span>
-                      <ArtistCreditPicker
-                        credits={singleTrackCredits}
-                        onChange={setSingleTrackCredits}
-                        currentArtistId={artistProfile.id}
+                    {/* Release Taxonomy & Classification */}
+                    <div className="space-y-4 pt-2 border-t border-border-soft">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Primary Genre Dropdown */}
+                        <div>
+                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                            Primary Genre
+                          </label>
+                          <select
+                            value={releasePrimaryGenre}
+                            onChange={(e) => {
+                              setReleasePrimaryGenre(e.target.value)
+                              setReleaseSubGenre('')
+                            }}
+                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                          >
+                            <option value="">Select Primary Genre...</option>
+                            {PRIMARY_GENRES.map((g) => (
+                              <option key={g} value={g}>
+                                {g}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
+                        <div>
+                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                            Sub-Genre (Optional)
+                          </label>
+                          <select
+                            value={releaseSubGenre}
+                            onChange={(e) => setReleaseSubGenre(e.target.value)}
+                            disabled={
+                              !releasePrimaryGenre ||
+                              !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length
+                            }
+                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
+                          >
+                            <option value="">Select Sub-Genre...</option>
+                            {releasePrimaryGenre &&
+                              GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.map(
+                                (sg) => (
+                                  <option key={sg} value={sg}>
+                                    {sg}
+                                  </option>
+                                ),
+                              )}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Mood Selection (1-3 optional) */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
+                            Musical Moods (Select 1 to 3)
+                          </label>
+                          <span className="font-mono text-eyebrow text-muted-foreground">
+                            {releaseMoods.length}/3 selected
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {CATALOG_MOODS.map((mood) => {
+                            const isSelected = releaseMoods.includes(mood)
+                            return (
+                              <button
+                                key={mood}
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setReleaseMoods(
+                                      releaseMoods.filter((m) => m !== mood),
+                                    )
+                                  } else if (releaseMoods.length < 3) {
+                                    setReleaseMoods([...releaseMoods, mood])
+                                  }
+                                }}
+                                className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
+                                  isSelected
+                                    ? 'border-foreground bg-foreground text-background font-semibold'
+                                    : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
+                                }`}
+                              >
+                                {mood}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Custom Tags */}
+                      <div>
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                          Catalog Tags (Press Enter to add)
+                        </label>
+                        <div className="flex items-center gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={releaseTagInput}
+                            onChange={(e) => setReleaseTagInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                const trimmed = releaseTagInput
+                                  .trim()
+                                  .toLowerCase()
+                                if (trimmed && !releaseTags.includes(trimmed)) {
+                                  setReleaseTags([...releaseTags, trimmed])
+                                  setReleaseTagInput('')
+                                }
+                              }
+                            }}
+                            placeholder="e.g. lo-fi, instrumental, summer, acoustic"
+                            className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const trimmed = releaseTagInput
+                                .trim()
+                                .toLowerCase()
+                              if (trimmed && !releaseTags.includes(trimmed)) {
+                                setReleaseTags([...releaseTags, trimmed])
+                                setReleaseTagInput('')
+                              }
+                            }}
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
+                          >
+                            + Add Tag
+                          </button>
+                        </div>
+                        {releaseTags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {releaseTags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
+                              >
+                                <span>#{tag}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setReleaseTags(
+                                      releaseTags.filter((t) => t !== tag),
+                                    )
+                                  }
+                                  className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Liner Notes & Description */}
+                    <div>
+                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                        Liner Notes & Description (Optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={releaseDescription}
+                        onChange={(e) => setReleaseDescription(e.target.value)}
+                        placeholder="Recording location, inspiration, gear, or credits..."
+                        className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
                       />
                     </div>
-                  </div>
-                ) : (
-                  /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */
-                  <div className="pt-4 border-t border-border-soft space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                        Master Cuts / Tracklist ({draftTracks.length})
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1 font-medium">
-                          <span>{isBatchImporting ? 'Importing Cuts...' : '✦ Batch Import Cuts'}</span>
-                          <input
-                            ref={batchCutsInputRef}
-                            type="file"
-                            accept="audio/*"
-                            multiple
-                            disabled={isBatchImporting}
-                            onChange={(e) => {
-                              const files = Array.from(e.target.files || [])
-                              if (files.length > 0) handleBatchImportFiles(files)
-                            }}
-                            className="hidden"
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDraftTracks([
-                              ...draftTracks,
-                              {
-                                id: crypto.randomUUID(),
-                                title: '',
-                                genre: '',
-                                durationSeconds: 0,
-                                isExplicit: false,
-                                credits: [],
-                              },
-                            ])
-                          }
-                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer"
-                        >
-                          + Add Cut
-                        </button>
+
+                    {/* Creator Governance: Comments & Discussions */}
+                    <div className="p-3.5 border border-border bg-card flex items-center justify-between">
+                      <div>
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
+                          Discussion &amp; Comments
+                        </span>
+                        <p className="font-sans text-caption text-muted-foreground">
+                          Allow listeners and curators to post comments and
+                          replies on this release.
+                        </p>
                       </div>
+                      <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={releaseAllowComments}
+                          onChange={(e) =>
+                            setReleaseAllowComments(e.target.checked)
+                          }
+                          className="accent-primary w-4 h-4"
+                        />
+                        <span className="font-mono text-caption text-foreground font-medium">
+                          {releaseAllowComments ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </label>
                     </div>
 
-                    {duplicateNotice && duplicateNotice.count > 0 && (
-                      <div className="p-3 border border-warning/30 bg-warning-soft text-warning text-caption flex items-start gap-2.5 rounded-control animate-in fade-in duration-150">
-                        <span className="font-mono text-caption shrink-0 mt-0.5">⚠️</span>
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <p className="font-sans font-medium">
-                            <strong>{duplicateNotice.count}</strong> duplicate cut(s) were automatically detected and excluded:
-                          </p>
-                          <p className="font-sans text-eyebrow opacity-90 truncate">
-                            {duplicateNotice.titles.join(', ')}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setDuplicateNotice(null)}
-                          className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer ml-auto shrink-0"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
+                    {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
+                    {releaseType === 'SINGLE' ? (
+                      <div className="pt-4 border-t border-border-soft space-y-4">
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block">
+                          Single Master Recording
+                        </span>
 
-                    <div className="space-y-3">
-                      {draftTracks.map((draft, idx) => (
-                        <div
-                          key={draft.id}
-                          className="p-3.5 border border-border bg-background space-y-3"
-                        >
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-caption text-muted-foreground w-6">
-                              {String(idx + 1).padStart(2, '0')}
+                        {/* Master Audio Section */}
+                        <div className="p-3.5 border border-border bg-background space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-semibold">
+                              Master Audio Recording
                             </span>
-
-                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                            <label className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
                               <input
-                                type="text"
-                                required
-                                placeholder="Cut Title"
-                                value={draft.title}
-                                onChange={(e) => {
-                                  const val = e.target.value
-                                  setDraftTracks((prev) =>
-                                    prev.map((t) =>
-                                      t.id === draft.id ? { ...t, title: val } : t,
-                                    ),
-                                  )
-                                }}
-                                className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                type="checkbox"
+                                checked={singleTrackExplicit}
+                                onChange={(e) =>
+                                  setSingleTrackExplicit(e.target.checked)
+                                }
                               />
+                              <span>Explicit Content</span>
+                            </label>
+                          </div>
 
+                          {singleTrackAudioKey || singleTrackAudioUrl ? (
+                            <div className="p-3 border border-success/40 bg-success-soft flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="w-5 h-5 rounded-full bg-success text-background flex items-center justify-center font-mono text-caption font-bold shrink-0">
+                                  ✓
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="font-sans font-semibold text-body text-foreground truncate">
+                                    {singleTrackAudioFileName ||
+                                      releaseTitle ||
+                                      'Master Audio Track'}
+                                  </div>
+                                  <div className="font-mono text-eyebrow text-muted-foreground">
+                                    Audio file added successfully &bull;
+                                    Duration:{' '}
+                                    {formatDuration(singleTrackDuration)}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
+                                  title="An audio master is already uploaded. Reset audio to choose another."
+                                >
+                                  ✓ Audio Attached
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleResetSingleAudio}
+                                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
+                                  title="Remove uploaded audio and select a new file"
+                                >
+                                  ✕ Reset Audio
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-dashed border-border bg-card">
+                              <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-2 self-start">
+                                <span>
+                                  {isUploadingSingleAudio
+                                    ? 'Uploading Master Audio to R2...'
+                                    : 'Select Audio Master (FLAC/WAV/MP3)'}
+                                </span>
+                                <input
+                                  ref={singleAudioInputRef}
+                                  type="file"
+                                  accept="audio/*"
+                                  disabled={isUploadingSingleAudio}
+                                  onChange={handleSingleAudioSelect}
+                                  className="hidden"
+                                />
+                              </label>
+                              <span className="font-mono text-eyebrow text-muted-foreground">
+                                Lossless FLAC, WAV, or 320kbps MP3
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Genre, BPM & Musical Key */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
+                              Track Genre
+                            </label>
+                            <input
+                              type="text"
+                              value={singleTrackGenre}
+                              onChange={(e) =>
+                                setSingleTrackGenre(e.target.value)
+                              }
+                              placeholder={
+                                releasePrimaryGenre || 'e.g. Modern Jazz'
+                              }
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
+                              BPM (Tempo)
+                            </label>
+                            <input
+                              type="number"
+                              min={30}
+                              max={300}
+                              value={singleTrackBpm ?? ''}
+                              onChange={(e) =>
+                                setSingleTrackBpm(
+                                  e.target.value
+                                    ? Number(e.target.value)
+                                    : null,
+                                )
+                              }
+                              placeholder="e.g. 120"
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
+                              Musical Key
+                            </label>
+                            <input
+                              type="text"
+                              value={singleTrackKey}
+                              onChange={(e) =>
+                                setSingleTrackKey(e.target.value)
+                              }
+                              placeholder="e.g. C min, F# maj"
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Collaborator & Credit Attribution */}
+                        <div className="pt-2 border-t border-border-soft">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
+                            Collaborators & Credits (Featured / Producers /
+                            Composers / Lyricists / Engineers)
+                          </span>
+                          <ArtistCreditPicker
+                            credits={singleTrackCredits}
+                            onChange={setSingleTrackCredits}
+                            currentArtistId={artistProfile.id}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */
+                      <div className="pt-4 border-t border-border-soft space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
+                            Master Cuts / Tracklist ({draftTracks.length})
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1 font-medium">
+                              <span>
+                                {isBatchImporting
+                                  ? 'Importing Cuts...'
+                                  : '✦ Batch Import Cuts'}
+                              </span>
                               <input
-                                type="text"
-                                placeholder="Genre (e.g. Jazz)"
-                                value={draft.genre}
+                                ref={batchCutsInputRef}
+                                type="file"
+                                accept="audio/*"
+                                multiple
+                                disabled={isBatchImporting}
                                 onChange={(e) => {
-                                  const val = e.target.value
-                                  setDraftTracks((prev) =>
-                                    prev.map((t) =>
-                                      t.id === draft.id ? { ...t, genre: val } : t,
-                                    ),
-                                  )
+                                  const files = Array.from(e.target.files || [])
+                                  if (files.length > 0)
+                                    handleBatchImportFiles(files)
                                 }}
-                                className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                className="hidden"
                               />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDraftTracks([
+                                  ...draftTracks,
+                                  {
+                                    id: crypto.randomUUID(),
+                                    title: '',
+                                    genre: '',
+                                    durationSeconds: 0,
+                                    isExplicit: false,
+                                    credits: [],
+                                  },
+                                ])
+                              }
+                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                            >
+                              + Add Cut
+                            </button>
+                          </div>
+                        </div>
 
-                              <div className="flex items-center gap-2">
-                                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
+                        {duplicateNotice && duplicateNotice.count > 0 && (
+                          <div className="p-3 border border-warning/30 bg-warning-soft text-warning text-caption flex items-start gap-2.5 rounded-control animate-in fade-in duration-150">
+                            <span className="font-mono text-caption shrink-0 mt-0.5">
+                              ⚠️
+                            </span>
+                            <div className="space-y-0.5 min-w-0 flex-1">
+                              <p className="font-sans font-medium">
+                                <strong>{duplicateNotice.count}</strong>{' '}
+                                duplicate cut(s) were automatically detected and
+                                excluded:
+                              </p>
+                              <p className="font-sans text-eyebrow opacity-90 truncate">
+                                {duplicateNotice.titles.join(', ')}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setDuplicateNotice(null)}
+                              className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer ml-auto shrink-0"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {draftTracks.map((draft, idx) => (
+                            <div
+                              key={draft.id}
+                              className="p-3.5 border border-border bg-background space-y-3"
+                            >
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                <span className="font-mono text-caption text-muted-foreground w-6">
+                                  {String(idx + 1).padStart(2, '0')}
+                                </span>
+
+                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
                                   <input
-                                    type="checkbox"
-                                    checked={draft.isExplicit}
+                                    type="text"
+                                    required
+                                    placeholder="Cut Title"
+                                    value={draft.title}
                                     onChange={(e) => {
-                                      const val = e.target.checked
+                                      const val = e.target.value
                                       setDraftTracks((prev) =>
                                         prev.map((t) =>
                                           t.id === draft.id
-                                            ? { ...t, isExplicit: val }
+                                            ? { ...t, title: val }
                                             : t,
                                         ),
                                       )
                                     }}
+                                    className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
                                   />
-                                  <span>Explicit</span>
-                                </label>
 
-                                {draft.durationSeconds > 0 && (
-                                  <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
-                                    {formatDuration(draft.durationSeconds)}
+                                  <input
+                                    type="text"
+                                    placeholder="Genre (e.g. Jazz)"
+                                    value={draft.genre}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setDraftTracks((prev) =>
+                                        prev.map((t) =>
+                                          t.id === draft.id
+                                            ? { ...t, genre: val }
+                                            : t,
+                                        ),
+                                      )
+                                    }}
+                                    className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                  />
+
+                                  <div className="flex items-center gap-2">
+                                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={draft.isExplicit}
+                                        onChange={(e) => {
+                                          const val = e.target.checked
+                                          setDraftTracks((prev) =>
+                                            prev.map((t) =>
+                                              t.id === draft.id
+                                                ? { ...t, isExplicit: val }
+                                                : t,
+                                            ),
+                                          )
+                                        }}
+                                      />
+                                      <span>Explicit</span>
+                                    </label>
+
+                                    {draft.durationSeconds > 0 && (
+                                      <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
+                                        {formatDuration(draft.durationSeconds)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Audio Upload Input for this track */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {draft.audioUrl || draft.rawAudioKey ? (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
+                                        <span>✓</span>
+                                        <span>
+                                          {formatDuration(
+                                            draft.durationSeconds,
+                                          )}
+                                        </span>
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled
+                                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
+                                        title="Master audio attached. Use reset to replace."
+                                      >
+                                        Attached
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleResetDraftAudio(draft.id)
+                                        }
+                                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
+                                        title="Reset audio file for this cut"
+                                      >
+                                        ✕ Reset
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-card hover:border-foreground text-foreground cursor-pointer">
+                                      <span>
+                                        {draft.isUploadingAudio
+                                          ? 'Uploading...'
+                                          : 'Select Audio (FLAC/MP3)'}
+                                      </span>
+                                      <input
+                                        type="file"
+                                        accept="audio/*"
+                                        disabled={draft.isUploadingAudio}
+                                        onChange={(e) =>
+                                          handleDraftAudioSelect(draft.id, e)
+                                        }
+                                        className="hidden"
+                                      />
+                                    </label>
+                                  )}
+
+                                  {draftTracks.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveDraftCut(draft.id)
+                                      }
+                                      className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
+                                      title="Remove Cut"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Acoustic Details (BPM & Musical Key) */}
+                              <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
+                                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                                  Acoustics:
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+                                    BPM
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min={30}
+                                    max={300}
+                                    placeholder="Auto/120"
+                                    value={draft.bpm ?? ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                        ? Number(e.target.value)
+                                        : null
+                                      setDraftTracks((prev) =>
+                                        prev.map((t) =>
+                                          t.id === draft.id
+                                            ? { ...t, bpm: val }
+                                            : t,
+                                        ),
+                                      )
+                                    }}
+                                    className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+                                    Key
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g. C min"
+                                    value={draft.musicalKey ?? ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setDraftTracks((prev) =>
+                                        prev.map((t) =>
+                                          t.id === draft.id
+                                            ? { ...t, musicalKey: val }
+                                            : t,
+                                        ),
+                                      )
+                                    }}
+                                    className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Collaborator & Credit Attribution */}
+                              <div className="pt-2 border-t border-border-soft/60">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                                    Collaborators & Credits (Featured /
+                                    Producers / Composers)
                                   </span>
-                                )}
+                                </div>
+                                <ArtistCreditPicker
+                                  credits={draft.credits || []}
+                                  onChange={(newCredits) =>
+                                    setDraftTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === draft.id
+                                          ? { ...t, credits: newCredits }
+                                          : t,
+                                      ),
+                                    )
+                                  }
+                                  currentArtistId={artistProfile.id}
+                                />
                               </div>
                             </div>
-
-                            {/* Audio Upload Input for this track */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              {draft.audioUrl || draft.rawAudioKey ? (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
-                                    <span>✓</span>
-                                    <span>{formatDuration(draft.durationSeconds)}</span>
-                                  </span>
-                                  <button
-                                    type="button"
-                                    disabled
-                                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
-                                    title="Master audio attached. Use reset to replace."
-                                  >
-                                    Attached
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleResetDraftAudio(draft.id)}
-                                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
-                                    title="Reset audio file for this cut"
-                                  >
-                                    ✕ Reset
-                                  </button>
-                                </div>
-                              ) : (
-                                <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-card hover:border-foreground text-foreground cursor-pointer">
-                                  <span>
-                                    {draft.isUploadingAudio
-                                      ? 'Uploading...'
-                                      : 'Select Audio (FLAC/MP3)'}
-                                  </span>
-                                  <input
-                                    type="file"
-                                    accept="audio/*"
-                                    disabled={draft.isUploadingAudio}
-                                    onChange={(e) =>
-                                      handleDraftAudioSelect(draft.id, e)
-                                    }
-                                    className="hidden"
-                                  />
-                                </label>
-                              )}
-
-                              {draftTracks.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveDraftCut(draft.id)}
-                                  className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
-                                  title="Remove Cut"
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Acoustic Details (BPM & Musical Key) */}
-                          <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                              Acoustics:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">BPM</label>
-                              <input
-                                type="number"
-                                min={30}
-                                max={300}
-                                placeholder="Auto/120"
-                                value={draft.bpm ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value ? Number(e.target.value) : null
-                                  setDraftTracks((prev) =>
-                                    prev.map((t) => (t.id === draft.id ? { ...t, bpm: val } : t)),
-                                  )
-                                }}
-                                className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                              />
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">Key</label>
-                              <input
-                                type="text"
-                                placeholder="e.g. C min"
-                                value={draft.musicalKey ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value
-                                  setDraftTracks((prev) =>
-                                    prev.map((t) => (t.id === draft.id ? { ...t, musicalKey: val } : t)),
-                                  )
-                                }}
-                                className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Collaborator & Credit Attribution */}
-                          <div className="pt-2 border-t border-border-soft/60">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                                Collaborators & Credits (Featured / Producers / Composers)
-                              </span>
-                            </div>
-                            <ArtistCreditPicker
-                              credits={draft.credits || []}
-                              onChange={(newCredits) =>
-                                setDraftTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === draft.id ? { ...t, credits: newCredits } : t,
-                                  ),
-                                )
-                              }
-                              currentArtistId={artistProfile.id}
-                            />
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between gap-3 pt-4 border-t border-border shrink-0 pb-safe">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateReleaseOpen(false)}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingRelease}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 font-semibold cursor-pointer disabled:opacity-50 shadow-raised flex items-center gap-2"
-                  >
-                    {isSubmittingRelease ? (
-                      <span>
-                        {releaseMode === 'SCHEDULED'
-                          ? 'Scheduling...'
-                          : 'Publishing...'}
-                      </span>
-                    ) : releaseMode === 'SCHEDULED' ? (
-                      <>
-                        <Calendar className="w-3.5 h-3.5 shrink-0" />
-                        <span>Schedule {releaseType === 'SINGLE' ? 'Single' : releaseType}</span>
-                      </>
-                    ) : releaseType === 'SINGLE' ? (
-                      <span>✦ Publish Single</span>
-                    ) : (
-                      <span>Publish {releaseType}</span>
+                      </div>
                     )}
-                  </button>
+
+                    <div className="flex items-center justify-between gap-3 pt-4 border-t border-border shrink-0 pb-safe">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreateReleaseOpen(false)}
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmittingRelease}
+                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 font-semibold cursor-pointer disabled:opacity-50 shadow-raised flex items-center gap-2"
+                      >
+                        {isSubmittingRelease ? (
+                          <span>
+                            {releaseMode === 'SCHEDULED'
+                              ? 'Scheduling...'
+                              : 'Publishing...'}
+                          </span>
+                        ) : releaseMode === 'SCHEDULED' ? (
+                          <>
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            <span>
+                              Schedule{' '}
+                              {releaseType === 'SINGLE'
+                                ? 'Single'
+                                : releaseType}
+                            </span>
+                          </>
+                        ) : releaseType === 'SINGLE' ? (
+                          <span>✦ Publish Single</span>
+                        ) : (
+                          <span>Publish {releaseType}</span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              </form>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
           {/* Releases List */}
           <div className="space-y-4">
@@ -3061,7 +3308,9 @@ function StudioComponent() {
                                   <span>
                                     Scheduled &bull;{' '}
                                     {album.scheduledReleaseAt
-                                      ? new Date(album.scheduledReleaseAt).toLocaleDateString(undefined, {
+                                      ? new Date(
+                                          album.scheduledReleaseAt,
+                                        ).toLocaleDateString(undefined, {
                                           month: 'short',
                                           day: 'numeric',
                                           hour: '2-digit',
@@ -3138,32 +3387,47 @@ function StudioComponent() {
                             onClick={() => handleToggleAlbumExpand(album.id)}
                             className="flex-1 sm:flex-initial font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-muted text-foreground rounded-control transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            <span>{isExpanded ? 'Hide Cuts' : `Cuts (${album.totalTracks || tracks.length || 0})`}</span>
-                            {isExpanded ? <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />}
+                            <span>
+                              {isExpanded
+                                ? 'Hide Cuts'
+                                : `Cuts (${album.totalTracks || tracks.length || 0})`}
+                            </span>
+                            {isExpanded ? (
+                              <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
+                            )}
                           </button>
 
                           {/* Desktop Full Actions */}
                           <div className="hidden sm:flex items-center gap-1.5">
-                            {album.visibility === 'UNLISTED' && album.shareToken && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
-                                  navigator.clipboard.writeText(shareUrl)
-                                  setSuccessNotice(`Copied secret share link for "${album.title}"!`)
-                                }}
-                                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors rounded-control flex items-center gap-1"
-                                title="Copy secret link with share token"
-                              >
-                                <Link2 className="w-3 h-3 shrink-0" />
-                                <span>Copy Link</span>
-                              </button>
-                            )}
+                            {album.visibility === 'UNLISTED' &&
+                              album.shareToken && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+                                    navigator.clipboard.writeText(shareUrl)
+                                    setSuccessNotice(
+                                      `Copied secret share link for "${album.title}"!`,
+                                    )
+                                  }}
+                                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors rounded-control flex items-center gap-1"
+                                  title="Copy secret link with share token"
+                                >
+                                  <Link2 className="w-3 h-3 shrink-0" />
+                                  <span>Copy Link</span>
+                                </button>
+                              )}
 
                             <Link
                               to="/albums/$idOrSlug"
                               params={{ idOrSlug: album.slug }}
-                              search={album.shareToken ? { shareToken: album.shareToken } : {}}
+                              search={
+                                album.shareToken
+                                  ? { shareToken: album.shareToken }
+                                  : {}
+                              }
                               className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1 rounded-control"
                             >
                               <span>View</span>
@@ -3306,9 +3570,10 @@ function StudioComponent() {
                 30-Day Recovery Guarantee
               </span>
               <p className="leading-relaxed">
-                Archived releases and master recordings are retained in this safe
-                vault for 30 days before irreversible purging. You can restore
-                them to your active catalog at any time, or permanently purge them.
+                Archived releases and master recordings are retained in this
+                safe vault for 30 days before irreversible purging. You can
+                restore them to your active catalog at any time, or permanently
+                purge them.
               </p>
             </div>
             {(trashAlbums.length > 0 || trashSongs.length > 0) && (
@@ -3341,16 +3606,16 @@ function StudioComponent() {
                 {trashAlbums.map((album) => (
                   <div
                     key={album.id}
-                    className="p-4 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="p-4 border border-border rounded-control bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground">
-                          {album.albumType}
-                        </span>
                         <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate">
                           {album.title}
                         </h4>
+                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground">
+                          {album.albumType}
+                        </span>
                       </div>
                       <span className="font-mono text-eyebrow text-muted-foreground mt-0.5 block">
                         Deleted:{' '}
@@ -3364,7 +3629,7 @@ function StudioComponent() {
                       <button
                         type="button"
                         onClick={() => handleRestoreAlbum(album.id)}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
+                        className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3 h-3 shrink-0" />
                         <span>Restore Release</span>
@@ -3379,7 +3644,7 @@ function StudioComponent() {
                             title: album.title,
                           })
                         }
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
+                        className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
                       >
                         Delete Forever
                       </button>
@@ -3447,7 +3712,6 @@ function StudioComponent() {
         </div>
       )}
 
-
       {/* ========================================================================= */}
       {/* TAB 3: PROFILE & BRANDING */}
       {/* ========================================================================= */}
@@ -3461,7 +3725,8 @@ function StudioComponent() {
                   Artist Avatar / Profile Picture
                 </h2>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                  Square profile artwork used for artist credits, jam sessions, and search results.
+                  Square profile artwork used for artist credits, jam sessions,
+                  and search results.
                 </p>
               </div>
 
@@ -3522,7 +3787,8 @@ function StudioComponent() {
                   {artistProfile.stageName}
                 </div>
                 <p className="text-eyebrow text-muted-foreground/80">
-                  Recommended: Minimum 500 × 500px square image. An interactive cropper with circular guide is provided before upload.
+                  Recommended: Minimum 500 × 500px square image. An interactive
+                  cropper with circular guide is provided before upload.
                 </p>
               </div>
             </div>
@@ -3536,7 +3802,9 @@ function StudioComponent() {
                   Artist Profile Banner
                 </h2>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                  Panoramic cover displayed across your public artist page. Interactive cropping and framing preview is provided before upload.
+                  Panoramic cover displayed across your public artist page.
+                  Interactive cropping and framing preview is provided before
+                  upload.
                 </p>
               </div>
 
@@ -3589,7 +3857,8 @@ function StudioComponent() {
                   Identity & Presentation
                 </h2>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                  Customize your public stage name, biography, and external links.
+                  Customize your public stage name, biography, and external
+                  links.
                 </p>
               </div>
 
@@ -3605,7 +3874,10 @@ function StudioComponent() {
             </div>
 
             {isEditingProfile ? (
-              <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
+              <form
+                onSubmit={handleSaveProfile}
+                className="flex flex-col gap-5"
+              >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
@@ -3763,7 +4035,10 @@ function StudioComponent() {
                         <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-control flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           <span>
-                            Active: {currentPinnedRelease ? `"${currentPinnedRelease.title}"` : 'Custom Pick'}
+                            Active:{' '}
+                            {currentPinnedRelease
+                              ? `"${currentPinnedRelease.title}"`
+                              : 'Custom Pick'}
                           </span>
                         </span>
                       ) : (
@@ -3783,7 +4058,9 @@ function StudioComponent() {
                       Artist Pick &amp; Spotlight
                     </h2>
                     <p className="font-sans text-caption text-muted-foreground mt-0.5 max-w-xl">
-                      Feature a chosen release and personal note at the top of your public artist profile. When none is selected, your newest release is showcased automatically.
+                      Feature a chosen release and personal note at the top of
+                      your public artist profile. When none is selected, your
+                      newest release is showcased automatically.
                     </p>
                   </div>
 
@@ -3807,9 +4084,12 @@ function StudioComponent() {
                         ✓
                       </span>
                       <div className="min-w-0">
-                        <span className="font-semibold block truncate">Spotlight Saved &amp; Synced!</span>
+                        <span className="font-semibold block truncate">
+                          Spotlight Saved &amp; Synced!
+                        </span>
                         <span className="font-sans text-eyebrow opacity-80 block truncate">
-                          {spotlightStatusMessage || 'Your public artist profile has been updated.'}
+                          {spotlightStatusMessage ||
+                            'Your public artist profile has been updated.'}
                         </span>
                       </div>
                     </div>
@@ -3833,9 +4113,12 @@ function StudioComponent() {
                       ✓
                     </span>
                     <div>
-                      <span className="font-semibold block">Spotlight Reset to Dynamic Mode</span>
+                      <span className="font-semibold block">
+                        Spotlight Reset to Dynamic Mode
+                      </span>
                       <span className="font-sans text-eyebrow opacity-80 block">
-                        Your public profile will now dynamically showcase your newest catalog release.
+                        Your public profile will now dynamically showcase your
+                        newest catalog release.
                       </span>
                     </div>
                   </div>
@@ -3847,15 +4130,21 @@ function StudioComponent() {
                       ✕
                     </span>
                     <div>
-                      <span className="font-semibold block">Failed to Update Spotlight</span>
+                      <span className="font-semibold block">
+                        Failed to Update Spotlight
+                      </span>
                       <span className="font-sans text-eyebrow opacity-80 block">
-                        {spotlightStatusMessage || 'An unexpected error occurred while saving.'}
+                        {spotlightStatusMessage ||
+                          'An unexpected error occurred while saving.'}
                       </span>
                     </div>
                   </div>
                 )}
 
-                <form onSubmit={handleSaveSpotlight} className="flex flex-col gap-6">
+                <form
+                  onSubmit={handleSaveSpotlight}
+                  className="flex flex-col gap-6"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Release Selector */}
                     <div>
@@ -3897,7 +4186,8 @@ function StudioComponent() {
                       </p>
                       {albums.length === 0 && !isLoadingReleases && (
                         <p className="font-mono text-eyebrow text-warning mt-1">
-                          No published releases found yet. Upload a single or album in the Releases tab to feature it here.
+                          No published releases found yet. Upload a single or
+                          album in the Releases tab to feature it here.
                         </p>
                       )}
                     </div>
@@ -4010,7 +4300,11 @@ function StudioComponent() {
                                 </div>
                               )}
                               <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
-                                <span>{spotlightReleaseId ? '✦ Artist Pick' : '✦ Latest Drop'}</span>
+                                <span>
+                                  {spotlightReleaseId
+                                    ? '✦ Artist Pick'
+                                    : '✦ Latest Drop'}
+                                </span>
                               </span>
                             </div>
                             {previewRelease.albumType && (
@@ -4049,10 +4343,14 @@ function StudioComponent() {
                               </h4>
                               <p className="font-mono text-eyebrow text-muted-foreground truncate mt-0.5">
                                 {previewRelease.releaseDate
-                                  ? new Date(previewRelease.releaseDate).getFullYear()
+                                  ? new Date(
+                                      previewRelease.releaseDate,
+                                    ).getFullYear()
                                   : 'Recent'}{' '}
                                 &bull; {previewRelease.totalTracks}{' '}
-                                {previewRelease.totalTracks === 1 ? 'cut' : 'cuts'}
+                                {previewRelease.totalTracks === 1
+                                  ? 'cut'
+                                  : 'cuts'}
                               </p>
                             </div>
                           </div>
@@ -4134,9 +4432,9 @@ function StudioComponent() {
                   Officially Verified Artist
                 </h3>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                  Your artist profile has been verified by the administration desk.
-                  The verified emblem is active on your public profile and catalog
-                  releases.
+                  Your artist profile has been verified by the administration
+                  desk. The verified emblem is active on your public profile and
+                  catalog releases.
                 </p>
               </div>
             </div>
@@ -4341,7 +4639,19 @@ function StudioComponent() {
             </div>
 
             <p className="font-sans text-caption text-muted-foreground leading-relaxed">
-              Detaching <strong className="text-foreground font-medium font-serif italic">"{detachModalData.song.title}"</strong> from <strong className="text-foreground font-medium font-serif italic">{detachModalData.parentAlbum.title}</strong> will turn it into an independent standalone <span className="font-mono text-eyebrow font-semibold text-foreground">SINGLE</span> release.
+              Detaching{' '}
+              <strong className="text-foreground font-medium font-serif italic">
+                "{detachModalData.song.title}"
+              </strong>{' '}
+              from{' '}
+              <strong className="text-foreground font-medium font-serif italic">
+                {detachModalData.parentAlbum.title}
+              </strong>{' '}
+              will turn it into an independent standalone{' '}
+              <span className="font-mono text-eyebrow font-semibold text-foreground">
+                SINGLE
+              </span>{' '}
+              release.
             </p>
 
             {/* Artwork Selection */}
@@ -4351,7 +4661,8 @@ function StudioComponent() {
               </label>
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {detachCoverUrl || detachModalData.parentAlbum.coverImageUrl ? (
+                  {detachCoverUrl ||
+                  detachModalData.parentAlbum.coverImageUrl ? (
                     <img
                       src={
                         detachCoverUrl ||
@@ -4434,623 +4745,718 @@ function StudioComponent() {
       {/* Edit Master Release Modal / Drawer */}
       {editingAlbum && (
         <div className="fixed inset-0 bg-foreground/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-t-surface sm:rounded-surface shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
+          <div className="w-full sm:max-w-3xl bg-card border-t sm:border border-border rounded-control shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto">
             {/* Mobile Drag Handle */}
             <div className="sm:hidden w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto my-2.5 shrink-0" />
             <div className="p-4 sm:p-6 overflow-y-auto space-y-6 overscroll-contain">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block">
-                  Studio Suite &bull; Master Release Editor
-                </span>
-                <h3 className="font-serif italic text-2xl text-foreground">
-                  Edit Release: {editingAlbum.title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseEditModal}
-                disabled={isSavingRelease}
-                className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            {isLoadingEditData ? (
-              <div className="py-16 text-center font-mono text-caption text-muted-foreground animate-pulse">
-                Loading release details, master cuts &amp; collaborator credits...
-              </div>
-            ) : (
-              <form onSubmit={handleSaveReleaseEdit} className="space-y-6">
-                {/* Basic Metadata Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Release Title <span className="text-destructive">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={editReleaseTitle}
-                      onChange={(e) => setEditReleaseTitle(e.target.value)}
-                      placeholder="Release title"
-                      className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Release Format
-                    </label>
-                    <select
-                      value={editReleaseType}
-                      onChange={(e) => setEditReleaseType(e.target.value as AlbumType)}
-                      className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                    >
-                      {(['SINGLE', 'ALBUM', 'EP', 'LP', 'MIXTAPE'] as AlbumType[]).map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div>
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block">
+                    Studio Suite &bull; Master Release Editor
+                  </span>
+                  <h3 className="font-serif italic text-2xl text-foreground">
+                    Edit Release: {editingAlbum.title}
+                  </h3>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  disabled={isSavingRelease}
+                  className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                >
+                  ✕ Close
+                </button>
+              </div>
 
-                {/* Taxonomy & Classification Row */}
-                <div className="space-y-4 pt-2 border-t border-border-soft">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Primary Genre Dropdown */}
+              {isLoadingEditData ? (
+                <div className="py-16 text-center font-mono text-caption text-muted-foreground animate-pulse">
+                  Loading release details, master cuts &amp; collaborator
+                  credits...
+                </div>
+              ) : (
+                <form onSubmit={handleSaveReleaseEdit} className="space-y-6">
+                  {/* Basic Metadata Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                        Release Title{' '}
+                        <span className="text-destructive">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={editReleaseTitle}
+                        onChange={(e) => setEditReleaseTitle(e.target.value)}
+                        placeholder="Release title"
+                        className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                      />
+                    </div>
+
                     <div>
                       <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                        Primary Genre
+                        Release Format
                       </label>
                       <select
-                        value={editReleasePrimaryGenre}
-                        onChange={(e) => {
-                          setEditReleasePrimaryGenre(e.target.value)
-                          setEditReleaseSubGenre('')
-                        }}
-                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        value={editReleaseType}
+                        onChange={(e) =>
+                          setEditReleaseType(e.target.value as AlbumType)
+                        }
+                        className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                       >
-                        <option value="">Select Primary Genre...</option>
-                        {PRIMARY_GENRES.map((g) => (
-                          <option key={g} value={g}>
-                            {g}
+                        {(
+                          [
+                            'SINGLE',
+                            'ALBUM',
+                            'EP',
+                            'LP',
+                            'MIXTAPE',
+                          ] as AlbumType[]
+                        ).map((type) => (
+                          <option key={type} value={type}>
+                            {type}
                           </option>
                         ))}
                       </select>
-                      <p className="font-mono text-eyebrow text-muted-foreground mt-1.5">
-                        Used for catalog indexing, genre discovery &amp; radio curation.
-                      </p>
                     </div>
+                  </div>
 
-                    {/* Sub-Genre Dropdown */}
-                    <div>
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                        Sub-Genre (Optional)
-                      </label>
-                      <select
-                        value={editReleaseSubGenre}
-                        onChange={(e) => setEditReleaseSubGenre(e.target.value)}
-                        disabled={!editReleasePrimaryGenre || !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.length}
-                        className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
-                      >
-                        <option value="">Select Sub-Genre...</option>
-                        {editReleasePrimaryGenre &&
-                          GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.map((sg) => (
-                            <option key={sg} value={sg}>
-                              {sg}
+                  {/* Taxonomy & Classification Row */}
+                  <div className="space-y-4 pt-2 border-t border-border-soft">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Primary Genre Dropdown */}
+                      <div>
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                          Primary Genre
+                        </label>
+                        <select
+                          value={editReleasePrimaryGenre}
+                          onChange={(e) => {
+                            setEditReleasePrimaryGenre(e.target.value)
+                            setEditReleaseSubGenre('')
+                          }}
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        >
+                          <option value="">Select Primary Genre...</option>
+                          {PRIMARY_GENRES.map((g) => (
+                            <option key={g} value={g}>
+                              {g}
                             </option>
                           ))}
-                      </select>
-                    </div>
-                  </div>
+                        </select>
+                        <p className="font-mono text-eyebrow text-muted-foreground mt-1.5">
+                          Used for catalog indexing, genre discovery &amp; radio
+                          curation.
+                        </p>
+                      </div>
 
-                  {/* Mood Selection (1-3 optional) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                        Musical Moods (Select 1 to 3)
+                      {/* Sub-Genre Dropdown */}
+                      <div>
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                          Sub-Genre (Optional)
+                        </label>
+                        <select
+                          value={editReleaseSubGenre}
+                          onChange={(e) =>
+                            setEditReleaseSubGenre(e.target.value)
+                          }
+                          disabled={
+                            !editReleasePrimaryGenre ||
+                            !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]
+                              ?.length
+                          }
+                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
+                        >
+                          <option value="">Select Sub-Genre...</option>
+                          {editReleasePrimaryGenre &&
+                            GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]?.map(
+                              (sg) => (
+                                <option key={sg} value={sg}>
+                                  {sg}
+                                </option>
+                              ),
+                            )}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Mood Selection (1-3 optional) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
+                          Musical Moods (Select 1 to 3)
+                        </label>
+                        <span className="font-mono text-eyebrow text-muted-foreground">
+                          {editReleaseMoods.length}/3 selected
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {CATALOG_MOODS.map((mood) => {
+                          const isSelected = editReleaseMoods.includes(mood)
+                          return (
+                            <button
+                              key={mood}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setEditReleaseMoods(
+                                    editReleaseMoods.filter((m) => m !== mood),
+                                  )
+                                } else if (editReleaseMoods.length < 3) {
+                                  setEditReleaseMoods([
+                                    ...editReleaseMoods,
+                                    mood,
+                                  ])
+                                }
+                              }}
+                              className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'border-foreground bg-foreground text-background font-semibold'
+                                  : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
+                              }`}
+                            >
+                              {mood}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Custom Tags */}
+                    <div>
+                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                        Catalog Tags (Press Enter to add)
                       </label>
-                      <span className="font-mono text-eyebrow text-muted-foreground">
-                        {editReleaseMoods.length}/3 selected
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {CATALOG_MOODS.map((mood) => {
-                        const isSelected = editReleaseMoods.includes(mood)
-                        return (
-                          <button
-                            key={mood}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                setEditReleaseMoods(editReleaseMoods.filter((m) => m !== mood))
-                              } else if (editReleaseMoods.length < 3) {
-                                setEditReleaseMoods([...editReleaseMoods, mood])
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={editReleaseTagInput}
+                          onChange={(e) =>
+                            setEditReleaseTagInput(e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const trimmed = editReleaseTagInput
+                                .trim()
+                                .toLowerCase()
+                              if (
+                                trimmed &&
+                                !editReleaseTags.includes(trimmed)
+                              ) {
+                                setEditReleaseTags([
+                                  ...editReleaseTags,
+                                  trimmed,
+                                ])
+                                setEditReleaseTagInput('')
                               }
-                            }}
-                            className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'border-foreground bg-foreground text-background font-semibold'
-                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
-                            }`}
-                          >
-                            {mood}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Tags */}
-                  <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Catalog Tags (Press Enter to add)
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={editReleaseTagInput}
-                        onChange={(e) => setEditReleaseTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            const trimmed = editReleaseTagInput.trim().toLowerCase()
+                            }
+                          }}
+                          placeholder="e.g. lo-fi, instrumental, summer, acoustic"
+                          className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const trimmed = editReleaseTagInput
+                              .trim()
+                              .toLowerCase()
                             if (trimmed && !editReleaseTags.includes(trimmed)) {
                               setEditReleaseTags([...editReleaseTags, trimmed])
                               setEditReleaseTagInput('')
                             }
-                          }
-                        }}
-                        placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                        className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const trimmed = editReleaseTagInput.trim().toLowerCase()
-                          if (trimmed && !editReleaseTags.includes(trimmed)) {
-                            setEditReleaseTags([...editReleaseTags, trimmed])
-                            setEditReleaseTagInput('')
-                          }
-                        }}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
-                      >
-                        + Add Tag
-                      </button>
-                    </div>
-                    {editReleaseTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {editReleaseTags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
-                          >
-                            <span>#{tag}</span>
-                            <button
-                              type="button"
-                              onClick={() => setEditReleaseTags(editReleaseTags.filter((t) => t !== tag))}
-                              className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
+                          }}
+                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
+                        >
+                          + Add Tag
+                        </button>
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Master Cover Artwork */}
-                <div className="pt-2 border-t border-border-soft">
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Master Cover Artwork
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-muted border border-border shrink-0 overflow-hidden flex items-center justify-center">
-                      {editReleaseCoverUrl ? (
-                        <img
-                          src={editReleaseCoverUrl}
-                          alt="Cover preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Disc3 className="w-6 h-6 text-muted-foreground/40 shrink-0" />
+                      {editReleaseTags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {editReleaseTags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
+                            >
+                              <span>#{tag}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditReleaseTags(
+                                    editReleaseTags.filter((t) => t !== tag),
+                                  )
+                                }
+                                className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
-                        <span>
-                          {isUploadingEditCover
-                            ? 'Uploading to R2...'
-                            : 'Upload Replacement Artwork'}
-                        </span>
-                        <input
-                          ref={editCoverInputRef}
-                          type="file"
-                          accept="image/*"
-                          disabled={isUploadingEditCover || isSavingRelease}
-                          onChange={handleEditCoverSelect}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="font-mono text-eyebrow text-muted-foreground">
-                        Direct Cloudflare R2 upload (PNG, JPG, WEBP).
-                      </p>
-                    </div>
                   </div>
-                </div>
 
-                {/* Catalog Visibility Tier Selector */}
-                <div className="space-y-2 pt-2 border-t border-border-soft">
-                  <div className="flex items-center justify-between">
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                      Catalog Visibility Tier
+                  {/* Master Cover Artwork */}
+                  <div className="pt-2 border-t border-border-soft">
+                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                      Master Cover Artwork
                     </label>
-                    <span className="font-mono text-eyebrow text-muted-foreground">
-                      Current: <strong className="text-foreground">{editReleaseVisibility}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditReleaseVisibility('PUBLIC')}
-                      className={`p-3 border text-left cursor-pointer transition-colors ${
-                        editReleaseVisibility === 'PUBLIC'
-                          ? 'border-success/60 bg-success-soft'
-                          : 'border-border bg-background hover:border-foreground/50'
-                      }`}
-                    >
-                      <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
-                        <span>🌍 Public</span>
-                      </div>
-                      <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
-                        Discoverable on artist profile, search, and algorithmic radio.
-                      </p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditReleaseVisibility('UNLISTED')}
-                      className={`p-3 border text-left cursor-pointer transition-colors ${
-                        editReleaseVisibility === 'UNLISTED'
-                          ? 'border-info/60 bg-info-soft'
-                          : 'border-border bg-background hover:border-foreground/50'
-                      }`}
-                    >
-                      <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
-                        <span>🔗 Unlisted</span>
-                      </div>
-                      <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
-                        Hidden from search and profile. Accessible only via secret token URL.
-                      </p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditReleaseVisibility('PRIVATE')}
-                      className={`p-3 border text-left cursor-pointer transition-colors ${
-                        editReleaseVisibility === 'PRIVATE'
-                          ? 'border-destructive/60 bg-destructive-soft'
-                          : 'border-border bg-background hover:border-foreground/50'
-                      }`}
-                    >
-                      <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
-                        <Lock className="w-3 h-3 text-destructive shrink-0" />
-                        <span>Private</span>
-                      </div>
-                      <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
-                        Strictly confidential. Visible only in your Studio suite.
-                      </p>
-                    </button>
-                  </div>
-
-                  {editReleaseVisibility === 'UNLISTED' && editingAlbum.shareToken && (
-                    <div className="p-3 border border-info/30 bg-info-soft flex items-center justify-between gap-3 mt-2">
-                      <div className="min-w-0 font-mono text-eyebrow text-foreground truncate">
-                        <span className="text-muted-foreground">Secret Link: </span>
-                        <span className="underline">
-                          {window.location.origin}/albums/{editingAlbum.slug}?shareToken={editingAlbum.shareToken}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = `${window.location.origin}/albums/${editingAlbum.slug}?shareToken=${editingAlbum.shareToken}`
-                          navigator.clipboard.writeText(url)
-                          setSuccessNotice('Copied secret share link to clipboard!')
-                        }}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-info/40 bg-info-soft text-info hover:bg-info/20 shrink-0 cursor-pointer"
-                      >
-                        Copy Link
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Release Timing & Scheduling */}
-                <div className="space-y-3 pt-2 border-t border-border-soft">
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block">
-                    Release Timing &amp; Drop Scheduling
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditReleaseMode('IMMEDIATE')}
-                      className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
-                        editReleaseMode === 'IMMEDIATE'
-                          ? 'border-foreground bg-foreground text-background font-semibold'
-                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Immediate / Published
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditReleaseMode('SCHEDULED')
-                        if (!editReleaseDate) {
-                          const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
-                          setEditReleaseDate(tomorrow.toISOString().split('T')[0])
-                          setEditReleaseTime('00:00')
-                        }
-                      }}
-                      className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
-                        editReleaseMode === 'SCHEDULED'
-                          ? 'border-foreground bg-foreground text-background font-semibold'
-                          : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <Calendar className="w-3.5 h-3.5 shrink-0" />
-                      <span>Scheduled Drop</span>
-                    </button>
-                  </div>
-
-                  {editReleaseMode === 'SCHEDULED' && (
-                    <div className="p-3.5 border border-primary/30 bg-primary/5 space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                            Drop Date
-                          </label>
-                          <input
-                            type="date"
-                            min={new Date().toISOString().split('T')[0]}
-                            value={editReleaseDate}
-                            onChange={(e) => setEditReleaseDate(e.target.value)}
-                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-muted border border-border shrink-0 overflow-hidden flex items-center justify-center">
+                        {editReleaseCoverUrl ? (
+                          <img
+                            src={editReleaseCoverUrl}
+                            alt="Cover preview"
+                            className="w-full h-full object-cover"
                           />
-                        </div>
-                        <div>
-                          <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                            Drop Time (Local)
-                          </label>
-                          <input
-                            type="time"
-                            value={editReleaseTime}
-                            onChange={(e) => setEditReleaseTime(e.target.value)}
-                            className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
-                          />
-                        </div>
+                        ) : (
+                          <Disc3 className="w-6 h-6 text-muted-foreground/40 shrink-0" />
+                        )}
                       </div>
-                      <p className="font-mono text-eyebrow text-muted-foreground">
-                        Fans can pre-save this release. The automated BullMQ scheduler will automatically release it to listeners at the specified time.
-                      </p>
+                      <div className="space-y-1.5">
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
+                          <span>
+                            {isUploadingEditCover
+                              ? 'Uploading to R2...'
+                              : 'Upload Replacement Artwork'}
+                          </span>
+                          <input
+                            ref={editCoverInputRef}
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploadingEditCover || isSavingRelease}
+                            onChange={handleEditCoverSelect}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="font-mono text-eyebrow text-muted-foreground">
+                          Direct Cloudflare R2 upload (PNG, JPG, WEBP).
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Description & Liner Notes */}
-                <div className="pt-2 border-t border-border-soft">
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Release Description / Liner Notes
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={editReleaseDescription}
-                    onChange={(e) => setEditReleaseDescription(e.target.value)}
-                    placeholder="Liner notes, studio sessions, recording personnel, narrative..."
-                    className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
-                  />
-                </div>
-
-                {/* Creator Governance: Comments & Discussions */}
-                <div className="p-3.5 border border-border bg-background flex items-center justify-between">
-                  <div>
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
-                      Discussion &amp; Comments
-                    </span>
-                    <p className="font-sans text-caption text-muted-foreground">
-                      Allow listeners and curators to post comments and replies on this release.
-                    </p>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={editReleaseAllowComments}
-                      onChange={(e) => setEditReleaseAllowComments(e.target.checked)}
-                      className="accent-primary w-4 h-4"
-                    />
-                    <span className="font-mono text-caption text-foreground font-medium">
-                      {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </label>
-                </div>
 
-                {/* Master Cuts & Collaborator Credits */}
-                {editTracks.length > 0 && (
-                  <div className="space-y-4 pt-2 border-t border-border-soft">
+                  {/* Catalog Visibility Tier Selector */}
+                  <div className="space-y-2 pt-2 border-t border-border-soft">
                     <div className="flex items-center justify-between">
                       <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                        Master Cuts &amp; Collaborator Credits ({editTracks.length})
+                        Catalog Visibility Tier
                       </label>
                       <span className="font-mono text-eyebrow text-muted-foreground">
-                        Edit titles, individual genres, explicit tags &amp; contributor credits
+                        Current:{' '}
+                        <strong className="text-foreground">
+                          {editReleaseVisibility}
+                        </strong>
                       </span>
                     </div>
 
-                    <div className="space-y-3">
-                      {editTracks.map((track, idx) => (
-                        <div
-                          key={track.id}
-                          className="p-3.5 border border-border bg-background space-y-3"
-                        >
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                            <span className="font-mono text-caption text-muted-foreground w-6">
-                              {String(idx + 1).padStart(2, '0')}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditReleaseVisibility('PUBLIC')}
+                        className={`p-3 border text-left cursor-pointer transition-colors ${
+                          editReleaseVisibility === 'PUBLIC'
+                            ? 'border-success/60 bg-success-soft'
+                            : 'border-border bg-background hover:border-foreground/50'
+                        }`}
+                      >
+                        <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
+                          <span>🌍 Public</span>
+                        </div>
+                        <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
+                          Discoverable on artist profile, search, and
+                          algorithmic radio.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditReleaseVisibility('UNLISTED')}
+                        className={`p-3 border text-left cursor-pointer transition-colors ${
+                          editReleaseVisibility === 'UNLISTED'
+                            ? 'border-info/60 bg-info-soft'
+                            : 'border-border bg-background hover:border-foreground/50'
+                        }`}
+                      >
+                        <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
+                          <span>🔗 Unlisted</span>
+                        </div>
+                        <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
+                          Hidden from search and profile. Accessible only via
+                          secret token URL.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditReleaseVisibility('PRIVATE')}
+                        className={`p-3 border text-left cursor-pointer transition-colors ${
+                          editReleaseVisibility === 'PRIVATE'
+                            ? 'border-destructive/60 bg-destructive-soft'
+                            : 'border-border bg-background hover:border-foreground/50'
+                        }`}
+                      >
+                        <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center gap-1.5">
+                          <Lock className="w-3 h-3 text-destructive shrink-0" />
+                          <span>Private</span>
+                        </div>
+                        <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
+                          Strictly confidential. Visible only in your Studio
+                          suite.
+                        </p>
+                      </button>
+                    </div>
+
+                    {editReleaseVisibility === 'UNLISTED' &&
+                      editingAlbum.shareToken && (
+                        <div className="p-3 border border-info/30 bg-info-soft flex items-center justify-between gap-3 mt-2">
+                          <div className="min-w-0 font-mono text-eyebrow text-foreground truncate">
+                            <span className="text-muted-foreground">
+                              Secret Link:{' '}
                             </span>
-
-                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                              <input
-                                type="text"
-                                required
-                                value={track.title}
-                                onChange={(e) => {
-                                  const val = e.target.value
-                                  setEditTracks((prev) =>
-                                    prev.map((t) =>
-                                      t.id === track.id ? { ...t, title: val } : t,
-                                    ),
-                                  )
-                                }}
-                                placeholder="Cut Title"
-                                className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                              />
-
-                              <input
-                                type="text"
-                                value={track.genre}
-                                onChange={(e) => {
-                                  const val = e.target.value
-                                  setEditTracks((prev) =>
-                                    prev.map((t) =>
-                                      t.id === track.id ? { ...t, genre: val } : t,
-                                    ),
-                                  )
-                                }}
-                                placeholder="Genre (e.g. Ambient)"
-                                className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                              />
-
-                              <div className="flex items-center gap-2">
-                                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={track.isExplicit}
-                                    onChange={(e) => {
-                                      const val = e.target.checked
-                                      setEditTracks((prev) =>
-                                        prev.map((t) =>
-                                          t.id === track.id ? { ...t, isExplicit: val } : t,
-                                        ),
-                                      )
-                                    }}
-                                  />
-                                  <span>Explicit</span>
-                                </label>
-
-                                {track.durationSeconds > 0 && (
-                                  <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
-                                    {formatDuration(track.durationSeconds)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                            <span className="underline">
+                              {window.location.origin}/albums/
+                              {editingAlbum.slug}?shareToken=
+                              {editingAlbum.shareToken}
+                            </span>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = `${window.location.origin}/albums/${editingAlbum.slug}?shareToken=${editingAlbum.shareToken}`
+                              navigator.clipboard.writeText(url)
+                              setSuccessNotice(
+                                'Copied secret share link to clipboard!',
+                              )
+                            }}
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-info/40 bg-info-soft text-info hover:bg-info/20 shrink-0 cursor-pointer"
+                          >
+                            Copy Link
+                          </button>
+                        </div>
+                      )}
+                  </div>
 
-                          {/* Acoustic Details (BPM & Musical Key) */}
-                          <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                              Acoustics:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">BPM</label>
-                              <input
-                                type="number"
-                                min={30}
-                                max={300}
-                                placeholder="Auto/120"
-                                value={track.bpm ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value ? Number(e.target.value) : null
-                                  setEditTracks((prev) =>
-                                    prev.map((t) => (t.id === track.id ? { ...t, bpm: val } : t)),
-                                  )
-                                }}
-                                className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                              />
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">Key</label>
-                              <input
-                                type="text"
-                                placeholder="e.g. C min"
-                                value={track.musicalKey ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value
-                                  setEditTracks((prev) =>
-                                    prev.map((t) => (t.id === track.id ? { ...t, musicalKey: val } : t)),
-                                  )
-                                }}
-                                className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                              />
-                            </div>
-                          </div>
+                  {/* Release Timing & Scheduling */}
+                  <div className="space-y-3 pt-2 border-t border-border-soft">
+                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block">
+                      Release Timing &amp; Drop Scheduling
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditReleaseMode('IMMEDIATE')}
+                        className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center ${
+                          editReleaseMode === 'IMMEDIATE'
+                            ? 'border-foreground bg-foreground text-background font-semibold'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Immediate / Published
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditReleaseMode('SCHEDULED')
+                          if (!editReleaseDate) {
+                            const tomorrow = new Date(
+                              Date.now() + 24 * 60 * 60 * 1000,
+                            )
+                            setEditReleaseDate(
+                              tomorrow.toISOString().split('T')[0],
+                            )
+                            setEditReleaseTime('00:00')
+                          }
+                        }}
+                        className={`font-eyebrow text-caption uppercase tracking-wider py-2.5 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                          editReleaseMode === 'SCHEDULED'
+                            ? 'border-foreground bg-foreground text-background font-semibold'
+                            : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <Calendar className="w-3.5 h-3.5 shrink-0" />
+                        <span>Scheduled Drop</span>
+                      </button>
+                    </div>
 
-                          {/* Collaborator & Credit Attribution */}
-                          <div className="pt-2 border-t border-border-soft/60">
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
-                              Collaborator Credits (Featured / Producers / Composers / Lyricists)
-                            </span>
-                            <ArtistCreditPicker
-                              credits={track.credits || []}
-                              onChange={(newCredits) =>
-                                setEditTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === track.id ? { ...t, credits: newCredits } : t,
-                                  ),
-                                )
+                    {editReleaseMode === 'SCHEDULED' && (
+                      <div className="p-3.5 border border-primary/30 bg-primary/5 space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                              Drop Date
+                            </label>
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split('T')[0]}
+                              value={editReleaseDate}
+                              onChange={(e) =>
+                                setEditReleaseDate(e.target.value)
                               }
-                              currentArtistId={artistProfile.id}
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                              Drop Time (Local)
+                            </label>
+                            <input
+                              type="time"
+                              value={editReleaseTime}
+                              onChange={(e) =>
+                                setEditReleaseTime(e.target.value)
+                              }
+                              className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                             />
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit / Cancel Actions */}
-                <div className="flex items-center justify-between gap-3 pt-4 border-t border-border pb-safe">
-                  <button
-                    type="button"
-                    onClick={handleCloseEditModal}
-                    disabled={isSavingRelease}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSavingRelease || isUploadingEditCover}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2 shadow-raised"
-                  >
-                    {isSavingRelease ? (
-                      <span>Saving Changes...</span>
-                    ) : (
-                      <span>✦ Save Release Changes</span>
+                        <p className="font-mono text-eyebrow text-muted-foreground">
+                          Fans can pre-save this release. The automated BullMQ
+                          scheduler will automatically release it to listeners
+                          at the specified time.
+                        </p>
+                      </div>
                     )}
-                  </button>
-                </div>
-              </form>
-            )}
+                  </div>
+
+                  {/* Description & Liner Notes */}
+                  <div className="pt-2 border-t border-border-soft">
+                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                      Release Description / Liner Notes
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editReleaseDescription}
+                      onChange={(e) =>
+                        setEditReleaseDescription(e.target.value)
+                      }
+                      placeholder="Liner notes, studio sessions, recording personnel, narrative..."
+                      className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Creator Governance: Comments & Discussions */}
+                  <div className="p-3.5 border border-border bg-background flex items-center justify-between">
+                    <div>
+                      <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
+                        Discussion &amp; Comments
+                      </span>
+                      <p className="font-sans text-caption text-muted-foreground">
+                        Allow listeners and curators to post comments and
+                        replies on this release.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={editReleaseAllowComments}
+                        onChange={(e) =>
+                          setEditReleaseAllowComments(e.target.checked)
+                        }
+                        className="accent-primary w-4 h-4"
+                      />
+                      <span className="font-mono text-caption text-foreground font-medium">
+                        {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Master Cuts & Collaborator Credits */}
+                  {editTracks.length > 0 && (
+                    <div className="space-y-4 pt-2 border-t border-border-soft">
+                      <div className="flex items-center justify-between">
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
+                          Master Cuts &amp; Collaborator Credits (
+                          {editTracks.length})
+                        </label>
+                        <span className="font-mono text-eyebrow text-muted-foreground">
+                          Edit titles, individual genres, explicit tags &amp;
+                          contributor credits
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        {editTracks.map((track, idx) => (
+                          <div
+                            key={track.id}
+                            className="p-3.5 border border-border bg-background space-y-3"
+                          >
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                              <span className="font-mono text-caption text-muted-foreground w-6">
+                                {String(idx + 1).padStart(2, '0')}
+                              </span>
+
+                              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                                <input
+                                  type="text"
+                                  required
+                                  value={track.title}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                    setEditTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === track.id
+                                          ? { ...t, title: val }
+                                          : t,
+                                      ),
+                                    )
+                                  }}
+                                  placeholder="Cut Title"
+                                  className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                />
+
+                                <input
+                                  type="text"
+                                  value={track.genre}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                    setEditTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === track.id
+                                          ? { ...t, genre: val }
+                                          : t,
+                                      ),
+                                    )
+                                  }}
+                                  placeholder="Genre (e.g. Ambient)"
+                                  className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
+                                />
+
+                                <div className="flex items-center gap-2">
+                                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={track.isExplicit}
+                                      onChange={(e) => {
+                                        const val = e.target.checked
+                                        setEditTracks((prev) =>
+                                          prev.map((t) =>
+                                            t.id === track.id
+                                              ? { ...t, isExplicit: val }
+                                              : t,
+                                          ),
+                                        )
+                                      }}
+                                    />
+                                    <span>Explicit</span>
+                                  </label>
+
+                                  {track.durationSeconds > 0 && (
+                                    <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
+                                      {formatDuration(track.durationSeconds)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Acoustic Details (BPM & Musical Key) */}
+                            <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
+                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                                Acoustics:
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+                                  BPM
+                                </label>
+                                <input
+                                  type="number"
+                                  min={30}
+                                  max={300}
+                                  placeholder="Auto/120"
+                                  value={track.bpm ?? ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                      ? Number(e.target.value)
+                                      : null
+                                    setEditTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === track.id
+                                          ? { ...t, bpm: val }
+                                          : t,
+                                      ),
+                                    )
+                                  }}
+                                  className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+                                  Key
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. C min"
+                                  value={track.musicalKey ?? ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                    setEditTracks((prev) =>
+                                      prev.map((t) =>
+                                        t.id === track.id
+                                          ? { ...t, musicalKey: val }
+                                          : t,
+                                      ),
+                                    )
+                                  }}
+                                  className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Collaborator & Credit Attribution */}
+                            <div className="pt-2 border-t border-border-soft/60">
+                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
+                                Collaborator Credits (Featured / Producers /
+                                Composers / Lyricists)
+                              </span>
+                              <ArtistCreditPicker
+                                credits={track.credits || []}
+                                onChange={(newCredits) =>
+                                  setEditTracks((prev) =>
+                                    prev.map((t) =>
+                                      t.id === track.id
+                                        ? { ...t, credits: newCredits }
+                                        : t,
+                                    ),
+                                  )
+                                }
+                                currentArtistId={artistProfile.id}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submit / Cancel Actions */}
+                  <div className="flex items-center justify-between gap-3 pt-4 border-t border-border pb-safe">
+                    <button
+                      type="button"
+                      onClick={handleCloseEditModal}
+                      disabled={isSavingRelease}
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border rounded-control text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingRelease || isUploadingEditCover}
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 bg-primary text-primary-foreground rounded-control hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold flex items-center gap-2 shadow-raised"
+                    >
+                      {isSavingRelease ? (
+                        <span>Saving Changes...</span>
+                      ) : (
+                        <span>✦ Save Release Changes</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Soft Delete Confirmation Modal */}
@@ -5074,7 +5480,9 @@ function StudioComponent() {
                       <strong className="text-foreground font-semibold">
                         "{deleteConfirm.title}"
                       </strong>{' '}
-                      and its {deleteConfirm.trackCount || 'associated'} cut(s) to the 30-day trash? You can restore it anytime within 30 days.
+                      and its {deleteConfirm.trackCount || 'associated'} cut(s)
+                      to the 30-day trash? You can restore it anytime within 30
+                      days.
                     </>
                   ) : (
                     <>
@@ -5085,7 +5493,8 @@ function StudioComponent() {
                       to the 30-day trash?
                       {deleteConfirm.trackCount === 1 ? (
                         <span className="block text-foreground font-medium mt-1">
-                          Since this is the only cut in this release, the parent release will also be moved to the 30-day trash.
+                          Since this is the only cut in this release, the parent
+                          release will also be moved to the 30-day trash.
                         </span>
                       ) : (
                         <span className="block text-muted-foreground mt-1">
@@ -5212,20 +5621,19 @@ function StudioComponent() {
         onCropComplete={handleAvatarCropComplete}
       />
 
-      {/* ===================== MOBILE RELEASE ACTION SHEET ===================== */}
+      {/* ===================== RELEASE ACTIONS DIALOG ===================== */}
       {actionSheetAlbum && (
         <div
-          className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-xs flex items-end justify-center sm:hidden animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-foreground/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setActionSheetAlbum(null)}
         >
           <div
-            className="w-full bg-card border-t border-border rounded-t-surface p-4 shadow-floating space-y-2 animate-in slide-in-from-bottom duration-200 pb-safe"
+            className="w-full max-w-xs bg-card border border-border rounded-control p-4 shadow-floating space-y-3 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-2" />
-            <div className="px-2 pb-2 border-b border-border-soft flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
+            <div className="flex items-center justify-between border-b border-border-soft pb-2.5">
+              <div className="min-w-0 flex-1 pr-2">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block truncate">
                   {actionSheetAlbum.albumType} &bull; {actionSheetAlbum.visibility}
                 </span>
                 <h4 className="font-serif italic text-title font-semibold text-foreground truncate">
@@ -5235,22 +5643,27 @@ function StudioComponent() {
               <button
                 type="button"
                 onClick={() => setActionSheetAlbum(null)}
-                className="p-1 text-muted-foreground hover:text-foreground"
+                className="w-7 h-7 rounded-control border border-border flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+                aria-label="Close"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="space-y-1 font-sans text-caption pt-1">
+            <div className="space-y-1 font-sans text-caption">
               <Link
                 to="/albums/$idOrSlug"
                 params={{ idOrSlug: actionSheetAlbum.slug }}
-                search={actionSheetAlbum.shareToken ? { shareToken: actionSheetAlbum.shareToken } : {}}
+                search={
+                  actionSheetAlbum.shareToken
+                    ? { shareToken: actionSheetAlbum.shareToken }
+                    : {}
+                }
                 onClick={() => setActionSheetAlbum(null)}
-                className="w-full py-2.5 px-3 rounded-control hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors"
+                className="w-full py-2 px-2.5 rounded-control hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors"
               >
                 <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
-                <span>View in Public Catalog</span>
+                <span>View in Catalog</span>
               </Link>
 
               <button
@@ -5260,27 +5673,30 @@ function StudioComponent() {
                   setActionSheetAlbum(null)
                   handleOpenEditModal(alb)
                 }}
-                className="w-full py-2.5 px-3 rounded-control text-left hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors cursor-pointer"
+                className="w-full py-2 px-2.5 rounded-control text-left hover:bg-muted flex items-center gap-2.5 text-foreground transition-colors cursor-pointer"
               >
                 <Pencil className="w-4 h-4 text-muted-foreground shrink-0" />
-                <span>Edit Release &amp; Artwork</span>
+                <span>Edit Release</span>
               </button>
 
-              {actionSheetAlbum.visibility === 'UNLISTED' && actionSheetAlbum.shareToken && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const shareUrl = `${window.location.origin}/albums/${actionSheetAlbum.slug}?shareToken=${actionSheetAlbum.shareToken}`
-                    navigator.clipboard.writeText(shareUrl)
-                    setSuccessNotice(`Copied secret share link for "${actionSheetAlbum.title}"!`)
-                    setActionSheetAlbum(null)
-                  }}
-                  className="w-full py-2.5 px-3 rounded-control text-left hover:bg-info-soft text-info flex items-center gap-2.5 transition-colors cursor-pointer"
-                >
-                  <Link2 className="w-4 h-4 shrink-0" />
-                  <span>Copy Secret Share Link</span>
-                </button>
-              )}
+              {actionSheetAlbum.visibility === 'UNLISTED' &&
+                actionSheetAlbum.shareToken && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/albums/${actionSheetAlbum.slug}?shareToken=${actionSheetAlbum.shareToken}`
+                      navigator.clipboard.writeText(shareUrl)
+                      setSuccessNotice(
+                        `Copied secret share link for "${actionSheetAlbum.title}"!`,
+                      )
+                      setActionSheetAlbum(null)
+                    }}
+                    className="w-full py-2 px-2.5 rounded-control text-left hover:bg-info-soft text-info flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <Link2 className="w-4 h-4 shrink-0" />
+                    <span>Copy Secret Link</span>
+                  </button>
+                )}
 
               <button
                 type="button"
@@ -5290,10 +5706,12 @@ function StudioComponent() {
                   handleDeleteAlbum(
                     alb.id,
                     alb.title,
-                    alb.totalTracks || (albumTrackMap[alb.id] || []).length || 1,
+                    alb.totalTracks ||
+                      (albumTrackMap[alb.id] || []).length ||
+                      1,
                   )
                 }}
-                className="w-full py-2.5 px-3 rounded-control text-left hover:bg-destructive-soft text-destructive flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+                className="w-full py-2 px-2.5 rounded-control text-left hover:bg-destructive-soft text-destructive flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
               >
                 <Trash2 className="w-4 h-4 shrink-0" />
                 <span>Move to 30-Day Trash</span>
@@ -5302,6 +5720,7 @@ function StudioComponent() {
           </div>
         </div>
       )}
+
 
       {/* ===================== VIEWPORT-WIDE FLOATING TOAST ===================== */}
       {(successNotice || errorNotice) && (
@@ -5323,4 +5742,3 @@ function StudioComponent() {
     </div>
   )
 }
-
