@@ -22,14 +22,11 @@ import {
   Lock,
   Calendar,
   Pencil,
-  MoreVertical,
+  ListMusic,
   X,
   ChevronDown,
-  ChevronUp,
-  ChevronRight,
   Check,
   Globe,
-  Copy,
   Link2,
   Scissors,
 } from 'lucide-react'
@@ -269,23 +266,19 @@ function StudioComponent() {
 
   // Expanded album tracks view in Studio
   const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null)
-  const [actionSheetAlbum, setActionSheetAlbum] = useState<Album | null>(null)
   const [visibilityMenuId, setVisibilityMenuId] = useState<string | null>(null)
   const [albumTrackMap, setAlbumTrackMap] = useState<Record<string, Song[]>>({})
   const [isLoadingAlbumTracks, setIsLoadingAlbumTracks] = useState(false)
 
-  // Dismiss the release actions dialog / visibility menu with Escape
+  // Dismiss the visibility menu with Escape
   useEffect(() => {
-    if (!actionSheetAlbum && !visibilityMenuId) return
+    if (!visibilityMenuId) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setActionSheetAlbum(null)
-        setVisibilityMenuId(null)
-      }
+      if (e.key === 'Escape') setVisibilityMenuId(null)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [actionSheetAlbum, visibilityMenuId])
+  }, [visibilityMenuId])
 
   // Authentication check
   useEffect(() => {
@@ -3504,84 +3497,83 @@ function StudioComponent() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 border-t border-border-soft px-3 sm:px-4 py-2">
+                      <div className="flex items-center justify-end gap-1.5 border-t border-border-soft px-3 sm:px-4 py-2">
+                        {vis === 'UNLISTED' && album.shareToken && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+                              navigator.clipboard.writeText(shareUrl)
+                              setSuccessNotice(
+                                `Copied secret share link for "${album.title}"!`,
+                              )
+                            }}
+                            className="p-2 border border-info/40 bg-info-soft text-info hover:bg-info/20 rounded-control cursor-pointer transition-colors"
+                            title="Copy secret share link"
+                            aria-label={`Copy secret share link for ${album.title}`}
+                          >
+                            <Link2 className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        <Link
+                          to="/albums/$idOrSlug"
+                          params={{ idOrSlug: album.slug }}
+                          search={
+                            album.shareToken
+                              ? { shareToken: album.shareToken }
+                              : {}
+                          }
+                          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors rounded-control flex items-center justify-center"
+                          title="View release in catalog"
+                          aria-label={`View ${album.title} in catalog`}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(album)}
+                          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer rounded-control"
+                          title="Edit release details"
+                          aria-label={`Edit ${album.title}`}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteAlbum(album.id, album.title, cuts)
+                          }
+                          className="p-2 border border-border bg-background text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
+                          title="Move to 30-Day Trash"
+                          aria-label={`Move ${album.title} to 30-Day Trash`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => handleToggleAlbumExpand(album.id)}
-                          className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1 rounded-control cursor-pointer transition-colors min-w-0"
+                          className={`p-2 border rounded-control cursor-pointer transition-colors ${
+                            isExpanded
+                              ? 'border-foreground bg-muted text-foreground'
+                              : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                          }`}
+                          title={
+                            isExpanded
+                              ? `Hide ${cuts} cuts`
+                              : `Show ${cuts} cuts`
+                          }
+                          aria-label={
+                            isExpanded
+                              ? `Hide the ${cuts} cuts in ${album.title}`
+                              : `Show the ${cuts} cuts in ${album.title}`
+                          }
+                          aria-expanded={isExpanded}
                         >
-                          <span className="truncate">
-                            {isExpanded ? 'Hide Cuts' : `Cuts (${cuts})`}
-                          </span>
-                          {isExpanded ? (
-                            <ChevronUp className="w-3.5 h-3.5 shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                        </button>
-
-                        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                          {vis === 'UNLISTED' && album.shareToken && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
-                                navigator.clipboard.writeText(shareUrl)
-                                setSuccessNotice(
-                                  `Copied secret share link for "${album.title}"!`,
-                                )
-                              }}
-                              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-info/40 bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors rounded-control flex items-center gap-1.5"
-                              title="Copy secret link with share token"
-                            >
-                              <Link2 className="w-3 h-3 shrink-0" />
-                              <span>Copy Link</span>
-                            </button>
-                          )}
-
-                          <Link
-                            to="/albums/$idOrSlug"
-                            params={{ idOrSlug: album.slug }}
-                            search={
-                              album.shareToken
-                                ? { shareToken: album.shareToken }
-                                : {}
-                            }
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1.5 rounded-control"
-                          >
-                            <span>View</span>
-                            <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
-                          </Link>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(album)}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-background hover:border-foreground text-foreground transition-colors flex items-center gap-1.5 cursor-pointer rounded-control"
-                            title="Edit release metadata, artwork, genre, credits and visibility"
-                          >
-                            <Pencil className="w-3 h-3 text-muted-foreground shrink-0" />
-                            <span>Edit</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDeleteAlbum(album.id, album.title, cuts)
-                            }
-                            className="p-1.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
-                            title="Move to 30-Day Trash"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setActionSheetAlbum(album)}
-                          className="sm:hidden p-1.5 border border-border text-muted-foreground hover:text-foreground rounded-control bg-background cursor-pointer shrink-0"
-                          aria-label={`More options for ${album.title}`}
-                        >
-                          <MoreVertical className="w-4 h-4 shrink-0" />
+                          <ListMusic className="w-4 h-4" />
                         </button>
                       </div>
 
@@ -4867,22 +4859,26 @@ function StudioComponent() {
             <div className="sm:hidden w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto my-2.5 shrink-0" />
             <div className="p-4 sm:p-6 overflow-y-auto space-y-6 overscroll-contain">
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <div>
+              <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+                <div className="min-w-0 flex-1">
                   <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block">
                     Studio Suite &bull; Master Release Editor
                   </span>
-                  <h3 className="font-serif italic text-2xl text-foreground">
-                    Edit Release: {editingAlbum.title}
-                  </h3>
+                  <MarqueeText
+                    className="min-w-0 w-full"
+                    innerClassName="font-serif italic text-title sm:text-2xl text-foreground font-semibold"
+                  >
+                    {`Edit Release: ${editingAlbum.title}`}
+                  </MarqueeText>
                 </div>
                 <button
                   type="button"
                   onClick={handleCloseEditModal}
                   disabled={isSavingRelease}
-                  className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+                  className="w-8 h-8 rounded-control border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer shrink-0 disabled:opacity-50 transition-colors"
+                  aria-label="Close release editor"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -5739,155 +5735,6 @@ function StudioComponent() {
         isSubmitting={isUploadingAvatar}
         onCropComplete={handleAvatarCropComplete}
       />
-
-      {/* ===================== RELEASE ACTIONS DIALOG ===================== */}
-      {actionSheetAlbum && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Actions for ${actionSheetAlbum.title}`}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-scrim backdrop-blur-sm p-4 animate-in fade-in duration-150"
-          onClick={() => setActionSheetAlbum(null)}
-        >
-          <div
-            className="w-full max-w-sm bg-card border border-border rounded-control shadow-floating overflow-hidden animate-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 p-3.5 border-b border-border-soft">
-              <div className="w-11 h-11 rounded-control border border-border bg-muted overflow-hidden shrink-0">
-                {actionSheetAlbum.coverImageUrl ? (
-                  <img
-                    src={actionSheetAlbum.coverImageUrl}
-                    alt={actionSheetAlbum.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Disc3 className="w-5 h-5 text-muted-foreground/40" />
-                  </div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block truncate">
-                  {actionSheetAlbum.albumType} &bull;{' '}
-                  {actionSheetAlbum.visibility === 'UNLISTED'
-                    ? 'Unlisted'
-                    : actionSheetAlbum.visibility === 'PRIVATE'
-                      ? 'Private'
-                      : 'Public'}
-                  {' · '}
-                  {actionSheetAlbum.status === 'DRAFT'
-                    ? 'Draft'
-                    : actionSheetAlbum.status === 'SCHEDULED'
-                      ? 'Scheduled'
-                      : 'Published'}
-                </span>
-                <h4 className="font-serif italic text-body font-semibold text-foreground truncate">
-                  {actionSheetAlbum.title}
-                </h4>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setActionSheetAlbum(null)}
-                className="w-8 h-8 rounded-control border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer shrink-0 transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-1.5">
-              <Link
-                to="/albums/$idOrSlug"
-                params={{ idOrSlug: actionSheetAlbum.slug }}
-                search={
-                  actionSheetAlbum.shareToken
-                    ? { shareToken: actionSheetAlbum.shareToken }
-                    : {}
-                }
-                onClick={() => setActionSheetAlbum(null)}
-                className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-control hover:bg-muted text-left transition-colors"
-              >
-                <span className="w-8 h-8 rounded-control border border-border bg-background flex items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
-                  <ExternalLink className="w-4 h-4" />
-                </span>
-                <span className="font-sans text-caption text-foreground flex-1">
-                  View in catalog
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-              </Link>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const alb = actionSheetAlbum
-                  setActionSheetAlbum(null)
-                  handleOpenEditModal(alb)
-                }}
-                className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-control hover:bg-muted text-left transition-colors cursor-pointer"
-              >
-                <span className="w-8 h-8 rounded-control border border-border bg-background flex items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
-                  <Pencil className="w-4 h-4" />
-                </span>
-                <span className="font-sans text-caption text-foreground flex-1">
-                  Edit release
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-              </button>
-
-              {actionSheetAlbum.visibility === 'UNLISTED' &&
-                actionSheetAlbum.shareToken && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const shareUrl = `${window.location.origin}/albums/${actionSheetAlbum.slug}?shareToken=${actionSheetAlbum.shareToken}`
-                      navigator.clipboard.writeText(shareUrl)
-                      setSuccessNotice(
-                        `Copied secret share link for "${actionSheetAlbum.title}"!`,
-                      )
-                      setActionSheetAlbum(null)
-                    }}
-                    className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-control hover:bg-info-soft text-left transition-colors cursor-pointer"
-                  >
-                    <span className="w-8 h-8 rounded-control border border-info/40 bg-info-soft flex items-center justify-center shrink-0 text-info">
-                      <Copy className="w-4 h-4" />
-                    </span>
-                    <span className="font-sans text-caption text-info flex-1">
-                      Copy secret link
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-info/60 shrink-0" />
-                  </button>
-                )}
-            </div>
-
-            <div className="p-1.5 border-t border-border-soft">
-              <button
-                type="button"
-                onClick={() => {
-                  const alb = actionSheetAlbum
-                  setActionSheetAlbum(null)
-                  handleDeleteAlbum(
-                    alb.id,
-                    alb.title,
-                    alb.totalTracks || (albumTrackMap[alb.id] || []).length || 1,
-                  )
-                }}
-                className="group w-full flex items-center gap-3 px-2.5 py-2 rounded-control hover:bg-destructive-soft text-left transition-colors cursor-pointer"
-              >
-                <span className="w-8 h-8 rounded-control border border-destructive/40 bg-destructive-soft flex items-center justify-center shrink-0 text-destructive">
-                  <Trash2 className="w-4 h-4" />
-                </span>
-                <span className="font-sans text-caption text-destructive flex-1">
-                  Move to trash
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
 
       {/* ===================== VIEWPORT-WIDE FLOATING TOAST ===================== */}
       {(successNotice || errorNotice) && (
