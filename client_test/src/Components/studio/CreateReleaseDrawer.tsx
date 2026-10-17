@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
-import { UploadCloud, Disc3, Calendar, X, Check } from 'lucide-react'
+import {
+  Calendar,
+  CalendarClock,
+  Check,
+  Disc3,
+  PartyPopper,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  TriangleAlert,
+  UploadCloud,
+  X,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
@@ -815,11 +827,17 @@ export function CreateReleaseDrawer({
           tracks: singleTrackPayload,
         })
 
-        toast.success(
-          releaseMode === 'SCHEDULED'
-            ? `🗓️ Standalone single release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
-            : `🎉 Standalone single release "${releaseTitle}" published successfully (${releaseVisibility})!`,
-        )
+        if (releaseMode === 'SCHEDULED') {
+          toast.success(
+            `Standalone single release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`,
+            { icon: <CalendarClock className="h-3 w-3" /> },
+          )
+        } else {
+          toast.success(
+            `Standalone single release "${releaseTitle}" published successfully (${releaseVisibility})!`,
+            { icon: <PartyPopper className="h-3 w-3" /> },
+          )
+        }
       } else {
         if (draftTracks.length === 0) {
           toast.error('Please add at least one cut to the release')
@@ -883,11 +901,17 @@ export function CreateReleaseDrawer({
           tracks: tracksPayload.length > 0 ? tracksPayload : undefined,
         })
 
-        toast.success(
-          releaseMode === 'SCHEDULED'
-            ? `🗓️ Master ${releaseType} release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`
-            : `🎉 Master ${releaseType} release "${releaseTitle}" published successfully (${releaseVisibility})!`,
-        )
+        if (releaseMode === 'SCHEDULED') {
+          toast.success(
+            `Master ${releaseType} release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`,
+            { icon: <CalendarClock className="h-3 w-3" /> },
+          )
+        } else {
+          toast.success(
+            `Master ${releaseType} release "${releaseTitle}" published successfully (${releaseVisibility})!`,
+            { icon: <PartyPopper className="h-3 w-3" /> },
+          )
+        }
       }
 
       onClose()
@@ -954,7 +978,16 @@ export function CreateReleaseDrawer({
                       : 'border-border bg-background text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {type === 'SINGLE' ? '✦ Single (1 Cut)' : type}
+                  <span className="inline-flex items-center gap-1.5">
+                    {type === 'SINGLE' ? (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                        Single (1 Cut)
+                      </>
+                    ) : (
+                      type
+                    )}
+                  </span>
                 </button>
               ))}
             </div>
@@ -999,9 +1032,8 @@ export function CreateReleaseDrawer({
               </div>
               <div className="min-w-0">
                 <div className="font-eyebrow text-caption uppercase tracking-wider text-foreground font-semibold flex items-center gap-1.5">
-                  <span>
-                    ✦ Quick Start: Auto-Fill from Audio Metadata
-                  </span>
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span>Quick Start: Auto-Fill from Audio Metadata</span>
                 </div>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5">
                   Drop audio file{releaseType !== 'SINGLE' ? 's' : ''}{' '}
@@ -1260,10 +1292,15 @@ export function CreateReleaseDrawer({
                       </button>
                     )}
                   </div>
-                  <span className="font-mono text-eyebrow text-muted-foreground">
-                    {releaseCoverPreview || releaseCoverUrl
-                      ? '✓ Artwork attached to release'
-                      : 'Official release artwork required'}
+                  <span className="font-mono text-eyebrow text-muted-foreground inline-flex items-center gap-1">
+                    {releaseCoverPreview || releaseCoverUrl ? (
+                      <>
+                        <Check className="w-3 h-3 shrink-0" />
+                        Artwork attached to release
+                      </>
+                    ) : (
+                      'Official release artwork required'
+                    )}
                   </span>
                 </div>
               </div>
@@ -1369,7 +1406,7 @@ export function CreateReleaseDrawer({
                     <div className="p-3 border border-success/40 bg-success-soft flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="w-5 h-5 rounded-full bg-success text-background flex items-center justify-center font-mono text-caption font-bold shrink-0">
-                          ✓
+                          <Check className="w-3 h-3" />
                         </span>
                         <div className="min-w-0">
                           <div className="font-sans font-semibold text-body text-foreground truncate">
@@ -1389,18 +1426,20 @@ export function CreateReleaseDrawer({
                         <button
                           type="button"
                           disabled
-                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
+                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed inline-flex items-center gap-1.5"
                           title="An audio master is already uploaded. Reset audio to choose another."
                         >
-                          ✓ Audio Attached
+                          <Check className="w-3.5 h-3.5 shrink-0" />
+                          Audio Attached
                         </button>
                         <button
                           type="button"
                           onClick={handleResetSingleAudio}
-                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
+                          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors inline-flex items-center gap-1.5"
                           title="Remove uploaded audio and select a new file"
                         >
-                          ✕ Reset Audio
+                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                          Reset Audio
                         </button>
                       </div>
                     </div>
@@ -1490,10 +1529,13 @@ export function CreateReleaseDrawer({
                   </span>
                   <div className="flex items-center gap-2">
                     <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1 font-medium">
+                      {!isBatchImporting && (
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                      )}
                       <span>
                         {isBatchImporting
                           ? 'Importing Cuts...'
-                          : '✦ Batch Import Cuts'}
+                          : 'Batch Import Cuts'}
                       </span>
                       <input
                         ref={batchCutsInputRef}
@@ -1524,18 +1566,17 @@ export function CreateReleaseDrawer({
                           },
                         ])
                       }
-                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      + Add Cut
+                      <Plus className="w-3.5 h-3.5 shrink-0" />
+                      Add Cut
                     </button>
                   </div>
                 </div>
 
                 {duplicateNotice && duplicateNotice.count > 0 && (
                   <div className="p-3 border border-warning/30 bg-warning-soft text-warning text-caption flex items-start gap-2.5 rounded-control animate-in fade-in duration-150">
-                    <span className="font-mono text-caption shrink-0 mt-0.5">
-                      ⚠️
-                    </span>
+                    <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
                     <div className="space-y-0.5 min-w-0 flex-1">
                       <p className="font-sans font-medium">
                         <strong>{duplicateNotice.count}</strong>{' '}
@@ -1549,9 +1590,10 @@ export function CreateReleaseDrawer({
                     <button
                       type="button"
                       onClick={() => setDuplicateNotice(null)}
-                      className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer ml-auto shrink-0"
+                      className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer ml-auto shrink-0 inline-flex items-center"
+                      title="Dismiss"
                     >
-                      ✕
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
                 )}
@@ -1575,7 +1617,7 @@ export function CreateReleaseDrawer({
                       {draft.audioUrl || draft.rawAudioKey ? (
                         <div className="flex items-center gap-1.5">
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
-                            <span>✓</span>
+                            <Check className="w-3 h-3 shrink-0" />
                             <span>
                               {formatDuration(
                                 draft.durationSeconds,
@@ -1595,10 +1637,11 @@ export function CreateReleaseDrawer({
                             onClick={() =>
                               handleResetDraftAudio(draft.id)
                             }
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors inline-flex items-center gap-1"
                             title="Reset audio file for this cut"
                           >
-                            ✕ Reset
+                            <RotateCcw className="w-3 h-3 shrink-0" />
+                            Reset
                           </button>
                         </div>
                       ) : (
@@ -1626,10 +1669,10 @@ export function CreateReleaseDrawer({
                           onClick={() =>
                             handleRemoveDraftCut(draft.id)
                           }
-                          className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
+                          className="p-1 text-muted-foreground hover:text-destructive cursor-pointer inline-flex items-center"
                           title="Remove Cut"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
@@ -1668,7 +1711,10 @@ export function CreateReleaseDrawer({
                     </span>
                   </>
                 ) : releaseType === 'SINGLE' ? (
-                  <span>✦ Publish Single</span>
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                    <span>Publish Single</span>
+                  </>
                 ) : (
                   <span>Publish {releaseType}</span>
                 )}

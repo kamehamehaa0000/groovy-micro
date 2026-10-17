@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { UploadCloud, ExternalLink } from 'lucide-react'
+import { Check, ExternalLink, Sparkles, UploadCloud, X } from 'lucide-react'
 import { ProceduralCover } from '../../common/ProceduralCover'
 import type { ArtistProfile } from '../../../types/artist'
 import type { Album } from '../../../types/catalog'
@@ -361,8 +361,9 @@ export function ProfileTab({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-soft">
               <div>
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold px-2 py-0.5 rounded-control border border-primary/30 bg-primary/10">
-                    ✦ Profile Spotlight
+                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold px-2 py-0.5 rounded-control border border-primary/30 bg-primary/10 inline-flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 shrink-0" />
+                    Profile Spotlight
                   </span>
                   {artistProfile.pinnedReleaseId ? (
                     <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-control flex items-center gap-1.5">
@@ -414,7 +415,7 @@ export function ProfileTab({
               <div className="flex items-center justify-between gap-3 p-3.5 bg-success-soft border border-success/40 rounded-control text-success font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="w-5 h-5 rounded-full bg-success text-success-foreground flex items-center justify-center shrink-0 font-bold text-caption">
-                    ✓
+                    <Check className="w-3 h-3" />
                   </span>
                   <div className="min-w-0">
                     <span className="font-semibold block truncate">
@@ -443,7 +444,7 @@ export function ProfileTab({
             {spotlightStatus === 'cleared' && (
               <div className="flex items-center gap-2.5 p-3.5 bg-primary/10 border border-primary/30 rounded-control text-primary font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
                 <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-caption">
-                  ✓
+                  <Check className="w-3 h-3" />
                 </span>
                 <div>
                   <span className="font-semibold block">
@@ -460,7 +461,7 @@ export function ProfileTab({
             {spotlightStatus === 'error' && (
               <div className="flex items-center gap-2.5 p-3.5 bg-destructive-soft border border-destructive/40 rounded-control text-destructive font-mono text-caption shadow-raised animate-in fade-in slide-in-from-top-1 duration-200">
                 <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shrink-0 font-bold text-caption">
-                  ✕
+                  <X className="w-3 h-3" />
                 </span>
                 <div>
                   <span className="font-semibold block">
@@ -567,10 +568,10 @@ export function ProfileTab({
                           setSpotlightComment('')
                           setSpotlightStatus('idle')
                         }}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-caption font-mono cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-caption font-mono cursor-pointer inline-flex items-center"
                         title="Clear note"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
@@ -633,10 +634,11 @@ export function ProfileTab({
                             </div>
                           )}
                           <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
+                            <Sparkles className="w-3 h-3 shrink-0" />
                             <span>
                               {spotlightReleaseId
-                                ? '✦ Artist Pick'
-                                : '✦ Latest Drop'}
+                                ? 'Artist Pick'
+                                : 'Latest Drop'}
                             </span>
                           </span>
                         </div>
@@ -712,7 +714,8 @@ export function ProfileTab({
                     </>
                   ) : spotlightStatus === 'saved' ? (
                     <>
-                      <span>✓ Saved to Profile!</span>
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      <span>Saved to Profile!</span>
                     </>
                   ) : isSpotlightDirty ? (
                     <>

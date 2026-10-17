@@ -1,4 +1,4 @@
-import { BadgeCheck } from 'lucide-react'
+import { BadgeCheck, Plus } from 'lucide-react'
 import type { ArtistProfile } from '../../../types/artist'
 import type { VerificationState } from '../hooks/useVerification'
 
@@ -196,9 +196,10 @@ export function VerificationTab({
                 <button
                   type="button"
                   onClick={() => setVerifyLinks([...verifyLinks, ''])}
-                  className="self-start font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer mt-1"
+                  className="self-start font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer mt-1 inline-flex items-center gap-1.5"
                 >
-                  + Add Another Link
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  Add Another Link
                 </button>
               )}
             </div>

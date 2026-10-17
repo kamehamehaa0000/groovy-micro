@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Plus, X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistProfile } from '../types/artist'
 import type { CreditRole } from '../types/catalog'
@@ -148,10 +149,10 @@ export function ArtistCreditPicker({
               <button
                 type="button"
                 onClick={() => handleRemoveCredit(c.artistId)}
-                className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-0.5"
+                className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-0.5 inline-flex items-center"
                 title="Remove credit"
               >
-                ✕
+                <X className="w-3 h-3" />
               </button>
             </div>
           ))}
@@ -165,7 +166,8 @@ export function ArtistCreditPicker({
           onClick={() => setIsOpen(true)}
           className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer inline-flex items-center gap-1"
         >
-          <span>+ Add Collaborator / Credit</span>
+          <Plus className="w-3 h-3 shrink-0" />
+          <span>Add Collaborator / Credit</span>
         </button>
       ) : (
         <div className="relative max-w-md">
@@ -190,9 +192,10 @@ export function ArtistCreditPicker({
                   setIsOpen(false)
                   setQuery('')
                 }}
-                className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer px-1"
+                className="font-mono text-eyebrow text-muted-foreground hover:text-foreground cursor-pointer px-1 inline-flex items-center"
+                title="Close search"
               >
-                ✕
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>

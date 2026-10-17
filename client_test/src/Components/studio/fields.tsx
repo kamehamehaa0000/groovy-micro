@@ -24,6 +24,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
+import { Plus, X } from 'lucide-react'
 import { cn } from '../ui/cn'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { CATALOG_MOODS } from '../../lib/taxonomy'
@@ -284,7 +285,7 @@ export interface TagChipInputProps {
   placeholder?: string
 }
 
-/** Lowercase tag entry: type-and-Enter (or Add) appends a chip, ✕ removes it. */
+/** Lowercase tag entry: type-and-Enter (or Add) appends a chip; the X removes it. */
 export function TagChipInput({
   tags,
   onChange,
@@ -323,10 +324,11 @@ export function TagChipInput({
           onClick={commit}
           className={cn(
             EYEBROW,
-            'py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer',
+            'py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer inline-flex items-center gap-1.5',
           )}
         >
-          + Add Tag
+          <Plus className="w-3.5 h-3.5 shrink-0" />
+          Add Tag
         </button>
       </div>
       {tags.length > 0 && (
@@ -340,9 +342,10 @@ export function TagChipInput({
               <button
                 type="button"
                 onClick={() => onChange(tags.filter((t) => t !== tag))}
-                className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
+                className="text-muted-foreground hover:text-destructive cursor-pointer ml-1 inline-flex items-center"
+                title={`Remove tag ${tag}`}
               >
-                ×
+                <X className="w-3 h-3" />
               </button>
             </span>
           ))}

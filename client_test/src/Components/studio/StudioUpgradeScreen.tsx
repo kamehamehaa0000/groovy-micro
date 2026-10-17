@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { slugifyText, artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
 import { toast } from 'sonner'
+import { PartyPopper, Sparkles } from 'lucide-react'
 import { StudioToaster } from './StudioToaster'
 
 interface StudioUpgradeScreenProps {
@@ -50,7 +51,8 @@ export function StudioUpgradeScreen({
 
       setArtistProfile(res.profile)
       toast.success(
-        '🎉 Welcome to Groovy Creator Studio! Your artist identity is live.',
+        'Welcome to Groovy Creator Studio! Your artist identity is live.',
+        { icon: <PartyPopper className="h-3 w-3" /> },
       )
     } catch (err: any) {
       toast.error(
@@ -179,11 +181,16 @@ export function StudioUpgradeScreen({
         <button
           type="submit"
           disabled={isSubmittingUpgrade}
-          className="w-full font-eyebrow text-caption uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+          className="w-full font-eyebrow text-caption uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold inline-flex items-center justify-center gap-1.5"
         >
-          {isSubmittingUpgrade
-            ? 'Activating Studio...'
-            : '✦ Activate Artist Studio (Instant Upgrade)'}
+          {isSubmittingUpgrade ? (
+            'Activating Studio...'
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              Activate Artist Studio (Instant Upgrade)
+            </>
+          )}
         </button>
       </form>
       <StudioToaster />

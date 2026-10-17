@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Disc3, Lock, Calendar, X, Globe, Link2 } from 'lucide-react'
+import {
+  Calendar,
+  Disc3,
+  Globe,
+  Link2,
+  Lock,
+  PartyPopper,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { SelectedCredit } from '../ArtistCreditPicker'
 import { MarqueeText } from '../common/MarqueeText'
@@ -267,7 +276,8 @@ export function EditReleaseDrawer({
       }
 
       toast.success(
-        `🎉 Master release "${editReleaseTitle}" updated successfully!`,
+        `Master release "${editReleaseTitle}" updated successfully!`,
+        { icon: <PartyPopper className="h-3 w-3" /> },
       )
       handleCloseEditModal()
       onReleasesChanged()
@@ -714,7 +724,10 @@ export function EditReleaseDrawer({
                   {isSavingRelease ? (
                     <span>Saving Changes...</span>
                   ) : (
-                    <span>✦ Save Release Changes</span>
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>Save Release Changes</span>
+                    </>
                   )}
                 </button>
               </div>

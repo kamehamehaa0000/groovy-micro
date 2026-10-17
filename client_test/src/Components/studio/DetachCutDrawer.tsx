@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Disc3 } from 'lucide-react'
+import { Disc3, PartyPopper, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { catalogApi } from '../../lib/catalog.api'
 import type { Song } from '../../types/catalog'
@@ -64,7 +64,8 @@ export function DetachCutDrawer({
       })
 
       toast.success(
-        `🎉 Master cut "${request.song.title}" detached and spun off into standalone SINGLE release!`,
+        `Master cut "${request.song.title}" detached and spun off into standalone SINGLE release!`,
+        { icon: <PartyPopper className="h-3 w-3" /> },
       )
 
       // Refresh album details and releases
@@ -97,9 +98,10 @@ export function DetachCutDrawer({
             type="button"
             onClick={handleCloseDetachModal}
             disabled={isSubmittingDetach}
-            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
+            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
           >
-            ✕ Close
+            <X className="w-3.5 h-3.5" />
+            Close
           </button>
         </div>
 
@@ -196,11 +198,16 @@ export function DetachCutDrawer({
             type="button"
             onClick={handleConfirmDetach}
             disabled={isSubmittingDetach || isUploadingDetachCover}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold"
+            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold inline-flex items-center gap-1.5"
           >
-            {isSubmittingDetach
-              ? 'Detaching Cut...'
-              : '✦ Detach & Spin Off Single'}
+            {isSubmittingDetach ? (
+              'Detaching Cut...'
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                Detach &amp; Spin Off Single
+              </>
+            )}
           </button>
         </div>
       </div>
