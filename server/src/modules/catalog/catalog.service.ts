@@ -886,7 +886,10 @@ export class CatalogService {
       await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((s) => s.id));
     }
 
-    return res;
+    return {
+      ...res,
+      trashCounts: await this.getStudioTrashCounts(artist.id),
+    };
   }
 
   /**
@@ -1805,7 +1808,10 @@ export class CatalogService {
 
     await playlistsCacheService.invalidatePlaylistsForSongs([songId]);
 
-    return res;
+    return {
+      ...res,
+      trashCounts: await this.getStudioTrashCounts(artist.id),
+    };
   }
 
   /**
@@ -2590,6 +2596,61 @@ export class CatalogService {
       artist,
       albums: artistAlbums,
       songs: artistSongs,
+    };
+  }
+
+  /**
+   * Trash tallies for the studio tab badge. Uses exactly the same conditions as
+   * getStudioReleases(trash = true), so the badge can never disagree with the
+   * trash list itself.
+   */
+  private async getStudioTrashCounts(artistId: string) {
+    const [[albumCount], [songCount]] = await Promise.all([
+      db
+        .select({ total: count() })
+        .from(albums)
+        .where(and(eq(albums.artistId, artistId), isNotNull(albums.deletedAt))),
+      db
+        .select({ total: count() })
+        .from(songs)
+        .where(and(eq(songs.artistId, artistId), isNotNull(songs.deletedAt))),
+    ]);
+
+    return {
+      albums: albumCount?.total ?? 0,
+      songs: songCount?.total ?? 0,
+    };
+  }
+
+  /**
+   * Single studio bootstrap payload: artist profile, active releases and trash
+   * tallies in one round trip. Returns null when the user has no artist profile
+   * yet, so the caller can answer 404 the same way GET /artists/me does.
+   */
+  async getStudioOverview(userId: string) {
+    const [artist] = await db
+      .select()
+      .from(artistProfiles)
+      .where(eq(artistProfiles.userId, userId))
+      .limit(1);
+
+    if (!artist) {
+      return null;
+    }
+
+    const [artistAlbums, trashCounts] = await Promise.all([
+      db
+        .select()
+        .from(albums)
+        .where(and(eq(albums.artistId, artist.id), isNull(albums.deletedAt)))
+        .orderBy(desc(albums.createdAt)),
+      this.getStudioTrashCounts(artist.id),
+    ]);
+
+    return {
+      artist,
+      albums: artistAlbums,
+      trashCounts,
     };
   }
 

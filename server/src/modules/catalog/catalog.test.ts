@@ -412,6 +412,61 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Studio trash list displays archived album with restore eligibility");
 
+    // Studio bootstrap bundle: profile + active releases + trash tallies in one call
+    const overviewRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/studio/overview",
+      headers: { authorization: `Bearer ${artistA.tokens.accessToken}` },
+    });
+    if (overviewRes.statusCode !== 200) {
+      throw new Error(`Failed to load studio overview: ${overviewRes.body}`);
+    }
+    const overview = JSON.parse(overviewRes.body);
+    if (overview.artist?.id !== studioTrashData.artist.id) {
+      throw new Error("Studio overview did not return the artist profile");
+    }
+    if (overview.albums.some((a: any) => a.id === albumId || a.deletedAt)) {
+      throw new Error(
+        "Studio overview leaked a trashed album into the active release list"
+      );
+    }
+    if (
+      overview.trashCounts.albums !== studioTrashData.albums.length ||
+      overview.trashCounts.songs !== studioTrashData.songs.length
+    ) {
+      throw new Error(
+        `Studio overview trash tallies (${JSON.stringify(overview.trashCounts)}) disagree with the trash list (${studioTrashData.albums.length} albums / ${studioTrashData.songs.length} songs)`
+      );
+    }
+    console.log("   ✅ Studio overview bundles profile + active releases + matching trash tallies");
+
+    // The soft delete response carries the same tallies, so the studio badge can
+    // update without a follow-up request
+    const deleteCounts = JSON.parse(deleteAlbumRes.body).trashCounts;
+    if (
+      !deleteCounts ||
+      deleteCounts.albums !== overview.trashCounts.albums ||
+      deleteCounts.songs !== overview.trashCounts.songs
+    ) {
+      throw new Error(
+        `Soft delete response did not report the updated trash tallies: ${JSON.stringify(deleteCounts)}`
+      );
+    }
+    console.log("   ✅ Soft delete response reports the updated trash tallies");
+
+    // Listeners never reach the studio bundle (guard mirrors /studio/releases)
+    const overviewListenerRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/studio/overview",
+      headers: { authorization: `Bearer ${listener.tokens.accessToken}` },
+    });
+    if (overviewListenerRes.statusCode !== 403) {
+      throw new Error(
+        `Expected 403 for a listener on studio overview, got ${overviewListenerRes.statusCode}`
+      );
+    }
+    console.log("   ✅ Status 403 Forbidden: listeners cannot fetch the studio bundle");
+
     // Restore album
     const restoreAlbumRes = await app.inject({
       method: "POST",

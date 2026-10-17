@@ -703,6 +703,39 @@ export const studioCatalogRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /overview
+   * Single studio bootstrap payload: artist profile, active releases and trash
+   * tallies, so opening the studio costs one request instead of two or three.
+   */
+  fastify.get(
+    "/overview",
+    { preHandler: [requireAuth, requireRole("ARTIST", "ADMIN")] },
+    async (request, reply) => {
+      try {
+        const overview = await catalogService.getStudioOverview(
+          request.user.id
+        );
+
+        if (!overview) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: "Not Found",
+            message: "Artist profile not found",
+          });
+        }
+
+        return reply.status(200).send(overview);
+      } catch (err: any) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: err.message || "Failed to retrieve studio overview",
+        });
+      }
+    }
+  );
+
+  /**
    * DELETE /trash
    * Empties all soft-deleted releases and master cuts in the artist's studio trash permanently.
    */
