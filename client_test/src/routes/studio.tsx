@@ -16,19 +16,13 @@ import {
   ExternalLink,
   UploadCloud,
   Disc3,
-  Trash2,
   RotateCcw,
-  Plus,
   Lock,
   Calendar,
-  Pencil,
-  ListMusic,
   X,
-  ChevronDown,
   Check,
   Globe,
   Link2,
-  Scissors,
 } from 'lucide-react'
 import {
   ArtistCreditPicker,
@@ -37,6 +31,16 @@ import {
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { MarqueeText } from '../components/common/MarqueeText'
+import { ConfirmPurgeModal } from '../components/studio/ConfirmPurgeModal'
+import { ConfirmSoftDeleteModal } from '../components/studio/ConfirmSoftDeleteModal'
+import { ReleaseCard } from '../components/studio/ReleaseCard'
+import { StudioHeader } from '../components/studio/StudioHeader'
+import { StudioTabs } from '../components/studio/StudioTabs'
+import type {
+  ReleaseDeleteRequest,
+  StudioTab,
+  TrashPurgeRequest,
+} from '../components/studio/studio.types'
 import {
   PRIMARY_GENRES,
   GENRE_SUBGENRES_MAP,
@@ -47,7 +51,6 @@ export const Route = createFileRoute('/studio')({
   component: StudioComponent,
 })
 
-type StudioTab = 'releases' | 'trash' | 'profile' | 'verification'
 
 interface TrackDraft {
   id: string
@@ -106,21 +109,14 @@ function StudioComponent() {
   const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
   const [trashSongs, setTrashSongs] = useState<Song[]>([])
   const [isLoadingTrash, setIsLoadingTrash] = useState(false)
-  const [trashConfirm, setTrashConfirm] = useState<{
-    type: 'empty' | 'permanent_release' | 'permanent_song'
-    id?: string
-    title?: string
-  } | null>(null)
+  const [trashConfirm, setTrashConfirm] = useState<TrashPurgeRequest | null>(
+    null,
+  )
   const [isPurging, setIsPurging] = useState(false)
 
   // Soft Delete Confirmation State (Modal)
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: 'album' | 'song'
-    id: string
-    title: string
-    trackCount?: number
-    parentAlbumId?: string
-  } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] =
+    useState<ReleaseDeleteRequest | null>(null)
   const [isDeletingItem, setIsDeletingItem] = useState(false)
 
   // Batch Deduplication Notice State
@@ -524,6 +520,18 @@ function StudioComponent() {
       setErrorNotice(err.message || 'Failed to archive item')
     } finally {
       setIsDeletingItem(false)
+    }
+  }
+
+  // Execute confirmed permanent purge (empty trash, release, or single cut)
+  const confirmPurge = () => {
+    if (!trashConfirm) return
+    if (trashConfirm.type === 'empty') {
+      handleEmptyTrash()
+    } else if (trashConfirm.type === 'permanent_release' && trashConfirm.id) {
+      handlePermanentDeleteAlbum(trashConfirm.id)
+    } else if (trashConfirm.type === 'permanent_song' && trashConfirm.id) {
+      handlePermanentDeleteSong(trashConfirm.id)
     }
   }
 
@@ -2079,99 +2087,22 @@ function StudioComponent() {
         </div>
       )}
 
-      {/* Studio Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border mb-6">
-        <div className="min-w-0">
-          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-0.5">
-            Maison Studio Suite
-          </span>
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <h1 className="font-serif italic text-2xl sm:text-3xl text-foreground font-semibold truncate min-w-0">
-              {artistProfile.stageName}
-            </h1>
-            {artistProfile.verified && (
-              <BadgeCheck className="w-5 h-5 text-primary shrink-0" />
-            )}
-          </div>
-          <span className="font-mono text-caption text-muted-foreground">
-            @{artistProfile.slug}
-          </span>
-        </div>
+      <StudioHeader
+        stageName={artistProfile.stageName}
+        slug={artistProfile.slug}
+        verified={artistProfile.verified}
+        onNewRelease={() => {
+          resetReleaseForm()
+          setIsCreateReleaseOpen(true)
+        }}
+      />
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <Link
-            to="/artists/$idOrSlug"
-            params={{ idOrSlug: artistProfile.slug }}
-            className="flex-1 sm:flex-initial justify-center font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 sm:px-4 border border-border bg-card hover:bg-background text-foreground transition-colors flex items-center gap-1.5 rounded-control"
-          >
-            <span>Public Profile</span>
-            <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => {
-              resetReleaseForm()
-              setIsCreateReleaseOpen(true)
-            }}
-            className="flex-1 sm:flex-initial justify-center font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 sm:px-4 bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-raised font-semibold rounded-control"
-          >
-            <Plus className="w-3.5 h-3.5 shrink-0" />
-            <span>New Release</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Studio Navigation Tabs */}
-      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-border pb-2.5 mb-6 sm:mb-8 font-eyebrow text-caption uppercase tracking-wider overflow-x-auto no-scrollbar scroll-smooth">
-        <button
-          type="button"
-          onClick={() => setActiveTab('releases')}
-          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
-            activeTab === 'releases'
-              ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          Catalog & Releases ({albums.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('trash')}
-          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
-            activeTab === 'trash'
-              ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          30-Day Trash ({trashAlbums.length + trashSongs.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('profile')}
-          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
-            activeTab === 'profile'
-              ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          Profile & Branding
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('verification')}
-          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
-            activeTab === 'verification'
-              ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          Verification Desk
-        </button>
-      </div>
+      <StudioTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        releaseCount={albums.length}
+        trashCount={trashAlbums.length + trashSongs.length}
+      />
 
       {/* ========================================================================= */}
       {/* TAB 1: CATALOG & RELEASES */}
@@ -3284,382 +3215,50 @@ function StudioComponent() {
                 {albums.map((album) => {
                   const isExpanded = expandedAlbumId === album.id
                   const tracks = albumTrackMap[album.id] || []
-                  const cuts = album.totalTracks || tracks.length || 1
-                  const vis = album.visibility || 'PUBLIC'
-                  const visLabel =
-                    vis === 'UNLISTED'
-                      ? 'Unlisted'
-                      : vis === 'PRIVATE'
-                        ? 'Private'
-                        : 'Public'
-                  const visClass =
-                    vis === 'UNLISTED'
-                      ? 'border-info/40 bg-info-soft text-info'
-                      : vis === 'PRIVATE'
-                        ? 'border-destructive/40 bg-destructive-soft text-destructive'
-                        : 'border-border bg-background text-muted-foreground'
-                  const VisIcon =
-                    vis === 'UNLISTED' ? Link2 : vis === 'PRIVATE' ? Lock : Globe
-                  const isScheduled = album.status === 'SCHEDULED'
-                  const isDraft = album.status === 'DRAFT'
 
                   return (
-                    <div
+                    <ReleaseCard
                       key={album.id}
-                      className="border border-border bg-card rounded-control shadow-raised min-w-0"
-                    >
-                      <div className="flex items-start gap-3 p-3 sm:p-4 min-w-0">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-control border border-border bg-muted overflow-hidden shrink-0">
-                          {album.coverImageUrl ? (
-                            <img
-                              src={album.coverImageUrl}
-                              alt={album.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Disc3 className="w-5 h-5 text-muted-foreground/40" />
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background text-primary font-semibold rounded-control shrink-0">
-                              {album.albumType}
-                            </span>
-
-                            <div className="relative shrink-0">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setVisibilityMenuId((cur) =>
-                                    cur === album.id ? null : album.id,
-                                  )
-                                }
-                                className={`font-eyebrow text-eyebrow uppercase tracking-wider pl-1.5 pr-1 py-0.5 border rounded-control flex items-center gap-1 cursor-pointer transition-colors ${visClass}`}
-                                title="Change release visibility"
-                                aria-haspopup="menu"
-                                aria-expanded={visibilityMenuId === album.id}
-                              >
-                                <VisIcon className="w-3 h-3 shrink-0" />
-                                <span>{visLabel}</span>
-                                <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
-                              </button>
-
-                              {visibilityMenuId === album.id && (
-                                <>
-                                  <button
-                                    type="button"
-                                    tabIndex={-1}
-                                    aria-hidden="true"
-                                    onClick={() => setVisibilityMenuId(null)}
-                                    className="fixed inset-0 z-40 cursor-default"
-                                  />
-                                  <div
-                                    role="menu"
-                                    className="absolute left-0 top-full mt-1 z-50 w-40 bg-card border border-border rounded-control shadow-floating p-1"
-                                  >
-                                    <button
-                                      type="button"
-                                      role="menuitem"
-                                      onClick={() => {
-                                        setVisibilityMenuId(null)
-                                        handleQuickChangeVisibility(
-                                          album,
-                                          'PUBLIC',
-                                        )
-                                      }}
-                                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
-                                    >
-                                      <Globe className="w-3 h-3 shrink-0" />
-                                      <span className="flex-1">Public</span>
-                                      {vis === 'PUBLIC' && (
-                                        <Check className="w-3 h-3 shrink-0 text-primary" />
-                                      )}
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      role="menuitem"
-                                      onClick={() => {
-                                        setVisibilityMenuId(null)
-                                        handleQuickChangeVisibility(
-                                          album,
-                                          'UNLISTED',
-                                        )
-                                      }}
-                                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
-                                    >
-                                      <Link2 className="w-3 h-3 shrink-0" />
-                                      <span className="flex-1">Unlisted</span>
-                                      {vis === 'UNLISTED' && (
-                                        <Check className="w-3 h-3 shrink-0 text-primary" />
-                                      )}
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      role="menuitem"
-                                      onClick={() => {
-                                        setVisibilityMenuId(null)
-                                        handleQuickChangeVisibility(
-                                          album,
-                                          'PRIVATE',
-                                        )
-                                      }}
-                                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
-                                    >
-                                      <Lock className="w-3 h-3 shrink-0" />
-                                      <span className="flex-1">Private</span>
-                                      {vis === 'PRIVATE' && (
-                                        <Check className="w-3 h-3 shrink-0 text-primary" />
-                                      )}
-                                    </button>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          <MarqueeText
-                            className="min-w-0 w-full"
-                            innerClassName="font-serif italic text-title sm:text-lg font-semibold text-foreground"
-                          >
-                            {album.title}
-                          </MarqueeText>
-
-                          <div className="font-mono text-eyebrow text-muted-foreground flex items-center flex-wrap gap-x-1.5 gap-y-0.5">
-                            <span>{cuts} cuts</span>
-                            <span aria-hidden="true">·</span>
-                            <span>
-                              {formatDuration(album.totalDurationSeconds)}
-                            </span>
-                            <span aria-hidden="true">·</span>
-                            <span>{album.likesCount} likes</span>
-                            {isScheduled && (album.preSavesCount ?? 0) > 0 && (
-                              <>
-                                <span aria-hidden="true">·</span>
-                                <span>{album.preSavesCount} pre-saves</span>
-                              </>
-                            )}
-                          </div>
-
-                          <div className="font-eyebrow text-eyebrow uppercase tracking-wider flex items-center gap-1.5 min-w-0">
-                            {isScheduled ? (
-                              <>
-                                <Calendar className="w-3 h-3 shrink-0 text-warning" />
-                                <span className="truncate text-warning">
-                                  Scheduled ·{' '}
-                                  {album.scheduledReleaseAt
-                                    ? new Date(
-                                        album.scheduledReleaseAt,
-                                      ).toLocaleDateString(undefined, {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : 'Upcoming'}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                    isDraft ? 'bg-muted-foreground' : 'bg-success'
-                                  }`}
-                                />
-                                <span
-                                  className={`truncate ${
-                                    isDraft
-                                      ? 'text-muted-foreground'
-                                      : 'text-success'
-                                  }`}
-                                >
-                                  {isDraft
-                                    ? 'Draft'
-                                    : `Published · ${
-                                        album.releaseDate
-                                          ? new Date(
-                                              album.releaseDate,
-                                            ).toLocaleDateString(undefined, {
-                                              month: 'short',
-                                              day: 'numeric',
-                                              year: 'numeric',
-                                            })
-                                          : 'Recent'
-                                      }`}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-1.5 border-t border-border-soft px-3 sm:px-4 py-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeleteAlbum(album.id, album.title, cuts)
-                          }
-                          className="p-2 border border-border bg-background text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
-                          title="Move to 30-Day Trash"
-                          aria-label={`Move ${album.title} to 30-Day Trash`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-
-                        {vis === 'UNLISTED' && album.shareToken && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
-                              navigator.clipboard.writeText(shareUrl)
-                              setSuccessNotice(
-                                `Copied secret share link for "${album.title}"!`,
-                              )
-                            }}
-                            className="p-2 border border-info/40 bg-info-soft text-info hover:bg-info/20 rounded-control cursor-pointer transition-colors"
-                            title="Copy secret share link"
-                            aria-label={`Copy secret share link for ${album.title}`}
-                          >
-                            <Link2 className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        <Link
-                          to="/albums/$idOrSlug"
-                          params={{ idOrSlug: album.slug }}
-                          search={
-                            album.shareToken
-                              ? { shareToken: album.shareToken }
-                              : {}
-                          }
-                          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors rounded-control flex items-center justify-center"
-                          title="View release in catalog"
-                          aria-label={`View ${album.title} in catalog`}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEditModal(album)}
-                          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer rounded-control"
-                          title="Edit release details"
-                          aria-label={`Edit ${album.title}`}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleToggleAlbumExpand(album.id)}
-                          className={`p-2 border rounded-control cursor-pointer transition-colors ${
-                            isExpanded
-                              ? 'border-foreground bg-muted text-foreground'
-                              : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                          }`}
-                          title={
-                            isExpanded
-                              ? `Hide ${cuts} cuts`
-                              : `Show ${cuts} cuts`
-                          }
-                          aria-label={
-                            isExpanded
-                              ? `Hide the ${cuts} cuts in ${album.title}`
-                              : `Show the ${cuts} cuts in ${album.title}`
-                          }
-                          aria-expanded={isExpanded}
-                        >
-                          <ListMusic className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="border-t border-border-soft px-3 sm:px-4 py-2.5 space-y-2">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
-                            Master Cuts ({tracks.length})
-                          </span>
-
-                          {isLoadingAlbumTracks && tracks.length === 0 ? (
-                            <div className="font-mono text-caption text-muted-foreground animate-pulse">
-                              Loading cuts...
-                            </div>
-                          ) : tracks.length === 0 ? (
-                            <div className="font-sans text-caption text-muted-foreground italic">
-                              No cuts in this release yet.
-                            </div>
-                          ) : (
-                            <div className="border border-border-soft bg-background rounded-control divide-y divide-border-soft overflow-hidden">
-                              {tracks.map((track, i) => (
-                                <div
-                                  key={track.id}
-                                  className="flex items-center gap-2.5 px-2.5 py-2 text-caption min-w-0"
-                                >
-                                  <span className="font-mono text-eyebrow text-muted-foreground w-5 shrink-0 text-right">
-                                    {String(
-                                      track.trackNumber || i + 1,
-                                    ).padStart(2, '0')}
-                                  </span>
-
-                                  <div className="min-w-0 flex-1">
-                                    <MarqueeText
-                                      className="min-w-0 w-full"
-                                      innerClassName="font-sans text-caption font-medium text-foreground"
-                                    >
-                                      {track.title}
-                                    </MarqueeText>
-                                  </div>
-
-                                  {track.isExplicit && (
-                                    <span className="font-mono text-eyebrow px-1 border border-border text-muted-foreground rounded-control shrink-0">
-                                      E
-                                    </span>
-                                  )}
-
-                                  <span className="font-mono text-eyebrow text-muted-foreground shrink-0">
-                                    {formatDuration(track.durationSeconds)}
-                                  </span>
-
-                                  {album.albumType !== 'SINGLE' && (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleOpenDetachModal(track, album)
-                                      }
-                                      className="p-1.5 border border-border-soft bg-card hover:border-foreground text-muted-foreground hover:text-foreground cursor-pointer rounded-control shrink-0"
-                                      title="Detach cut into a standalone single"
-                                      aria-label={`Detach ${track.title} into a standalone single`}
-                                    >
-                                      <Scissors className="w-3.5 h-3.5 shrink-0" />
-                                    </button>
-                                  )}
-
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleDeleteSong(
-                                        track.id,
-                                        track.title,
-                                        album.id,
-                                        tracks.length,
-                                      )
-                                    }
-                                    className="p-1.5 text-muted-foreground hover:text-destructive cursor-pointer rounded-control shrink-0"
-                                    title="Move cut to 30-Day Trash"
-                                    aria-label={`Move ${track.title} to trash`}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                      album={album}
+                      tracks={tracks}
+                      isLoadingTracks={isLoadingAlbumTracks}
+                      isExpanded={isExpanded}
+                      isVisibilityMenuOpen={visibilityMenuId === album.id}
+                      onToggleVisibilityMenu={() =>
+                        setVisibilityMenuId((cur) =>
+                          cur === album.id ? null : album.id,
+                        )
+                      }
+                      onCloseVisibilityMenu={() => setVisibilityMenuId(null)}
+                      onChangeVisibility={(nextVisibility) =>
+                        handleQuickChangeVisibility(album, nextVisibility)
+                      }
+                      onToggleExpand={() => handleToggleAlbumExpand(album.id)}
+                      onCopySecretLink={() => {
+                        const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
+                        navigator.clipboard.writeText(shareUrl)
+                        setSuccessNotice(
+                          `Copied secret share link for "${album.title}"!`,
+                        )
+                      }}
+                      onEdit={() => handleOpenEditModal(album)}
+                      onDelete={() =>
+                        handleDeleteAlbum(
+                          album.id,
+                          album.title,
+                          album.totalTracks || tracks.length || 1,
+                        )
+                      }
+                      onDetachCut={(track) => handleOpenDetachModal(track, album)}
+                      onDeleteCut={(track) =>
+                        handleDeleteSong(
+                          track.id,
+                          track.title,
+                          album.id,
+                          tracks.length,
+                        )
+                      }
+                    />
                   )
                 })}
               </div>
@@ -5576,134 +5175,22 @@ function StudioComponent() {
 
       {/* Soft Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
-            <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
-                <Trash2 className="w-4 h-4 shrink-0" />
-              </div>
-              <div>
-                <h4 className="font-serif italic text-lg text-foreground font-normal">
-                  {deleteConfirm.type === 'album'
-                    ? 'Move Release to Trash?'
-                    : 'Move Master Track to Trash?'}
-                </h4>
-                <p className="font-sans text-caption text-muted-foreground mt-1 leading-relaxed">
-                  {deleteConfirm.type === 'album' ? (
-                    <>
-                      Are you sure you want to move{' '}
-                      <strong className="text-foreground font-semibold">
-                        "{deleteConfirm.title}"
-                      </strong>{' '}
-                      and its {deleteConfirm.trackCount || 'associated'} cut(s)
-                      to the 30-day trash? You can restore it anytime within 30
-                      days.
-                    </>
-                  ) : (
-                    <>
-                      Are you sure you want to move{' '}
-                      <strong className="text-foreground font-semibold">
-                        "{deleteConfirm.title}"
-                      </strong>{' '}
-                      to the 30-day trash?
-                      {deleteConfirm.trackCount === 1 ? (
-                        <span className="block text-foreground font-medium mt-1">
-                          Since this is the only cut in this release, the parent
-                          release will also be moved to the 30-day trash.
-                        </span>
-                      ) : (
-                        <span className="block text-muted-foreground mt-1">
-                          You can restore it anytime within 30 days.
-                        </span>
-                      )}
-                    </>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                disabled={isDeletingItem}
-                onClick={() => setDeleteConfirm(null)}
-                className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingItem}
-                onClick={confirmSoftDelete}
-                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs"
-              >
-                {isDeletingItem ? 'Moving...' : 'Move to Trash'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmSoftDeleteModal
+          request={deleteConfirm}
+          isDeleting={isDeletingItem}
+          onCancel={() => setDeleteConfirm(null)}
+          onConfirm={confirmSoftDelete}
+        />
       )}
 
       {/* Permanent Delete / Empty Trash Confirmation Modal */}
       {trashConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
-          <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
-            <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
-                <Trash2 className="w-4 h-4 shrink-0" />
-              </div>
-              <div>
-                <h4 className="font-serif italic text-lg text-foreground font-normal">
-                  {trashConfirm.type === 'empty'
-                    ? 'Empty Studio Trash?'
-                    : trashConfirm.type === 'permanent_release'
-                      ? 'Permanently Delete Release?'
-                      : 'Permanently Delete Master Cut?'}
-                </h4>
-                <p className="font-sans text-caption text-muted-foreground mt-1 leading-relaxed">
-                  {trashConfirm.type === 'empty'
-                    ? 'Are you sure you want to permanently delete all items in the studio trash? All associated master audio recordings and artwork will be permanently purged from cloud storage. This action cannot be undone.'
-                    : trashConfirm.type === 'permanent_release'
-                      ? `Are you sure you want to permanently delete "${trashConfirm.title}" and all its audio files and artwork? This action cannot be undone.`
-                      : `Are you sure you want to permanently delete "${trashConfirm.title}"? Master audio will be purged from storage. This action cannot be undone.`}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                disabled={isPurging}
-                onClick={() => setTrashConfirm(null)}
-                className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isPurging}
-                onClick={() => {
-                  if (trashConfirm.type === 'empty') {
-                    handleEmptyTrash()
-                  } else if (
-                    trashConfirm.type === 'permanent_release' &&
-                    trashConfirm.id
-                  ) {
-                    handlePermanentDeleteAlbum(trashConfirm.id)
-                  } else if (
-                    trashConfirm.type === 'permanent_song' &&
-                    trashConfirm.id
-                  ) {
-                    handlePermanentDeleteSong(trashConfirm.id)
-                  }
-                }}
-                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs"
-              >
-                {isPurging ? 'Deleting...' : 'Delete Forever'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmPurgeModal
+          request={trashConfirm}
+          isPurging={isPurging}
+          onCancel={() => setTrashConfirm(null)}
+          onConfirm={confirmPurge}
+        />
       )}
 
       {/* Banner Crop Modal */}
