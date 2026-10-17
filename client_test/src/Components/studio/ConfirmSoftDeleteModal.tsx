@@ -19,7 +19,7 @@ export function ConfirmSoftDeleteModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">
       <div className="w-full max-w-md border border-border bg-background p-6 shadow-2xl space-y-4 rounded-control">
         <div className="flex items-start gap-3.5">
-          <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0">
+          <div className="w-9 h-9 border border-border bg-card flex items-center justify-center text-destructive shrink-0 rounded-control">
             <Trash2 className="w-4 h-4 shrink-0" />
           </div>
           <div>
@@ -66,8 +66,8 @@ export function ConfirmSoftDeleteModal({
           <button
             type="button"
             disabled={isDeleting}
-            onClick={() => onCancel}
-            className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer"
+            onClick={onCancel}
+            className="font-eyebrow text-caption uppercase tracking-wider px-3.5 py-2 border border-border text-muted-foreground hover:text-foreground bg-card transition-colors cursor-pointer rounded-control"
           >
             Cancel
           </button>
@@ -75,7 +75,7 @@ export function ConfirmSoftDeleteModal({
             type="button"
             disabled={isDeleting}
             onClick={onConfirm}
-            className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs"
+            className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors cursor-pointer font-semibold shadow-xs rounded-control"
           >
             {isDeleting ? 'Moving...' : 'Move to Trash'}
           </button>
