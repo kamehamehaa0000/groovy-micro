@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { artistProfiles, playlists } from '../../db/schema'
 import { StorageService } from './storage.service'
-import { requireAuth } from '../auth'
+import { requireAuth, resolveUserRole } from '../auth'
 import type { UploadCategory } from './storage.presets'
 import {
   presignedUrlSchema,
@@ -487,6 +487,11 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
         parseResult.data
       const user = request.user
 
+      // The token claim can lag behind a promotion, so artist upload gates resolve the
+      // role from the database rather than trusting it (a read: owning an artist
+      // profile is what makes someone an artist). Cheap for listeners, free otherwise.
+      const role = await resolveUserRole(user.id, user.role)
+
       // Domain-specific authorization rules
       switch (category as UploadCategory) {
         case 'USER_AVATAR':
@@ -503,7 +508,7 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
         case 'ARTIST_AVATAR':
         case 'ARTIST_BANNER':
         case 'ARTIST_VERIFICATION_DOC': {
-          if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {
+          if (role !== 'ARTIST' && role !== 'ADMIN') {
             return reply.status(403).send({
               statusCode: 403,
               error: 'Forbidden',
@@ -511,7 +516,7 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
             })
           }
 
-          if (user.role === 'ARTIST') {
+          if (role === 'ARTIST') {
             const [profile] = await db
               .select({ id: artistProfiles.id })
               .from(artistProfiles)
@@ -532,7 +537,7 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
         case 'ALBUM_COVER':
         case 'SONG_AUDIO_RAW': {
           // Both verified artists and standard users (via personal locker quota) are authorized
-          if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {
+          if (role !== 'ARTIST' && role !== 'ADMIN') {
             if (category === 'SONG_AUDIO_RAW') {
               const quota = await storageService.getLockerQuota(user.id)
               if (quota.remainingSongs <= 0) {
@@ -549,7 +554,7 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         case 'SONG_LYRICS': {
-          if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {
+          if (role !== 'ARTIST' && role !== 'ADMIN') {
             return reply.status(403).send({
               statusCode: 403,
               error: 'Forbidden',

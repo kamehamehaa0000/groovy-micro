@@ -967,12 +967,13 @@ export class AuthService {
       throw this.fastify.httpErrors.notFound('User not found')
     }
 
-    let effectiveRole = user.role
-    if (user.artistProfileId && user.role === 'LISTENER') {
-      effectiveRole = 'ARTIST'
-      // Auto-heal role in database if out-of-sync
-      await db.update(users).set({ role: 'ARTIST' }).where(eq(users.id, userId))
-    }
+    // A user who owns an artist profile is an artist, whatever a lagging role column
+    // says. Reporting the effective role keeps this endpoint a pure read: the column
+    // is maintained by createArtistProfile (transactionally) and the backfill script,
+    // and authorization resolves the profile directly (see resolveUserRole), so no
+    // GET needs to repair it as a side effect.
+    const effectiveRole =
+      user.artistProfileId && user.role === 'LISTENER' ? 'ARTIST' : user.role
 
     return {
       id: user.id,

@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { eq } from 'drizzle-orm'
 import { db } from '../../db'
-import { users } from '../../db/schema'
+import { users, artistProfiles } from '../../db/schema'
 import { redis } from '../../index'
 import type {
   AccessTokenPayload,
@@ -117,6 +117,46 @@ export async function requireAuth(
 }
 
 /**
+ * Resolves the role a user should be authorized as, reading the database rather than
+ * trusting a token claim that may predate a promotion.
+ *
+ * `users.role` is a denormalized view of "this account owns an artist profile", so a
+ * column that lags behind must never lock an artist out of their own studio: when the
+ * stored role is LISTENER, the profile decides. Resolving the fact here is what lets
+ * the GET endpoints report an effective role without repairing the column as a side
+ * effect.
+ */
+export async function resolveUserRole(
+  userId: string,
+  storedRole?: UserRole | null,
+): Promise<UserRole | null> {
+  let role = storedRole ?? null
+
+  if (!role) {
+    const [row] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    role = row?.role ?? null
+  }
+
+  if (role && role !== 'LISTENER') {
+    return role
+  }
+
+  // Only a listener can be hidden behind a promotion, so this extra lookup stays rare.
+  const [profile] = await db
+    .select({ id: artistProfiles.id })
+    .from(artistProfiles)
+    .where(eq(artistProfiles.userId, userId))
+    .limit(1)
+
+  return profile ? 'ARTIST' : role
+}
+
+/**
  * PreHandler Guard: Enforces Role-Based Access Control (RBAC).
  * Must be used in combination with requireAuth.
  *
@@ -139,15 +179,13 @@ export function requireRole(...allowedRoles: UserRole[]) {
       return
     }
 
-    // Role might have been upgraded dynamically (e.g. LISTENER -> ARTIST)
-    const [freshUser] = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, request.user.id))
-      .limit(1)
+    // The claim can be stale (a promotion does not invalidate access tokens), so
+    // resolve the role from the database, treating a profile owner as an artist even
+    // if the stored role lags behind.
+    const freshRole = await resolveUserRole(request.user.id, request.user.role)
 
-    if (freshUser && allowedRoles.includes(freshUser.role)) {
-      request.user.role = freshUser.role
+    if (freshRole && allowedRoles.includes(freshRole)) {
+      request.user.role = freshRole
       return
     }
 

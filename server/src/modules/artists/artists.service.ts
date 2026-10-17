@@ -347,12 +347,9 @@ export class ArtistsService {
       return null;
     }
 
-    // Auto-heal user role if out-of-sync
-    await db
-      .update(users)
-      .set({ role: "ARTIST" })
-      .where(and(eq(users.id, userId), eq(users.role, "LISTENER")));
-
+    // Read-only: owning a profile is what makes someone an artist, and authorization
+    // resolves that fact directly (see resolveUserRole), so this GET no longer
+    // repairs the denormalized users.role column as a side effect.
     const [followerCountRes] = await db
       .select({ total: count() })
       .from(artistFollowers)

@@ -4,6 +4,7 @@ import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLike
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
 import { ArtistsService } from "../artists/artists.service";
+import { backfillArtistRoles } from "../../../scripts/backfill-artist-roles";
 import { executePublishRelease, closeReleaseQueue } from "./catalog.queue";
 
 async function createTestArtistUser(name: string, stageName: string) {
@@ -510,6 +511,83 @@ async function runCatalogTests() {
     }
     console.log(
       "   ✅ Overview answers 200 with a null artist for an account without a profile"
+    );
+
+    // A drifted account - the profile exists but the role column, and the token claim
+    // minted from it, still say LISTENER - must reach its studio, because owning a
+    // profile is what makes someone an artist.
+    await db
+      .update(users)
+      .set({ role: "LISTENER" })
+      .where(eq(users.id, artistA.user.id));
+
+    const staleTokens = await new AuthService(app).issueTokenPair({
+      id: artistA.user.id,
+      email: artistA.user.email,
+      role: "LISTENER",
+      tokenVersion: artistA.user.tokenVersion,
+    });
+
+    const driftOverviewRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/studio/overview",
+      headers: { authorization: `Bearer ${staleTokens.accessToken}` },
+    });
+    if (driftOverviewRes.statusCode !== 200) {
+      throw new Error(
+        `Expected a drifted artist to still reach the studio, got ${driftOverviewRes.statusCode} ${driftOverviewRes.body}`
+      );
+    }
+
+    const driftMeRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/auth/me",
+      headers: { authorization: `Bearer ${staleTokens.accessToken}` },
+    });
+    const driftMe = JSON.parse(driftMeRes.body);
+    if (driftMeRes.statusCode !== 200 || driftMe.user?.role !== "ARTIST") {
+      throw new Error(
+        `Expected GET /auth/me to report the effective ARTIST role, got ${driftMeRes.statusCode} ${driftMeRes.body}`
+      );
+    }
+
+    // ...but reading must not repair the column: that side effect is what made these
+    // endpoints impossible to cache.
+    const [afterReads] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, artistA.user.id))
+      .limit(1);
+    if (afterReads?.role !== "LISTENER") {
+      throw new Error(
+        `A GET repaired the role column (now ${afterReads?.role}); reads must stay read-only`
+      );
+    }
+    console.log(
+      "   ✅ Drifted artist reaches the studio and /auth/me reports the effective role without writing"
+    );
+
+    // The one-time backfill is what puts the column back in agreement, and it is safe
+    // to re-run.
+    const promoted = await backfillArtistRoles();
+    if (promoted.length !== 1 || promoted[0].id !== artistA.user.id) {
+      throw new Error(
+        `Expected the backfill to promote exactly the drifted account, got ${JSON.stringify(promoted)}`
+      );
+    }
+    const secondRun = await backfillArtistRoles();
+    const [afterBackfill] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, artistA.user.id))
+      .limit(1);
+    if (secondRun.length !== 0 || afterBackfill?.role !== "ARTIST") {
+      throw new Error(
+        `Backfill was not idempotent or did not promote: ${JSON.stringify(secondRun)} / ${afterBackfill?.role}`
+      );
+    }
+    console.log(
+      "   ✅ Backfill promotes the drifted account and is idempotent when re-run"
     );
 
     // Restore album
