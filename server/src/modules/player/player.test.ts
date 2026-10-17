@@ -13,7 +13,7 @@ async function runTests() {
   const password = "TestPassword123!";
   let userId = "";
   let testSongId = "";
-  let originalPlaysCount = 0;
+  let testArtistId = "";
 
   try {
     // 1. Register test user
@@ -45,32 +45,35 @@ async function runTests() {
     const accessToken = tokenPair.accessToken;
     console.log("   ✅ User registered. ID:", userId);
 
-    // Find or create a test song
-    let [testSong] = await db.select().from(songs).limit(1);
-  if (!testSong) {
-    // Create an artist and song for testing
-    const [artist] = await db
+    // Create our own song instead of borrowing one from the catalog. The recently
+    // played list only returns GLOBAL songs plus the caller's own PERSONAL uploads,
+    // so a song picked at random may belong to someone else's locker and would be
+    // filtered out of the very history this test asserts on.
+    const [testArtist] = await db
       .insert(artistProfiles)
       .values({
-        userId,
+        ownerUserId: userId,
+        userId: null,
+        scope: "PERSONAL",
         stageName: "Telemetry Artist",
         slug: `telemetry-artist-${Date.now()}`,
       })
       .returning();
+    testArtistId = testArtist.id;
 
-    [testSong] = await db
+    const [testSong] = await db
       .insert(songs)
       .values({
-        artistId: artist.id,
+        artistId: testArtist.id,
+        scope: "PERSONAL",
+        uploaderUserId: userId,
         title: "Test Track One",
         slug: `test-track-one-${Date.now()}`,
         durationSeconds: 180,
       })
       .returning();
-  }
-  testSongId = testSong.id;
-  originalPlaysCount = Number(testSong.playsCount || 0);
-  console.log("   ✅ Using test song:", testSong.id, testSong.title);
+    testSongId = testSong.id;
+    console.log("   ✅ Created a personal test song:", testSong.id, testSong.title);
 
   // 2. Test Device A Heartbeat (Start Playback)
   console.log("\n2️⃣ Device A sends playback heartbeat...");
@@ -239,6 +242,15 @@ async function runTests() {
   console.log("\n🎉 ALL PLAYER HEARTBEAT, TAKEOVER & TELEMETRY TESTS PASSED!\n");
   } finally {
     console.log("🧹 Cleaning up player test records...");
+    if (testSongId) {
+      // The song is ours, so there is no shared plays counter to restore: deleting the
+      // row (which clears its listening-history rows via cascade) is the whole cleanup.
+      await db.delete(songs).where(eq(songs.id, testSongId));
+      await redis.del(`groovy:telemetry:song_plays:${testSongId}`);
+    }
+    if (testArtistId) {
+      await db.delete(artistProfiles).where(eq(artistProfiles.id, testArtistId));
+    }
     if (userId) {
       await db.delete(listeningHistory).where(eq(listeningHistory.userId, userId));
       await db.delete(outboxEvents).where(eq(outboxEvents.aggregateId, userId));
@@ -249,10 +261,6 @@ async function runTests() {
         `groovy:player:state:${userId}`,
         `groovy:player:history:${userId}`
       );
-    }
-    if (testSongId) {
-      await db.update(songs).set({ playsCount: originalPlaysCount }).where(eq(songs.id, testSongId));
-      await redis.del(`groovy:telemetry:song_plays:${testSongId}`);
     }
     await app.close();
     await redis.quit();
