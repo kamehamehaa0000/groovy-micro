@@ -3498,6 +3498,18 @@ function StudioComponent() {
                       </div>
 
                       <div className="flex items-center justify-end gap-1.5 border-t border-border-soft px-3 sm:px-4 py-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteAlbum(album.id, album.title, cuts)
+                          }
+                          className="p-2 border border-border bg-background text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
+                          title="Move to 30-Day Trash"
+                          aria-label={`Move ${album.title} to 30-Day Trash`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
                         {vis === 'UNLISTED' && album.shareToken && (
                           <button
                             type="button"
@@ -3539,18 +3551,6 @@ function StudioComponent() {
                           aria-label={`Edit ${album.title}`}
                         >
                           <Pencil className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeleteAlbum(album.id, album.title, cuts)
-                          }
-                          className="p-2 border border-border bg-background text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
-                          title="Move to 30-Day Trash"
-                          aria-label={`Move ${album.title} to 30-Day Trash`}
-                        >
-                          <Trash2 className="w-4 h-4" />
                         </button>
 
                         <button
