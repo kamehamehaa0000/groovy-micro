@@ -21,4 +21,15 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      '@tanstack/react-router',
+      '@tanstack/react-query',
+      'zustand',
+      'lucide-react',
+    ],
+  },
 })

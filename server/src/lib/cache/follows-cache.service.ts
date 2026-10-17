@@ -4,6 +4,7 @@ import { redis } from "../../db/redis";
 import { artistProfiles, artistFollowers } from "../../db/schema";
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
+import { removePinForUser } from "../library-pins";
 
 const EMPTY_SENTINEL = "__EMPTY__";
 const USER_FOLLOWS_TTL_SEC = 86400; // 24 hours
@@ -191,6 +192,9 @@ export class FollowsCacheService {
           eq(artistFollowers.artistId, artistId)
         )
       );
+
+    // Unfollowing an artist also drops the user's pin for them
+    await removePinForUser(userId, "ARTIST", artistId);
 
     // 2. Redis Set removal
     const key = cacheKeys.social.userFollowingArtists(userId);

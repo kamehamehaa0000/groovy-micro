@@ -60,6 +60,11 @@ export interface LibraryPayload {
   releases: LibraryRelease[];
   artists: LibraryArtist[];
   pins: LibraryPin[];
+  /**
+   * Maximum number of items the backend allows to be pinned. Authoritative —
+   * the client pre-check reads this instead of hard-coding the limit.
+   */
+  maxPins?: number;
 }
 
 export const libraryApi = {

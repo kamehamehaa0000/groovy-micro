@@ -202,6 +202,40 @@ function HomeComponent() {
   return (
     <div className="space-y-6 px-2 py-4 max-w-7xl mx-auto">
       {/* ------------------------------------------------------------ */}
+      {/* Initial Auth-Checking Skeleton (Prevents Blank Screen)        */}
+      {/* ------------------------------------------------------------ */}
+      {isAuthLoading && (
+        <div className="space-y-6 animate-pulse">
+          <section className="border border-border bg-card p-8 sm:p-12 shadow-xs relative overflow-hidden">
+            <div className="h-3 w-40 bg-muted rounded-control mb-4" />
+            <div className="h-10 sm:h-12 w-3/4 max-w-xl bg-muted rounded-control mb-4" />
+            <div className="h-4 w-full max-w-md bg-muted rounded-control mb-2" />
+            <div className="h-4 w-2/3 max-w-sm bg-muted rounded-control mb-8" />
+            <div className="flex gap-4">
+              <div className="h-11 w-44 bg-muted rounded-control" />
+              <div className="h-11 w-40 bg-muted rounded-control" />
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex justify-between border-b border-border pb-3">
+              <div className="h-6 w-48 bg-muted rounded-control" />
+              <div className="h-3 w-28 bg-muted rounded-control" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="aspect-square w-full bg-muted rounded-md" />
+                  <div className="h-3.5 w-3/4 bg-muted rounded-control" />
+                  <div className="h-3 w-1/2 bg-muted rounded-control" />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------ */}
       {/* Editorial Hero Section (Unauthenticated Visitors)             */}
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (

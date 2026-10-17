@@ -14,6 +14,7 @@ import {
   type Playlist,
 } from "../../db/schema";
 import { playlistsCacheService, likesCacheService, cacheKeys, cacheManager, EMPTY_SENTINEL } from "../../lib/cache";
+import { removePinsForItem } from "../../lib/library-pins";
 import type {
   CreatePlaylistInput,
   UpdatePlaylistInput,
@@ -749,6 +750,8 @@ export class PlaylistsService {
 
     await playlistsCacheService.cleanupUserSavedPlaylists(playlistId);
     await db.delete(playlists).where(eq(playlists.id, playlistId));
+    // Drop any pins pointing at the now-deleted playlist, for every user.
+    await removePinsForItem("PLAYLIST", playlistId);
     await playlistsCacheService.invalidatePlaylistCache(playlistId);
   }
 

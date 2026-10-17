@@ -18,6 +18,12 @@ interface LibraryPreferences {
   activeSort: LibrarySortType;
 }
 
+/**
+ * Fallback pin limit used only when the backend payload does not include
+ * `maxPins`. Keep in sync with `MAX_LIBRARY_PINS` in the server library service.
+ */
+const DEFAULT_MAX_LIBRARY_PINS = 6;
+
 interface LibraryStoreState extends LibraryPreferences {
   activeFilter: LibraryFilterType;
   searchQuery: string;
@@ -233,11 +239,13 @@ export const useLibraryStore = create<LibraryStoreState>()(
           (p) => p.itemType === itemType && p.itemId === itemId
         );
 
-        if (!isCurrentlyPinned && payload.pins.length >= 6) {
+        const maxPins = payload.maxPins ?? DEFAULT_MAX_LIBRARY_PINS;
+
+        if (!isCurrentlyPinned && payload.pins.length >= maxPins) {
           return {
             success: false,
             isPinned: false,
-            message: "You can only pin up to 6 items to the top of your library.",
+            message: `You can only pin up to ${maxPins} items to the top of your library.`,
           };
         }
 

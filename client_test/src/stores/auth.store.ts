@@ -69,10 +69,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     checkAuthPromise = (async () => {
       try {
         set({ isLoading: true });
-        // 1. Silent refresh via cookie
+        // 1. Silent refresh via cookie (with 3.5s timeout so cold/offline backend never stalls the UI)
         const refreshRes = await fetch("/api/v1/auth/refresh", {
           method: "POST",
           credentials: "include",
+          signal: AbortSignal.timeout(3500),
         });
 
         if (!refreshRes.ok) {
@@ -92,6 +93,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             "Content-Type": "application/json",
           },
           credentials: "include",
+          signal: AbortSignal.timeout(3500),
         });
 
         if (!meRes.ok) {

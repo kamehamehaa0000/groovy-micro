@@ -20,9 +20,9 @@ export function useGoogleFedCM(
     }
 
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-    // if (!clientId || clientId === 'your_google_client_id_here') {
-    //   return
-    // }
+    if (!clientId || clientId === 'your_google_client_id_here') {
+      return
+    }
 
     // Check if the browser natively supports FedCM
     const isFedCMSupported =

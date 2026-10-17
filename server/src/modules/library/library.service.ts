@@ -6,6 +6,7 @@ import {
   count,
   max,
   isNull,
+  inArray,
 } from "drizzle-orm";
 import { db } from "../../db";
 import {
@@ -22,6 +23,16 @@ import {
   userLibraryPins,
 } from "../../db/schema";
 import type { PinItemInput } from "./library.schemas";
+
+/**
+ * Maximum number of items a user may pin to the top of their library.
+ * Single source of truth for the limit — it is also returned to the client in
+ * `getUserLibrary` so the UI pre-check can never drift from the backend.
+ */
+export const MAX_LIBRARY_PINS = 6;
+
+/** Canonical limit message, shared by the route error and the client toast. */
+export const PIN_LIMIT_MESSAGE = `You can only pin up to ${MAX_LIBRARY_PINS} items to the top of your library.`;
 
 export class LibraryService {
   /**
@@ -274,7 +285,36 @@ export class LibraryService {
         : null,
     };
 
-    const pins = userPins.map((pin) => ({
+    // Prune pins whose target no longer exists in the user's library (e.g. an
+    // unpinned-on-delete playlist, an unliked album or an unfollowed artist).
+    // Stale rows would otherwise silently count against MAX_LIBRARY_PINS and
+    // block pinning well before the visible limit. This read-path prune also
+    // self-heals the table.
+    const validPinKeys = new Set<string>([
+      "LIKED_SONGS:LIKED_SONGS",
+      "PERSONAL_COLLECTION:PERSONAL_COLLECTION",
+      ...formattedPlaylists.map((p) => `PLAYLIST:${p.id}`),
+      ...formattedReleases.map((r) => `ALBUM:${r.id}`),
+      ...formattedArtists.map((a) => `ARTIST:${a.id}`),
+    ]);
+
+    const livePins = userPins.filter((pin) =>
+      validPinKeys.has(`${pin.itemType}:${pin.itemId}`)
+    );
+
+    if (livePins.length !== userPins.length) {
+      const stalePinIds = userPins
+        .filter((pin) => !validPinKeys.has(`${pin.itemType}:${pin.itemId}`))
+        .map((pin) => pin.id);
+      // Best-effort cleanup — a failure here must not break the library read.
+      db.delete(userLibraryPins)
+        .where(inArray(userLibraryPins.id, stalePinIds))
+        .catch((err) => {
+          console.error("[LibraryService] Failed to prune stale pins:", err);
+        });
+    }
+
+    const pins = livePins.map((pin) => ({
       id: pin.id,
       itemType: pin.itemType as
         | "LIKED_SONGS"
@@ -293,11 +333,12 @@ export class LibraryService {
       releases: formattedReleases,
       artists: formattedArtists,
       pins,
+      maxPins: MAX_LIBRARY_PINS,
     };
   }
 
   /**
-   * Pins an item to the top of user's library (Max 4 items).
+   * Pins an item to the top of user's library (max `MAX_LIBRARY_PINS` items).
    */
   async pinItem(userId: string, input: PinItemInput) {
     const existingPins = await db
@@ -317,10 +358,8 @@ export class LibraryService {
       return { success: true, message: "Item already pinned" };
     }
 
-    if (existingPins.length >= 6) {
-      const error: any = new Error(
-        "You can only pin up to 6 items to the top of your library"
-      );
+    if (existingPins.length >= MAX_LIBRARY_PINS) {
+      const error: any = new Error(PIN_LIMIT_MESSAGE);
       error.statusCode = 400;
       throw error;
     }

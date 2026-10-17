@@ -4,6 +4,7 @@ import { redis } from "../../db/redis";
 import { playlists, userLibraryPlaylists, playlistSongs } from "../../db/schema";
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
+import { removePinForUser } from "../library-pins";
 
 export const EMPTY_SENTINEL = "__EMPTY__";
 const USER_SAVED_PLAYLISTS_TTL_SEC = 86400; // 24 hours
@@ -161,6 +162,7 @@ export class PlaylistsCacheService {
     userId: string,
     playlistId: string
   ): Promise<{ saved: boolean; savesCount: number }> {
+    let removedSave = false;
     const updatedCount = await db.transaction(async (tx) => {
       const deleted = await tx
         .delete(userLibraryPlaylists)
@@ -173,6 +175,7 @@ export class PlaylistsCacheService {
         .returning();
 
       if (deleted.length > 0) {
+        removedSave = true;
         const [updated] = await tx
           .update(playlists)
           .set({
@@ -205,6 +208,11 @@ export class PlaylistsCacheService {
       await redis.expire(key, USER_SAVED_PLAYLISTS_TTL_SEC);
     } catch (err) {
       console.warn(`[PlaylistsCacheService] Redis SREM failed for ${key}:`, err);
+    }
+
+    // Unpinning a playlist the user no longer has saved
+    if (removedSave) {
+      await removePinForUser(userId, "PLAYLIST", playlistId);
     }
 
     // Invalidate playlist cache

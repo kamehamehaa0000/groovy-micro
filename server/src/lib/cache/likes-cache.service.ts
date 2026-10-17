@@ -5,6 +5,7 @@ import { songs, albums, songLikes, albumLikes, artistProfiles } from "../../db/s
 import { cacheKeys } from "./keys";
 import { cacheManager } from "./cache-manager";
 import { presavesCacheService } from "./presaves-cache.service";
+import { removePinForUser } from "../library-pins";
 
 const EMPTY_SENTINEL = "__EMPTY__";
 const USER_LIKES_TTL_SEC = 86400; // 24 hours
@@ -349,7 +350,7 @@ export class LikesCacheService {
     const likedSet = await this.getUserLikedAlbumIds(userId);
     const currentlyLiked = likedSet.has(albumId);
 
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       let finalLikesCount: number;
 
       if (currentlyLiked) {
@@ -404,6 +405,12 @@ export class LikesCacheService {
         likesCount: finalLikesCount,
       };
     });
+
+    if (currentlyLiked) {
+      await removePinForUser(userId, "ALBUM", albumId);
+    }
+
+    return result;
   }
 }
 

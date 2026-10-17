@@ -179,13 +179,13 @@ export function LibraryItemCard({
     );
   };
 
-  // 1. LIST VIEW (Swipe-right to Pin/Unpin, no three dots)
+  // 1. LIST VIEW (Swipe-right to Pin/Unpin on touch; hover-reveal Pin/Unpin on desktop)
   if (viewMode === "list") {
     const isPastThreshold = swipeOffset >= 60;
 
     return (
       <div
-        className="relative overflow-hidden rounded-xl select-none"
+        className="group relative overflow-hidden rounded-xl select-none"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -250,12 +250,36 @@ export function LibraryItemCard({
               </div>
             </div>
           </Link>
+
+          {/* Desktop hover Pin/Unpin (hidden on mobile — touch uses swipe) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handlePinToggle();
+            }}
+            title={item.isPinned ? "Unpin" : "Pin to top"}
+            aria-label={
+              item.isPinned
+                ? `Unpin ${item.title}`
+                : `Pin ${item.title} to top`
+            }
+            aria-pressed={item.isPinned}
+            className={`hidden md:flex items-center justify-center shrink-0 p-2 rounded-control cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 ${
+              item.isPinned
+                ? "text-success hover:bg-success-soft"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+            }`}
+          >
+            <PinIconSVG className="w-4 h-4" />
+          </button>
         </div>
       </div>
     );
   }
 
-  // 2. GRID / TILED VIEW (No pin/unpin/share options, pure clean card)
+  // 2. GRID / TILED VIEW (Desktop hover top-right Pin/Unpin; static pinned badge on mobile)
   return (
     <div className="group relative flex flex-col p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none">
       <Link to={item.linkTo} className="flex flex-col w-full">
@@ -263,14 +287,39 @@ export function LibraryItemCard({
         <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center">
           {renderArtwork("w-full h-full")}
 
+          {/* Mobile: static pinned indicator (touch has no hover) */}
           {item.isPinned && (
             <div
               title="Pinned to top"
-              className="absolute top-2 right-2 bg-card/90 backdrop-blur-md text-success p-1 rounded-full shadow-md border border-border/40"
+              className="md:hidden absolute top-2 right-2 bg-card/90 backdrop-blur-md text-success p-1 rounded-full shadow-md border border-border/40"
             >
               <PinIconSVG className="w-3 h-3" />
             </div>
           )}
+
+          {/* Desktop hover Pin/Unpin (hidden on mobile) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handlePinToggle();
+            }}
+            title={item.isPinned ? "Unpin" : "Pin to top"}
+            aria-label={
+              item.isPinned
+                ? `Unpin ${item.title}`
+                : `Pin ${item.title} to top`
+            }
+            aria-pressed={item.isPinned}
+            className={`hidden md:flex absolute top-2 right-2 z-20 items-center justify-center p-1.5 rounded-full bg-card/90 backdrop-blur-md border border-border/40 shadow-md cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 ${
+              item.isPinned
+                ? "text-success hover:bg-card"
+                : "text-muted-foreground hover:text-foreground hover:bg-card"
+            }`}
+          >
+            <PinIconSVG className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Text information */}
