@@ -2624,8 +2624,9 @@ export class CatalogService {
 
   /**
    * Single studio bootstrap payload: artist profile, active releases and trash
-   * tallies in one round trip. Returns null when the user has no artist profile
-   * yet, so the caller can answer 404 the same way GET /artists/me does.
+   * tallies in one round trip. An account without an artist profile gets the
+   * same shape with a null artist, so the studio can tell "nothing to show" from
+   * "the call failed" instead of reading a 404.
    */
   async getStudioOverview(userId: string) {
     const [artist] = await db
@@ -2635,7 +2636,10 @@ export class CatalogService {
       .limit(1);
 
     if (!artist) {
-      return null;
+      // No profile yet is a settled answer, not an error: the studio renders its
+      // "no artist profile" state from this instead of interpreting a 404, which
+      // lets the client tell "nothing to show" apart from "the call failed".
+      return { artist: null, albums: [], trashCounts: { albums: 0, songs: 0 } };
     }
 
     const [artistAlbums, trashCounts] = await Promise.all([

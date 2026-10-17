@@ -467,6 +467,51 @@ async function runCatalogTests() {
     }
     console.log("   ✅ Status 403 Forbidden: listeners cannot fetch the studio bundle");
 
+    // An artist/admin without a profile gets a settled 200 (null artist), not an
+    // error, so the studio can distinguish "nothing to show" from "call failed"
+    const [profileLess] = await db
+      .insert(users)
+      .values({
+        email: `cat_test_noprofile_${Date.now()}_${Math.random()
+          .toString(36)
+          .slice(2, 7)}@groovy.test`,
+        displayName: "No Profile Artist",
+        isEmailVerified: true,
+        role: "ARTIST",
+        isActive: true,
+        tokenVersion: 0,
+      })
+      .returning();
+    createdUserIds.push(profileLess.id);
+
+    const profileLessTokens = await new AuthService(app).issueTokenPair({
+      id: profileLess.id,
+      email: profileLess.email,
+      role: "ARTIST",
+      tokenVersion: profileLess.tokenVersion,
+    });
+
+    const noProfileRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/studio/overview",
+      headers: { authorization: `Bearer ${profileLessTokens.accessToken}` },
+    });
+    const noProfile = JSON.parse(noProfileRes.body);
+    if (
+      noProfileRes.statusCode !== 200 ||
+      noProfile.artist !== null ||
+      noProfile.albums.length !== 0 ||
+      noProfile.trashCounts.albums !== 0 ||
+      noProfile.trashCounts.songs !== 0
+    ) {
+      throw new Error(
+        `Expected a settled empty studio bundle for a profile-less artist, got ${noProfileRes.statusCode} ${noProfileRes.body}`
+      );
+    }
+    console.log(
+      "   ✅ Overview answers 200 with a null artist for an account without a profile"
+    );
+
     // Restore album
     const restoreAlbumRes = await app.inject({
       method: "POST",

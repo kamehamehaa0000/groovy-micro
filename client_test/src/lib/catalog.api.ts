@@ -27,9 +27,11 @@ export interface TrashCounts {
 
 /**
  * Single studio bootstrap payload: profile, active releases and trash tallies.
+ * `artist` is null when the account has no artist profile yet (a settled answer,
+ * not an error), so callers can tell "nothing to show" from "the call failed".
  */
 export interface StudioOverviewResponse {
-  artist: ArtistProfile;
+  artist: ArtistProfile | null;
   albums: Album[];
   trashCounts: TrashCounts;
 }

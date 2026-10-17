@@ -706,6 +706,8 @@ export const studioCatalogRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /overview
    * Single studio bootstrap payload: artist profile, active releases and trash
    * tallies, so opening the studio costs one request instead of two or three.
+   * An account without an artist profile gets the same payload with a null
+   * artist, which is an answer rather than an error.
    */
   fastify.get(
     "/overview",
@@ -715,15 +717,6 @@ export const studioCatalogRoutes: FastifyPluginAsync = async (fastify) => {
         const overview = await catalogService.getStudioOverview(
           request.user.id
         );
-
-        if (!overview) {
-          return reply.status(404).send({
-            statusCode: 404,
-            error: "Not Found",
-            message: "Artist profile not found",
-          });
-        }
-
         return reply.status(200).send(overview);
       } catch (err: any) {
         return reply.status(400).send({

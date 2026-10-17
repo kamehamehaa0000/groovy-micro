@@ -27,6 +27,12 @@ export const Route = createFileRoute('/studio')({
   component: StudioComponent,
 })
 
+// The studio bootstraps once and never refetches on tab switches, so a failed
+// first load retries a couple of times instead of stranding the page on the
+// "please refresh" state (enough to ride out an API restart or a cold start).
+const STUDIO_BOOTSTRAP_ATTEMPTS = 3
+const STUDIO_BOOTSTRAP_RETRY_MS = 1500
+
 function StudioComponent() {
   const navigate = useNavigate()
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
@@ -93,27 +99,33 @@ function StudioComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  // Bootstrap the studio. Artists get profile + releases + trash tallies in a
-  // single request; everyone else keeps the profile-only probe that drives the
-  // upgrade screen. An account whose role is stale but already owns a profile
-  // (healed server side by this very call) still gets its catalogue.
+  // Bootstrap the studio. Artists and admins get profile + releases + trash
+  // tallies in a single request; everyone else keeps the profile-only probe that
+  // drives the upgrade screen. An account whose role is stale but already owns a
+  // profile (healed server side by this very call) still gets its catalogue.
   useEffect(() => {
     if (!user) return
 
     setIsLoadingProfile(true)
 
-    if (user.role === 'ARTIST' || user.role === 'ADMIN') {
-      catalogApi
-        .getStudioOverview()
-        .then((overview) => {
-          setArtistProfile(overview.artist)
-          hydrate(overview.artist)
+    // Listeners keep the profile-only probe. A 404 there is the normal "no
+    // profile yet" answer, so it is a settled outcome rather than a failure.
+    if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {
+      artistsApi
+        .getMyProfile()
+        .then((profile) => {
+          setArtistProfile(profile)
+          hydrate(profile)
           hydrateContact(user.email)
-          setAlbums(overview.albums)
-          seedTrashCounts(overview.trashCounts)
+          return catalogApi
+            .getStudioReleases(false)
+            .then((res) => setAlbums(res.albums))
+            .catch(() => {
+              // Dashboard still renders; the releases tab falls back to empty
+            })
         })
         .catch((err) => {
-          console.warn('Could not load studio overview:', err)
+          console.warn('Could not load artist profile:', err)
           setArtistProfile(null)
         })
         .finally(() => {
@@ -122,26 +134,45 @@ function StudioComponent() {
       return
     }
 
-    artistsApi
-      .getMyProfile()
-      .then((profile) => {
-        setArtistProfile(profile)
-        hydrate(profile)
-        hydrateContact(user.email)
-        return catalogApi
-          .getStudioReleases(false)
-          .then((res) => setAlbums(res.albums))
-          .catch(() => {
-            // Dashboard still renders; the releases tab falls back to empty
-          })
-      })
-      .catch((err) => {
-        console.warn('Could not load artist profile:', err)
+    let cancelled = false
+    let retryTimer: ReturnType<typeof setTimeout> | undefined
+
+    const bootstrap = async (attempt: number) => {
+      try {
+        const overview = await catalogApi.getStudioOverview()
+        if (cancelled) return
+
+        // A null artist is settled, not a failure: this account has no profile yet
+        if (overview.artist) {
+          setArtistProfile(overview.artist)
+          hydrate(overview.artist)
+          hydrateContact(user.email)
+          setAlbums(overview.albums)
+          seedTrashCounts(overview.trashCounts)
+        } else {
+          setArtistProfile(null)
+        }
+      } catch (err) {
+        if (cancelled) return
+        console.warn('Could not load studio overview:', err)
+        if (attempt < STUDIO_BOOTSTRAP_ATTEMPTS) {
+          retryTimer = setTimeout(
+            () => bootstrap(attempt + 1),
+            STUDIO_BOOTSTRAP_RETRY_MS * attempt,
+          )
+          return
+        }
         setArtistProfile(null)
-      })
-      .finally(() => {
-        setIsLoadingProfile(false)
-      })
+      }
+      if (!cancelled) setIsLoadingProfile(false)
+    }
+
+    bootstrap(1)
+
+    return () => {
+      cancelled = true
+      if (retryTimer) clearTimeout(retryTimer)
+    }
   }, [user, hydrate, hydrateContact, setAlbums, seedTrashCounts])
 
   // Trash loads lazily on its first visit. The badge tally already arrived with
