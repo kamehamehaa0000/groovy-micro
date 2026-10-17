@@ -3,6 +3,7 @@ import { app, redis, bootstrap } from "../../index";
 import { client as pgClient, db } from "../../db";
 import { users, userSubscriptions, outboxEvents } from "../../db/schema";
 import { eq } from "drizzle-orm";
+import { cacheKeys } from "../../lib/cache";
 import type { RefreshTokenPayload } from "./auth.schemas";
 
 async function runTests() {
@@ -209,6 +210,60 @@ async function runTests() {
   console.log("   ✅ User Identity:", meData.user.displayName, `(${meData.user.email})`);
   console.log("   ✅ Active Subscription Plan:", meData.user.subscription.planId);
   console.log("   ✅ Plan Features:", JSON.stringify(meData.user.plan.features), "\n");
+
+  // --- TEST 7b: Self profile caching + invalidation on a profile write ---
+  console.log("7️⃣b Testing /auth/me caching and invalidation on profile write...");
+  const selfProfileKey = cacheKeys.profile.self(meData.user.id);
+  if (!(await redis.get(selfProfileKey))) {
+    throw new Error(`Expected GET /auth/me to be cached under '${selfProfileKey}'`);
+  }
+
+  // A cache hit must carry the same wire payload, timestamps included, so the
+  // rehydrated copy cannot drift from the freshly read one.
+  const meCachedRes = await app.inject({
+    method: "GET",
+    url: "/api/v1/auth/me",
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  const meCached = JSON.parse(meCachedRes.body);
+  if (
+    meCachedRes.statusCode !== 200 ||
+    meCached.user.createdAt !== meData.user.createdAt ||
+    meCached.user.subscription?.currentPeriodEnd !==
+      meData.user.subscription?.currentPeriodEnd ||
+    meCached.user.artistProfile?.id !== meData.user.artistProfile?.id
+  ) {
+    throw new Error(
+      `Cached /auth/me payload differs from the uncached one: ${meCachedRes.body}`
+    );
+  }
+  console.log("   ✅ Cache hit served a wire-identical payload (timestamps included)");
+
+  const patchProfileRes = await app.inject({
+    method: "PATCH",
+    url: "/api/v1/users/profile",
+    headers: { authorization: `Bearer ${accessToken}` },
+    payload: { displayName: "Cache Invalidated" },
+  });
+  if (patchProfileRes.statusCode !== 200) {
+    throw new Error(`Profile update failed: ${patchProfileRes.body}`);
+  }
+  if (await redis.get(selfProfileKey)) {
+    throw new Error("PATCH /users/profile left the cached /auth/me payload stale");
+  }
+
+  const meAfterPatchRes = await app.inject({
+    method: "GET",
+    url: "/api/v1/auth/me",
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  const meAfterPatch = JSON.parse(meAfterPatchRes.body);
+  if (meAfterPatch.user?.displayName !== "Cache Invalidated") {
+    throw new Error(
+      `Expected the refreshed /auth/me to report the new display name, got ${meAfterPatchRes.body}`
+    );
+  }
+  console.log("   ✅ Profile write invalidated the cache; the next read returned fresh data\n");
 
   // --- TEST 8: Refresh Token Rotation (RTR) ---
   console.log("8️⃣ Testing Refresh Token Rotation (RTR)...");

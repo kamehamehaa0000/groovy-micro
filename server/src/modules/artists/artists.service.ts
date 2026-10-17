@@ -14,6 +14,8 @@ import { cacheManager, cacheKeys, followsCacheService } from "../../lib/cache";
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const SELF_ARTIST_TTL_SEC = 300; // 5 minutes
+
 /**
  * Normalizes text into a clean, URL-safe slug.
  */
@@ -94,7 +96,7 @@ export class ArtistsService {
     }
 
     // 3. Database transaction: Insert profile & promote user role to ARTIST
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       const [newProfile] = await tx
         .insert(artistProfiles)
         .values({
@@ -129,6 +131,12 @@ export class ArtistsService {
         user: updatedUser,
       };
     });
+
+    // The composite profile gains the artist pointer and the effective role flips
+    // to ARTIST; the artist view also has to stop answering "no profile".
+    await cacheManager.invalidateSelfArtist(userId);
+
+    return result;
   }
 
   /**
@@ -335,8 +343,24 @@ export class ArtistsService {
 
   /**
    * Retrieves logged-in artist's own profile and studio telemetry.
+   *
+   * Cached per owner. The row changes only on profile edits, verification moves,
+   * album pinning and new followers, and each of those invalidates the key, so the
+   * TTL is a backstop. A missing profile is negative-cached briefly by the cache
+   * manager, which is exactly what the studio's listener probe wants.
    */
   async getMyArtistProfile(userId: string) {
+    return cacheManager.getOrSet(
+      cacheKeys.profile.selfArtist(userId),
+      () => this.fetchMyArtistProfile(userId),
+      SELF_ARTIST_TTL_SEC
+    );
+  }
+
+  /**
+   * Reads the owner's artist row and follower count from PostgreSQL (cache miss).
+   */
+  private async fetchMyArtistProfile(userId: string) {
     const [profile] = await db
       .select()
       .from(artistProfiles)
@@ -452,6 +476,9 @@ export class ArtistsService {
       await cacheManager.invalidate(cacheKeys.catalog.artistSlug(profile.slug));
     }
 
+    // The owner's own view (and the composite profile's stageName/slug) changed
+    await cacheManager.invalidateSelfArtist(userId);
+
     return updated;
   }
 
@@ -498,6 +525,9 @@ export class ArtistsService {
       })
       .where(eq(artistProfiles.id, profile.id))
       .returning();
+
+    // The owner's own view carries verificationStatus, details and rejection reason
+    await cacheManager.invalidateSelfArtist(userId);
 
     return {
       message: "Verification request submitted successfully",
@@ -831,6 +861,12 @@ export class ArtistsService {
       id: updated.id,
       slug: updated.slug,
     });
+
+    // Verification flips the `verified` flag the owner sees in both own views.
+    // Vault-owned rows have no user, and they are never reachable via /artists/me.
+    if (updated.userId) {
+      await cacheManager.invalidateSelfArtist(updated.userId);
+    }
 
     return updated;
   }

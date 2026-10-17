@@ -11,6 +11,19 @@ export const cacheKeys = {
     emailVerifyCooldown: (userId: string) =>
       `groovy:auth:email_verify_cooldown:${userId}`,
   },
+  profile: {
+    /**
+     * GET /auth/me - the authenticated user's own composite view (identity,
+     * privacy/locker preferences, subscription and artist pointer).
+     */
+    self: (userId: string) => `groovy:profile:${userId}`,
+    /**
+     * GET /artists/me - the owner's own artist row plus followersCount. Kept
+     * separate from the public `catalog:artist:*` keys: this one is only ever
+     * read by the profile owner.
+     */
+    selfArtist: (userId: string) => `groovy:profile:${userId}:artist`,
+  },
   subscriptions: {
     plansAll: () => `groovy:sub:plans:all`,
     plan: (planId: string) => `groovy:sub:plan:${planId}`,

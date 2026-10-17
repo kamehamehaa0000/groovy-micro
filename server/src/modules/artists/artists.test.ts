@@ -3,6 +3,7 @@ import { client as pgClient, db } from "../../db";
 import { users, artistProfiles, artistFollowers, outboxEvents } from "../../db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
+import { cacheKeys } from "../../lib/cache";
 
 async function createTestUser(
   role: "LISTENER" | "ARTIST" | "ADMIN" = "LISTENER",
@@ -55,6 +56,23 @@ async function runArtistTests() {
     );
     console.log("   ✅ Test users created with valid auth tokens\n");
 
+    // A listener without a profile gets a settled 404, and that answer is negatively
+    // cached so the studio can probe cheaply on every entry.
+    const preCreateMeRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists/me",
+      headers: { authorization: `Bearer ${listener1.tokens.accessToken}` },
+    });
+    if (preCreateMeRes.statusCode !== 404) {
+      throw new Error(
+        `Expected 404 from GET /me without a profile, got ${preCreateMeRes.statusCode}`
+      );
+    }
+    if (!(await redis.get(cacheKeys.profile.selfArtist(listener1.user.id)))) {
+      throw new Error("Expected the 404 answer from GET /me to be negatively cached");
+    }
+    console.log("   ✅ GET /me without a profile returns 404 and is negatively cached");
+
     // 2. Test Instant Upgrade: Listener 1 -> Artist
     console.log("2️⃣ Testing Instant Upgrade (POST /api/v1/artists)...");
     const upgradeRes1 = await app.inject({
@@ -99,6 +117,13 @@ async function runArtistTests() {
     console.log("   ✅ Status 201 Created: Instant upgrade successful");
     console.log("   ✅ Profile ID:", artist1Id, "Slug:", upgradeData1.profile.slug);
     console.log("   ✅ User role promoted to ARTIST in DB & fresh token returned\n");
+
+    // Creating the profile must clear the cached "no profile" answer
+    if (await redis.get(cacheKeys.profile.selfArtist(listener1.user.id))) {
+      throw new Error(
+        "Creating an artist profile left the negative /artists/me cache entry in place"
+      );
+    }
 
     // Duplicate profile attempt should be rejected with 409
     console.log("2️⃣b Testing Duplicate Profile Prevention (409 Conflict)...");
@@ -165,6 +190,12 @@ async function runArtistTests() {
     }
     console.log("   ✅ GET /me returned correct artist studio profile with followersCount = 0");
 
+    // The owner's own view is cached per user
+    const selfArtistKey = cacheKeys.profile.selfArtist(listener1.user.id);
+    if (!(await redis.get(selfArtistKey))) {
+      throw new Error(`Expected GET /me to be cached under '${selfArtistKey}'`);
+    }
+
     // Update profile
     const updateRes = await app.inject({
       method: "PATCH",
@@ -187,6 +218,25 @@ async function runArtistTests() {
       throw new Error("Profile fields not updated properly");
     }
     console.log("   ✅ PATCH /me successfully updated bio and bannerUrl\n");
+
+    // An edit must drop both own-view keys, so the next read cannot serve the old row
+    if (
+      (await redis.get(selfArtistKey)) ||
+      (await redis.get(cacheKeys.profile.self(listener1.user.id)))
+    ) {
+      throw new Error("PATCH /me left the owner's cached self views stale");
+    }
+    const meAfterUpdateRes = await app.inject({
+      method: "GET",
+      url: "/api/v1/artists/me",
+      headers: { authorization: `Bearer ${freshArtist1Token}` },
+    });
+    if (JSON.parse(meAfterUpdateRes.body).bio !== "Updated Parisian concert pianist bio.") {
+      throw new Error(
+        `Expected the refreshed GET /me to report the new bio: ${meAfterUpdateRes.body}`
+      );
+    }
+    console.log("   ✅ PATCH /me invalidated both own views; the next GET returned fresh data\n");
 
     // 4. Public Profile & Dual Lookup (GET /:idOrSlug)
     console.log("4️⃣ Testing Public Dual-Lookup Architecture (GET /:idOrSlug)...");

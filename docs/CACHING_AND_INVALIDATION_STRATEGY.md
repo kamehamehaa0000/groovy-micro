@@ -62,6 +62,10 @@ groovy:
   │    ├── token_version:{userId}                 (Global token invalidation counter)
   │    └── email_verify:{tokenHash}               (Email verification secret)
   │
+  ├── profile:
+  │    ├── {userId}                              (Own composite view behind GET /auth/me)
+  │    └── {userId}:artist                       (Own artist row + followersCount, GET /artists/me)
+  │
   ├── sub:
   │    ├── plans:all                              (JSON list of active subscription plans)
   │    ├── plan:{planId}                          (Single plan metadata & feature limits)
@@ -162,6 +166,21 @@ sequenceDiagram
 2. **Instant "Has User Liked?" Checks**: When rendering a playlist of 50 songs, the client checks against its local `likedSongIds: Set<string>` stored in memory. Zero network requests needed to know which songs are liked.
 3. **Backend Throughput**: The backend responds in **< 1ms** because it never touches PostgreSQL disk during the request. All database work is batched.
 
+### 4.5 Self Profile & Own Artist View (The Two "Me" Endpoints)
+- **Cached Objects**:
+  - `profile:{userId}`: the composite payload behind `GET /api/v1/auth/me` (identity, privacy/locker preferences, subscription summary, artist pointer). TTL: 5 minutes.
+  - `profile:{userId}:artist`: the owner's own artist row behind `GET /api/v1/artists/me`, including the live `followersCount`. TTL: 5 minutes.
+- **Why these are safe to cache**: authorization resolves *owns an artist profile* from the `artist_profiles` table (`resolveUserRole`), so both GETs are pure reads. They previously repaired the denormalized `users.role` column as a side effect, which meant any cached answer might itself be the write that fixed it.
+- **Key properties**:
+  - **Per-user keys**: at most one warm entry per active user; the studio reads each of them once per entry.
+  - **Timestamps round-trip**: the Redis copy is JSON, so `createdAt` and `subscription.currentPeriodEnd` are rehydrated to `Date` on a hit. A hit is byte-identical on the wire to a miss — the alternative (a `string` on hit, a `Date` on miss) is a latent bug for any later caller that touches the field.
+  - **Settled 404 is negative-cached**: `GET /artists/me` returns `{artist: null}`-style 404 for an account without a profile, and that answer is cached for 30 s (§6.2). That is exactly what the studio's cheap listener probe wants; creating a profile clears it.
+  - **`GET /auth/me` never negative-caches**: a missing user raises from the fetch rather than resolving `null`.
+- **Invalidation Strategy**:
+  - `profile:{userId}` is dropped by every write to a field it reports: `PATCH /users/profile` (display name, avatar), `PATCH /users/privacy-settings`, email verification, Google account linking, and subscribe / cancel / plan change (through `invalidateUserSubscriptionCache`).
+  - `profile:{userId}:artist` is dropped by artist profile create/update, verification request and review, album trash (the pin fields live on the row), and follow/unfollow (the owner's `followersCount`). Those compound invalidators drop the composite key too, because it embeds `stageName`, `slug` and `verified`.
+  - Admin plan edits only purge the global plan keys, so a renamed plan can linger in a warm `profile:{userId}` for up to 5 minutes. That matches the pre-existing entitlement cache behaviour (up to 1 hour on the same event) and is Law 3's TTL backstop rather than a missed invalidation.
+
 ---
 
 ## 5. Centralized Reusable Key Registry & Cache Manager
@@ -184,6 +203,10 @@ export const cacheKeys = {
   auth: {
     tokenVersion: (userId: string) => `groovy:auth:token_version:${userId}`,
     session: (familyId: string, jti: string) => `groovy:auth:session:${familyId}:${jti}`,
+  },
+  profile: {
+    self: (userId: string) => `groovy:profile:${userId}`,
+    selfArtist: (userId: string) => `groovy:profile:${userId}:artist`,
   },
   subscriptions: {
     plansAll: () => `groovy:sub:plans:all`,
@@ -212,6 +235,7 @@ Provides:
 - **`getOrSet<T>(key, fetcher, ttlSeconds)`**: Standard cache-aside pattern with automatic JSON parsing and single-flight stampede protection.
 - **`invalidate(...keys)`**: Safe multi-key invalidation with error handling.
 - **`invalidateAlbum(id, slug, artistId)`**: Compound invalidator that purges ID, slug, and parent artist album listings in one atomic operation.
+- **`invalidateSelfProfile(userId)` / `invalidateSelfArtist(userId)`**: Compound invalidators for the two own-view keys (§4.5). `invalidateSelfArtist` also drops the composite profile, since it embeds the artist's `stageName`, `slug` and `verified`.
 
 ---
 

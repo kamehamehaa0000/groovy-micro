@@ -876,6 +876,10 @@ export class CatalogService {
       slug: artist.slug,
     });
 
+    // Trashing the pinned release clears pinnedReleaseId/pinnedComment on the
+    // owner's artist row, which their own studio view reports
+    await cacheManager.invalidateSelfArtist(userId);
+
     await cancelScheduledReleaseJob(albumId);
 
     const albumSongs = await db

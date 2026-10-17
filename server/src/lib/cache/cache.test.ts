@@ -255,11 +255,36 @@ async function runCacheTests() {
     // 6. FOLLOWS HYBRID DURABILITY & SMISMEMBER ENRICHMENT
     // -------------------------------------------------------------------------
     console.log("\n6️⃣ Testing Hybrid Follows Durability & Fast Sync Endpoint...");
+
+    // Warm the owner's own artist view: followersCount lives there, so the follow
+    // below has a cache entry it must drop.
+    const ownerViewBefore = await artistsService.getMyArtistProfile(artistUserId);
+    if (ownerViewBefore?.followersCount !== 0) {
+      throw new Error(
+        `Expected the owner's own view to start at 0 followers, got ${ownerViewBefore?.followersCount}`
+      );
+    }
+    if (!(await redis.get(cacheKeys.profile.selfArtist(artistUserId)))) {
+      throw new Error("Expected GET /artists/me to be cached under the self-artist key");
+    }
+
     // Follow artist
     const followRes = await artistsService.followArtist(listenerUserId, profile.id);
     if (!followRes.following || followRes.followersCount !== 1) {
       throw new Error(`Expected followRes to have following: true, got ${JSON.stringify(followRes)}`);
     }
+
+    // The owner's studio count cannot stay stale after a new follower
+    if (await redis.get(cacheKeys.profile.selfArtist(artistUserId))) {
+      throw new Error("A new follower left the owner's /artists/me cache stale");
+    }
+    const ownerViewAfterFollow = await artistsService.getMyArtistProfile(artistUserId);
+    if (ownerViewAfterFollow?.followersCount !== 1) {
+      throw new Error(
+        `Expected the owner's own view to report 1 follower, got ${ownerViewAfterFollow?.followersCount}`
+      );
+    }
+    console.log("   ✅ Follow invalidated the owner's /artists/me cache; the refreshed view reports 1 follower.");
 
     // Verify Redis Set
     const isFollowingInRedis = await redis.sismember(
@@ -304,6 +329,19 @@ async function runCacheTests() {
       throw new Error("Redis Set still contains artistId after unfollow!");
     }
     console.log("   ✅ Untoggle verified: Redis following set successfully cleared.");
+
+    // The unfollow path resolves the owner through the artist row, so this also guards
+    // that the owner's id is actually selected and the invalidation is not skipped.
+    if (await redis.get(cacheKeys.profile.selfArtist(artistUserId))) {
+      throw new Error("Unfollowing left the owner's /artists/me cache stale");
+    }
+    const ownerViewAfterUnfollow = await artistsService.getMyArtistProfile(artistUserId);
+    if (ownerViewAfterUnfollow?.followersCount !== 0) {
+      throw new Error(
+        `Expected the owner's own view to fall back to 0 followers, got ${ownerViewAfterUnfollow?.followersCount}`
+      );
+    }
+    console.log("   ✅ Unfollow cleared the owner's cache; the refreshed view is back to 0 followers.");
 
     // -------------------------------------------------------------------------
     // 7. PRE-SAVES HYBRID DURABILITY & FAST SYNC ENDPOINT

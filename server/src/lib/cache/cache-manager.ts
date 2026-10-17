@@ -196,6 +196,26 @@ export class CacheManager {
   }
 
   /**
+   * Invalidates the authenticated user's own composite profile (GET /auth/me).
+   * Call after any write that changes the identity, preferences, subscription or
+   * artist pointer that endpoint reports.
+   */
+  async invalidateSelfProfile(userId: string): Promise<void> {
+    await this.invalidate(cacheKeys.profile.self(userId));
+  }
+
+  /**
+   * Invalidates the owner's own artist view (GET /artists/me). The composite
+   * profile is dropped too, because it embeds stageName, slug and verified.
+   */
+  async invalidateSelfArtist(userId: string): Promise<void> {
+    await this.invalidate(
+      cacheKeys.profile.selfArtist(userId),
+      cacheKeys.profile.self(userId)
+    );
+  }
+
+  /**
    * Clears a user's cached liked songs and albums sets.
    */
   async invalidateUserLikes(userId: string): Promise<void> {

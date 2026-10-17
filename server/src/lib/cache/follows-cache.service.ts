@@ -161,6 +161,11 @@ export class FollowsCacheService {
     // 4. Invalidate artist profile cache
     await cacheManager.invalidateArtist({ id: artistId, slug: artist.slug });
 
+    // The artist's own studio view carries the live follower count
+    if (artist.userId) {
+      await cacheManager.invalidateSelfArtist(artist.userId);
+    }
+
     return {
       following: true,
       followersCount: followerCountRes?.total ?? 0,
@@ -178,7 +183,7 @@ export class FollowsCacheService {
     artistId: string
   ): Promise<{ following: boolean; followersCount: number }> {
     const [artist] = await db
-      .select({ slug: artistProfiles.slug })
+      .select({ slug: artistProfiles.slug, userId: artistProfiles.userId })
       .from(artistProfiles)
       .where(eq(artistProfiles.id, artistId))
       .limit(1);
@@ -212,6 +217,11 @@ export class FollowsCacheService {
 
     // 4. Invalidate artist profile cache
     await cacheManager.invalidateArtist({ id: artistId, slug: artist?.slug });
+
+    // The artist's own studio view carries the live follower count
+    if (artist?.userId) {
+      await cacheManager.invalidateSelfArtist(artist.userId);
+    }
 
     return {
       following: false,

@@ -26,7 +26,7 @@ import type {
   RefreshTokenPayload,
   UserRole,
 } from '../auth/auth.schemas'
-import { cacheKeys } from '../../lib/cache/keys'
+import { cacheKeys, cacheManager } from '../../lib/cache'
 import { SocialService } from '../social/social.service'
 import type { RelationshipStatus } from '../social/social.schemas'
 import type {
@@ -80,6 +80,9 @@ export class UsersService {
     if (!updatedUser) {
       throw this.fastify.httpErrors.notFound('User not found')
     }
+
+    // Display name and avatar feed the composite profile
+    await cacheManager.invalidateSelfProfile(userId)
 
     return updatedUser
   }
@@ -267,6 +270,9 @@ export class UsersService {
         .del(cacheKeys.users.lockerSearchPref(userId))
         .catch(() => null);
     }
+
+    // Privacy and locker preferences are all reported by the composite profile
+    await cacheManager.invalidateSelfProfile(userId)
 
     return updatedUser
   }

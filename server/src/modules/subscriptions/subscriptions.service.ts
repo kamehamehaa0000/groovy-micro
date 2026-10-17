@@ -10,7 +10,7 @@ import {
   type PlanFeatureDefinition,
 } from "../../db/schema";
 import { redis } from "../../index";
-import { cacheKeys, entitlementsCacheService } from "../../lib/cache";
+import { cacheKeys, cacheManager, entitlementsCacheService } from "../../lib/cache";
 import type {
   CreateFeatureDefinitionInput,
   UpdateFeatureDefinitionInput,
@@ -58,6 +58,8 @@ export class SubscriptionsService {
   private async invalidateUserSubscriptionCache(userId: string) {
     try {
       await entitlementsCacheService.invalidateUserEntitlements(userId);
+      // The composite profile embeds the subscription summary and plan name
+      await cacheManager.invalidateSelfProfile(userId);
     } catch (err) {
       console.warn("Redis user subscription cache invalidation warning:", err);
     }

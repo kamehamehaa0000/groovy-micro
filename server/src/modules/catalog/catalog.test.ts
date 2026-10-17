@@ -4,6 +4,7 @@ import { users, artistProfiles, albums, songs, songCredits, albumLikes, songLike
 import { eq, inArray } from "drizzle-orm";
 import { AuthService } from "../auth/auth.service";
 import { ArtistsService } from "../artists/artists.service";
+import { cacheKeys } from "../../lib/cache";
 import { backfillArtistRoles } from "../../../scripts/backfill-artist-roles";
 import { executePublishRelease, closeReleaseQueue } from "./catalog.queue";
 
@@ -516,6 +517,9 @@ async function runCatalogTests() {
     // A drifted account - the profile exists but the role column, and the token claim
     // minted from it, still say LISTENER - must reach its studio, because owning a
     // profile is what makes someone an artist.
+    //
+    // The write below stands in for legacy drift: it happens before this account has
+    // ever read /auth/me, so there is no cached self profile that would need dropping.
     await db
       .update(users)
       .set({ role: "LISTENER" })
@@ -548,6 +552,15 @@ async function runCatalogTests() {
     if (driftMeRes.statusCode !== 200 || driftMe.user?.role !== "ARTIST") {
       throw new Error(
         `Expected GET /auth/me to report the effective ARTIST role, got ${driftMeRes.statusCode} ${driftMeRes.body}`
+      );
+    }
+
+    // The cached copy carries the effective role too, so a stale column cannot leak
+    // through the cache either.
+    const cachedDriftMe = await redis.get(cacheKeys.profile.self(artistA.user.id));
+    if (!cachedDriftMe || JSON.parse(cachedDriftMe).role !== "ARTIST") {
+      throw new Error(
+        `Expected the cached /auth/me payload to carry the effective role, got ${cachedDriftMe}`
       );
     }
 

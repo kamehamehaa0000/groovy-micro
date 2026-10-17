@@ -30,12 +30,66 @@ import type {
   UserRole,
 } from './auth.schemas'
 import { MailService } from './mail.service'
-import { cacheKeys } from '../../lib/cache'
+import { cacheKeys, cacheManager } from '../../lib/cache'
 
 const VERIFICATION_TOKEN_TTL_SEC = 24 * 60 * 60 // 24 hours
 const VERIFICATION_COOLDOWN_SEC = 60 // 60 seconds
 const PASSWORD_RESET_TOKEN_TTL_SEC = 60 * 60 // 1 hour
 const PASSWORD_RESET_COOLDOWN_SEC = 60 // 60 seconds
+const SELF_PROFILE_TTL_SEC = 300 // 5 minutes
+
+/**
+ * Composite view of the authenticated user (GET /auth/me): identity, privacy and
+ * locker preferences, subscription summary and artist pointer.
+ */
+export interface CurrentUserProfile {
+  id: string
+  email: string
+  displayName: string
+  avatarUrl: string | null
+  role: UserRole
+  isEmailVerified: boolean
+  isPrivateAccount: boolean
+  listeningActivityPrivacy: string
+  libraryPrivacy: string
+  lockerIncludeInSearch: boolean
+  lockerIncludeInHome: boolean
+  lockerIncludeInRecentlyPlayed: boolean
+  lockerLinkToGlobalArtists: boolean
+  createdAt: Date
+  subscription: {
+    planId: string
+    status: string
+    currentPeriodEnd: Date | null
+    cancelAtPeriodEnd: boolean
+  } | null
+  plan: {
+    name: string
+    features: unknown
+  } | null
+  artistProfile: {
+    id: string
+    stageName: string | null
+    slug: string | null
+    verified: boolean
+  } | null
+}
+
+/** The Redis copy is JSON, so its two timestamps come back as ISO strings. */
+type CachedCurrentUserProfile = Omit<
+  CurrentUserProfile,
+  'createdAt' | 'subscription'
+> & {
+  createdAt: string
+  subscription:
+    | (Omit<
+        NonNullable<CurrentUserProfile['subscription']>,
+        'currentPeriodEnd'
+      > & {
+        currentPeriodEnd: string | null
+      })
+    | null
+}
 
 export class AuthService {
   private fastify: FastifyInstance
@@ -550,6 +604,9 @@ export class AuthService {
     await redis.del(redisKey)
     await redis.del(`email_verify_cooldown:${userId}`)
 
+    // The composite profile reports isEmailVerified
+    await cacheManager.invalidateSelfProfile(userId)
+
     // Issue initial token pair so user is automatically logged in upon verification
     const tokens = await this.issueTokenPair({
       id: updatedUser.id,
@@ -840,6 +897,9 @@ export class AuthService {
         .where(eq(users.id, existingByEmail.id))
         .returning()
 
+      // Linking an account verifies the email and may adopt the Google avatar
+      await cacheManager.invalidateSelfProfile(existingByEmail.id)
+
       const tokens = await this.issueTokenPair({
         id: updated.id,
         email: updated.email,
@@ -920,8 +980,43 @@ export class AuthService {
 
   /**
    * Retrieves current authenticated user with subscription details.
+   *
+   * Cached per user. The payload only changes when the user's own identity,
+   * preferences, subscription or artist pointer change, and every one of those
+   * writes invalidates the key (see the invalidateSelfProfile call sites), so the
+   * TTL is a backstop rather than the freshness mechanism.
    */
-  async getCurrentUserProfile(userId: string) {
+  async getCurrentUserProfile(userId: string): Promise<CurrentUserProfile> {
+    const cacheKey = cacheKeys.profile.self(userId)
+    const cached = await cacheManager.get<CachedCurrentUserProfile>(cacheKey)
+
+    if (cached) {
+      // Rehydrate the two timestamps so callers see one shape on hit or miss.
+      return {
+        ...cached,
+        createdAt: new Date(cached.createdAt),
+        subscription: cached.subscription
+          ? {
+              ...cached.subscription,
+              currentPeriodEnd: cached.subscription.currentPeriodEnd
+                ? new Date(cached.subscription.currentPeriodEnd)
+                : null,
+            }
+          : null,
+      }
+    }
+
+    const profile = await this.fetchCurrentUserProfile(userId)
+    await cacheManager.set(cacheKey, profile, SELF_PROFILE_TTL_SEC)
+    return profile
+  }
+
+  /**
+   * Reads the composite profile straight from PostgreSQL (cache miss path).
+   */
+  private async fetchCurrentUserProfile(
+    userId: string,
+  ): Promise<CurrentUserProfile> {
     const [user] = await db
       .select({
         id: users.id,
