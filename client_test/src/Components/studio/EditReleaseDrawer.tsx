@@ -103,6 +103,7 @@ export function EditReleaseDrawer({
   // Hydrate the cut list once. The drawer remounts for every release it
   // edits, so a mount-only effect is enough.
   useEffect(() => {
+    onError(null)
     let cancelled = false
     const loadTracks = async () => {
       try {
@@ -150,7 +151,7 @@ export function EditReleaseDrawer({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [request, onError])
 
   const handleCloseEditModal = () => {
     onClose()

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { UploadCloud, Disc3, Calendar, X, Check } from 'lucide-react'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
@@ -249,6 +249,16 @@ export function CreateReleaseDrawer({
     }
     setDraftTracks((prev) => prev.filter((t) => t.id !== draftId))
   }
+  // Revoke the local cover preview blob when the drawer goes away; the
+  // close button unmounts us, so the last preview would otherwise leak.
+  useEffect(() => {
+    return () => {
+      if (releaseCoverPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(releaseCoverPreview)
+      }
+    }
+  }, [releaseCoverPreview])
+
   const resetReleaseForm = () => {
     if (releaseCoverPreview?.startsWith('blob:')) {
       URL.revokeObjectURL(releaseCoverPreview)
