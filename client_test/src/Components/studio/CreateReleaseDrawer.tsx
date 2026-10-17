@@ -4,9 +4,21 @@ import { toast } from 'sonner'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
-import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP, CATALOG_MOODS } from '../../lib/taxonomy'
+import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP } from '../../lib/taxonomy'
 import type { ArtistProfile } from '../../types/artist'
 import type { AlbumType, ReleaseVisibility } from '../../types/catalog'
+import {
+  CreditPickerField,
+  ExplicitCheckbox,
+  FieldLabel,
+  GovernanceToggle,
+  MonoInput,
+  MoodChipRow,
+  SelectField,
+  SerifInput,
+  TagChipInput,
+  TextAreaField,
+} from './fields'
 
 interface TrackDraft {
   id: string
@@ -55,7 +67,6 @@ export function CreateReleaseDrawer({
   const [releaseSubGenre, setReleaseSubGenre] = useState<string>('')
   const [releaseMoods, setReleaseMoods] = useState<string[]>([])
   const [releaseTags, setReleaseTags] = useState<string[]>([])
-  const [releaseTagInput, setReleaseTagInput] = useState<string>('')
   const [releaseCoverUrl, setReleaseCoverUrl] = useState('')
   const [releaseCoverFile, setReleaseCoverFile] = useState<File | null>(null)
   const [releaseCoverPreview, setReleaseCoverPreview] = useState<string | null>(
@@ -267,7 +278,6 @@ export function CreateReleaseDrawer({
     setReleaseSubGenre('')
     setReleaseMoods([])
     setReleaseTags([])
-    setReleaseTagInput('')
     setReleaseCoverUrl('')
     setReleaseCoverFile(null)
     setReleaseCoverPreview(null)
@@ -1043,13 +1053,13 @@ export function CreateReleaseDrawer({
             {/* Basic Release Metadata */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                <FieldLabel>
                   {releaseType === 'SINGLE'
                     ? 'Single Title'
                     : 'Release Title'}{' '}
                   <span className="text-destructive">*</span>
-                </label>
-                <input
+                </FieldLabel>
+                <SerifInput
                   type="text"
                   required
                   value={releaseTitle}
@@ -1059,14 +1069,11 @@ export function CreateReleaseDrawer({
                       ? 'e.g. Autumn in Saint-Germain'
                       : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
                   }
-                  className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
 
               <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Release Timing
-                </label>
+                <FieldLabel>Release Timing</FieldLabel>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -1121,30 +1128,28 @@ export function CreateReleaseDrawer({
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                    <FieldLabel tone="muted" spacing="tight">
                       Release Date (Local){' '}
                       <span className="text-destructive">*</span>
-                    </label>
-                    <input
+                    </FieldLabel>
+                    <MonoInput
                       type="date"
                       required
                       min={new Date().toISOString().split('T')[0]}
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                    <FieldLabel tone="muted" spacing="tight">
                       Release Time (Local){' '}
                       <span className="text-destructive">*</span>
-                    </label>
-                    <input
+                    </FieldLabel>
+                    <MonoInput
                       type="time"
                       required
                       value={scheduledTime}
                       onChange={(e) => setScheduledTime(e.target.value)}
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                     />
                   </div>
                 </div>
@@ -1153,9 +1158,7 @@ export function CreateReleaseDrawer({
 
             {/* Catalog Visibility Tier Selector */}
             <div>
-              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                Catalog Visibility Tier
-              </label>
+              <FieldLabel>Catalog Visibility Tier</FieldLabel>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[
                   {
@@ -1204,12 +1207,12 @@ export function CreateReleaseDrawer({
 
             {/* Release Artwork Upload (Square 1:1) */}
             <div>
-              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
+              <FieldLabel spacing="tight">
                 {releaseType === 'SINGLE'
                   ? 'Single Cover Artwork (Cloudflare R2)'
                   : 'Release Cover Artwork (Cloudflare R2)'}{' '}
                 <span className="text-destructive">*</span>
-              </label>
+              </FieldLabel>
               <p className="font-sans text-caption text-muted-foreground mb-2">
                 Square artwork (1:1 ratio), minimum 1400x1400px
                 recommended (JPEG, PNG, or WebP). Stored on Cloudflare
@@ -1270,16 +1273,13 @@ export function CreateReleaseDrawer({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Primary Genre Dropdown */}
                 <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Primary Genre
-                  </label>
-                  <select
+                  <FieldLabel>Primary Genre</FieldLabel>
+                  <SelectField
                     value={releasePrimaryGenre}
                     onChange={(e) => {
                       setReleasePrimaryGenre(e.target.value)
                       setReleaseSubGenre('')
                     }}
-                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   >
                     <option value="">Select Primary Genre...</option>
                     {PRIMARY_GENRES.map((g) => (
@@ -1287,22 +1287,19 @@ export function CreateReleaseDrawer({
                         {g}
                       </option>
                     ))}
-                  </select>
+                  </SelectField>
                 </div>
 
                 {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
                 <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Sub-Genre (Optional)
-                  </label>
-                  <select
+                  <FieldLabel>Sub-Genre (Optional)</FieldLabel>
+                  <SelectField
                     value={releaseSubGenre}
                     onChange={(e) => setReleaseSubGenre(e.target.value)}
                     disabled={
                       !releasePrimaryGenre ||
                       !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length
                     }
-                    className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                   >
                     <option value="">Select Sub-Genre...</option>
                     {releasePrimaryGenre &&
@@ -1313,155 +1310,38 @@ export function CreateReleaseDrawer({
                           </option>
                         ),
                       )}
-                  </select>
+                  </SelectField>
                 </div>
               </div>
 
               {/* Mood Selection (1-3 optional) */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                    Musical Moods (Select 1 to 3)
-                  </label>
-                  <span className="font-mono text-eyebrow text-muted-foreground">
-                    {releaseMoods.length}/3 selected
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {CATALOG_MOODS.map((mood) => {
-                    const isSelected = releaseMoods.includes(mood)
-                    return (
-                      <button
-                        key={mood}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setReleaseMoods(
-                              releaseMoods.filter((m) => m !== mood),
-                            )
-                          } else if (releaseMoods.length < 3) {
-                            setReleaseMoods([...releaseMoods, mood])
-                          }
-                        }}
-                        className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'border-foreground bg-foreground text-background font-semibold'
-                            : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
-                        }`}
-                      >
-                        {mood}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+              <MoodChipRow
+                selected={releaseMoods}
+                onChange={setReleaseMoods}
+              />
 
               {/* Custom Tags */}
-              <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Catalog Tags (Press Enter to add)
-                </label>
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={releaseTagInput}
-                    onChange={(e) => setReleaseTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        const trimmed = releaseTagInput
-                          .trim()
-                          .toLowerCase()
-                        if (trimmed && !releaseTags.includes(trimmed)) {
-                          setReleaseTags([...releaseTags, trimmed])
-                          setReleaseTagInput('')
-                        }
-                      }
-                    }}
-                    placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                    className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const trimmed = releaseTagInput
-                        .trim()
-                        .toLowerCase()
-                      if (trimmed && !releaseTags.includes(trimmed)) {
-                        setReleaseTags([...releaseTags, trimmed])
-                        setReleaseTagInput('')
-                      }
-                    }}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
-                  >
-                    + Add Tag
-                  </button>
-                </div>
-                {releaseTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {releaseTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
-                      >
-                        <span>#{tag}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setReleaseTags(
-                              releaseTags.filter((t) => t !== tag),
-                            )
-                          }
-                          className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <TagChipInput tags={releaseTags} onChange={setReleaseTags} />
             </div>
 
             {/* Liner Notes & Description */}
             <div>
-              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                Liner Notes & Description (Optional)
-              </label>
-              <textarea
+              <FieldLabel>Liner Notes & Description (Optional)</FieldLabel>
+              <TextAreaField
                 rows={2}
                 value={releaseDescription}
                 onChange={(e) => setReleaseDescription(e.target.value)}
                 placeholder="Recording location, inspiration, gear, or credits..."
-                className="w-full font-sans text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y"
               />
             </div>
 
             {/* Creator Governance: Comments & Discussions */}
-            <div className="p-3.5 border border-border bg-card flex items-center justify-between">
-              <div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
-                  Discussion &amp; Comments
-                </span>
-                <p className="font-sans text-caption text-muted-foreground">
-                  Allow listeners and curators to post comments and
-                  replies on this release.
-                </p>
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer shrink-0">
-                <input
-                  type="checkbox"
-                  checked={releaseAllowComments}
-                  onChange={(e) =>
-                    setReleaseAllowComments(e.target.checked)
-                  }
-                  className="accent-primary w-4 h-4"
-                />
-                <span className="font-mono text-caption text-foreground font-medium">
-                  {releaseAllowComments ? 'Enabled' : 'Disabled'}
-                </span>
-              </label>
-            </div>
+            <GovernanceToggle
+              checked={releaseAllowComments}
+              onChange={setReleaseAllowComments}
+              title="Discussion &amp; Comments"
+              description="Allow listeners and curators to post comments and replies on this release."
+            />
 
             {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}
             {releaseType === 'SINGLE' ? (
@@ -1476,16 +1356,12 @@ export function CreateReleaseDrawer({
                     <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-semibold">
                       Master Audio Recording
                     </span>
-                    <label className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={singleTrackExplicit}
-                        onChange={(e) =>
-                          setSingleTrackExplicit(e.target.checked)
-                        }
-                      />
-                      <span>Explicit Content</span>
-                    </label>
+                    <ExplicitCheckbox
+                      checked={singleTrackExplicit}
+                      onChange={setSingleTrackExplicit}
+                      size="caption"
+                      label="Explicit Content"
+                    />
                   </div>
 
                   {singleTrackAudioKey || singleTrackAudioUrl ? (
@@ -1554,10 +1430,8 @@ export function CreateReleaseDrawer({
                 {/* Genre, BPM & Musical Key */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                      Track Genre
-                    </label>
-                    <input
+                    <FieldLabel spacing="tight">Track Genre</FieldLabel>
+                    <MonoInput
                       type="text"
                       value={singleTrackGenre}
                       onChange={(e) =>
@@ -1566,14 +1440,11 @@ export function CreateReleaseDrawer({
                       placeholder={
                         releasePrimaryGenre || 'e.g. Modern Jazz'
                       }
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                      BPM (Tempo)
-                    </label>
-                    <input
+                    <FieldLabel spacing="tight">BPM (Tempo)</FieldLabel>
+                    <MonoInput
                       type="number"
                       min={30}
                       max={300}
@@ -1586,37 +1457,28 @@ export function CreateReleaseDrawer({
                         )
                       }
                       placeholder="e.g. 120"
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1">
-                      Musical Key
-                    </label>
-                    <input
+                    <FieldLabel spacing="tight">Musical Key</FieldLabel>
+                    <MonoInput
                       type="text"
                       value={singleTrackKey}
                       onChange={(e) =>
                         setSingleTrackKey(e.target.value)
                       }
                       placeholder="e.g. C min, F# maj"
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                     />
                   </div>
                 </div>
 
                 {/* Collaborator & Credit Attribution */}
-                <div className="pt-2 border-t border-border-soft">
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
-                    Collaborators & Credits (Featured / Producers /
-                    Composers / Lyricists / Engineers)
-                  </span>
-                  <ArtistCreditPicker
-                    credits={singleTrackCredits}
-                    onChange={setSingleTrackCredits}
-                    currentArtistId={artistProfile.id}
-                  />
-                </div>
+                <CreditPickerField
+                  credits={singleTrackCredits}
+                  onChange={setSingleTrackCredits}
+                  currentArtistId={artistProfile.id}
+                  label="Collaborators & Credits (Featured / Producers / Composers / Lyricists / Engineers)"
+                />
               </div>
             ) : (
               /* ADAPTIVE SECTION B: MULTI-TRACK ALBUM / EP / LP / MIXTAPE BUILDER */

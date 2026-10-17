@@ -4,9 +4,19 @@ import { toast } from 'sonner'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { MarqueeText } from '../common/MarqueeText'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
-import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP, CATALOG_MOODS } from '../../lib/taxonomy'
+import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP } from '../../lib/taxonomy'
 import type { ArtistProfile } from '../../types/artist'
 import type { Album, AlbumType, ReleaseVisibility } from '../../types/catalog'
+import {
+  FieldLabel,
+  GovernanceToggle,
+  MonoInput,
+  MoodChipRow,
+  SelectField,
+  SerifInput,
+  TagChipInput,
+  TextAreaField,
+} from './fields'
 
 interface EditTrackDraft {
   id: string
@@ -67,7 +77,6 @@ export function EditReleaseDrawer({
   const [editReleaseTags, setEditReleaseTags] = useState<string[]>(
     request.tags || [],
   )
-  const [editReleaseTagInput, setEditReleaseTagInput] = useState<string>('')
   const [editReleaseDescription, setEditReleaseDescription] = useState(
     request.description || '',
   )
@@ -308,30 +317,27 @@ export function EditReleaseDrawer({
               {/* Basic Metadata Row */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
+                  <FieldLabel>
                     Release Title{' '}
                     <span className="text-destructive">*</span>
-                  </label>
-                  <input
+                  </FieldLabel>
+                  <SerifInput
                     type="text"
                     required
                     value={editReleaseTitle}
                     onChange={(e) => setEditReleaseTitle(e.target.value)}
                     placeholder="Release title"
-                    className="w-full font-serif italic text-title py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Release Format
-                  </label>
-                  <select
+                  <FieldLabel>Release Format</FieldLabel>
+                  <SelectField
+                    size="lg"
                     value={editReleaseType}
                     onChange={(e) =>
                       setEditReleaseType(e.target.value as AlbumType)
                     }
-                    className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                   >
                     {(
                       [
@@ -346,7 +352,7 @@ export function EditReleaseDrawer({
                         {type}
                       </option>
                     ))}
-                  </select>
+                  </SelectField>
                 </div>
               </div>
 
@@ -355,16 +361,13 @@ export function EditReleaseDrawer({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Primary Genre Dropdown */}
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Primary Genre
-                    </label>
-                    <select
+                    <FieldLabel>Primary Genre</FieldLabel>
+                    <SelectField
                       value={editReleasePrimaryGenre}
                       onChange={(e) => {
                         setEditReleasePrimaryGenre(e.target.value)
                         setEditReleaseSubGenre('')
                       }}
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
                     >
                       <option value="">Select Primary Genre...</option>
                       {PRIMARY_GENRES.map((g) => (
@@ -372,7 +375,7 @@ export function EditReleaseDrawer({
                           {g}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                     <p className="font-mono text-eyebrow text-muted-foreground mt-1.5">
                       Used for catalog indexing, genre discovery &amp; radio
                       curation.
@@ -381,10 +384,8 @@ export function EditReleaseDrawer({
 
                   {/* Sub-Genre Dropdown */}
                   <div>
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                      Sub-Genre (Optional)
-                    </label>
-                    <select
+                    <FieldLabel>Sub-Genre (Optional)</FieldLabel>
+                    <SelectField
                       value={editReleaseSubGenre}
                       onChange={(e) =>
                         setEditReleaseSubGenre(e.target.value)
@@ -394,7 +395,6 @@ export function EditReleaseDrawer({
                         !GENRE_SUBGENRES_MAP[editReleasePrimaryGenre]
                           ?.length
                       }
-                      className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50"
                     >
                       <option value="">Select Sub-Genre...</option>
                       {editReleasePrimaryGenre &&
@@ -405,132 +405,26 @@ export function EditReleaseDrawer({
                             </option>
                           ),
                         )}
-                    </select>
+                    </SelectField>
                   </div>
                 </div>
 
                 {/* Mood Selection (1-3 optional) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                      Musical Moods (Select 1 to 3)
-                    </label>
-                    <span className="font-mono text-eyebrow text-muted-foreground">
-                      {editReleaseMoods.length}/3 selected
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {CATALOG_MOODS.map((mood) => {
-                      const isSelected = editReleaseMoods.includes(mood)
-                      return (
-                        <button
-                          key={mood}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setEditReleaseMoods(
-                                editReleaseMoods.filter((m) => m !== mood),
-                              )
-                            } else if (editReleaseMoods.length < 3) {
-                              setEditReleaseMoods([
-                                ...editReleaseMoods,
-                                mood,
-                              ])
-                            }
-                          }}
-                          className={`font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border transition-colors cursor-pointer ${
-                            isSelected
-                              ? 'border-foreground bg-foreground text-background font-semibold'
-                              : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50'
-                          }`}
-                        >
-                          {mood}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
+                <MoodChipRow
+                  selected={editReleaseMoods}
+                  onChange={setEditReleaseMoods}
+                />
 
                 {/* Custom Tags */}
-                <div>
-                  <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                    Catalog Tags (Press Enter to add)
-                  </label>
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={editReleaseTagInput}
-                      onChange={(e) =>
-                        setEditReleaseTagInput(e.target.value)
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          const trimmed = editReleaseTagInput
-                            .trim()
-                            .toLowerCase()
-                          if (
-                            trimmed &&
-                            !editReleaseTags.includes(trimmed)
-                          ) {
-                            setEditReleaseTags([
-                              ...editReleaseTags,
-                              trimmed,
-                            ])
-                            setEditReleaseTagInput('')
-                          }
-                        }
-                      }}
-                      placeholder="e.g. lo-fi, instrumental, summer, acoustic"
-                      className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const trimmed = editReleaseTagInput
-                          .trim()
-                          .toLowerCase()
-                        if (trimmed && !editReleaseTags.includes(trimmed)) {
-                          setEditReleaseTags([...editReleaseTags, trimmed])
-                          setEditReleaseTagInput('')
-                        }
-                      }}
-                      className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer"
-                    >
-                      + Add Tag
-                    </button>
-                  </div>
-                  {editReleaseTags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {editReleaseTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
-                        >
-                          <span>#{tag}</span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setEditReleaseTags(
-                                editReleaseTags.filter((t) => t !== tag),
-                              )
-                            }
-                            className="text-muted-foreground hover:text-destructive cursor-pointer ml-1"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <TagChipInput
+                  tags={editReleaseTags}
+                  onChange={setEditReleaseTags}
+                />
               </div>
 
               {/* Master Cover Artwork */}
               <div className="pt-2 border-t border-border-soft">
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Master Cover Artwork
-                </label>
+                <FieldLabel>Master Cover Artwork</FieldLabel>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-muted border border-border shrink-0 overflow-hidden flex items-center justify-center">
                     {editReleaseCoverUrl ? (
@@ -715,30 +609,28 @@ export function EditReleaseDrawer({
                   <div className="p-3.5 border border-primary/30 bg-primary/5 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                        <FieldLabel tone="muted" spacing="tight">
                           Drop Date
-                        </label>
-                        <input
+                        </FieldLabel>
+                        <MonoInput
                           type="date"
                           min={new Date().toISOString().split('T')[0]}
                           value={editReleaseDate}
                           onChange={(e) =>
                             setEditReleaseDate(e.target.value)
                           }
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                       <div>
-                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
+                        <FieldLabel tone="muted" spacing="tight">
                           Drop Time (Local)
-                        </label>
-                        <input
+                        </FieldLabel>
+                        <MonoInput
                           type="time"
                           value={editReleaseTime}
                           onChange={(e) =>
                             setEditReleaseTime(e.target.value)
                           }
-                          className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground"
                         />
                       </div>
                     </div>
@@ -753,45 +645,25 @@ export function EditReleaseDrawer({
 
               {/* Description & Liner Notes */}
               <div className="pt-2 border-t border-border-soft">
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-1.5">
-                  Release Description / Liner Notes
-                </label>
-                <textarea
+                <FieldLabel>Release Description / Liner Notes</FieldLabel>
+                <TextAreaField
                   rows={3}
                   value={editReleaseDescription}
                   onChange={(e) =>
                     setEditReleaseDescription(e.target.value)
                   }
                   placeholder="Liner notes, studio sessions, recording personnel, narrative..."
-                  className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground resize-y leading-relaxed"
                 />
               </div>
 
               {/* Creator Governance: Comments & Discussions */}
-              <div className="p-3.5 border border-border bg-background flex items-center justify-between">
-                <div>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block font-semibold">
-                    Discussion &amp; Comments
-                  </span>
-                  <p className="font-sans text-caption text-muted-foreground">
-                    Allow listeners and curators to post comments and
-                    replies on this release.
-                  </p>
-                </div>
-                <label className="flex items-center gap-2 cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={editReleaseAllowComments}
-                    onChange={(e) =>
-                      setEditReleaseAllowComments(e.target.checked)
-                    }
-                    className="accent-primary w-4 h-4"
-                  />
-                  <span className="font-mono text-caption text-foreground font-medium">
-                    {editReleaseAllowComments ? 'Enabled' : 'Disabled'}
-                  </span>
-                </label>
-              </div>
+              <GovernanceToggle
+                checked={editReleaseAllowComments}
+                onChange={setEditReleaseAllowComments}
+                title="Discussion &amp; Comments"
+                description="Allow listeners and curators to post comments and replies on this release."
+                surface="background"
+              />
 
               {/* Master Cuts & Collaborator Credits */}
               {editTracks.length > 0 && (
