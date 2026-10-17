@@ -178,30 +178,36 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {/* TAB 1: CATALOG & RELEASES */}
       {/* ========================================================================= */}
-      <ReleasesTab artistProfile={artistProfile} releases={releases} />
+      {activeTab === 'releases' && (
+        <ReleasesTab artistProfile={artistProfile} releases={releases} />
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 2: 30-DAY TRASH & ARCHIVE */}
       {/* ========================================================================= */}
-      <TrashTab trash={trash} />
+      {activeTab === 'trash' && <TrashTab trash={trash} />}
 
       {/* ========================================================================= */}
       {/* TAB 3: PROFILE & BRANDING */}
       {/* ========================================================================= */}
-      <ProfileTab
-        artistProfile={artistProfile}
-        albums={albums}
-        isLoadingReleases={isLoadingReleases}
-        profile={profileForm}
-      />
+      {activeTab === 'profile' && (
+        <ProfileTab
+          artistProfile={artistProfile}
+          albums={albums}
+          isLoadingReleases={isLoadingReleases}
+          profile={profileForm}
+        />
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 4: VERIFICATION DESK */}
       {/* ========================================================================= */}
-      <VerificationTab
-        artistProfile={artistProfile}
-        verification={verification}
-      />
+      {activeTab === 'verification' && (
+        <VerificationTab
+          artistProfile={artistProfile}
+          verification={verification}
+        />
+      )}
 
       {/* Detach Cut Modal */}
       {detachModalData && (
