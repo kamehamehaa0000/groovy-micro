@@ -1,8 +1,25 @@
 /** Shared types for the Studio feature surface. */
 
 import type { Album, Song } from '../../types/catalog'
+import type { SelectedCredit } from '../ArtistCreditPicker'
 
 export type StudioTab = 'releases' | 'trash' | 'profile' | 'verification'
+
+/**
+ * The cut fields the shared track list editor reads and writes. Both release
+ * drawers declare their own draft type, which extends this shape with the
+ * extra fields their flow needs (uploads in the create drawer).
+ */
+export interface StudioTrackDraft {
+  id: string
+  title: string
+  genre: string
+  bpm?: number | null
+  musicalKey?: string | null
+  durationSeconds: number
+  isExplicit: boolean
+  credits: SelectedCredit[]
+}
 
 /** Payload for the soft-delete (move to 30-day trash) confirmation modal. */
 export interface ReleaseDeleteRequest {

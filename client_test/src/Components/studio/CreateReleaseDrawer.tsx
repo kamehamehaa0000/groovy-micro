@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { UploadCloud, Disc3, Calendar, X, Check } from 'lucide-react'
 import { toast } from 'sonner'
-import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
+import type { SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
 import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP } from '../../lib/taxonomy'
@@ -19,6 +19,7 @@ import {
   TagChipInput,
   TextAreaField,
 } from './fields'
+import { TrackListEditor } from './TrackListEditor'
 
 interface TrackDraft {
   id: string
@@ -1555,223 +1556,85 @@ export function CreateReleaseDrawer({
                   </div>
                 )}
 
-                <div className="space-y-3">
-                  {draftTracks.map((draft, idx) => (
-                    <div
-                      key={draft.id}
-                      className="p-3.5 border border-border bg-background space-y-3"
-                    >
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                        <span className="font-mono text-caption text-muted-foreground w-6">
-                          {String(idx + 1).padStart(2, '0')}
-                        </span>
-
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                          <input
-                            type="text"
-                            required
-                            placeholder="Cut Title"
-                            value={draft.title}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              setDraftTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === draft.id
-                                    ? { ...t, title: val }
-                                    : t,
-                                ),
-                              )
-                            }}
-                            className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                          />
-
-                          <input
-                            type="text"
-                            placeholder="Genre (e.g. Jazz)"
-                            value={draft.genre}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              setDraftTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === draft.id
-                                    ? { ...t, genre: val }
-                                    : t,
-                                ),
-                              )
-                            }}
-                            className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                          />
-
-                          <div className="flex items-center gap-2">
-                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={draft.isExplicit}
-                                onChange={(e) => {
-                                  const val = e.target.checked
-                                  setDraftTracks((prev) =>
-                                    prev.map((t) =>
-                                      t.id === draft.id
-                                        ? { ...t, isExplicit: val }
-                                        : t,
-                                    ),
-                                  )
-                                }}
-                              />
-                              <span>Explicit</span>
-                            </label>
-
-                            {draft.durationSeconds > 0 && (
-                              <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
-                                {formatDuration(draft.durationSeconds)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Audio Upload Input for this track */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          {draft.audioUrl || draft.rawAudioKey ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
-                                <span>✓</span>
-                                <span>
-                                  {formatDuration(
-                                    draft.durationSeconds,
-                                  )}
-                                </span>
-                              </span>
-                              <button
-                                type="button"
-                                disabled
-                                className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
-                                title="Master audio attached. Use reset to replace."
-                              >
-                                Attached
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleResetDraftAudio(draft.id)
-                                }
-                                className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
-                                title="Reset audio file for this cut"
-                              >
-                                ✕ Reset
-                              </button>
-                            </div>
-                          ) : (
-                            <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-card hover:border-foreground text-foreground cursor-pointer">
-                              <span>
-                                {draft.isUploadingAudio
-                                  ? 'Uploading...'
-                                  : 'Select Audio (FLAC/MP3)'}
-                              </span>
-                              <input
-                                type="file"
-                                accept="audio/*"
-                                disabled={draft.isUploadingAudio}
-                                onChange={(e) =>
-                                  handleDraftAudioSelect(draft.id, e)
-                                }
-                                className="hidden"
-                              />
-                            </label>
-                          )}
-
-                          {draftTracks.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveDraftCut(draft.id)
-                              }
-                              className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
-                              title="Remove Cut"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Acoustic Details (BPM & Musical Key) */}
-                      <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                          Acoustics:
-                        </span>
+                <TrackListEditor
+                  tracks={draftTracks}
+                  currentArtistId={artistProfile.id}
+                  genrePlaceholder="Genre (e.g. Jazz)"
+                  creditLabel="Collaborators & Credits (Featured / Producers / Composers)"
+                  creditHeadingRow
+                  onUpdateTrack={(id, patch) =>
+                    setDraftTracks((prev) =>
+                      prev.map((t) =>
+                        t.id === id ? { ...t, ...patch } : t,
+                      ),
+                    )
+                  }
+                  renderTools={(draft) => (
+                    // Audio Upload Input for this track
+                    <div className="flex items-center gap-2 shrink-0">
+                      {draft.audioUrl || draft.rawAudioKey ? (
                         <div className="flex items-center gap-1.5">
-                          <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
-                            BPM
-                          </label>
-                          <input
-                            type="number"
-                            min={30}
-                            max={300}
-                            placeholder="Auto/120"
-                            value={draft.bpm ?? ''}
-                            onChange={(e) => {
-                              const val = e.target.value
-                                ? Number(e.target.value)
-                                : null
-                              setDraftTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === draft.id
-                                    ? { ...t, bpm: val }
-                                    : t,
-                                ),
-                              )
-                            }}
-                            className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                          />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
-                            Key
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. C min"
-                            value={draft.musicalKey ?? ''}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              setDraftTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === draft.id
-                                    ? { ...t, musicalKey: val }
-                                    : t,
-                                ),
-                              )
-                            }}
-                            className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Collaborator & Credit Attribution */}
-                      <div className="pt-2 border-t border-border-soft/60">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                            Collaborators & Credits (Featured /
-                            Producers / Composers)
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 border border-success/40 bg-success-soft text-success flex items-center gap-1">
+                            <span>✓</span>
+                            <span>
+                              {formatDuration(
+                                draft.durationSeconds,
+                              )}
+                            </span>
                           </span>
+                          <button
+                            type="button"
+                            disabled
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border-soft bg-background text-muted-foreground/60 cursor-not-allowed"
+                            title="Master audio attached. Use reset to replace."
+                          >
+                            Attached
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleResetDraftAudio(draft.id)
+                            }
+                            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-card cursor-pointer transition-colors"
+                            title="Reset audio file for this cut"
+                          >
+                            ✕ Reset
+                          </button>
                         </div>
-                        <ArtistCreditPicker
-                          credits={draft.credits || []}
-                          onChange={(newCredits) =>
-                            setDraftTracks((prev) =>
-                              prev.map((t) =>
-                                t.id === draft.id
-                                  ? { ...t, credits: newCredits }
-                                  : t,
-                              ),
-                            )
+                      ) : (
+                        <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border bg-card hover:border-foreground text-foreground cursor-pointer">
+                          <span>
+                            {draft.isUploadingAudio
+                              ? 'Uploading...'
+                              : 'Select Audio (FLAC/MP3)'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            disabled={draft.isUploadingAudio}
+                            onChange={(e) =>
+                              handleDraftAudioSelect(draft.id, e)
+                            }
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+
+                      {draftTracks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveDraftCut(draft.id)
                           }
-                          currentArtistId={artistProfile.id}
-                        />
-                      </div>
+                          className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
+                          title="Remove Cut"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               </div>
             )}
 

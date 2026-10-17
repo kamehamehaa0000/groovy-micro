@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Disc3, Lock, Calendar, X, Globe, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
+import type { SelectedCredit } from '../ArtistCreditPicker'
 import { MarqueeText } from '../common/MarqueeText'
-import { catalogApi, formatDuration } from '../../lib/catalog.api'
+import { catalogApi } from '../../lib/catalog.api'
 import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP } from '../../lib/taxonomy'
 import type { ArtistProfile } from '../../types/artist'
 import type { Album, AlbumType, ReleaseVisibility } from '../../types/catalog'
@@ -17,6 +17,7 @@ import {
   TagChipInput,
   TextAreaField,
 } from './fields'
+import { TrackListEditor } from './TrackListEditor'
 
 interface EditTrackDraft {
   id: string
@@ -679,157 +680,19 @@ export function EditReleaseDrawer({
                     </span>
                   </div>
 
-                  <div className="space-y-3">
-                    {editTracks.map((track, idx) => (
-                      <div
-                        key={track.id}
-                        className="p-3.5 border border-border bg-background space-y-3"
-                      >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                          <span className="font-mono text-caption text-muted-foreground w-6">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-
-                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                            <input
-                              type="text"
-                              required
-                              value={track.title}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setEditTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === track.id
-                                      ? { ...t, title: val }
-                                      : t,
-                                  ),
-                                )
-                              }}
-                              placeholder="Cut Title"
-                              className="font-serif italic text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                            />
-
-                            <input
-                              type="text"
-                              value={track.genre}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setEditTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === track.id
-                                      ? { ...t, genre: val }
-                                      : t,
-                                  ),
-                                )
-                              }}
-                              placeholder="Genre (e.g. Ambient)"
-                              className="font-mono text-caption py-1.5 px-2.5 border border-border bg-card text-foreground"
-                            />
-
-                            <div className="flex items-center gap-2">
-                              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={track.isExplicit}
-                                  onChange={(e) => {
-                                    const val = e.target.checked
-                                    setEditTracks((prev) =>
-                                      prev.map((t) =>
-                                        t.id === track.id
-                                          ? { ...t, isExplicit: val }
-                                          : t,
-                                      ),
-                                    )
-                                  }}
-                                />
-                                <span>Explicit</span>
-                              </label>
-
-                              {track.durationSeconds > 0 && (
-                                <span className="font-mono text-eyebrow text-muted-foreground ml-auto">
-                                  {formatDuration(track.durationSeconds)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Acoustic Details (BPM & Musical Key) */}
-                        <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                            Acoustics:
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
-                              BPM
-                            </label>
-                            <input
-                              type="number"
-                              min={30}
-                              max={300}
-                              placeholder="Auto/120"
-                              value={track.bpm ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                  ? Number(e.target.value)
-                                  : null
-                                setEditTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === track.id
-                                      ? { ...t, bpm: val }
-                                      : t,
-                                  ),
-                                )
-                              }}
-                              className="w-20 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
-                              Key
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. C min"
-                              value={track.musicalKey ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setEditTracks((prev) =>
-                                  prev.map((t) =>
-                                    t.id === track.id
-                                      ? { ...t, musicalKey: val }
-                                      : t,
-                                  ),
-                                )
-                              }}
-                              className="w-24 font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Collaborator & Credit Attribution */}
-                        <div className="pt-2 border-t border-border-soft/60">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1.5">
-                            Collaborator Credits (Featured / Producers /
-                            Composers / Lyricists)
-                          </span>
-                          <ArtistCreditPicker
-                            credits={track.credits || []}
-                            onChange={(newCredits) =>
-                              setEditTracks((prev) =>
-                                prev.map((t) =>
-                                  t.id === track.id
-                                    ? { ...t, credits: newCredits }
-                                    : t,
-                                ),
-                              )
-                            }
-                            currentArtistId={artistProfile.id}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <TrackListEditor
+                    tracks={editTracks}
+                    currentArtistId={artistProfile.id}
+                    genrePlaceholder="Genre (e.g. Ambient)"
+                    creditLabel="Collaborator Credits (Featured / Producers / Composers / Lyricists)"
+                    onUpdateTrack={(id, patch) =>
+                      setEditTracks((prev) =>
+                        prev.map((t) =>
+                          t.id === id ? { ...t, ...patch } : t,
+                        ),
+                      )
+                    }
+                  />
                 </div>
               )}
 

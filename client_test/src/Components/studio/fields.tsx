@@ -437,3 +437,57 @@ export function CreditPickerField({
     </div>
   )
 }
+
+export interface AcousticsRowProps {
+  bpm?: number | null
+  musicalKey?: string | null
+  onBpmChange: (bpm: number | null) => void
+  onKeyChange: (key: string) => void
+}
+
+/**
+ * The compact BPM + key pair that sits under a cut's fields. Its two labels use
+ * the untracked eyebrow step, which is why they are not `FieldLabel`s.
+ */
+export function AcousticsRow({
+  bpm,
+  musicalKey,
+  onBpmChange,
+  onKeyChange,
+}: AcousticsRowProps) {
+  return (
+    <div className="flex items-center gap-3 pt-1 border-t border-border-soft/40">
+      <span className={cn(EYEBROW, 'text-muted-foreground')}>Acoustics:</span>
+      <div className="flex items-center gap-1.5">
+        <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+          BPM
+        </label>
+        <MonoInput
+          type="number"
+          min={30}
+          max={300}
+          placeholder="Auto/120"
+          value={bpm ?? ''}
+          onChange={(e) =>
+            onBpmChange(e.target.value ? Number(e.target.value) : null)
+          }
+          size="xs"
+          width="bpm"
+        />
+      </div>
+      <div className="flex items-center gap-1.5">
+        <label className="font-eyebrow text-eyebrow uppercase text-muted-foreground">
+          Key
+        </label>
+        <MonoInput
+          type="text"
+          placeholder="e.g. C min"
+          value={musicalKey ?? ''}
+          onChange={(e) => onKeyChange(e.target.value)}
+          size="xs"
+          width="key"
+        />
+      </div>
+    </div>
+  )
+}
