@@ -2,10 +2,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi, slugifyText } from '../lib/artists.api'
-import { catalogApi } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
-import type { Album, Song } from '../types/catalog'
-import { BadgeCheck, ExternalLink, UploadCloud, RotateCcw } from 'lucide-react'
+import { BadgeCheck, ExternalLink, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ProceduralCover } from '../components/common/ProceduralCover'
@@ -17,11 +15,10 @@ import { StudioHeader } from '../components/studio/StudioHeader'
 import { StudioTabs } from '../components/studio/StudioTabs'
 import { StudioToaster } from '../components/studio/StudioToaster'
 import { useReleases } from '../components/studio/hooks/useReleases'
-import type {
-  StudioTab,
-  TrashPurgeRequest,
-} from '../components/studio/studio.types'
+import { useTrash } from '../components/studio/hooks/useTrash'
+import type { StudioTab } from '../components/studio/studio.types'
 import { ReleasesTab } from '../components/studio/tabs/ReleasesTab'
+import { TrashTab } from '../components/studio/tabs/TrashTab'
 
 export const Route = createFileRoute('/studio')({
   component: StudioComponent,
@@ -52,14 +49,16 @@ function StudioComponent() {
     setIsCreateReleaseOpen,
   } = releases
 
-  // Trash Releases State
-  const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
-  const [trashSongs, setTrashSongs] = useState<Song[]>([])
-  const [isLoadingTrash, setIsLoadingTrash] = useState(false)
-  const [trashConfirm, setTrashConfirm] = useState<TrashPurgeRequest | null>(
-    null,
-  )
-  const [isPurging, setIsPurging] = useState(false)
+  const trash = useTrash()
+
+  const {
+    confirmPurge,
+    isPurging,
+    setTrashConfirm,
+    trashAlbums,
+    trashConfirm,
+    trashSongs,
+  } = trash
 
   // Upgrade Form State (for Listeners)
   const [stageName, setStageName] = useState('')
@@ -143,112 +142,15 @@ function StudioComponent() {
     }
   }, [user])
 
-  // Load Trash items
-  const loadTrash = async () => {
-    if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
-    setIsLoadingTrash(true)
-    try {
-      const res = await catalogApi.getStudioReleases(true)
-      setTrashAlbums(res.albums)
-      setTrashSongs(res.songs)
-    } catch (err: any) {
-      console.warn('Could not load trash releases:', err)
-    } finally {
-      setIsLoadingTrash(false)
-    }
-  }
-
   useEffect(() => {
     if (artistProfile) {
       if (activeTab === 'releases' || activeTab === 'profile') {
         releases.loadReleases()
       } else if (activeTab === 'trash') {
-        loadTrash()
+        trash.loadTrash()
       }
     }
   }, [artistProfile, activeTab])
-
-  // Execute confirmed permanent purge (empty trash, release, or single cut)
-  const confirmPurge = () => {
-    if (!trashConfirm) return
-    if (trashConfirm.type === 'empty') {
-      handleEmptyTrash()
-    } else if (trashConfirm.type === 'permanent_release' && trashConfirm.id) {
-      handlePermanentDeleteAlbum(trashConfirm.id)
-    } else if (trashConfirm.type === 'permanent_song' && trashConfirm.id) {
-      handlePermanentDeleteSong(trashConfirm.id)
-    }
-  }
-
-  // Restore album from trash
-  const handleRestoreAlbum = async (albumId: string) => {
-    try {
-      await catalogApi.restoreAlbum(albumId)
-      toast.success('Release restored to active catalog.')
-      loadTrash()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to restore release')
-    }
-  }
-
-  // Restore song from trash
-  const handleRestoreSong = async (songId: string) => {
-    try {
-      await catalogApi.restoreSong(songId)
-      toast.success('Master track restored to active catalog.')
-      loadTrash()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to restore track')
-    }
-  }
-
-  // Permanently delete album release and its tracks
-  const handlePermanentDeleteAlbum = async (albumId: string) => {
-    try {
-      setIsPurging(true)
-      toast.dismiss()
-      await catalogApi.permanentlyDeleteAlbum(albumId)
-      toast.success('Release and all associated tracks permanently deleted.')
-      setTrashConfirm(null)
-      loadTrash()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to permanently delete release')
-    } finally {
-      setIsPurging(false)
-    }
-  }
-
-  // Permanently delete master cut
-  const handlePermanentDeleteSong = async (songId: string) => {
-    try {
-      setIsPurging(true)
-      toast.dismiss()
-      await catalogApi.permanentlyDeleteSong(songId)
-      toast.success('Master cut permanently deleted.')
-      setTrashConfirm(null)
-      loadTrash()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to permanently delete track')
-    } finally {
-      setIsPurging(false)
-    }
-  }
-
-  // Permanently empty all items in studio trash
-  const handleEmptyTrash = async () => {
-    try {
-      setIsPurging(true)
-      toast.dismiss()
-      const res = await catalogApi.emptyStudioTrash()
-      toast.success(res.message || 'Studio trash emptied permanently.')
-      setTrashConfirm(null)
-      loadTrash()
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to empty studio trash')
-    } finally {
-      setIsPurging(false)
-    }
-  }
 
   if (isAuthLoading || (user?.role === 'ARTIST' && isLoadingProfile)) {
     return (
@@ -713,155 +615,7 @@ function StudioComponent() {
       {/* ========================================================================= */}
       {/* TAB 2: 30-DAY TRASH & ARCHIVE */}
       {/* ========================================================================= */}
-      {activeTab === 'trash' && (
-        <div className="space-y-6">
-          <div className="p-4 border border-warning/40 bg-warning-soft text-warning font-sans text-caption flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-widest font-semibold block mb-0.5">
-                30-Day Recovery Guarantee
-              </span>
-              <p className="leading-relaxed">
-                Archived releases and master recordings are retained in this
-                safe vault for 30 days before irreversible purging. You can
-                restore them to your active catalog at any time, or permanently
-                purge them.
-              </p>
-            </div>
-            {(trashAlbums.length > 0 || trashSongs.length > 0) && (
-              <button
-                type="button"
-                disabled={isPurging}
-                onClick={() => setTrashConfirm({ type: 'empty' })}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-destructive/40 bg-destructive-soft hover:bg-destructive/20 text-destructive transition-colors font-semibold cursor-pointer shrink-0"
-              >
-                {isPurging ? 'Emptying...' : 'Empty Trash'}
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-              Archived Releases ({trashAlbums.length})
-            </h3>
-
-            {isLoadingTrash ? (
-              <div className="p-6 text-center font-mono text-caption text-muted-foreground animate-pulse">
-                Loading trash archive...
-              </div>
-            ) : trashAlbums.length === 0 ? (
-              <div className="p-6 border border-border bg-card text-center font-mono text-caption text-muted-foreground rounded-control">
-                Trash is empty. No deleted albums found.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {trashAlbums.map((album) => (
-                  <div
-                    key={album.id}
-                    className="p-4 border border-border rounded-control bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate min-w-0">
-                          {album.title}
-                        </h4>
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground rounded-control shrink-0">
-                          {album.albumType}
-                        </span>
-                      </div>
-                      <span className="font-mono text-eyebrow text-muted-foreground mt-0.5 block">
-                        Deleted:{' '}
-                        {album.deletedAt
-                          ? new Date(album.deletedAt).toLocaleDateString()
-                          : 'Recently'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleRestoreAlbum(album.id)}
-                        className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
-                      >
-                        <RotateCcw className="w-3 h-3 shrink-0" />
-                        <span>Restore Release</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isPurging}
-                        onClick={() =>
-                          setTrashConfirm({
-                            type: 'permanent_release',
-                            id: album.id,
-                            title: album.title,
-                          })
-                        }
-                        className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
-                      >
-                        Delete Forever
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Archived Songs */}
-          {trashSongs.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-border-soft">
-              <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                Archived Master Cuts ({trashSongs.length})
-              </h3>
-
-              <div className="space-y-2">
-                {trashSongs.map((song) => (
-                  <div
-                    key={song.id}
-                    className="p-3 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="min-w-0">
-                      <span className="font-sans font-semibold text-body text-foreground truncate block">
-                        {song.title}
-                      </span>
-                      <span className="font-mono text-eyebrow text-muted-foreground">
-                        Deleted:{' '}
-                        {song.deletedAt
-                          ? new Date(song.deletedAt).toLocaleDateString()
-                          : 'Recently'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleRestoreSong(song.id)}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-3 h-3 shrink-0" />
-                        <span>Restore</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isPurging}
-                        onClick={() =>
-                          setTrashConfirm({
-                            type: 'permanent_song',
-                            id: song.id,
-                            title: song.title,
-                          })
-                        }
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
-                      >
-                        Delete Forever
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <TrashTab trash={trash} />
 
       {/* ========================================================================= */}
       {/* TAB 3: PROFILE & BRANDING */}
