@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
+import type { TrashCounts } from '../../../lib/catalog.api'
 import type { Album, Song, ReleaseVisibility } from '../../../types/catalog'
 import { toast } from 'sonner'
 import type { ReleaseDeleteRequest, DetachCutRequest } from '../studio.types'
@@ -122,19 +123,22 @@ export function useReleases() {
   }
 
   // Execute confirmed soft delete
-  const confirmSoftDelete = async () => {
-    if (!deleteConfirm) return
+  const confirmSoftDelete = async (): Promise<TrashCounts | null> => {
+    if (!deleteConfirm) return null
 
     try {
       setIsDeletingItem(true)
       toast.dismiss()
+      let counts: TrashCounts
       if (deleteConfirm.type === 'album') {
-        await catalogApi.deleteAlbum(deleteConfirm.id)
+        const res = await catalogApi.deleteAlbum(deleteConfirm.id)
+        counts = res.trashCounts
         toast.success(
           'Release and all its cuts moved to 30-day trash. You can restore it anytime within 30 days.',
         )
       } else {
         const res = await catalogApi.deleteSong(deleteConfirm.id)
+        counts = res.trashCounts
         toast.success(res.message || 'Master track moved to 30-day trash.')
         if (deleteConfirm.parentAlbumId) {
           try {
@@ -152,8 +156,10 @@ export function useReleases() {
       }
       setDeleteConfirm(null)
       loadReleases()
+      return counts
     } catch (err: any) {
       toast.error(err.message || 'Failed to archive item')
+      return null
     } finally {
       setIsDeletingItem(false)
     }

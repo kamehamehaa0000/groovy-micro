@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
+import { catalogApi } from '../lib/catalog.api'
 import type { ArtistProfile } from '../types/artist'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ConfirmPurgeModal } from '../components/studio/ConfirmPurgeModal'
@@ -45,6 +46,7 @@ function StudioComponent() {
     isDeletingItem,
     isLoadingReleases,
     setAlbumTrackMap,
+    setAlbums,
     setDeleteConfirm,
     setDetachModalData,
     setEditingAlbum,
@@ -55,11 +57,15 @@ function StudioComponent() {
 
   const {
     confirmPurge,
+    hasLoadedTrash,
+    invalidateTrash,
     isPurging,
+    loadTrash,
+    seedTrashCounts,
     setTrashConfirm,
-    trashAlbums,
+    trashAlbumCount,
     trashConfirm,
-    trashSongs,
+    trashSongCount,
   } = trash
 
   const profileForm = useProfileForm(artistProfile, setArtistProfile)
@@ -87,36 +93,74 @@ function StudioComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  // Fetch Artist Profile if authenticated
+  // Bootstrap the studio. Artists get profile + releases + trash tallies in a
+  // single request; everyone else keeps the profile-only probe that drives the
+  // upgrade screen. An account whose role is stale but already owns a profile
+  // (healed server side by this very call) still gets its catalogue.
   useEffect(() => {
-    if (user) {
-      setIsLoadingProfile(true)
-      artistsApi
-        .getMyProfile()
-        .then((profile) => {
-          setArtistProfile(profile)
-          hydrate(profile)
+    if (!user) return
+
+    setIsLoadingProfile(true)
+
+    if (user.role === 'ARTIST' || user.role === 'ADMIN') {
+      catalogApi
+        .getStudioOverview()
+        .then((overview) => {
+          setArtistProfile(overview.artist)
+          hydrate(overview.artist)
           hydrateContact(user.email)
+          setAlbums(overview.albums)
+          seedTrashCounts(overview.trashCounts)
         })
         .catch((err) => {
-          console.warn('Could not load artist profile:', err)
+          console.warn('Could not load studio overview:', err)
           setArtistProfile(null)
         })
         .finally(() => {
           setIsLoadingProfile(false)
         })
+      return
     }
-  }, [user, hydrate, hydrateContact])
 
+    artistsApi
+      .getMyProfile()
+      .then((profile) => {
+        setArtistProfile(profile)
+        hydrate(profile)
+        hydrateContact(user.email)
+        return catalogApi
+          .getStudioReleases(false)
+          .then((res) => setAlbums(res.albums))
+          .catch(() => {
+            // Dashboard still renders; the releases tab falls back to empty
+          })
+      })
+      .catch((err) => {
+        console.warn('Could not load artist profile:', err)
+        setArtistProfile(null)
+      })
+      .finally(() => {
+        setIsLoadingProfile(false)
+      })
+  }, [user, hydrate, hydrateContact, setAlbums, seedTrashCounts])
+
+  // Trash loads lazily on its first visit. The badge tally already arrived with
+  // the bootstrap payload, so switching tabs never refetches anything.
   useEffect(() => {
-    if (artistProfile) {
-      if (activeTab === 'releases' || activeTab === 'profile') {
-        releases.loadReleases()
-      } else if (activeTab === 'trash') {
-        trash.loadTrash()
-      }
+    if (activeTab === 'trash' && artistProfile && !hasLoadedTrash) {
+      loadTrash()
     }
-  }, [artistProfile, activeTab])
+  }, [activeTab, artistProfile, hasLoadedTrash, loadTrash])
+
+  // Soft deletes answer with the fresh tallies, so the badge updates in place and
+  // the trash list only refetches when it is next opened
+  const handleConfirmSoftDelete = async () => {
+    const counts = await confirmSoftDelete()
+    if (counts) {
+      seedTrashCounts(counts)
+      invalidateTrash()
+    }
+  }
 
   if (isAuthLoading || (user?.role === 'ARTIST' && isLoadingProfile)) {
     return (
@@ -172,7 +216,7 @@ function StudioComponent() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         releaseCount={albums.length}
-        trashCount={trashAlbums.length + trashSongs.length}
+        trashCount={trashAlbumCount + trashSongCount}
       />
 
       {/* ========================================================================= */}
@@ -237,7 +281,7 @@ function StudioComponent() {
           request={deleteConfirm}
           isDeleting={isDeletingItem}
           onCancel={() => setDeleteConfirm(null)}
-          onConfirm={confirmSoftDelete}
+          onConfirm={handleConfirmSoftDelete}
         />
       )}
 

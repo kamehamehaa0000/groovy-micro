@@ -1,5 +1,6 @@
 import { api } from "./api";
 import type {
+  Album,
   AlbumType,
   AlbumDetail,
   CreateAlbumInput,
@@ -14,6 +15,24 @@ import type {
   SearchSongsResponse,
   PreSavedRelease,
 } from "../types/catalog";
+import type { ArtistProfile } from "../types/artist";
+
+/**
+ * Tallies for the studio trash tab badge.
+ */
+export interface TrashCounts {
+  albums: number;
+  songs: number;
+}
+
+/**
+ * Single studio bootstrap payload: profile, active releases and trash tallies.
+ */
+export interface StudioOverviewResponse {
+  artist: ArtistProfile;
+  albums: Album[];
+  trashCounts: TrashCounts;
+}
 
 /**
  * Formats duration in seconds into standard mm:ss or hh:mm:ss format.
@@ -139,9 +158,10 @@ export const catalogApi = {
 
   /**
    * Soft-delete an album (cascades to songs, eligible for 30-day restore).
+   * Returns the updated trash tallies so the studio badge needs no follow-up call.
    */
-  async deleteAlbum(id: string): Promise<{ message: string; deletedAt: string }> {
-    return await api.delete<{ message: string; deletedAt: string }>(`/api/v1/albums/${id}`);
+  async deleteAlbum(id: string): Promise<{ message: string; deletedAt: string; trashCounts: TrashCounts }> {
+    return await api.delete<{ message: string; deletedAt: string; trashCounts: TrashCounts }>(`/api/v1/albums/${id}`);
   },
 
   /**
@@ -224,10 +244,11 @@ export const catalogApi = {
   },
 
   /**
-   * Soft-delete a song (30-day restore window).
+   * Soft-delete a song (30-day restore window). May also trash its parent album
+   * when it was the last active track, so the server returns the fresh tallies.
    */
-  async deleteSong(id: string): Promise<{ message: string; deletedAt: string }> {
-    return await api.delete<{ message: string; deletedAt: string }>(`/api/v1/songs/${id}`);
+  async deleteSong(id: string): Promise<{ message: string; deletedAt: string; trashCounts: TrashCounts }> {
+    return await api.delete<{ message: string; deletedAt: string; trashCounts: TrashCounts }>(`/api/v1/songs/${id}`);
   },
 
   /**
@@ -282,6 +303,14 @@ export const catalogApi = {
    */
   async getStudioReleases(trash = false): Promise<StudioReleasesResponse> {
     return await api.get<StudioReleasesResponse>(`/api/v1/studio/releases${trash ? "?trash=true" : ""}`);
+  },
+
+  /**
+   * Single studio bootstrap payload: profile, active releases and trash tallies.
+   * Replaces the separate profile + releases round trips the studio used to make.
+   */
+  async getStudioOverview(): Promise<StudioOverviewResponse> {
+    return await api.get<StudioOverviewResponse>("/api/v1/studio/overview");
   },
 
   /**

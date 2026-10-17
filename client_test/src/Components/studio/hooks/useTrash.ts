@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
+import type { TrashCounts } from '../../../lib/catalog.api'
 import type { Album, Song } from '../../../types/catalog'
 import { toast } from 'sonner'
 import type { TrashPurgeRequest } from '../studio.types'
@@ -12,25 +13,46 @@ export function useTrash() {
   const [trashAlbums, setTrashAlbums] = useState<Album[]>([])
   const [trashSongs, setTrashSongs] = useState<Song[]>([])
   const [isLoadingTrash, setIsLoadingTrash] = useState(false)
+  const [hasLoadedTrash, setHasLoadedTrash] = useState(false)
+  // Tab badge tallies. Seeded from the studio bootstrap bundle so the badge is
+  // right before the trash list is ever opened, then kept in sync every time
+  // the list itself is (re)loaded.
+  const [trashAlbumCount, setTrashAlbumCount] = useState(0)
+  const [trashSongCount, setTrashSongCount] = useState(0)
   const [trashConfirm, setTrashConfirm] = useState<TrashPurgeRequest | null>(
     null,
   )
   const [isPurging, setIsPurging] = useState(false)
 
-  // Load Trash items
-  const loadTrash = async () => {
+  // Seed the tab badge tallies (from the studio bootstrap, or a soft delete)
+  const seedTrashCounts = useCallback((counts: TrashCounts) => {
+    setTrashAlbumCount(counts.albums)
+    setTrashSongCount(counts.songs)
+  }, [])
+
+  // A soft delete can add items to the trash, so flag the loaded list as stale:
+  // the next visit refetches it. The badge tallies already arrived with the
+  // delete response, so nothing else has to move.
+  const invalidateTrash = useCallback(() => setHasLoadedTrash(false), [])
+
+  // Load Trash items (memoised so the studio can trigger it lazily without
+  // re-running on every render)
+  const loadTrash = useCallback(async () => {
     if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
     setIsLoadingTrash(true)
     try {
       const res = await catalogApi.getStudioReleases(true)
       setTrashAlbums(res.albums)
       setTrashSongs(res.songs)
+      setTrashAlbumCount(res.albums.length)
+      setTrashSongCount(res.songs.length)
+      setHasLoadedTrash(true)
     } catch (err: any) {
       console.warn('Could not load trash releases:', err)
     } finally {
       setIsLoadingTrash(false)
     }
-  }
+  }, [user])
 
   // Execute confirmed permanent purge (empty trash, release, or single cut)
   const confirmPurge = () => {
@@ -121,6 +143,11 @@ export function useTrash() {
     setTrashSongs,
     isLoadingTrash,
     setIsLoadingTrash,
+    hasLoadedTrash,
+    trashAlbumCount,
+    trashSongCount,
+    seedTrashCounts,
+    invalidateTrash,
     trashConfirm,
     setTrashConfirm,
     isPurging,
