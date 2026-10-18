@@ -5,7 +5,9 @@ datasources:
     uid: groovy-prometheus
     type: prometheus
     access: proxy
-    url: http://prometheus:9090
+    # Set by docker-compose.yml: http://127.0.0.1:9090 with host networking,
+    # http://prometheus:9090 on a normal container network.
+    url: ${PROMETHEUS_URL}
     isDefault: true
     editable: true
     jsonData:

@@ -278,20 +278,35 @@ Both containers are configured by files, not clicking:
 To stop it: `podman compose -f monitoring/docker-compose.yml down`
 (add `-v` to also throw away the collected data).
 
-### If Prometheus shows the target as DOWN
+### Why this stack uses host networking
 
-The containers cannot see your machine's `localhost`. The compose file maps
-`host.docker.internal` to the host for you. If that still does not resolve (some
-Podman/Docker setups), replace the target in `prometheus.yml` with the host's LAN
-IP (for example `192.168.1.20:4000`) and reload:
+On Windows the podman machine is a WSL VM running with *mirrored* networking: the
+VM shares the Windows IP address. From a normal (bridged) container,
+`host.docker.internal` resolves to the VM's own bridge gateway, so the scrape
+dies with `connect: connection refused` on something like `10.89.1.1:4000` — the
+packets never leave the VM. The VM's loopback, however, does reach Windows.
+
+`network_mode: host` puts the containers in the VM's network namespace, which is
+that loopback: the API is then simply `127.0.0.1:4000`, and no port mapping is
+needed because Grafana and Prometheus listen on the VM's own 3000/9090 (which
+Windows reaches at `localhost`).
+
+On a Linux server or Docker Desktop, drop `network_mode: host`, publish the
+ports, set `PROMETHEUS_URL=http://prometheus:9090` and scrape
+`host.docker.internal:4000` instead. `monitoring/README.md` has the exact diff.
+
+### If the target is still DOWN
+
+Check, in order:
 
 ```powershell
-curl -X POST http://localhost:9090/-/reload
+curl.exe -s -o NUL -w "%{http_code}`n" http://localhost:4000/metrics   # expect 200
+curl.exe -s http://localhost:9090/api/v1/targets                        # expect health=up
 ```
 
-Also check that the API is bound to `0.0.0.0` (it is: `host = '0.0.0.0'` in
-`server/src/index.ts`); if it only listened on `127.0.0.1` the scrape would be
-refused.
+Then confirm the API is bound to `0.0.0.0` (it is: `host = '0.0.0.0'` in
+`server/src/index.ts`); if it only listened on `127.0.0.1` a remote scrape would
+be refused.
 
 ---
 

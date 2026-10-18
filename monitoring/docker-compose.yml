@@ -14,6 +14,14 @@ services:
     image: prom/prometheus:v3.1.0
     container_name: groovy-prometheus
     restart: unless-stopped
+    # Host networking on purpose. On Windows the podman machine runs inside WSL
+    # with *mirrored* networking: the VM shares the Windows IP, so from a bridged
+    # container "the host" is unreachable (its own bridge gateway just refuses),
+    # while the VM's loopback does reach Windows. Sharing the VM's network
+    # namespace is what makes 127.0.0.1:4000 and the "host" UIs work.
+    # On a Linux server or Docker Desktop use a normal network instead: see
+    # README ("If you are not on Windows + podman").
+    network_mode: host
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -25,28 +33,24 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./secrets/metrics_token:/etc/prometheus/metrics_token:ro
       - prometheusdata:/prometheus
-    ports:
-      - "9090:9090"
-    extra_hosts:
-      # Makes "host.docker.internal" mean "the machine running the containers",
-      # which is where the API lives in local development.
-      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana:11.5.0
     container_name: groovy-grafana
     restart: unless-stopped
+    network_mode: host
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-groovy}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
+      # Where Grafana finds Prometheus. With host networking that is the VM's
+      # loopback; with a bridge network it would be http://prometheus:9090.
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://127.0.0.1:9090}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafanadata:/var/lib/grafana
-    ports:
-      - "3000:3000"
     depends_on:
       - prometheus
 

@@ -15,10 +15,12 @@ scrape_configs:
       type: Bearer
       credentials_file: /etc/prometheus/metrics_token
     static_configs:
-      # In development the API runs on the host (bun run dev) at port 4000.
-      # For a deployed API put its real host there instead, for example:
+      # Local development: the API runs on this machine at port 4000.
+      # "127.0.0.1" rather than "host.docker.internal" because this stack shares
+      # the podman VM's network namespace (see docker-compose.yml). For a
+      # deployed API put its real host there instead, for example:
       #   - targets: ["api.groovy.stream:4000"]
       #
       # Note: no `env`/`service` labels here on purpose. The API already exports
       # those itself, and two sources for the same label would collide.
-      - targets: ["host.docker.internal:4000"]
+      - targets: ["127.0.0.1:4000"]
