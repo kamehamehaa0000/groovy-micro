@@ -7,6 +7,11 @@ import type {
 } from "../types/player";
 import type { SongCredit } from "../types/catalog";
 import { playerApi } from "../lib/player.api";
+import { routeToSpeaker } from "../lib/connect-bridge";
+import type {
+  RemoteCommandPayload,
+  RemoteCommandType,
+} from "../lib/connect-bridge";
 import { useAuthStore } from "./auth.store";
 
 // Helper: Fisher-Yates array shuffle
@@ -21,6 +26,57 @@ function shuffleArray<T>(items: T[]): T[] {
 
 const STORAGE_KEY = "groovy:player:snapshot";
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Guards against a double tap firing two pulls in a row while the first
+ * "play here" is still claiming the Speaker role (rules A8 / B7).
+ */
+let remotePlayInFlight = false;
+
+/**
+ * The fallback for a song tap on a Remote when the Speaker cannot be reached at
+ * all: claim the Speaker role with the tapped song and let the normal local path
+ * take over. This is what every tap did before Groovy Connect.
+ */
+async function playHereWithTrack(
+  track: PlayerTrack,
+  contextQueue: PlayerTrack[] | undefined,
+  contextIndex: number,
+  contextUri: string | undefined,
+  contextTitle: string | undefined
+): Promise<void> {
+  if (remotePlayInFlight) return;
+  remotePlayInFlight = true;
+  try {
+    const { useConnectStore } = await import("./connect.store");
+    await useConnectStore.getState().playHere({
+      track,
+      contextQueue,
+      contextIndex,
+      contextUri,
+      contextTitle,
+    });
+  } finally {
+    remotePlayInFlight = false;
+  }
+}
+
+/**
+ * Rule B7, Spotify semantics: on a Remote, picking a song plays it **on the
+ * session's Speaker**, not here. The tap becomes a command carrying the track
+ * and the context it came from, so the Speaker adopts both and NEXT / PREVIOUS
+ * stay meaningful there.
+ *
+ * `pullHere` is the fallback for the one case that cannot be a command — a
+ * Speaker that cannot be reached — so a tap always ends in sound rather than a
+ * dead button. Returns true when the caller must do nothing else locally.
+ */
+function playSongAsRemote(
+  payload: RemoteCommandPayload,
+  pullHere: () => void
+): boolean {
+  return routeToSpeaker("PLAY_TRACK", payload, pullHere);
+}
 
 interface PlayerState {
   // Current playback
@@ -46,14 +102,29 @@ interface PlayerState {
 
   // UI state
   isQueueOpen: boolean;
+  /** Mobile Groovy Connect bottom sheet (devices panel). */
+  isDevicesOpen: boolean;
   isNowPlayingExpanded: boolean;
-  desktopRightSidebarView: "none" | "now-playing" | "queue";
+  desktopRightSidebarView: "none" | "now-playing" | "queue" | "devices";
   isInitialized: boolean;
 
   // Multi-Device Takeover (Option A)
   supersededByDevice: { deviceId: string; deviceName: string } | null;
   takeoverPlayback: () => Promise<void>;
   dismissSuperseded: () => void;
+
+  /**
+   * Groovy Connect: set the moment another device takes the Speaker role. The
+   * audio engine watches this and fades out — one place owns "stand down",
+   * whether the news arrived over SSE, a heartbeat or a rejected needle tick
+   * (design doc rule C1).
+   */
+  speakerYieldedBy: {
+    deviceId: string;
+    deviceName: string;
+    at: number;
+  } | null;
+  yieldSpeakerTo: (device: { deviceId: string; deviceName: string } | null) => void;
 
   // Actions
   playTrack: (
@@ -71,8 +142,21 @@ interface PlayerState {
   toggleMute: () => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
+  /** Idempotent setters, so a relayed command can't flip the wrong way. */
+  setShuffle: (value: boolean) => void;
+  setRepeat: (mode: RepeatMode) => void;
   next: () => void;
   previous: () => void;
+
+  /**
+   * Groovy Connect: runs a command that arrived from a Remote. Only ever called
+   * on the Speaker, so it dispatches straight into the local actions below
+   * (design doc §6.4).
+   */
+  applySessionCommand: (
+    type: RemoteCommandType,
+    payload?: RemoteCommandPayload | null
+  ) => void;
 
   // Queue actions
   playNext: (track: PlayerTrack) => void;
@@ -87,10 +171,14 @@ interface PlayerState {
   // UI actions
   setQueueOpen: (isOpen: boolean) => void;
   toggleQueueDrawer: () => void;
+  setDevicesOpen: (isOpen: boolean) => void;
+  toggleDevicesDrawer: () => void;
   setNowPlayingExpanded: (isOpen: boolean) => void;
   toggleNowPlayingExpanded: () => void;
-  setDesktopRightSidebarView: (view: "none" | "now-playing" | "queue") => void;
-  toggleDesktopRightSidebar: (view: "now-playing" | "queue") => void;
+  setDesktopRightSidebarView: (
+    view: "none" | "now-playing" | "queue" | "devices"
+  ) => void;
+  toggleDesktopRightSidebar: (view: "now-playing" | "queue" | "devices") => void;
   updateTrackCredits: (songId: string, credits: SongCredit[]) => void;
 
   // Internal engine setters
@@ -128,41 +216,54 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   contextTitle: null,
 
   isQueueOpen: false,
+  isDevicesOpen: false,
   isNowPlayingExpanded: false,
   desktopRightSidebarView: "none",
   isInitialized: false,
   supersededByDevice: null,
+  speakerYieldedBy: null,
 
+  /**
+   * Resume playback on this device. Delegates to Groovy Connect's `playHere`
+   * so there is exactly one transfer path (see stores/connect.store.ts).
+   */
   takeoverPlayback: async () => {
-    const { currentTrack, currentTime } = get();
-    const { getDeviceInfo } = await import("../lib/device");
-    const { deviceId, deviceName } = getDeviceInfo();
-
-    try {
-      await playerApi.sendHeartbeat({
-        deviceId,
-        deviceName,
-        songId: currentTrack?.id || null,
-        trackTitle: currentTrack?.title || null,
-        artistName: currentTrack?.artistName || null,
-        coverImageUrl: currentTrack?.coverImageUrl || null,
-        progressMs: Math.floor(currentTime * 1000),
-        durationMs: currentTrack?.durationSeconds ? currentTrack.durationSeconds * 1000 : undefined,
-        isPaused: false,
-        takeover: true,
-      });
-    } catch {
-      // Ignore network errors
-    }
-
-    set({ supersededByDevice: null, playbackStatus: "playing" });
-    get().saveSnapshot();
+    const { useConnectStore } = await import("./connect.store");
+    await useConnectStore.getState().playHere();
   },
 
   dismissSuperseded: () => set({ supersededByDevice: null }),
 
+  yieldSpeakerTo: (device) =>
+    set({
+      speakerYieldedBy: {
+        deviceId: device?.deviceId ?? "",
+        deviceName: device?.deviceName ?? "",
+        at: Date.now(),
+      },
+    }),
+
   playTrack: (track, contextQueue, contextIndex = 0, contextUri, contextTitle) => {
     if (track.isStreamable === false) {
+      return;
+    }
+
+    // Rule B7 (Spotify semantics): on a Remote, tapping a song plays it on the
+    // session's Speaker, with the context it was tapped inside. Only a Speaker
+    // that cannot be reached falls back to pulling playback here.
+    if (
+      playSongAsRemote(
+        { track, contextQueue, contextIndex, contextUri, contextTitle },
+        () =>
+          void playHereWithTrack(
+            track,
+            contextQueue,
+            contextIndex,
+            contextUri,
+            contextTitle
+          )
+      )
+    ) {
       return;
     }
 
@@ -191,6 +292,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       contextTitle: contextTitle ?? get().contextTitle,
       errorMessage: null,
       supersededByDevice: null,
+      speakerYieldedBy: null,
     });
 
     get().saveSnapshot();
@@ -226,10 +328,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (!currentTrack) return;
 
     const nextStatus = playbackStatus === "playing" ? "paused" : "playing";
+
+    // Rule B1: on a Remote the button drives the *session*, not this device.
+    if (routeToSpeaker(nextStatus === "paused" ? "PAUSE" : "PLAY")) return;
+
     if (nextStatus === "paused") {
       set({ playbackStatus: "paused" });
     } else {
-      set({ playbackStatus: "playing", supersededByDevice: null });
+      set({ playbackStatus: "playing", supersededByDevice: null, speakerYieldedBy: null });
     }
     get().saveSnapshot();
 
@@ -247,6 +353,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   pause: () => {
+    if (routeToSpeaker("PAUSE")) return;
     const { currentTime } = get();
     set({ playbackStatus: "paused" });
     get().saveSnapshot();
@@ -261,9 +368,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   resume: () => {
+    if (routeToSpeaker("PLAY")) return;
     const { currentTrack, currentTime } = get();
     if (currentTrack) {
-      set({ playbackStatus: "playing", supersededByDevice: null });
+      set({ playbackStatus: "playing", supersededByDevice: null, speakerYieldedBy: null });
       get().saveSnapshot();
 
       // Live Jam: Broadcast play if active host
@@ -278,6 +386,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   seek: (timeSeconds) => {
     const targetSeconds = Math.max(0, timeSeconds);
+
+    // Rule B1: a Remote steers the Speaker's needle.
+    if (routeToSpeaker("SEEK", { positionMs: Math.round(targetSeconds * 1000) })) {
+      return;
+    }
+
     set({ currentTime: targetSeconds });
     get().saveSnapshot();
 
@@ -292,20 +406,38 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setVolume: (volume) => {
     const clamped = Math.max(0, Math.min(1, volume));
+    // Rule B5: a Remote may set the Speaker's volume. Volume itself still never
+    // travels inside the session — only this one command carries it, and the
+    // value shown here stays this device's own.
+    if (routeToSpeaker("SET_VOLUME", { volume: clamped })) {
+      set({ volume: clamped, isMuted: clamped === 0 });
+      return;
+    }
     set({ volume: clamped, isMuted: clamped === 0 });
     get().saveSnapshot();
   },
 
   toggleMute: () => {
-    set((state) => ({ isMuted: !state.isMuted }));
+    const nextMuted = !get().isMuted;
+    if (routeToSpeaker("SET_MUTE", { muted: nextMuted })) {
+      set({ isMuted: nextMuted });
+      return;
+    }
+    set({ isMuted: nextMuted });
     get().saveSnapshot();
   },
 
   toggleShuffle: () => {
-    const { isShuffle, contextQueue, originalContextQueue, currentTrack } = get();
-    const nextShuffle = !isShuffle;
+    const nextShuffle = !get().isShuffle;
+    if (routeToSpeaker("SET_SHUFFLE", { shuffle: nextShuffle })) return;
+    get().setShuffle(nextShuffle);
+  },
 
-    if (nextShuffle) {
+  setShuffle: (value) => {
+    const { isShuffle, contextQueue, originalContextQueue, currentTrack } = get();
+    if (value === isShuffle) return;
+
+    if (value) {
       // Shuffling: Keep current track first, shuffle the rest
       if (currentTrack && contextQueue.length > 0) {
         const others = contextQueue.filter((t) => t.id !== currentTrack.id);
@@ -338,11 +470,89 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const modes: RepeatMode[] = ["off", "all", "one"];
     const current = get().repeatMode;
     const nextIndex = (modes.indexOf(current) + 1) % modes.length;
-    set({ repeatMode: modes[nextIndex] });
+    const nextMode = modes[nextIndex];
+    if (routeToSpeaker("SET_REPEAT", { repeat: nextMode })) return;
+    get().setRepeat(nextMode);
+  },
+
+  setRepeat: (mode) => {
+    if (get().repeatMode === mode) return;
+    set({ repeatMode: mode });
     get().saveSnapshot();
   },
 
+  /** Rules B1/§6.4: apply a command that arrived from a Remote. */
+  applySessionCommand: (type, payload) => {
+    switch (type) {
+      case "PLAY":
+        get().resume();
+        return;
+      case "PAUSE":
+      case "STOP":
+        get().pause();
+        return;
+      case "SEEK":
+        get().seek((payload?.positionMs ?? 0) / 1000);
+        return;
+      case "NEXT":
+        get().next();
+        return;
+      case "PREVIOUS":
+        get().previous();
+        return;
+      case "SET_VOLUME":
+        if (typeof payload?.volume === "number") get().setVolume(payload.volume);
+        return;
+      case "SET_MUTE": {
+        const muted = payload?.muted ?? !get().isMuted;
+        set({ isMuted: muted });
+        get().saveSnapshot();
+        return;
+      }
+      case "SET_SHUFFLE":
+        get().setShuffle(payload?.shuffle ?? false);
+        return;
+      case "SET_REPEAT":
+        if (payload?.repeat) get().setRepeat(payload.repeat);
+        return;
+      case "PLAY_NEXT":
+        if (payload?.track) get().playNext(payload.track);
+        return;
+      case "PLAY_TRACK": {
+        // Rule B7 (Spotify semantics): another device picked this song. Only
+        // the Speaker ever runs this — the server has already moved the
+        // session's track, and this is what moves the audio and adopts the
+        // context the song was tapped inside.
+        const track = payload?.track;
+        if (!track) return;
+        get().playTrack(
+          track,
+          payload?.contextQueue,
+          payload?.contextIndex ?? 0,
+          payload?.contextUri ?? undefined,
+          payload?.contextTitle ?? undefined
+        );
+        return;
+      }
+      case "ADD_TO_QUEUE":
+        if (payload?.track) get().addToQueue(payload.track);
+        return;
+      case "REMOVE_FROM_QUEUE":
+        if (typeof payload?.index === "number") get().removeFromUserQueue(payload.index);
+        return;
+      case "REORDER_QUEUE":
+        if (typeof payload?.index === "number" && typeof payload?.toIndex === "number") {
+          get().reorderUserQueue(payload.index, payload.toIndex);
+        }
+        return;
+      case "CLEAR_QUEUE":
+        get().clearUserQueue();
+        return;
+    }
+  },
+
   next: () => {
+    if (routeToSpeaker("NEXT")) return;
     const { repeatMode, userQueue, contextQueue, contextIndex, currentTrack } = get();
 
     // 1. Repeat One: replay current track
@@ -402,6 +612,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   previous: () => {
+    if (routeToSpeaker("PREVIOUS")) return;
     const { currentTime, contextQueue, contextIndex, repeatMode } = get();
 
     // If more than 3 seconds in, restart the song
@@ -447,6 +658,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   playNext: (track) => {
     if (track.isStreamable === false) return;
+    if (routeToSpeaker("PLAY_NEXT", { track })) return;
     set((state) => ({
       userQueue: [track, ...state.userQueue],
     }));
@@ -455,6 +667,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   addToQueue: (track) => {
     if (track.isStreamable === false) return;
+    if (routeToSpeaker("ADD_TO_QUEUE", { track })) return;
     set((state) => ({
       userQueue: [...state.userQueue, track],
     }));
@@ -462,6 +675,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   reorderUserQueue: (fromIndex, toIndex) => {
+    if (routeToSpeaker("REORDER_QUEUE", { index: fromIndex, toIndex })) return;
     set((state) => {
       const updated = [...state.userQueue];
       const [moved] = updated.splice(fromIndex, 1);
@@ -472,6 +686,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   removeFromUserQueue: (index) => {
+    if (routeToSpeaker("REMOVE_FROM_QUEUE", { index })) return;
     set((state) => ({
       userQueue: state.userQueue.filter((_, i) => i !== index),
     }));
@@ -479,6 +694,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   clearUserQueue: () => {
+    if (routeToSpeaker("CLEAR_QUEUE")) return;
     set({ userQueue: [] });
     get().saveSnapshot();
   },
@@ -487,6 +703,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { userQueue } = get();
     if (index >= 0 && index < userQueue.length) {
       const selectedTrack = userQueue[index];
+
+      // Rule B7 (Spotify semantics): play the tapped queue entry on the
+      // Speaker; only an unreachable Speaker pulls playback here.
+      if (
+        playSongAsRemote({ track: selectedTrack }, () =>
+          void playHereWithTrack(selectedTrack, userQueue, index, undefined, undefined)
+        )
+      ) {
+        return;
+      }
+
       const remainingUserQueue = userQueue.filter((_, i) => i !== index);
       set({
         currentTrack: selectedTrack,
@@ -504,6 +731,26 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { contextQueue } = get();
     if (index >= 0 && index < contextQueue.length) {
       const track = contextQueue[index];
+      const { contextUri, contextTitle } = get();
+
+      // Rule B7 (Spotify semantics): play the tapped context entry on the
+      // Speaker; only an unreachable Speaker pulls playback here.
+      if (
+        playSongAsRemote(
+          { track, contextQueue, contextIndex: index, contextUri, contextTitle },
+          () =>
+            void playHereWithTrack(
+              track,
+              contextQueue,
+              index,
+              contextUri ?? undefined,
+              contextTitle ?? undefined
+            )
+        )
+      ) {
+        return;
+      }
+
       set({
         currentTrack: track,
         contextIndex: index,
@@ -517,6 +764,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   stopPlayback: () => {
+    // On a Remote this means "stop the session", not "wipe this tab" — the
+    // Speaker owns the queue and is the one that should actually pause.
+    if (routeToSpeaker("STOP")) return;
     if (saveTimeout) {
       clearTimeout(saveTimeout);
       saveTimeout = null;
@@ -534,6 +784,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       contextTitle: null,
       errorMessage: null,
       isQueueOpen: false,
+      isDevicesOpen: false,
       isInitialized: false,
       supersededByDevice: null,
     });
@@ -563,6 +814,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           : s.desktopRightSidebarView,
       };
     }),
+  setDevicesOpen: (isOpen) =>
+    set((s) => ({
+      isDevicesOpen: isOpen,
+      desktopRightSidebarView: isOpen
+        ? "devices"
+        : s.desktopRightSidebarView === "devices"
+        ? "none"
+        : s.desktopRightSidebarView,
+    })),
+  toggleDevicesDrawer: () =>
+    set((s) => {
+      const nextOpen = !s.isDevicesOpen;
+      return {
+        isDevicesOpen: nextOpen,
+        desktopRightSidebarView: nextOpen
+          ? "devices"
+          : s.desktopRightSidebarView === "devices"
+          ? "none"
+          : s.desktopRightSidebarView,
+      };
+    }),
   setNowPlayingExpanded: (isOpen) => set({ isNowPlayingExpanded: isOpen }),
   toggleNowPlayingExpanded: () =>
     set((s) => ({ isNowPlayingExpanded: !s.isNowPlayingExpanded })),
@@ -570,6 +842,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({
       desktopRightSidebarView: view,
       isQueueOpen: view === "queue",
+      isDevicesOpen: view === "devices",
     }),
   toggleDesktopRightSidebar: (view) =>
     set((s) => {
@@ -577,6 +850,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       return {
         desktopRightSidebarView: nextView,
         isQueueOpen: nextView === "queue",
+        isDevicesOpen: nextView === "devices",
       };
     }),
   updateTrackCredits: (songId, credits) => {
@@ -642,14 +916,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       updatedAt: new Date().toISOString(),
     };
 
-    // 1. Instant local persistence
+    // 1. Instant local persistence (volume/mute are device-local and live here only)
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       // Ignore quota exceeded or private mode
     }
 
-    // 2. Debounced server sync (1.5s) - only for authenticated members
+    // 2. Debounced server sync (1.5s) - only for authenticated members.
+    //    Note the deliberate omission of volume/isMuted: they must never travel
+    //    between devices (docs/CROSS_DEVICE_PLAYBACK_DESIGN.md rule R2).
     if (saveTimeout) clearTimeout(saveTimeout);
     if (!useAuthStore.getState().isAuthenticated) return;
     saveTimeout = setTimeout(async () => {
@@ -657,8 +933,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         await playerApi.savePlayerState({
           currentTrack: snapshot.currentTrack,
           playbackPosition: snapshot.playbackPosition,
-          volume: snapshot.volume,
-          isMuted: snapshot.isMuted,
           isShuffle: snapshot.isShuffle,
           repeatMode: snapshot.repeatMode,
           userQueue: snapshot.userQueue,
@@ -723,20 +997,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         if (currentJamCode) {
           // If Jam is active, DO NOT overwrite track, position, or playbackStatus with stale solo snapshot!
           set({
-            volume: serverState.volume ?? 0.8,
-            isMuted: serverState.isMuted ?? false,
             isShuffle: serverState.isShuffle ?? false,
             repeatMode: serverState.repeatMode ?? "off",
             userQueue: serverState.userQueue || [],
             isInitialized: true,
           });
         } else {
+          // NOTE: volume / isMuted are intentionally NOT hydrated from the
+          // server — they are device-local (rules R2 / A5).
           set({
             currentTrack: serverState.currentTrack,
             currentTime: serverState.playbackPosition || 0,
             duration: serverState.currentTrack?.durationSeconds || 0,
-            volume: serverState.volume ?? 0.8,
-            isMuted: serverState.isMuted ?? false,
             isShuffle: serverState.isShuffle ?? false,
             repeatMode: serverState.repeatMode ?? "off",
             userQueue: serverState.userQueue || [],

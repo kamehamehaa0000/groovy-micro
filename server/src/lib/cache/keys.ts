@@ -68,8 +68,46 @@ export const cacheKeys = {
       `groovy:social:feed:${userId}:${tag}`,
   },
   player: {
+    /**
+     * LEGACY cross-device snapshot. Still written by clients that predate the
+     * session split and read as a hydration fallback. See
+     * docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §8.
+     */
     state: (userId: string) => `groovy:player:state:${userId}`,
+    /** LEGACY pre-Groovy-Connect active device lease. */
     activeDevice: (userId: string) => `groovy:player:active_device:${userId}`,
+    /**
+     * Groovy Connect: the account's single Listen Session — who is the Speaker
+     * and where the needle is. Deliberately excludes the queue (see `queue`) so
+     * the 10s position tick stays a tiny write.
+     */
+    session: (userId: string) => `groovy:player:session:${userId}`,
+    /** Groovy Connect: the heavy, slow-changing queue/context payload. */
+    queue: (userId: string) => `groovy:player:queue:${userId}`,
+    /**
+     * Groovy Connect: private device liveness (sorted set of
+     * "deviceId|instanceId" -> lastSeenAtMs). Distinct from `presence`, which
+     * is the privacy-gated friends-activity key that dies on pause.
+     */
+    online: (userId: string) => `groovy:player:online:${userId}`,
+    /** Groovy Connect: durable device registry (hash deviceId -> metadata). */
+    devices: (userId: string) => `groovy:player:devices:${userId}`,
+    /** Groovy Connect: the in-flight transfer ticket (short TTL). */
+    transfer: (userId: string) => `groovy:player:transfer:${userId}`,
+    /**
+     * Groovy Connect: which tabs have already started audio at least once
+     * (hash "deviceId|instanceId" -> "1"). Gates push transfers, because
+     * browsers block autoplay without a user gesture.
+     */
+    unlocked: (userId: string) => `groovy:player:unlocked:${userId}`,
+    /** Groovy Connect: Redis Pub/Sub fan-out channel for the SSE stream. */
+    events: (userId: string) => `groovy:player:events:${userId}`,
+    /**
+     * Groovy Connect: idempotency key for a Remote command. A retried command
+     * (or a double tap) applies once and is then a no-op (rule A8 / B4).
+     */
+    command: (userId: string, commandId: string) =>
+      `groovy:player:command:${userId}:${commandId}`,
     presence: (userId: string) => `groovy:presence:user:${userId}`,
   },
   telemetry: {

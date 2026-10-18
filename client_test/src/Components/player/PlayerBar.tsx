@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { usePlayerStore } from '../../stores/player.store'
+import { useConnectStore } from '../../stores/connect.store'
 import { useJamStore } from '../../stores/jam.store'
 import { useLikesStore } from '../../stores/likes.store'
 import { useAuthStore } from '../../stores/auth.store'
@@ -23,6 +25,7 @@ import {
   Headphones,
   ChevronUp,
   MoreHorizontal,
+  MonitorSpeaker,
   X,
 } from 'lucide-react'
 
@@ -60,8 +63,31 @@ export function PlayerBar() {
     (s) => s.toggleDesktopRightSidebar,
   )
   const supersededByDevice = usePlayerStore((s) => s.supersededByDevice)
-  const takeoverPlayback = usePlayerStore((s) => s.takeoverPlayback)
   const dismissSuperseded = usePlayerStore((s) => s.dismissSuperseded)
+
+  // Groovy Connect: who is the Speaker of the account's Listen Session.
+  const sessionView = useConnectStore((s) => s.sessionView)
+  const youAreSpeaker = useConnectStore((s) => s.youAreSpeaker)
+  const playHere = useConnectStore((s) => s.playHere)
+  // This tab's own identity, so the Connect strip below can never name *this*
+  // device as "the other device" (see `isThisTab`).
+  const myDeviceId = useConnectStore((s) => s.myDeviceId)
+  const myInstanceId = useConnectStore((s) => s.myInstanceId)
+  // A push transfer this tab has to answer (rule A9/A10).
+  const incomingTransfer = useConnectStore((s) => s.incomingTransfer)
+  const acceptTransfer = useConnectStore((s) => s.acceptTransfer)
+  const declineTransfer = useConnectStore((s) => s.declineTransfer)
+  const transferError = useConnectStore((s) => s.transferError)
+  const clearTransferError = useConnectStore((s) => s.clearTransferError)
+  const toggleDesktopRightSidebarDevices = usePlayerStore(
+    (s) => s.toggleDesktopRightSidebar,
+  )
+
+  // The "another device is playing" strip can be dismissed per device, and
+  // returns the moment a *different* device takes over.
+  const [dismissedSpeakerId, setDismissedSpeakerId] = useState<string | null>(
+    null,
+  )
 
   const likedSongIds = useLikesStore((s) => s.likedSongIds)
   const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
@@ -70,6 +96,25 @@ export function PlayerBar() {
   const activeRoom = useJamStore((s) => s.activeRoom)
   const isJamHost = useJamStore((s) => s.isHost)
   const openJamModal = useJamStore((s) => s.openModal)
+
+  // A transport command that never reached the Speaker (rule B3). It clears
+  // itself after a few seconds, or the moment a command succeeds. Declared up
+  // here because the component returns early when there is no track.
+  const commandError = useConnectStore((s) => s.commandError)
+  const clearCommandError = useConnectStore((s) => s.clearCommandError)
+  useEffect(() => {
+    if (!commandError) return
+    const timer = setTimeout(() => clearCommandError(), 6000)
+    return () => clearTimeout(timer)
+  }, [commandError, clearCommandError])
+
+  // A push transfer that didn't land ("that device isn't available right now").
+  // Same quiet treatment, and it must not outlive the reason for it (rule A6).
+  useEffect(() => {
+    if (!transferError) return
+    const timer = setTimeout(() => clearTransferError(), 6000)
+    return () => clearTimeout(timer)
+  }, [transferError, clearTransferError])
 
   // If no track is queued or loaded, don't show player bar
   if (!currentTrack) return null
@@ -106,41 +151,154 @@ export function PlayerBar() {
   /* ── Repeat icon picker ────────────────────────────────────────────── */
   const RepeatIcon = repeatMode === 'one' ? Repeat1 : Repeat
 
+  /* ── Groovy Connect: is another device the Speaker right now? ─────────
+   * Driven by the account's Listen Session, not by a "superseded" event, so it
+   * appears on a device that has never played a note (the missing-phone bug).
+   * -------------------------------------------------------------------- */
+  const speaker = sessionView?.session.speaker ?? null
+  // Reads this tab's own identity (subscribed above) so the strip can never name
+  // *this* device as "the other device". That happened after a transfer: the
+  // session still named this tab as the Speaker while the tab believed it was a
+  // Remote, and the strip read "Playing on <my own name>" with a "Play here".
+  const isThisTab = (deviceId?: string | null, instanceId?: string | null) =>
+    !!deviceId &&
+    !!myDeviceId &&
+    deviceId === myDeviceId &&
+    (!myInstanceId || !instanceId || instanceId === myInstanceId)
+  // Only a *confirmed* Speaker owns the room. During a push handshake the
+  // target is named but unconfirmed, and neither side should be told someone
+  // else is playing yet — the panel carries the "Moving playback to" state
+  // until the move lands (rule A9).
+  const otherSpeaker =
+    speaker && speaker.confirmed && !youAreSpeaker && !isThisTab(speaker.deviceId, speaker.instanceId)
+      ? speaker
+      : null
+  const isOtherSpeakerPlaying = sessionView?.session.playback.isPlaying ?? false
+  const supersededSpeaker = isThisTab(supersededByDevice?.deviceId) ? null : supersededByDevice
+  const connectBannerDeviceId =
+    otherSpeaker?.deviceId ?? supersededSpeaker?.deviceId ?? null
+  const connectBannerName =
+    otherSpeaker?.deviceName ?? supersededSpeaker?.deviceName ?? null
+  // An incoming offer owns this strip's position on screen, so the banner stays
+  // out of its way rather than stacking on top of it.
+  const showConnectBanner =
+    !incomingTransfer &&
+    Boolean(connectBannerName) &&
+    dismissedSpeakerId !== connectBannerDeviceId
+
+  // Rule B6: the other device stopped reporting in, so the session is frozen
+  // where it stopped and the only useful offer is to carry on here.
+  const otherSpeakerOffline =
+    Boolean(otherSpeaker) && sessionView?.speakerOnline === false
+
   return (
     <>
-      {/* ===================== MULTI-DEVICE TAKEOVER NOTIFICATION ===================== */}
-      {supersededByDevice && (
+      {/* ===================== SOMEONE PUSHED PLAYBACK HERE ===================== */}
+      {/* Rule A9/A10: this tab must answer before the Speaker role moves. */}
+      {incomingTransfer && (
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-50 bg-card/98 backdrop-blur-md border-t border-primary/40 px-5 py-2.5 flex items-center justify-between gap-3 shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+          <div className="min-w-0">
+            <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground truncate">
+              {incomingTransfer.fromDeviceName
+                ? `Playback sent from ${incomingTransfer.fromDeviceName}`
+                : 'Playback is waiting for you'}
+            </div>
+            <div className="text-caption text-foreground truncate">
+              {incomingTransfer.track
+                ? `${incomingTransfer.track.title} · ${incomingTransfer.track.artistName}`
+                : 'Continue playing on this device'}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => void acceptTransfer()}
+              className="inline-flex items-center gap-1.5 bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors rounded-control cursor-pointer shadow-raised font-medium"
+            >
+              <Play size={14} strokeWidth={2.5} />
+              Tap to play here
+            </button>
+            <button
+              type="button"
+              onClick={() => declineTransfer()}
+              className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors"
+              aria-label="Not now"
+            >
+              <X size={15} strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ANOTHER DEVICE IS THE SPEAKER ===================== */}
+      {showConnectBanner && (
         <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
           <div className="flex items-center gap-3 text-caption text-foreground max-w-[70%] truncate">
             <span className="flex h-2.5 w-2.5 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+              {isOtherSpeakerPlaying && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  isOtherSpeakerPlaying ? 'bg-primary' : 'bg-muted-foreground/50'
+                }`}
+              ></span>
             </span>
             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-              Listening on
+              {otherSpeakerOffline
+                ? 'Offline'
+                : isOtherSpeakerPlaying
+                  ? 'Playing on'
+                  : 'Paused on'}
             </span>
             <strong className="font-semibold text-foreground truncate">
-              {supersededByDevice.deviceName}
+              {connectBannerName}
             </strong>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => takeoverPlayback()}
+              onClick={() => void playHere()}
               className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground px-3.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors rounded-control cursor-pointer shadow-raised font-medium"
             >
-              Play here instead
+              {otherSpeakerOffline ? 'Play here instead' : 'Play here'}
             </button>
             <button
               type="button"
-              onClick={() => dismissSuperseded()}
+              onClick={() => {
+                setDismissedSpeakerId(connectBannerDeviceId)
+                if (supersededByDevice) dismissSuperseded()
+              }}
               className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors"
               aria-label="Dismiss"
             >
               <X size={15} strokeWidth={2} />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* A transport command that didn't reach the Speaker, or a push transfer
+          that was refused. Deliberately quiet: the button simply didn't do
+          anything, and this says why (rules B3 / A6). */}
+      {(commandError || transferError) && !showConnectBanner && !incomingTransfer && (
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+          <span className="text-caption text-foreground truncate">
+            {commandError ?? transferError}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              clearCommandError()
+              clearTransferError()
+            }}
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors shrink-0"
+            aria-label="Dismiss"
+          >
+            <X size={15} strokeWidth={2} />
+          </button>
         </div>
       )}
 
@@ -489,6 +647,28 @@ export function PlayerBar() {
           >
             <Headphones size={20} strokeWidth={2} />
             {activeRoom && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full animate-pulse ring-2 ring-card" />
+            )}
+          </button>
+
+          {/* Groovy Connect Devices Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => toggleDesktopRightSidebarDevices('devices')}
+            title={
+              otherSpeaker
+                ? `Playing on ${otherSpeaker.deviceName}`
+                : 'Devices'
+            }
+            aria-label="Devices"
+            className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all cursor-pointer ${
+              desktopRightSidebarView === 'devices'
+                ? 'bg-primary/15 text-primary ring-1 ring-primary/30'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+            }`}
+          >
+            <MonitorSpeaker size={20} strokeWidth={2} />
+            {otherSpeaker && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full animate-pulse ring-2 ring-card" />
             )}
           </button>

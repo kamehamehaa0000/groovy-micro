@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react'
 import { useLocation } from '@tanstack/react-router'
 import { usePlayerStore } from '../../stores/player.store'
+import { useConnectStore } from '../../stores/connect.store'
 import { useLikesStore } from '../../stores/likes.store'
 import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { HeartIconSVG, PlayIconSVG, PauseIconSVG } from '../icons'
 import { ProceduralCover } from '../common/ProceduralCover'
+import { MonitorSpeaker } from 'lucide-react'
 
 export function MobileMiniPlayer() {
   const { pathname } = useLocation()
@@ -18,6 +20,11 @@ export function MobileMiniPlayer() {
   const next = usePlayerStore((s) => s.next)
   const previous = usePlayerStore((s) => s.previous)
   const setNowPlayingExpanded = usePlayerStore((s) => s.setNowPlayingExpanded)
+  const setDevicesOpen = usePlayerStore((s) => s.setDevicesOpen)
+
+  // Groovy Connect: is another device the Speaker?
+  const connectSessionView = useConnectStore((s) => s.sessionView)
+  const youAreSpeaker = useConnectStore((s) => s.youAreSpeaker)
 
   // Likes
   const likedSongIds = useLikesStore((s) => s.likedSongIds)
@@ -47,6 +54,10 @@ export function MobileMiniPlayer() {
   const isPlaying = playbackStatus === 'playing'
   const isLoading = playbackStatus === 'loading'
   const isLiked = likedSongIds.has(currentTrack.id)
+  const otherSpeaker =
+    !youAreSpeaker && connectSessionView?.session.speaker
+      ? connectSessionView.session.speaker
+      : null
   const progressPercent =
     duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
@@ -68,6 +79,16 @@ export function MobileMiniPlayer() {
       navigator.vibrate(10)
     }
     togglePlay()
+  }
+
+  // A synthesized `click` follows `touchend` almost immediately. When a gesture
+  // here expands the full-screen player or skips a track, that click would
+  // hit-test onto the freshly-mounted overlay — whose centered play/pause
+  // button sits right where the mini player's center was — and fire a second,
+  // unintended action. Cancelling the touch suppresses the browser's
+  // compatibility mouse events (including that click).
+  const suppressGhostClick = (e: React.TouchEvent) => {
+    if (e.cancelable) e.preventDefault()
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -124,6 +145,7 @@ export function MobileMiniPlayer() {
 
     // Vertical swipe-up: expands the full-screen player
     if (deltaY < -35 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      suppressGhostClick(e)
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(10)
       }
@@ -133,6 +155,7 @@ export function MobileMiniPlayer() {
 
     // Horizontal swipe-left: Skip to Next track
     if (deltaX < -50 && isHorizontal) {
+      suppressGhostClick(e)
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(12)
       }
@@ -142,6 +165,7 @@ export function MobileMiniPlayer() {
 
     // Horizontal swipe-right: Skip to Previous track
     if (deltaX > 50 && isHorizontal) {
+      suppressGhostClick(e)
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(12)
       }
@@ -151,6 +175,7 @@ export function MobileMiniPlayer() {
 
     // Gentle tap outside buttons: expands the full-screen player
     if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10 && elapsed < 400) {
+      suppressGhostClick(e)
       setNowPlayingExpanded(true)
     }
   }
@@ -217,6 +242,21 @@ export function MobileMiniPlayer() {
         onTouchStart={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
       >
+        {/* Devices indicator — another device is the Speaker (rule R6) */}
+        {otherSpeaker && (
+          <button
+            type="button"
+            onClick={() => setDevicesOpen(true)}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            aria-label={`Playing on ${otherSpeaker.deviceName}. Open devices.`}
+            title={`Playing on ${otherSpeaker.deviceName}`}
+            className="w-9 h-9 flex items-center justify-center text-success active:scale-90 transition-transform cursor-pointer"
+          >
+            <MonitorSpeaker className="w-5 h-5" strokeWidth={2} />
+          </button>
+        )}
+
         {/* Heart (Like) Button */}
         <button
           type="button"

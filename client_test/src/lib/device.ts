@@ -30,6 +30,10 @@ export interface DeviceInfo {
 
 const DEVICE_ID_KEY = "groovy:device:id";
 const DEVICE_NAME_KEY = "groovy:device:name";
+/** Per-tab identity. sessionStorage, so a second tab is a distinct instance. */
+const INSTANCE_ID_KEY = "groovy:player:instance_id";
+/** Per-tab "has audio ever started here?" flag, gating push transfers. */
+const AUDIO_UNLOCKED_KEY = "groovy:player:audio_unlocked";
 
 export function getDeviceInfo(): DeviceInfo {
   if (typeof window === "undefined") {
@@ -49,4 +53,35 @@ export function getDeviceInfo(): DeviceInfo {
   }
 
   return { deviceId, deviceName };
+}
+
+/**
+ * The identity of *this tab*. Same `deviceId` across tabs of one browser (rule
+ * R10: one row per browser), but a distinct `instanceId` per tab, so the
+ * Speaker role is per-tab and two tabs can never both play audio.
+ */
+export function getInstanceId(): string {
+  if (typeof window === "undefined") return "server_tab";
+
+  let instanceId = sessionStorage.getItem(INSTANCE_ID_KEY);
+  if (!instanceId) {
+    instanceId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    sessionStorage.setItem(INSTANCE_ID_KEY, instanceId);
+  }
+  return instanceId;
+}
+
+/**
+ * Whether audio has already started at least once in this tab. Browsers block
+ * autoplay without a user gesture, so a push transfer to an unlocked tab plays
+ * silently while an unlocked-false tab must show "Tap to play here".
+ */
+export function isAudioUnlocked(): boolean {
+  if (typeof window === "undefined") return false;
+  return sessionStorage.getItem(AUDIO_UNLOCKED_KEY) === "1";
+}
+
+export function markAudioUnlocked(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(AUDIO_UNLOCKED_KEY, "1");
 }

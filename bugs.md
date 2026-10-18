@@ -52,9 +52,13 @@
 
 # player
 
-1. play here option does not appear on phone.
-2. mute state getting synced between devices 
-3. play/pause when clicking on center of mini player bar on mobile cause play/pause button also gets clicked
+1. ~~play here option does not appear on phone.~~ FIXED: Groovy Connect step 2. The Devices panel (desktop sidebar + mobile sheet) and a session-driven "Playing on {device}" strip now offer "Play here" on any device, whether or not it has ever played. See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §9.1.
+2. ~~mute state getting synced between devices~~ FIXED: volume/mute removed from the synced session (device-local now). See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md rule R2.
+3. play/pause when clicking on center of mini player bar on mobile cause play/pause button also gets clicked  ← handled by suppressGhostClick in MobileMiniPlayer.tsx
+4. ~~after moving playback to another device, the old device keeps playing for up to 10–15 seconds.~~ FIXED: Groovy Connect step 3. The realtime stream delivers `SPEAKER_LOST` to the losing device in about a second, and one stand-down path (fade → pause → become a Remote) handles it no matter whether the news arrives over SSE, a heartbeat or a rejected needle tick. See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §9.3.
+5. ~~a second device can change the queue/position under the playing device (no real remote control).~~ FIXED: Groovy Connect step 4. Transport actions on a non-Speaker go through one seam (`lib/connect-bridge.ts`) and become `POST /player/session/command`; play/pause/seek/stop are applied by the server, the rest are relayed to the Speaker, and a Remote never plays audio, never heartbeats and never reports telemetry. Tapping a song on a Remote means "play here" (pull). See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §9.4.
+6. A Remote's progress number only refreshes every 10s (the `POSITION` tick) instead of ticking smoothly. FIXED in step 4: `connect.store` interpolates the needle locally once a second from the server-stamped anchor, exposed as `livePositionMs` and mirrored into the player bar.
+7. ~~there was no way to *send* playback to another device — only "play here" (pull).~~ FIXED: Groovy Connect step 5. Every other device now has a "Play on" button, and the push is a confirm-then-move handshake: the old Speaker goes silent immediately, the target gets a `TRANSFER_OFFER`, and the role only moves once it confirms — with a "Tap to play here" prompt when that tab has never produced audio (browsers block autoplay). A decline, a 30s timeout, or the target's stream dropping reverts to the previous Speaker at the frozen position. See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §9.5.
 
 
 

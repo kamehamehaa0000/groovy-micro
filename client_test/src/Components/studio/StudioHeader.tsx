@@ -18,7 +18,7 @@ export function StudioHeader({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border mb-6">
       <div className="min-w-0">
         <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-0.5">
-          Maison Studio Suite
+          Artist Studio
         </span>
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <h1 className="font-serif italic text-2xl sm:text-3xl text-foreground font-semibold truncate min-w-0">

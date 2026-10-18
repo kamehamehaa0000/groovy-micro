@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { usePlayerStore } from '../../stores/player.store'
 import { useLikesStore } from '../../stores/likes.store'
@@ -14,6 +14,8 @@ import {
 } from '../../lib/artist-resolver'
 import type { ArtistProfile } from '../../types/artist'
 import { SongActionMenu } from './SongActionMenu'
+import { MonitorSpeaker, Radio } from 'lucide-react'
+import { useConnectStore } from '../../stores/connect.store'
 import {
   ChevronDownIconSVG,
   HeartIconSVG,
@@ -47,6 +49,11 @@ const CONTENT = 'w-full max-w-[480px] mx-auto'
 // + utility row (44) + vertical padding. Safe-area insets are added on top.
 const ARTWORK_SIZE = `max(160px, min(calc(100vw - 2 * clamp(16px, 6.15vw, 24px)), 480px, calc(100dvh - 380px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))))`
 
+// Clicks arriving this soon after the overlay opens are the synthesized click
+// from the tap that opened the mini player (not a real, deliberate tap) and are
+// swallowed. Kept small so genuine interaction is never noticeably delayed.
+const GHOST_CLICK_WINDOW_MS = 350
+
 function formatTime(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
   const mins = Math.floor(totalSeconds / 60)
@@ -77,6 +84,11 @@ export function MobileExpandedPlayer() {
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle)
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat)
   const toggleQueueDrawer = usePlayerStore((s) => s.toggleQueueDrawer)
+  const toggleDevicesDrawer = usePlayerStore((s) => s.toggleDevicesDrawer)
+
+  // Groovy Connect: another device may be the Speaker of this account.
+  const connectSessionView = useConnectStore((s) => s.sessionView)
+  const youAreSpeaker = useConnectStore((s) => s.youAreSpeaker)
 
   // Jam Store
   const activeRoom = useJamStore((s) => s.activeRoom)
@@ -113,6 +125,15 @@ export function MobileExpandedPlayer() {
     targetIsTop: boolean
   } | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  // Timestamp of the most recent open, used to drop the opening tap's ghost
+  // click (see handleOverlayClickCapture).
+  const openedAtRef = useRef(0)
+
+  // Record the open time synchronously — layout effects run within the same
+  // touchend flush, before the browser dispatches the synthesized click task.
+  useLayoutEffect(() => {
+    if (isExpanded) openedAtRef.current = Date.now()
+  }, [isExpanded])
 
   // Lock body scroll when open
   useEffect(() => {
@@ -163,6 +184,10 @@ export function MobileExpandedPlayer() {
   const isPlaying = playbackStatus === 'playing'
   const isLoading = playbackStatus === 'loading'
   const isLiked = likedSongIds.has(currentTrack.id)
+  const otherSpeaker =
+    !youAreSpeaker && connectSessionView?.session.speaker
+      ? connectSessionView.session.speaker
+      : null
   const isFollowing = artistDetails
     ? followedArtistIds.has(artistDetails.id)
     : false
@@ -177,6 +202,16 @@ export function MobileExpandedPlayer() {
     duration > 0 ? Math.min(100, (displayTime / duration) * 100) : 0
 
   const closePlayer = () => setNowPlayingExpanded(false)
+
+  // Safety net for the click-through described in MobileMiniPlayer: even if a
+  // browser still emits the opening tap's synthesized click, drop it here in
+  // the capture phase so it never reaches the transport controls underneath.
+  const handleOverlayClickCapture = (e: React.MouseEvent) => {
+    if (Date.now() - openedAtRef.current < GHOST_CLICK_WINDOW_MS) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
 
   // Touch Drag-to-Dismiss Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -331,6 +366,7 @@ export function MobileExpandedPlayer() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onClickCapture={handleOverlayClickCapture}
     >
       {/* Ambient background tint */}
       <div className="absolute inset-0 bg-linear-to-b from-card via-background to-background pointer-events-none opacity-60" />
@@ -513,13 +549,10 @@ export function MobileExpandedPlayer() {
                 />
               </div>
               <div
-                className={`absolute top-1/2 -translate-y-1/2 bg-foreground rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
+                className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 bg-foreground rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
                   isScrubbing ? 'w-4 h-4' : 'w-3 h-3'
                 }`}
-                style={{
-                  left: `${progressPercent}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
+                style={{ left: `${progressPercent}%` }}
               />
             </div>
 
@@ -655,23 +688,52 @@ export function MobileExpandedPlayer() {
           <div
             className={`${CONTENT} shrink-0 flex items-center justify-between pt-[clamp(0px,0.8dvh,8px)]`}
           >
-            <button
-              type="button"
-              onClick={openJamModal}
-              aria-label={
-                activeRoom ? `Live Jam: ${activeRoom.roomCode}` : 'Live Jam'
-              }
-              className={`w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
-                activeRoom
-                  ? 'text-success bg-success-soft'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <span className="text-[clamp(18px,5.4vw,22px)] leading-none">
-                🎧
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openJamModal}
+                aria-label={
+                  activeRoom ? `Live Jam: ${activeRoom.roomCode}` : 'Live Jam'
+                }
+                className={`w-11 h-11 -ml-2.5 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
+                  activeRoom
+                    ? 'text-success bg-success-soft'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span className="text-[clamp(18px,5.4vw,22px)] leading-none">
+                  <Radio size={28} />
+                </span>
+              </button>
 
+              <button
+                type="button"
+                onClick={toggleDevicesDrawer}
+                aria-label={
+                  otherSpeaker
+                    ? `Playing on ${otherSpeaker.deviceName}. Open devices.`
+                    : 'Devices'
+                }
+                title={
+                  otherSpeaker
+                    ? `Playing on ${otherSpeaker.deviceName}`
+                    : 'Devices'
+                }
+                className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-colors active:scale-90 cursor-pointer ${
+                  otherSpeaker
+                    ? 'text-success'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <MonitorSpeaker
+                  className="w-[clamp(20px,6.15vw,24px)] h-[clamp(20px,6.15vw,24px)]"
+                  strokeWidth={2}
+                />
+                {otherSpeaker && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full animate-pulse" />
+                )}
+              </button>
+            </div>
             <button
               type="button"
               onClick={toggleQueueDrawer}
@@ -1011,7 +1073,9 @@ export function MobileExpandedPlayer() {
             </span>
 
             <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground shrink-0">Primary Artist</span>
+              <span className="text-muted-foreground shrink-0">
+                Primary Artist
+              </span>
               <button
                 type="button"
                 onClick={() =>
@@ -1047,7 +1111,9 @@ export function MobileExpandedPlayer() {
 
             {parsedCredits.producers.length > 0 && (
               <div className="flex items-start justify-between gap-4 py-1.5 border-b border-border/40">
-                <span className="text-muted-foreground shrink-0">Production</span>
+                <span className="text-muted-foreground shrink-0">
+                  Production
+                </span>
                 <span className="font-medium text-foreground text-right min-w-0 wrap-break-word">
                   {parsedCredits.producers.map((p) => p.name).join(', ')}
                 </span>
@@ -1073,7 +1139,9 @@ export function MobileExpandedPlayer() {
             )}
 
             <div className="flex items-center justify-between gap-4 py-1.5">
-              <span className="text-muted-foreground shrink-0">Audio Engine</span>
+              <span className="text-muted-foreground shrink-0">
+                Audio Engine
+              </span>
               <span className="font-eyebrow text-eyebrow text-primary font-bold uppercase tracking-wider text-right">
                 {currentTrack.hlsManifestUrl
                   ? 'Hi-Res HLS Stream'

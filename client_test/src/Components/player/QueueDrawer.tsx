@@ -292,7 +292,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
         <div
           ref={activeListRef}
           data-queue-list="true"
-          className="flex-1 overflow-y-auto px-4 sm:px-5 py-3.5 flex flex-col gap-5 divide-y divide-border/60 min-h-0 overscroll-contain"
+          className="flex-1 overflow-y-auto px-4 sm:px-5 py-3.5 flex flex-col gap-5 divide-y divide-border/60 min-h-0 overscroll-contain no-scrollbar"
           style={{ touchAction: 'pan-y' }}
         >
           {/* Queue Telemetry Meta */}

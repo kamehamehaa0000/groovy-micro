@@ -1,5 +1,6 @@
 import { usePlayerStore } from "../../stores/player.store";
 import { QueueContent } from "./QueueDrawer";
+import { DevicesContent } from "./DevicePanel";
 import { DesktopNowPlayingSidebar } from "./DesktopNowPlayingSidebar";
 
 export function DesktopRightSidebar() {
@@ -33,6 +34,13 @@ export function DesktopRightSidebar() {
 
         {sidebarView === "queue" && (
           <QueueContent
+            mode="desktop"
+            onClose={() => setSidebarView("none")}
+          />
+        )}
+
+        {sidebarView === "devices" && (
+          <DevicesContent
             mode="desktop"
             onClose={() => setSidebarView("none")}
           />

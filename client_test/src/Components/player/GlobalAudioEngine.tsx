@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
 import { usePlayerStore } from "../../stores/player.store";
+import { useConnectStore, selectIsRemote } from "../../stores/connect.store";
 import { useJamStore } from "../../stores/jam.store";
 import { useEntitlementsStore } from "../../stores/entitlements.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { playerApi } from "../../lib/player.api";
-import { getDeviceInfo } from "../../lib/device";
+import { getDeviceInfo, getInstanceId, isAudioUnlocked, markAudioUnlocked } from "../../lib/device";
 import { usePlayerKeyboardControls } from "../../hooks/usePlayerKeyboardControls";
 
 export function GlobalAudioEngine() {
@@ -36,6 +37,12 @@ export function GlobalAudioEngine() {
   const next = usePlayerStore((s) => s.next);
   const initializeSync = usePlayerStore((s) => s.initializeSync);
 
+  // Groovy Connect: true when another device owns the session. It is subscribed
+  // rather than read on demand so the effects below re-run the moment the role
+  // flips — that is what makes a handed-over Remote stop, and a pulled device
+  // start, without a remount (design doc rule B2).
+  const isRemote = useConnectStore((s) => selectIsRemote(s));
+
   // Fallback and recovery tracking refs
   const isFallingBackRef = useRef<boolean>(false);
   const hlsRecoveryAttemptsRef = useRef<number>(0);
@@ -46,6 +53,75 @@ export function GlobalAudioEngine() {
   useEffect(() => {
     initializeSync();
   }, [initializeSync]);
+
+  // Register this tab with Groovy Connect as soon as we know who the user is.
+  // Gated on auth rather than on mount, because auth can resolve after the
+  // engine mounts — and this is what makes the Devices panel (and the
+  // "Playing on {device}" strip) correct the moment the app opens.
+  // See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §6.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    // The registration response already carries the session and the device list,
+    // so one request is enough for a correct first paint.
+    void useConnectStore
+      .getState()
+      .register()
+      .catch(() => {
+        // Registration is best-effort; the player still works offline.
+      });
+  }, [isAuthenticated]);
+
+  // Groovy Connect realtime stream. While this is open, another device's
+  // transfer, a play/pause or a device joining reaches us in about a second
+  // instead of waiting for the next needle tick. It is also how this device is
+  // told it lost the Speaker role. See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §6.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const disconnect = useConnectStore.getState().connectEvents();
+    return disconnect;
+  }, [isAuthenticated]);
+
+  // Stand down when another device takes the Speaker role. Exactly one place
+  // performs the fade, so it does not matter how the news arrived — the
+  // realtime stream, a heartbeat, or a rejected needle tick (rule C1).
+  const speakerYieldedAt = usePlayerStore((s) => s.speakerYieldedBy?.at ?? null);
+  const lastYieldHandledRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!speakerYieldedAt) return;
+    // Each yield is handled exactly once, so a remount (or a dev double-invoke)
+    // cannot fade out a device that is already standing down.
+    if (lastYieldHandledRef.current === speakerYieldedAt) return;
+    lastYieldHandledRef.current = speakerYieldedAt;
+
+    useConnectStore.getState().setYouAreSpeaker(false);
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Graceful 300ms volume fade-out so the handover does not click.
+    const baseVolume = audio.volume;
+    let step = 0;
+    const timer = setInterval(() => {
+      step += 1;
+      if (step <= 6) {
+        audio.volume = Math.max(0, baseVolume * (1 - step / 6));
+        return;
+      }
+      clearInterval(timer);
+      audio.pause();
+      const { isMuted: muted, volume } = usePlayerStore.getState();
+      audio.volume = muted ? 0 : volume; // Restore the base volume setting
+      const yielded = usePlayerStore.getState().speakerYieldedBy;
+      usePlayerStore.setState({
+        playbackStatus: "paused",
+        supersededByDevice: yielded?.deviceName
+          ? { deviceId: yielded.deviceId, deviceName: yielded.deviceName }
+          : null,
+      });
+    }, 50);
+
+    return () => clearInterval(timer);
+  }, [speakerYieldedAt]);
 
   // Clean up HLS instance
   const destroyHls = () => {
@@ -59,6 +135,23 @@ export function GlobalAudioEngine() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
+
+    // Rule B2: a Remote produces no audio. It mirrors the session's track into
+    // the store for display, but it must never resolve or play a stream — that
+    // would make two devices play the same account at once.
+    if (isRemote) {
+      destroyHls();
+      lastTrackIdRef.current = null;
+      pendingSeekTimeRef.current = null;
+      if (!audio.paused) audio.pause();
+      // Release the decoder too: a Remote holding a stale stream open is pure
+      // waste, and it keeps the element inert so no media event can fire.
+      if (audio.src) {
+        audio.removeAttribute("src");
+        audio.load();
+      }
+      return;
+    }
 
     // Check if audio element actually has a valid source loaded
     const hasSource =
@@ -327,12 +420,19 @@ export function GlobalAudioEngine() {
     return () => {
       isCancelled = true;
     };
-  }, [currentTrack, _setStatus, _setStreamQuality, _setStreamFormat, _setError]);
+  }, [currentTrack, isRemote, _setStatus, _setStreamQuality, _setStreamFormat, _setError]);
 
   // 2. Sync Play/Pause status or Stop
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    // Rule B2: on a Remote the transport status describes the *session*, so it
+    // must not be interpreted as "play this device".
+    if (isRemote) {
+      if (!audio.paused) audio.pause();
+      return;
+    }
 
     if (!currentTrack || playbackStatus === "idle") {
       if (lastTrackIdRef.current) {
@@ -390,7 +490,7 @@ export function GlobalAudioEngine() {
     } else if (playbackStatus === "paused" && !audio.paused) {
       audio.pause();
     }
-  }, [playbackStatus, currentTrack, _setStatus]);
+  }, [playbackStatus, currentTrack, isRemote, _setStatus]);
 
   // 3. Sync Volume & Mute
   useEffect(() => {
@@ -403,6 +503,9 @@ export function GlobalAudioEngine() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
+    // On a Remote `currentTime` is a locally interpolated mirror of the
+    // session's needle, not a command to move this device's audio (rule B2).
+    if (isRemote) return;
 
     // If media element metadata isn't ready yet, defer seek to onLoadedMetadata / onCanPlay
     if (audio.readyState < 1 || !Number.isFinite(audio.duration)) {
@@ -414,15 +517,19 @@ export function GlobalAudioEngine() {
     if (Math.abs(audio.currentTime - currentTime) > 1.2) {
       audio.currentTime = Math.min(currentTime, audio.duration);
     }
-  }, [currentTime, currentTrack]);
+  }, [currentTime, currentTrack, isRemote]);
 
   // 5. Multi-Device Heartbeat Loop & Presence (Every 15s when authenticated & playing)
   useEffect(() => {
+    // Rule B8: only the Speaker reports telemetry and claims the lease. A Remote
+    // heartbeating would fight the actual Speaker for the role.
+    if (isRemote) return;
     if (!isAuthenticated || !currentTrack || playbackStatus !== "playing") {
       return;
     }
 
     const { deviceId, deviceName } = getDeviceInfo();
+    const instanceId = getInstanceId();
     let isTerminated = false;
 
     const pingHeartbeat = async (isTakeover = false) => {
@@ -440,6 +547,8 @@ export function GlobalAudioEngine() {
         const res = await playerApi.sendHeartbeat({
           deviceId,
           deviceName,
+          instanceId,
+          unlocked: isAudioUnlocked(),
           songId: currentTrack.id,
           trackTitle: currentTrack.title,
           artistName: currentTrack.artistName,
@@ -453,29 +562,21 @@ export function GlobalAudioEngine() {
         if (isTerminated) return;
 
         if (res.status === "superseded" && res.activeDevice) {
-          // Graceful 300ms volume fade-out
-          const initialVol = audio.volume;
-          const fadeSteps = 6;
-          const stepTime = 50;
-          let currentStep = 0;
-
-          const fadeInterval = setInterval(() => {
-            currentStep++;
-            if (audio && currentStep <= fadeSteps) {
-              audio.volume = Math.max(0, initialVol * (1 - currentStep / fadeSteps));
-            } else {
-              clearInterval(fadeInterval);
-              if (audio) {
-                audio.pause();
-                const { isMuted: curMuted, volume: curVol } = usePlayerStore.getState();
-                audio.volume = curMuted ? 0 : curVol; // Restore base volume setting
-              }
-              usePlayerStore.setState({
-                playbackStatus: "paused",
-                supersededByDevice: res.activeDevice,
-              });
-            }
-          }, stepTime);
+          // A refusal only counts if the session agrees this tab is not the
+          // Speaker. The session is the source of truth; if it still names this
+          // tab as the confirmed Speaker, the refusal came from stale state
+          // (the legacy device lease a transfer does not move), so refresh and
+          // keep playing. Standing down here is what used to silence *both*
+          // devices after a push.
+          if (useConnectStore.getState().youAreSpeaker) {
+            void useConnectStore.getState().refresh();
+            return;
+          }
+          // Another device took over. Route through the single stand-down path
+          // (the store signal) instead of fading out here.
+          usePlayerStore.getState().yieldSpeakerTo(res.activeDevice);
+        } else {
+          useConnectStore.getState().setYouAreSpeaker(true);
         }
       } catch {
         // Silently tolerate temporary network blips
@@ -494,10 +595,95 @@ export function GlobalAudioEngine() {
       isTerminated = true;
       clearInterval(interval);
     };
-  }, [currentTrack?.id, playbackStatus, isAuthenticated]);
+  }, [currentTrack?.id, playbackStatus, isAuthenticated, isRemote]);
+
+  // 5b. Groovy Connect keep-alive: private presence every 30s (so a paused
+  //     device stays listed) plus the Speaker's 10s needle tick. The tick's
+  //     position is re-stamped on the server clock, which is what removes
+  //     cross-device drift. See docs/CROSS_DEVICE_PLAYBACK_DESIGN.md §6.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const { deviceId } = getDeviceInfo();
+    const instanceId = getInstanceId();
+    let cancelled = false;
+
+    const sendPresence = async () => {
+      if (cancelled) return;
+      try {
+        const res = await playerApi.sendPresence({
+          deviceId,
+          instanceId,
+          unlocked: isAudioUnlocked(),
+        });
+        if (!cancelled && res?.devices) {
+          useConnectStore.getState().setDevices(res.devices);
+        }
+      } catch {
+        // Presence is best-effort
+      }
+    };
+
+    // A Remote can never be the Speaker. When the server stops recognising this
+    // tab as the Speaker, another device has taken over (rules A4 / C1). SSE
+    // delivers that in ~1s; this needle tick is the fallback safety net.
+    const yieldToNewSpeaker = (
+      device: { deviceId: string; deviceName: string } | null
+    ) => {
+      usePlayerStore.getState().yieldSpeakerTo(device);
+    };
+
+    const sendPosition = async () => {
+      const state = usePlayerStore.getState();
+      const audio = audioRef.current;
+      if (!audio || !state.currentTrack || state.playbackStatus !== "playing") return;
+      // Only the Speaker owns the session's needle. A Remote's clock is a local
+      // interpolation, so posting it would push a made-up position (rules B2/B8).
+      if (selectIsRemote(useConnectStore.getState())) return;
+      try {
+        const res = await playerApi.sendSessionPosition({
+          deviceId,
+          instanceId,
+          positionMs: Math.floor((audio.currentTime || 0) * 1000),
+          isPlaying: true,
+        });
+        if (!cancelled && res && res.updated === false) {
+          yieldToNewSpeaker(res.speaker ?? null);
+        }
+      } catch {
+        // The next tick will retry
+      }
+    };
+
+    void sendPresence();
+    const presenceInterval = setInterval(sendPresence, 30_000);
+    const positionInterval = setInterval(sendPosition, 10_000);
+
+    // Releasing the Speaker role on unload is what makes a transfer clean
+    // instead of waiting for a TTL (rule R7).
+    const handlePageHide = () => {
+      if (useConnectStore.getState().youAreSpeaker) {
+        playerApi.leaveSpeakerBeacon(
+          deviceId,
+          instanceId,
+          useAuthStore.getState().accessToken
+        );
+      }
+    };
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      cancelled = true;
+      clearInterval(presenceInterval);
+      clearInterval(positionInterval);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [isAuthenticated]);
 
   // 6. 30-Second Qualified Play Telemetry Tracker
   useEffect(() => {
+    // Rule B8: telemetry is reported by the device that produced the sound.
+    if (isRemote) return;
     if (!currentTrack || playbackStatus !== "playing") return;
 
     const threshold =
@@ -519,7 +705,7 @@ export function GlobalAudioEngine() {
         })
         .catch(() => {});
     }
-  }, [currentTime, currentTrack, playbackStatus]);
+  }, [currentTime, currentTrack, playbackStatus, isRemote]);
 
   // 7. Live Jam 3-Tier Adaptive Drift Corrector Loop for Listeners
   useEffect(() => {
@@ -574,12 +760,18 @@ export function GlobalAudioEngine() {
       ref={audioRef}
       preload="metadata"
       className="hidden"
+      /* A Remote's audio element is inert — it has no source, and the only
+       * events it can still emit are echoes of the engine silencing itself.
+       * Letting them write playback status would fight the mirrored session
+       * (rule B2), so they stand down here just like the effects do. */
       onTimeUpdate={() => {
+        if (isRemote) return;
         if (audioRef.current) {
           _setCurrentTime(audioRef.current.currentTime);
         }
       }}
       onLoadedMetadata={() => {
+        if (isRemote) return;
         if (audioRef.current) {
           const audio = audioRef.current;
           if (Number.isFinite(audio.duration)) {
@@ -598,26 +790,32 @@ export function GlobalAudioEngine() {
         }
       }}
       onDurationChange={() => {
+        if (isRemote) return;
         if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
           _setDuration(audioRef.current.duration);
         }
       }}
       onWaiting={() => {
+        if (isRemote) return;
         if (!isSourceChangingRef.current) {
           _setStatus("loading");
         }
       }}
       onPlay={() => {
+        if (isRemote) return;
         isSourceChangingRef.current = false;
         useJamStore.getState().setNeedsGesture(false);
+        markAudioUnlocked();
         _setStatus("playing");
       }}
       onPlaying={() => {
+        if (isRemote) return;
         isSourceChangingRef.current = false;
         useJamStore.getState().setNeedsGesture(false);
         _setStatus("playing");
       }}
       onCanPlay={() => {
+        if (isRemote) return;
         if (audioRef.current) {
           const audio = audioRef.current;
           if (
@@ -636,6 +834,9 @@ export function GlobalAudioEngine() {
         }
       }}
       onPause={() => {
+        // A Remote's mirrored status describes the *session*, so silencing this
+        // inert element must not report a pause (rule B2).
+        if (isRemote) return;
         // Ignore native pause events during media reset or source changing
         if (isSourceChangingRef.current) {
           return;
@@ -643,6 +844,7 @@ export function GlobalAudioEngine() {
         _setStatus("paused");
       }}
       onEnded={() => {
+        if (isRemote) return;
         if (currentTrack) {
           const alreadyCounted = qualifiedReportedTrackIdRef.current === currentTrack.id;
           playerApi
@@ -677,6 +879,7 @@ export function GlobalAudioEngine() {
         }
       }}
       onError={(e) => {
+        if (isRemote) return;
         const audio = audioRef.current;
         const error = (e.target as HTMLAudioElement)?.error;
         console.warn(

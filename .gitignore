@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
-
+tutorial_docs
 # Bun
 .bun/
 

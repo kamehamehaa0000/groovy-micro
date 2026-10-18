@@ -1,5 +1,5 @@
 ---
-name: Groovy Design System
+name: groovy-design-system
 description: Use when working on the Groovy client's visual design — Tailwind tokens and the utility vocabulary, the ui/ primitives, client_test/src/index.css, or reviewing design at /dev/design. Covers the two-layer theme contract, the shadcn token set, the font-eyebrow label switch, the drift guard, and how to verify on Windows.
 ---
 
@@ -21,15 +21,15 @@ traps.
 
 ## 1. Where things live
 
-| Concern | File |
-| --- | --- |
-| Theme values (light **and** dark) | `client_test/src/index.css` → `:root` / `.dark` |
-| Token → Tailwind utility mapping | `client_test/src/index.css` → `@theme inline` |
-| Type / radius / elevation roles | `client_test/src/index.css` → `@theme` |
-| Primitives | `client_test/src/Components/ui/*` |
-| Drift guard | `client_test/scripts/check-design-tokens.mjs` |
-| Review playground | `client_test/src/routes/dev.design.tsx` (route `/dev/design`) |
-| Written contract | `client_test/docs/design-system.md` |
+| Concern                           | File                                                          |
+| --------------------------------- | ------------------------------------------------------------- |
+| Theme values (light **and** dark) | `client_test/src/index.css` → `:root` / `.dark`               |
+| Token → Tailwind utility mapping  | `client_test/src/index.css` → `@theme inline`                 |
+| Type / radius / elevation roles   | `client_test/src/index.css` → `@theme`                        |
+| Primitives                        | `client_test/src/Components/ui/*`                             |
+| Drift guard                       | `client_test/scripts/check-design-tokens.mjs`                 |
+| Review playground                 | `client_test/src/routes/dev.design.tsx` (route `/dev/design`) |
+| Written contract                  | `client_test/docs/design-system.md`                           |
 
 The old `theme.css` and `styles/design-variants.css` **no longer exist** — do not
 reintroduce them.
@@ -78,13 +78,13 @@ dependency-free (no `clsx`, no `tailwind-merge`).
 
 ## 4. Type voice and the `font-eyebrow` switch
 
-| Role | Token | Size | Family |
-| --- | --- | --- | --- |
-| Display | `text-display` | 40px | Fraunces |
-| Heading | `text-heading` | 20px | Inter |
-| Title | `text-title` | 16px | Inter |
-| Body | `text-body` | 14px | Inter |
-| Caption | `text-caption` | 12px | Inter |
+| Role    | Token          | Size           | Family         |
+| ------- | -------------- | -------------- | -------------- |
+| Display | `text-display` | 40px           | Fraunces       |
+| Heading | `text-heading` | 20px           | Inter          |
+| Title   | `text-title`   | 16px           | Inter          |
+| Body    | `text-body`    | 14px           | Inter          |
+| Caption | `text-caption` | 12px           | Inter          |
 | Eyebrow | `text-eyebrow` | 11px · +0.05em | `font-eyebrow` |
 
 Small-caps **label roles** (eyebrows, badges, buttons, field labels,
@@ -92,7 +92,7 @@ Small-caps **label roles** (eyebrows, badges, buttons, field labels,
 to Inter:
 
 ```css
---font-eyebrow: var(--font-sans);  /* Inter — the default */
+--font-eyebrow: var(--font-sans); /* Inter — the default */
 ```
 
 This is the **one line** that re-voices every label in the app. Point it at
@@ -148,13 +148,13 @@ call sites. **Run it with the working directory set to `client_test`** — it gl
 
 Current counts across the entire codebase (**Phase 2 & 3 complete**):
 
-| Rule | Count | Points at |
-| --- | --- | --- |
-| `legacy-type-size` | 0 | `text-eyebrow` / `text-caption` / `text-body` |
-| `legacy-radius` | 0 | `rounded-control` / `-inset` / `-surface` / `-full` |
-| `legacy-shadow` | 0 | `shadow-raised` / `shadow-floating` |
-| `raw-palette-color` | 0 | `success` / `destructive` / `warning` |
-| **TOTAL** | **0** | **Clean** |
+| Rule                | Count | Points at                                           |
+| ------------------- | ----- | --------------------------------------------------- |
+| `legacy-type-size`  | 0     | `text-eyebrow` / `text-caption` / `text-body`       |
+| `legacy-radius`     | 0     | `rounded-control` / `-inset` / `-surface` / `-full` |
+| `legacy-shadow`     | 0     | `shadow-raised` / `shadow-floating`                 |
+| `raw-palette-color` | 0     | `success` / `destructive` / `warning`               |
+| **TOTAL**           | **0** | **Clean**                                           |
 
 Every single component, route, drawer, modal, and utility in the application has
 been fully migrated onto the design system tokens. Any future off-system class
@@ -208,20 +208,20 @@ node scripts/check-design-tokens.mjs
 Branch `feature/design-foundation` (stacked on `feature/vault-rename-mobile-ux`,
 stacked on `rebuilt/groovy`). Newest first:
 
-| Commit | What |
-| --- | --- |
-| `7e74a55` | **`font-eyebrow` token**; labels moved to Inter (860 sites); playground A/B toggle |
-| `905d903` | **Reverted** the review variants + canonical icon set |
-| `2179ea9` `f85a16b` `136d7f7` | Review variants: `data-*` hooks on primitives + `design-variants.css` |
-| `65f8611` | `Sheet`: real snap bottom sheet + actually-centered dialog |
-| `bdba5d9` | **Adopted the full shadcn/ui vocabulary** (~5,300 class tokens, 70 files); indigo dark accent; repaired dead tokens `bg-canvas-soft` → `muted`, `bg-panel-elevated` → `card` |
-| `71e469e` | Role-based accent (`blue` → `primary`), `primary-foreground` / `destructive-foreground`, two-layer `index.css` |
-| `fea4f90` | `SongRow` + `MediaTile` showcases |
-| `a57d44e` | Dev-only playground at `/dev/design` |
-| `1f92538` | Foundation: tokens, 8 primitives, `cn()`, drift guard (replaced `theme.css`) |
+| Commit                        | What                                                                                                                                                                         |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `7e74a55`                     | **`font-eyebrow` token**; labels moved to Inter (860 sites); playground A/B toggle                                                                                           |
+| `905d903`                     | **Reverted** the review variants + canonical icon set                                                                                                                        |
+| `2179ea9` `f85a16b` `136d7f7` | Review variants: `data-*` hooks on primitives + `design-variants.css`                                                                                                        |
+| `65f8611`                     | `Sheet`: real snap bottom sheet + actually-centered dialog                                                                                                                   |
+| `bdba5d9`                     | **Adopted the full shadcn/ui vocabulary** (~5,300 class tokens, 70 files); indigo dark accent; repaired dead tokens `bg-canvas-soft` → `muted`, `bg-panel-elevated` → `card` |
+| `71e469e`                     | Role-based accent (`blue` → `primary`), `primary-foreground` / `destructive-foreground`, two-layer `index.css`                                                               |
+| `fea4f90`                     | `SongRow` + `MediaTile` showcases                                                                                                                                            |
+| `a57d44e`                     | Dev-only playground at `/dev/design`                                                                                                                                         |
+| `1f92538`                     | Foundation: tokens, 8 primitives, `cn()`, drift guard (replaced `theme.css`)                                                                                                 |
 
 **The vocabulary is shadcn/ui's** so a palette exported for shadcn
-(tweakcn.com, the shadcn registry) drops straight in. Tokens shadcn does not define are marked *extension*: `primary-strong`,
+(tweakcn.com, the shadcn registry) drops straight in. Tokens shadcn does not define are marked _extension_: `primary-strong`,
 `border-soft`, `destructive-soft`, `success`/`-soft`/`-foreground`,
 `warning`/`-soft`, `info`/`-soft`/`-foreground` (for unlisted/secret status),
 `scrim`, `font-eyebrow`.

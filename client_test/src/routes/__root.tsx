@@ -20,6 +20,7 @@ import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
 import { QueueDrawer } from '../components/player/QueueDrawer'
+import { DeviceSheet } from '../components/player/DevicePanel'
 import { DesktopRightSidebar } from '../components/player/DesktopRightSidebar'
 import { MobileExpandedPlayer } from '../components/player/MobileExpandedPlayer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
@@ -1154,6 +1155,7 @@ function RootComponent() {
       <PlayerBar key="permanent-player-bar" />
       <MobileExpandedPlayer key="permanent-mobile-expanded-player" />
       <QueueDrawer key="permanent-queue-drawer" />
+      <DeviceSheet key="permanent-device-sheet" />
       <AuthPromptModal key="permanent-auth-modal" />
       <LiveJamModal key="permanent-live-jam-modal" />
       <CreatePlaylistModal key="permanent-create-playlist-modal" />
