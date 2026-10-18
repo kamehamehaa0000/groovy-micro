@@ -64,6 +64,11 @@ const ALL_SUITES: TestSuite[] = [
     file: 'src/modules/player/player.test.ts',
   },
   {
+    id: 'metrics',
+    name: 'Observability & Prometheus Metrics',
+    file: 'src/lib/metrics/metrics.test.ts',
+  },
+  {
     id: 'locker',
     name: 'Personal Cloud Locker & Bulk Importer',
     file: 'src/modules/storage/locker.test.ts',

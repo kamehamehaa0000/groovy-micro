@@ -1,0 +1,24 @@
+# Prometheus configuration for the Groovy API.
+#
+# Reload after editing:  curl -X POST http://localhost:9090/-/reload
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: groovy-api
+    metrics_path: /metrics
+    # The API only asks for a token when METRICS_TOKEN is set. Sending the token
+    # anyway is harmless in development, so this one file works everywhere.
+    # Put the same value as the API's METRICS_TOKEN in ./secrets/metrics_token.
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/metrics_token
+    static_configs:
+      # In development the API runs on the host (bun run dev) at port 4000.
+      # For a deployed API put its real host there instead, for example:
+      #   - targets: ["api.groovy.stream:4000"]
+      #
+      # Note: no `env`/`service` labels here on purpose. The API already exports
+      # those itself, and two sources for the same label would collide.
+      - targets: ["host.docker.internal:4000"]

@@ -1,0 +1,1210 @@
+{
+  "uid": "groovy-api-overview",
+  "title": "Groovy API — Health & Latency",
+  "description": "Latency percentiles per endpoint, error rates, traffic, SSE streams and backend health for the Groovy API.",
+  "tags": [
+    "groovy",
+    "api"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Traffic",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Requests per second, by endpoint",
+      "description": "Which endpoints the app is actually busy with.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (route) (rate(groovy_http_requests_total[5m])))",
+          "legendFormat": "{{route}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Error rate",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(groovy_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(groovy_http_requests_total[5m])), 0.0001)",
+          "legendFormat": "5xx share",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(groovy_http_requests_total{status=~\"4..\"}[5m])) / clamp_min(sum(rate(groovy_http_requests_total[5m])), 0.0001)",
+          "legendFormat": "4xx share",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Requests in flight",
+      "description": "Live requests being handled right now (streams excluded).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_http_requests_in_flight",
+          "legendFormat": "in flight",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Latency",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Latency percentiles across all traffic",
+      "description": "Half of requests are faster than p50; 95% faster than p95. This is the \"is the API slow?\" panel.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.9, sum by (route, le) (rate(groovy_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p90",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (route, le) (rate(groovy_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum by (route, le) (rate(groovy_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p99",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "p95 latency by endpoint (5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, histogram_quantile(0.95, sum by (route, le) (rate(groovy_http_request_duration_seconds_bucket[5m]))))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          },
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value #A": "p95 (seconds)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 4,
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "p95 (seconds)",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "p99 latency by endpoint (5m)",
+      "description": "The slowest 1% per endpoint — where the tail hurts.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, histogram_quantile(0.99, sum by (route, le) (rate(groovy_http_request_duration_seconds_bucket[5m]))))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          },
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value #A": "p99 (seconds)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 4,
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "p99 (seconds)",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Clients & realtime",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Open SSE streams",
+      "description": "Long-lived player/notification streams. A sudden drop means devices lost realtime sync (they fall back to polling).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_http_streams_open",
+          "legendFormat": "{{route}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Requests per second, by status",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (rate(groovy_http_requests_total[5m]))",
+          "legendFormat": "{{status}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Backend health",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Redis reachable",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_redis_up",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Postgres reachable",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_db_up",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Collector errors (1h)",
+      "description": "How many health polls failed in the last hour. Non-zero usually means Redis or Postgres is unhappy, not that metrics are broken.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(groovy_metrics_collector_errors_total[1h:1m]))",
+          "legendFormat": "errors",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 8,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Postgres connections",
+      "description": "A climbing \"active\" line is the classic sign of a stuck query.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_db_connections_active",
+          "legendFormat": "active",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "groovy_db_connections_idle",
+          "legendFormat": "idle",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 12,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Postgres connection pool cap",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_db_connections_active + groovy_db_connections_idle",
+          "legendFormat": "used",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 20,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Background work",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "panels": []
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Queue depth (waiting / active / delayed)",
+      "description": "A growing \"waiting\" line means the worker cannot keep up with uploads or scheduled releases.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (queue, state) (groovy_queue_jobs{state=~\"waiting|active|delayed\"})",
+          "legendFormat": "{{queue}} {{state}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 35
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Queue failures and completions",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (queue, state) (groovy_queue_jobs{state=~\"failed\"})",
+          "legendFormat": "{{queue}} failed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (queue, state) (groovy_queue_jobs{state=\"completed\"})",
+          "legendFormat": "{{queue}} completed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 35
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "Redis detail",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "panels": []
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Redis memory used",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_redis_memory_used_bytes",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Redis ops per second",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_redis_ops_per_sec",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Cache hit ratio",
+      "description": "Low means the cache is missing often — expect slower endpoints to show up on the right.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(groovy_redis_keyspace_hits_total[5m]) / clamp_min(rate(groovy_redis_keyspace_hits_total[5m]) + rate(groovy_redis_keyspace_misses_total[5m]), 0.0001)",
+          "legendFormat": "hit ratio",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "type": "row",
+      "title": "Runtime",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "panels": []
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Event loop lag (mean)",
+      "description": "Rising lag means the process is blocked (sync work or a CPU spike) and every request slows down.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_nodejs_eventloop_lag_mean_seconds",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 52
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "timeseries",
+      "title": "Process memory (RSS)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "groovy_process_resident_memory_bytes",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 52
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "CPU time per second",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "groovy-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(groovy_process_cpu_seconds_total[5m])",
+          "legendFormat": "cores used",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "groovy-prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 52
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "fillOpacity": 6,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

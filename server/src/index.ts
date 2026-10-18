@@ -19,7 +19,9 @@ import {
 import {
   initReleaseWorker,
   closeReleaseQueue,
+  releaseQueue,
 } from './modules/catalog/catalog.queue'
+import { attachMetrics } from './lib/metrics'
 import { startOutboxRelay, stopOutboxRelay } from './lib/queue/outbox.relay'
 import { transcodeQueue } from './lib/queue/transcode.queue'
 import {
@@ -120,7 +122,18 @@ export async function bootstrap(
   await app.register(notificationRoutes, { prefix: '/api/v1/notifications' })
   await app.register(recommendationRoutes, { prefix: '/api/v1/recommendations' })
 
-  // 3. Health & Diagnostic Check
+  // 3. Observability (Prometheus metrics). Opt out with METRICS_ENABLED=false.
+  // Latency/error/RPS come from hooks on every request; Redis, Postgres and the
+  // BullMQ queues are polled in the background. See docs/OBSERVABILITY.md.
+  attachMetrics(app, {
+    deps: {
+      redis,
+      pg: pgClient,
+      queues: [transcodeQueue, releaseQueue],
+    },
+  })
+
+  // 4. Health & Diagnostic Check
   app.get('/healthz', async (req, reply) => {
     let dbStatus = 'unknown'
     let redisStatus = 'unknown'
@@ -152,7 +165,7 @@ export async function bootstrap(
     })
   })
 
-  // 4. API Root
+  // 5. API Root
   app.get('/api/v1', async () => {
     return {
       name: 'Groovy Modular Monolith API',
@@ -183,7 +196,7 @@ export async function bootstrap(
     stopPlayCountFlushTimer()
   })
 
-  // 5. Start Server (if listen enabled)
+  // 6. Start Server (if listen enabled)
   if (options.listen !== false) {
     try {
       await app.listen({ port, host })

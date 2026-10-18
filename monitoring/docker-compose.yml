@@ -1,0 +1,55 @@
+# Observability stack for the Groovy API: Prometheus (collects the numbers) and
+# Grafana (draws them).
+#
+# It is deliberately a separate compose file, so monitoring can be started and
+# stopped without touching the app or the local dev infrastructure:
+#
+#   podman compose -f monitoring/docker-compose.yml up -d
+#   podman compose -f monitoring/docker-compose.yml down
+#
+# The API is scraped from outside this stack (the default target is the API
+# running on the host at port 4000). Change the target in prometheus.yml.
+services:
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: groovy-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      # Lets you reload prometheus.yml with:
+      #   curl -X POST http://localhost:9090/-/reload
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./secrets/metrics_token:/etc/prometheus/metrics_token:ro
+      - prometheusdata:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      # Makes "host.docker.internal" mean "the machine running the containers",
+      # which is where the API lives in local development.
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    container_name: groovy-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-groovy}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheusdata:
+  grafanadata:
