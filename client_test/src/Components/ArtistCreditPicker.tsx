@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
-import type { ArtistProfile } from '../types/artist'
+import type { ArtistSummary } from '../types/artist'
 import type { CreditRole } from '../types/catalog'
 import { VerifiedBadgeSVG } from './icons'
 
@@ -26,7 +26,7 @@ export function ArtistCreditPicker({
 }: ArtistCreditPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<ArtistProfile[]>([])
+  const [results, setResults] = useState<ArtistSummary[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -85,7 +85,7 @@ export function ArtistCreditPicker({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleSelectArtist = (artist: ArtistProfile) => {
+  const handleSelectArtist = (artist: ArtistSummary) => {
     const newCredit: SelectedCredit = {
       artistId: artist.id,
       stageName: artist.stageName,

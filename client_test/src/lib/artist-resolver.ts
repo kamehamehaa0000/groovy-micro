@@ -5,7 +5,6 @@ import { catalogApi } from "./catalog.api";
 import { usePlayerStore } from "../stores/player.store";
 import type { PlayerTrack } from "../types/player";
 import type { SongCredit } from "../types/catalog";
-import type { ArtistProfile } from "../types/artist";
 import {
   parseTrackArtistsAndCredits,
   slugifyArtistName,
@@ -127,13 +126,13 @@ export async function resolveArtistByName(
     if (searchRes?.data && searchRes.data.length > 0) {
       // Find exact case-insensitive match first (prefer PERSONAL if present, else first exact match)
       const exactMatches = searchRes.data.filter(
-        (a: ArtistProfile) => a.stageName.toLowerCase().trim() === normalized
+        (a) => a.stageName.toLowerCase().trim() === normalized
       );
 
       const bestMatch =
-        exactMatches.find((a: ArtistProfile) => a.scope === "PERSONAL") ||
+        exactMatches.find((a) => a.scope === "PERSONAL") ||
         exactMatches[0] ||
-        searchRes.data.find((a: ArtistProfile) =>
+        searchRes.data.find((a) =>
           a.stageName.toLowerCase().includes(normalized)
         );
 

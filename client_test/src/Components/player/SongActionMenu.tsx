@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { memo, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from '@tanstack/react-router'
 import { usePlayerStore } from '../../stores/player.store'
@@ -36,7 +36,7 @@ export interface SongActionMenuProps {
   triggerIcon?: React.ReactNode
 }
 
-export function SongActionMenu({
+export const SongActionMenu = memo(function SongActionMenu({
   track,
   buttonClassName = 'p-2 sm:p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-control flex items-center justify-center',
   align = 'right',
@@ -1046,4 +1046,4 @@ export function SongActionMenu({
         )}
     </>
   )
-}
+})

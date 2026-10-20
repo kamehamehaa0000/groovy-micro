@@ -405,8 +405,24 @@ export function MobileExpandedPlayer() {
             </span>
           </button>
 
-          <div className="w-11 h-11 -mr-2.5 flex items-center justify-center shrink-0">
-            <SongActionMenu track={currentTrack} align="right" />
+          <div className="-mr-2.5 flex h-11 w-11 shrink-0 items-center justify-center">
+            <SongActionMenu
+              track={currentTrack}
+              align="right"
+              buttonClassName="flex h-11 w-11 items-center justify-center rounded-full text-foreground active:scale-90 transition-transform cursor-pointer"
+              triggerIcon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="h-6 w-6"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="5" r="2.25" />
+                  <circle cx="12" cy="12" r="2.25" />
+                  <circle cx="12" cy="19" r="2.25" />
+                </svg>
+              }
+            />
           </div>
         </div>
       </header>

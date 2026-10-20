@@ -1,7 +1,4 @@
-import {
-  createFileRoute,
-  useNavigate,
-} from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   useInfiniteQuery,
@@ -138,7 +135,8 @@ function EmptyFeed({
   onFindPeople: () => void
 }) {
   const navigate = useNavigate()
-  const followsNobody = meta.followingArtists === 0 && meta.followingPeople === 0
+  const followsNobody =
+    meta.followingArtists === 0 && meta.followingPeople === 0
 
   let title: string
   let description: string
@@ -231,8 +229,13 @@ function GuestFeed() {
       <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
         <FeedIcon className="h-6 w-6" />
       </div>
-      <h1 className="mt-5 font-serif text-display text-foreground">Your feed</h1>
-      <p className="mt-2 text-body leading-relaxed text-muted-foreground">
+      <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
+        Socials
+      </span>
+      <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
+        Feed
+      </h1>
+      <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
         Sign in to follow artists and listeners, and see their latest releases,
         playlists and listening in one place.
       </p>
@@ -263,13 +266,13 @@ function QuickActions({
   onFindPeople: () => void
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex shrink-0 items-center gap-2">
       <IconButton
         size="md"
         aria-label="Find people"
         title="Find people"
         onClick={onFindPeople}
-        className="border border-border bg-card xl:hidden"
+        className="border border-border bg-card xl:hidden rounded-full "
       >
         <UsersIcon />
       </IconButton>
@@ -278,7 +281,7 @@ function QuickActions({
         aria-label="Refresh feed"
         title="Refresh feed"
         onClick={onRefresh}
-        className="border border-border bg-card"
+        className="border border-border bg-card rounded-full "
       >
         <RefreshIcon
           className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -360,9 +363,7 @@ function FeedPage() {
       }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) =>
-      lastPage.hasMore && lastPage.nextCursor
-        ? lastPage.nextCursor
-        : undefined,
+      lastPage.hasMore && lastPage.nextCursor ? lastPage.nextCursor : undefined,
     enabled: isAuthenticated,
     staleTime: 30_000,
     // Follows can happen on profile and artist pages, so revalidate whenever
@@ -510,10 +511,7 @@ function FeedPage() {
         queryClient.invalidateQueries({ queryKey: ['social', 'live'] })
         queryClient.invalidateQueries({ queryKey: ['social', 'people'] })
       } catch (error) {
-        const message = errorMessage(
-          error,
-          'Could not accept that request.',
-        )
+        const message = errorMessage(error, 'Could not accept that request.')
         setRequestActionError(message)
         setPeopleActionError(message)
       } finally {
@@ -536,10 +534,7 @@ function FeedPage() {
           [requesterId]: 'NONE',
         }))
       } catch (error) {
-        const message = errorMessage(
-          error,
-          'Could not decline that request.',
-        )
+        const message = errorMessage(error, 'Could not decline that request.')
         setRequestActionError(message)
         setPeopleActionError(message)
       } finally {
@@ -644,12 +639,15 @@ function FeedPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+      <header className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="font-serif text-heading text-foreground sm:text-display">
+          <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
+            Socials
+          </p>
+          <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
             Feed
           </h1>
-          <p className="mt-1 max-w-lg text-body leading-relaxed text-muted-foreground">
+          <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
             Releases, playlists and listening from artists and people you
             follow.
           </p>
@@ -661,7 +659,7 @@ function FeedPage() {
         />
       </header>
 
-      <div className="mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10">
+      <div className=" grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10">
         <div className="min-w-0">
           <div className="space-y-5 xl:hidden">
             {requestSection}

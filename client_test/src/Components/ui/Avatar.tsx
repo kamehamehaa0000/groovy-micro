@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from './cn'
 
-export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
   /** Image URL. Falls back to the name's initial when absent. */
@@ -15,6 +15,7 @@ const SIZE: Record<AvatarSize, string> = {
   sm: 'h-8 w-8 text-caption',
   md: 'h-10 w-10 text-body',
   lg: 'h-12 w-12 text-title',
+  xl: 'h-14 w-14 text-heading',
 }
 
 function initialOf(name: string): string {

@@ -135,13 +135,16 @@ export const artistsApi = {
   /**
    * Search and browse artist roster with pagination, scope filtering, and sorting.
    */
-  async searchArtists(params?: {
-    search?: string;
-    scope?: "GLOBAL" | "PERSONAL" | "ALL";
-    sort?: "listeners" | "followers" | "name" | "recent";
-    page?: number;
-    limit?: number;
-  }): Promise<SearchArtistsResponse> {
+  async searchArtists(
+    params?: {
+      search?: string;
+      scope?: "GLOBAL" | "PERSONAL" | "ALL";
+      sort?: "listeners" | "followers" | "name" | "recent";
+      page?: number;
+      limit?: number;
+    },
+    signal?: AbortSignal
+  ): Promise<SearchArtistsResponse> {
     const query = new URLSearchParams();
     if (params?.search) query.set("search", params.search);
     if (params?.scope) query.set("scope", params.scope);
@@ -150,7 +153,10 @@ export const artistsApi = {
     if (params?.limit) query.set("limit", params.limit.toString());
 
     const qs = query.toString();
-    return await api.get<SearchArtistsResponse>(`/api/v1/artists${qs ? `?${qs}` : ""}`);
+    return await api.get<SearchArtistsResponse>(
+      `/api/v1/artists${qs ? `?${qs}` : ""}`,
+      signal ? { signal } : undefined
+    );
   },
 
   /**

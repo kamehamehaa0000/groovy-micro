@@ -66,8 +66,23 @@ export type AdminVerifyArtistInput =
   | { status: "VERIFIED"; reason?: never }
   | { status: "REJECTED"; reason: string };
 
+/** Lean row returned by the public artist directory search. */
+export interface ArtistSummary {
+  id: string;
+  stageName: string;
+  slug: string;
+  bannerUrl: string | null;
+  avatarUrl?: string | null;
+  verified: boolean;
+  monthlyListeners: number;
+  scope?: "GLOBAL" | "PERSONAL";
+  ownerUserId?: string | null;
+  createdAt: string;
+  isFollowing?: boolean;
+}
+
 export interface SearchArtistsResponse {
-  data: ArtistProfile[];
+  data: ArtistSummary[];
   pagination: {
     page: number;
     limit: number;

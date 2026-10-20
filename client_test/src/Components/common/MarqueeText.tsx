@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { memo, useRef, useState, useEffect } from 'react'
 
 interface MarqueeTextProps {
   children: React.ReactNode
@@ -9,7 +9,7 @@ interface MarqueeTextProps {
   hoverOnly?: boolean
 }
 
-export function MarqueeText({
+export const MarqueeText = memo(function MarqueeText({
   children,
   className = '',
   innerClassName = '',
@@ -101,4 +101,4 @@ export function MarqueeText({
       </div>
     </div>
   )
-}
+})

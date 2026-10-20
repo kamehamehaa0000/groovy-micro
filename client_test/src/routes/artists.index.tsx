@@ -1,340 +1,438 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
-import type { ArtistProfile } from '../types/artist'
-import { VerifiedBadgeSVG, SearchIconSVG } from '../components/icons'
+import type { ArtistSummary } from '../types/artist'
+import { SearchIconSVG } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useFollowsStore } from '../stores/follows.store'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { Button, IconButton, Input, Select } from '../Components/ui'
+import { ArtistTile } from '../Components/artists/ArtistTile'
+import {
+  ArtistEmptyPanel,
+  ArtistGridSkeleton,
+} from '../Components/artists/ArtistDirectoryStates'
+import { cn } from '../Components/ui/cn'
+
+const PAGE_SIZE = 24
+const SCOPES = ['ALL', 'GLOBAL', 'PERSONAL'] as const
+const SORTS = ['listeners', 'followers', 'name', 'recent'] as const
+
+type ArtistScope = (typeof SCOPES)[number]
+type ArtistSort = (typeof SORTS)[number]
+
+interface ArtistsSearchParams {
+  q?: string
+  scope?: ArtistScope
+  /** `order` avoids colliding with the playlists directory's `sort` param. */
+  order?: ArtistSort
+}
+
+const SCOPE_OPTIONS: Array<{ value: ArtistScope; label: string }> = [
+  { value: 'ALL', label: 'All' },
+  { value: 'GLOBAL', label: 'Groovy' },
+  { value: 'PERSONAL', label: 'Personal' },
+]
 
 export const Route = createFileRoute('/artists/')({
   component: ArtistsDirectoryComponent,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): ArtistsSearchParams => {
+    const rawScope = typeof search.scope === 'string' ? search.scope : ''
+    const rawSort = typeof search.order === 'string' ? search.order : ''
+
+    return {
+      q: typeof search.q === 'string' ? search.q : undefined,
+      scope: SCOPES.includes(rawScope as ArtistScope)
+        ? (rawScope as ArtistScope)
+        : 'ALL',
+      order: SORTS.includes(rawSort as ArtistSort)
+        ? (rawSort as ArtistSort)
+        : 'listeners',
+    }
+  },
 })
 
 function ArtistsDirectoryComponent() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
   const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
+  const searchParams = Route.useSearch()
+  const navigate = useNavigate()
 
-  const [artists, setArtists] = useState<ArtistProfile[]>([])
-  const [search, setSearch] = useState('')
-  const [scope, setScope] = useState<'GLOBAL' | 'PERSONAL' | 'ALL'>('GLOBAL')
-  const [sort, setSort] = useState<
-    'listeners' | 'followers' | 'name' | 'recent'
-  >('listeners')
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
+  const scope = searchParams.scope ?? 'ALL'
+  const sort = searchParams.order ?? 'listeners'
+  const [query, setQuery] = useState(searchParams.q ?? '')
+  const lastWrittenQuery = useRef(searchParams.q ?? '')
+  const debouncedQuery = useDebouncedValue(query, 300).trim()
 
+  // Keep the input in sync when the URL changes via history navigation, but
+  // avoid overwriting in-flight typing with a value we just wrote ourselves.
   useEffect(() => {
-    let isMounted = true
-    const timer = setTimeout(async () => {
-      setIsLoading(true)
-      try {
-        const res = await artistsApi.searchArtists({
-          search: search.trim() || undefined,
+    const urlQuery = searchParams.q ?? ''
+    if (urlQuery !== lastWrittenQuery.current) {
+      lastWrittenQuery.current = urlQuery
+      setQuery(urlQuery)
+    }
+  }, [searchParams.q])
+
+  const artistsQuery = useInfiniteQuery({
+    queryKey: [
+      'artists',
+      'directory',
+      user?.id ?? null,
+      scope,
+      sort,
+      debouncedQuery,
+    ],
+    queryFn: ({ pageParam, signal }) =>
+      artistsApi.searchArtists(
+        {
+          search: debouncedQuery || undefined,
           scope,
           sort,
-          page,
-          limit: 24,
-        })
-        if (isMounted) {
-          setArtists(res.data)
-          setTotalCount(res.pagination.total)
-          setTotalPages(res.pagination.totalPages)
-          hydrateArtists(res.data)
-        }
-      } catch (err) {
-        console.error('Failed to load artists roster:', err)
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }, 250)
+          page: pageParam,
+          limit: PAGE_SIZE,
+        },
+        signal,
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
+        : undefined,
+    staleTime: 60_000,
+    // Keep the previous grid while refining a search. Scope/sort changes and
+    // account switches get a fresh skeleton so stale rows are never implied.
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[2] === (user?.id ?? null) &&
+      previousQuery?.queryKey[3] === scope &&
+      previousQuery?.queryKey[4] === sort
+        ? previousData
+        : undefined,
+  })
 
-    return () => {
-      isMounted = false
-      clearTimeout(timer)
+  const artists = useMemo(() => {
+    const seen = new Set<string>()
+    const result: ArtistSummary[] = []
+
+    for (const page of artistsQuery.data?.pages ?? []) {
+      for (const artist of page.data) {
+        if (seen.has(artist.id)) continue
+        seen.add(artist.id)
+        result.push(artist)
+      }
     }
-  }, [search, scope, sort, page, user?.id, hydrateArtists])
+
+    return result
+  }, [artistsQuery.data])
+
+  useEffect(() => {
+    if (artists.length > 0) hydrateArtists(artists)
+  }, [artists, hydrateArtists])
+
+  const totalCount = artistsQuery.data?.pages[0]?.pagination.total ?? 0
+  const isInitialLoading = artistsQuery.isPending
+  const isRefreshing =
+    artistsQuery.isFetching &&
+    !artistsQuery.isPending &&
+    !artistsQuery.isFetchingNextPage
+
+  const updateSearch = (
+    patch: Partial<ArtistsSearchParams>,
+    replace: boolean,
+  ) => {
+    navigate({
+      to: '/artists',
+      search: (prev) => ({ ...prev, ...patch }),
+      replace,
+    })
+  }
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    lastWrittenQuery.current = value
+    updateSearch({ q: value || undefined }, true)
+  }
+
+  const clearQuery = () => handleQueryChange('')
+
+  const showArtistCta = user?.role === 'LISTENER' && !user?.artistProfile
+
+  let emptyTitle = 'No artists available yet.'
+  let emptyDescription: string | undefined
+  let emptyAction: ReactNode
+
+  if (scope === 'PERSONAL' && !user) {
+    emptyTitle = 'Sign in to see your personal artists.'
+    emptyDescription = 'Your personal collection is private to your account.'
+    emptyAction = (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          navigate({
+            to: '/login',
+            search: { redirect: '/artists?scope=PERSONAL' },
+          })
+        }
+      >
+        Sign in
+      </Button>
+    )
+  } else if (debouncedQuery) {
+    emptyTitle = `No artists match “${debouncedQuery}”.`
+    emptyDescription = 'Try a different name or handle.'
+    emptyAction = (
+      <Button variant="outline" size="sm" onClick={clearQuery}>
+        Clear search
+      </Button>
+    )
+  } else if (scope === 'PERSONAL') {
+    emptyTitle = 'No personal artists yet.'
+    emptyDescription =
+      'Artists you add to your personal collection will appear here.'
+    emptyAction = (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate({ to: '/vault' })}
+      >
+        Open Personal Collection
+      </Button>
+    )
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full ">
-      {/* Maison Hero Header */}
-      <div className="border-b border-border pb-8 mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
-              Groovy Artists Index
-            </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
-              The Roster
+    <div className="w-full px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
+      <header className="border-b border-border pb-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
+              Directory
+            </p>
+            <h1 className="mt-1 font-serif text-heading text-foreground sm:text-display">
+              Artists
             </h1>
-            <p className="font-sans text-caption text-muted-foreground max-w-lg mt-2 leading-relaxed">
-              Discover verified recording artists, composers, and personal
-              collection creators shaping the Groovy acoustics.
+            <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
+              Browse artists on Groovy and in your personal collection.
             </p>
           </div>
 
-          {/* Upgrade CTA for listeners */}
-          {user?.role === 'LISTENER' && !user?.artistProfile && (
-            <Link
-              to="/studio"
-              className="inline-flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 transition-opacity shrink-0"
+          {showArtistCta && (
+            <Button
+              size="sm"
+              className="w-full shrink-0 sm:w-auto"
+              onClick={() => navigate({ to: '/studio' })}
             >
-              <span>✦ Become an Artist</span>
-            </Link>
+              Become an artist
+            </Button>
           )}
         </div>
 
-        {/* Scope Filter Tabs */}
-        <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-border pb-4">
-          <button
-            type="button"
-            onClick={() => {
-              setScope('GLOBAL')
-              setPage(1)
-            }}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
-              scope === 'GLOBAL'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-            }`}
-          >
-            Groovy Artists
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setScope('PERSONAL')
-              setPage(1)
-            }}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
-              scope === 'PERSONAL'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-            }`}
-          >
-            Personal Collection
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setScope('ALL')
-              setPage(1)
-            }}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer ${
-              scope === 'ALL'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-            }`}
-          >
-            All Artists
-          </button>
-        </div>
-
-        {/* Search & Sort Controls Row */}
-        <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="relative w-full sm:max-w-md">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPage(1)
-              }}
-              placeholder="Search by artist name or vanity handle..."
-              className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
-            />
-            <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            {search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch('')
-                  setPage(1)
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
-                title="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="artist-sort"
-                className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground shrink-0"
-              >
-                Sort:
-              </label>
-              <select
-                id="artist-sort"
-                value={sort}
-                onChange={(e) => {
-                  setSort(e.target.value as any)
-                  setPage(1)
-                }}
-                className="font-mono rounded-xl text-caption py-2 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground transition-colors cursor-pointer"
-              >
-                <option value="listeners">Monthly Listeners</option>
-                <option value="followers">Followers</option>
-                <option value="name">Alphabetical (A-Z)</option>
-                <option value="recent">Recently Added</option>
-              </select>
+        <div className="mt-5 flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
+              <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                inputMode="search"
+                value={query}
+                onChange={(event) => handleQueryChange(event.target.value)}
+                placeholder="Search artists"
+                aria-label="Search artists"
+                className="pl-9 pr-10"
+              />
+              {query && (
+                <IconButton
+                  size="sm"
+                  aria-label="Clear search"
+                  onClick={clearQuery}
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </IconButton>
+              )}
             </div>
 
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground ml-2 shrink-0 border-l border-border pl-3">
-              {totalCount} {totalCount === 1 ? 'Artist' : 'Artists'}
-            </span>
+            <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <label htmlFor="artist-sort" className="sr-only">
+                Sort artists
+              </label>
+              <div className="min-w-40">
+                <Select
+                  id="artist-sort"
+                  value={sort}
+                  onChange={(event) =>
+                    updateSearch(
+                      { order: event.target.value as ArtistSort },
+                      false,
+                    )
+                  }
+                  className="py-2 pr-8 text-caption"
+                >
+                  <option value="listeners">Most listeners</option>
+                  <option value="followers">Most followers</option>
+                  <option value="name">Name (A–Z)</option>
+                  <option value="recent">Recently added</option>
+                </Select>
+              </div>
+              <span
+                aria-live="polite"
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground"
+              >
+                {isRefreshing && (
+                  <span
+                    className="h-3 w-3 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+                {isRefreshing && (
+                  <span className="sr-only">Updating artists</span>
+                )}
+                <span className="font-mono tabular-nums">{totalCount}</span>{' '}
+                {totalCount === 1 ? 'artist' : 'artists'}
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Grid of Artists */}
-      {isLoading ? (
-        <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
-          Fetching curated roster...
-        </div>
-      ) : artists.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-border p-10 bg-card/40">
-          <p className="font-serif italic text-lg text-foreground">No artists found</p>
-          <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1">
-            {search
-              ? 'Try adjusting your search query'
-              : scope === 'PERSONAL' && !user
-                ? 'Sign in to access your personal collection artists'
-                : scope === 'PERSONAL'
-                  ? 'No personal artists yet. Import music to build your personal roster'
-                  : 'Be the first to join the roster'}
-          </p>
-          {scope === 'PERSONAL' && user ? (
-            <Link
-              to="/vault"
-              className="inline-block mt-4 font-eyebrow text-caption uppercase tracking-wider text-primary hover:underline"
-            >
-              Go to Personal Collection &rarr;
-            </Link>
-          ) : (
-            user?.role === 'LISTENER' && (
-              <Link
-                to="/studio"
-                className="inline-block mt-4 font-eyebrow text-caption uppercase tracking-wider text-primary hover:underline"
+          <div className="flex flex-wrap items-center gap-2">
+            {SCOPE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={scope === option.value}
+                onClick={() => updateSearch({ scope: option.value }, false)}
+                className={cn(
+                  'inline-flex min-h-9 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  scope === option.value
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+                )}
               >
-                Launch Your Artist Studio &rarr;
-              </Link>
-            )
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {artists.map((artist) => (
-              <Link
-                key={artist.id}
-                to="/artists/$idOrSlug"
-                params={{ idOrSlug: artist.slug }}
-                className="group block rounded-md overflow-clip border border-border bg-card hover:border-foreground transition-all duration-200  text-inherit no-underline shadow-raised hover:shadow-sm"
-              >
-                {/* Card Banner Preview */}
-                <div className="h-28 w-full bg-muted relative overflow-hidden border-b border-border-soft">
-                  {artist.bannerUrl ? (
-                    <img
-                      src={artist.bannerUrl}
-                      alt={artist.stageName}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 font-serif italic text-3xl select-none">
-                      {artist.stageName.charAt(0)}
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-linear-to-t from-card/70 to-transparent pointer-events-none" />
-                </div>
-
-                {/* Card Meta Content */}
-                <div className="p-5">
-                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-sans font-semibold text-title sm:text-lg text-foreground group-hover:text-primary transition-colors">
-                        {artist.stageName}
-                      </h3>
-                      {artist.verified && (
-                        <VerifiedBadgeSVG className="w-4 h-4 text-primary shrink-0 inline-block" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {artist.scope === 'PERSONAL' && (
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-warning/40 bg-warning-soft text-warning font-semibold">
-                          Personal
-                        </span>
-                      )}
-                      {followedArtistIds.has(artist.id) && (
-                        <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary font-semibold">
-                          ✓ Following
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-0.5">
-                    @{artist.slug}
-                  </div>
-
-                  {artist.bio ? (
-                    <p className="font-sans text-caption text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
-                      {artist.bio}
-                    </p>
-                  ) : (
-                    <p className="font-sans text-caption italic text-muted-foreground/60 mt-3">
-                      {artist.scope === 'PERSONAL'
-                        ? 'Personal collection artist.'
-                        : 'Recording artist on Groovy.'}
-                    </p>
-                  )}
-
-                  <div className="mt-4 pt-3 border-t border-border-soft flex items-center justify-between font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                    <span>
-                      {artist.scope === 'PERSONAL'
-                        ? 'Personal Artist'
-                        : `${artist.monthlyListeners.toLocaleString()} monthly listeners`}
-                    </span>
-                    <span className="text-primary group-hover:translate-x-0.5 transition-transform">
-                      Explore &rarr;
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                {option.label}
+              </button>
             ))}
           </div>
+        </div>
+      </header>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="font-eyebrow text-caption uppercase tracking-wider py-2 px-4 border border-border bg-card text-foreground hover:border-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+      <section aria-busy={artistsQuery.isFetching} className="mt-5">
+        {artistsQuery.isError && artists.length > 0 && (
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between gap-3 rounded-surface border border-destructive/30 bg-destructive-soft px-3 py-2 text-caption text-destructive"
+          >
+            <span>Couldn’t refresh artists.</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => void artistsQuery.refetch()}
+            >
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {isInitialLoading ? (
+          <ArtistGridSkeleton />
+        ) : artistsQuery.isError && artists.length === 0 ? (
+          <ArtistEmptyPanel
+            role="alert"
+            title="Couldn’t load artists."
+            description="Check your connection and try again."
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void artistsQuery.refetch()}
               >
-                &larr; Previous
-              </button>
-              <span className="font-mono text-caption text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="font-eyebrow text-caption uppercase tracking-wider py-2 px-4 border border-border bg-card text-foreground hover:border-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-              >
-                Next &rarr;
-              </button>
+                Try again
+              </Button>
+            }
+          />
+        ) : artists.length === 0 ? (
+          <ArtistEmptyPanel
+            title={emptyTitle}
+            description={emptyDescription}
+            action={emptyAction}
+          />
+        ) : (
+          <>
+            <div
+              className={cn(
+                'grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5',
+                isRefreshing && 'opacity-60',
+              )}
+            >
+              {artists.map((artist) => (
+                <ArtistTile
+                  key={artist.id}
+                  artist={artist}
+                  isFollowing={followedArtistIds.has(artist.id)}
+                />
+              ))}
             </div>
-          )}
-        </>
-      )}
+
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
+              <p className="text-caption text-muted-foreground">
+                Showing{' '}
+                <span className="font-mono tabular-nums text-foreground">
+                  {artists.length}
+                </span>{' '}
+                of{' '}
+                <span className="font-mono tabular-nums text-foreground">
+                  {totalCount}
+                </span>{' '}
+                {totalCount === 1 ? 'artist' : 'artists'}
+              </p>
+
+              {artistsQuery.hasNextPage &&
+                !artistsQuery.isFetchNextPageError && (
+                  <Button
+                    variant="outline"
+                    onClick={() => void artistsQuery.fetchNextPage()}
+                    disabled={
+                      artistsQuery.isFetchingNextPage ||
+                      artistsQuery.isPlaceholderData ||
+                      isRefreshing
+                    }
+                  >
+                    {artistsQuery.isFetchingNextPage ? (
+                      <>
+                        <span
+                          className="h-3.5 w-3.5 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
+                          aria-hidden="true"
+                        />
+                        Loading…
+                      </>
+                    ) : (
+                      'Load more artists'
+                    )}
+                  </Button>
+                )}
+
+              {artistsQuery.isFetchNextPageError && (
+                <p role="alert" className="text-caption text-destructive">
+                  Couldn’t load more artists.{' '}
+                  <button
+                    type="button"
+                    onClick={() => void artistsQuery.fetchNextPage()}
+                    className="font-medium underline underline-offset-2 hover:text-foreground"
+                  >
+                    Try again
+                  </button>
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   )
 }

@@ -691,13 +691,6 @@ export class ArtistsService {
     }
     const whereClause = and(...conditions);
 
-    const [totalRes] = await db
-      .select({ total: count() })
-      .from(artistProfiles)
-      .where(whereClause);
-
-    const total = totalRes?.total ?? 0;
-
     // 2. Determine sort ordering
     let orderByClause;
     if (query.sort === "name") {
@@ -719,25 +712,33 @@ export class ArtistsService {
       ];
     }
 
-    const rows = await db
-      .select({
-        id: artistProfiles.id,
-        stageName: artistProfiles.stageName,
-        slug: artistProfiles.slug,
-        bio: artistProfiles.bio,
-        bannerUrl: artistProfiles.bannerUrl,
-        avatarUrl: artistProfiles.avatarUrl,
-        verified: artistProfiles.verified,
-        monthlyListeners: artistProfiles.monthlyListeners,
-        scope: artistProfiles.scope,
-        ownerUserId: artistProfiles.ownerUserId,
-        createdAt: artistProfiles.createdAt,
-      })
-      .from(artistProfiles)
-      .where(whereClause)
-      .orderBy(...orderByClause)
-      .limit(limit)
-      .offset(offset);
+    // Count and page rows are independent; run them together.
+    const [totalRes, rows] = await Promise.all([
+      db
+        .select({ total: count() })
+        .from(artistProfiles)
+        .where(whereClause),
+      db
+        .select({
+          id: artistProfiles.id,
+          stageName: artistProfiles.stageName,
+          slug: artistProfiles.slug,
+          bannerUrl: artistProfiles.bannerUrl,
+          avatarUrl: artistProfiles.avatarUrl,
+          verified: artistProfiles.verified,
+          monthlyListeners: artistProfiles.monthlyListeners,
+          scope: artistProfiles.scope,
+          ownerUserId: artistProfiles.ownerUserId,
+          createdAt: artistProfiles.createdAt,
+        })
+        .from(artistProfiles)
+        .where(whereClause)
+        .orderBy(...orderByClause)
+        .limit(limit)
+        .offset(offset),
+    ]);
+
+    const total = totalRes[0]?.total ?? 0;
 
     const data = await followsCacheService.enrichArtistsWithFollowing(
       currentUserId,
