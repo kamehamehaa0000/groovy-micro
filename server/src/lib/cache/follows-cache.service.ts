@@ -109,7 +109,8 @@ export class FollowsCacheService {
    * Follow an artist:
    * 1. 100% ACID write to PostgreSQL `artist_followers`.
    * 2. Instant Redis set insertion (SADD).
-   * 3. Invalidates artist public cache.
+   * 3. Rotates the personalised feed cache generation.
+   * 4. Invalidates artist public cache.
    */
   async followArtist(
     userId: string,
@@ -152,13 +153,16 @@ export class FollowsCacheService {
       console.warn(`[FollowsCacheService] Redis SADD failed for ${key}:`, err);
     }
 
-    // 3. Count followers
+    // 3. Rotate the feed generation so cached pages cannot outlive the follow
+    await this.bumpFeedVersion(userId);
+
+    // 4. Count followers
     const [followerCountRes] = await db
       .select({ total: count() })
       .from(artistFollowers)
       .where(eq(artistFollowers.artistId, artistId));
 
-    // 4. Invalidate artist profile cache
+    // 5. Invalidate artist profile cache
     await cacheManager.invalidateArtist({ id: artistId, slug: artist.slug });
 
     // The artist's own studio view carries the live follower count
@@ -176,7 +180,8 @@ export class FollowsCacheService {
    * Unfollow an artist:
    * 1. ACID deletion from PostgreSQL `artist_followers`.
    * 2. Instant Redis set removal (SREM).
-   * 3. Invalidates artist public cache.
+   * 3. Rotates the personalised feed cache generation.
+   * 4. Invalidates artist public cache.
    */
   async unfollowArtist(
     userId: string,
@@ -209,13 +214,16 @@ export class FollowsCacheService {
       console.warn(`[FollowsCacheService] Redis SREM failed for ${key}:`, err);
     }
 
-    // 3. Count followers
+    // 3. Rotate the feed generation so cached pages cannot outlive the unfollow
+    await this.bumpFeedVersion(userId);
+
+    // 4. Count followers
     const [followerCountRes] = await db
       .select({ total: count() })
       .from(artistFollowers)
       .where(eq(artistFollowers.artistId, artistId));
 
-    // 4. Invalidate artist profile cache
+    // 5. Invalidate artist profile cache
     await cacheManager.invalidateArtist({ id: artistId, slug: artist?.slug });
 
     // The artist's own studio view carries the live follower count
@@ -227,6 +235,18 @@ export class FollowsCacheService {
       following: false,
       followersCount: followerCountRes?.total ?? 0,
     };
+  }
+
+  /**
+   * Rotates the feed cache generation after an artist follow change. User
+   * follow changes bump the same key from SocialService.
+   */
+  private async bumpFeedVersion(userId: string): Promise<void> {
+    try {
+      await redis.incr(cacheKeys.social.feedVersion(userId));
+    } catch (err) {
+      console.warn("[FollowsCacheService] Failed to bump feed version:", err);
+    }
   }
 }
 

@@ -66,6 +66,11 @@ export const cacheKeys = {
       `groovy:social:user:${userId}:requests:incoming`,
     feed: (userId: string, tag: string) =>
       `groovy:social:feed:${userId}:${tag}`,
+    /**
+     * Bumped whenever the accounts a user follows change, so cached feed
+     * pages become unreachable immediately instead of waiting out their TTL.
+     */
+    feedVersion: (userId: string) => `groovy:social:feed:version:${userId}`,
   },
   player: {
     /**

@@ -4,6 +4,9 @@ export type { ButtonProps, ButtonVariant, ButtonSize } from './Button'
 export { IconButton } from './IconButton'
 export type { IconButtonProps, IconButtonSize } from './IconButton'
 
+export { Avatar } from './Avatar'
+export type { AvatarProps, AvatarSize } from './Avatar'
+
 export { Card } from './Card'
 export type { CardProps, CardVariant, CardPadding } from './Card'
 

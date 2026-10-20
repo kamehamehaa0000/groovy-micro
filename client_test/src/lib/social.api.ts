@@ -69,10 +69,16 @@ export interface FeedItem {
   target: FeedTarget;
 }
 
+export interface SocialFeedMeta {
+  followingArtists: number;
+  followingPeople: number;
+}
+
 export interface SocialFeedResponse {
   items: FeedItem[];
   nextCursor: string | null;
   hasMore: boolean;
+  meta: SocialFeedMeta;
 }
 
 export const socialApi = {

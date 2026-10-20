@@ -1,4 +1,4 @@
-import { and, eq, or, ilike, ne, desc, inArray, lt } from "drizzle-orm";
+import { and, eq, or, ilike, ne, desc, asc, inArray, lt } from "drizzle-orm";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
 import {
@@ -77,6 +77,7 @@ export class SocialService {
     if (initialStatus === "ACCEPTED") {
       await redis.sadd(cacheKeys.social.userFollowing(followerId), targetUserId);
       await redis.sadd(cacheKeys.social.userFollowers(targetUserId), followerId);
+      await this.bumpFeedVersion(followerId);
     } else {
       await redis.sadd(cacheKeys.social.incomingRequests(targetUserId), followerId);
     }
@@ -152,6 +153,7 @@ export class SocialService {
     await redis.srem(cacheKeys.social.userFollowing(followerId), targetUserId);
     await redis.srem(cacheKeys.social.userFollowers(targetUserId), followerId);
     await redis.srem(cacheKeys.social.incomingRequests(targetUserId), followerId);
+    await this.bumpFeedVersion(followerId);
 
     return { success: true };
   }
@@ -188,6 +190,7 @@ export class SocialService {
     await redis.srem(cacheKeys.social.incomingRequests(targetUserId), requesterId);
     await redis.sadd(cacheKeys.social.userFollowing(requesterId), targetUserId);
     await redis.sadd(cacheKeys.social.userFollowers(targetUserId), requesterId);
+    await this.bumpFeedVersion(requesterId);
 
     // Dispatch notification to requester
     try {
@@ -262,6 +265,18 @@ export class SocialService {
       );
 
     return follows.length === 2;
+  }
+
+  /**
+   * Rotates the cache generation for a user's feed. Old pages keep their TTL
+   * and expire naturally; new reads use the fresh generation.
+   */
+  private async bumpFeedVersion(userId: string): Promise<void> {
+    try {
+      await redis.incr(cacheKeys.social.feedVersion(userId));
+    } catch (err) {
+      console.warn("[SocialService] Failed to bump feed version:", err);
+    }
   }
 
   /**
@@ -375,7 +390,7 @@ export class SocialService {
         and(
           eq(userFollows.followingId, userId),
           eq(userFollows.status, "ACCEPTED"),
-          or(...followingIds.map((fid) => eq(userFollows.followerId, fid)))
+          inArray(userFollows.followerId, followingIds)
         )
       );
 
@@ -431,14 +446,12 @@ export class SocialService {
    */
   async searchUsers(currentUserId: string, query?: string, limit = 20) {
     const trimmed = query?.trim() || "";
-
+    // Display names only: matching email addresses would let anyone probe
+    // whether an account exists for a given address.
     const condition = trimmed
       ? and(
           ne(users.id, currentUserId),
-          or(
-            ilike(users.displayName, `%${trimmed}%`),
-            ilike(users.email, `%${trimmed}%`)
-          )
+          ilike(users.displayName, `%${trimmed}%`)
         )
       : ne(users.id, currentUserId);
 
@@ -452,40 +465,88 @@ export class SocialService {
       })
       .from(users)
       .where(condition)
+      .orderBy(asc(users.displayName))
       .limit(limit);
 
-    // Enrich each user with relationship relative to current user
-    const enriched = await Promise.all(
-      candidates.map(async (candidate) => {
-        const relationship = await this.getRelationshipStatus(
-          currentUserId,
-          candidate.id
-        );
-        return {
-          ...candidate,
-          relationship,
-        };
-      })
-    );
+    if (candidates.length === 0) return [];
 
-    return enriched;
+    // One relationship query for the whole page instead of one per candidate.
+    const candidateIds = candidates.map((candidate) => candidate.id);
+    const relationships = await db
+      .select({
+        followerId: userFollows.followerId,
+        followingId: userFollows.followingId,
+        status: userFollows.status,
+      })
+      .from(userFollows)
+      .where(
+        or(
+          and(
+            eq(userFollows.followerId, currentUserId),
+            inArray(userFollows.followingId, candidateIds)
+          ),
+          and(
+            inArray(userFollows.followerId, candidateIds),
+            eq(userFollows.followingId, currentUserId)
+          )
+        )
+      );
+
+    const byUserId = new Map<
+      string,
+      { forward?: string; reverse?: string }
+    >();
+    for (const record of relationships) {
+      const otherId =
+        record.followerId === currentUserId
+          ? record.followingId
+          : record.followerId;
+      const entry = byUserId.get(otherId) ?? {};
+      if (record.followerId === currentUserId) {
+        entry.forward = record.status;
+      } else {
+        entry.reverse = record.status;
+      }
+      byUserId.set(otherId, entry);
+    }
+
+    return candidates.map((candidate) => {
+      const relation = byUserId.get(candidate.id);
+      let relationship: RelationshipStatus = "NONE";
+
+      if (relation?.forward === "ACCEPTED" && relation?.reverse === "ACCEPTED") {
+        relationship = "FRIENDS";
+      } else if (relation?.forward === "ACCEPTED") {
+        relationship = "FOLLOWING";
+      } else if (relation?.forward === "PENDING") {
+        relationship = "PENDING_SENT";
+      } else if (relation?.reverse === "PENDING") {
+        relationship = "PENDING_RECEIVED";
+      }
+
+      return { ...candidate, relationship };
+    });
   }
 
   /**
    * Aggregates a chronological social activity feed for the current user.
    * Combines:
    * 1. New published releases from followed artists
-   * 2. Public playlists created by followed users / friends
+   * 2. Public playlists created by followed users
    * 3. Public playlists saved by friends
    * 4. Tracks liked by friends
-   * If the user follows nobody or has no activity, smoothly falls back to Groovy platform highlights!
+   * The feed is strictly personal: a source is only queried when the user
+   * follows the accounts that feed it, and a new account sees an empty feed.
    */
   async getFeed(
     currentUserId: string,
     query: SocialFeedQuery
   ): Promise<SocialFeedResponse> {
     const { cursor, limit = 20, filter = "all" } = query;
-    const cacheTag = `${cursor || "initial"}:${filter}:${limit}`;
+    // Rotate with follow changes so a cached page cannot outlive a new follow.
+    const feedVersion =
+      (await redis.get(cacheKeys.social.feedVersion(currentUserId))) ?? "0";
+    const cacheTag = `${feedVersion}:${cursor || "initial"}:${filter}:${limit}`;
     const cacheKey = cacheKeys.social.feed(currentUserId, cacheTag);
 
     // 1. Check Redis cache
@@ -517,27 +578,54 @@ export class SocialService {
 
     const followedArtistIds = followedArtists.map((r) => r.artistId);
     const followedUserIds = followedUsers.map((r) => r.followingId);
+    const meta = {
+      followingArtists: followedArtistIds.length,
+      followingPeople: followedUserIds.length,
+    };
 
     const cursorDate = cursor ? new Date(cursor) : null;
-    const fetchLimit = limit + 10; // Fetch slightly more to ensure good variety when merging
+    const fetchLimit = limit + 10; // headroom for the merged timeline
 
-    const items: FeedItem[] = [];
+    /*
+     * Only query a source the user actually follows. Without this guard a user
+     * who follows artists (but no people) would receive every public playlist
+     * on the platform, and vice versa. No follows at all means no feed content,
+     * not a global highlight reel.
+     */
+    const includeReleases =
+      (filter === "all" || filter === "releases") &&
+      followedArtistIds.length > 0;
+    const includePlaylists =
+      (filter === "all" || filter === "playlists") &&
+      followedUserIds.length > 0;
+    const includeFriendActivity =
+      (filter === "all" || filter === "friends") &&
+      followedUserIds.length > 0;
 
-    // --- RELEASES ---
-    if (filter === "all" || filter === "releases") {
-      const releaseConditions = [
+    if (!includeReleases && !includePlaylists && !includeFriendActivity) {
+      const emptyResponse: SocialFeedResponse = {
+        items: [],
+        nextCursor: null,
+        hasMore: false,
+        meta,
+      };
+      await redis.set(cacheKey, JSON.stringify(emptyResponse), "EX", 45);
+      return emptyResponse;
+    }
+
+    const loadReleases = async (): Promise<FeedItem[]> => {
+      if (!includeReleases) return [];
+
+      const conditions = [
         eq(albums.status, "PUBLISHED"),
         eq(albums.visibility, "PUBLIC"),
+        inArray(albums.artistId, followedArtistIds),
       ];
-
-      if (followedArtistIds.length > 0) {
-        releaseConditions.push(inArray(albums.artistId, followedArtistIds));
-      }
       if (cursorDate) {
-        releaseConditions.push(lt(albums.publishedAt, cursorDate));
+        conditions.push(lt(albums.publishedAt, cursorDate));
       }
 
-      const releaseRows = await db
+      const rows = await db
         .select({
           id: albums.id,
           title: albums.title,
@@ -554,13 +642,13 @@ export class SocialService {
         })
         .from(albums)
         .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
-        .where(and(...releaseConditions))
+        .where(and(...conditions))
         .orderBy(desc(albums.publishedAt))
         .limit(fetchLimit);
 
-      for (const rel of releaseRows) {
+      return rows.map((rel) => {
         const itemDate = rel.publishedAt || rel.createdAt;
-        items.push({
+        return {
           id: `release:${rel.id}`,
           type: "NEW_RELEASE",
           timestamp: itemDate.toISOString(),
@@ -579,22 +667,22 @@ export class SocialService {
             slug: rel.slug,
             type: "album",
           },
-        });
-      }
-    }
+        };
+      });
+    };
 
-    // --- PLAYLISTS CREATED ---
-    if (filter === "all" || filter === "playlists") {
-      const playlistConditions = [eq(playlists.visibility, "PUBLIC")];
+    const loadPlaylists = async (): Promise<FeedItem[]> => {
+      if (!includePlaylists) return [];
 
-      if (followedUserIds.length > 0) {
-        playlistConditions.push(inArray(playlists.ownerId, followedUserIds));
-      }
+      const conditions = [
+        eq(playlists.visibility, "PUBLIC"),
+        inArray(playlists.ownerId, followedUserIds),
+      ];
       if (cursorDate) {
-        playlistConditions.push(lt(playlists.createdAt, cursorDate));
+        conditions.push(lt(playlists.createdAt, cursorDate));
       }
 
-      const playlistRows = await db
+      const rows = await db
         .select({
           id: playlists.id,
           title: playlists.title,
@@ -607,44 +695,42 @@ export class SocialService {
         })
         .from(playlists)
         .innerJoin(users, eq(playlists.ownerId, users.id))
-        .where(and(...playlistConditions))
+        .where(and(...conditions))
         .orderBy(desc(playlists.createdAt))
         .limit(fetchLimit);
 
-      for (const pl of playlistRows) {
-        items.push({
-          id: `playlist:${pl.id}`,
-          type: "PLAYLIST_CREATED",
-          timestamp: pl.createdAt.toISOString(),
-          actor: {
-            id: pl.ownerId,
-            name: pl.ownerName,
-            avatarUrl: pl.ownerAvatar,
-            isArtist: false,
-          },
-          target: {
-            id: pl.id,
-            title: pl.title,
-            subtitle: `Playlist · ${pl.savesCount || 0} saves`,
-            coverImageUrl: pl.coverImageUrl,
-            type: "playlist",
-          },
-        });
-      }
-    }
+      return rows.map((pl) => ({
+        id: `playlist:${pl.id}`,
+        type: "PLAYLIST_CREATED",
+        timestamp: pl.createdAt.toISOString(),
+        actor: {
+          id: pl.ownerId,
+          name: pl.ownerName,
+          avatarUrl: pl.ownerAvatar,
+          isArtist: false,
+        },
+        target: {
+          id: pl.id,
+          title: pl.title,
+          subtitle: `Playlist · ${pl.savesCount || 0} saves`,
+          coverImageUrl: pl.coverImageUrl,
+          type: "playlist",
+        },
+      }));
+    };
 
-    // --- FRIEND ENGAGEMENTS (Saves & Likes) ---
-    if ((filter === "all" || filter === "friends") && followedUserIds.length > 0) {
-      // 1. Playlists saved by followed users
-      const saveConditions = [
+    const loadSavedPlaylists = async (): Promise<FeedItem[]> => {
+      if (!includeFriendActivity) return [];
+
+      const conditions = [
         inArray(userLibraryPlaylists.userId, followedUserIds),
         eq(playlists.visibility, "PUBLIC"),
       ];
       if (cursorDate) {
-        saveConditions.push(lt(userLibraryPlaylists.savedAt, cursorDate));
+        conditions.push(lt(userLibraryPlaylists.savedAt, cursorDate));
       }
 
-      const savedPlaylistRows = await db
+      const rows = await db
         .select({
           userId: userLibraryPlaylists.userId,
           savedAt: userLibraryPlaylists.savedAt,
@@ -657,40 +743,39 @@ export class SocialService {
         .from(userLibraryPlaylists)
         .innerJoin(playlists, eq(userLibraryPlaylists.playlistId, playlists.id))
         .innerJoin(users, eq(userLibraryPlaylists.userId, users.id))
-        .where(and(...saveConditions))
+        .where(and(...conditions))
         .orderBy(desc(userLibraryPlaylists.savedAt))
         .limit(fetchLimit);
 
-      for (const sp of savedPlaylistRows) {
-        items.push({
-          id: `save:${sp.userId}:${sp.playlistId}`,
-          type: "PLAYLIST_SAVED",
-          timestamp: sp.savedAt.toISOString(),
-          actor: {
-            id: sp.userId,
-            name: sp.userName,
-            avatarUrl: sp.userAvatar,
-            isArtist: false,
-          },
-          target: {
-            id: sp.playlistId,
-            title: sp.playlistTitle,
-            subtitle: "Saved to library",
-            coverImageUrl: sp.coverImageUrl,
-            type: "playlist",
-          },
-        });
-      }
+      return rows.map((sp) => ({
+        id: `save:${sp.userId}:${sp.playlistId}`,
+        type: "PLAYLIST_SAVED",
+        timestamp: sp.savedAt.toISOString(),
+        actor: {
+          id: sp.userId,
+          name: sp.userName,
+          avatarUrl: sp.userAvatar,
+          isArtist: false,
+        },
+        target: {
+          id: sp.playlistId,
+          title: sp.playlistTitle,
+          subtitle: "Saved to library",
+          coverImageUrl: sp.coverImageUrl,
+          type: "playlist",
+        },
+      }));
+    };
 
-      // 2. Songs liked by followed users
-      const likeConditions = [
-        inArray(songLikes.userId, followedUserIds),
-      ];
+    const loadLikedSongs = async (): Promise<FeedItem[]> => {
+      if (!includeFriendActivity) return [];
+
+      const conditions = [inArray(songLikes.userId, followedUserIds)];
       if (cursorDate) {
-        likeConditions.push(lt(songLikes.createdAt, cursorDate));
+        conditions.push(lt(songLikes.createdAt, cursorDate));
       }
 
-      const songLikeRows = await db
+      const rows = await db
         .select({
           userId: songLikes.userId,
           createdAt: songLikes.createdAt,
@@ -708,34 +793,48 @@ export class SocialService {
         .innerJoin(songs, eq(songLikes.songId, songs.id))
         .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
         .innerJoin(users, eq(songLikes.userId, users.id))
-        .where(and(...likeConditions))
+        .where(and(...conditions))
         .orderBy(desc(songLikes.createdAt))
         .limit(fetchLimit);
 
-      for (const sl of songLikeRows) {
-        items.push({
-          id: `like:${sl.userId}:${sl.songId}`,
-          type: "SONG_LIKED",
-          timestamp: sl.createdAt.toISOString(),
-          actor: {
-            id: sl.userId,
-            name: sl.userName,
-            avatarUrl: sl.userAvatar,
-            isArtist: false,
-          },
-          target: {
-            id: sl.songId,
-            title: sl.songTitle,
-            subtitle: `Track · ${sl.artistName}`,
-            coverImageUrl: sl.coverImageUrl,
-            type: "song",
-            audioUrl: sl.audioUrl,
-            durationSeconds: sl.durationSeconds,
-            isExplicit: sl.isExplicit,
-          },
-        });
-      }
-    }
+      return rows.map((sl) => ({
+        id: `like:${sl.userId}:${sl.songId}`,
+        type: "SONG_LIKED",
+        timestamp: sl.createdAt.toISOString(),
+        actor: {
+          id: sl.userId,
+          name: sl.userName,
+          avatarUrl: sl.userAvatar,
+          isArtist: false,
+        },
+        target: {
+          id: sl.songId,
+          title: sl.songTitle,
+          subtitle: `Track · ${sl.artistName}`,
+          coverImageUrl: sl.coverImageUrl,
+          type: "song",
+          audioUrl: sl.audioUrl,
+          durationSeconds: sl.durationSeconds,
+          isExplicit: sl.isExplicit,
+        },
+      }));
+    };
+
+    // The four sources are independent — run them together instead of serially.
+    const [releaseItems, playlistItems, savedPlaylistItems, likedSongItems] =
+      await Promise.all([
+        loadReleases(),
+        loadPlaylists(),
+        loadSavedPlaylists(),
+        loadLikedSongs(),
+      ]);
+
+    const items: FeedItem[] = [
+      ...releaseItems,
+      ...playlistItems,
+      ...savedPlaylistItems,
+      ...likedSongItems,
+    ];
 
     // Deduplicate items by ID
     const uniqueMap = new Map<string, FeedItem>();
@@ -757,6 +856,7 @@ export class SocialService {
       items: pageItems,
       nextCursor,
       hasMore,
+      meta,
     };
 
     // Cache in Redis for 45 seconds

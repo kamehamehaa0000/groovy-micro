@@ -1,1212 +1,798 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import {
+  createFileRoute,
+  useNavigate,
+} from '@tanstack/react-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
-import { usePlayerStore } from '../stores/player.store'
-import { playerApi, type FriendActivityItem } from '../lib/player.api'
+import { playerApi } from '../lib/player.api'
 import {
   socialApi,
   type FeedItem,
-  type SocialFeedResponse,
   type IncomingFollowRequest,
+  type RelationshipStatus,
+  type SocialFeedMeta,
   type UserSummary,
 } from '../lib/social.api'
-import type { PlayerTrack } from '../types/player'
+import { Button, IconButton, Sheet } from '../Components/ui'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { FeedRow } from '../Components/feed/FeedRow'
+import { FollowRequests } from '../Components/feed/FollowRequests'
+import { LiveNow } from '../Components/feed/LiveNow'
+import { PeoplePanel } from '../Components/feed/PeoplePanel'
+import { dayKey, dayLabel } from '../Components/feed/feed.utils'
 
 export const Route = createFileRoute('/feed')({
-  component: UnifiedFeedComponent,
+  component: FeedPage,
 })
 
-function formatRelativeTime(dateStr: string): string {
-  const timestamp = new Date(dateStr).getTime()
-  const now = Date.now()
-  const diffSec = Math.max(0, Math.floor((now - timestamp) / 1000))
+type FeedFilter = 'all' | 'releases' | 'playlists' | 'friends'
 
-  if (diffSec < 60) return 'Just now'
-  const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin}m ago`
-  const diffHours = Math.floor(diffMin / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays}d ago`
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  })
+const FILTERS: Array<{ value: FeedFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'releases', label: 'Releases' },
+  { value: 'playlists', label: 'Playlists' },
+  { value: 'friends', label: 'Following' },
+]
+
+const PAGE_SIZE = 20
+
+function RefreshIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  )
 }
 
-function formatElapsed(progressMs: number): string {
-  const totalSec = Math.floor(progressMs / 1000)
-  const min = Math.floor(totalSec / 60)
-  const sec = totalSec % 60
-  return `${min}:${sec.toString().padStart(2, '0')}`
+function UsersIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
 }
 
-function UnifiedFeedComponent() {
-  const { isAuthenticated } = useAuthStore()
-  const navigate = useNavigate()
-
-  const currentTrack = usePlayerStore((s) => s.currentTrack)
-  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const playTrack = usePlayerStore((s) => s.playTrack)
-  const togglePlay = usePlayerStore((s) => s.togglePlay)
-  const addToQueue = usePlayerStore((s) => s.addToQueue)
-
-  // Mobile View Switcher Tab State: "stream" | "live" | "network"
-  const [mobileTab, setMobileTab] = useState<'stream' | 'live' | 'network'>(
-    'stream',
+function FeedIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 11a9 9 0 0 1 9 9" />
+      <path d="M4 4a16 16 0 0 1 16 16" />
+      <circle cx="5" cy="19" r="1.5" />
+    </svg>
   )
+}
 
-  // Stream Feed State
-  const [streamFilter, setStreamFilter] = useState<
-    'all' | 'releases' | 'playlists' | 'friends'
-  >('all')
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([])
-  const [feedCursor, setFeedCursor] = useState<string | null>(null)
-  const [hasMoreFeed, setHasMoreFeed] = useState(false)
-  const [isLoadingFeed, setIsLoadingFeed] = useState(true)
-  const [isLoadingMoreFeed, setIsLoadingMoreFeed] = useState(false)
-  const [feedError, setFeedError] = useState<string | null>(null)
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
 
-  // Live Friends Activity State
-  const [liveActivities, setLiveActivities] = useState<FriendActivityItem[]>([])
-  const [isLoadingLive, setIsLoadingLive] = useState(true)
-
-  // Pending Incoming Requests State
-  const [incomingRequests, setIncomingRequests] = useState<
-    IncomingFollowRequest[]
-  >([])
-  const [processingRequestId, setProcessingRequestId] = useState<string | null>(
-    null,
-  )
-
-  // Directory / Community Discovery State
-  const [directoryUsers, setDirectoryUsers] = useState<UserSummary[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearchingUsers, setIsSearchingUsers] = useState(false)
-  const [actingUserId, setActingUserId] = useState<string | null>(null)
-
-  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // 1. Fetch Timeline Stream
-  const fetchFeed = useCallback(
-    async (isInitial = true, cursorToUse?: string) => {
-      if (!isAuthenticated) return
-      if (isInitial) {
-        setIsLoadingFeed(true)
-        setFeedError(null)
-      } else {
-        setIsLoadingMoreFeed(true)
-      }
-
-      try {
-        const res: SocialFeedResponse = await socialApi.getFeed({
-          filter: streamFilter,
-          cursor: cursorToUse,
-          limit: 20,
-        })
-
-        if (isInitial) {
-          setFeedItems(res.items)
-        } else {
-          setFeedItems((prev) => [...prev, ...res.items])
-        }
-        setFeedCursor(res.nextCursor)
-        setHasMoreFeed(res.hasMore)
-      } catch (err: any) {
-        setFeedError(err.message || 'Failed to load activity stream')
-      } finally {
-        setIsLoadingFeed(false)
-        setIsLoadingMoreFeed(false)
-      }
-    },
-    [isAuthenticated, streamFilter],
-  )
-
-  // 2. Fetch Live Friends Playback Activity
-  const fetchLiveActivities = useCallback(async () => {
-    if (!isAuthenticated) return
-    try {
-      const res = await playerApi.getFriendsActivity()
-      setLiveActivities(res.activities || [])
-    } catch (err) {
-      console.warn('[Feed] Failed to load live activities:', err)
-    } finally {
-      setIsLoadingLive(false)
-    }
-  }, [isAuthenticated])
-
-  // 3. Fetch Incoming Follow Requests
-  const fetchRequests = useCallback(async () => {
-    if (!isAuthenticated) return
-    try {
-      const res = await socialApi.getIncomingRequests()
-      setIncomingRequests(res.requests || [])
-    } catch (err) {
-      console.warn('[Feed] Failed to load follow requests:', err)
-    }
-  }, [isAuthenticated])
-
-  // 4. Search / Load Community Members
-  const searchCommunity = useCallback(
-    async (q = '') => {
-      if (!isAuthenticated) return
-      setIsSearchingUsers(true)
-      try {
-        const res = await socialApi.searchUsers(q)
-        setDirectoryUsers(res.users || [])
-      } catch (err) {
-        console.warn('[Feed] Failed to load community directory:', err)
-      } finally {
-        setIsSearchingUsers(false)
-      }
-    },
-    [isAuthenticated],
-  )
-
-  // Initial load
-  useEffect(() => {
-    if (!isAuthenticated) return
-    fetchFeed(true)
-    fetchLiveActivities()
-    fetchRequests()
-    searchCommunity()
-
-    // Routine presence pulse every 12 seconds
-    pollTimerRef.current = setInterval(() => {
-      fetchLiveActivities()
-    }, 12000)
-
-    return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current)
-    }
-  }, [
-    isAuthenticated,
-    fetchFeed,
-    fetchLiveActivities,
-    fetchRequests,
-    searchCommunity,
-  ])
-
-  // Handle Play Feed Song
-  const handlePlayFeedSong = (item: FeedItem) => {
-    if (item.target.type !== 'song' || !item.target.audioUrl) {
-      if (item.target.type === 'album' && item.target.slug) {
-        navigate({
-          to: '/albums/$idOrSlug',
-          params: { idOrSlug: item.target.slug },
-        })
-      } else if (item.target.type === 'playlist') {
-        navigate({ to: '/playlists/$id', params: { id: item.target.id } })
-      }
-      return
-    }
-
-    if (currentTrack?.id === item.target.id) {
-      togglePlay()
-      return
-    }
-
-    const playerTrack: PlayerTrack = {
-      id: item.target.id,
-      title: item.target.title,
-      artistId: item.actor.id,
-      artistName: item.actor.name,
-      artistSlug: item.actor.slug || '',
-      albumId: '',
-      albumTitle: '',
-      coverImageUrl: item.target.coverImageUrl,
-      durationSeconds: item.target.durationSeconds || 180,
-      audioUrl: item.target.audioUrl,
-      isExplicit: item.target.isExplicit || false,
-    }
-
-    playTrack(playerTrack, [playerTrack], 0, `feed:${item.id}`, 'Social Feed')
-  }
-
-  // Handle Add to Queue
-  const handleQueueFeedTrack = (item: FeedItem) => {
-    if (item.target.type !== 'song' || !item.target.audioUrl) return
-
-    const playerTrack: PlayerTrack = {
-      id: item.target.id,
-      title: item.target.title,
-      artistId: item.actor.id,
-      artistName: item.actor.name,
-      artistSlug: item.actor.slug || '',
-      albumId: '',
-      albumTitle: '',
-      coverImageUrl: item.target.coverImageUrl,
-      durationSeconds: item.target.durationSeconds || 180,
-      audioUrl: item.target.audioUrl,
-      isExplicit: item.target.isExplicit || false,
-    }
-
-    addToQueue(playerTrack)
-  }
-
-  // Handle 1-Click Listen Along
-  const handleListenAlong = (item: FriendActivityItem) => {
-    const isCurrent = currentTrack?.id === item.activity.songId
-    if (isCurrent) {
-      togglePlay()
-      return
-    }
-
-    const playerTrack: PlayerTrack = {
-      id: item.activity.songId,
-      title: item.activity.trackTitle,
-      artistId: '',
-      artistName: item.activity.artistName,
-      coverImageUrl: item.activity.coverImageUrl || undefined,
-      durationSeconds: item.activity.durationMs
-        ? Math.floor(item.activity.durationMs / 1000)
-        : 0,
-    }
-
-    playTrack(
-      playerTrack,
-      [playerTrack],
-      0,
-      'social:activity',
-      'Friend Activity',
-    )
-    if (item.activity.progressMs > 0) {
-      usePlayerStore
-        .getState()
-        .seek(Math.floor(item.activity.progressMs / 1000))
-    }
-  }
-
-  // Handle Accept Follow Request
-  const handleAcceptRequest = async (requesterId: string) => {
-    setProcessingRequestId(requesterId)
-    try {
-      await socialApi.acceptRequest(requesterId)
-      setIncomingRequests((prev) =>
-        prev.filter((r) => r.requesterId !== requesterId),
-      )
-      fetchLiveActivities()
-      searchCommunity(searchQuery)
-    } catch (err) {
-      console.error('[Feed] Accept request failed:', err)
-    } finally {
-      setProcessingRequestId(null)
-    }
-  }
-
-  // Handle Reject Follow Request
-  const handleRejectRequest = async (requesterId: string) => {
-    setProcessingRequestId(requesterId)
-    try {
-      await socialApi.rejectRequest(requesterId)
-      setIncomingRequests((prev) =>
-        prev.filter((r) => r.requesterId !== requesterId),
-      )
-    } catch (err) {
-      console.error('[Feed] Reject request failed:', err)
-    } finally {
-      setProcessingRequestId(null)
-    }
-  }
-
-  // Handle Follow / Unfollow
-  const handleToggleFollow = async (targetUser: UserSummary) => {
-    setActingUserId(targetUser.id)
-    try {
-      if (
-        targetUser.relationship === 'FOLLOWING' ||
-        targetUser.relationship === 'FRIENDS' ||
-        targetUser.relationship === 'PENDING_SENT'
-      ) {
-        await socialApi.unfollowUser(targetUser.id)
-        setDirectoryUsers((prev) =>
-          prev.map((u) =>
-            u.id === targetUser.id ? { ...u, relationship: 'NONE' } : u,
-          ),
-        )
-      } else {
-        const res = await socialApi.followUser(targetUser.id)
-        setDirectoryUsers((prev) =>
-          prev.map((u) => {
-            if (u.id !== targetUser.id) return u
-            if (res.status === 'PENDING') {
-              return { ...u, relationship: 'PENDING_SENT' }
-            }
-            return {
-              ...u,
-              relationship: res.isMutualFriend ? 'FRIENDS' : 'FOLLOWING',
-            }
-          }),
-        )
-      }
-      fetchLiveActivities()
-    } catch (err) {
-      console.error('[Feed] Toggle follow failed:', err)
-    } finally {
-      setActingUserId(null)
-    }
-  }
-
-  // Unauthenticated Empty State
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
-        <div className="border border-border bg-card p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
-          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
-            Community &nbsp;·&nbsp; Social Circle
+function FeedSkeleton() {
+  return (
+    <div role="status" aria-live="polite">
+      <span className="sr-only">Loading feed</span>
+      <div aria-hidden="true" className="divide-y divide-border/60">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="flex gap-3 py-4">
+            <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            <div className="min-w-0 flex-1">
+              <div className="h-2.5 w-40 animate-pulse rounded-full bg-muted" />
+              <div className="mt-3 flex items-center gap-3 rounded-inset border border-border bg-card p-2">
+                <div className="h-14 w-14 animate-pulse rounded-control bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-2 w-12 animate-pulse rounded-full bg-muted" />
+                  <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted" />
+                  <div className="h-2 w-1/3 animate-pulse rounded-full bg-muted" />
+                </div>
+              </div>
+            </div>
           </div>
-          <h2 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal">
-            Connect with Listeners
-          </h2>
-          <p className="font-sans text-caption sm:text-body text-muted-foreground leading-relaxed max-w-md mx-auto">
-            Sign in to follow creators, tune in to live listening sessions with
-            mutual friends, and receive real-time drops from your favorite
-            artists.
-          </p>
-          <div className="pt-2">
-            <Link
-              to="/login"
-              search={{ redirect: '/feed' }}
-              className="inline-block bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl font-semibold shadow-xs"
-            >
-              Sign In to Social Hub &rarr;
-            </Link>
-          </div>
-        </div>
+        ))}
       </div>
-    )
+    </div>
+  )
+}
+
+function EmptyFeed({
+  filter,
+  meta,
+  onFindPeople,
+}: {
+  filter: FeedFilter
+  meta: SocialFeedMeta
+  onFindPeople: () => void
+}) {
+  const navigate = useNavigate()
+  const followsNobody = meta.followingArtists === 0 && meta.followingPeople === 0
+
+  let title: string
+  let description: string
+  let primary: 'artists' | 'people'
+
+  if (filter === 'releases') {
+    primary = 'artists'
+    title = meta.followingArtists === 0 ? 'No releases yet' : 'No new releases'
+    description =
+      meta.followingArtists === 0
+        ? 'Follow artists to see their new albums and singles here.'
+        : 'New albums and singles from the artists you follow will appear here.'
+  } else if (filter === 'playlists') {
+    primary = 'people'
+    title = meta.followingPeople === 0 ? 'No playlists yet' : 'No new playlists'
+    description =
+      meta.followingPeople === 0
+        ? 'Follow people to see the playlists they create here.'
+        : 'Public playlists from the people you follow will appear here.'
+  } else if (filter === 'friends') {
+    primary = 'people'
+    title =
+      meta.followingPeople === 0
+        ? 'No listening activity yet'
+        : 'No new listening activity'
+    description =
+      meta.followingPeople === 0
+        ? 'Follow people to see the tracks and playlists they save.'
+        : 'Tracks and playlists from the people you follow will appear here.'
+  } else if (followsNobody) {
+    primary = 'artists'
+    title = 'Your feed is empty'
+    description =
+      'Follow artists and people to see their releases, playlists and listening here.'
+  } else {
+    primary = meta.followingArtists === 0 ? 'people' : 'artists'
+    title = 'No new activity yet'
+    description =
+      'New releases from artists and activity from people you follow will show up here.'
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 select-none space-y-6">
-      {/* ===================== PAGE HERO HEADER ===================== */}
-      <section className="shadow-xs relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-1.5">
-              Community &nbsp;·&nbsp; Socials &amp; Friends
-            </div>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal leading-tight">
-              Community Hub
-            </h1>
-            <p className="font-sans text-caption sm:text-body text-muted-foreground mt-1 max-w-xl leading-relaxed">
-              Real-time playback telemetry, friend circles, and chronological
-              drops from artists you follow.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                fetchFeed(true)
-                fetchLiveActivities()
-                fetchRequests()
-              }}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3.5 border border-border bg-background hover:bg-muted text-foreground transition-colors cursor-pointer flex items-center gap-2 rounded-xl shadow-raised"
+    <div className="rounded-surface border border-dashed border-border px-6 py-12 text-center">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
+        <FeedIcon />
+      </div>
+      <h2 className="mt-4 font-serif text-heading text-foreground">{title}</h2>
+      <p className="mx-auto mt-1 max-w-sm text-caption leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
+        {primary === 'artists' ? (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate({ to: '/artists' })}
+          >
+            Browse artists
+          </Button>
+        ) : (
+          <Button variant="primary" size="sm" onClick={onFindPeople}>
+            Find people
+          </Button>
+        )}
+        {filter === 'all' ? (
+          primary === 'artists' ? (
+            <Button variant="outline" size="sm" onClick={onFindPeople}>
+              Find people
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: '/artists' })}
             >
-              <span>Refresh Pulse</span>
+              Browse artists
+            </Button>
+          )
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function GuestFeed() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
+        <FeedIcon className="h-6 w-6" />
+      </div>
+      <h1 className="mt-5 font-serif text-display text-foreground">Your feed</h1>
+      <p className="mt-2 text-body leading-relaxed text-muted-foreground">
+        Sign in to follow artists and listeners, and see their latest releases,
+        playlists and listening in one place.
+      </p>
+      <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+        <Button
+          variant="primary"
+          onClick={() =>
+            navigate({ to: '/login', search: { redirect: '/feed' } })
+          }
+        >
+          Sign in
+        </Button>
+        <Button variant="outline" onClick={() => navigate({ to: '/' })}>
+          Explore music
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function QuickActions({
+  isRefreshing,
+  onRefresh,
+  onFindPeople,
+}: {
+  isRefreshing: boolean
+  onRefresh: () => void
+  onFindPeople: () => void
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <IconButton
+        size="md"
+        aria-label="Find people"
+        title="Find people"
+        onClick={onFindPeople}
+        className="border border-border bg-card xl:hidden"
+      >
+        <UsersIcon />
+      </IconButton>
+      <IconButton
+        size="md"
+        aria-label="Refresh feed"
+        title="Refresh feed"
+        onClick={onRefresh}
+        className="border border-border bg-card"
+      >
+        <RefreshIcon
+          className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+        />
+      </IconButton>
+    </div>
+  )
+}
+
+function FilterBar({
+  filter,
+  onChange,
+}: {
+  filter: FeedFilter
+  onChange: (filter: FeedFilter) => void
+}) {
+  return (
+    <div className="sticky top-14 z-20 -mx-4 mt-5 border-b border-border/60 bg-background/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 xl:mt-0">
+      <div
+        role="tablist"
+        aria-label="Filter feed"
+        className="no-scrollbar flex items-center gap-1 overflow-x-auto"
+      >
+        {FILTERS.map((item) => {
+          const isActive = filter === item.value
+          return (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(item.value)}
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                isActive
+                  ? 'border-foreground bg-foreground font-semibold text-background'
+                  : 'border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              {item.label}
             </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== MOBILE VIEWPORT SWITCHER (< lg) ===================== */}
-      <div className="lg:hidden flex items-center gap-1.5 py-1 overflow-x-auto no-scrollbar">
-        <button
-          type="button"
-          onClick={() => setMobileTab('stream')}
-          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
-            mobileTab === 'stream'
-              ? 'bg-foreground text-background font-semibold shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <span>Activity</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMobileTab('live')}
-          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
-            mobileTab === 'live'
-              ? 'bg-foreground text-background font-semibold shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <span>Live Now ({liveActivities.length})</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMobileTab('network')}
-          className={`font-eyebrow bg-muted border border-border text-eyebrow uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 rounded-lg flex items-center gap-1.5 ${
-            mobileTab === 'network'
-              ? 'bg-foreground text-background font-semibold shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <span>Requests</span>
-          {incomingRequests.length > 0 && (
-            <span className="bg-primary text-primary-foreground text-eyebrow font-mono px-1.5 py-0.5 rounded-full font-bold">
-              {incomingRequests.length}
-            </span>
-          )}
-        </button>
+          )
+        })}
       </div>
+    </div>
+  )
+}
 
-      {/* ===================== 2-COLUMN MAIN LAYOUT ===================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* ---------------- LEFT COLUMN: STREAM FEED (Desktop or Mobile Stream Tab) ---------------- */}
-        <div
-          className={`lg:col-span-7 xl:col-span-8 space-y-6 ${
-            mobileTab !== 'stream' ? 'hidden lg:block' : ''
-          }`}
-        >
-          {/* Stream Filter Pills */}
-          <div className="flex items-center justify-between border-b border-border pb-4 gap-3 flex-wrap">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setStreamFilter('all')}
-                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
-                  streamFilter === 'all'
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                All Drops
-              </button>
-              <button
-                type="button"
-                onClick={() => setStreamFilter('releases')}
-                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
-                  streamFilter === 'releases'
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                Releases
-              </button>
-              <button
-                type="button"
-                onClick={() => setStreamFilter('playlists')}
-                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
-                  streamFilter === 'playlists'
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                Playlists
-              </button>
-              <button
-                type="button"
-                onClick={() => setStreamFilter('friends')}
-                className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-2 transition-all cursor-pointer shrink-0 ${
-                  streamFilter === 'friends'
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                Friends
-              </button>
-            </div>
+function FeedPage() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const currentUserId = useAuthStore((s) => s.user?.id)
+  const queryClient = useQueryClient()
 
-            <div className="font-eyebrow text-eyebrow text-muted-foreground uppercase tracking-wider hidden sm:block">
-              {feedItems.length} drops cached
-            </div>
+  const [filter, setFilter] = useState<FeedFilter>('all')
+  const [peopleOpen, setPeopleOpen] = useState(false)
+  const [peopleQuery, setPeopleQuery] = useState('')
+  const [followOverrides, setFollowOverrides] = useState<
+    Record<string, RelationshipStatus>
+  >({})
+  const [actingUserId, setActingUserId] = useState<string | null>(null)
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(
+    null,
+  )
+  const [peopleActionError, setPeopleActionError] = useState<string | null>(
+    null,
+  )
+  const [requestActionError, setRequestActionError] = useState<string | null>(
+    null,
+  )
+
+  const debouncedPeopleQuery = useDebouncedValue(peopleQuery, 250)
+
+  const feedQuery = useInfiniteQuery({
+    queryKey: ['social', 'feed', currentUserId, filter],
+    queryFn: ({ pageParam }) =>
+      socialApi.getFeed({
+        filter,
+        cursor: pageParam ?? undefined,
+        limit: PAGE_SIZE,
+      }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore && lastPage.nextCursor
+        ? lastPage.nextCursor
+        : undefined,
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+    // Follows can happen on profile and artist pages, so revalidate whenever
+    // the feed is opened instead of trusting a page cached before the follow.
+    refetchOnMount: 'always',
+  })
+
+  const liveQuery = useQuery({
+    queryKey: ['social', 'live', currentUserId],
+    queryFn: playerApi.getFriendsActivity,
+    enabled: isAuthenticated,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
+  })
+
+  const requestsQuery = useQuery({
+    queryKey: ['social', 'requests', currentUserId],
+    queryFn: socialApi.getIncomingRequests,
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  })
+
+  const peopleQueryResult = useQuery({
+    queryKey: ['social', 'people', currentUserId, debouncedPeopleQuery.trim()],
+    queryFn: () =>
+      socialApi.searchUsers(debouncedPeopleQuery.trim() || undefined, 20),
+    enabled: isAuthenticated,
+    staleTime: 60_000,
+    // Keep results while refining a search, but never carry another account's
+    // cached people into this one.
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[2] === currentUserId ? previousData : undefined,
+  })
+
+  const feedItems = useMemo(() => {
+    const seen = new Set<string>()
+    const items: FeedItem[] = []
+
+    for (const page of feedQuery.data?.pages ?? []) {
+      for (const item of page.items) {
+        if (seen.has(item.id)) continue
+        seen.add(item.id)
+        items.push(item)
+      }
+    }
+
+    return items
+  }, [feedQuery.data])
+
+  const feedMeta: SocialFeedMeta = feedQuery.data?.pages[0]?.meta ?? {
+    followingArtists: 0,
+    followingPeople: 0,
+  }
+
+  const feedGroups = useMemo(() => {
+    const groups: Array<{ key: string; label: string; items: FeedItem[] }> = []
+    let current: { key: string; label: string; items: FeedItem[] } | null = null
+
+    for (const item of feedItems) {
+      const key = dayKey(item.timestamp)
+      if (!current || current.key !== key) {
+        current = { key, label: dayLabel(key), items: [] }
+        groups.push(current)
+      }
+      current.items.push(item)
+    }
+
+    return groups
+  }, [feedItems])
+
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = feedQuery
+
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return
+    const element = sentinelRef.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) fetchNextPage()
+      },
+      { rootMargin: '400px 0px' },
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const incomingRequests = requestsQuery.data?.requests ?? []
+  const liveActivities = liveQuery.data?.activities ?? []
+  const people = peopleQueryResult.data?.users ?? []
+
+  const isRefreshing =
+    feedQuery.isFetching || liveQuery.isFetching || requestsQuery.isFetching
+
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['social'] })
+  }, [queryClient])
+
+  const handleFilterChange = useCallback(
+    (nextFilter: FeedFilter) => {
+      if (nextFilter === filter) return
+      setFilter(nextFilter)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    [filter],
+  )
+
+  const handlePeopleQueryChange = useCallback((value: string) => {
+    setPeopleQuery(value)
+    setPeopleActionError(null)
+  }, [])
+
+  const removeRequestFromCache = useCallback(
+    (requesterId: string) => {
+      queryClient.setQueryData<{ requests: IncomingFollowRequest[] }>(
+        ['social', 'requests', currentUserId],
+        (previous) =>
+          previous
+            ? {
+                requests: previous.requests.filter(
+                  (request) => request.requesterId !== requesterId,
+                ),
+              }
+            : previous,
+      )
+    },
+    [currentUserId, queryClient],
+  )
+
+  const handleAcceptRequest = useCallback(
+    async (requesterId: string) => {
+      setProcessingRequestId(requesterId)
+      setRequestActionError(null)
+      setPeopleActionError(null)
+      try {
+        await socialApi.acceptRequest(requesterId)
+        removeRequestFromCache(requesterId)
+        // They now follow you; your relationship stays NONE until you follow back.
+        setFollowOverrides((previous) => ({
+          ...previous,
+          [requesterId]: 'NONE',
+        }))
+        queryClient.invalidateQueries({ queryKey: ['social', 'live'] })
+        queryClient.invalidateQueries({ queryKey: ['social', 'people'] })
+      } catch (error) {
+        const message = errorMessage(
+          error,
+          'Could not accept that request.',
+        )
+        setRequestActionError(message)
+        setPeopleActionError(message)
+      } finally {
+        setProcessingRequestId(null)
+      }
+    },
+    [queryClient, removeRequestFromCache],
+  )
+
+  const handleDeclineRequest = useCallback(
+    async (requesterId: string) => {
+      setProcessingRequestId(requesterId)
+      setRequestActionError(null)
+      setPeopleActionError(null)
+      try {
+        await socialApi.rejectRequest(requesterId)
+        removeRequestFromCache(requesterId)
+        setFollowOverrides((previous) => ({
+          ...previous,
+          [requesterId]: 'NONE',
+        }))
+      } catch (error) {
+        const message = errorMessage(
+          error,
+          'Could not decline that request.',
+        )
+        setRequestActionError(message)
+        setPeopleActionError(message)
+      } finally {
+        setProcessingRequestId(null)
+      }
+    },
+    [removeRequestFromCache],
+  )
+
+  const handleToggleFollow = useCallback(
+    async (target: UserSummary) => {
+      const relationship = followOverrides[target.id] ?? target.relationship
+      setActingUserId(target.id)
+      setPeopleActionError(null)
+
+      try {
+        if (
+          relationship === 'FOLLOWING' ||
+          relationship === 'FRIENDS' ||
+          relationship === 'PENDING_SENT'
+        ) {
+          await socialApi.unfollowUser(target.id)
+          setFollowOverrides((previous) => ({
+            ...previous,
+            [target.id]: 'NONE',
+          }))
+        } else {
+          const response = await socialApi.followUser(target.id)
+          const nextRelationship: RelationshipStatus =
+            response.status === 'PENDING'
+              ? 'PENDING_SENT'
+              : response.isMutualFriend
+                ? 'FRIENDS'
+                : 'FOLLOWING'
+          setFollowOverrides((previous) => ({
+            ...previous,
+            [target.id]: nextRelationship,
+          }))
+        }
+        queryClient.invalidateQueries({ queryKey: ['social', 'live'] })
+        queryClient.invalidateQueries({ queryKey: ['social', 'feed'] })
+      } catch (error) {
+        setPeopleActionError(
+          errorMessage(error, 'Could not update that follow.'),
+        )
+      } finally {
+        setActingUserId(null)
+      }
+    },
+    [followOverrides, queryClient],
+  )
+
+  if (!isAuthenticated) {
+    return <GuestFeed />
+  }
+
+  const peopleWithOverrides = people.map((user) => ({
+    ...user,
+    relationship: followOverrides[user.id] ?? user.relationship,
+  }))
+
+  const requestSection = requestsQuery.isError ? (
+    <p className="text-caption text-muted-foreground">
+      Could not load requests.{' '}
+      <button
+        type="button"
+        onClick={() => requestsQuery.refetch()}
+        className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+      >
+        Try again
+      </button>
+    </p>
+  ) : (
+    <FollowRequests
+      requests={incomingRequests}
+      processingId={processingRequestId}
+      onAccept={handleAcceptRequest}
+      onDecline={handleDeclineRequest}
+      error={requestActionError}
+    />
+  )
+
+  const peoplePanel = (
+    <PeoplePanel
+      users={peopleWithOverrides}
+      query={peopleQuery}
+      onQueryChange={handlePeopleQueryChange}
+      isLoading={peopleQueryResult.isLoading}
+      isFetching={peopleQueryResult.isFetching}
+      actingUserId={actingUserId}
+      onToggleFollow={handleToggleFollow}
+      onAcceptRequest={handleAcceptRequest}
+      limit={6}
+      error={
+        peopleQueryResult.isError
+          ? 'Could not load people. Check your connection and try again.'
+          : null
+      }
+      actionError={peopleActionError}
+    />
+  )
+
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-serif text-heading text-foreground sm:text-display">
+            Feed
+          </h1>
+          <p className="mt-1 max-w-lg text-body leading-relaxed text-muted-foreground">
+            Releases, playlists and listening from artists and people you
+            follow.
+          </p>
+        </div>
+        <QuickActions
+          isRefreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          onFindPeople={() => setPeopleOpen(true)}
+        />
+      </header>
+
+      <div className="mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10">
+        <div className="min-w-0">
+          <div className="space-y-5 xl:hidden">
+            {requestSection}
+            <LiveNow
+              activities={liveActivities}
+              isLoading={liveQuery.isLoading}
+              layout="strip"
+            />
           </div>
 
-          {/* Loading Feed State */}
-          {isLoadingFeed && (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
-              <div className="font-eyebrow text-caption uppercase tracking-widest text-muted-foreground">
-                Tuning into the stream...
-              </div>
-            </div>
-          )}
+          <FilterBar filter={filter} onChange={handleFilterChange} />
 
-          {/* Error Feed State */}
-          {feedError && !isLoadingFeed && (
-            <div className="p-4 border border-destructive/30 bg-destructive-soft text-destructive text-caption text-center rounded-xl">
-              {feedError}
-            </div>
-          )}
-
-          {/* Empty Feed State */}
-          {!isLoadingFeed && !feedError && feedItems.length === 0 && (
-            <div className="border border-dashed border-border p-10 text-center rounded-2xl space-y-3">
-              <div className="font-serif italic text-2xl text-foreground">
-                No activity in this view yet
-              </div>
-              <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Follow more artists in the catalog or connect with listeners in
-                the directory to personalize your stream with fresh music drops.
-              </p>
-              <div className="flex justify-center gap-3 pt-2">
-                <Link
-                  to="/"
-                  className="bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-foreground hover:bg-background hover:text-foreground transition-colors rounded-xl"
-                >
-                  Explore Catalog
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setMobileTab('network')}
-                  className="bg-card text-foreground font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-border hover:bg-muted transition-colors rounded-xl cursor-pointer"
-                >
-                  Discover Listeners
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Feed Stream Cards */}
-          {!isLoadingFeed && feedItems.length > 0 && (
-            <div className="space-y-4">
-              {feedItems.map((item) => {
-                const isTrack = item.target.type === 'song'
-                const isPlaying =
-                  isTrack &&
-                  currentTrack?.id === item.target.id &&
-                  playbackStatus === 'playing'
-
-                return (
-                  <div
-                    key={item.id}
-                    className="border border-border bg-card p-4 sm:p-5 rounded-2xl shadow-raised hover:border-foreground/40 transition-all space-y-3.5"
-                  >
-                    {/* Event Actor Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Actor Avatar */}
-                        {item.actor.isArtist && item.actor.slug ? (
-                          <Link
-                            to="/artists/$idOrSlug"
-                            params={{ idOrSlug: item.actor.slug }}
-                          >
-                            {item.actor.avatarUrl ? (
-                              <img
-                                src={item.actor.avatarUrl}
-                                alt={item.actor.name}
-                                className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground shrink-0">
-                                {item.actor.name[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                          </Link>
-                        ) : (
-                          <Link to="/users/$id" params={{ id: item.actor.id }}>
-                            {item.actor.avatarUrl ? (
-                              <img
-                                src={item.actor.avatarUrl}
-                                alt={item.actor.name}
-                                className="w-8 h-8 rounded-full object-cover border border-border hover:border-foreground transition-colors shrink-0"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-caption font-semibold text-muted-foreground shrink-0">
-                                {item.actor.name[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                          </Link>
-                        )}
-
-                        {/* Actor Title & Action */}
-                        <div className="font-sans text-caption truncate">
-                          {item.actor.isArtist && item.actor.slug ? (
-                            <Link
-                              to="/artists/$idOrSlug"
-                              params={{ idOrSlug: item.actor.slug }}
-                              className="font-medium text-foreground hover:text-primary transition-colors"
-                            >
-                              {item.actor.name}
-                            </Link>
-                          ) : (
-                            <Link
-                              to="/users/$id"
-                              params={{ id: item.actor.id }}
-                              className="font-medium text-foreground hover:text-primary transition-colors"
-                            >
-                              {item.actor.name}
-                            </Link>
-                          )}
-
-                          <span className="text-muted-foreground ml-1.5">
-                            {item.type === 'NEW_RELEASE' &&
-                              'dropped a new release'}
-                            {item.type === 'PLAYLIST_CREATED' &&
-                              'created a public playlist'}
-                            {item.type === 'PLAYLIST_SAVED' &&
-                              'saved a playlist'}
-                            {item.type === 'SONG_LIKED' && 'liked a track'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Relative Timestamp */}
-                      <span className="font-mono text-eyebrow text-muted-foreground shrink-0 ml-2">
-                        {formatRelativeTime(item.timestamp)}
-                      </span>
-                    </div>
-
-                    {/* Target Content Card */}
-                    <div className="flex items-center gap-4 p-3 bg-background border border-border/70 rounded-xl">
-                      {/* Artwork / Thumbnail */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-muted border border-border rounded-lg overflow-hidden group">
-                        {item.target.coverImageUrl ? (
-                          <img
-                            src={item.target.coverImageUrl}
-                            alt={item.target.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-heading">
-                            ♪
-                          </div>
-                        )}
-
-                        {/* Hover Play Button Overlay */}
-                        <button
-                          type="button"
-                          onClick={() => handlePlayFeedSong(item)}
-                          className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
-                          title={isPlaying ? 'Pause' : 'Play'}
-                        >
-                          {isPlaying ? (
-                            <svg
-                              className="w-6 h-6 fill-current"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-6 h-6 fill-current translate-x-0.5"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Metadata */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-muted border border-border rounded-control text-muted-foreground">
-                            {item.target.type}
-                          </span>
-                          {item.target.isExplicit && (
-                            <span className="font-eyebrow text-eyebrow uppercase font-bold px-1 py-0.5 bg-foreground text-background rounded-control">
-                              E
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="font-sans font-semibold text-body sm:text-title text-foreground truncate mt-1">
-                          {item.target.type === 'album' && item.target.slug ? (
-                            <Link
-                              to="/albums/$idOrSlug"
-                              params={{ idOrSlug: item.target.slug }}
-                              className="hover:underline"
-                            >
-                              {item.target.title}
-                            </Link>
-                          ) : item.target.type === 'playlist' ? (
-                            <Link
-                              to="/playlists/$id"
-                              params={{ id: item.target.id }}
-                              className="hover:underline"
-                            >
-                              {item.target.title}
-                            </Link>
-                          ) : (
-                            item.target.title
-                          )}
-                        </div>
-
-                        {item.target.subtitle && (
-                          <div className="font-sans text-caption text-muted-foreground truncate mt-0.5">
-                            {item.target.subtitle}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {isTrack && item.target.audioUrl && (
-                          <button
-                            type="button"
-                            onClick={() => handleQueueFeedTrack(item)}
-                            className="p-2 text-muted-foreground hover:text-foreground border border-border bg-background hover:bg-muted transition-colors cursor-pointer rounded-lg"
-                            title="Add to queue"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 4v16m8-8H4"
-                              />
-                            </svg>
-                          </button>
-                        )}
-
-                        {item.target.type === 'album' && item.target.slug && (
-                          <Link
-                            to="/albums/$idOrSlug"
-                            params={{ idOrSlug: item.target.slug }}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
-                          >
-                            View
-                          </Link>
-                        )}
-
-                        {item.target.type === 'playlist' && (
-                          <Link
-                            to="/playlists/$id"
-                            params={{ id: item.target.id }}
-                            className="font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-2 border border-border hover:bg-muted transition-colors rounded-lg"
-                          >
-                            Listen
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {/* Load More Button */}
-              {hasMoreFeed && (
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => fetchFeed(false, feedCursor || undefined)}
-                    disabled={isLoadingMoreFeed}
-                    className="bg-card border border-border hover:bg-muted text-foreground font-eyebrow text-eyebrow uppercase tracking-wider px-6 py-3 transition-colors cursor-pointer disabled:opacity-50 rounded-xl shadow-raised"
-                  >
-                    {isLoadingMoreFeed
-                      ? 'Loading more...'
-                      : 'Load Older Activity'}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ---------------- RIGHT STICKY DOCK: REQUESTS, LIVE SESSIONS & DIRECTORY ---------------- */}
-        <div
-          className={`lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-20 ${
-            mobileTab === 'stream' ? 'hidden lg:block' : ''
-          }`}
-        >
-          {/* ===================== DOCK 1: PENDING FOLLOW REQUESTS ===================== */}
-          {(incomingRequests.length > 0 || mobileTab === 'network') && (
-            <div className="border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5">
-                    Private Vault Requests
-                  </div>
-                  <h3 className="font-serif italic text-lg text-foreground font-normal">
-                    Follow Requests ({incomingRequests.length})
-                  </h3>
-                </div>
-                {incomingRequests.length > 0 && (
-                  <span className="bg-primary/15 text-primary text-eyebrow font-mono px-2 py-0.5 rounded-full font-bold">
-                    Action Needed
-                  </span>
-                )}
-              </div>
-
-              {incomingRequests.length === 0 ? (
-                <div className="border border-border/60 bg-background p-4 text-center text-caption text-muted-foreground font-mono rounded-xl">
-                  No pending follow requests at this time.
-                </div>
-              ) : (
-                <div className="divide-y divide-border/60 border border-border/80 bg-background rounded-xl overflow-hidden">
-                  {incomingRequests.map((req) => {
-                    const isProcessing = processingRequestId === req.requesterId
-
-                    return (
-                      <div
-                        key={req.requesterId}
-                        className="p-3.5 flex items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-caption font-semibold uppercase text-foreground overflow-hidden shrink-0">
-                            {req.avatarUrl ? (
-                              <img
-                                src={req.avatarUrl}
-                                alt={req.displayName}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              req.displayName[0] || 'U'
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <span className="font-semibold text-caption text-foreground block truncate">
-                              {req.displayName}
-                            </span>
-                            <span className="font-mono text-eyebrow text-muted-foreground">
-                              {formatRelativeTime(req.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            disabled={isProcessing}
-                            onClick={() => handleAcceptRequest(req.requesterId)}
-                            className="bg-foreground text-background hover:bg-primary px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-semibold transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isProcessing}
-                            onClick={() => handleRejectRequest(req.requesterId)}
-                            className="border border-border hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer rounded-lg"
-                          >
-                            Decline
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ===================== DOCK 2: LIVE FRIENDS ACTIVITY ===================== */}
-          <div
-            className={`border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4 ${
-              mobileTab === 'network' ? 'hidden lg:block' : ''
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5 flex items-center gap-1.5">
-                  <span>Real-Time Presence</span>
-                </div>
-                <h3 className="font-serif italic text-lg text-foreground font-normal">
-                  Live Listening ({liveActivities.length})
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={fetchLiveActivities}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                Pulse
-              </button>
-            </div>
-
-            {isLoadingLive ? (
-              <div className="space-y-3">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="border border-border bg-background p-4 rounded-xl animate-pulse space-y-2"
-                  >
-                    <div className="h-3 bg-secondary/20 rounded-control w-1/3" />
-                    <div className="h-10 bg-secondary/10 rounded-control" />
-                  </div>
-                ))}
-              </div>
-            ) : liveActivities.length === 0 ? (
-              <div className="border border-border/60 bg-background p-6 text-center space-y-2 rounded-xl">
-                <div className="font-serif italic text-title text-foreground">
-                  Quiet in the circle right now
-                </div>
-                <p className="font-sans text-eyebrow text-muted-foreground leading-relaxed">
-                  None of your mutual friends or followed listeners are
-                  broadcasting active streams at this moment.
+          <section aria-label="Activity feed" className="pt-1">
+            {feedQuery.isLoading ? (
+              <FeedSkeleton />
+            ) : feedQuery.isError ? (
+              <div className="mt-6 rounded-surface border border-border bg-card px-6 py-10 text-center">
+                <h2 className="font-serif text-heading text-foreground">
+                  Could not load your feed
+                </h2>
+                <p className="mx-auto mt-1 max-w-sm text-caption leading-relaxed text-muted-foreground">
+                  Check your connection and try again.
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => feedQuery.refetch()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : feedGroups.length === 0 ? (
+              <div className="mt-4">
+                <EmptyFeed
+                  filter={filter}
+                  meta={feedMeta}
+                  onFindPeople={() => setPeopleOpen(true)}
+                />
               </div>
             ) : (
-              <div className="space-y-3">
-                {liveActivities.map((item) => {
-                  const isPlayingThis =
-                    currentTrack?.id === item.activity.songId &&
-                    playbackStatus === 'playing'
-
-                  const progressPercent = item.activity.durationMs
-                    ? Math.min(
-                        100,
-                        (item.activity.progressMs / item.activity.durationMs) *
-                          100,
-                      )
-                    : 0
-
-                  return (
-                    <div
-                      key={item.user.id}
-                      className="border border-border bg-background p-3.5 rounded-xl shadow-raised space-y-3 hover:border-foreground/40 transition-all"
-                    >
-                      {/* Friend Header */}
-                      <div className="flex items-center justify-between">
-                        <Link
-                          to="/users/$id"
-                          params={{ id: item.user.id }}
-                          className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
-                        >
-                          <div className="w-7 h-7 rounded-full bg-secondary/30 border border-border flex items-center justify-center font-eyebrow text-eyebrow font-semibold text-foreground overflow-hidden uppercase shrink-0">
-                            {item.user.avatarUrl ? (
-                              <img
-                                src={item.user.avatarUrl}
-                                alt={item.user.displayName}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              item.user.displayName[0] || 'U'
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <span className="font-semibold text-caption text-foreground block truncate hover:text-primary transition-colors">
-                              {item.user.displayName}
-                            </span>
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                              {item.user.isMutualFriend
-                                ? 'Mutual Friend'
-                                : 'Followed'}
-                            </span>
-                          </div>
-                        </Link>
-
-                        <div className="flex items-center gap-1 bg-success-soft text-success border border-success/20 px-2 py-0.5 rounded-full font-eyebrow text-eyebrow uppercase tracking-wider shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                          <span>Streaming</span>
-                        </div>
-                      </div>
-
-                      {/* Track Details */}
-                      <div className="flex items-center gap-3 bg-card border border-border/70 p-2.5 rounded-lg">
-                        <div className="relative w-12 h-12 bg-secondary/20 border border-border rounded-control shrink-0 overflow-hidden">
-                          {item.activity.coverImageUrl ? (
-                            <img
-                              src={item.activity.coverImageUrl}
-                              alt={item.activity.trackTitle}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center font-serif italic text-muted-foreground text-lg">
-                              ♪
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h4
-                            className="font-sans font-semibold text-body text-foreground truncate"
-                            title={item.activity.trackTitle}
-                          >
-                            {item.activity.trackTitle}
-                          </h4>
-                          <p className="font-sans text-eyebrow text-muted-foreground truncate">
-                            {item.activity.artistName}
-                          </p>
-
-                          {/* Progress bar */}
-                          <div className="mt-1.5 space-y-0.5">
-                            <div className="w-full h-1 bg-secondary/20 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all duration-300"
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-                            <div className="flex justify-between font-mono text-eyebrow text-muted-foreground/80">
-                              <span>
-                                {formatElapsed(item.activity.progressMs)}
-                              </span>
-                              {item.activity.durationMs && (
-                                <span>
-                                  {formatElapsed(item.activity.durationMs)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Listen Along Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleListenAlong(item)}
-                          className={`shrink-0 px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-semibold border transition-all cursor-pointer rounded-lg shadow-raised ${
-                            isPlayingThis
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-border bg-background hover:bg-foreground hover:text-background hover:border-foreground text-foreground'
-                          }`}
-                        >
-                          {isPlayingThis ? 'Playing' : 'Listen Along'}
-                        </button>
-                      </div>
+              <div>
+                {feedGroups.map((group) => (
+                  <div key={group.key}>
+                    <div className="flex items-center gap-3 pb-1 pt-4 first:pt-2">
+                      <h2 className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-muted-foreground">
+                        {group.label}
+                      </h2>
+                      <div className="h-px flex-1 bg-border/60" />
                     </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* ===================== DOCK 3: DISCOVER COMMUNITY MEMBERS ===================== */}
-          <div
-            className={`border border-border bg-card p-5 rounded-2xl shadow-raised space-y-4 ${
-              mobileTab === 'live' ? 'hidden lg:block' : ''
-            }`}
-          >
-            <div>
-              <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-0.5">
-                Directory &nbsp;·&nbsp; Network
-              </div>
-              <h3 className="font-serif italic text-lg text-foreground font-normal">
-                Discover Listeners
-              </h3>
-            </div>
-
-            {/* Standard Search Bar */}
-            <div className="relative">
-              <svg
-                className="w-4 h-4 text-muted-foreground/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value)
-                  searchCommunity(e.target.value)
-                }}
-                placeholder="Search community by name..."
-                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-background rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('')
-                    searchCommunity('')
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            {/* Members Directory List */}
-            {isSearchingUsers ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="p-3 border border-border bg-background rounded-xl animate-pulse flex items-center gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-secondary/20" />
-                    <div className="h-3 bg-secondary/20 rounded-control w-1/2" />
+                    <div className="divide-y divide-border/60">
+                      {group.items.map((item) => (
+                        <FeedRow key={item.id} item={item} />
+                      ))}
+                    </div>
                   </div>
                 ))}
-              </div>
-            ) : directoryUsers.length === 0 ? (
-              <div className="border border-border/60 bg-background p-4 text-center font-mono text-caption text-muted-foreground rounded-xl">
-                No matching members found.
-              </div>
-            ) : (
-              <div className="divide-y divide-border/60 border border-border/80 bg-background rounded-xl overflow-hidden max-h-96 overflow-y-auto">
-                {directoryUsers.slice(0, 10).map((member) => {
-                  const isActing = actingUserId === member.id
 
-                  return (
-                    <div
-                      key={member.id}
-                      className="p-3 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors"
-                    >
-                      <Link
-                        to="/users/$id"
-                        params={{ id: member.id }}
-                        className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-secondary/20 border border-border flex items-center justify-center font-eyebrow text-caption font-semibold uppercase text-foreground overflow-hidden shrink-0">
-                          {member.avatarUrl ? (
-                            <img
-                              src={member.avatarUrl}
-                              alt={member.displayName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            member.displayName[0] || 'U'
-                          )}
-                        </div>
+                <div ref={sentinelRef} className="h-px" aria-hidden="true" />
 
-                        <div className="min-w-0">
-                          <span className="font-semibold text-caption text-foreground block truncate hover:text-primary transition-colors">
-                            {member.displayName}
-                          </span>
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
-                            {member.relationship === 'FRIENDS'
-                              ? 'Mutual Friend'
-                              : member.relationship === 'FOLLOWING'
-                                ? 'Following'
-                                : member.relationship === 'PENDING_SENT'
-                                  ? 'Request Sent'
-                                  : member.isPrivateAccount
-                                    ? 'Private Member'
-                                    : 'Groovy Member'}
-                          </span>
-                        </div>
-                      </Link>
-
-                      {/* Follow Action */}
-                      <button
-                        type="button"
-                        disabled={isActing}
-                        onClick={() => handleToggleFollow(member)}
-                        className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1.5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 rounded-lg ${
-                          member.relationship === 'FRIENDS' ||
-                          member.relationship === 'FOLLOWING'
-                            ? 'border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground'
-                            : member.relationship === 'PENDING_SENT'
-                              ? 'border-border bg-secondary/20 text-muted-foreground hover:bg-destructive/20 hover:text-destructive'
-                              : 'border-foreground bg-foreground text-background hover:bg-primary hover:border-primary'
-                        }`}
-                      >
-                        {member.relationship === 'FRIENDS'
-                          ? 'Friends'
-                          : member.relationship === 'FOLLOWING'
-                            ? 'Following'
-                            : member.relationship === 'PENDING_SENT'
-                              ? 'Requested'
-                              : member.isPrivateAccount
-                                ? 'Request'
-                                : 'Follow'}
-                      </button>
-                    </div>
-                  )
-                })}
+                {isFetchingNextPage ? (
+                  <div
+                    role="status"
+                    className="flex items-center justify-center py-6"
+                  >
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-foreground" />
+                    <span className="sr-only">Loading more activity</span>
+                  </div>
+                ) : !hasNextPage ? (
+                  <p className="py-8 text-center text-caption text-muted-foreground">
+                    You&rsquo;re all caught up.
+                  </p>
+                ) : null}
               </div>
             )}
-          </div>
+          </section>
         </div>
+
+        <aside className="scrollbar-none hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100dvh-6rem)] xl:space-y-6 xl:overflow-y-auto xl:pr-1">
+          {requestSection}
+
+          <LiveNow
+            activities={liveActivities}
+            isLoading={liveQuery.isLoading}
+            layout="panel"
+          />
+
+          <section aria-label="Find people">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-title font-semibold text-foreground">
+                Find people
+              </h2>
+              <span className="flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                <UsersIcon className="h-3.5 w-3.5" />
+                Community
+              </span>
+            </div>
+            <div className="mt-3">{peoplePanel}</div>
+          </section>
+        </aside>
       </div>
+
+      <Sheet
+        open={peopleOpen}
+        onClose={() => setPeopleOpen(false)}
+        title="Find people"
+        description="Follow listeners and artists to shape your feed."
+        placement="bottom"
+        className="min-h-[70dvh]"
+      >
+        <div className="px-4 pb-8 pt-4">
+          <PeoplePanel
+            users={peopleWithOverrides}
+            query={peopleQuery}
+            onQueryChange={handlePeopleQueryChange}
+            isLoading={peopleQueryResult.isLoading}
+            isFetching={peopleQueryResult.isFetching}
+            actingUserId={actingUserId}
+            onToggleFollow={handleToggleFollow}
+            onAcceptRequest={handleAcceptRequest}
+            limit={20}
+            size="md"
+            error={
+              peopleQueryResult.isError
+                ? 'Could not load people. Check your connection and try again.'
+                : null
+            }
+            actionError={peopleActionError}
+          />
+        </div>
+      </Sheet>
     </div>
   )
 }

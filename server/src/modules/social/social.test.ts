@@ -32,6 +32,28 @@ async function runSocialTests() {
   const tokenA = (await authService.issueTokenPair({ id: userA.id, email: emailA, role: "LISTENER", tokenVersion: 0 })).accessToken;
   console.log("   ✅ User A created:", userA.id);
 
+  // 1b. Cold start: a new account sees an empty, personalised feed.
+  console.log("🔎 Verifying cold-start feed is empty...");
+  const coldFeedRes = await app.inject({
+    method: "GET",
+    url: "/api/v1/social/feed?limit=10",
+    headers: { Authorization: `Bearer ${tokenA}` },
+  });
+  if (coldFeedRes.statusCode !== 200) {
+    throw new Error(`Cold-start feed failed (${coldFeedRes.statusCode}): ${coldFeedRes.body}`);
+  }
+  const coldFeedData = JSON.parse(coldFeedRes.body);
+  if (coldFeedData.items.length !== 0) {
+    throw new Error(`Expected an empty cold-start feed, got: ${coldFeedRes.body}`);
+  }
+  if (
+    coldFeedData.meta?.followingArtists !== 0 ||
+    coldFeedData.meta?.followingPeople !== 0
+  ) {
+    throw new Error(`Expected zero follow counts on cold start, got: ${coldFeedRes.body}`);
+  }
+  console.log("   ✅ Cold-start feed is empty with zero follow counts\n");
+
   // 2. Create User B (Private)
   console.log("2️⃣ Creating User B (Private Listener)...");
   const emailB = `user_b_${timestamp}@groovy.test`;
@@ -197,7 +219,14 @@ async function runSocialTests() {
   if (!Array.isArray(feedData.items)) {
     throw new Error("Feed response did not include items array!");
   }
+  if (
+    feedData.meta?.followingPeople !== 1 ||
+    feedData.meta?.followingArtists !== 0
+  ) {
+    throw new Error(`Feed follow metadata is wrong: ${feedRes.body}`);
+  }
   console.log(`   ✅ Social feed successfully returned ${feedData.items.length} aggregated items`);
+  console.log(`   ✅ Feed metadata: ${JSON.stringify(feedData.meta)}`);
   console.log(`   ✅ nextCursor pagination supported: ${feedData.nextCursor ?? "none"}`);
 
   // Test filter
@@ -221,7 +250,8 @@ async function runSocialTests() {
       await redis.del(
         `groovy:presence:user:${userA.id}`,
         `groovy:player:active_device:${userA.id}`,
-        `groovy:player:state:${userA.id}`
+        `groovy:player:state:${userA.id}`,
+        `groovy:social:feed:version:${userA.id}`
       );
       const feedKeysA = await redis.keys(`groovy:social:feed:${userA.id}:*`);
       if (feedKeysA.length > 0) await redis.del(...feedKeysA);
@@ -232,7 +262,8 @@ async function runSocialTests() {
       await redis.del(
         `groovy:presence:user:${userB.id}`,
         `groovy:player:active_device:${userB.id}`,
-        `groovy:player:state:${userB.id}`
+        `groovy:player:state:${userB.id}`,
+        `groovy:social:feed:version:${userB.id}`
       );
       const feedKeysB = await redis.keys(`groovy:social:feed:${userB.id}:*`);
       if (feedKeysB.length > 0) await redis.del(...feedKeysB);

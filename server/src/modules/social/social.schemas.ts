@@ -68,8 +68,16 @@ export interface FeedItem {
   target: FeedTarget;
 }
 
+export interface SocialFeedMeta {
+  /** Artists the current user follows. */
+  followingArtists: number;
+  /** People the current user follows with an accepted relationship. */
+  followingPeople: number;
+}
+
 export interface SocialFeedResponse {
   items: FeedItem[];
   nextCursor: string | null;
   hasMore: boolean;
+  meta: SocialFeedMeta;
 }
