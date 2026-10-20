@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistSummary } from '../types/artist'
 import { SearchIconSVG } from '../components/icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useFollowsStore } from '../stores/follows.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
-import { Button, IconButton, Input, Select } from '../Components/ui'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
+import { Button, IconButton, Input } from '../Components/ui'
 import { ArtistTile } from '../Components/artists/ArtistTile'
 import {
   ArtistEmptyPanel,
@@ -141,6 +142,16 @@ function ArtistsDirectoryComponent() {
     !artistsQuery.isPending &&
     !artistsQuery.isFetchingNextPage
 
+  const loadMoreRef = useInfiniteScroll({
+    enabled:
+      artistsQuery.hasNextPage &&
+      !artistsQuery.isFetching &&
+      !artistsQuery.isError &&
+      !artistsQuery.isPlaceholderData &&
+      !artistsQuery.isFetchNextPageError,
+    onLoadMore: () => void artistsQuery.fetchNextPage(),
+  })
+
   const updateSearch = (
     patch: Partial<ArtistsSearchParams>,
     replace: boolean,
@@ -207,7 +218,7 @@ function ArtistsDirectoryComponent() {
   }
 
   return (
-    <div className="w-full px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
       <header className="border-b border-border pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
@@ -234,56 +245,93 @@ function ArtistsDirectoryComponent() {
         </div>
 
         <div className="mt-5 flex flex-col gap-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-sm">
-              <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                inputMode="search"
-                value={query}
-                onChange={(event) => handleQueryChange(event.target.value)}
-                placeholder="Search artists"
-                aria-label="Search artists"
-                className="pl-9 pr-10"
-              />
-              {query && (
-                <IconButton
-                  size="sm"
-                  aria-label="Clear search"
-                  onClick={clearQuery}
-                  className="absolute right-1 top-1/2 -translate-y-1/2"
+          <div className="relative w-full sm:max-w-sm">
+            <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              inputMode="search"
+              value={query}
+              onChange={(event) => handleQueryChange(event.target.value)}
+              placeholder="Search artists"
+              aria-label="Search artists"
+              className="pl-9 pr-10"
+            />
+            {query && (
+              <IconButton
+                size="sm"
+                aria-label="Clear search"
+                onClick={clearQuery}
+                className="absolute right-1 top-1/2 -translate-y-1/2"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </IconButton>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {SCOPE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={scope === option.value}
+                  onClick={() => updateSearch({ scope: option.value }, false)}
+                  className={cn(
+                    'inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors sm:px-3',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                    scope === option.value
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+                  )}
                 >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </IconButton>
-              )}
+                  {option.label}
+                </button>
+              ))}
             </div>
 
-            <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <div className="relative ml-auto shrink-0">
               <label htmlFor="artist-sort" className="sr-only">
-                Sort artists
+                Sort artists by
               </label>
-              <div className="min-w-40">
-                <Select
-                  id="artist-sort"
-                  value={sort}
-                  onChange={(event) =>
-                    updateSearch(
-                      { order: event.target.value as ArtistSort },
-                      false,
-                    )
-                  }
-                  className="py-2 pr-8 text-caption"
-                >
-                  <option value="listeners">Most listeners</option>
-                  <option value="followers">Most followers</option>
-                  <option value="name">Name (A–Z)</option>
-                  <option value="recent">Recently added</option>
-                </Select>
-              </div>
-              <span
-                aria-live="polite"
-                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground"
+              <select
+                id="artist-sort"
+                value={sort}
+                onChange={(event) =>
+                  updateSearch(
+                    { order: event.target.value as ArtistSort },
+                    false,
+                  )
+                }
+                className={cn(
+                  'min-h-9 w-auto max-w-full cursor-pointer appearance-none rounded-full border border-border bg-card py-1.5 pl-2.5 pr-7 font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-muted-foreground transition-colors sm:pl-3 sm:pr-8',
+                  'hover:border-foreground/30 hover:text-foreground',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                )}
               >
+                <option value="listeners">Listeners</option>
+                <option value="followers">Followers</option>
+                <option value="name">A–Z</option>
+                <option value="recent">Recent</option>
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section aria-busy={artistsQuery.isFetching} className="mt-5">
+        <div className="mb-3 flex min-h-5 items-center justify-end">
+          <span
+            aria-live="polite"
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground"
+          >
+            {isInitialLoading ? (
+              <span className="sr-only">Loading artists</span>
+            ) : (
+              <>
                 {isRefreshing && (
                   <span
                     className="h-3 w-3 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
@@ -295,33 +343,11 @@ function ArtistsDirectoryComponent() {
                 )}
                 <span className="font-mono tabular-nums">{totalCount}</span>{' '}
                 {totalCount === 1 ? 'artist' : 'artists'}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {SCOPE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={scope === option.value}
-                onClick={() => updateSearch({ scope: option.value }, false)}
-                className={cn(
-                  'inline-flex min-h-9 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                  scope === option.value
-                    ? 'border-foreground bg-foreground text-background'
-                    : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground',
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+              </>
+            )}
+          </span>
         </div>
-      </header>
 
-      <section aria-busy={artistsQuery.isFetching} className="mt-5">
         {artistsQuery.isError && artists.length > 0 && (
           <div
             role="alert"
@@ -366,7 +392,7 @@ function ArtistsDirectoryComponent() {
           <>
             <div
               className={cn(
-                'grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5',
+                'grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
                 isRefreshing && 'opacity-60',
               )}
             >
@@ -380,7 +406,10 @@ function ArtistsDirectoryComponent() {
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
-              <p className="text-caption text-muted-foreground">
+              <p
+                aria-live="polite"
+                className="text-caption text-muted-foreground"
+              >
                 Showing{' '}
                 <span className="font-mono tabular-nums text-foreground">
                   {artists.length}
@@ -392,30 +421,18 @@ function ArtistsDirectoryComponent() {
                 {totalCount === 1 ? 'artist' : 'artists'}
               </p>
 
-              {artistsQuery.hasNextPage &&
-                !artistsQuery.isFetchNextPageError && (
-                  <Button
-                    variant="outline"
-                    onClick={() => void artistsQuery.fetchNextPage()}
-                    disabled={
-                      artistsQuery.isFetchingNextPage ||
-                      artistsQuery.isPlaceholderData ||
-                      isRefreshing
-                    }
-                  >
-                    {artistsQuery.isFetchingNextPage ? (
-                      <>
-                        <span
-                          className="h-3.5 w-3.5 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
-                          aria-hidden="true"
-                        />
-                        Loading…
-                      </>
-                    ) : (
-                      'Load more artists'
-                    )}
-                  </Button>
-                )}
+              {artistsQuery.isFetchingNextPage && (
+                <span
+                  role="status"
+                  className="flex items-center gap-2 text-caption text-muted-foreground"
+                >
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
+                    aria-hidden="true"
+                  />
+                  Loading more artists…
+                </span>
+              )}
 
               {artistsQuery.isFetchNextPageError && (
                 <p role="alert" className="text-caption text-destructive">
@@ -429,6 +446,15 @@ function ArtistsDirectoryComponent() {
                   </button>
                 </p>
               )}
+
+              {artistsQuery.hasNextPage &&
+                !artistsQuery.isFetchNextPageError && (
+                  <div
+                    ref={loadMoreRef}
+                    aria-hidden="true"
+                    className="h-px w-full"
+                  />
+                )}
             </div>
           </>
         )}

@@ -16,7 +16,10 @@ export const playlistsApi = {
   /**
    * Search and browse public playlists with mosaic covers and save states.
    */
-  async searchPlaylists(query: SearchPlaylistsQuery = {}): Promise<SearchPlaylistsResponse> {
+  async searchPlaylists(
+    query: SearchPlaylistsQuery = {},
+    signal?: AbortSignal
+  ): Promise<SearchPlaylistsResponse> {
     const params = new URLSearchParams();
     if (query.search) params.append("search", query.search);
     if (query.sort) params.append("sort", query.sort);
@@ -24,7 +27,10 @@ export const playlistsApi = {
     if (query.limit) params.append("limit", String(query.limit));
 
     const qs = params.toString();
-    return apiFetch<SearchPlaylistsResponse>(`/api/v1/playlists${qs ? `?${qs}` : ""}`);
+    return apiFetch<SearchPlaylistsResponse>(
+      `/api/v1/playlists${qs ? `?${qs}` : ""}`,
+      signal ? { signal } : undefined
+    );
   },
 
   /**

@@ -33,9 +33,9 @@ export function ArtistGridSkeleton() {
       <span className="sr-only">Loading artists…</span>
       <div
         aria-hidden="true"
-        className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
       >
-        {Array.from({ length: 10 }).map((_, index) => (
+        {Array.from({ length: 12 }).map((_, index) => (
           <div
             key={index}
             className="flex flex-col items-center rounded-surface border border-border bg-card p-3 sm:p-4"

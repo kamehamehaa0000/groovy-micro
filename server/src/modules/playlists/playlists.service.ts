@@ -1,4 +1,4 @@
-import { eq, and, sql, desc, asc, inArray, ilike, or, isNull, lte } from "drizzle-orm";
+import { eq, and, sql, desc, asc, inArray, ilike, or, isNull } from "drizzle-orm";
 import crypto from "crypto";
 import { db } from "../../db";
 import { redis } from "../../db/redis";
@@ -99,6 +99,17 @@ export interface PlaylistSummary {
   tracksCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Lean payload for the public playlist directory. */
+export interface PublicPlaylistSummary {
+  id: string;
+  ownerDisplayName: string;
+  title: string;
+  coverImageUrl: string | null;
+  mosaicCoverUrls: string[];
+  tracksCount: number;
+  isSaved: boolean;
 }
 
 export class PlaylistsService {
@@ -471,7 +482,7 @@ export class PlaylistsService {
   async searchPublicPlaylists(
     params: SearchPlaylistsQuery,
     currentUserId?: string
-  ): Promise<{ data: PlaylistSummary[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: PublicPlaylistSummary[]; total: number; page: number; limit: number }> {
     const { search, sort = "popular", page, limit } = params;
     const offset = (page - 1) * limit;
 
@@ -497,31 +508,70 @@ export class PlaylistsService {
         AND songs.scope = 'GLOBAL'
     )`;
 
+    // Bound the mosaic to four distinct covers in playlist order. The inner
+    // aggregate still walks the playlist's ordered rows, but only four rows
+    // leave the subquery instead of every constituent cover.
+    const mosaicCoverUrlsSql = sql<string[]>`(
+      SELECT COALESCE(
+        array_agg(cover_url ORDER BY first_position),
+        ARRAY[]::text[]
+      )
+      FROM (
+        SELECT cover_url, MIN(sort_position) AS first_position
+        FROM (
+          SELECT
+            COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl}) AS cover_url,
+            ${playlistSongs.position} AS sort_position
+          FROM ${playlistSongs}
+          INNER JOIN ${songs} ON ${songs.id} = ${playlistSongs.songId}
+          LEFT JOIN ${albums} ON ${albums.id} = ${songs.albumId}
+          WHERE ${playlistSongs.playlistId} = ${playlists.id}
+            AND ${songs.deletedAt} IS NULL
+            AND ${songs.scope} = 'GLOBAL'
+            AND COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl}) IS NOT NULL
+            AND (
+              ${albums.id} IS NULL
+              OR ${albums.status} = 'PUBLISHED'
+              OR (
+                ${albums.status} = 'SCHEDULED'
+                AND ${albums.scheduledReleaseAt} <= NOW()
+              )
+            )
+        ) AS covers
+        GROUP BY cover_url
+        ORDER BY first_position
+        LIMIT 4
+      ) AS distinct_covers
+    )`;
+
     let orderByClause;
     if (sort === "recent") {
-      orderByClause = [desc(playlists.createdAt), desc(playlists.savesCount)];
+      orderByClause = [
+        desc(playlists.createdAt),
+        desc(playlists.savesCount),
+        desc(playlists.id),
+      ];
     } else if (sort === "tracks") {
-      orderByClause = [desc(tracksCountSql), desc(playlists.savesCount)];
+      orderByClause = [
+        desc(tracksCountSql),
+        desc(playlists.savesCount),
+        desc(playlists.id),
+      ];
     } else {
-      orderByClause = [desc(playlists.savesCount), desc(playlists.createdAt)];
+      orderByClause = [
+        desc(playlists.savesCount),
+        desc(playlists.createdAt),
+        desc(playlists.id),
+      ];
     }
 
     const playlistRows = await db
       .select({
         id: playlists.id,
-        ownerId: playlists.ownerId,
         ownerDisplayName: users.displayName,
-        ownerAvatarUrl: users.avatarUrl,
         title: playlists.title,
-        description: playlists.description,
         coverImageUrl: playlists.coverImageUrl,
-        visibility: playlists.visibility,
-        isPublic: playlists.isPublic,
-        isCollaborative: playlists.isCollaborative,
-        allowDuplicates: playlists.allowDuplicates,
-        savesCount: playlists.savesCount,
-        createdAt: playlists.createdAt,
-        updatedAt: playlists.updatedAt,
+        mosaicCoverUrls: mosaicCoverUrlsSql,
         tracksCount: tracksCountSql,
       })
       .from(playlists)
@@ -531,53 +581,11 @@ export class PlaylistsService {
       .limit(limit)
       .offset(offset);
 
-    // Compute mosaic covers for summaries
-    const playlistIds = playlistRows.map((p) => p.id);
-    const mosaicCoversMap = new Map<string, string[]>();
-
-    if (playlistIds.length > 0) {
-      const constituentCovers = await db
-        .select({
-          playlistId: playlistSongs.playlistId,
-          coverUrl: sql<string>`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl})`,
-        })
-        .from(playlistSongs)
-        .innerJoin(songs, eq(playlistSongs.songId, songs.id))
-        .leftJoin(albums, eq(songs.albumId, albums.id))
-        .where(
-          and(
-            inArray(playlistSongs.playlistId, playlistIds),
-            isNull(songs.deletedAt),
-            eq(songs.scope, "GLOBAL"),
-            sql`COALESCE(${songs.coverImageUrl}, ${albums.coverImageUrl}) IS NOT NULL`,
-            or(
-              isNull(albums.id),
-              eq(albums.status, "PUBLISHED"),
-              and(eq(albums.status, "SCHEDULED"), lte(albums.scheduledReleaseAt, sql`NOW()`))
-            )
-          )
-        )
-        .orderBy(asc(playlistSongs.position));
-
-      for (const row of constituentCovers) {
-        const existing = mosaicCoversMap.get(row.playlistId) || [];
-        if (!existing.includes(row.coverUrl) && existing.length < 4) {
-          existing.push(row.coverUrl);
-          mosaicCoversMap.set(row.playlistId, existing);
-        }
-      }
-    }
-
-    const summaries: PlaylistSummary[] = playlistRows.map((p) => ({
-      ...p,
-      mosaicCoverUrls: mosaicCoversMap.get(p.id) || [],
-      isSaved: false,
-    }));
-
-    const enriched = await playlistsCacheService.enrichPlaylistsWithSaves(summaries, currentUserId);
+    const data: PublicPlaylistSummary[] =
+      await playlistsCacheService.enrichPlaylistsWithSaves(playlistRows, currentUserId);
 
     return {
-      data: enriched,
+      data,
       total: countResult?.count ?? 0,
       page,
       limit,

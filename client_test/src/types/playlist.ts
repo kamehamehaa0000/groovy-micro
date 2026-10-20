@@ -72,6 +72,7 @@ export interface Playlist {
   canEdit?: boolean;
   tracksCount?: number;
   totalDurationSeconds?: number;
+  mosaicCoverUrls?: string[];
   mosaicCovers?: string[];
 }
 
@@ -107,6 +108,16 @@ export interface ReorderTracksInput {
   orderedEntryIds: string[];
 }
 
+export interface PlaylistDirectoryItem {
+  id: string;
+  title: string;
+  ownerDisplayName: string;
+  coverImageUrl: string | null;
+  mosaicCoverUrls: string[];
+  tracksCount: number;
+  isSaved: boolean;
+}
+
 export interface SearchPlaylistsQuery {
   search?: string;
   sort?: "popular" | "recent" | "tracks";
@@ -115,7 +126,7 @@ export interface SearchPlaylistsQuery {
 }
 
 export interface SearchPlaylistsResponse {
-  data: Playlist[];
+  data: PlaylistDirectoryItem[];
   total: number;
   page: number;
   limit: number;

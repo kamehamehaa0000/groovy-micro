@@ -1144,7 +1144,10 @@ function RootComponent() {
               className={
                 pathname === '/feed'
                   ? 'flex-1 w-full max-w-7xl mx-auto'
-                  : pathname === '/artists' || pathname === '/artists/'
+                  : pathname === '/artists' ||
+                      pathname === '/artists/' ||
+                      pathname === '/playlists' ||
+                      pathname === '/playlists/'
                     ? 'flex-1 w-full max-w-6xl mx-auto'
                     : 'flex-1 max-w-5xl w-full mx-auto px-2 sm:px-12 sm:py-10'
               }

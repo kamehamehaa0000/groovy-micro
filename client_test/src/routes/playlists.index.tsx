@@ -1,164 +1,162 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ChevronDown, X } from 'lucide-react'
 import { playlistsApi } from '../lib/playlists.api'
-import type { Playlist, SearchPlaylistsQuery } from '../types/playlist'
+import type { PlaylistDirectoryItem } from '../types/playlist'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
-import { MediaTile } from '../components/common/MediaTile'
-import { PlaylistCover } from '../components/PlaylistCover'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
+import { Button, IconButton, Input } from '../components/ui'
+import { cn } from '../components/ui/cn'
+import { PlusIconSVG, SearchIconSVG } from '../components/icons'
+import { MediaTile } from '../Components/common/MediaTile'
+import { PlaylistCover } from '../Components/PlaylistCover'
 import {
-  SearchIconSVG,
-  PlusIconSVG,
-  ChevronDownIconSVG,
-} from '../components/icons'
+  PlaylistEmptyPanel,
+  PlaylistGridSkeleton,
+} from '../Components/playlists/PlaylistDirectoryStates'
+
+const PAGE_SIZE = 24
+const SORTS = ['popular', 'recent', 'tracks'] as const
+
+type PlaylistSort = (typeof SORTS)[number]
 
 interface PlaylistsSearchParams {
   search?: string
-  sort?: 'popular' | 'recent' | 'tracks'
-  page?: number
+  sort?: PlaylistSort
 }
+
+const SORT_OPTIONS: Array<{ value: PlaylistSort; label: string }> = [
+  { value: 'popular', label: 'Most saved' },
+  { value: 'recent', label: 'Newest' },
+  { value: 'tracks', label: 'Most tracks' },
+]
 
 export const Route = createFileRoute('/playlists/')({
   component: PlaylistsDirectoryComponent,
   validateSearch: (search: Record<string, unknown>): PlaylistsSearchParams => {
-    const rawSort = search.sort as string
-    const validSorts = ['popular', 'recent', 'tracks']
+    const rawSort = typeof search.sort === 'string' ? search.sort : ''
+
     return {
-      search: typeof search.search === 'string' ? search.search : undefined,
-      sort: validSorts.includes(rawSort)
-        ? (rawSort as PlaylistsSearchParams['sort'])
+      search:
+        typeof search.search === 'string' && search.search
+          ? search.search
+          : undefined,
+      sort: SORTS.includes(rawSort as PlaylistSort)
+        ? (rawSort as PlaylistSort)
         : 'popular',
-      page:
-        typeof search.page === 'number' && search.page > 0 ? search.page : 1,
     }
   },
 })
 
-type SortOption = 'popular' | 'recent' | 'tracks'
-
-const SORT_LABELS: Record<SortOption, string> = {
-  popular: 'Most Saved (Popular)',
-  recent: 'Recently Created',
-  tracks: 'Most Tracks',
-}
-
 function PlaylistsDirectoryComponent() {
-  const searchParams = Route.useSearch()
-  const navigate = useNavigate()
-
-  const { isAuthenticated } = useAuthStore()
+  const userId = useAuthStore((s) => s.user?.id ?? null)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
   const openCreatePlaylistModal = useCreatePlaylistModalStore(
     (s) => s.openModal,
   )
+  const searchParams = Route.useSearch()
+  const navigate = useNavigate()
 
-  const [search, setSearch] = useState(searchParams.search || '')
-  const [sort, setSort] = useState<SortOption>(searchParams.sort || 'popular')
-  const [playlists, setPlaylists] = useState<Playlist[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
-  const [page, setPage] = useState(searchParams.page || 1)
-  const [hasMore, setHasMore] = useState(false)
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  const sort = searchParams.sort ?? 'popular'
+  const [query, setQuery] = useState(searchParams.search ?? '')
+  const lastWrittenQuery = useRef(searchParams.search ?? '')
+  const debouncedSearch = useDebouncedValue(query, 300).trim()
 
-  const limit = 24
-
-  // Keep state synced with URL changes
+  // Keep the input in sync when the URL changes via history navigation, but
+  // avoid overwriting in-flight typing with a value we just wrote ourselves.
   useEffect(() => {
-    if (searchParams.search !== undefined && searchParams.search !== search) {
-      setSearch(searchParams.search)
+    const urlQuery = searchParams.search ?? ''
+    if (urlQuery !== lastWrittenQuery.current) {
+      lastWrittenQuery.current = urlQuery
+      setQuery(urlQuery)
     }
-    if (searchParams.sort && searchParams.sort !== sort) {
-      setSort(searchParams.sort)
-    }
-  }, [searchParams.search, searchParams.sort])
+  }, [searchParams.search])
 
-  // Debounced search & fetch
-  useEffect(() => {
-    let isMounted = true
-    const timer = setTimeout(async () => {
-      setIsLoading(true)
-      try {
-        const query: SearchPlaylistsQuery = {
-          search: search.trim() || undefined,
+  const playlistsQuery = useInfiniteQuery({
+    queryKey: ['playlists', 'directory', userId, sort, debouncedSearch],
+    queryFn: ({ pageParam, signal }) =>
+      playlistsApi.searchPlaylists(
+        {
+          search: debouncedSearch || undefined,
           sort,
-          page: 1,
-          limit,
-        }
-        const res = await playlistsApi.searchPlaylists(query)
-        if (isMounted) {
-          setPlaylists(res.data || [])
-          setTotalCount(res.total ?? 0)
-          setPage(1)
-          setHasMore((res.data?.length || 0) < (res.total ?? 0))
-        }
-      } catch (err) {
-        console.error('Failed to load public playlists:', err)
-        if (isMounted) {
-          setPlaylists([])
-          setTotalCount(0)
-          setHasMore(false)
-        }
-      } finally {
-        if (isMounted) setIsLoading(false)
+          page: pageParam,
+          limit: PAGE_SIZE,
+        },
+        signal,
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page * lastPage.limit < lastPage.total
+        ? lastPage.page + 1
+        : undefined,
+    staleTime: 60_000,
+    // Keep the current grid while refining a search. Sort and account changes
+    // get a fresh skeleton so stale rows are never implied.
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[2] === userId &&
+      previousQuery?.queryKey[3] === sort
+        ? previousData
+        : undefined,
+  })
+
+  const playlists = useMemo(() => {
+    const seen = new Set<string>()
+    const result: PlaylistDirectoryItem[] = []
+
+    for (const page of playlistsQuery.data?.pages ?? []) {
+      for (const playlist of page.data) {
+        if (seen.has(playlist.id)) continue
+        seen.add(playlist.id)
+        result.push(playlist)
       }
-    }, 250)
-
-    return () => {
-      isMounted = false
-      clearTimeout(timer)
     }
-  }, [search, sort])
 
-  // Load more pagination
-  const handleLoadMore = async () => {
-    if (isLoading || !hasMore) return
-    const nextPage = page + 1
-    setIsLoading(true)
-    try {
-      const res = await playlistsApi.searchPlaylists({
-        search: search.trim() || undefined,
-        sort,
-        page: nextPage,
-        limit,
-      })
-      const newItems = res.data || []
-      setPlaylists((prev) => [...prev, ...newItems])
-      setPage(nextPage)
-      setHasMore(playlists.length + newItems.length < (res.total ?? 0))
-    } catch (err) {
-      console.error('Failed to load additional playlists:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    return result
+  }, [playlistsQuery.data])
 
-  const handleSearchChange = (val: string) => {
-    setSearch(val)
+  const totalCount = playlistsQuery.data?.pages[0]?.total ?? 0
+  const isInitialLoading = playlistsQuery.isPending
+  const isRefreshing =
+    playlistsQuery.isFetching &&
+    !playlistsQuery.isPending &&
+    !playlistsQuery.isFetchingNextPage
+
+  const loadMoreRef = useInfiniteScroll({
+    enabled:
+      playlistsQuery.hasNextPage &&
+      !playlistsQuery.isFetching &&
+      !playlistsQuery.isError &&
+      !playlistsQuery.isPlaceholderData &&
+      !playlistsQuery.isFetchNextPageError,
+    onLoadMore: () => void playlistsQuery.fetchNextPage(),
+  })
+
+  const updateSearch = (
+    patch: Partial<PlaylistsSearchParams>,
+    replace: boolean,
+  ) => {
     navigate({
       to: '/playlists',
-      search: (prev) => ({
-        ...prev,
-        search: val.trim() || undefined,
-        page: 1,
-      }),
-      replace: true,
+      search: (prev) => ({ ...prev, ...patch }),
+      replace,
     })
   }
 
-  const handleSortChange = (newSort: SortOption) => {
-    setSort(newSort)
-    setIsSortDropdownOpen(false)
-    navigate({
-      to: '/playlists',
-      search: (prev) => ({
-        ...prev,
-        sort: newSort,
-        page: 1,
-      }),
-      replace: true,
-    })
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    lastWrittenQuery.current = value
+    updateSearch({ search: value || undefined }, true)
+  }
+
+  const clearQuery = () => handleQueryChange('')
+
+  const handleSortChange = (value: string) => {
+    updateSearch({ sort: value as PlaylistSort }, false)
   }
 
   const handleCreatePlaylistClick = () => {
@@ -172,219 +170,264 @@ function PlaylistsDirectoryComponent() {
     openCreatePlaylistModal()
   }
 
+  let emptyTitle = 'No public playlists yet.'
+  let emptyDescription =
+    'Public playlists will appear here once the community starts sharing them.'
+  let emptyAction: ReactNode = (
+    <Button variant="outline" size="sm" onClick={handleCreatePlaylistClick}>
+      Create a playlist
+    </Button>
+  )
+
+  if (debouncedSearch) {
+    emptyTitle = `No playlists match “${debouncedSearch}”.`
+    emptyDescription = 'Try a different title or description.'
+    emptyAction = (
+      <Button variant="outline" size="sm" onClick={clearQuery}>
+        Clear search
+      </Button>
+    )
+  }
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 w-full select-none pb-24 md:pb-16">
-      {/* Header Banner */}
-      <div className="border-b border-border pb-6 sm:pb-8 mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
-          <div>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
-              Groovy Playlists Index
-            </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
+      <header className="border-b border-border pb-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
+              Directory
+            </p>
+            <h1 className="mt-1 font-serif text-heading text-foreground sm:text-display">
               Public Playlists
             </h1>
-            <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
-              Explore community-curated tracklists, thematic soundscapes, and
-              public mixes crafted by listeners and creators across Groovy.
+            <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
+              Browse public playlists curated by the Groovy community.
             </p>
           </div>
 
-          {/* New Playlist CTA */}
-          <button
-            type="button"
+          <Button
+            size="sm"
+            className="w-full shrink-0 sm:w-auto"
             onClick={handleCreatePlaylistClick}
-            className="inline-flex items-center justify-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 bg-foreground text-background hover:opacity-90 rounded-md transition-all shadow-xs shrink-0 cursor-pointer font-medium self-start sm:self-end"
+            leftIcon={
+              <PlusIconSVG className="h-3.5 w-3.5" aria-hidden="true" />
+            }
           >
-            <PlusIconSVG className="w-3.5 h-3.5" />
-            <span>New Playlist</span>
-          </button>
+            New playlist
+          </Button>
         </div>
 
-        {/* Search & Sort Controls Row */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          {/* Search Box */}
-          <div className="relative w-full sm:max-w-md">
-            <input
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-sm">
+            <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
               type="text"
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search public playlists..."
-              className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
+              inputMode="search"
+              value={query}
+              onChange={(event) => handleQueryChange(event.target.value)}
+              placeholder="Search public playlists"
+              aria-label="Search public playlists"
+              className="pl-9 pr-10"
             />
-            <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            {search && (
-              <button
-                type="button"
-                onClick={() => handleSearchChange('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
-                title="Clear search"
+            {query && (
+              <IconButton
+                size="sm"
+                aria-label="Clear search"
+                onClick={clearQuery}
+                className="absolute right-1 top-1/2 -translate-y-1/2"
               >
-                ✕
-              </button>
+                <X className="h-4 w-4" aria-hidden="true" />
+              </IconButton>
             )}
           </div>
 
-          {/* Dropdown Menu & Count */}
-          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-            {/* Custom Dropdown Menu for Sort */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsSortDropdownOpen((prev) => !prev)}
-                className="inline-flex items-center gap-2 font-mono text-caption py-2 px-3.5 border border-border bg-card hover:bg-muted text-foreground rounded-xl focus:outline-none focus:border-foreground/60 transition-all cursor-pointer shadow-raised font-medium"
-              >
-                <span className="text-muted-foreground text-eyebrow uppercase tracking-wider">
-                  Sort:
-                </span>
-                <span>{SORT_LABELS[sort]}</span>
-                <ChevronDownIconSVG
-                  className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-150 ${
-                    isSortDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Dropdown Menu Popup */}
-              {isSortDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsSortDropdownOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-1.5 w-48 py-1 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-border/40 animate-in fade-in zoom-in-95 duration-100">
-                    {(Object.keys(SORT_LABELS) as SortOption[]).map(
-                      (optionKey) => {
-                        const isSelected = sort === optionKey
-                        return (
-                          <button
-                            key={optionKey}
-                            type="button"
-                            onClick={() => handleSortChange(optionKey)}
-                            className={`w-full text-left font-mono text-caption px-3.5 py-2.5 transition-colors cursor-pointer flex items-center justify-between ${
-                              isSelected
-                                ? 'bg-muted text-primary font-semibold'
-                                : 'text-foreground hover:bg-muted/70'
-                            }`}
-                          >
-                            <span>{SORT_LABELS[optionKey]}</span>
-                            {isSelected && (
-                              <span className="text-primary text-eyebrow">✓</span>
-                            )}
-                          </button>
-                        )
-                      },
-                    )}
-                  </div>
-                </>
+          <div className="relative shrink-0 self-end sm:self-auto">
+            <label htmlFor="playlist-sort" className="sr-only">
+              Sort playlists by
+            </label>
+            <select
+              id="playlist-sort"
+              value={sort}
+              onChange={(event) => handleSortChange(event.target.value)}
+              className={cn(
+                'min-h-9 w-auto max-w-full cursor-pointer appearance-none rounded-full border border-border bg-card py-1.5 pl-3 pr-8 font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-muted-foreground transition-colors',
+                'hover:border-foreground/30 hover:text-foreground',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
               )}
-            </div>
-
-            {/* Total Results Count */}
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground shrink-0 border-l border-border pl-3">
-              {totalCount} {totalCount === 1 ? 'Playlist' : 'Playlists'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid of Playlists */}
-      {isLoading && playlists.length === 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div
-              key={i}
-              className="p-2.5 rounded-xl border border-border/40 bg-card/40 animate-pulse flex flex-col gap-2.5"
             >
-              <div className="aspect-square w-full rounded-md bg-secondary/20" />
-              <div className="h-3 w-3/4 bg-secondary/20 rounded-control" />
-              <div className="h-2.5 w-1/2 bg-secondary/20 rounded-control" />
-            </div>
-          ))}
-        </div>
-      ) : playlists.length > 0 ? (
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
-            {playlists.map((playlist) => {
-              const mosaicCovers =
-                (playlist as any).mosaicCoverUrls || playlist.mosaicCovers
-
-              return (
-                <MediaTile
-                  key={playlist.id}
-                  to="/playlists/$id"
-                  params={{ id: playlist.id }}
-                  title={playlist.title}
-                  subtitle={
-                    <span className="flex items-center gap-1.5 truncate">
-                      <span>{playlist.ownerDisplayName || 'Curator'}</span>
-                      <span className="text-border">•</span>
-                      <span>{playlist.tracksCount ?? 0} tracks</span>
-                    </span>
-                  }
-                  imageUrl={playlist.coverImageUrl}
-                  fallbackInitials="♫"
-                  customCover={
-                    <PlaylistCover
-                      coverImageUrl={playlist.coverImageUrl}
-                      mosaicCovers={mosaicCovers}
-                      title={playlist.title}
-                      className="w-full h-full"
-                    />
-                  }
-                />
-              )
-            })}
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
           </div>
-
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="pt-4 text-center">
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                disabled={isLoading}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-6 border border-border bg-card hover:bg-background text-foreground transition-all rounded-full shadow-raised cursor-pointer disabled:opacity-50"
-              >
-                {isLoading ? 'Loading Playlists...' : 'Load More Playlists ↓'}
-              </button>
-            </div>
-          )}
         </div>
-      ) : (
-        /* Empty State */
-        <div className="text-center py-20 border border-border rounded-xl bg-card/40 px-4">
-          <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-            <SearchIconSVG className="w-5 h-5 opacity-60" />
-          </div>
-          <h3 className="font-serif italic text-lg sm:text-heading font-semibold text-foreground">
-            No public playlists found
-          </h3>
-          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
-            {search
-              ? `We couldn't find any public playlists matching "${search}".`
-              : 'Be the first to curate and share a public playlist with the community.'}
-          </p>
-          <div className="mt-5 flex items-center justify-center gap-3">
-            {search && (
-              <button
-                type="button"
-                onClick={() => handleSearchChange('')}
-                className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background rounded-full text-foreground transition-colors cursor-pointer"
-              >
-                Clear Search
-              </button>
+      </header>
+
+      <section aria-busy={playlistsQuery.isFetching} className="mt-5">
+        <div className="mb-3 flex min-h-5 items-center justify-end">
+          <span
+            aria-live="polite"
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground"
+          >
+            {isInitialLoading ? (
+              <span className="sr-only">Loading playlists</span>
+            ) : (
+              <>
+                {isRefreshing && (
+                  <span
+                    className="h-3 w-3 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+                {isRefreshing && (
+                  <span className="sr-only">Updating playlists</span>
+                )}
+                <span className="font-mono tabular-nums">{totalCount}</span>{' '}
+                {totalCount === 1 ? 'playlist' : 'playlists'}
+              </>
             )}
-            <button
-              type="button"
-              onClick={handleCreatePlaylistClick}
-              className="font-eyebrow text-caption uppercase tracking-wider px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-full transition-opacity cursor-pointer font-medium"
-            >
-              + Create Playlist
-            </button>
-          </div>
+          </span>
         </div>
-      )}
+
+        {playlistsQuery.isError && playlists.length > 0 && (
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between gap-3 rounded-surface border border-destructive/30 bg-destructive-soft px-3 py-2 text-caption text-destructive"
+          >
+            <span>Couldn’t refresh playlists.</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => void playlistsQuery.refetch()}
+            >
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {isInitialLoading ? (
+          <PlaylistGridSkeleton />
+        ) : playlistsQuery.isError && playlists.length === 0 ? (
+          <PlaylistEmptyPanel
+            role="alert"
+            title="Couldn’t load playlists."
+            description="Check your connection and try again."
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void playlistsQuery.refetch()}
+              >
+                Try again
+              </Button>
+            }
+          />
+        ) : playlists.length === 0 ? (
+          <PlaylistEmptyPanel
+            title={emptyTitle}
+            description={emptyDescription}
+            action={emptyAction}
+          />
+        ) : (
+          <>
+            <div
+              className={cn(
+                'grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
+                isRefreshing && 'opacity-60',
+              )}
+            >
+              {playlists.map((playlist) => {
+                return (
+                  <MediaTile
+                    key={playlist.id}
+                    to="/playlists/$id"
+                    params={{ id: playlist.id }}
+                    title={playlist.title}
+                    subtitle={
+                      <span className="flex items-center gap-1.5 truncate">
+                        <span>{playlist.ownerDisplayName || 'Curator'}</span>
+                      </span>
+                    }
+                    imageUrl={playlist.coverImageUrl}
+                    fallbackInitials="♫"
+                    customCover={
+                      <PlaylistCover
+                        coverImageUrl={playlist.coverImageUrl}
+                        mosaicCovers={playlist.mosaicCoverUrls}
+                        title={playlist.title}
+                        className="w-full h-full rounded-surface"
+                      />
+                    }
+                  />
+                )
+              })}
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
+              <p
+                aria-live="polite"
+                className="text-caption text-muted-foreground"
+              >
+                Showing{' '}
+                <span className="font-mono tabular-nums text-foreground">
+                  {playlists.length}
+                </span>{' '}
+                of{' '}
+                <span className="font-mono tabular-nums text-foreground">
+                  {totalCount}
+                </span>{' '}
+                {totalCount === 1 ? 'playlist' : 'playlists'}
+              </p>
+
+              {playlistsQuery.isFetchingNextPage && (
+                <span
+                  role="status"
+                  className="flex items-center gap-2 text-caption text-muted-foreground"
+                >
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground"
+                    aria-hidden="true"
+                  />
+                  Loading more playlists…
+                </span>
+              )}
+
+              {playlistsQuery.isFetchNextPageError && (
+                <div
+                  role="alert"
+                  className="flex items-center gap-3 text-caption text-destructive"
+                >
+                  <span>Couldn’t load more playlists.</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => void playlistsQuery.fetchNextPage()}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              )}
+
+              {playlistsQuery.hasNextPage &&
+                !playlistsQuery.isFetchNextPageError && (
+                  <div
+                    ref={loadMoreRef}
+                    aria-hidden="true"
+                    className="h-px w-full"
+                  />
+                )}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   )
 }
