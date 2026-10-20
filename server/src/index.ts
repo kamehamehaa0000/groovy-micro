@@ -1,4 +1,5 @@
 import Fastify from 'fastify'
+import compress from '@fastify/compress'
 import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
@@ -99,6 +100,19 @@ export async function bootstrap(
   })
 
   await app.register(sensible)
+
+  // Responses here are big (a recommendations feed is ~100 KB of JSON) and
+  // compress roughly ten to one, which is most of the time a client spends
+  // waiting on the body. Two things this plugin does on its own, so nothing
+  // else has to care:
+  //   - it never touches `text/event-stream`, so the player and notification
+  //     streams are not buffered by it;
+  //   - it skips payloads under `threshold` bytes, where compressing costs
+  //     more than it saves.
+  await app.register(compress, {
+    global: true,
+    threshold: 1024,
+  })
 
   // 2. Register Modular Monolith API Domains
   await app.register(authRoutes, { prefix: '/api/v1/auth' })
