@@ -254,7 +254,7 @@ function LibraryPageComponent() {
   const isSearchActive = isSearchOpen || searchQuery.trim().length > 0
 
   return (
-    <div className="max-w-5xl mx-auto px-1 sm:px-6 pt-2 pb-24 md:pb-16 select-none">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 select-none sm:px-8 sm:pt-10 md:pb-16">
       {/* ===================== STICKY APP HEADER WITH PILLS ===================== */}
       <header className="sticky top-14 z-30 bg-background backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}
@@ -501,7 +501,7 @@ function LibraryPageComponent() {
         </div>
       ) : (
         // Grid View (Tiled cards, no pin/unpin/share options)
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {filteredAndSortedItems.map((item) => (
             <LibraryItemCard
               key={item.id}

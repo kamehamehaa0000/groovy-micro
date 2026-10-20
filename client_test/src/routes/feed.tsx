@@ -299,7 +299,7 @@ function FilterBar({
   onChange: (filter: FeedFilter) => void
 }) {
   return (
-    <div className="sticky top-14 z-20 -mx-4 mt-5 border-b border-border/60 bg-background/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 xl:mt-0">
+    <div className="sticky top-14 z-20 -mx-4 mt-5 border-b border-border/60 bg-background/90 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8 xl:mt-0">
       <div
         role="tablist"
         aria-label="Filter feed"
@@ -638,7 +638,7 @@ function FeedPage() {
   )
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
       <header className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">

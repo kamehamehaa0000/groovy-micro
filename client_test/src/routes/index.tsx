@@ -200,7 +200,7 @@ function HomeComponent() {
   }
 
   return (
-    <div className="space-y-6 px-2 py-4 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
       {/* ------------------------------------------------------------ */}
       {/* Initial Auth-Checking Skeleton (Prevents Blank Screen)        */}
       {/* ------------------------------------------------------------ */}
