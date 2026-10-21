@@ -1,13 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import {
+  Link2,
+  ListPlus,
+  MoreVertical,
+  Play,
+  Settings2,
+  Share2,
+  Sparkles,
+} from 'lucide-react'
 import { usePlayerStore } from '../../stores/player.store'
 import type { PlayerTrack } from '../../types/player'
 import { PlaylistCover } from '../PlaylistCover'
-import {
-  PlayIconSVG,
-  TrashIconSVG,
-  EditIconSVG,
-} from '../icons'
 
 export interface PlaylistActionMenuProps {
   playlist: {
@@ -25,10 +29,8 @@ export interface PlaylistActionMenuProps {
   }
   tracks?: PlayerTrack[]
   isOwner?: boolean
-  canEdit?: boolean
   onClone?: () => void
   onOpenSettings?: () => void
-  onDeleteRequest?: () => void
   buttonClassName?: string
   align?: 'left' | 'right'
 }
@@ -37,10 +39,8 @@ export function PlaylistActionMenu({
   playlist,
   tracks = [],
   isOwner = false,
-  canEdit = false,
   onClone,
   onOpenSettings,
-  onDeleteRequest,
   buttonClassName = 'p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-muted border border-border bg-card shadow-raised',
   align = 'right',
 }: PlaylistActionMenuProps) {
@@ -276,13 +276,6 @@ export function PlaylistActionMenu({
     }
   }
 
-  const handleDeleteClick = () => {
-    setIsOpen(false)
-    if (onDeleteRequest) {
-      onDeleteRequest()
-    }
-  }
-
   const mosaicCovers = playlist.mosaicCovers || playlist.mosaicCoverUrls
 
   return (
@@ -303,9 +296,7 @@ export function PlaylistActionMenu({
         title="More playlist options"
         aria-label="Playlist options"
       >
-        <span className="font-mono text-body leading-none tracking-widest text-foreground select-none">
-          •••
-        </span>
+        <MoreVertical className="h-5 w-5" />
       </button>
 
       {/* Floating Action Menu Portal */}
@@ -335,7 +326,7 @@ export function PlaylistActionMenu({
                       onClick={handleCloneClick}
                       className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5 font-medium"
                     >
-                      <span className="text-primary text-body">✦</span>
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>Clone to Library</span>
                     </button>
                   )}
@@ -345,7 +336,7 @@ export function PlaylistActionMenu({
                     onClick={handlePlayNext}
                     className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                   >
-                    <PlayIconSVG className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <Play className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span>Play Next</span>
                   </button>
 
@@ -354,20 +345,7 @@ export function PlaylistActionMenu({
                     onClick={handleAddToQueue}
                     className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-3.5 h-3.5 text-muted-foreground shrink-0"
-                    >
-                      <line x1="8" y1="6" x2="21" y2="6" />
-                      <line x1="8" y1="12" x2="21" y2="12" />
-                      <line x1="8" y1="18" x2="21" y2="18" />
-                      <line x1="3" y1="6" x2="3.01" y2="6" />
-                      <line x1="3" y1="12" x2="3.01" y2="12" />
-                      <line x1="3" y1="18" x2="3.01" y2="18" />
-                    </svg>
+                    <ListPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span>Add to Queue</span>
                   </button>
                 </div>
@@ -379,19 +357,7 @@ export function PlaylistActionMenu({
                     onClick={handleShare}
                     className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-3.5 h-3.5 text-muted-foreground shrink-0"
-                    >
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
+                    <Share2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span>Share Playlist</span>
                   </button>
 
@@ -401,14 +367,14 @@ export function PlaylistActionMenu({
                       onClick={handleCopyCollabLink}
                       className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                     >
-                      <span className="text-caption">🤝</span>
+                      <Link2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span>Copy Invite Link</span>
                     </button>
                   )}
                 </div>
 
-                {/* Section 3: Settings & Governance (Owner / Editor) */}
-                {(isOwner || canEdit) && (
+                {/* Section 3: Settings & Governance (Owner only) */}
+                {isOwner && (
                   <div className="py-1">
                     {onOpenSettings && (
                       <button
@@ -416,19 +382,8 @@ export function PlaylistActionMenu({
                         onClick={handleOpenSettingsClick}
                         className="w-full text-left px-3.5 py-2 hover:bg-muted/70 text-foreground transition-colors cursor-pointer flex items-center gap-2.5"
                       >
-                        <EditIconSVG className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        <Settings2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                         <span>Settings</span>
-                      </button>
-                    )}
-
-                    {isOwner && onDeleteRequest && (
-                      <button
-                        type="button"
-                        onClick={handleDeleteClick}
-                        className="w-full text-left px-3.5 py-2 hover:bg-destructive/20 text-destructive hover:text-destructive transition-colors cursor-pointer flex items-center gap-2.5"
-                      >
-                        <TrashIconSVG className="w-3.5 h-3.5 text-destructive shrink-0" />
-                        <span>Delete Playlist</span>
                       </button>
                     )}
                   </div>
@@ -507,7 +462,7 @@ export function PlaylistActionMenu({
                           onClick={handleCloneClick}
                           className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3 font-medium"
                         >
-                          <span className="text-primary text-title">✦</span>
+                          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
                           <span className="text-body">Clone to Library</span>
                         </button>
                       )}
@@ -517,7 +472,7 @@ export function PlaylistActionMenu({
                         onClick={handlePlayNext}
                         className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                       >
-                        <PlayIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <Play className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-body">Play Next</span>
                       </button>
 
@@ -526,20 +481,7 @@ export function PlaylistActionMenu({
                         onClick={handleAddToQueue}
                         className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className="w-4 h-4 text-muted-foreground shrink-0"
-                        >
-                          <line x1="8" y1="6" x2="21" y2="6" />
-                          <line x1="8" y1="12" x2="21" y2="12" />
-                          <line x1="8" y1="18" x2="21" y2="18" />
-                          <line x1="3" y1="6" x2="3.01" y2="6" />
-                          <line x1="3" y1="12" x2="3.01" y2="12" />
-                          <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
+                        <ListPlus className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-body">Add to Queue</span>
                       </button>
                     </div>
@@ -551,19 +493,7 @@ export function PlaylistActionMenu({
                         onClick={handleShare}
                         className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className="w-4 h-4 text-muted-foreground shrink-0"
-                        >
-                          <circle cx="18" cy="5" r="3" />
-                          <circle cx="6" cy="12" r="3" />
-                          <circle cx="18" cy="19" r="3" />
-                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                        </svg>
+                        <Share2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-body">Share Playlist</span>
                       </button>
 
@@ -573,14 +503,14 @@ export function PlaylistActionMenu({
                           onClick={handleCopyCollabLink}
                           className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                         >
-                          <span className="text-body">🤝</span>
+                          <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="text-body">Copy Invite Link</span>
                         </button>
                       )}
                     </div>
 
-                    {/* Section 3: Settings & Governance (Owner / Editor) */}
-                    {(isOwner || canEdit) && (
+                    {/* Section 3: Settings & Governance (Owner only) */}
+                    {isOwner && (
                       <div className="py-1">
                         {onOpenSettings && (
                           <button
@@ -588,19 +518,8 @@ export function PlaylistActionMenu({
                             onClick={handleOpenSettingsClick}
                             className="w-full text-left px-5 py-3 hover:bg-muted/70 active:bg-muted text-foreground transition-colors flex items-center gap-3"
                           >
-                            <EditIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <Settings2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                             <span className="text-body">Settings</span>
-                          </button>
-                        )}
-
-                        {isOwner && onDeleteRequest && (
-                          <button
-                            type="button"
-                            onClick={handleDeleteClick}
-                            className="w-full text-left px-5 py-3 hover:bg-destructive/20 active:bg-destructive-soft text-destructive transition-colors flex items-center gap-3"
-                          >
-                            <TrashIconSVG className="w-4 h-4 text-destructive shrink-0" />
-                            <span className="text-body">Delete Playlist</span>
                           </button>
                         )}
                       </div>

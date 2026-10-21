@@ -418,11 +418,15 @@ export class PlaylistsService {
       };
     });
 
-    // Enrich songs with user likes (0ms Redis Set check)
-    const enrichedTracksWithLikes = await likesCacheService.enrichSongsWithLikes(
-      currentUserId,
-      tracks.map((t) => ({ ...t, id: t.songId }))
-    );
+    // Likes and saved state are independent Redis lookups — resolve them together.
+    const [enrichedTracksWithLikes, isSaved] = await Promise.all([
+      likesCacheService.enrichSongsWithLikes(
+        currentUserId,
+        // Only the song IDs are needed; avoids copying the full track payload.
+        tracks.map((track) => ({ id: track.songId }))
+      ),
+      playlistsCacheService.isPlaylistSaved(currentUserId, playlistId),
+    ]);
 
     for (let i = 0; i < tracks.length; i++) {
       const isLiked = enrichedTracksWithLikes[i]?.isLiked ?? false;
@@ -443,7 +447,6 @@ export class PlaylistsService {
       }
     }
 
-    const isSaved = await playlistsCacheService.isPlaylistSaved(currentUserId, playlistId);
     const totalDurationSeconds = tracks.reduce((acc, t) => acc + t.durationSeconds, 0);
 
     return {
@@ -493,11 +496,6 @@ export class PlaylistsService {
     }
 
     const whereClause = and(...conditions);
-
-    const [countResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(playlists)
-      .where(whereClause);
 
     const tracksCountSql = sql<number>`(
       SELECT count(*)::int
@@ -565,21 +563,27 @@ export class PlaylistsService {
       ];
     }
 
-    const playlistRows = await db
-      .select({
-        id: playlists.id,
-        ownerDisplayName: users.displayName,
-        title: playlists.title,
-        coverImageUrl: playlists.coverImageUrl,
-        mosaicCoverUrls: mosaicCoverUrlsSql,
-        tracksCount: tracksCountSql,
-      })
-      .from(playlists)
-      .innerJoin(users, eq(playlists.ownerId, users.id))
-      .where(whereClause)
-      .orderBy(...orderByClause)
-      .limit(limit)
-      .offset(offset);
+    const [[countResult], playlistRows] = await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(playlists)
+        .where(whereClause),
+      db
+        .select({
+          id: playlists.id,
+          ownerDisplayName: users.displayName,
+          title: playlists.title,
+          coverImageUrl: playlists.coverImageUrl,
+          mosaicCoverUrls: mosaicCoverUrlsSql,
+          tracksCount: tracksCountSql,
+        })
+        .from(playlists)
+        .innerJoin(users, eq(playlists.ownerId, users.id))
+        .where(whereClause)
+        .orderBy(...orderByClause)
+        .limit(limit)
+        .offset(offset),
+    ]);
 
     const data: PublicPlaylistSummary[] =
       await playlistsCacheService.enrichPlaylistsWithSaves(playlistRows, currentUserId);

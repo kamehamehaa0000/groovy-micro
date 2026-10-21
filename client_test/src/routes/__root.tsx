@@ -1149,6 +1149,7 @@ function RootComponent() {
                       pathname === '/artists/' ||
                       pathname === '/playlists' ||
                       pathname === '/playlists/' ||
+                      pathname.startsWith('/playlists/') ||
                       pathname === '/library' ||
                       pathname === '/library/' ||
                       pathname === '/vault' ||

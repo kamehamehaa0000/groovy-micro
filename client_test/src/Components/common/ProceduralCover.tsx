@@ -5,6 +5,8 @@ interface ProceduralCoverProps {
   artistName?: string | null;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
+  /** Stretch to fill the parent box instead of using a fixed size. */
+  fill?: boolean;
 }
 
 const GRADIENT_PALETTES = [
@@ -31,6 +33,7 @@ export const ProceduralCover: React.FC<ProceduralCoverProps> = ({
   artistName = "",
   className = "",
   size = "md",
+  fill = false,
 }) => {
   const seed = `${title}_${artistName}`;
   const hash = useMemo(() => djb2Hash(seed), [seed]);
@@ -49,16 +52,20 @@ export const ProceduralCover: React.FC<ProceduralCoverProps> = ({
 
   const patternType = hash % 3; // 0: wave, 1: vinyl circles, 2: modern diagonal grid
 
-  const sizeClasses = {
-    sm: "w-10 h-10 text-caption",
-    md: "w-16 h-16 text-body",
-    lg: "w-32 h-32 text-heading",
-    xl: "w-48 h-48 text-3xl",
-  }[size];
+  const sizeClasses = fill
+    ? "h-full w-full"
+    : {
+        sm: "w-10 h-10 text-caption",
+        md: "w-16 h-16 text-body",
+        lg: "w-32 h-32 text-heading",
+        xl: "w-48 h-48 text-3xl",
+      }[size];
+  const frameClasses = fill ? sizeClasses : `${sizeClasses} rounded-md shadow-md`;
+  const cornerClasses = fill ? "" : "rounded-md";
 
   return (
     <div
-      className={`relative overflow-hidden rounded-md flex items-center justify-center font-bold tracking-wider select-none shadow-md ${sizeClasses} ${className}`}
+      className={`relative overflow-hidden flex items-center justify-center font-bold tracking-wider select-none ${frameClasses} ${className}`}
       style={{
         background: `linear-gradient(${angle}deg, ${palette.from}, ${palette.via}, ${palette.to})`,
       }}
@@ -103,7 +110,9 @@ export const ProceduralCover: React.FC<ProceduralCoverProps> = ({
       </span>
 
       {/* Glassmorphic border */}
-      <div className="absolute inset-0 rounded-md border border-white/20 pointer-events-none" />
+      <div
+        className={`absolute inset-0 border border-white/20 pointer-events-none ${cornerClasses}`}
+      />
     </div>
   );
 };

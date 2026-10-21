@@ -264,10 +264,7 @@ export function PlaylistTrackReorderList({
   )
 
   return (
-    <div
-      ref={containerRef}
-      className="border border-border bg-card divide-y divide-border/60 shadow-xs relative"
-    >
+    <div ref={containerRef} className="relative space-y-0.5">
       {tracks.map((track, idx) => {
         const entryId = track.id || (track as any).entryId
         const song = track.song || (track as any)
@@ -351,6 +348,9 @@ export function PlaylistTrackReorderList({
             index={idx}
             trackNumberDisplay={track.position + 1}
             variant="playlist"
+            surface="transparent"
+            density="compact"
+            showThumbnailBorder={false}
             addedByDisplayName={track.addedByDisplayName}
             scheduledReleaseAt={song.scheduledReleaseAt}
             albumTitleOverride={song.albumTitle}

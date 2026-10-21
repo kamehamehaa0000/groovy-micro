@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { cn } from './cn'
 
 export type SheetPlacement = 'bottom' | 'center'
-export type SheetSize = 'sm' | 'md' | 'lg'
+export type SheetSize = 'sm' | 'md' | 'lg' | 'xl'
 
 export interface SheetProps {
   open: boolean
@@ -17,6 +17,8 @@ export interface SheetProps {
   size?: SheetSize
   /** Bottom sheets only — hide the grab handle. */
   hideHandle?: boolean
+  /** Fixed action area rendered below the scrollable content. */
+  footer?: ReactNode
   className?: string
 }
 
@@ -24,6 +26,7 @@ const SIZE: Record<SheetSize, string> = {
   sm: 'sm:max-w-sm',
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-xl',
 }
 
 /* --- gesture tuning ------------------------------------------------------- */
@@ -48,10 +51,12 @@ export function Sheet({
   placement = 'bottom',
   size = 'md',
   hideHandle = false,
+  footer,
   className,
 }: SheetProps) {
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
   const [mounted, setMounted] = useState(open)
   const [visible, setVisible] = useState(false)
   const [dragY, setDragY] = useState(0)
@@ -80,21 +85,32 @@ export function Sheet({
     return () => window.clearTimeout(timer)
   }, [open])
 
+  // Keep the latest close callback without re-running focus/scroll effects.
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   /* Escape to close, lock body scroll, move focus into the panel. */
   useEffect(() => {
-    if (!open) return
+    // Wait for the panel to mount; the first open render still has
+    // `mounted === false`, so focusing there would hit a null ref.
+    if (!open || !mounted) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', onKeyDown)
-    panelRef.current?.focus({ preventScroll: true })
+    const panel = panelRef.current
+    // Respect an autoFocus field inside the sheet (e.g. catalog search).
+    if (panel && !panel.contains(document.activeElement)) {
+      panel.focus({ preventScroll: true })
+    }
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
     }
-  }, [open, onClose])
+  }, [open, mounted])
 
   const isBottom = placement === 'bottom'
 
@@ -253,6 +269,12 @@ export function Sheet({
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {children}
         </div>
+
+        {footer ? (
+          <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-5">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   )

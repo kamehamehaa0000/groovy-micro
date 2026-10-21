@@ -38,6 +38,9 @@ export interface SongRowProducerCredit {
 export type SongRowVariant =
   'standard' | 'album' | 'playlist' | 'artist' | 'search'
 
+export type SongRowSurface = 'card' | 'transparent'
+export type SongRowDensity = 'comfortable' | 'compact'
+
 // Queue tray geometry. The label starts just outside the row's trailing edge
 // and slides in with the row. Once it fits with the tray's right padding, it
 // stays anchored there instead of drifting with the row.
@@ -51,6 +54,12 @@ export interface SongRowProps {
   index?: number
   trackNumberDisplay?: number | string
   variant?: SongRowVariant
+  /** Row surface. Use `transparent` to blend into a page-level tracklist. */
+  surface?: SongRowSurface
+  /** `compact` tightens the row and reduces mobile horizontal padding. */
+  density?: SongRowDensity
+  /** Set false to remove the artwork thumbnail outline. */
+  showThumbnailBorder?: boolean
 
   // Contextual metadata
   playsCount?: number
@@ -96,6 +105,9 @@ export const SongRow = memo(function SongRow({
   index = 0,
   trackNumberDisplay,
   variant = 'standard',
+  surface = 'card',
+  density = 'comfortable',
+  showThumbnailBorder = true,
 
   playsCount,
   addedByDisplayName,
@@ -397,6 +409,19 @@ export const SongRow = memo(function SongRow({
     variant === 'search' ||
     (variant === 'artist' && true)
 
+  const isTransparent = surface === 'transparent'
+  const isCompact = density === 'compact'
+  const rowSurface = isTransparent ? 'bg-transparent' : 'bg-card'
+  const rowHover = isTransparent ? 'sm:hover:bg-card/70' : 'sm:hover:bg-muted'
+  const rowPadding = isCompact
+    ? 'px-2 py-2 sm:px-3 sm:py-2.5'
+    : 'px-3.5 sm:px-4 py-2.5 sm:py-3'
+  const contentGap = isCompact ? 'gap-2 sm:gap-2.5' : 'gap-2.5 sm:gap-3.5'
+  const thumbnailSize = isCompact
+    ? 'w-9 h-9 sm:w-10 sm:h-10'
+    : 'w-10 h-10 sm:w-11 sm:h-11'
+  const thumbnailBorder = showThumbnailBorder ? 'border border-border' : ''
+
   // Mirror the library swipe: the action tray fades and scales with the drag.
   const swipeMagnitude = Math.abs(swipeOffset)
   const swipeOpacity = Math.min(swipeMagnitude / 30, 1)
@@ -508,13 +533,13 @@ export const SongRow = memo(function SongRow({
               ? 'none'
               : 'transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1)',
           }}
-          className={`relative z-10 px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 bg-card sm:hover:bg-muted transition-colors group cursor-pointer rounded-inset ${
+          className={`relative z-10 ${rowPadding} flex items-center justify-between gap-3 ${rowSurface} ${rowHover} transition-colors group cursor-pointer rounded-inset ${
             isDragging ? 'bg-card' : ''
           }`}
         >
           {/* ==================== LEFT SECTION ==================== */}
           <div
-            className={`flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1 ${
+            className={`flex items-center ${contentGap} min-w-0 flex-1 ${
               isLocked ? 'opacity-65' : ''
             }`}
           >
@@ -546,7 +571,9 @@ export const SongRow = memo(function SongRow({
 
             {/* Leading Display: Thumbnail vs Track Number */}
             {showThumbnail ? (
-              <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-muted border border-border rounded-control overflow-hidden shrink-0 group/thumb">
+              <div
+                className={`relative ${thumbnailSize} bg-muted ${thumbnailBorder} rounded-control overflow-hidden shrink-0 group/thumb`}
+              >
                 {track.coverImageUrl ? (
                   <img
                     src={track.coverImageUrl}

@@ -55,6 +55,19 @@ export class PlaylistsCacheService {
    */
   async isPlaylistSaved(userId: string | null | undefined, playlistId: string): Promise<boolean> {
     if (!userId || !playlistId) return false;
+    const key = cacheKeys.social.userSavedPlaylists(userId);
+
+    try {
+      // One EXISTS + one SISMEMBER instead of pulling the user's entire saved set.
+      const exists = await redis.exists(key);
+      if (exists) {
+        const isMember = await redis.sismember(key, playlistId);
+        return isMember === 1;
+      }
+    } catch (err) {
+      console.warn(`[PlaylistsCacheService] Redis SISMEMBER failed for ${key}:`, err);
+    }
+
     const savedSet = await this.getUserSavedPlaylistIds(userId);
     return savedSet.has(playlistId);
   }
@@ -116,12 +129,23 @@ export class PlaylistsCacheService {
       throw new Error("Playlist not found");
     }
 
-    // Insert library save and increment savesCount atomically
+    // Insert library save and increment savesCount atomically. Only a newly
+    // inserted row may increment the counter, otherwise repeat saves drift it.
     const updatedCount = await db.transaction(async (tx) => {
-      await tx
+      const inserted = await tx
         .insert(userLibraryPlaylists)
         .values({ userId, playlistId })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ playlistId: userLibraryPlaylists.playlistId });
+
+      if (inserted.length === 0) {
+        const [current] = await tx
+          .select({ savesCount: playlists.savesCount })
+          .from(playlists)
+          .where(eq(playlists.id, playlistId))
+          .limit(1);
+        return current?.savesCount ?? 0;
+      }
 
       const [updated] = await tx
         .update(playlists)
