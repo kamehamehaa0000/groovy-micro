@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { slugifyText, artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
-import { toast } from 'sonner'
+import { notify } from '../../lib/toast'
 import { PartyPopper, Sparkles } from 'lucide-react'
 
 interface StudioUpgradeScreenProps {
@@ -27,12 +27,12 @@ export function StudioUpgradeScreen({
   const handleInstantUpgrade = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!stageName.trim()) {
-      toast.error('Please provide a stage name')
+      notify.error('Please provide a stage name')
       return
     }
 
     setIsSubmittingUpgrade(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const socialLinks: Record<string, string> = {}
@@ -49,12 +49,12 @@ export function StudioUpgradeScreen({
       })
 
       setArtistProfile(res.profile)
-      toast.success(
+      notify.success(
         'Welcome to Groovy Creator Studio! Your artist identity is live.',
         { icon: <PartyPopper className="h-3 w-3" /> },
       )
     } catch (err: any) {
-      toast.error(
+      notify.error(
         err.message || 'Instant upgrade failed. Please check your details.',
       )
     } finally {

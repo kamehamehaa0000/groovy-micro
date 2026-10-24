@@ -12,7 +12,7 @@ import {
   UploadCloud,
   X,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '../../lib/toast'
 import type { SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
@@ -127,7 +127,7 @@ export function CreateReleaseDrawer({
     }
     setReleaseCoverFile(file)
     setReleaseCoverPreview(URL.createObjectURL(file))
-    toast.success('Cover artwork selected for release.')
+    notify.success('Cover artwork selected for release.')
   }
   const handleRemoveCover = () => {
     if (releaseCoverPreview?.startsWith('blob:')) {
@@ -145,7 +145,7 @@ export function CreateReleaseDrawer({
         t.id === draftId ? { ...t, isUploadingAudio: true } : t,
       ),
     )
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       // 1. Extract metadata from audio file
@@ -209,11 +209,11 @@ export function CreateReleaseDrawer({
             : t,
         ),
       )
-      toast.success(
+      notify.success(
         `Master audio "${file.name}" uploaded to R2 and metadata prefilled.`,
       )
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload audio cut')
+      notify.error(err.message || 'Failed to upload audio cut')
       setDraftTracks((prev) =>
         prev.map((t) =>
           t.id === draftId ? { ...t, isUploadingAudio: false } : t,
@@ -328,7 +328,7 @@ export function CreateReleaseDrawer({
   // Standalone Single Audio Upload & Metadata Prefill
   const handleSingleAudioFile = async (file: File) => {
     setIsUploadingSingleAudio(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       // 1. Extract metadata from audio file
@@ -412,11 +412,11 @@ export function CreateReleaseDrawer({
         setSingleTrackDuration(durationSeconds)
       }
 
-      toast.success(
+      notify.success(
         `Audio master "${file.name}" uploaded and metadata prefilled. You can review or edit all details.`,
       )
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload audio')
+      notify.error(err.message || 'Failed to upload audio')
     } finally {
       setIsUploadingSingleAudio(false)
       if (singleAudioInputRef.current) singleAudioInputRef.current.value = ''
@@ -453,7 +453,7 @@ export function CreateReleaseDrawer({
   const handleBatchImportFiles = async (files: File[]) => {
     if (files.length === 0) return
     setIsBatchImporting(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       // 1. Concurrently parse metadata for all selected audio files
@@ -568,7 +568,7 @@ export function CreateReleaseDrawer({
       }
 
       if (uniqueParsedList.length === 0) {
-        toast.error(
+        notify.error(
           `All ${parsedList.length} selected audio file(s) are duplicates of cuts already in this release draft.`,
         )
         return
@@ -688,13 +688,13 @@ export function CreateReleaseDrawer({
       )
       await Promise.all(workers)
 
-      toast.success(
+      notify.success(
         duplicateNames.length > 0
           ? `Imported ${uniqueParsedList.length} cut(s) into release draft (${duplicateNames.length} duplicate(s) excluded).`
           : `Imported and extracted metadata for ${uniqueParsedList.length} cuts! All details can be reviewed and edited.`,
       )
     } catch (err: any) {
-      toast.error(err.message || 'Failed to batch import cuts')
+      notify.error(err.message || 'Failed to batch import cuts')
     } finally {
       setIsBatchImporting(false)
       if (batchCutsInputRef.current) batchCutsInputRef.current.value = ''
@@ -705,7 +705,7 @@ export function CreateReleaseDrawer({
   const handlePublishRelease = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!releaseTitle.trim()) {
-      toast.error(
+      notify.error(
         releaseType === 'SINGLE'
           ? 'Please provide a single title'
           : 'Please provide a release title',
@@ -713,19 +713,19 @@ export function CreateReleaseDrawer({
       return
     }
     if (!releaseCoverFile && !releaseCoverUrl) {
-      toast.error('Please provide cover artwork for the release')
+      notify.error('Please provide cover artwork for the release')
       return
     }
 
     setIsSubmittingRelease(true)
-    toast.dismiss()
+    notify.dismiss()
 
     const todayDate = new Date().toISOString().split('T')[0]
 
     let scheduledReleaseAtIso: string | undefined = undefined
     if (releaseMode === 'SCHEDULED') {
       if (!scheduledDate || !scheduledTime) {
-        toast.error(
+        notify.error(
           'Please choose both a date and time for the scheduled release',
         )
         setIsSubmittingRelease(false)
@@ -735,12 +735,12 @@ export function CreateReleaseDrawer({
         `${scheduledDate}T${scheduledTime}`,
       ).getTime()
       if (isNaN(parsedTimestamp)) {
-        toast.error('Invalid scheduled release date/time')
+        notify.error('Invalid scheduled release date/time')
         setIsSubmittingRelease(false)
         return
       }
       if (parsedTimestamp <= Date.now()) {
-        toast.error('Scheduled release time must be in the future')
+        notify.error('Scheduled release time must be in the future')
         setIsSubmittingRelease(false)
         return
       }
@@ -757,7 +757,7 @@ export function CreateReleaseDrawer({
           setReleaseCoverUrl(finalCoverUrl)
           setReleaseCoverFile(null)
         } catch (covErr: any) {
-          toast.error(
+          notify.error(
             covErr.message || 'Failed to upload cover artwork to R2',
           )
           setIsSubmittingRelease(false)
@@ -769,14 +769,14 @@ export function CreateReleaseDrawer({
       }
 
       if (!finalCoverUrl) {
-        toast.error('Please provide cover artwork for the release')
+        notify.error('Please provide cover artwork for the release')
         setIsSubmittingRelease(false)
         return
       }
 
       if (releaseType === 'SINGLE') {
         if (!singleTrackAudioUrl && !singleTrackAudioKey) {
-          toast.error(
+          notify.error(
             'Please upload a master audio file for the single release',
           )
           setIsSubmittingRelease(false)
@@ -828,19 +828,19 @@ export function CreateReleaseDrawer({
         })
 
         if (releaseMode === 'SCHEDULED') {
-          toast.success(
+          notify.success(
             `Standalone single release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`,
             { icon: <CalendarClock className="h-3 w-3" /> },
           )
         } else {
-          toast.success(
+          notify.success(
             `Standalone single release "${releaseTitle}" published successfully (${releaseVisibility})!`,
             { icon: <PartyPopper className="h-3 w-3" /> },
           )
         }
       } else {
         if (draftTracks.length === 0) {
-          toast.error('Please add at least one cut to the release')
+          notify.error('Please add at least one cut to the release')
           setIsSubmittingRelease(false)
           return
         }
@@ -902,12 +902,12 @@ export function CreateReleaseDrawer({
         })
 
         if (releaseMode === 'SCHEDULED') {
-          toast.success(
+          notify.success(
             `Master ${releaseType} release "${releaseTitle}" scheduled for ${new Date(scheduledReleaseAtIso!).toLocaleString()} (${releaseVisibility})!`,
             { icon: <CalendarClock className="h-3 w-3" /> },
           )
         } else {
-          toast.success(
+          notify.success(
             `Master ${releaseType} release "${releaseTitle}" published successfully (${releaseVisibility})!`,
             { icon: <PartyPopper className="h-3 w-3" /> },
           )
@@ -918,7 +918,7 @@ export function CreateReleaseDrawer({
       resetReleaseForm()
       onReleasesChanged()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create release')
+      notify.error(err.message || 'Failed to create release')
     } finally {
       setIsSubmittingRelease(false)
     }

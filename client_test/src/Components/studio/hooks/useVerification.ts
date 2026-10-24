@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { artistsApi } from '../../../lib/artists.api'
 import type { ArtistProfile } from '../../../types/artist'
-import { toast } from 'sonner'
+import { notify } from '../../../lib/toast'
 
 export function useVerification(
   setArtistProfile: React.Dispatch<React.SetStateAction<ArtistProfile | null>>,
@@ -20,14 +20,14 @@ export function useVerification(
     const cleanLinks = verifyLinks.map((l) => l.trim()).filter(Boolean)
 
     if (cleanLinks.length === 0) {
-      toast.error(
+      notify.error(
         'Please provide at least one proof link (e.g. Spotify, official website)',
       )
       return
     }
 
     setIsSubmittingVerify(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const res = await artistsApi.requestVerification({
@@ -39,11 +39,11 @@ export function useVerification(
 
       setArtistProfile(res.profile)
       setShowResubmitForm(false)
-      toast.success(
+      notify.success(
         'Verification application submitted for administrative review.',
       )
     } catch (err: any) {
-      toast.error(err.message || 'Verification submission failed')
+      notify.error(err.message || 'Verification submission failed')
     } finally {
       setIsSubmittingVerify(false)
     }

@@ -97,6 +97,9 @@ export interface PlaylistSummary {
   savesCount: number;
   isSaved: boolean;
   tracksCount: number;
+  /** Present when `getUserPlaylists` is called with `forSongIds`. */
+  containsCount?: number;
+  containsAll?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -600,7 +603,11 @@ export class PlaylistsService {
   // 4. USER OWNED & USER SAVED PLAYLISTS
   // =========================================================================
 
-  async getUserPlaylists(targetUserId: string, currentUserId?: string): Promise<PlaylistSummary[]> {
+  async getUserPlaylists(
+    targetUserId: string,
+    currentUserId?: string,
+    forSongIds: string[] = []
+  ): Promise<PlaylistSummary[]> {
     const isSelf = targetUserId === currentUserId;
     const conditions = [eq(playlists.ownerId, targetUserId)];
 
@@ -643,7 +650,43 @@ export class PlaylistsService {
       isSaved: false,
     }));
 
-    return await playlistsCacheService.enrichPlaylistsWithSaves(summaries, currentUserId);
+    const enriched = await playlistsCacheService.enrichPlaylistsWithSaves(
+      summaries,
+      currentUserId
+    );
+
+    if (forSongIds.length === 0 || enriched.length === 0) return enriched;
+
+    // One aggregate lookup answers "is this batch already in each playlist?"
+    // for every playlist at once — no per-track round-trips.
+    const uniqueSongIds = Array.from(new Set(forSongIds));
+    const playlistIds = enriched.map((p) => p.id);
+    const membershipRows = await db
+      .select({
+        playlistId: playlistSongs.playlistId,
+        matchedCount: sql<number>`count(distinct ${playlistSongs.songId})::int`,
+      })
+      .from(playlistSongs)
+      .where(
+        and(
+          inArray(playlistSongs.playlistId, playlistIds),
+          inArray(playlistSongs.songId, uniqueSongIds)
+        )
+      )
+      .groupBy(playlistSongs.playlistId);
+
+    const matchedByPlaylist = new Map(
+      membershipRows.map((row) => [row.playlistId, Number(row.matchedCount)])
+    );
+
+    return enriched.map((summary) => {
+      const containsCount = matchedByPlaylist.get(summary.id) ?? 0;
+      return {
+        ...summary,
+        containsCount,
+        containsAll: containsCount === uniqueSongIds.length,
+      };
+    });
   }
 
   async getUserSavedPlaylists(userId: string): Promise<PlaylistSummary[]> {
@@ -775,7 +818,7 @@ export class PlaylistsService {
     userId: string,
     playlistId: string,
     songIds: string[]
-  ): Promise<{ addedCount: number }> {
+  ): Promise<{ addedCount: number; skippedCount: number }> {
     const [playlist] = await db
       .select()
       .from(playlists)
@@ -846,7 +889,10 @@ export class PlaylistsService {
       throw new Error("No eligible songs found to add");
     }
 
-    // Duplicate check if allowDuplicates is false
+    // Duplicate check if allowDuplicates is false. Existing tracks (and
+    // duplicates within the request) are skipped rather than rejected, so a
+    // partial add still succeeds and the client can report what landed.
+    let skippedCount = 0;
     if (!playlist.allowDuplicates) {
       const existingEntries = await db
         .select({ songId: playlistSongs.songId })
@@ -854,10 +900,18 @@ export class PlaylistsService {
         .where(eq(playlistSongs.playlistId, playlistId));
 
       const existingSet = new Set(existingEntries.map((e) => e.songId));
-      toAdd = Array.from(new Set(toAdd)).filter((id) => !existingSet.has(id));
+      const seen = new Set<string>();
+      toAdd = toAdd.filter((id) => {
+        if (existingSet.has(id) || seen.has(id)) {
+          skippedCount += 1;
+          return false;
+        }
+        seen.add(id);
+        return true;
+      });
 
       if (toAdd.length === 0) {
-        throw new Error("Track(s) already exist in this playlist");
+        return { addedCount: 0, skippedCount };
       }
     }
 
@@ -879,7 +933,76 @@ export class PlaylistsService {
     await db.update(playlists).set({ updatedAt: new Date() }).where(eq(playlists.id, playlistId));
     await playlistsCacheService.invalidatePlaylistCache(playlistId);
 
-    return { addedCount: toAdd.length };
+    return { addedCount: toAdd.length, skippedCount };
+  }
+
+  /**
+   * Removes every entry for the given songs from a playlist.
+   *
+   * Song-based counterpart to `addTracks`, used by the Add to Playlist sheet
+   * to toggle an already-added track off. Owners may remove any entry;
+   * collaborators may only remove entries they added themselves.
+   */
+  async removeTracksBySongIds(
+    userId: string,
+    playlistId: string,
+    songIds: string[]
+  ): Promise<{ removedCount: number; skippedCount: number }> {
+    const [playlist] = await db
+      .select()
+      .from(playlists)
+      .where(eq(playlists.id, playlistId))
+      .limit(1);
+
+    if (!playlist) throw new Error("Playlist not found");
+
+    const isOwner = playlist.ownerId === userId;
+    let isCollaborator = false;
+    if (!isOwner && playlist.isCollaborative) {
+      const [collab] = await db
+        .select()
+        .from(playlistCollaborators)
+        .where(
+          and(
+            eq(playlistCollaborators.playlistId, playlistId),
+            eq(playlistCollaborators.userId, userId)
+          )
+        )
+        .limit(1);
+      isCollaborator = !!collab;
+    }
+
+    if (!isOwner && !isCollaborator) {
+      throw new Error("You do not have permission to remove tracks from this playlist");
+    }
+
+    const conditions = [
+      eq(playlistSongs.playlistId, playlistId),
+      inArray(playlistSongs.songId, songIds),
+    ];
+
+    // Collaborators can only remove entries they contributed.
+    if (!isOwner) {
+      conditions.push(eq(playlistSongs.addedByUserId, userId));
+    }
+
+    const removed = await db
+      .delete(playlistSongs)
+      .where(and(...conditions))
+      .returning({ songId: playlistSongs.songId });
+
+    if (removed.length === 0) {
+      return { removedCount: 0, skippedCount: songIds.length };
+    }
+
+    await db.update(playlists).set({ updatedAt: new Date() }).where(eq(playlists.id, playlistId));
+    await playlistsCacheService.invalidatePlaylistCache(playlistId);
+
+    const removedSongIds = new Set(removed.map((row) => row.songId));
+    return {
+      removedCount: removedSongIds.size,
+      skippedCount: Math.max(songIds.length - removedSongIds.size, 0),
+    };
   }
 
   async removeTrack(userId: string, playlistId: string, entryId: string): Promise<void> {

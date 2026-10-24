@@ -355,7 +355,7 @@ function AlbumDetailComponent() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
+      <div className="mx-auto w-full max-w-6xl px-4 py-24 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse sm:px-8">
         Retrieving master recording & liner notes...
       </div>
     )
@@ -363,24 +363,26 @@ function AlbumDetailComponent() {
 
   if (queryError || !album) {
     return (
-      <div className="max-w-xl mx-auto py-24 px-6 text-center">
-        <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
-          404 Catalog Notice
-        </span>
-        <h1 className="font-serif italic text-3xl text-foreground">
-          Release Not Found
-        </h1>
-        <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
-          The requested album identifier{' '}
-          <span className="font-mono text-foreground">"{idOrSlug}"</span> could not be
-          located in the master archive.
-        </p>
-        <Link
-          to="/"
-          className="inline-block mt-6 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors rounded-control"
-        >
-          &larr; Return to Catalog
-        </Link>
+      <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-xl text-center">
+          <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
+            404 Catalog Notice
+          </span>
+          <h1 className="font-serif italic text-3xl text-foreground">
+            Release Not Found
+          </h1>
+          <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
+            The requested album identifier{' '}
+            <span className="font-mono text-foreground">"{idOrSlug}"</span> could not be
+            located in the master archive.
+          </p>
+          <Link
+            to="/"
+            className="inline-block mt-6 font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-card hover:bg-background text-foreground transition-colors rounded-control"
+          >
+            &larr; Return to Catalog
+          </Link>
+        </div>
       </div>
     )
   }
@@ -408,10 +410,12 @@ function AlbumDetailComponent() {
   }
 
   return (
-    <div className="w-full pb-20">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 select-none sm:px-8 sm:pt-10">
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         key={album.id}
+        className="-mx-4 sm:-mx-8"
+        stickyClassName="-mx-4 sm:-mx-8"
         title={album.title}
         eyebrow={<Badge tone="brand">{album.albumType}</Badge>}
         badges={
@@ -514,88 +518,87 @@ function AlbumDetailComponent() {
       />
 
       {/* ===================== COLLECTION CONTROLS ===================== */}
-      <div className="mx-auto w-full max-w-6xl px-4 pt-3.5 pb-2 sm:px-8 md:pt-2 md:pb-5">
-        <CollectionActionBar
-          primaryAction={
-            isPreSavePrimary ? (
-              <button
-                type="button"
-                disabled={isPreSaveLoading}
-                onClick={handleTogglePreSave}
-                aria-label={
-                  isPreSaved ? 'Remove pre-save' : 'Pre-save release'
-                }
-                title={isPreSaved ? 'Remove pre-save' : 'Pre-save release'}
-                className={`group relative inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-raised transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${
-                  isPreSaved
-                    ? 'bg-primary text-primary-foreground hover:scale-105 active:scale-95'
-                    : 'border border-primary/40 bg-primary/10 text-primary hover:scale-105 active:scale-95'
-                }`}
-              >
-                <CalendarIconSVG className="h-6 w-6" />
-                {preSavesCount > 0 ? (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 font-mono text-eyebrow text-background">
-                    {preSavesCount > 99 ? '99+' : preSavesCount}
-                  </span>
-                ) : null}
-              </button>
-            ) : undefined
-          }
-          onPlay={!isPreSavePrimary && hasTracks ? handleHeroPlay : undefined}
-          isPlaying={isAlbumPlaying}
-          playLabel={album.title}
-          menu={
-            <ReleaseActionMenu
-              release={album}
-              tracks={(album.tracks ?? []).map(toPlayerTrack)}
-              hideGoToRelease
-              buttonClassName="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
-            />
-          }
-        >
-          {!album.isUpcoming ? (
+      <CollectionActionBar
+        className="pt-3.5 pb-2 md:pt-2 md:pb-5"
+        primaryAction={
+          isPreSavePrimary ? (
             <button
               type="button"
-              disabled={isLikeLoading}
-              onClick={handleToggleAlbumLike}
-              aria-label={isLiked ? 'Unlike release' : 'Like release'}
-              title={isLiked ? 'Unlike release' : 'Like release'}
-              className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
-                isLiked
-                  ? 'text-destructive'
-                  : 'text-muted-foreground hover:text-foreground'
+              disabled={isPreSaveLoading}
+              onClick={handleTogglePreSave}
+              aria-label={
+                isPreSaved ? 'Remove pre-save' : 'Pre-save release'
+              }
+              title={isPreSaved ? 'Remove pre-save' : 'Pre-save release'}
+              className={`group relative inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-raised transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${
+                isPreSaved
+                  ? 'bg-primary text-primary-foreground hover:scale-105 active:scale-95'
+                  : 'border border-primary/40 bg-primary/10 text-primary hover:scale-105 active:scale-95'
               }`}
             >
-              <HeartIconSVG
-                filled={isLiked}
-                className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
-              />
-              <span className="font-mono text-caption">
-                {likesCount.toLocaleString()}
-              </span>
+              <CalendarIconSVG className="h-6 w-6" />
+              {preSavesCount > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 font-mono text-eyebrow text-background">
+                  {preSavesCount > 99 ? '99+' : preSavesCount}
+                </span>
+              ) : null}
             </button>
-          ) : null}
+          ) : undefined
+        }
+        onPlay={!isPreSavePrimary && hasTracks ? handleHeroPlay : undefined}
+        isPlaying={isAlbumPlaying}
+        playLabel={album.title}
+        menu={
+          <ReleaseActionMenu
+            release={album}
+            tracks={(album.tracks ?? []).map(toPlayerTrack)}
+            hideGoToRelease
+            buttonClassName="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
+          />
+        }
+      >
+        {!album.isUpcoming ? (
+          <button
+            type="button"
+            disabled={isLikeLoading}
+            onClick={handleToggleAlbumLike}
+            aria-label={isLiked ? 'Unlike release' : 'Like release'}
+            title={isLiked ? 'Unlike release' : 'Like release'}
+            className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+              isLiked
+                ? 'text-destructive'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <HeartIconSVG
+              filled={isLiked}
+              className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
+            />
+            <span className="font-mono text-caption">
+              {likesCount.toLocaleString()}
+            </span>
+          </button>
+        ) : null}
 
-          {album.scope !== 'PERSONAL' ? (
-            <IconButton
-              size="lg"
-              className="group"
-              onClick={handleCopyShareLink}
-              aria-label="Share release"
-              title="Share release"
-            >
-              {copiedLink ? (
-                <Check className="h-5 w-5 text-success!" />
-              ) : (
-                <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-              )}
-            </IconButton>
-          ) : null}
-        </CollectionActionBar>
-      </div>
+        {album.scope !== 'PERSONAL' ? (
+          <IconButton
+            size="lg"
+            className="group"
+            onClick={handleCopyShareLink}
+            aria-label="Share release"
+            title="Share release"
+          >
+            {copiedLink ? (
+              <Check className="h-5 w-5 text-success!" />
+            ) : (
+              <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            )}
+          </IconButton>
+        ) : null}
+      </CollectionActionBar>
 
       {/* ===================== MAIN CONTENT ===================== */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-8 sm:mt-10 space-y-8">
+      <div className="mt-6 space-y-8 sm:mt-10">
         {/* ===================== UPCOMING RELEASE BANNER ===================== */}
         {album.isUpcoming && (
           <div className="border border-primary/30 bg-primary/5 hover:border-primary/60 transition-colors rounded-lg p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-raised">
@@ -689,13 +692,11 @@ function AlbumDetailComponent() {
         )}
 
         {/* ===================== TRACKLIST SECTION ===================== */}
-        <div className="space-y-3 px-1">
-          <div className="flex justify-between items-baseline border-b border-border pb-2">
-            <div className="flex items-center gap-2">
-              <h2 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
-                Master Tracklist
-              </h2>
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
+              Master Tracklist
+            </h2>
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
               {(album.tracks ?? []).length}{' '}
               {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
@@ -703,7 +704,7 @@ function AlbumDetailComponent() {
           </div>
 
           {(album.tracks ?? []).length === 0 ? (
-            <div className="p-8 border border-dashed border-border bg-card/30 text-center rounded-md">
+            <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
               <p className="font-serif italic text-title text-foreground">
                 No tracks uploaded to this release yet.
               </p>
@@ -712,20 +713,20 @@ function AlbumDetailComponent() {
               </p>
             </div>
           ) : (
-            <div className="border border-border rounded-md overflow-clip bg-card divide-y divide-border/60 shadow-raised">
+            <div className="overflow-hidden rounded-surface">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-6 py-2.5 border-b border-border/60 bg-background/40 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="hidden items-center justify-between gap-4 border-b border-border/60 px-2 py-2.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground sm:flex sm:px-3">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
                   <span className="w-6 text-center">#</span>
                   <span>Title &amp; Credits</span>
                 </div>
                 <div className="w-24 text-right">Streams</div>
-                <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 min-w-30 pr-2">
+                <div className="flex min-w-30 shrink-0 items-center justify-end gap-3 pr-2 sm:gap-4">
                   <span>Duration</span>
                 </div>
               </div>
 
-              <div className="divide-y divide-border/60">
+              <div className="relative space-y-0.5">
                 {(album.tracks ?? []).map((track, idx) => {
                   const primaryCredits =
                     track.credits?.filter((c) => c.role === 'PRIMARY') || []
@@ -741,6 +742,8 @@ function AlbumDetailComponent() {
                       index={idx}
                       trackNumberDisplay={track.trackNumber || idx + 1}
                       variant="album"
+                      surface="transparent"
+                      density="compact"
                       playsCount={track.playsCount}
                       primaryCredits={primaryCredits}
                       featuredCredits={featuredCredits}
@@ -763,8 +766,8 @@ function AlbumDetailComponent() {
 
         {/* Sibling Releases: More by this Artist */}
         {album.moreByArtist && album.moreByArtist.length > 0 && (
-          <div className="space-y-4 px-1 mt-10 pt-8 border-t border-border">
-            <div className="flex justify-between items-baseline border-b border-border pb-2">
+          <div className="space-y-4">
+            <div className="flex items-baseline justify-between gap-3">
               <h2 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
                 More by {album.artistStageName}
               </h2>
@@ -821,12 +824,14 @@ function AlbumDetailComponent() {
         )}
 
         {/* Nested Comments Subsystem */}
-        <CommentSection
-          targetType="album"
-          targetId={album.id}
-          allowComments={album.allowComments ?? true}
-          isCreatorOrOwner={isCreator}
-        />
+        <div className="pt-4">
+          <CommentSection
+            targetType="album"
+            targetId={album.id}
+            allowComments={album.allowComments ?? true}
+            isCreatorOrOwner={isCreator}
+          />
+        </div>
       </div>
     </div>
   )

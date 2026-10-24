@@ -1,34 +1,39 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Toaster } from 'sonner'
-import { Check, X } from 'lucide-react'
+import { Check, Info, X } from 'lucide-react'
+import { TOAST } from '../../lib/toast'
+import { cn } from '../ui/cn'
 
 /**
  * App-wide toast surface (sonner), themed with the design tokens.
  *
- * Mounted once in the root route so collection menus, studio flows, and any
- * future calls to `toast()` all share the same toast placement and styling.
+ * Mounted once in the root route. Placement, timing, and stack size come from
+ * `TOAST` in `src/lib/toast.ts`; call sites should use `notify` from there too
+ * so the whole app stays in sync.
  */
 const toastTheme = {
   '--border-radius': 'var(--radius-control)',
   '--normal-bg': 'var(--card)',
   '--normal-border': 'var(--border)',
   '--normal-text': 'var(--card-foreground)',
-  '--success-bg': 'var(--success)',
-  '--success-border': 'var(--success)',
-  '--success-text': 'var(--success-foreground)',
-  '--error-bg': 'var(--destructive)',
-  '--error-border': 'var(--destructive)',
-  '--error-text': 'var(--destructive-foreground)',
-  '--info-bg': 'var(--info)',
-  '--info-border': 'var(--info)',
-  '--info-text': 'var(--info-foreground)',
-  fontSize: 'var(--text-eyebrow)',
+  fontSize: 'var(--text-caption)',
   boxShadow: 'var(--shadow-floating)',
 } as CSSProperties
 
-function IconBadge({ children }: { children: ReactNode }) {
+function IconBadge({
+  tone,
+  children,
+}: {
+  tone: string
+  children: ReactNode
+}) {
   return (
-    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-background/25">
+    <span
+      className={cn(
+        'flex h-4 w-4 shrink-0 items-center justify-center',
+        tone,
+      )}
+    >
       {children}
     </span>
   )
@@ -37,23 +42,30 @@ function IconBadge({ children }: { children: ReactNode }) {
 export function AppToaster() {
   return (
     <Toaster
-      position="bottom-center"
-      richColors
-      duration={5000}
+      position={TOAST.position}
+      duration={TOAST.duration}
+      visibleToasts={TOAST.visibleToasts}
+      offset={TOAST.offset}
+      mobileOffset={TOAST.mobileOffset}
       icons={{
         success: (
-          <IconBadge>
-            <Check className="h-3 w-3" />
+          <IconBadge tone="text-success">
+            <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
           </IconBadge>
         ),
         error: (
-          <IconBadge>
-            <X className="h-3 w-3" />
+          <IconBadge tone="text-destructive">
+            <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </IconBadge>
+        ),
+        info: (
+          <IconBadge tone="text-info">
+            <Info className="h-3.5 w-3.5" strokeWidth={2.5} />
           </IconBadge>
         ),
       }}
       toastOptions={{
-        className: 'font-eyebrow uppercase tracking-wider',
+        className: 'font-sans',
         style: toastTheme,
       }}
     />

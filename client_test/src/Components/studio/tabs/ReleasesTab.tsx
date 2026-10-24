@@ -1,5 +1,5 @@
 import { Disc3 } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '../../../lib/toast'
 import { CreateReleaseDrawer } from '../CreateReleaseDrawer'
 import { ReleaseCard } from '../ReleaseCard'
 import type { ArtistProfile } from '../../../types/artist'
@@ -102,7 +102,7 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
                   onCopySecretLink={() => {
                     const shareUrl = `${window.location.origin}/albums/${album.slug}?shareToken=${album.shareToken}`
                     navigator.clipboard.writeText(shareUrl)
-                    toast.success(
+                    notify.success(
                       `Copied secret share link for "${album.title}"!`,
                     )
                   }}

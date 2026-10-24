@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
+import { notify } from '../../lib/toast'
 import {
   Disc3,
   ListMusic,
@@ -290,7 +290,7 @@ export function ReleaseActionMenu<
     e.stopPropagation()
     const queue = playableTracks
     if (queue.length === 0) {
-      toast.error('No playable tracks in this release')
+      notify.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
@@ -303,7 +303,7 @@ export function ReleaseActionMenu<
     e.stopPropagation()
     const queue = playableTracks
     if (queue.length === 0) {
-      toast.error('No playable tracks in this release')
+      notify.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
@@ -312,7 +312,7 @@ export function ReleaseActionMenu<
     for (let i = queue.length - 1; i >= 0; i--) {
       playNext(queue[i])
     }
-    toast.success(`Playing ${release.title} next`)
+    notify.success(`Playing ${release.title} next`)
   }
 
   const handleAddToQueue = (e: React.MouseEvent) => {
@@ -320,13 +320,13 @@ export function ReleaseActionMenu<
     e.stopPropagation()
     const queue = playableTracks
     if (queue.length === 0) {
-      toast.error('No playable tracks in this release')
+      notify.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
     setIsOpen(false)
     queue.forEach((track) => addToQueue(track))
-    toast.success(
+    notify.success(
       `Added ${queue.length} ${queue.length === 1 ? 'track' : 'tracks'} to queue`,
     )
   }
@@ -336,7 +336,7 @@ export function ReleaseActionMenu<
     e.stopPropagation()
     const queue = playableTracks
     if (queue.length === 0) {
-      toast.error('No playable tracks in this release')
+      notify.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }

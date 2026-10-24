@@ -9,7 +9,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '../../lib/toast'
 import type { SelectedCredit } from '../ArtistCreditPicker'
 import { MarqueeText } from '../common/MarqueeText'
 import { catalogApi } from '../../lib/catalog.api'
@@ -119,7 +119,7 @@ export function EditReleaseDrawer({
   // Hydrate the cut list once. The drawer remounts for every release it
   // edits, so a mount-only effect is enough.
   useEffect(() => {
-    toast.dismiss()
+    notify.dismiss()
     let cancelled = false
     const loadTracks = async () => {
       try {
@@ -182,14 +182,14 @@ export function EditReleaseDrawer({
     if (!file) return
 
     setIsUploadingEditCover(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const publicUrl = await catalogApi.uploadAlbumCover(file)
       setEditReleaseCoverUrl(publicUrl)
-      toast.success('Replacement cover artwork uploaded to Cloudflare R2.')
+      notify.success('Replacement cover artwork uploaded to Cloudflare R2.')
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload cover artwork')
+      notify.error(err.message || 'Failed to upload cover artwork')
     } finally {
       setIsUploadingEditCover(false)
     }
@@ -198,18 +198,18 @@ export function EditReleaseDrawer({
   const handleSaveReleaseEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editReleaseTitle.trim()) {
-      toast.error('Release title cannot be blank')
+      notify.error('Release title cannot be blank')
       return
     }
 
     setIsSavingRelease(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       let scheduledReleaseAtIso: string | null | undefined = undefined
       if (editReleaseMode === 'SCHEDULED') {
         if (!editReleaseDate || !editReleaseTime) {
-          toast.error(
+          notify.error(
             'Please select both a date and time for the scheduled drop',
           )
           setIsSavingRelease(false)
@@ -219,12 +219,12 @@ export function EditReleaseDrawer({
           `${editReleaseDate}T${editReleaseTime}`,
         ).getTime()
         if (isNaN(parsed)) {
-          toast.error('Invalid scheduled drop timestamp')
+          notify.error('Invalid scheduled drop timestamp')
           setIsSavingRelease(false)
           return
         }
         if (parsed <= Date.now()) {
-          toast.error('Scheduled release time must be in the future')
+          notify.error('Scheduled release time must be in the future')
           setIsSavingRelease(false)
           return
         }
@@ -275,14 +275,14 @@ export function EditReleaseDrawer({
         }
       }
 
-      toast.success(
+      notify.success(
         `Master release "${editReleaseTitle}" updated successfully!`,
         { icon: <PartyPopper className="h-3 w-3" /> },
       )
       handleCloseEditModal()
       onReleasesChanged()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update release')
+      notify.error(err.message || 'Failed to update release')
     } finally {
       setIsSavingRelease(false)
     }
@@ -562,7 +562,7 @@ export function EditReleaseDrawer({
                         onClick={() => {
                           const url = `${window.location.origin}/albums/${request.slug}?shareToken=${request.shareToken}`
                           navigator.clipboard.writeText(url)
-                          toast.success(
+                          notify.success(
                             'Copied secret share link to clipboard!',
                           )
                         }}

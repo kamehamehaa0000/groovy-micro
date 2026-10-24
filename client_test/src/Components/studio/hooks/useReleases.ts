@@ -3,7 +3,7 @@ import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
 import type { TrashCounts } from '../../../lib/catalog.api'
 import type { Album, Song, ReleaseVisibility } from '../../../types/catalog'
-import { toast } from 'sonner'
+import { notify } from '../../../lib/toast'
 import type { ReleaseDeleteRequest, DetachCutRequest } from '../studio.types'
 
 export function useReleases() {
@@ -75,7 +75,7 @@ export function useReleases() {
           [albumId]: fullAlbum.tracks,
         }))
       } catch (err: any) {
-        toast.error(err.message || 'Failed to load album tracks')
+        notify.error(err.message || 'Failed to load album tracks')
       } finally {
         setIsLoadingAlbumTracks(false)
       }
@@ -85,11 +85,11 @@ export function useReleases() {
   // Open Detach Modal (only allowed on non-single releases)
   const handleOpenDetachModal = (song: Song, parentAlbum: Album) => {
     if (parentAlbum.albumType === 'SINGLE') {
-      toast.error('Cannot detach a track from a single release.')
+      notify.error('Cannot detach a track from a single release.')
       return
     }
     setDetachModalData({ song, parentAlbum })
-    toast.dismiss()
+    notify.dismiss()
   }
 
   // Trigger soft delete confirmation modal for an album release
@@ -128,18 +128,18 @@ export function useReleases() {
 
     try {
       setIsDeletingItem(true)
-      toast.dismiss()
+      notify.dismiss()
       let counts: TrashCounts
       if (deleteConfirm.type === 'album') {
         const res = await catalogApi.deleteAlbum(deleteConfirm.id)
         counts = res.trashCounts
-        toast.success(
+        notify.success(
           'Release and all its cuts moved to 30-day trash. You can restore it anytime within 30 days.',
         )
       } else {
         const res = await catalogApi.deleteSong(deleteConfirm.id)
         counts = res.trashCounts
-        toast.success(res.message || 'Master track moved to 30-day trash.')
+        notify.success(res.message || 'Master track moved to 30-day trash.')
         if (deleteConfirm.parentAlbumId) {
           try {
             const fullAlbum = await catalogApi.getAlbum(
@@ -158,7 +158,7 @@ export function useReleases() {
       loadReleases()
       return counts
     } catch (err: any) {
-      toast.error(err.message || 'Failed to archive item')
+      notify.error(err.message || 'Failed to archive item')
       return null
     } finally {
       setIsDeletingItem(false)
@@ -171,7 +171,7 @@ export function useReleases() {
     newVisibility: ReleaseVisibility,
   ) => {
     if (album.visibility === newVisibility) return
-    toast.dismiss()
+    notify.dismiss()
     try {
       const updated = await catalogApi.updateAlbum(album.id, {
         visibility: newVisibility,
@@ -187,13 +187,13 @@ export function useReleases() {
             : a,
         ),
       )
-      toast.success(
+      notify.success(
         `Visibility for "${album.title}" updated to ${newVisibility}${
           newVisibility === 'UNLISTED' ? ' (Secret share token generated)' : ''
         }.`,
       )
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update visibility')
+      notify.error(err.message || 'Failed to update visibility')
     }
   }
 

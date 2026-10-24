@@ -1,7 +1,7 @@
 import { useCallback, useState, useRef } from 'react'
 import { artistsApi, slugifyText } from '../../../lib/artists.api'
 import type { ArtistProfile } from '../../../types/artist'
-import { toast } from 'sonner'
+import { notify } from '../../../lib/toast'
 
 export function useProfileForm(
   artistProfile: ArtistProfile | null,
@@ -49,7 +49,7 @@ export function useProfileForm(
   const handleBannerCropComplete = async (croppedFile: File) => {
     if (!artistProfile) return
     setIsUploadingBanner(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const publicUrl = await artistsApi.uploadBanner(
@@ -59,12 +59,12 @@ export function useProfileForm(
       setArtistProfile((prev) =>
         prev ? { ...prev, bannerUrl: publicUrl } : null,
       )
-      toast.success(
+      notify.success(
         'Banner image cropped, uploaded to Cloudflare R2, and synced.',
       )
       setBannerCropFile(null)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload banner')
+      notify.error(err.message || 'Failed to upload banner')
     } finally {
       setIsUploadingBanner(false)
     }
@@ -82,7 +82,7 @@ export function useProfileForm(
   const handleAvatarCropComplete = async (croppedFile: File) => {
     if (!artistProfile) return
     setIsUploadingAvatar(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const publicUrl = await artistsApi.uploadAvatar(
@@ -92,12 +92,12 @@ export function useProfileForm(
       setArtistProfile((prev) =>
         prev ? { ...prev, avatarUrl: publicUrl } : null,
       )
-      toast.success(
+      notify.success(
         'Artist avatar cropped, uploaded to Cloudflare R2, and synced.',
       )
       setAvatarCropFile(null)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload avatar')
+      notify.error(err.message || 'Failed to upload avatar')
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -107,13 +107,13 @@ export function useProfileForm(
   const handleRemoveAvatar = async () => {
     if (!artistProfile) return
     setIsUploadingAvatar(true)
-    toast.dismiss()
+    notify.dismiss()
     try {
       await artistsApi.updateMyProfile({ avatarUrl: null })
       setArtistProfile((prev) => (prev ? { ...prev, avatarUrl: null } : null))
-      toast.success('Artist avatar removed.')
+      notify.success('Artist avatar removed.')
     } catch (err: any) {
-      toast.error(err.message || 'Failed to remove avatar')
+      notify.error(err.message || 'Failed to remove avatar')
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -123,7 +123,7 @@ export function useProfileForm(
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSavingEdit(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const socialLinks: Record<string, string> = {}
@@ -140,9 +140,9 @@ export function useProfileForm(
 
       setArtistProfile(res.profile)
       setIsEditingProfile(false)
-      toast.success('Artist profile details updated successfully.')
+      notify.success('Artist profile details updated successfully.')
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update profile')
+      notify.error(err.message || 'Failed to update profile')
     } finally {
       setIsSavingEdit(false)
     }
@@ -153,7 +153,7 @@ export function useProfileForm(
     e.preventDefault()
     if (!artistProfile) return
     setIsSavingSpotlight(true)
-    toast.dismiss()
+    notify.dismiss()
     setSpotlightStatus('idle')
     setSpotlightStatusMessage(null)
 
@@ -170,7 +170,7 @@ export function useProfileForm(
       const msg = spotlightReleaseId
         ? 'Artist Pick spotlight updated successfully.'
         : 'Artist Pick spotlight reset to automatic latest release.'
-      toast.success(msg)
+      notify.success(msg)
       setSpotlightStatus('saved')
       setSpotlightStatusMessage(
         spotlightReleaseId
@@ -182,7 +182,7 @@ export function useProfileForm(
       }, 4000)
     } catch (err: any) {
       const errMsg = err.message || 'Failed to update spotlight'
-      toast.error(errMsg)
+      notify.error(errMsg)
       setSpotlightStatus('error')
       setSpotlightStatusMessage(errMsg)
     } finally {
@@ -194,7 +194,7 @@ export function useProfileForm(
   const handleClearSpotlight = async () => {
     if (!artistProfile) return
     setIsSavingSpotlight(true)
-    toast.dismiss()
+    notify.dismiss()
     setSpotlightStatus('idle')
     setSpotlightStatusMessage(null)
 
@@ -207,7 +207,7 @@ export function useProfileForm(
       setSpotlightReleaseId('')
       setSpotlightComment('')
       const msg = 'Artist Pick reset to automatic latest release.'
-      toast.success(msg)
+      notify.success(msg)
       setSpotlightStatus('cleared')
       setSpotlightStatusMessage('Reset to automatic latest release fallback.')
       setTimeout(() => {
@@ -215,7 +215,7 @@ export function useProfileForm(
       }, 4000)
     } catch (err: any) {
       const errMsg = err.message || 'Failed to reset spotlight'
-      toast.error(errMsg)
+      notify.error(errMsg)
       setSpotlightStatus('error')
       setSpotlightStatusMessage(errMsg)
     } finally {

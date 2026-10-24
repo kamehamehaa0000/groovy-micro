@@ -5,8 +5,10 @@ import {
   createPlaylistSchema,
   updatePlaylistSchema,
   addTracksSchema,
+  removeTracksSchema,
   reorderTracksSchema,
   searchPlaylistsQuerySchema,
+  playlistMembershipQuerySchema,
   joinCollaborationSchema,
 } from "./playlists.schemas";
 
@@ -76,14 +78,29 @@ export const playlistsRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /me
    * Returns all playlists owned by current user.
+   *
+   * Optional `?songIds=a,b,c` enriches each playlist with `containsCount` /
+   * `containsAll` so the client can show "already added" state without an
+   * extra round-trip per track.
    */
   fastify.get(
     "/me",
     { preHandler: [requireAuth] },
     async (request, reply) => {
+      const parseResult = playlistMembershipQuerySchema.safeParse(request.query);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
       const userPlaylists = await playlistsService.getUserPlaylists(
         request.user.id,
-        request.user.id
+        request.user.id,
+        parseResult.data.songIds
       );
       return reply.status(200).send({ playlists: userPlaylists });
     }
@@ -222,6 +239,41 @@ export const playlistsRoutes: FastifyPluginAsync = async (fastify) => {
 
       try {
         const result = await playlistsService.addTracks(
+          request.user.id,
+          id,
+          parseResult.data.songIds
+        );
+        return reply.status(200).send(result);
+      } catch (err: any) {
+        return reply.status(400).send({ statusCode: 400, error: "Bad Request", message: err.message });
+      }
+    }
+  );
+
+  /**
+   * DELETE /:id/tracks
+   * Removes every entry for the given songs (Owner or Collaborator).
+   *
+   * Song-based counterpart to `POST /:id/tracks`, so the Add to Playlist
+   * sheet can toggle an already-added track off without knowing entry IDs.
+   */
+  fastify.delete(
+    "/:id/tracks",
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const parseResult = removeTracksSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: "Bad Request",
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      try {
+        const result = await playlistsService.removeTracksBySongIds(
           request.user.id,
           id,
           parseResult.data.songIds

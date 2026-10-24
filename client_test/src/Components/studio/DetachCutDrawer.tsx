@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Disc3, PartyPopper, Sparkles, X } from 'lucide-react'
-import { toast } from 'sonner'
+import { notify } from '../../lib/toast'
 import { catalogApi } from '../../lib/catalog.api'
 import type { Song } from '../../types/catalog'
 import type { DetachCutRequest } from './studio.types'
@@ -39,14 +39,14 @@ export function DetachCutDrawer({
     if (!file) return
 
     setIsUploadingDetachCover(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       const publicUrl = await catalogApi.uploadAlbumCover(file)
       setDetachCoverUrl(publicUrl)
-      toast.success('Custom single artwork uploaded to Cloudflare R2.')
+      notify.success('Custom single artwork uploaded to Cloudflare R2.')
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload single artwork')
+      notify.error(err.message || 'Failed to upload single artwork')
     } finally {
       setIsUploadingDetachCover(false)
     }
@@ -55,7 +55,7 @@ export function DetachCutDrawer({
   const handleConfirmDetach = async () => {
 
     setIsSubmittingDetach(true)
-    toast.dismiss()
+    notify.dismiss()
 
     try {
       await catalogApi.updateSong(request.song.id, {
@@ -63,7 +63,7 @@ export function DetachCutDrawer({
         coverImageUrl: detachCoverUrl || undefined,
       })
 
-      toast.success(
+      notify.success(
         `Master cut "${request.song.title}" detached and spun off into standalone SINGLE release!`,
         { icon: <PartyPopper className="h-3 w-3" /> },
       )
@@ -76,7 +76,7 @@ export function DetachCutDrawer({
       handleCloseDetachModal()
       onReleasesChanged()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to detach track')
+      notify.error(err.message || 'Failed to detach track')
     } finally {
       setIsSubmittingDetach(false)
     }

@@ -74,6 +74,9 @@ export interface Playlist {
   totalDurationSeconds?: number;
   mosaicCoverUrls?: string[];
   mosaicCovers?: string[];
+  /** Present when the playlists were loaded with a `songIds` membership probe. */
+  containsCount?: number;
+  containsAll?: boolean;
 }
 
 export interface PlaylistDetail extends Playlist {

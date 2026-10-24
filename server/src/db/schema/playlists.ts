@@ -72,6 +72,9 @@ export const playlistSongs = pgTable(
   (table) => [
     index("idx_playlist_songs_lookup").on(table.playlistId, table.songId),
     index("idx_playlist_songs_order").on(table.playlistId, table.position),
+    // Song-first lookup: membership probes by song ID, `invalidatePlaylistsForSongs`,
+    // and the `song_id` FK cascade all avoid scanning per-playlist contents.
+    index("idx_playlist_songs_song").on(table.songId, table.playlistId),
   ]
 );
 

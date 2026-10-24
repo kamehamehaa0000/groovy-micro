@@ -3,7 +3,7 @@ import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
 import type { TrashCounts } from '../../../lib/catalog.api'
 import type { Album, Song } from '../../../types/catalog'
-import { toast } from 'sonner'
+import { notify } from '../../../lib/toast'
 import type { TrashPurgeRequest } from '../studio.types'
 
 export function useTrash() {
@@ -70,10 +70,10 @@ export function useTrash() {
   const handleRestoreAlbum = async (albumId: string) => {
     try {
       await catalogApi.restoreAlbum(albumId)
-      toast.success('Release restored to active catalog.')
+      notify.success('Release restored to active catalog.')
       loadTrash()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to restore release')
+      notify.error(err.message || 'Failed to restore release')
     }
   }
 
@@ -81,10 +81,10 @@ export function useTrash() {
   const handleRestoreSong = async (songId: string) => {
     try {
       await catalogApi.restoreSong(songId)
-      toast.success('Master track restored to active catalog.')
+      notify.success('Master track restored to active catalog.')
       loadTrash()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to restore track')
+      notify.error(err.message || 'Failed to restore track')
     }
   }
 
@@ -92,13 +92,13 @@ export function useTrash() {
   const handlePermanentDeleteAlbum = async (albumId: string) => {
     try {
       setIsPurging(true)
-      toast.dismiss()
+      notify.dismiss()
       await catalogApi.permanentlyDeleteAlbum(albumId)
-      toast.success('Release and all associated tracks permanently deleted.')
+      notify.success('Release and all associated tracks permanently deleted.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to permanently delete release')
+      notify.error(err.message || 'Failed to permanently delete release')
     } finally {
       setIsPurging(false)
     }
@@ -108,13 +108,13 @@ export function useTrash() {
   const handlePermanentDeleteSong = async (songId: string) => {
     try {
       setIsPurging(true)
-      toast.dismiss()
+      notify.dismiss()
       await catalogApi.permanentlyDeleteSong(songId)
-      toast.success('Master cut permanently deleted.')
+      notify.success('Master cut permanently deleted.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to permanently delete track')
+      notify.error(err.message || 'Failed to permanently delete track')
     } finally {
       setIsPurging(false)
     }
@@ -124,13 +124,13 @@ export function useTrash() {
   const handleEmptyTrash = async () => {
     try {
       setIsPurging(true)
-      toast.dismiss()
+      notify.dismiss()
       const res = await catalogApi.emptyStudioTrash()
-      toast.success(res.message || 'Studio trash emptied permanently.')
+      notify.success(res.message || 'Studio trash emptied permanently.')
       setTrashConfirm(null)
       loadTrash()
     } catch (err: any) {
-      toast.error(err.message || 'Failed to empty studio trash')
+      notify.error(err.message || 'Failed to empty studio trash')
     } finally {
       setIsPurging(false)
     }

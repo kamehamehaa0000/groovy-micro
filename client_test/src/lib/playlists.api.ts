@@ -45,9 +45,19 @@ export const playlistsApi = {
 
   /**
    * Retrieve all playlists owned by current user.
+   *
+   * Pass `songIds` to also receive `containsCount` / `containsAll` per
+   * playlist — one request hydrates the "already added" state for a batch.
    */
-  async getUserPlaylists(): Promise<{ playlists: Playlist[] }> {
-    return apiFetch<{ playlists: Playlist[] }>("/api/v1/playlists/me");
+  async getUserPlaylists(songIds?: string[]): Promise<{ playlists: Playlist[] }> {
+    const params = new URLSearchParams();
+    if (songIds && songIds.length > 0) {
+      params.append("songIds", songIds.join(","));
+    }
+    const qs = params.toString();
+    return apiFetch<{ playlists: Playlist[] }>(
+      `/api/v1/playlists/me${qs ? `?${qs}` : ""}`
+    );
   },
 
   /**
@@ -143,14 +153,21 @@ export const playlistsApi = {
   async addTracks(
     playlistId: string,
     songIds: string[]
-  ): Promise<{ message: string; addedCount: number; tracks: PlaylistTrack[] }> {
-    return apiFetch<{ message: string; addedCount: number; tracks: PlaylistTrack[] }>(
-      `/api/v1/playlists/${playlistId}/tracks`,
-      {
-        method: "POST",
-        body: JSON.stringify({ songIds }),
-      }
-    );
+  ): Promise<{
+    addedCount: number;
+    skippedCount?: number;
+    message?: string;
+    tracks?: PlaylistTrack[];
+  }> {
+    return apiFetch<{
+      addedCount: number;
+      skippedCount?: number;
+      message?: string;
+      tracks?: PlaylistTrack[];
+    }>(`/api/v1/playlists/${playlistId}/tracks`, {
+      method: "POST",
+      body: JSON.stringify({ songIds }),
+    });
   },
 
   /**
@@ -164,6 +181,25 @@ export const playlistsApi = {
       `/api/v1/playlists/${playlistId}/tracks/${entryId}`,
       {
         method: "DELETE",
+      }
+    );
+  },
+
+  /**
+   * Remove tracks from a playlist by song ID.
+   *
+   * Song-based counterpart to `addTracks`, used by the Add to Playlist sheet
+   * to toggle an already-added track off without knowing entry IDs.
+   */
+  async removeTracks(
+    playlistId: string,
+    songIds: string[]
+  ): Promise<{ removedCount: number; skippedCount: number }> {
+    return apiFetch<{ removedCount: number; skippedCount: number }>(
+      `/api/v1/playlists/${playlistId}/tracks`,
+      {
+        method: "DELETE",
+        body: JSON.stringify({ songIds }),
       }
     );
   },
