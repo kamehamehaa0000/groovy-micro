@@ -17,6 +17,8 @@ export interface CollectionActionBarProps {
   menu?: ReactNode
   /** Secondary icon actions. */
   children?: ReactNode
+  /** Rendered immediately beside the primary control (e.g. shuffle). */
+  adjacentAction?: ReactNode
   className?: string
 }
 
@@ -34,6 +36,7 @@ export function CollectionActionBar({
   primaryAction,
   menu,
   children,
+  adjacentAction,
   className,
 }: CollectionActionBarProps) {
   const primary =
@@ -50,7 +53,10 @@ export function CollectionActionBar({
   return (
     <div className={cn('flex w-full items-center gap-1 md:gap-6', className)}>
       {primary ? (
-        <div className="order-last ml-auto shrink-0 md:order-first md:ml-0">
+        <div className="order-last ml-auto flex shrink-0 items-center gap-2 md:order-first md:ml-0 md:gap-3">
+          {adjacentAction ? (
+            <div className="md:order-last">{adjacentAction}</div>
+          ) : null}
           {primary}
         </div>
       ) : null}

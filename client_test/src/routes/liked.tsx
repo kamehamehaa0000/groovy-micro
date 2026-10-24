@@ -1,38 +1,47 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { ArrowDown, ArrowUp, Shuffle, X } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useLikesStore } from '../stores/likes.store'
-import { catalogApi } from '../lib/catalog.api'
+import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { SongRow } from '../components/common/SongRow'
+import { LikedSongsCover } from '../components/LikeSongsCover'
 import {
   HeartIconSVG,
-  PlayIconSVG,
-  PauseIconSVG,
   SearchIconSVG,
   SortIconSVG,
   DiscIconSVG,
 } from '../components/icons'
+import { CollectionActionBar, CollectionHeader } from '../components/collection'
+import {
+  Badge,
+  Button,
+  Eyebrow,
+  IconButton,
+  Input,
+  Select,
+} from '../components/ui'
 
 export const Route = createFileRoute('/liked')({
   component: LikedSongsPage,
 })
 
-function formatTotalDuration(seconds: number): string {
-  if (!seconds || isNaN(seconds) || seconds <= 0) return '0 min'
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-  if (hours > 0) {
-    return `${hours} hr ${minutes} min`
+type LikedSort = 'recent' | 'title' | 'artist' | 'album' | 'duration'
+
+/** Fisher–Yates shuffle; returns a new array so the visible order is untouched. */
+function shuffleSongs<T>(items: T[]): T[] {
+  const next = [...items]
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const current = next[i]
+    next[i] = next[j]
+    next[j] = current
   }
-  if (minutes > 0) {
-    return `${minutes} min ${secs > 0 ? `${secs} sec` : ''}`
-  }
-  return `${secs} sec`
+  return next
 }
 
 function LikedSongsPage() {
@@ -43,11 +52,9 @@ function LikedSongsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<
-    'recent' | 'title' | 'artist' | 'album' | 'duration'
-  >('recent')
+  const [sortBy, setSortBy] = useState<LikedSort>('recent')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [unlikedIds, setUnlikedIds] = useState<Set<string>>(new Set())
+  const [isShuffleOn, setIsShuffleOn] = useState(false)
 
   // Player Store
   const currentTrack = usePlayerStore((s) => s.currentTrack)
@@ -117,28 +124,15 @@ function LikedSongsPage() {
     }
   }, [])
 
-  // Filtered and Sorted list
-  const filteredAndSortedSongs = useMemo(() => {
-    // 1. Exclude locally unliked tracks
-    let list = songs.filter(
-      (s) =>
-        !unlikedIds.has(s.id) &&
-        (likedSongIds.size === 0 || likedSongIds.has(s.id)),
-    )
+  // Everything currently liked, independent of the search filter.
+  const librarySongs = useMemo(
+    () => songs.filter((s) => likedSongIds.has(s.id)),
+    [songs, likedSongIds],
+  )
 
-    // 2. Filter by search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      list = list.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          (s.artistStageName && s.artistStageName.toLowerCase().includes(q)) ||
-          (s.albumTitle && s.albumTitle.toLowerCase().includes(q)),
-      )
-    }
-
-    // 3. Sort list
-    return [...list].sort((a, b) => {
+  // Sort once so the hero's play queue and the visible list share the order.
+  const sortedSongs = useMemo(() => {
+    return [...librarySongs].sort((a, b) => {
       let cmp = 0
       if (sortBy === 'recent') {
         const dateA = new Date((a as any).likedAt || a.createdAt).getTime()
@@ -160,26 +154,39 @@ function LikedSongsPage() {
 
       return sortOrder === 'desc' ? -cmp : cmp
     })
-  }, [songs, unlikedIds, likedSongIds, searchQuery, sortBy, sortOrder])
+  }, [librarySongs, sortBy, sortOrder])
 
-  // Context total stats
-  const totalCutsCount = filteredAndSortedSongs.length
-  const totalDurationSeconds = useMemo(() => {
-    return filteredAndSortedSongs.reduce(
-      (acc, s) => acc + (s.durationSeconds || 0),
-      0,
+  // Apply the search filter on top of the sorted library.
+  const filteredAndSortedSongs = useMemo(() => {
+    if (!searchQuery.trim()) return sortedSongs
+
+    const q = searchQuery.toLowerCase().trim()
+    return sortedSongs.filter(
+      (s) =>
+        s.title.toLowerCase().includes(q) ||
+        (s.artistStageName && s.artistStageName.toLowerCase().includes(q)) ||
+        (s.albumTitle && s.albumTitle.toLowerCase().includes(q)),
     )
-  }, [filteredAndSortedSongs])
+  }, [sortedSongs, searchQuery])
 
-  // Play All
+  // Hero stats describe the whole collection; the tracklist count describes
+  // the current search result.
+  const libraryCutsCount = librarySongs.length
+  const libraryDurationSeconds = useMemo(() => {
+    return librarySongs.reduce((acc, s) => acc + (s.durationSeconds || 0), 0)
+  }, [librarySongs])
+  const totalCutsCount = filteredAndSortedSongs.length
+
+  // Play All (ignores the search filter, like the rest of the app)
   const handlePlayAll = () => {
-    if (filteredAndSortedSongs.length === 0) return
+    if (sortedSongs.length === 0) return
     if (isPlayingThisContext) {
       togglePlay()
       return
     }
 
-    const playerTracks = filteredAndSortedSongs.map(toPlayerTrack)
+    const queue = isShuffleOn ? shuffleSongs(sortedSongs) : sortedSongs
+    const playerTracks = queue.map(toPlayerTrack)
     playTrack(playerTracks[0], playerTracks, 0, 'library:liked', 'Liked Songs')
   }
 
@@ -200,277 +207,287 @@ function LikedSongsPage() {
     )
   }
 
-  // If user unlikes track via SongRow, remove it from list
-  const handleTrackUnlike = (songId: string) => {
-    setUnlikedIds((prev) => new Set(prev).add(songId))
-  }
+  // Unliking a track (row heart or action menu) removes it from the shared
+  // store, which is the single source of truth for this list.
 
   // Unauthenticated view
   if (!isAuthenticated && !isAuthLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center select-none">
-        <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-indigo-700 via-indigo-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
-          <HeartIconSVG filled={true} className="w-10 h-10" />
+      <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-xl text-center">
+          <span className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <HeartIconSVG filled className="h-9 w-9" />
+          </span>
+          <Eyebrow
+            as="span"
+            tone="brand"
+            className="mb-2 block tracking-widest"
+          >
+            Collection
+          </Eyebrow>
+          <h1 className="font-serif italic text-3xl text-foreground">
+            Your Liked Songs
+          </h1>
+          <p className="mt-3 font-sans text-body leading-relaxed text-muted-foreground">
+            Sign in or create an account to view and play all tracks you've
+            saved across your listening sessions.
+          </p>
+          <Button
+            variant="primary"
+            size="md"
+            className="mt-8"
+            onClick={() =>
+              openAuthModal({
+                category: 'Favorites & Library',
+                title: 'Access your Liked Songs',
+                subtitle: 'Authentication Required',
+                description:
+                  'Sign in to access your personal collection of liked tracks.',
+              })
+            }
+          >
+            Sign in / Register
+          </Button>
         </div>
-        <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground mb-3">
-          Your Liked Songs
-        </h1>
-        <p className="font-sans text-body text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
-          Sign in or create an account to view and play all tracks you've saved
-          across your listening sessions.
-        </p>
-        <button
-          type="button"
-          onClick={() =>
-            openAuthModal({
-              category: 'Favorites & Library',
-              title: 'Access your Liked Songs',
-              subtitle: 'Authentication Required',
-              description:
-                'Sign in to access your personal collection of liked tracks.',
-            })
-          }
-          className="font-eyebrow text-caption uppercase tracking-wider py-3 px-8 bg-foreground text-background hover:opacity-90 font-semibold cursor-pointer shadow-sm"
-        >
-          Sign In / Register
-        </button>
       </div>
     )
   }
 
+  const displayName = user?.displayName || 'Your Favorites'
+  const hasSongs = libraryCutsCount > 0
+  const showToolbar = isLoading || hasSongs || searchQuery.length > 0
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 select-none">
-      {/* ===================== HERO HEADER ===================== */}
-      <div className="border border-border bg-card p-6 sm:p-10 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-start md:items-end gap-8 relative z-10">
-          {/* Gradient Cover Container */}
-          <div className="w-44 h-44 sm:w-52 sm:h-52 shrink-0 bg-linear-to-br from-indigo-800 via-indigo-600 to-blue-500 border border-border shadow-md overflow-hidden relative flex items-center justify-center select-none shadow-inner">
-            <div className="text-white scale-125 transform hover:scale-135 transition-transform duration-200">
-              <HeartIconSVG
-                filled={true}
-                className="w-16 h-16 drop-shadow-md"
+    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 select-none sm:px-8 sm:pt-10">
+      {/* ===================== COLLECTION HERO HEADER ===================== */}
+      <CollectionHeader
+        className="-mx-4 sm:-mx-8"
+        stickyClassName="-mx-4 sm:-mx-8"
+        title="Liked Songs"
+        eyebrow={
+          <Eyebrow
+            as="span"
+            tone="brand"
+            className="font-semibold tracking-widest"
+          >
+            Collection
+          </Eyebrow>
+        }
+        badges={<Badge tone="warning">Private</Badge>}
+        cover={<LikedSongsCover accentColor="#6d78f0" />}
+        meta={
+          <>
+            <span className="max-w-full truncate font-sans text-caption text-muted-foreground">
+              {displayName}
+            </span>
+            <span className="inline-flex items-center whitespace-nowrap">
+              <span aria-hidden="true" className="mr-2 text-border">
+                &bull;
+              </span>
+              <span>
+                {libraryCutsCount} {libraryCutsCount === 1 ? 'Cut' : 'Cuts'}
+              </span>
+            </span>
+            <span className="inline-flex items-center whitespace-nowrap">
+              <span aria-hidden="true" className="mr-2 text-border">
+                &bull;
+              </span>
+              <span>{formatDuration(libraryDurationSeconds)}</span>
+            </span>
+          </>
+        }
+        stickySubtitle={displayName}
+        stickyThumbnail={<LikedSongsCover />}
+      />
+
+      {/* ===================== COLLECTION CONTROLS ===================== */}
+      <CollectionActionBar
+        className="pt-3.5 pb-2 md:pt-2 md:pb-5"
+        onPlay={hasSongs ? handlePlayAll : undefined}
+        isPlaying={isPlayingThisContext}
+        playLabel="Liked Songs"
+        adjacentAction={
+          <IconButton
+            size="lg"
+            className={
+              isShuffleOn ? 'group text-primary! hover:text-primary!' : 'group'
+            }
+            aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            aria-pressed={isShuffleOn}
+            onClick={() => setIsShuffleOn((prev) => !prev)}
+          >
+            <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+          </IconButton>
+        }
+      />
+
+      {/* ===================== MAIN CONTENT ===================== */}
+      <div className="mt-6 space-y-8 sm:mt-10">
+        {/* ===================== FILTER & SORT TOOLBAR ===================== */}
+        {showToolbar ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-xs">
+              <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search liked songs"
+                aria-label="Search liked songs"
+                className="pl-9 pr-9"
               />
+              {searchQuery ? (
+                <IconButton
+                  size="sm"
+                  aria-label="Clear search"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </IconButton>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                <SortIconSVG className="h-3.5 w-3.5" />
+                Sort
+              </span>
+              <div className="w-40 shrink-0">
+                <Select
+                  value={sortBy}
+                  onChange={(event) =>
+                    setSortBy(event.target.value as LikedSort)
+                  }
+                  aria-label="Sort liked songs"
+                  className="pr-8"
+                >
+                  <option value="recent">Date Added</option>
+                  <option value="title">Title</option>
+                  <option value="artist">Artist</option>
+                  <option value="album">Album</option>
+                  <option value="duration">Duration</option>
+                </Select>
+              </div>
+              <IconButton
+                size="sm"
+                aria-label={
+                  sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
+                title={
+                  sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
+                }
+                onClick={() =>
+                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+                }
+              >
+                {sortOrder === 'asc' ? (
+                  <ArrowUp className="h-4 w-4" />
+                ) : (
+                  <ArrowDown className="h-4 w-4" />
+                )}
+              </IconButton>
             </div>
           </div>
+        ) : null}
 
-          {/* Details & Actions */}
-          <div className="flex-1 flex flex-col justify-end gap-3 min-w-0">
-            {/* Badges */}
-            <div className="flex items-center gap-2.5 flex-wrap font-eyebrow text-eyebrow uppercase tracking-wider">
-              <span className="px-2.5 py-0.5 border border-border bg-background text-primary font-semibold">
-                Collection
-              </span>
-              <span className="px-2 py-0.5 border border-border text-muted-foreground">
-                Private
-              </span>
+        {/* ===================== TRACKLIST SECTION ===================== */}
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-sans text-heading font-semibold text-foreground">
+              Tracklist
+            </h2>
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
+              {totalCutsCount} {totalCutsCount === 1 ? 'Cut' : 'Cuts'}
+            </span>
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-0.5">
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={index}
+                  className="h-14 animate-pulse rounded-inset bg-card/40"
+                />
+              ))}
             </div>
-
-            {/* Title */}
-            <h1 className="font-serif italic text-3xl sm:text-5xl text-foreground tracking-tight leading-tight truncate">
-              Liked Songs
-            </h1>
-
-            {/* User Attribution & Total Stats */}
-            <div className="flex items-center gap-2.5 flex-wrap font-mono text-caption text-muted-foreground pt-1">
-              <span className="text-foreground font-serif italic text-body">
-                {user?.displayName || 'Your Favorites'}
-              </span>
-              <span>&bull;</span>
-              <span>
-                {totalCutsCount} {totalCutsCount === 1 ? 'Cut' : 'Cuts'}
-              </span>
-              <span>&bull;</span>
-              <span>{formatTotalDuration(totalDurationSeconds)}</span>
+          ) : errorMsg ? (
+            <div className="rounded-surface border border-destructive/30 bg-destructive-soft p-4 font-sans text-caption text-destructive">
+              {errorMsg}
             </div>
-
-            {/* Action Bar */}
-            <div className="flex items-center gap-3 pt-3 flex-wrap">
-              {totalCutsCount > 0 && (
+          ) : totalCutsCount === 0 ? (
+            <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
+              <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <DiscIconSVG className="h-5 w-5" />
+              </span>
+              {searchQuery ? (
                 <>
-                  {/* Play All */}
-                  <button
-                    type="button"
-                    onClick={handlePlayAll}
-                    className="font-eyebrow text-caption uppercase tracking-wider py-2.5 px-6 bg-primary text-background hover:opacity-90 transition-opacity font-semibold shadow-raised flex items-center gap-2 cursor-pointer"
+                  <p className="font-serif italic text-title text-foreground">
+                    No matching tracks found
+                  </p>
+                  <p className="mt-1 font-sans text-caption text-muted-foreground">
+                    No liked songs match "{searchQuery}".
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => setSearchQuery('')}
                   >
-                    {isPlayingThisContext ? (
-                      <PauseIconSVG className="w-4 h-4" />
-                    ) : (
-                      <PlayIconSVG className="w-4 h-4" />
-                    )}
-                    <span>{isPlayingThisContext ? 'Pause' : 'Play All'}</span>
-                  </button>
+                    Clear filter
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="font-serif italic text-title text-foreground">
+                    Songs you like will appear here
+                  </p>
+                  <p className="mx-auto mt-1 max-w-sm font-sans text-caption text-muted-foreground">
+                    Save songs by tapping the heart icon on any release, album,
+                    or player cut across Groovy.
+                  </p>
+                  <Link
+                    to="/search"
+                    className="mt-4 inline-block rounded-control border border-border bg-card px-4 py-2 font-eyebrow text-eyebrow uppercase tracking-wider text-foreground transition-colors hover:bg-background"
+                  >
+                    Explore Music
+                  </Link>
                 </>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          ) : (
+            <div className="overflow-hidden rounded-surface">
+              {/* Desktop Tracklist Column Header */}
+              <div className="hidden items-center justify-between gap-4 border-b border-border/60 px-2 py-2.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground sm:flex sm:px-3">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <span className="w-6 text-center">#</span>
+                  <span>Title &amp; Artist</span>
+                </div>
+                <div className="w-24 text-right">Streams</div>
+                <div className="flex min-w-30 shrink-0 items-center justify-end gap-3 pr-2 sm:gap-4">
+                  <span>Duration</span>
+                </div>
+              </div>
 
-      {/* ===================== FILTER & SORT TOOLBAR ===================== */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-border pb-4">
-        {/* Search within Liked Songs */}
-        <div className="relative flex-1 max-w-sm">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter liked tracks by title, artist..."
-            className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
-          />
-          <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
-              title="Clear search"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Sort Options */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-            <SortIconSVG className="w-3.5 h-3.5" />
-            Sort:
-          </span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="font-mono text-caption border border-border bg-background text-foreground py-1.5 px-3 focus:outline-none focus:border-foreground cursor-pointer"
-          >
-            <option value="recent">Date Added</option>
-            <option value="title">Title</option>
-            <option value="artist">Artist</option>
-            <option value="album">Album</option>
-            <option value="duration">Duration</option>
-          </select>
-          <button
-            type="button"
-            onClick={() =>
-              setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-            }
-            className="font-mono text-caption border border-border bg-background hover:bg-muted px-2.5 py-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
-            title={`Toggle order (${sortOrder === 'asc' ? 'Ascending' : 'Descending'})`}
-          >
-            {sortOrder === 'asc' ? '↑' : '↓'}
-          </button>
-        </div>
-      </div>
-
-      {/* ===================== TRACKLIST SECTION ===================== */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-baseline border-b border-border pb-3">
-          <div className="flex items-center gap-3">
-            <h2 className="font-serif italic font-medium text-heading text-foreground">
-              Tracklist
-            </h2>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 border border-border bg-muted text-muted-foreground">
-              {filteredAndSortedSongs.length}{' '}
-              {filteredAndSortedSongs.length === 1 ? 'Cut' : 'Cuts'}
-            </span>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-16 border border-border/40 bg-card/50 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : errorMsg ? (
-          <div className="p-6 border border-destructive/30 bg-destructive-soft text-destructive font-mono text-caption">
-            {errorMsg}
-          </div>
-        ) : filteredAndSortedSongs.length === 0 ? (
-          <div className="border border-border bg-card p-12 text-center space-y-4">
-            <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-              <DiscIconSVG className="w-6 h-6" />
-            </div>
-            {searchQuery ? (
-              <>
-                <h3 className="font-serif italic text-lg text-foreground">
-                  No matching tracks found
-                </h3>
-                <p className="font-sans text-caption text-muted-foreground">
-                  No liked songs match your query "{searchQuery}".
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="font-mono text-caption text-primary hover:underline cursor-pointer"
-                >
-                  Clear filter
-                </button>
-              </>
-            ) : (
-              <>
-                <h3 className="font-serif italic text-lg text-foreground">
-                  Songs you like will appear here
-                </h3>
-                <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto">
-                  Save songs by tapping the heart icon on any release, album, or
-                  player cut across Groovy.
-                </p>
-                <Link
-                  to="/search"
-                  className="inline-block mt-2 font-eyebrow text-caption uppercase tracking-wider py-2 px-5 border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition-colors"
-                >
-                  Explore Music
-                </Link>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="border border-border bg-card overflow-hidden shadow-raised divide-y divide-border/40">
-            {filteredAndSortedSongs.map((song, idx) => {
-              const primaryCredits =
-                song.credits?.filter((c) => c.role === 'PRIMARY') || []
-              const featuredCredits =
-                song.credits?.filter((c) => c.role === 'FEATURED') || []
-              const producerCredits =
-                song.credits?.filter((c) => c.role === 'PRODUCER') || []
-
-              return (
-                <div
-                  key={song.id}
-                  className="relative group transition-colors hover:bg-muted/40"
-                >
+              <div className="relative space-y-0.5">
+                {filteredAndSortedSongs.map((song, idx) => (
                   <SongRow
+                    key={song.id}
                     track={toPlayerTrack(song)}
                     index={idx}
                     trackNumberDisplay={idx + 1}
                     variant="playlist"
+                    surface="transparent"
+                    density="compact"
                     playsCount={song.playsCount}
-                    primaryCredits={primaryCredits}
-                    featuredCredits={featuredCredits}
-                    producerCredits={producerCredits}
                     onPlay={() => handlePlaySong(song, idx)}
-                    customActions={[
-                      {
-                        label: 'Remove from Liked Songs',
-                        icon: (
-                          <HeartIconSVG
-                            filled={false}
-                            className="w-3.5 h-3.5 text-destructive"
-                          />
-                        ),
-                        danger: true,
-                        onClick: () => handleTrackUnlike(song.id),
-                      },
-                    ]}
                   />
-                </div>
-              )
-            })}
-          </div>
-        )}
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
