@@ -8,9 +8,10 @@ import { playlistsApi } from "../../lib/playlists.api";
 import type { Playlist } from "../../types/playlist";
 
 export function AddToPlaylistModal() {
-  const { isOpen, track, closeModal } = useAddToPlaylistModalStore();
+  const { isOpen, tracks, contextLabel, closeModal } = useAddToPlaylistModalStore();
   const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal);
   const { isAuthenticated } = useAuthStore();
+  const trackCount = tracks.length;
 
   const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
   const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
@@ -18,7 +19,7 @@ export function AddToPlaylistModal() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !track) return;
+    if (!isOpen || trackCount === 0) return;
 
     if (!isAuthenticated) {
       closeModal();
@@ -55,7 +56,7 @@ export function AddToPlaylistModal() {
     return () => {
       isMounted = false;
     };
-  }, [isOpen, track, isAuthenticated, closeModal]);
+  }, [isOpen, trackCount, isAuthenticated, closeModal]);
 
   // Close on Escape key press
   useEffect(() => {
@@ -69,9 +70,10 @@ export function AddToPlaylistModal() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, closeModal]);
 
-  if (!isOpen || !track) return null;
+  if (!isOpen || trackCount === 0) return null;
 
-  const isPersonalCut = (track as any).scope === "PERSONAL";
+  const isPersonalCut = tracks.some((track) => track.scope === "PERSONAL");
+  const selectedTrackIds = tracks.map((track) => track.id);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -85,15 +87,18 @@ export function AddToPlaylistModal() {
     }
     setAddingToPlaylistId(playlist.id);
     try {
-      await playlistsApi.addTracks(playlist.id, [track.id]);
-      useLibraryStore.getState().updatePlaylistTracksCount(playlist.id, 1);
+      const result = await playlistsApi.addTracks(playlist.id, selectedTrackIds);
+      const addedCount = result.addedCount ?? trackCount;
+      useLibraryStore.getState().updatePlaylistTracksCount(playlist.id, addedCount);
       useLibraryStore.getState().invalidate();
-      showToast(`Added to "${playlist.title}"`);
+      showToast(
+        `Added ${addedCount} ${addedCount === 1 ? "track" : "tracks"} to "${playlist.title}"`,
+      );
       setTimeout(() => {
         closeModal();
       }, 500);
     } catch (err: any) {
-      showToast(err.message || "Could not add track to playlist");
+      showToast(err.message || "Could not add tracks to playlist");
     } finally {
       setAddingToPlaylistId(null);
     }
@@ -118,11 +123,13 @@ export function AddToPlaylistModal() {
           <div>
             <h4 className="font-serif italic font-medium text-lg text-foreground">Add to Playlist</h4>
             <p className="font-mono text-eyebrow text-muted-foreground truncate max-w-[220px]">
-              {track.title}
+              {trackCount === 1
+                ? (tracks[0]?.title ?? "1 track")
+                : `${trackCount} tracks${contextLabel ? ` from ${contextLabel}` : ""}`}
             </p>
             {isPersonalCut && (
               <p className="mt-1 font-mono text-eyebrow text-warning">
-                🔒 Personal cut: private playlists only
+                🔒 Personal {trackCount === 1 ? "cut" : "cuts"}: private playlists only
               </p>
             )}
           </div>
@@ -151,9 +158,8 @@ export function AddToPlaylistModal() {
               <button
                 type="button"
                 onClick={() => {
-                  const trackIdToAdd = track?.id ? [track.id] : []
                   closeModal();
-                  openCreatePlaylistModal(trackIdToAdd);
+                  openCreatePlaylistModal(selectedTrackIds);
                 }}
                 className="mt-3 font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3.5 border border-border bg-background hover:border-foreground text-foreground cursor-pointer"
               >
@@ -187,9 +193,8 @@ export function AddToPlaylistModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    const trackIdToAdd = track?.id ? [track.id] : []
                     closeModal();
-                    openCreatePlaylistModal(trackIdToAdd);
+                    openCreatePlaylistModal(selectedTrackIds);
                   }}
                   className="w-full font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-dashed border-border bg-background hover:border-foreground text-foreground cursor-pointer rounded-control flex items-center justify-center gap-1.5"
                 >

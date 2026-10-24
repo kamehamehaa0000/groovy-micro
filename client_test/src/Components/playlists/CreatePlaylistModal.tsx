@@ -123,7 +123,7 @@ export function CreatePlaylistModal() {
 
         {initialTrackIds.length > 0 && (
           <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded-control flex items-center justify-between">
-            <span>Saving Active Queue</span>
+            <span>Adding</span>
             <span>{initialTrackIds.length} tracks</span>
           </div>
         )}

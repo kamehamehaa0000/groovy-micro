@@ -33,6 +33,7 @@ import { NotificationBell } from '../components/navigation/NotificationBell'
 import { useNotificationsStore } from '../stores/notifications.store'
 import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal'
 import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
+import { AppToaster } from '../components/common/AppToaster'
 import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
 
 export interface RouterContext {
@@ -1185,6 +1186,7 @@ function RootComponent() {
         isOpen={rightActionDrawerOpen}
         onClose={() => setRightActionDrawerOpen(false)}
       />
+      <AppToaster key="global-toaster" />
       <MobileBottomBar />
     </div>
   )

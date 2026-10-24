@@ -1,34 +1,95 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
+import {
+  Disc3,
+  ListMusic,
+  ListPlus,
+  MoreVertical,
+  Play,
+  SkipForward,
+  Trash2,
+  User,
+} from 'lucide-react'
 import { usePlayerStore } from '../../stores/player.store'
-import type { PersonalRelease } from '../../lib/storage.api'
+import { useAddToPlaylistModalStore } from '../../stores/add-to-playlist-modal.store'
 import type { PlayerTrack } from '../../types/player'
 import { ProceduralCover } from './ProceduralCover'
-import { PlayIconSVG, TrashIconSVG, DiscIconSVG } from '../icons'
 
-export interface ReleaseActionMenuProps {
-  release: PersonalRelease
-  buttonClassName?: string
-  align?: 'left' | 'right'
-  onDeleteRequest?: (release: PersonalRelease) => void
+/**
+ * Minimal release shape shared by vault releases and album/release detail pages.
+ * Album pages can also pass already-mapped `tracks` through the `tracks` prop.
+ */
+export interface ReleaseMenuTrack {
+  id: string
+  title: string
+  durationSeconds?: number | null
+  artistId?: string | null
+  artistName?: string | null
+  artistStageName?: string | null
+  artistSlug?: string | null
+  albumId?: string | null
+  albumTitle?: string | null
+  albumSlug?: string | null
+  audioUrl?: string | null
+  hlsManifestUrl?: string | null
+  rawAudioKey?: string | null
+  coverImageUrl?: string | null
+  isExplicit?: boolean
+  scope?: 'GLOBAL' | 'PERSONAL'
 }
 
-export function ReleaseActionMenu({
+export interface ReleaseMenuRelease {
+  id: string
+  title: string
+  slug: string
+  coverImageUrl?: string | null
+  artistId?: string | null
+  artistName?: string | null
+  artistStageName?: string | null
+  artistSlug?: string | null
+  scope?: 'GLOBAL' | 'PERSONAL'
+  tracks?: ReleaseMenuTrack[]
+}
+
+export interface ReleaseActionMenuProps<
+  R extends ReleaseMenuRelease = ReleaseMenuRelease,
+> {
+  release: R
+  /** Pre-mapped player tracks. Falls back to `release.tracks`. */
+  tracks?: PlayerTrack[]
+  buttonClassName?: string
+  align?: 'left' | 'right'
+  hideGoToRelease?: boolean
+  onDeleteRequest?: (release: R) => void
+}
+
+/**
+ * Release-level overflow menu.
+ *
+ * The same menu powers vault releases and the album/release detail header.
+ * Actions operate on the whole release: play, play next, add to queue, and
+ * add to playlist (batch).
+ */
+export function ReleaseActionMenu<
+  R extends ReleaseMenuRelease = ReleaseMenuRelease,
+>({
   release,
+  tracks,
   buttonClassName = 'p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-full flex items-center justify-center hover:bg-muted/80',
   align = 'right',
+  hideGoToRelease = false,
   onDeleteRequest,
-}: ReleaseActionMenuProps) {
+}: ReleaseActionMenuProps<R>) {
   const [isOpen, setIsOpen] = useState(false)
   const [dropdownPos, setDropdownPos] = useState<{
     top: number
     left: number
     openUp: boolean
   } | null>(null)
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  // Mobile Snapping & Drag-to-Dismiss State
+  // Mobile snapping & drag-to-dismiss state
   const [sheetTranslateY, setSheetTranslateY] = useState(0)
   const [isDraggingSheet, setIsDraggingSheet] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
@@ -43,26 +104,44 @@ export function ReleaseActionMenu({
   const addToQueue = usePlayerStore((s) => s.addToQueue)
   const playNext = usePlayerStore((s) => s.playNext)
 
-  // Convert PersonalRelease tracks to PlayerTracks
+  const releaseArtistName =
+    release.artistName || release.artistStageName || 'Unknown Artist'
+
   const getReleasePlayerTracks = (): PlayerTrack[] => {
-    return (release.tracks || []).map((t) => ({
-      id: t.id,
-      title: t.title,
-      durationSeconds: t.durationSeconds || 0,
-      artistId: t.artistId || release.artistId,
-      artistName: t.artistName || release.artistName,
-      artistSlug: release.artistSlug,
-      albumId: release.id,
-      albumTitle: release.title,
-      albumSlug: release.slug,
-      coverImageUrl: release.coverImageUrl || t.coverImageUrl,
-      audioUrl: t.audioUrl || '',
-      hlsManifestUrl: t.hlsManifestUrl || undefined,
-      rawAudioKey: t.rawAudioKey,
-      scope: 'PERSONAL',
-      isExplicit: t.isExplicit,
-    }))
+    const source: PlayerTrack[] =
+      tracks ??
+      (release.tracks || []).map(
+        (track): PlayerTrack => ({
+          id: track.id,
+          title: track.title,
+          durationSeconds: track.durationSeconds ?? 0,
+          artistId: track.artistId || release.artistId || '',
+          artistName:
+            track.artistName ||
+            track.artistStageName ||
+            release.artistName ||
+            release.artistStageName ||
+            'Unknown Artist',
+          artistSlug: track.artistSlug || release.artistSlug || undefined,
+          albumId: track.albumId || release.id,
+          albumTitle: track.albumTitle || release.title,
+          albumSlug: track.albumSlug || release.slug,
+          coverImageUrl:
+            track.coverImageUrl || release.coverImageUrl || undefined,
+          audioUrl: track.audioUrl || '',
+          hlsManifestUrl: track.hlsManifestUrl || undefined,
+          rawAudioKey: track.rawAudioKey || undefined,
+          scope: track.scope || release.scope || 'PERSONAL',
+          isExplicit: track.isExplicit,
+        }),
+      )
+
+    return source.filter((track) => track.isStreamable !== false)
   }
+
+  // Playable tracks for this release (empty for upcoming/locked releases).
+  const playableTracks = getReleasePlayerTracks()
+  const canPlay = playableTracks.length > 0
 
   // Measure and position dropdown relative to viewport
   const updatePosition = () => {
@@ -127,7 +206,7 @@ export function ReleaseActionMenu({
     }
   }
 
-  // Body scroll lock on mobile when sheet is open
+  // Body scroll lock on mobile when the sheet is open
   useEffect(() => {
     if (!isOpen) return
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
@@ -145,7 +224,7 @@ export function ReleaseActionMenu({
     }
   }, [isOpen])
 
-  // Close dropdown on outside click or Escape key, and reposition on resize/scroll
+  // Close dropdown on outside click or Escape, and reposition on resize/scroll
   useEffect(() => {
     if (!isOpen) return
 
@@ -193,11 +272,6 @@ export function ReleaseActionMenu({
     }
   }, [isOpen, align])
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(null), 2200)
-  }
-
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -214,45 +288,62 @@ export function ReleaseActionMenu({
   const handlePlayRelease = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const tracks = getReleasePlayerTracks()
-    if (tracks.length === 0) {
-      showToast('No tracks available in this release')
+    const queue = playableTracks
+    if (queue.length === 0) {
+      toast.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
     setIsOpen(false)
-    playTrack(tracks[0], tracks)
+    playTrack(queue[0], queue)
   }
 
   const handlePlayNext = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const tracks = getReleasePlayerTracks()
-    if (tracks.length === 0) {
-      showToast('No tracks available in this release')
+    const queue = playableTracks
+    if (queue.length === 0) {
+      toast.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
     setIsOpen(false)
     // Add tracks in reverse order with playNext so the first track plays next
-    for (let i = tracks.length - 1; i >= 0; i--) {
-      playNext(tracks[i])
+    for (let i = queue.length - 1; i >= 0; i--) {
+      playNext(queue[i])
     }
-    showToast(`Playing ${release.title} next`)
+    toast.success(`Playing ${release.title} next`)
   }
 
   const handleAddToQueue = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const tracks = getReleasePlayerTracks()
-    if (tracks.length === 0) {
-      showToast('No tracks available in this release')
+    const queue = playableTracks
+    if (queue.length === 0) {
+      toast.error('No playable tracks in this release')
       setIsOpen(false)
       return
     }
     setIsOpen(false)
-    tracks.forEach((t) => addToQueue(t))
-    showToast(`Added ${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'} to queue`)
+    queue.forEach((track) => addToQueue(track))
+    toast.success(
+      `Added ${queue.length} ${queue.length === 1 ? 'track' : 'tracks'} to queue`,
+    )
+  }
+
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const queue = playableTracks
+    if (queue.length === 0) {
+      toast.error('No playable tracks in this release')
+      setIsOpen(false)
+      return
+    }
+    setIsOpen(false)
+    useAddToPlaylistModalStore
+      .getState()
+      .openModalForTracks(queue, release.title)
   }
 
   const handleGoToRelease = (e: React.MouseEvent) => {
@@ -289,7 +380,6 @@ export function ReleaseActionMenu({
 
   return (
     <>
-      {/* 3-Dots Trigger Button */}
       <button
         ref={buttonRef}
         type="button"
@@ -298,25 +388,8 @@ export function ReleaseActionMenu({
         className={buttonClassName}
         title="More options"
       >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-          <circle cx="12" cy="5" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="12" cy="19" r="2" />
-        </svg>
+        <MoreVertical className="h-4 w-4" />
       </button>
-
-      {/* Floating Temporary Toast */}
-      {toastMessage &&
-        canUsePortal &&
-        createPortal(
-          <div
-            style={{ zIndex: 9999999 }}
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 rounded-control shadow-2xl animate-in fade-in duration-150 pointer-events-none"
-          >
-            {toastMessage}
-          </div>,
-          document.body,
-        )}
 
       {/* ==================== DESKTOP FLOATING DROPDOWN VIA PORTAL ==================== */}
       {isOpen &&
@@ -334,83 +407,64 @@ export function ReleaseActionMenu({
               left: `${dropdownPos.left}px`,
               zIndex: 99999,
             }}
-            className="hidden sm:block w-52 border border-border bg-card shadow-2xl py-1 divide-y divide-border/40 rounded-lg font-sans text-caption animate-in fade-in zoom-in-95 duration-100"
+            className="hidden sm:block w-52 border border-border bg-card shadow-floating py-1 divide-y divide-border/40 rounded-surface font-sans text-caption animate-in fade-in zoom-in-95 duration-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="py-1">
-              <button
-                type="button"
-                onClick={handlePlayRelease}
-                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
-              >
-                <PlayIconSVG className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>Play Release</span>
-              </button>
-              <button
-                type="button"
-                onClick={handlePlayNext}
-                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-3.5 h-3.5 text-muted-foreground shrink-0"
+            {canPlay && (
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={handlePlayRelease}
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
-                  <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
-                  <line x1="19" y1="5" x2="19" y2="19" strokeWidth="2.5" />
-                </svg>
-                <span>Play Next</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleAddToQueue}
-                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-3.5 h-3.5 text-muted-foreground shrink-0"
+                  <Play className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>Play Release</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePlayNext}
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
                 >
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="3" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="3" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="3" />
-                </svg>
-                <span>Add to Queue</span>
-              </button>
-            </div>
+                  <SkipForward className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span>Play Next</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddToQueue}
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
+                >
+                  <ListPlus className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span>Add to Queue</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddToPlaylist}
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer"
+                >
+                  <ListMusic className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span>Add to Playlist</span>
+                </button>
+              </div>
+            )}
 
             <div className="py-1">
-              <button
-                type="button"
-                onClick={handleGoToRelease}
-                className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
-              >
-                <DiscIconSVG className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">Go to Release</span>
-              </button>
+              {!hideGoToRelease && (
+                <button
+                  type="button"
+                  onClick={handleGoToRelease}
+                  className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
+                >
+                  <Disc3 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="truncate">Go to Release</span>
+                </button>
+              )}
               {(release.artistSlug || release.artistId) && (
                 <button
                   type="button"
                   onClick={handleGoToArtist}
                   className="w-full text-left px-3.5 py-2 hover:bg-muted flex items-center gap-2.5 text-foreground cursor-pointer truncate"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="w-3.5 h-3.5 text-muted-foreground shrink-0"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
+                  <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="truncate">Go to Artist</span>
                 </button>
               )}
@@ -423,7 +477,7 @@ export function ReleaseActionMenu({
                   onClick={handleDelete}
                   className="w-full text-left px-3.5 py-2 hover:bg-destructive/20 flex items-center gap-2.5 text-destructive cursor-pointer"
                 >
-                  <TrashIconSVG className="w-3.5 h-3.5 text-destructive shrink-0" />
+                  <Trash2 className="h-3.5 w-3.5 text-destructive shrink-0" />
                   <span>Delete from Vault</span>
                 </button>
               </div>
@@ -471,7 +525,7 @@ export function ReleaseActionMenu({
                   ? 'none'
                   : 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)',
               }}
-              className="relative z-10 w-full max-h-[85vh] bg-card border-t border-border shadow-2xl rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
+              className="relative z-10 w-full max-h-[85vh] bg-card border-t border-border shadow-floating rounded-t-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200 pb-safe"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Grab indicator pill zone */}
@@ -505,7 +559,7 @@ export function ReleaseActionMenu({
                     <ProceduralCover
                       size="sm"
                       title={release.title}
-                      artistName={release.artistName}
+                      artistName={releaseArtistName}
                       className="w-full h-full text-caption"
                     />
                   )}
@@ -515,7 +569,7 @@ export function ReleaseActionMenu({
                     {release.title}
                   </p>
                   <p className="font-sans text-caption text-muted-foreground truncate">
-                    {release.artistName || 'Unknown Artist'}
+                    {releaseArtistName}
                   </p>
                 </div>
               </div>
@@ -525,80 +579,61 @@ export function ReleaseActionMenu({
                 className="overflow-y-auto max-h-[55vh] py-1 divide-y divide-border/30 font-sans text-body overscroll-contain"
                 style={{ touchAction: 'pan-y' }}
               >
-                <div className="py-1">
-                  <button
-                    type="button"
-                    onClick={handlePlayRelease}
-                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
-                  >
-                    <PlayIconSVG className="w-4 h-4 text-primary shrink-0" />
-                    <span>Play Release</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePlayNext}
-                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-4 h-4 text-muted-foreground shrink-0"
+                {canPlay && (
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={handlePlayRelease}
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                     >
-                      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
-                      <line x1="19" y1="5" x2="19" y2="19" strokeWidth="2.5" />
-                    </svg>
-                    <span>Play Next</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAddToQueue}
-                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-4 h-4 text-muted-foreground shrink-0"
+                      <Play className="h-4 w-4 text-primary shrink-0" />
+                      <span>Play Release</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePlayNext}
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                     >
-                      <line x1="8" y1="6" x2="21" y2="6" />
-                      <line x1="8" y1="12" x2="21" y2="12" />
-                      <line x1="8" y1="18" x2="21" y2="18" />
-                      <line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="3" />
-                      <line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="3" />
-                      <line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="3" />
-                    </svg>
-                    <span>Add to Queue</span>
-                  </button>
-                </div>
+                      <SkipForward className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>Play Next</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddToQueue}
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
+                    >
+                      <ListPlus className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>Add to Queue</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddToPlaylist}
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
+                    >
+                      <ListMusic className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>Add to Playlist</span>
+                    </button>
+                  </div>
+                )}
 
                 <div className="py-1">
-                  <button
-                    type="button"
-                    onClick={handleGoToRelease}
-                    className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
-                  >
-                    <DiscIconSVG className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span>Go to Release</span>
-                  </button>
+                  {!hideGoToRelease && (
+                    <button
+                      type="button"
+                      onClick={handleGoToRelease}
+                      className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
+                    >
+                      <Disc3 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>Go to Release</span>
+                    </button>
+                  )}
                   {(release.artistSlug || release.artistId) && (
                     <button
                       type="button"
                       onClick={handleGoToArtist}
                       className="w-full text-left px-5 py-3.5 hover:bg-muted flex items-center gap-3.5 text-foreground cursor-pointer active:bg-muted"
                     >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="w-4 h-4 text-muted-foreground shrink-0"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span>Go to Artist</span>
                     </button>
                   )}
@@ -611,7 +646,7 @@ export function ReleaseActionMenu({
                       onClick={handleDelete}
                       className="w-full text-left px-5 py-3.5 hover:bg-destructive/20 flex items-center gap-3.5 text-destructive cursor-pointer active:bg-destructive-soft"
                     >
-                      <TrashIconSVG className="w-4 h-4 text-destructive shrink-0" />
+                      <Trash2 className="h-4 w-4 text-destructive shrink-0" />
                       <span>Delete from Vault</span>
                     </button>
                   </div>

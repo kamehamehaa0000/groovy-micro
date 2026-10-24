@@ -11,7 +11,6 @@ import { DetachCutDrawer } from '../components/studio/DetachCutDrawer'
 import { EditReleaseDrawer } from '../components/studio/EditReleaseDrawer'
 import { StudioHeader } from '../components/studio/StudioHeader'
 import { StudioTabs } from '../components/studio/StudioTabs'
-import { StudioToaster } from '../components/studio/StudioToaster'
 import { StudioUpgradeScreen } from '../components/studio/StudioUpgradeScreen'
 import { useProfileForm } from '../components/studio/hooks/useProfileForm'
 import { useReleases } from '../components/studio/hooks/useReleases'
@@ -355,8 +354,6 @@ function StudioComponent() {
         isSubmitting={isUploadingAvatar}
         onCropComplete={handleAvatarCropComplete}
       />
-
-      <StudioToaster />
     </div>
   )
 }

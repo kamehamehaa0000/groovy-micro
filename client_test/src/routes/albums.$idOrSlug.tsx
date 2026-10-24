@@ -14,6 +14,7 @@ import { usePreSavesStore } from '../stores/presaves.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { ProceduralCover } from '../components/common/ProceduralCover'
+import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
 import {
   CollectionActionBar,
   CollectionHeader,
@@ -543,6 +544,14 @@ function AlbumDetailComponent() {
           onPlay={!isPreSavePrimary && hasTracks ? handleHeroPlay : undefined}
           isPlaying={isAlbumPlaying}
           playLabel={album.title}
+          menu={
+            <ReleaseActionMenu
+              release={album}
+              tracks={(album.tracks ?? []).map(toPlayerTrack)}
+              hideGoToRelease
+              buttonClassName="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
+            />
+          }
         >
           {!album.isUpcoming ? (
             <button

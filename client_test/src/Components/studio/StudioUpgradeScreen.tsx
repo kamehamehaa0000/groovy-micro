@@ -3,7 +3,6 @@ import { slugifyText, artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
 import { toast } from 'sonner'
 import { PartyPopper, Sparkles } from 'lucide-react'
-import { StudioToaster } from './StudioToaster'
 
 interface StudioUpgradeScreenProps {
   setArtistProfile: React.Dispatch<React.SetStateAction<ArtistProfile | null>>
@@ -193,7 +192,6 @@ export function StudioUpgradeScreen({
           )}
         </button>
       </form>
-      <StudioToaster />
     </div>
   )
 }
