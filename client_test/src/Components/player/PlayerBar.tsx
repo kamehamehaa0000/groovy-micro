@@ -678,6 +678,7 @@ export function PlayerBar() {
             type="button"
             onClick={() => toggleDesktopRightSidebar('queue')}
             title="Toggle Queue"
+            aria-label="Toggle Queue"
             className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all cursor-pointer ${
               desktopRightSidebarView === 'queue'
                 ? 'bg-primary/15 text-primary ring-1 ring-primary/30'

@@ -4,20 +4,12 @@ import { useJamStore } from '../../stores/jam.store'
 import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
-import { useLikesStore } from '../../stores/likes.store'
 import { playerApi, type RecentHistoryItem } from '../../lib/player.api'
 import { QueueSongRow } from './QueueSongRow'
 import { UserQueueReorderList } from './UserQueueReorderList'
 import { SongActionMenu } from './SongActionMenu'
-import {
-  ChevronDown,
-  CirclePlus,
-  Eraser,
-  ListMusic,
-  RotateCcwClock,
-  Shuffle,
-  X,
-} from 'lucide-react'
+import { ChevronDown, ListPlus, Shuffle, Trash2, X } from 'lucide-react'
+import { IconButton } from '../ui'
 
 function formatSeconds(secs: number): string {
   if (!Number.isFinite(secs) || secs < 0) return '0:00'
@@ -116,8 +108,6 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
-  const likedSongIds = useLikesStore((s) => s.likedSongIds)
-  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
 
   // Tabs: 'queue' vs 'history'
   const [activeTab, setActiveTab] = useState<'queue' | 'history'>('queue')
@@ -192,98 +182,102 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-card text-foreground">
       {/* ===================== TOP HEADER & TABS ===================== */}
-      <div className="h-14 border-b border-border px-4 sm:px-5 flex items-center justify-between shrink-0 gap-2 select-none">
+      <div className="h-14 border-b border-border px-3.5 sm:px-4 flex items-center justify-between shrink-0 gap-2 select-none">
         {/* Left: Tab Switcher (Queue / History) */}
-        <div className="flex items-center gap-1 bg-background p-0.5 rounded-control">
+        <div className="flex items-center gap-1 bg-secondary/30 p-1 rounded-control">
           <button
             type="button"
             onClick={() => setActiveTab('queue')}
-            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-1 rounded-control transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'queue'
                 ? 'bg-card text-foreground font-semibold shadow-raised'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <ListMusic className="w-5 h-5" />
+            <span>Queue</span>
+            {totalUpcomingTracks > 0 && (
+              <span className="font-mono text-eyebrow opacity-75">
+                {totalUpcomingTracks}
+              </span>
+            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('history')}
-            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            className={`font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-1 rounded-control transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'history'
                 ? 'bg-card text-foreground font-semibold shadow-raised'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <RotateCcwClock className="w-5 h-5" />
+            <span>History</span>
           </button>
         </div>
 
         {/* Right Controls: Shuffle, Save as Playlist, Clear Queue, Close */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {activeTab === 'queue' && (
-            <button
-              type="button"
+            <IconButton
+              size="sm"
               onClick={toggleShuffle}
-              title={
-                isShuffle
-                  ? 'Shuffle is on - click to disable'
-                  : 'Shuffle is off - click to enable'
+              className={
+                isShuffle ? 'group text-primary! hover:text-primary!' : 'group'
               }
-              aria-label={isShuffle ? 'Disable shuffle' : 'Enable shuffle'}
-              className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5  ${
-                isShuffle
-                  ? 'bg-primary/15 text-primary border-primary/40 font-semibold'
-                  : 'text-muted-foreground bg-background hover:bg-muted border-border hover:text-foreground'
-              }`}
+              aria-label={isShuffle ? 'Turn shuffle off' : 'Turn shuffle on'}
+              title={isShuffle ? 'Turn shuffle off' : 'Turn shuffle on'}
+              aria-pressed={isShuffle}
             >
-              {isShuffle ? (
-                <Shuffle className="w-5 h-5 bg-primary" />
-              ) : (
-                <Shuffle className="w-5 h-5" />
-              )}
-            </button>
+              <Shuffle
+                className={`h-4 w-4 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                  isShuffle ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
+            </IconButton>
           )}
 
           {activeTab === 'queue' && totalUpcomingTracks > 0 && (
-            <button
-              type="button"
+            <IconButton
+              size="sm"
               onClick={handleSaveQueueAsPlaylist}
+              aria-label={
+                isFromRecentlyPlayed
+                  ? 'Save priority queue songs as a new playlist'
+                  : 'Save active queue as a new playlist'
+              }
               title={
                 isFromRecentlyPlayed
                   ? 'Save priority queue songs as a new playlist'
                   : 'Save active queue as a new playlist'
               }
-              className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground bg-background hover:bg-muted  px-2 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1"
             >
-              <CirclePlus className="w-5 h-5" />
-            </button>
+              <ListPlus className="h-4 w-4" />
+            </IconButton>
           )}
 
           {activeTab === 'queue' && userQueue.length > 0 && (
-            <button
-              type="button"
+            <IconButton
+              size="sm"
               onClick={clearUserQueue}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-destructive cursor-pointer px-2 py-1 rounded-control transition-colors"
+              aria-label="Clear user queue"
               title="Clear user-queued songs"
+              className="text-muted-foreground hover:text-destructive"
             >
-              <Eraser className="w-5 h-5" />
-            </button>
+              <Trash2 className="h-4 w-4" />
+            </IconButton>
           )}
 
-          <button
-            type="button"
+          <IconButton
+            size="sm"
             onClick={onClose}
-            aria-label="Close Queue"
-            title="Close Queue"
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-background cursor-pointer transition-colors"
+            aria-label="Close queue"
+            title="Close queue"
           >
             {mode === 'mobile' ? (
-              <ChevronDown className="w-6 h-6" />
+              <ChevronDown className="h-4 w-4" />
             ) : (
-              <X className="w-6 h-6" />
+              <X className="h-4 w-4" />
             )}
-          </button>
+          </IconButton>
         </div>
       </div>
 
@@ -292,90 +286,50 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
         <div
           ref={activeListRef}
           data-queue-list="true"
-          className="flex-1 overflow-y-auto px-4 sm:px-5 py-3.5 flex flex-col gap-5 divide-y divide-border/60 min-h-0 overscroll-contain no-scrollbar"
+          className="flex-1 overflow-y-auto px-3.5 sm:px-4 py-3 flex flex-col gap-3.5 min-h-0 overscroll-contain no-scrollbar"
           style={{ touchAction: 'pan-y' }}
         >
-          {/* Queue Telemetry Meta */}
-          {totalUpcomingTracks > 0 && (
-            <div className="flex items-center justify-between text-muted-foreground font-eyebrow text-eyebrow uppercase tracking-wider pb-1">
-              <span>{totalUpcomingTracks} tracks in session</span>
-              <span>{formatTotalTime(totalUpcomingSeconds)} remaining</span>
-            </div>
-          )}
-
           {/* SECTION 1: NOW PLAYING */}
-          <div className="flex flex-col gap-2 pt-2">
+          <div className="flex flex-col gap-1.5 pt-1">
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-bold flex items-center justify-between">
               <span>Now Playing</span>
+              <span>
+                {totalUpcomingSeconds > 0 &&
+                  formatTotalTime(totalUpcomingSeconds)}{' '}
+                remaining
+              </span>
             </span>
 
             {currentTrack ? (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/20 shadow-raised">
+              <div className="group relative flex items-center gap-3 p-2.5 sm:p-2.5 rounded-surface bg-primary/6 border border-primary/20 shadow-raised transition-all duration-200 hover:border-primary/35 hover:bg-primary/8">
                 {/* Artwork with Equalizer Indicator */}
-                <div className="relative w-12 h-12 rounded-control bg-background border border-border shrink-0 overflow-hidden">
+                <div className="relative w-12 h-12 sm:w-11 sm:h-11 rounded-control bg-background border border-border shrink-0 overflow-hidden shadow-raised">
                   {currentTrack.coverImageUrl ? (
                     <img
                       src={currentTrack.coverImageUrl}
                       alt={currentTrack.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-serif italic text-body text-muted-foreground">
+                    <div className="w-full h-full flex items-center justify-center font-serif italic text-caption text-muted-foreground">
                       ♪
-                    </div>
-                  )}
-                  {playbackStatus === 'playing' && (
-                    <div className="absolute inset-0 bg-foreground/45 flex items-center justify-center gap-0.5">
-                      <span className="w-0.5 h-3 bg-background rounded-full animate-pulse" />
-                      <span className="w-0.5 h-4 bg-background rounded-full animate-pulse delay-75" />
-                      <span className="w-0.5 h-2 bg-background rounded-full animate-pulse delay-150" />
                     </div>
                   )}
                 </div>
 
                 {/* Title & Artist */}
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-caption font-serif italic font-semibold text-foreground truncate leading-tight">
+                  <span className="text-body sm:text-caption font-sans font-semibold text-foreground truncate leading-tight">
                     {currentTrack.title}
                   </span>
-                  <span className="text-eyebrow text-muted-foreground truncate font-sans">
+                  <span className="text-caption sm:text-eyebrow text-muted-foreground truncate font-sans mt-0.5">
                     {currentTrack.artistName}
                   </span>
                 </div>
 
-                {/* Right Actions: Like Heart, Duration, Action Menu */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => toggleSongLike(currentTrack.id)}
-                    title={
-                      likedSongIds.has(currentTrack.id)
-                        ? 'Remove from Liked Songs'
-                        : 'Save to Liked Songs'
-                    }
-                    className="p-1 cursor-pointer transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <svg
-                      className={`w-3.5 h-3.5 transition-colors ${
-                        likedSongIds.has(currentTrack.id)
-                          ? 'fill-destructive text-destructive'
-                          : 'fill-transparent text-muted-foreground hover:text-foreground'
-                      }`}
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
-
+                {/* Right Actions: Three-dot menu on desktop only */}
+                <div className="hidden sm:block shrink-0">
                   <SongActionMenu track={currentTrack} align="right" />
-
-                  <span className="font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
-                    {formatSeconds(currentTrack.durationSeconds)}
-                  </span>
                 </div>
               </div>
             ) : (
@@ -431,7 +385,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
             {userQueue.length === 0 ? (
               <div className="py-5 px-3 rounded-control border border-dashed border-border text-center space-y-1">
                 <p className="font-serif italic text-caption text-muted-foreground">
-                  Priority queue is empty
+                  Queue is empty.
                 </p>
                 <p className="font-sans text-eyebrow text-muted-foreground/70">
                   Swipe left on songs across Groovy or tap "Play Next" to add
@@ -539,7 +493,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                   <div
                     key={`hist-${item.song.id}-${idx}`}
                     onClick={() => playTrack(playerTrack)}
-                    className="group flex items-center justify-between gap-2.5 p-2 rounded-md hover:bg-muted bg-card transition-colors cursor-pointer border border-transparent hover:border-border"
+                    className="group flex items-center justify-between gap-2.5 p-2 rounded-control hover:bg-muted bg-card transition-colors cursor-pointer border border-transparent hover:border-border"
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {/* Artwork */}
@@ -658,6 +612,9 @@ export function QueueDrawer() {
   // Body scroll lock on mobile when drawer is open
   useEffect(() => {
     if (!isQueueOpen) return
+
+    // Desktop view uses the side panel (DesktopRightSidebar) and must NOT lock body scroll
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) return
 
     const originalOverflow = document.body.style.overflow
     const originalTouchAction = document.body.style.touchAction

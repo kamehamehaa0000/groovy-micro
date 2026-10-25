@@ -416,12 +416,12 @@ export const SongRow = memo(function SongRow({
   const rowSurface = isTransparent ? 'bg-transparent' : 'bg-card'
   const rowHover = isTransparent ? 'sm:hover:bg-card/70' : 'sm:hover:bg-muted'
   const rowPadding = isCompact
-    ? 'px-2 py-2 sm:px-3 sm:py-2.5'
-    : 'px-3.5 sm:px-4 py-2.5 sm:py-3'
-  const contentGap = isCompact ? 'gap-2 sm:gap-2.5' : 'gap-2.5 sm:gap-3.5'
+    ? 'px-2.5 py-2.5 sm:px-3 sm:py-2.5'
+    : 'px-3.5 sm:px-4 py-3 sm:py-3'
+  const contentGap = isCompact ? 'gap-2.5 sm:gap-2.5' : 'gap-2.5 sm:gap-3.5'
   const thumbnailSize = isCompact
-    ? 'w-9 h-9 sm:w-10 sm:h-10'
-    : 'w-10 h-10 sm:w-11 sm:h-11'
+    ? 'w-11 h-11 sm:w-10 sm:h-10'
+    : 'w-12 h-12 sm:w-11 sm:h-11'
   const thumbnailBorder = showThumbnailBorder ? 'border border-border' : ''
 
   // Mirror the library swipe: the action tray fades and scales with the drag.
@@ -866,8 +866,11 @@ export const SongRow = memo(function SongRow({
               {formatDuration(track.durationSeconds || 0)}
             </span>
 
-            {/* Action Menu (3-dots button) */}
-            <div onClick={(e) => e.stopPropagation()}>
+            {/* Action Menu (3-dots button): desktop only */}
+            <div
+              className="hidden sm:block"
+              onClick={(e) => e.stopPropagation()}
+            >
               <SongActionMenu
                 track={track}
                 isLocked={isLocked}

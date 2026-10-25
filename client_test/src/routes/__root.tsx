@@ -4,7 +4,7 @@ import {
   Outlet,
   useLocation,
 } from '@tanstack/react-router'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
 import { useLikesStore } from '../stores/likes.store'
@@ -19,9 +19,7 @@ import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../components/icons'
 import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
 import { PlayerBar } from '../components/player/PlayerBar'
-import { QueueDrawer } from '../components/player/QueueDrawer'
 import { DeviceSheet } from '../components/player/DevicePanel'
-import { DesktopRightSidebar } from '../components/player/DesktopRightSidebar'
 import { MobileExpandedPlayer } from '../components/player/MobileExpandedPlayer'
 import { AuthPromptModal } from '../components/auth/AuthPromptModal'
 import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
@@ -35,6 +33,17 @@ import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal
 import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
 import { AppToaster } from '../components/common/AppToaster'
 import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
+
+const DesktopRightSidebar = lazy(() =>
+  import('../components/player/DesktopRightSidebar').then((m) => ({
+    default: m.DesktopRightSidebar,
+  })),
+)
+const QueueDrawer = lazy(() =>
+  import('../components/player/QueueDrawer').then((m) => ({
+    default: m.QueueDrawer,
+  })),
+)
 
 export interface RouterContext {
   auth: ReturnType<typeof useAuthStore.getState>
@@ -1168,7 +1177,9 @@ function RootComponent() {
           </div>
 
           {/* Desktop Right Sidebar (Now Playing & Queue Docked Panel) */}
-          <DesktopRightSidebar />
+          <Suspense fallback={null}>
+            <DesktopRightSidebar />
+          </Suspense>
         </div>
       )}
 
@@ -1176,7 +1187,9 @@ function RootComponent() {
       <GlobalAudioEngine key="permanent-audio-engine" />
       <PlayerBar key="permanent-player-bar" />
       <MobileExpandedPlayer key="permanent-mobile-expanded-player" />
-      <QueueDrawer key="permanent-queue-drawer" />
+      <Suspense fallback={null}>
+        <QueueDrawer key="permanent-queue-drawer" />
+      </Suspense>
       <DeviceSheet key="permanent-device-sheet" />
       <AuthPromptModal key="permanent-auth-modal" />
       <LiveJamModal key="permanent-live-jam-modal" />

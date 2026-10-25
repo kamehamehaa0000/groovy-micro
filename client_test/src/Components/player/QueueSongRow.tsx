@@ -1,4 +1,5 @@
 import React, { useState, useRef, memo } from 'react'
+import { GripVertical, ListPlus, Trash2, X } from 'lucide-react'
 import type { PlayerTrack } from '../../types/player'
 import { SongActionMenu } from './SongActionMenu'
 import { useAddToPlaylistModalStore } from '../../stores/add-to-playlist-modal.store'
@@ -168,22 +169,11 @@ export const QueueSongRow = memo(function QueueSongRow({
       {/* 1. Left Swipe Reveal: Red Remove Action */}
       {canSwipeLeft && (
         <div
-          className={`absolute inset-y-0 right-0 w-24 bg-destructive text-white flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-r-md ${
+          className={`absolute inset-y-0 right-0 w-24 bg-destructive text-destructive-foreground flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-r-control ${
             swipeOffset < -15 ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <svg
-            className="w-4 h-4 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
+          <Trash2 className="w-4 h-4 shrink-0" />
           <span className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold">
             Remove
           </span>
@@ -193,23 +183,11 @@ export const QueueSongRow = memo(function QueueSongRow({
       {/* 2. Right Swipe Reveal: Add to Playlist Action */}
       {canSwipeRight && (
         <div
-          className={`absolute inset-y-0 left-0 w-24 bg-card border-r border-border text-foreground flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-l-md ${
+          className={`absolute inset-y-0 left-0 w-24 bg-card border-r border-border text-foreground flex items-center justify-center gap-1.5 px-3 z-0 transition-opacity rounded-l-control ${
             swipeOffset > 15 ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <svg
-            className="w-4 h-4 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
+          <ListPlus className="w-4 h-4 shrink-0" />
           <span className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold">
             Playlist
           </span>
@@ -226,16 +204,16 @@ export const QueueSongRow = memo(function QueueSongRow({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={handleRowClick}
-        className={`group relative z-10 flex items-center justify-between gap-2.5 p-2 rounded-md transition-colors cursor-pointer ${
+        className={`group relative z-10 flex items-center justify-between gap-3 p-2 sm:p-1.5 min-h-[52px] sm:min-h-10 rounded-control transition-all duration-100 active:scale-[0.99] motion-reduce:active:scale-100 cursor-pointer ${
           isNowPlaying
-            ? 'bg-primary/8 border border-primary/25'
+            ? 'bg-primary/10 border border-primary/25'
             : isDragging
-            ? 'bg-card'
+            ? 'bg-card shadow-raised'
             : 'hover:bg-muted bg-card'
         }`}
       >
         {/* Left: Drag Handle (User Queue) or Context Number */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-center gap-2.5 sm:gap-2 min-w-0 flex-1">
           {isDraggable ? (
             <div
               data-drag-handle="true"
@@ -256,28 +234,14 @@ export const QueueSongRow = memo(function QueueSongRow({
                 e.stopPropagation()
                 e.preventDefault()
               }}
-              className={`drag-grip -ml-1.5 w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center shrink-0 select-none touch-none rounded-control transition-colors cursor-grab active:cursor-grabbing ${
+              className={`drag-grip -ml-0.5 w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center shrink-0 select-none touch-none rounded-control transition-colors cursor-grab active:cursor-grabbing ${
                 isDragging
-                  ? 'text-primary bg-primary/15 scale-110 shadow-xs'
+                  ? 'text-primary bg-primary/15 scale-110 shadow-raised'
                   : 'text-muted-foreground/50 hover:text-foreground hover:bg-background active:text-primary active:bg-primary/10'
               }`}
               title="Drag to reorder"
             >
-              <svg
-                className="w-4 h-4 sm:w-3.5 sm:h-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="9" cy="6" r="1.2" fill="currentColor" />
-                <circle cx="15" cy="6" r="1.2" fill="currentColor" />
-                <circle cx="9" cy="12" r="1.2" fill="currentColor" />
-                <circle cx="15" cy="12" r="1.2" fill="currentColor" />
-                <circle cx="9" cy="18" r="1.2" fill="currentColor" />
-                <circle cx="15" cy="18" r="1.2" fill="currentColor" />
-              </svg>
+              <GripVertical className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
             </div>
           ) : isContextQueue ? (
             <span className="font-mono text-eyebrow text-muted-foreground/60 w-4 text-center shrink-0">
@@ -286,7 +250,7 @@ export const QueueSongRow = memo(function QueueSongRow({
           ) : null}
 
           {/* Thumbnail Artwork with Play / Equalizer Overlay */}
-          <div className="relative w-8 h-8 rounded-control bg-background border border-border shrink-0 overflow-hidden group/thumb">
+          <div className="relative w-11 h-11 sm:w-8 sm:h-8 rounded-control bg-background border border-border shrink-0 overflow-hidden group/thumb">
             {track.coverImageUrl ? (
               <img
                 src={track.coverImageUrl}
@@ -301,9 +265,9 @@ export const QueueSongRow = memo(function QueueSongRow({
 
             {isNowPlaying && isPlaying ? (
               <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center gap-0.5">
-                <span className="w-0.5 h-2.5 bg-background rounded-full animate-pulse" />
-                <span className="w-0.5 h-3.5 bg-background rounded-full animate-pulse delay-75" />
-                <span className="w-0.5 h-2 bg-background rounded-full animate-pulse delay-150" />
+                <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-1" />
+                <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-2" />
+                <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-3" />
               </div>
             ) : (
               <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-background text-eyebrow">
@@ -315,13 +279,13 @@ export const QueueSongRow = memo(function QueueSongRow({
           {/* Title & Artist info */}
           <div className="flex flex-col min-w-0">
             <span
-              className={`text-caption font-sans font-medium truncate transition-colors leading-tight ${
+              className={`text-body sm:text-caption font-sans font-medium truncate transition-colors leading-tight ${
                 isNowPlaying ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
               }`}
             >
               {track.title}
             </span>
-            <div className="flex items-center gap-1.5 text-caption text-muted-foreground truncate font-sans">
+            <div className="flex items-center gap-1.5 text-caption sm:text-eyebrow text-muted-foreground truncate font-sans">
               <span className="truncate">{track.artistName}</span>
               {isJamQueue && addedByDisplayName && (
                 <span className="text-success font-mono text-eyebrow shrink-0">
@@ -337,9 +301,13 @@ export const QueueSongRow = memo(function QueueSongRow({
           className="flex items-center gap-1.5 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
-          <SongActionMenu track={track} align="right" />
+          {/* Three-dot menu: desktop only */}
+          <div className="hidden sm:block">
+            <SongActionMenu track={track} align="right" />
+          </div>
 
-          <span className="font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
+          {/* Duration: desktop only */}
+          <span className="hidden sm:inline-block font-mono text-eyebrow text-muted-foreground shrink-0 select-none">
             {formatSeconds(track.durationSeconds)}
           </span>
 
@@ -351,19 +319,10 @@ export const QueueSongRow = memo(function QueueSongRow({
                 onRemove()
               }}
               title="Remove from queue"
-              className="p-1 text-muted-foreground/50 hover:text-destructive cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded-control hover:bg-secondary/20"
+              aria-label="Remove from queue"
+              className="p-1.5 sm:p-1 text-muted-foreground/60 hover:text-destructive cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-all rounded-control hover:bg-secondary/20"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             </button>
           )}
         </div>
