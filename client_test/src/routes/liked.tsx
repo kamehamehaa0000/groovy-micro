@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { ArrowDown, ArrowUp, Shuffle, X } from 'lucide-react'
+import { ArrowUp, Shuffle, X } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -306,7 +306,11 @@ function LikedSongsPage() {
             aria-pressed={isShuffleOn}
             onClick={() => setIsShuffleOn((prev) => !prev)}
           >
-            <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            <Shuffle
+              className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                isShuffleOn ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
           </IconButton>
         }
       />
@@ -331,7 +335,7 @@ function LikedSongsPage() {
                   size="sm"
                   aria-label="Clear search"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-75 duration-150"
                 >
                   <X className="h-3.5 w-3.5" />
                 </IconButton>
@@ -371,11 +375,11 @@ function LikedSongsPage() {
                   setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                 }
               >
-                {sortOrder === 'asc' ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
+                <ArrowUp
+                  className={`h-4 w-4 transition-transform duration-200 ease-out ${
+                    sortOrder === 'desc' ? 'rotate-180' : 'rotate-0'
+                  }`}
+                />
               </IconButton>
             </div>
           </div>

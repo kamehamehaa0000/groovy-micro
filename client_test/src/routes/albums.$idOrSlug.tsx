@@ -578,7 +578,9 @@ function AlbumDetailComponent() {
             <IconButton
               size="lg"
               className={
-                isShuffleOn ? 'group text-primary! hover:text-primary!' : 'group'
+                isShuffleOn
+                  ? 'group text-primary! hover:text-primary!'
+                  : 'group'
               }
               aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
               title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
@@ -586,7 +588,11 @@ function AlbumDetailComponent() {
               disabled={!hasTracks}
               onClick={() => setIsShuffleOn((prev) => !prev)}
             >
-              <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+              <Shuffle
+                className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                  isShuffleOn ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
             </IconButton>
           ) : null
         }
@@ -606,11 +612,8 @@ function AlbumDetailComponent() {
           >
             <HeartIconSVG
               filled={isLiked}
-              className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
+              className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
             />
-            <span className="font-mono text-caption">
-              {likesCount.toLocaleString()}
-            </span>
           </button>
         ) : null}
         {album.scope !== 'PERSONAL' ? (

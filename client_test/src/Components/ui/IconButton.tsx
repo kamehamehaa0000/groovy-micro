@@ -32,7 +32,7 @@ export function IconButton({
     <button
       type={type}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-control text-muted-foreground transition-colors cursor-pointer',
+        'inline-flex shrink-0 items-center justify-center rounded-control text-muted-foreground transition-all duration-150 ease-out active:scale-95 cursor-pointer motion-reduce:transition-none motion-reduce:active:scale-100 disabled:active:scale-100',
         'hover:bg-secondary/30 hover:text-foreground',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
         'disabled:cursor-not-allowed disabled:opacity-50',

@@ -23,7 +23,7 @@ export function CollectionCover({
   return (
     <div
       className={cn(
-        'group relative aspect-square w-[220px] max-w-full shrink-0 overflow-hidden rounded-surface border border-border bg-muted shadow-floating md:w-[232px]',
+        'group relative aspect-square w-[220px] max-w-full shrink-0 overflow-hidden rounded-surface border border-border bg-muted shadow-floating transition-transform duration-500 ease-out hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:w-[232px]',
         className,
       )}
     >

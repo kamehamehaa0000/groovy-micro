@@ -47,6 +47,7 @@ export function CollectionPlayButton({
       title={text}
       className={cn(
         'group relative inline-flex shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-raised transition-transform duration-200 ease-out hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100',
+        isPlaying && 'animate-glow-pulse',
         SIZE[size],
         className,
       )}

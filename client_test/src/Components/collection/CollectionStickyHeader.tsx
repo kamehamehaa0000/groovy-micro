@@ -38,7 +38,12 @@ export function CollectionStickyHeader({
       >
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:px-8">
           {thumbnail ? (
-            <div className="hidden h-9 w-9 shrink-0 overflow-hidden rounded-inset border border-border bg-muted md:block">
+            <div
+              className={cn(
+                'hidden h-9 w-9 shrink-0 overflow-hidden rounded-inset border border-border bg-muted transition-all duration-300 ease-out md:block',
+                visible ? 'scale-100 opacity-100' : 'scale-90 opacity-0',
+              )}
+            >
               {thumbnail}
             </div>
           ) : null}

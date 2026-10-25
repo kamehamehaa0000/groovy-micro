@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  ArrowDown,
   ArrowUp,
   ListPlus,
   PlusCircle,
@@ -397,7 +396,11 @@ function RadioMixPage() {
               disabled={!hasTracks || isLoading}
               onClick={() => setIsShuffleOn((prev) => !prev)}
             >
-              <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+              <Shuffle
+                className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                  isShuffleOn ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
             </IconButton>
             <IconButton
               size="lg"
@@ -439,7 +442,7 @@ function RadioMixPage() {
                   size="sm"
                   aria-label="Clear search"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-75 duration-150"
                 >
                   <X className="h-3.5 w-3.5" />
                 </IconButton>
@@ -479,11 +482,11 @@ function RadioMixPage() {
                     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                   }
                 >
-                  {sortOrder === 'asc' ? (
-                    <ArrowUp className="h-4 w-4" />
-                  ) : (
-                    <ArrowDown className="h-4 w-4" />
-                  )}
+                  <ArrowUp
+                    className={`h-4 w-4 transition-transform duration-200 ease-out ${
+                      sortOrder === 'desc' ? 'rotate-180' : 'rotate-0'
+                    }`}
+                  />
                 </IconButton>
               ) : null}
             </div>

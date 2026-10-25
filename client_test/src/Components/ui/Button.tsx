@@ -52,7 +52,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex select-none items-center justify-center rounded-control border font-eyebrow font-semibold uppercase tracking-wider transition-colors cursor-pointer',
+        'inline-flex select-none items-center justify-center rounded-control border font-eyebrow font-semibold uppercase tracking-wider transition-all duration-150 ease-out active:scale-[0.98] cursor-pointer motion-reduce:transition-none motion-reduce:active:scale-100 disabled:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
         'disabled:cursor-not-allowed disabled:opacity-50',
         VARIANT[variant],

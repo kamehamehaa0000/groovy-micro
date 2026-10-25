@@ -853,7 +853,11 @@ function PlaylistDetailComponent() {
               aria-pressed={isShuffleOn}
               onClick={() => setIsShuffleOn((prev) => !prev)}
             >
-              <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+              <Shuffle
+                className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                  isShuffleOn ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
             </IconButton>
             <IconButton
               size="lg"

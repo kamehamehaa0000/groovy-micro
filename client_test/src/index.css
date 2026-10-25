@@ -238,3 +238,89 @@ body {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* ============================================================================
+   Microinteractions & Hardware-Accelerated Animations
+   ========================================================================= */
+
+/* 1. Equalizer audio bars */
+@keyframes eq-bar-1 {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+@keyframes eq-bar-2 {
+  0%, 100% { transform: scaleY(0.85); }
+  50% { transform: scaleY(0.3); }
+}
+@keyframes eq-bar-3 {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(0.95); }
+}
+
+.animate-eq-1 {
+  transform-origin: bottom;
+  animation: eq-bar-1 0.75s ease-in-out infinite alternate;
+}
+.animate-eq-2 {
+  transform-origin: bottom;
+  animation: eq-bar-2 0.65s ease-in-out infinite alternate;
+}
+.animate-eq-3 {
+  transform-origin: bottom;
+  animation: eq-bar-3 0.85s ease-in-out infinite alternate;
+}
+
+/* 2. Tactile Heart Burst (Like) */
+@keyframes heart-burst {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.36); }
+  65% { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+.animate-heart-burst {
+  animation: heart-burst 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. SVG Checkmark Stroke Draw */
+@keyframes draw-check {
+  0% {
+    stroke-dashoffset: 24;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.animate-draw-check {
+  stroke-dasharray: 24;
+  animation: draw-check 0.24s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* 4. Active Collection Play Glow Pulse */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 22px 5px color-mix(in srgb, var(--primary) 32%, transparent);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-eq-1,
+  .animate-eq-2,
+  .animate-eq-3,
+  .animate-heart-burst,
+  .animate-draw-check,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+

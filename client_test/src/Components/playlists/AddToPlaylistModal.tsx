@@ -409,7 +409,10 @@ export function AddToPlaylistModal() {
                         canRemove ? (
                           <>
                             <span className="flex items-center gap-1.5 group-hover:hidden">
-                              <Check className="h-3 w-3" strokeWidth={3} />
+                              <Check
+                                className="h-3 w-3 animate-draw-check animate-in zoom-in-75 duration-150"
+                                strokeWidth={3}
+                              />
                               Added
                             </span>
                             <span className="hidden items-center gap-1.5 group-hover:flex">
@@ -419,7 +422,10 @@ export function AddToPlaylistModal() {
                           </>
                         ) : (
                           <>
-                            <Check className="h-3 w-3" strokeWidth={3} />
+                            <Check
+                              className="h-3 w-3 animate-draw-check animate-in zoom-in-75 duration-150"
+                              strokeWidth={3}
+                            />
                             Added
                           </>
                         )

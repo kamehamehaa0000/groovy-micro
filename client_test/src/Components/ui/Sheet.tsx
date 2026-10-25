@@ -219,7 +219,15 @@ export function Sheet({
         >
           {isBottom && !hideHandle ? (
             <div className="flex justify-center pt-2.5">
-              <span className="h-1.5 w-10 rounded-full bg-border" />
+              <span
+                style={{
+                  transform: dragging
+                    ? `scaleX(${Math.max(0.8, Math.min(1.3, 1 + dragY / 300))}) scaleY(${Math.max(0.8, Math.min(1.2, 1 - dragY / 600))})`
+                    : undefined,
+                  transition: dragging ? 'none' : 'transform 200ms ease-out',
+                }}
+                className="h-1.5 w-10 origin-center rounded-full bg-border"
+              />
             </div>
           ) : null}
 

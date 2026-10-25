@@ -148,7 +148,9 @@ export const SongRow = memo(function SongRow({
   const { isAuthenticated } = useAuthStore()
 
   const isCurrentLoaded = currentTrack?.id === track.id
-  const isCurrentPlaying = isCurrentLoaded && playbackStatus === 'playing'
+  const isCurrentPlaying =
+    isCurrentLoaded &&
+    (playbackStatus === 'playing' || playbackStatus === 'loading')
   const isLiked = likedSongIds.has(track.id)
   const isScheduled = Boolean(
     scheduledReleaseAt && new Date(scheduledReleaseAt).getTime() > Date.now(),
@@ -533,7 +535,7 @@ export const SongRow = memo(function SongRow({
               ? 'none'
               : 'transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1)',
           }}
-          className={`relative z-10 ${rowPadding} flex items-center justify-between gap-3 ${rowSurface} ${rowHover} transition-colors group cursor-pointer rounded-inset ${
+          className={`relative z-10 ${rowPadding} flex items-center justify-between gap-3 ${rowSurface} ${rowHover} transition-all duration-100 ease-out active:scale-[0.995] motion-reduce:active:scale-100 group cursor-pointer rounded-inset ${
             isDragging ? 'bg-card' : ''
           }`}
         >
@@ -596,18 +598,25 @@ export const SongRow = memo(function SongRow({
                   type="button"
                   onClick={handlePlayButtonClick}
                   aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
-                  className={`absolute inset-0 bg-foreground/40 flex items-center justify-center transition-opacity cursor-pointer ${
+                  className={`absolute inset-0 bg-foreground/45 flex items-center justify-center transition-all duration-150 cursor-pointer ${
                     isCurrentPlaying
                       ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100 group-hover/thumb:opacity-100'
+                      : 'opacity-0 scale-75 group-hover:scale-100 group-hover:opacity-100 group-hover/thumb:opacity-100'
                   }`}
                 >
                   {isLocked ? (
-                    <LockIconSVG className="w-3.5 h-3.5 text-white" />
+                    <LockIconSVG className="w-3.5 h-3.5 text-primary-foreground" />
                   ) : isCurrentPlaying ? (
-                    <PauseIconSVG className="w-4 h-4 text-white" />
+                    <>
+                      <div className="flex items-end justify-center gap-0.5 h-3.5 w-3.5 group-hover/thumb:hidden group-hover:hidden">
+                        <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-1" />
+                        <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-2" />
+                        <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-3" />
+                      </div>
+                      <PauseIconSVG className="w-4 h-4 text-primary-foreground hidden group-hover/thumb:block group-hover:block" />
+                    </>
                   ) : (
-                    <PlayIconSVG className="w-4 h-4 text-white ml-0.5" />
+                    <PlayIconSVG className="w-4 h-4 text-primary-foreground ml-0.5 transition-transform duration-150 group-hover:scale-110" />
                   )}
                 </button>
               </div>
@@ -617,7 +626,7 @@ export const SongRow = memo(function SongRow({
                 type="button"
                 onClick={handlePlayButtonClick}
                 aria-label={isCurrentPlaying ? 'Pause' : 'Play'}
-                className={`w-9 h-9 flex items-center justify-center shrink-0 ${
+                className={`relative w-9 h-9 flex items-center justify-center shrink-0 ${
                   isLocked
                     ? 'text-muted-foreground/50 cursor-not-allowed'
                     : 'text-muted-foreground group-hover:text-foreground cursor-pointer'
@@ -626,17 +635,24 @@ export const SongRow = memo(function SongRow({
                 {isLocked ? (
                   <LockIconSVG className="w-3.5 h-3.5 text-muted-foreground/60" />
                 ) : isCurrentPlaying ? (
-                  <PauseIconSVG className="w-3.5 h-3.5 text-primary animate-pulse" />
+                  <>
+                    <div className="flex items-end justify-center gap-0.5 h-3.5 w-3.5 group-hover:hidden">
+                      <span className="w-0.5 h-full bg-primary rounded-full animate-eq-1" />
+                      <span className="w-0.5 h-full bg-primary rounded-full animate-eq-2" />
+                      <span className="w-0.5 h-full bg-primary rounded-full animate-eq-3" />
+                    </div>
+                    <PauseIconSVG className="w-3.5 h-3.5 text-primary hidden group-hover:block transition-transform duration-150 group-hover:scale-110" />
+                  </>
                 ) : (
                   <>
                     <span
-                      className={`font-mono text-eyebrow group-hover:hidden ${
+                      className={`font-mono text-eyebrow transition-all duration-150 ${
                         isCurrentLoaded ? 'text-primary font-bold' : ''
-                      }`}
+                      } group-hover:scale-75 group-hover:opacity-0`}
                     >
                       {String(trackNumberDisplay ?? index + 1).padStart(2, '0')}
                     </span>
-                    <PlayIconSVG className="w-3.5 h-3.5 hidden group-hover:block text-foreground ml-0.5" />
+                    <PlayIconSVG className="w-3.5 h-3.5 absolute text-foreground ml-0.5 transition-all duration-150 scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100" />
                   </>
                 )}
               </button>
@@ -882,7 +898,7 @@ export const SongRow = memo(function SongRow({
                   filled={isLiked}
                   className={`w-3.5 h-3.5 transition-colors ${
                     isLiked
-                      ? 'text-destructive fill-current'
+                      ? 'text-destructive fill-current animate-heart-burst'
                       : 'text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
                   }`}
                 />

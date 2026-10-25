@@ -310,7 +310,14 @@ export function CreatePlaylistModal() {
             size="sm"
             disabled={isSubmitting || !newTitle.trim()}
           >
-            {isSubmitting ? 'Creating...' : 'Create playlist'}
+            {isSubmitting ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                Creating...
+              </span>
+            ) : (
+              'Create playlist'
+            )}
           </Button>
         </div>
       </div>
