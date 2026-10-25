@@ -17,10 +17,7 @@ import { useLibraryStore } from '../stores/library.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { PlaylistCover } from '../components/PlaylistCover'
-import {
-  CollectionActionBar,
-  CollectionHeader,
-} from '../components/collection'
+import { CollectionActionBar, CollectionHeader } from '../components/collection'
 import { CommentSection } from '../components/comments/CommentSection'
 import { PlaylistTrackReorderList } from '../components/playlists/PlaylistTrackReorderList'
 import {
@@ -38,7 +35,8 @@ import {
   Sheet,
 } from '../components/ui'
 import { useMediaQuery } from '../lib/useMediaQuery'
-import { Heart, Pencil, Plus } from 'lucide-react'
+import { shuffleArray } from '../lib/shuffle'
+import { Heart, Pencil, Plus, PlusCircle, Shuffle } from 'lucide-react'
 
 interface PlaylistSearchParams {
   shareToken?: string
@@ -83,6 +81,7 @@ function PlaylistDetailComponent() {
   const [collabJoinSuccess, setCollabJoinSuccess] = useState<string | null>(
     null,
   )
+  const [isShuffleOn, setIsShuffleOn] = useState(false)
 
   // Single Scrollable Settings Modal State
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
@@ -641,11 +640,27 @@ function PlaylistDetailComponent() {
   const isPlaylistPlaying = isPlaylistActive && playbackStatus === 'playing'
 
   const handleHeroPlay = () => {
-    if (isPlaylistActive) {
+    if (isPlaylistPlaying) {
       togglePlay()
       return
     }
-    handlePlayPlaylistFromStart()
+    if (!playlist) return
+
+    const validTracks = (playlist.tracks ?? []).filter(
+      (t) => (t.song || t).isStreamable !== false,
+    )
+    if (validTracks.length === 0) {
+      showToast('No streamable tracks found in this playlist.', 'info')
+      return
+    }
+
+    if (!isShuffleOn) {
+      handlePlayPlaylistFromStart()
+      return
+    }
+
+    const queue = shuffleArray(validTracks.map(toPlayerTrack))
+    playTrack(queue[0], queue, 0, playlistContextUri, playlist.title)
   }
 
   return (
@@ -824,6 +839,53 @@ function PlaylistDetailComponent() {
         onPlay={hasTracks ? handleHeroPlay : undefined}
         isPlaying={isPlaylistPlaying}
         playLabel={playlist.title}
+        adjacentAction={
+          <>
+            <IconButton
+              size="lg"
+              className={
+                isShuffleOn
+                  ? 'group text-primary! hover:text-primary!'
+                  : 'group'
+              }
+              aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+              title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+              aria-pressed={isShuffleOn}
+              onClick={() => setIsShuffleOn((prev) => !prev)}
+            >
+              <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            </IconButton>
+            <IconButton
+              size="lg"
+              className={
+                saved
+                  ? 'group text-destructive! hover:text-destructive!'
+                  : 'group'
+              }
+              aria-label={saved ? 'Remove from library' : 'Save to library'}
+              title={saved ? 'Remove from library' : 'Save to library'}
+              onClick={handleToggleSave}
+            >
+              <Heart
+                className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90 ${
+                  saved ? 'fill-current' : ''
+                }`}
+              />
+            </IconButton>
+
+            {canEdit ? (
+              <IconButton
+                size="lg"
+                className="group"
+                aria-label="Add tracks"
+                title="Add tracks"
+                onClick={() => setIsAddTracksModalOpen(true)}
+              >
+                <PlusCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+              </IconButton>
+            ) : null}
+          </>
+        }
         menu={
           <PlaylistActionMenu
             playlist={playlist}
@@ -835,35 +897,7 @@ function PlaylistDetailComponent() {
             buttonClassName="flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
           />
         }
-      >
-        <IconButton
-          size="lg"
-          className={
-            saved ? 'group text-destructive! hover:text-destructive!' : 'group'
-          }
-          aria-label={saved ? 'Remove from library' : 'Save to library'}
-          title={saved ? 'Remove from library' : 'Save to library'}
-          onClick={handleToggleSave}
-        >
-          <Heart
-            className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90 ${
-              saved ? 'fill-current' : ''
-            }`}
-          />
-        </IconButton>
-
-        {canEdit ? (
-          <IconButton
-            size="lg"
-            className="group"
-            aria-label="Add tracks"
-            title="Add tracks"
-            onClick={() => setIsAddTracksModalOpen(true)}
-          >
-            <Plus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-          </IconButton>
-        ) : null}
-      </CollectionActionBar>
+      ></CollectionActionBar>
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">
         {/* ===================== TRACKLIST SECTION ===================== */}

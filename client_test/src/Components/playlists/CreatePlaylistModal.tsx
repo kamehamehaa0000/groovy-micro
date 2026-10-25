@@ -1,15 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { X } from 'lucide-react'
 import { playlistsApi } from '../../lib/playlists.api'
 import type { CreatePlaylistInput } from '../../types/playlist'
 import { usePlaylistsStore } from '../../stores/playlists.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
 import { useLibraryStore } from '../../stores/library.store'
+import { notify } from '../../lib/toast'
+import { Button, Field, IconButton, Input, Select, Textarea } from '../ui'
 
 export function CreatePlaylistModal() {
-  const { isOpen, closeModal, initialTrackIds } = useCreatePlaylistModalStore()
+  const {
+    isOpen,
+    closeModal,
+    initialTrackIds,
+    initialTitle,
+    initialDescription,
+  } = useCreatePlaylistModalStore()
   const navigate = useNavigate()
   const hydratePlaylists = usePlaylistsStore((s) => s.hydratePlaylists)
+
+  const titleId = useId()
+  const formId = useId()
+  const titleInputId = useId()
+  const descriptionInputId = useId()
+  const visibilityId = useId()
+  const panelRef = useRef<HTMLDivElement | null>(null)
 
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
@@ -21,7 +37,9 @@ export function CreatePlaylistModal() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
 
-  // Reset state when closed
+  const trackCount = initialTrackIds.length
+
+  // Reset on close; prefill the title/description the caller supplied on open.
   useEffect(() => {
     if (!isOpen) {
       setNewTitle('')
@@ -31,18 +49,55 @@ export function CreatePlaylistModal() {
       setNewAllowComments(true)
       setModalError(null)
       setIsSubmitting(false)
+      return
     }
-  }, [isOpen])
 
-  // ESC key listener
+    setNewTitle(initialTitle)
+    setNewDescription(initialDescription)
+    setModalError(null)
+  }, [isOpen, initialTitle, initialDescription])
+
+  // Escape to close, lock body scroll, trap Tab inside the dialog.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+    if (!isOpen) return
+
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const panel = panelRef.current
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
         closeModal()
+        return
+      }
+      if (event.key !== 'Tab' || !panel) return
+
+      const focusable = panel.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      previouslyFocused?.focus?.()
+    }
   }, [isOpen, closeModal])
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -65,13 +120,17 @@ export function CreatePlaylistModal() {
       }
 
       const created = await playlistsApi.createPlaylist(input)
-      if (initialTrackIds && initialTrackIds.length > 0) {
+
+      let attachFailed = false
+      if (trackCount > 0) {
         try {
           await playlistsApi.addTracks(created.id, initialTrackIds)
         } catch (addErr) {
           console.error('Failed to attach queued tracks:', addErr)
+          attachFailed = true
         }
       }
+
       hydratePlaylists([{ id: created.id, isSaved: true }])
       useLibraryStore.getState().addPlaylist({
         id: created.id,
@@ -85,11 +144,25 @@ export function CreatePlaylistModal() {
         ownerName: created.ownerDisplayName || 'You',
         ownerAvatarUrl: null,
         savesCount: created.savesCount || 0,
-        tracksCount: (initialTrackIds && initialTrackIds.length) || 0,
+        tracksCount: trackCount,
         addedAt: created.createdAt || new Date().toISOString(),
       })
       useLibraryStore.getState().invalidate()
       closeModal()
+
+      if (attachFailed) {
+        notify.error(
+          'Playlist created, but its tracks could not be added. Open it to retry.'
+        )
+      } else {
+        notify.success(
+          trackCount > 0
+            ? `Playlist created with ${trackCount} ${
+                trackCount === 1 ? 'track' : 'tracks'
+              }`
+            : 'Playlist created'
+        )
+      }
 
       navigate({ to: '/playlists/$id', params: { id: created.id } })
     } catch (err: any) {
@@ -102,137 +175,144 @@ export function CreatePlaylistModal() {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm select-none">
-      {/* Click backdrop to close */}
-      <div className="fixed inset-0" onClick={closeModal} />
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4 backdrop-blur-sm animate-in fade-in duration-150 select-none"
+    >
+      <div
+        aria-hidden="true"
+        className="fixed inset-0"
+        onClick={closeModal}
+      />
 
-      <div className="w-full max-w-md border border-border bg-card p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 z-10">
-        <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
-          <h2 className="font-serif italic text-heading text-foreground">
-            Create New Playlist
-          </h2>
-          <button
-            type="button"
-            onClick={closeModal}
-            className="font-mono text-caption text-muted-foreground hover:text-foreground cursor-pointer"
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="relative z-10 flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-surface border border-border bg-card shadow-floating outline-none animate-in fade-in zoom-in-95 duration-150"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+          <div>
+            <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
+              Playlist
+            </p>
+            <h2
+              id={titleId}
+              className="mt-0.5 font-serif italic text-title text-foreground"
+            >
+              Create new playlist
+            </h2>
+          </div>
+          <IconButton
+            size="sm"
             aria-label="Close dialog"
+            onClick={closeModal}
           >
-            ✕
-          </button>
+            <X className="h-4 w-4" />
+          </IconButton>
         </div>
 
-        {initialTrackIds.length > 0 && (
-          <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 mb-4 rounded-control flex items-center justify-between">
-            <span>Adding</span>
-            <span>{initialTrackIds.length} tracks</span>
-          </div>
-        )}
+        <div className="overflow-y-auto px-5 py-4">
+          {trackCount > 0 ? (
+            <div className="mb-4 flex items-center justify-between gap-2 rounded-control border border-primary/20 bg-primary/10 px-3 py-2">
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary">
+                Adding
+              </span>
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary">
+                {trackCount} {trackCount === 1 ? 'track' : 'tracks'}
+              </span>
+            </div>
+          ) : null}
 
-        {modalError && (
-          <div className="mb-4 p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-eyebrow">
-            {modalError}
-          </div>
-        )}
+          {modalError ? (
+            <div className="mb-4 rounded-control border border-destructive/30 bg-destructive-soft px-3 py-2 font-sans text-caption text-destructive">
+              {modalError}
+            </div>
+          ) : null}
 
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
-          <div>
-            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
-              Title *
-            </label>
-            <input
-              type="text"
-              required
-              autoFocus
-              maxLength={150}
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="e.g. Midnight Ambient &amp; Tape Loops"
-              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground"
-            />
-          </div>
+          <form id={formId} onSubmit={handleCreateSubmit} className="space-y-4">
+            <Field label="Title" htmlFor={titleInputId}>
+              <Input
+                id={titleInputId}
+                required
+                autoFocus
+                maxLength={150}
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="e.g. Midnight Ambient & Tape Loops"
+              />
+            </Field>
 
-          <div>
-            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
-              Description
-            </label>
-            <textarea
-              rows={2}
-              maxLength={1000}
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Atmospheric soundscapes curated for deep work..."
-              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground resize-none"
-            />
-          </div>
+            <Field label="Description" htmlFor={descriptionInputId}>
+              <Textarea
+                id={descriptionInputId}
+                rows={2}
+                maxLength={1000}
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Atmospheric soundscapes curated for deep work..."
+                className="min-h-16"
+              />
+            </Field>
 
-          <div>
-            <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
-              Visibility
-            </label>
-            <select
-              value={newVisibility}
-              onChange={(e: any) => setNewVisibility(e.target.value)}
-              className="w-full font-mono text-caption p-2.5 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-            >
-              <option value="PUBLIC">Public</option>
-              <option value="UNLISTED">Unlisted</option>
-              <option value="PRIVATE">Private</option>
-            </select>
-          </div>
+            <Field label="Visibility" htmlFor={visibilityId}>
+              <Select
+                id={visibilityId}
+                value={newVisibility}
+                onChange={(e) =>
+                  setNewVisibility(
+                    e.target.value as 'PUBLIC' | 'UNLISTED' | 'PRIVATE'
+                  )
+                }
+              >
+                <option value="PUBLIC">Public</option>
+                <option value="UNLISTED">Unlisted</option>
+                <option value="PRIVATE">Private</option>
+              </Select>
+            </Field>
 
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <div>
-              <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
-                Duplicate Songs
-              </label>
-              <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex cursor-pointer items-center gap-2 rounded-control border border-border bg-background px-3 py-2">
                 <input
                   type="checkbox"
                   checked={newAllowDuplicates}
                   onChange={(e) => setNewAllowDuplicates(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-eyebrow text-foreground">
-                  Allow Dups
+                <span className="font-sans text-caption text-foreground">
+                  Allow duplicates
                 </span>
               </label>
-            </div>
 
-            <div>
-              <label className="block font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-1.5">
-                Discussion &amp; Comments
-              </label>
-              <label className="flex items-center gap-2 p-2.5 border border-border bg-background cursor-pointer hover:border-foreground transition-colors">
+              <label className="flex cursor-pointer items-center gap-2 rounded-control border border-border bg-background px-3 py-2">
                 <input
                   type="checkbox"
                   checked={newAllowComments}
                   onChange={(e) => setNewAllowComments(e.target.checked)}
                   className="accent-primary"
                 />
-                <span className="font-mono text-eyebrow text-foreground">
-                  Allow Comments
+                <span className="font-sans text-caption text-foreground">
+                  Allow comments
                 </span>
               </label>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border mt-6">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || !newTitle.trim()}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 bg-foreground text-background font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
-            >
-              {isSubmitting ? 'Creating...' : 'Create Playlist'}
-            </button>
-          </div>
-        </form>
+        <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
+          <Button variant="ghost" size="sm" onClick={closeModal}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form={formId}
+            size="sm"
+            disabled={isSubmitting || !newTitle.trim()}
+          >
+            {isSubmitting ? 'Creating...' : 'Create playlist'}
+          </Button>
+        </div>
       </div>
     </div>
   )

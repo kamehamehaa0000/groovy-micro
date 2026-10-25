@@ -6,6 +6,7 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useLikesStore } from '../stores/likes.store'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
+import { shuffleArray } from '../lib/shuffle'
 import type { EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { SongRow } from '../components/common/SongRow'
@@ -31,18 +32,6 @@ export const Route = createFileRoute('/liked')({
 })
 
 type LikedSort = 'recent' | 'title' | 'artist' | 'album' | 'duration'
-
-/** Fisher–Yates shuffle; returns a new array so the visible order is untouched. */
-function shuffleSongs<T>(items: T[]): T[] {
-  const next = [...items]
-  for (let i = next.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const current = next[i]
-    next[i] = next[j]
-    next[j] = current
-  }
-  return next
-}
 
 function LikedSongsPage() {
   const { isAuthenticated, user, isLoading: isAuthLoading } = useAuthStore()
@@ -185,7 +174,7 @@ function LikedSongsPage() {
       return
     }
 
-    const queue = isShuffleOn ? shuffleSongs(sortedSongs) : sortedSongs
+    const queue = isShuffleOn ? shuffleArray(sortedSongs) : sortedSongs
     const playerTracks = queue.map(toPlayerTrack)
     playTrack(playerTracks[0], playerTracks, 0, 'library:liked', 'Liked Songs')
   }

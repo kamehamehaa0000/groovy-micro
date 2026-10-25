@@ -15,10 +15,7 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { ProceduralCover } from '../components/common/ProceduralCover'
 import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
-import {
-  CollectionActionBar,
-  CollectionHeader,
-} from '../components/collection'
+import { CollectionActionBar, CollectionHeader } from '../components/collection'
 import { Badge, IconButton } from '../components/ui'
 import { Check, Share2 } from 'lucide-react'
 import type { PlayerTrack } from '../types/player'
@@ -218,7 +215,9 @@ function AlbumDetailComponent() {
     setIsPreSaveLoading(true)
     const prevCount = preSavesCount
     const willBePreSaved = !isPreSaved
-    const nextCount = willBePreSaved ? prevCount + 1 : Math.max(0, prevCount - 1)
+    const nextCount = willBePreSaved
+      ? prevCount + 1
+      : Math.max(0, prevCount - 1)
 
     // Optimistic count update in local state and React Query cache
     setPreSavesCount(nextCount)
@@ -373,8 +372,8 @@ function AlbumDetailComponent() {
           </h1>
           <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
             The requested album identifier{' '}
-            <span className="font-mono text-foreground">"{idOrSlug}"</span> could not be
-            located in the master archive.
+            <span className="font-mono text-foreground">"{idOrSlug}"</span>{' '}
+            could not be located in the master archive.
           </p>
           <Link
             to="/"
@@ -526,9 +525,7 @@ function AlbumDetailComponent() {
               type="button"
               disabled={isPreSaveLoading}
               onClick={handleTogglePreSave}
-              aria-label={
-                isPreSaved ? 'Remove pre-save' : 'Pre-save release'
-              }
+              aria-label={isPreSaved ? 'Remove pre-save' : 'Pre-save release'}
               title={isPreSaved ? 'Remove pre-save' : 'Pre-save release'}
               className={`group relative inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-raised transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${
                 isPreSaved
@@ -556,46 +553,49 @@ function AlbumDetailComponent() {
             buttonClassName="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
           />
         }
-      >
-        {!album.isUpcoming ? (
-          <button
-            type="button"
-            disabled={isLikeLoading}
-            onClick={handleToggleAlbumLike}
-            aria-label={isLiked ? 'Unlike release' : 'Like release'}
-            title={isLiked ? 'Unlike release' : 'Like release'}
-            className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
-              isLiked
-                ? 'text-destructive'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <HeartIconSVG
-              filled={isLiked}
-              className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
-            />
-            <span className="font-mono text-caption">
-              {likesCount.toLocaleString()}
-            </span>
-          </button>
-        ) : null}
-
-        {album.scope !== 'PERSONAL' ? (
-          <IconButton
-            size="lg"
-            className="group"
-            onClick={handleCopyShareLink}
-            aria-label="Share release"
-            title="Share release"
-          >
-            {copiedLink ? (
-              <Check className="h-5 w-5 text-success!" />
-            ) : (
-              <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-            )}
-          </IconButton>
-        ) : null}
-      </CollectionActionBar>
+        adjacentAction={
+          <>
+            {' '}
+            {!album.isUpcoming ? (
+              <button
+                type="button"
+                disabled={isLikeLoading}
+                onClick={handleToggleAlbumLike}
+                aria-label={isLiked ? 'Unlike release' : 'Like release'}
+                title={isLiked ? 'Unlike release' : 'Like release'}
+                className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isLiked
+                    ? 'text-destructive'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <HeartIconSVG
+                  filled={isLiked}
+                  className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
+                />
+                <span className="font-mono text-caption">
+                  {likesCount.toLocaleString()}
+                </span>
+              </button>
+            ) : null}
+            {album.scope !== 'PERSONAL' ? (
+              <IconButton
+                size="lg"
+                className="group"
+                onClick={handleCopyShareLink}
+                aria-label="Share release"
+                title="Share release"
+              >
+                {copiedLink ? (
+                  <Check className="h-5 w-5 text-success!" />
+                ) : (
+                  <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+                )}
+              </IconButton>
+            ) : null}
+          </>
+        }
+      ></CollectionActionBar>
 
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">
@@ -753,7 +753,9 @@ function AlbumDetailComponent() {
                           ? album.scheduledReleaseAt
                           : undefined
                       }
-                      isPersonal={album.scope === 'PERSONAL' || track.scope === 'PERSONAL'}
+                      isPersonal={
+                        album.scope === 'PERSONAL' || track.scope === 'PERSONAL'
+                      }
                       onPlay={() => handlePlaySong(track, idx)}
                       hideGoToAlbum={true}
                     />
@@ -812,7 +814,9 @@ function AlbumDetailComponent() {
                       {sibling.releaseDate && (
                         <>
                           <span>&bull;</span>
-                          <span>{new Date(sibling.releaseDate).getFullYear()}</span>
+                          <span>
+                            {new Date(sibling.releaseDate).getFullYear()}
+                          </span>
                         </>
                       )}
                     </div>
