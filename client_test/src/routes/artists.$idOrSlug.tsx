@@ -22,6 +22,7 @@ import { ProceduralCover } from '../components/common/ProceduralCover'
 import { MediaTile } from '../components/common/MediaTile'
 import { CollectionActionBar, CollectionHeader } from '../components/collection'
 import { Badge, Button, Eyebrow, IconButton } from '../components/ui'
+import { cn } from '../components/ui/cn'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePreSavesStore } from '../stores/presaves.store'
@@ -911,6 +912,16 @@ function ArtistPublicProfileComponent() {
               </div>
             )}
 
+            {/* Pinned Artist Pick / Latest Drop (Mobile / Tablet - displayed above Discography) */}
+            {pinnedRelease ? (
+              <ArtistSpotlightCard
+                pinnedRelease={pinnedRelease}
+                artist={artist}
+                isCustomPick={isCustomPick}
+                className="block lg:hidden"
+              />
+            ) : null}
+
             {/* Consolidated Discography Section */}
             {hasAnyDiscography && (
               <div className="space-y-4">
@@ -1397,120 +1408,168 @@ function ArtistPublicProfileComponent() {
 
           {/* ==================== RIGHT COLUMN: SPOTLIGHT & ABOUT ==================== */}
           <div className="flex flex-col gap-6">
-            {/* Artist Pick / Latest Drop Card */}
-            {pinnedRelease && (
-              <div className="hidden sm:block rounded-surface border border-border bg-card p-4 sm:p-5 shadow-raised space-y-3">
-                <div className="flex items-center justify-between gap-2 border-b border-border-soft pb-2.5">
-                  <div className="flex items-center gap-2">
-                    {isCustomPick && artist.avatarUrl && (
-                      <div className="w-5 h-5 rounded-full overflow-hidden border border-border bg-background shrink-0">
-                        <img
-                          src={artist.avatarUrl}
-                          alt={artist.stageName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
-                      <span>
-                        {isCustomPick ? '✦ Artist Pick' : '✦ Latest Drop'}
-                      </span>
-                    </span>
-                  </div>
-                  {pinnedRelease.albumType && (
-                    <Badge tone="neutral">{pinnedRelease.albumType}</Badge>
-                  )}
-                </div>
-
-                {isCustomPick && artist.pinnedComment && (
-                  <p className="font-serif italic text-caption text-foreground/90 leading-relaxed bg-background/60 p-2.5 rounded-control border border-border-soft">
-                    "{artist.pinnedComment}"
-                  </p>
-                )}
-
-                <Link
-                  to="/albums/$idOrSlug"
-                  params={{ idOrSlug: pinnedRelease.slug || pinnedRelease.id }}
-                  className="flex items-center gap-3.5 group text-inherit no-underline"
-                >
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-inset bg-muted border border-border shrink-0 overflow-hidden relative shadow-raised">
-                    {pinnedRelease.coverImageUrl ? (
-                      <img
-                        src={pinnedRelease.coverImageUrl}
-                        alt={pinnedRelease.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <ProceduralCover
-                        size="sm"
-                        title={pinnedRelease.title}
-                        artistName={artist.stageName}
-                        className="w-full h-full"
-                      />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-sans font-semibold text-body sm:text-title text-foreground group-hover:text-primary transition-colors truncate">
-                      {pinnedRelease.title}
-                    </h3>
-                    <p className="font-sans text-caption text-muted-foreground truncate mt-0.5">
-                      {pinnedRelease.releaseDate
-                        ? new Date(pinnedRelease.releaseDate).getFullYear()
-                        : 'Recent'}{' '}
-                      &bull; {pinnedRelease.totalTracks}{' '}
-                      {pinnedRelease.totalTracks === 1 ? 'cut' : 'cuts'}
-                    </p>
-                  </div>
-                </Link>
-              </div>
-            )}
+            {/* Pinned Artist Pick / Latest Drop (Desktop) */}
+            {pinnedRelease ? (
+              <ArtistSpotlightCard
+                pinnedRelease={pinnedRelease}
+                artist={artist}
+                isCustomPick={isCustomPick}
+                className="hidden lg:block"
+              />
+            ) : null}
 
             {/* About & Socials Card */}
-            <div className="p-5 border border-border bg-card rounded-surface shadow-raised space-y-4">
-              {artist.bio ? (
-                <div>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-2">
-                    About Artist
-                  </span>
-                  <p className="font-sans text-caption text-foreground leading-relaxed whitespace-pre-line">
-                    {artist.bio}
-                  </p>
-                </div>
-              ) : null}
-
-              <div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block mb-3">
-                  Official Links &amp; Press
-                </span>
-
-                {artist.socialLinks &&
-                Object.keys(artist.socialLinks).length > 0 ? (
-                  <div className="flex flex-col gap-2">
-                    {Object.entries(artist.socialLinks).map(
-                      ([platform, url]) => (
-                        <a
-                          key={platform}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between py-2 px-3 border border-border-soft bg-background hover:border-foreground text-foreground font-mono text-caption rounded-control transition-colors group"
-                        >
-                          <span className="capitalize">{platform}</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        </a>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="font-sans text-caption text-muted-foreground italic">
-                    No social profiles linked.
-                  </p>
-                )}
-              </div>
-            </div>
+            <ArtistAboutCard artist={artist} />
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ============================================================================
+   SUB-COMPONENTS
+   ========================================================================= */
+
+interface ArtistSpotlightCardProps {
+  pinnedRelease: any
+  artist: any
+  isCustomPick: boolean
+  className?: string
+}
+
+function ArtistSpotlightCard({
+  pinnedRelease,
+  artist,
+  isCustomPick,
+  className,
+}: ArtistSpotlightCardProps) {
+  if (!pinnedRelease) return null
+
+  return (
+    <div
+      className={cn(
+        'group rounded-surface border border-border bg-card/60 p-4 shadow-raised transition-all duration-200 hover:border-border hover:bg-card hover:shadow-floating sm:p-5',
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-border-soft pb-3">
+        <div className="flex items-center gap-2">
+          {isCustomPick && artist.avatarUrl ? (
+            <div className="h-5 w-5 shrink-0 overflow-hidden rounded-full border border-border bg-background">
+              <img
+                src={artist.avatarUrl}
+                alt={artist.stageName}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
+          <span className="font-eyebrow text-eyebrow font-semibold uppercase tracking-widest text-primary">
+            {isCustomPick ? '✦ Artist Pick' : '✦ Latest Drop'}
+          </span>
+        </div>
+        {pinnedRelease.albumType ? (
+          <Badge tone="neutral">{pinnedRelease.albumType}</Badge>
+        ) : null}
+      </div>
+
+      {isCustomPick && artist.pinnedComment ? (
+        <p className="mt-3 font-serif italic text-caption leading-relaxed text-muted-foreground">
+          &ldquo;{artist.pinnedComment}&rdquo;
+        </p>
+      ) : null}
+
+      <Link
+        to="/albums/$idOrSlug"
+        params={{ idOrSlug: pinnedRelease.slug || pinnedRelease.id }}
+        className="mt-3.5 flex items-center gap-3.5 text-inherit no-underline"
+      >
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-inset border border-border bg-muted shadow-raised sm:h-16 sm:w-16">
+          {pinnedRelease.coverImageUrl ? (
+            <img
+              src={pinnedRelease.coverImageUrl}
+              alt={pinnedRelease.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <ProceduralCover
+              size="sm"
+              title={pinnedRelease.title}
+              artistName={artist.stageName}
+              className="h-full w-full"
+            />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate font-sans text-body font-semibold text-foreground transition-colors group-hover:text-primary sm:text-title">
+            {pinnedRelease.title}
+          </h3>
+          <p className="mt-0.5 truncate font-sans text-caption text-muted-foreground">
+            {pinnedRelease.releaseDate
+              ? new Date(pinnedRelease.releaseDate).getFullYear()
+              : 'Recent'}{' '}
+            &bull; {pinnedRelease.totalTracks}{' '}
+            {pinnedRelease.totalTracks === 1 ? 'cut' : 'cuts'}
+          </p>
+        </div>
+      </Link>
+    </div>
+  )
+}
+
+interface ArtistAboutCardProps {
+  artist: any
+  className?: string
+}
+
+function ArtistAboutCard({ artist, className }: ArtistAboutCardProps) {
+  const hasBio = Boolean(artist?.bio)
+  const socialEntries = Object.entries(artist?.socialLinks || {}).filter(
+    ([, url]) => Boolean(url),
+  )
+  const hasSocials = socialEntries.length > 0
+
+  if (!hasBio && !hasSocials) return null
+
+  return (
+    <div
+      className={cn(
+        'rounded-surface border border-border bg-card/60 p-4 shadow-raised sm:p-5 space-y-4',
+        className,
+      )}
+    >
+      {hasBio ? (
+        <div className={hasSocials ? 'border-b border-border-soft pb-4' : ''}>
+          <p className="mb-2 font-eyebrow text-eyebrow font-semibold uppercase tracking-widest text-muted-foreground">
+            About
+          </p>
+          <p className="font-sans text-caption leading-relaxed text-foreground whitespace-pre-line">
+            {artist.bio}
+          </p>
+        </div>
+      ) : null}
+
+      {hasSocials ? (
+        <div>
+          <p className="mb-2.5 font-eyebrow text-eyebrow font-semibold uppercase tracking-widest text-muted-foreground">
+            Connect &amp; Links
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {socialEntries.map(([platform, url]) => (
+              <a
+                key={platform}
+                href={url as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/30 px-3 py-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-all duration-150 hover:border-foreground hover:bg-secondary/60 hover:text-foreground active:scale-95"
+              >
+                <span className="capitalize">{platform}</span>
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
