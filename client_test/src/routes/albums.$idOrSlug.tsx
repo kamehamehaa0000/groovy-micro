@@ -17,10 +17,11 @@ import { ProceduralCover } from '../components/common/ProceduralCover'
 import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
 import { CollectionActionBar, CollectionHeader } from '../components/collection'
 import { Badge, IconButton } from '../components/ui'
-import { Check, Share2 } from 'lucide-react'
+import { Check, Share2, Shuffle } from 'lucide-react'
 import type { PlayerTrack } from '../types/player'
 import { CommentSection } from '../components/comments/CommentSection'
 import { SongRow } from '../components/common/SongRow'
+import { shuffleArray } from '../lib/shuffle'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
   validateSearch: (
@@ -85,6 +86,9 @@ function AlbumDetailComponent() {
 
   // Share feedback
   const [copiedLink, setCopiedLink] = useState(false)
+
+  // Shuffle only affects the hero play queue; rows keep the album order.
+  const [isShuffleOn, setIsShuffleOn] = useState(false)
 
   // Sync likes and pre-saves count & hydrate global stores when album updates
   useEffect(() => {
@@ -401,11 +405,27 @@ function AlbumDetailComponent() {
   const isPreSavePrimary = album.isUpcoming && !isCreator
 
   const handleHeroPlay = () => {
-    if (isAlbumActive) {
+    if (isAlbumPlaying) {
       togglePlay()
       return
     }
-    handlePlayAlbumFromStart()
+    if (!album || !album.tracks || album.tracks.length === 0) return
+
+    const streamableTracks = album.tracks.filter(
+      (t) => isCreator || t.isStreamable !== false,
+    )
+    if (streamableTracks.length === 0) {
+      alert('No streamable audio files found for this release yet.')
+      return
+    }
+
+    if (!isShuffleOn) {
+      handlePlayAlbumFromStart()
+      return
+    }
+
+    const queue = shuffleArray(streamableTracks.map(toPlayerTrack))
+    playTrack(queue[0], queue, 0, albumContextUri, album.title)
   }
 
   return (
@@ -554,48 +574,61 @@ function AlbumDetailComponent() {
           />
         }
         adjacentAction={
-          <>
-            {' '}
-            {!album.isUpcoming ? (
-              <button
-                type="button"
-                disabled={isLikeLoading}
-                onClick={handleToggleAlbumLike}
-                aria-label={isLiked ? 'Unlike release' : 'Like release'}
-                title={isLiked ? 'Unlike release' : 'Like release'}
-                className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  isLiked
-                    ? 'text-destructive'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <HeartIconSVG
-                  filled={isLiked}
-                  className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
-                />
-                <span className="font-mono text-caption">
-                  {likesCount.toLocaleString()}
-                </span>
-              </button>
-            ) : null}
-            {album.scope !== 'PERSONAL' ? (
-              <IconButton
-                size="lg"
-                className="group"
-                onClick={handleCopyShareLink}
-                aria-label="Share release"
-                title="Share release"
-              >
-                {copiedLink ? (
-                  <Check className="h-5 w-5 text-success!" />
-                ) : (
-                  <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-                )}
-              </IconButton>
-            ) : null}
-          </>
+          !isPreSavePrimary ? (
+            <IconButton
+              size="lg"
+              className={
+                isShuffleOn ? 'group text-primary! hover:text-primary!' : 'group'
+              }
+              aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+              title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+              aria-pressed={isShuffleOn}
+              disabled={!hasTracks}
+              onClick={() => setIsShuffleOn((prev) => !prev)}
+            >
+              <Shuffle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            </IconButton>
+          ) : null
         }
-      ></CollectionActionBar>
+      >
+        {!album.isUpcoming ? (
+          <button
+            type="button"
+            disabled={isLikeLoading}
+            onClick={handleToggleAlbumLike}
+            aria-label={isLiked ? 'Unlike release' : 'Like release'}
+            title={isLiked ? 'Unlike release' : 'Like release'}
+            className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+              isLiked
+                ? 'text-destructive'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <HeartIconSVG
+              filled={isLiked}
+              className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
+            />
+            <span className="font-mono text-caption">
+              {likesCount.toLocaleString()}
+            </span>
+          </button>
+        ) : null}
+        {album.scope !== 'PERSONAL' ? (
+          <IconButton
+            size="lg"
+            className="group"
+            onClick={handleCopyShareLink}
+            aria-label="Share release"
+            title="Share release"
+          >
+            {copiedLink ? (
+              <Check className="h-5 w-5 text-success!" />
+            ) : (
+              <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            )}
+          </IconButton>
+        ) : null}
+      </CollectionActionBar>
 
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">

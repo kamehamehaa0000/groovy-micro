@@ -1,15 +1,10 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   ArrowDown,
   ArrowUp,
-  Disc3,
-  Link2,
-  ListMusic,
   ListPlus,
-  MoreHorizontal,
-  Plus,
   PlusCircle,
   Shuffle,
   X,
@@ -21,7 +16,6 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useAddToPlaylistModalStore } from '../stores/add-to-playlist-modal.store'
 import { formatDuration } from '../lib/catalog.api'
-import { notify } from '../lib/toast'
 import { shuffleArray } from '../lib/shuffle'
 import {
   recommendationsApi,
@@ -292,16 +286,6 @@ function RadioMixPage() {
         `${seedSong?.title || 'Track'} Radio`,
       )
   }, [fullQueue, seedSong, toPlayerTrack])
-
-  const handleCopyLink = useCallback(async () => {
-    setIsMenuOpen(false)
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      notify.success('Radio link copied')
-    } catch {
-      notify.error('Could not copy link')
-    }
-  }, [])
 
   const hasTracks = fullQueue.length > 0
   const showToolbar = isLoading || hasTracks || searchQuery.length > 0
