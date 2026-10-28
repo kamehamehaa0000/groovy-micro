@@ -7,7 +7,7 @@ import { usePlaylistsStore } from '../../stores/playlists.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
 import { useLibraryStore } from '../../stores/library.store'
 import { notify } from '../../lib/toast'
-import { Button, Field, IconButton, Input, Select, Textarea } from '../ui'
+import { Button, Field, IconButton, Input, Select, Switch, Textarea } from '../ui'
 
 export function CreatePlaylistModal() {
   const {
@@ -272,30 +272,38 @@ export function CreatePlaylistModal() {
               </Select>
             </Field>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex cursor-pointer items-center gap-2 rounded-control border border-border bg-background px-3 py-2">
-                <input
-                  type="checkbox"
-                  checked={newAllowDuplicates}
-                  onChange={(e) => setNewAllowDuplicates(e.target.checked)}
-                  className="accent-primary"
-                />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+              <div
+                onClick={() => setNewAllowDuplicates((value) => !value)}
+                className="flex cursor-pointer items-center justify-between gap-3 rounded-control border border-border bg-background px-3 py-2 transition-colors hover:border-primary/40"
+              >
                 <span className="font-sans text-caption text-foreground">
                   Allow duplicates
                 </span>
-              </label>
-
-              <label className="flex cursor-pointer items-center gap-2 rounded-control border border-border bg-background px-3 py-2">
-                <input
-                  type="checkbox"
-                  checked={newAllowComments}
-                  onChange={(e) => setNewAllowComments(e.target.checked)}
-                  className="accent-primary"
+                <Switch
+                  checked={newAllowDuplicates}
+                  onChange={setNewAllowDuplicates}
+                  onClick={(event) => event.stopPropagation()}
+                  size="sm"
+                  aria-label="Allow duplicates"
                 />
+              </div>
+
+              <div
+                onClick={() => setNewAllowComments((value) => !value)}
+                className="flex cursor-pointer items-center justify-between gap-3 rounded-control border border-border bg-background px-3 py-2 transition-colors hover:border-primary/40"
+              >
                 <span className="font-sans text-caption text-foreground">
                   Allow comments
                 </span>
-              </label>
+                <Switch
+                  checked={newAllowComments}
+                  onChange={setNewAllowComments}
+                  onClick={(event) => event.stopPropagation()}
+                  size="sm"
+                  aria-label="Allow comments"
+                />
+              </div>
             </div>
           </form>
         </div>

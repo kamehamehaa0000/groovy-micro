@@ -12,6 +12,7 @@ import {
   SectionHeader,
   Select,
   Sheet,
+  Switch,
   Textarea,
 } from '../components/ui'
 import { cn } from '../components/ui/cn'
@@ -217,6 +218,8 @@ function DesignPlayground() {
   const [bottomSheet, setBottomSheet] = useState(false)
   const [centerSheet, setCenterSheet] = useState(false)
   const [eyebrowMono, setEyebrowMono] = useState(false)
+  const [switchOn, setSwitchOn] = useState(true)
+  const [switchOff, setSwitchOff] = useState(false)
 
   if (!import.meta.env.DEV) {
     return (
@@ -601,6 +604,69 @@ function DesignPlayground() {
           <Field label="Add a track" htmlFor="tr" hint="One per line.">
             <Textarea id="tr" placeholder="Track name" />
           </Field>
+        </div>
+      </Section>
+
+      {/* Switch */}
+      <Section
+        title="Switch"
+        hint="Boolean on/off — primary when on, quiet surface when off."
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-4 rounded-control border border-border bg-background px-3.5 py-3">
+            <div>
+              <p className="font-sans text-caption font-semibold text-foreground">
+                Private account
+              </p>
+              <p className="mt-0.5 text-caption text-muted-foreground">
+                Only approved followers see your activity.
+              </p>
+            </div>
+            <Switch
+              checked={switchOn}
+              onChange={setSwitchOn}
+              aria-label="Private account"
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-control border border-border bg-background px-3.5 py-3">
+            <div>
+              <p className="font-sans text-caption font-semibold text-foreground">
+                Allow comments
+              </p>
+              <p className="mt-0.5 text-caption text-muted-foreground">
+                Listeners can leave comments.
+              </p>
+            </div>
+            <Switch
+              checked={switchOff}
+              onChange={setSwitchOff}
+              aria-label="Allow comments"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Switch checked onChange={() => {}} size="sm" aria-label="Small on" />
+            <span className="text-caption text-muted-foreground">sm · on</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked={false} onChange={() => {}} size="sm" aria-label="Small off" />
+            <span className="text-caption text-muted-foreground">sm · off</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked onChange={() => {}} aria-label="Medium on" />
+            <span className="text-caption text-muted-foreground">md · on</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked={false} onChange={() => {}} aria-label="Medium off" />
+            <span className="text-caption text-muted-foreground">md · off</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked disabled onChange={() => {}} aria-label="Disabled on" />
+            <span className="text-caption text-muted-foreground">disabled</span>
+          </div>
         </div>
       </Section>
 

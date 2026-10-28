@@ -22,5 +22,8 @@ export type { FieldProps, InputProps, TextareaProps, SelectProps } from './Field
 export { Sheet } from './Sheet'
 export type { SheetProps, SheetPlacement, SheetSize } from './Sheet'
 
+export { Switch } from './Switch'
+export type { SwitchProps, SwitchSize } from './Switch'
+
 export { SectionHeader } from './SectionHeader'
 export type { SectionHeaderProps } from './SectionHeader'

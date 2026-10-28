@@ -8,6 +8,7 @@ import {
   Eyebrow,
   Input,
   Select,
+  Switch,
   Textarea,
 } from '../ui'
 import { Copy, Trash2, UploadCloud } from 'lucide-react'
@@ -198,15 +199,12 @@ export function PlaylistSettingsForm({
         </Field>
 
         <div className="space-y-2">
-          <label className="flex cursor-pointer items-start gap-3 rounded-control border border-border bg-background p-3.5 transition-colors hover:border-foreground/50">
-            <input
-              type="checkbox"
-              checked={values.allowDuplicates}
-              onChange={(event) =>
-                onChange({ allowDuplicates: event.target.checked })
-              }
-              className="mt-0.5 accent-primary"
-            />
+          <div
+            onClick={() =>
+              onChange({ allowDuplicates: !values.allowDuplicates })
+            }
+            className="flex cursor-pointer items-start justify-between gap-3 rounded-control border border-border bg-background p-3.5 transition-colors hover:border-foreground/50"
+          >
             <span>
               <span className="block font-sans text-caption font-semibold text-foreground">
                 Allow duplicate songs
@@ -215,17 +213,19 @@ export function PlaylistSettingsForm({
                 Permit the same cut more than once in this playlist.
               </span>
             </span>
-          </label>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-control border border-border bg-background p-3.5 transition-colors hover:border-foreground/50">
-            <input
-              type="checkbox"
-              checked={values.allowComments}
-              onChange={(event) =>
-                onChange({ allowComments: event.target.checked })
-              }
-              className="mt-0.5 accent-primary"
+            <Switch
+              checked={values.allowDuplicates}
+              onChange={(checked) => onChange({ allowDuplicates: checked })}
+              onClick={(event) => event.stopPropagation()}
+              aria-label="Allow duplicate songs"
+              className="mt-0.5"
             />
+          </div>
+
+          <div
+            onClick={() => onChange({ allowComments: !values.allowComments })}
+            className="flex cursor-pointer items-start justify-between gap-3 rounded-control border border-border bg-background p-3.5 transition-colors hover:border-foreground/50"
+          >
             <span>
               <span className="block font-sans text-caption font-semibold text-foreground">
                 Allow discussion &amp; comments
@@ -234,7 +234,14 @@ export function PlaylistSettingsForm({
                 Let listeners and collaborators leave comments.
               </span>
             </span>
-          </label>
+            <Switch
+              checked={values.allowComments}
+              onChange={(checked) => onChange({ allowComments: checked })}
+              onClick={(event) => event.stopPropagation()}
+              aria-label="Allow discussion and comments"
+              className="mt-0.5"
+            />
+          </div>
         </div>
       </section>
 

@@ -17,48 +17,11 @@ import type {
   SubscriptionPlan,
   PlanFeatureDefinition,
 } from '../types/subscriptions'
+import { Switch } from '../Components/ui'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
 })
-
-interface ToggleSwitchProps {
-  id?: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-  disabled?: boolean
-  'aria-label'?: string
-}
-
-function ToggleSwitch({
-  id,
-  checked,
-  onChange,
-  disabled = false,
-  'aria-label': ariaLabel,
-}: ToggleSwitchProps) {
-  return (
-    <button
-      id={id}
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-border transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-        checked ? 'bg-foreground' : 'bg-muted'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    >
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-xs transition duration-200 ease-in-out border border-border/40 ${
-          checked ? 'translate-x-5' : 'translate-x-0.5'
-        } mt-0.2`}
-      />
-    </button>
-  )
-}
 
 function ProfileComponent() {
   const navigate = useNavigate()
@@ -79,11 +42,7 @@ function ProfileComponent() {
   const isLoadingEntitlements = useEntitlementsStore((s) => s.isLoading)
 
   type ProfileTab =
-    | 'account'
-    | 'subscription'
-    | 'privacy'
-    | 'notifications'
-    | 'security'
+    'account' | 'subscription' | 'privacy' | 'notifications' | 'security'
   const [activeTab, setActiveTab] = useState<ProfileTab>('account')
 
   const [displayName, setDisplayName] = useState('')
@@ -454,7 +413,7 @@ function ProfileComponent() {
   return (
     <div className="select-none space-y-6">
       {/* ===================== HERO PROFILE BANNER ===================== */}
-      <div className="bg-card border border-border rounded-2xl p-5 sm:p-7 shadow-xs">
+      <div className=" rounded-2xl p-4 sm:p-4 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
           {/* Avatar with Camera Overlay */}
           <div className="relative group shrink-0">
@@ -531,7 +490,10 @@ function ProfileComponent() {
             {/* Quick Status Badges & CTAs */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-full border border-border bg-background text-muted-foreground">
-                Role: <strong className="text-foreground">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</strong>
+                Role:{' '}
+                <strong className="text-foreground">
+                  {isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}
+                </strong>
               </span>
               <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary font-semibold">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
@@ -569,7 +531,7 @@ function ProfileComponent() {
 
       {/* ===================== STICKY TAB NAVIGATION ===================== */}
       <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-border/40">
-        <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
+        <nav className="flex px-2 items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {[
             { id: 'account' as const, label: 'Account' },
             { id: 'subscription' as const, label: 'Subscription' },
@@ -624,7 +586,8 @@ function ProfileComponent() {
               </span>
             </div>
             <p className="font-sans text-caption text-muted-foreground mb-5">
-              This name will be displayed across your public playlists, comments, and community interactions.
+              This name will be displayed across your public playlists,
+              comments, and community interactions.
             </p>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -680,7 +643,9 @@ function ProfileComponent() {
                 <div className="mt-2.5">
                   <Link
                     to="/artists/$idOrSlug"
-                    params={{ idOrSlug: artistProfile.slug || artistProfile.id }}
+                    params={{
+                      idOrSlug: artistProfile.slug || artistProfile.id,
+                    }}
                     className="font-mono text-eyebrow text-primary hover:underline inline-flex items-center gap-1.5"
                   >
                     <span>View Public Artist Page</span>
@@ -707,17 +672,29 @@ function ProfileComponent() {
             <div className="divide-y divide-border/60 font-sans text-caption">
               <div className="py-3 flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">Email Address</span>
-                <span className="text-foreground font-medium">{user.email}</span>
+                <span className="text-foreground font-medium">
+                  {user.email}
+                </span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Email Verification</span>
-                <span className={user.isEmailVerified ? "text-success font-semibold" : "text-warning font-semibold"}>
-                  {user.isEmailVerified ? "Verified" : "Unverified"}
+                <span className="text-muted-foreground">
+                  Email Verification
+                </span>
+                <span
+                  className={
+                    user.isEmailVerified
+                      ? 'text-success font-semibold'
+                      : 'text-warning font-semibold'
+                  }
+                >
+                  {user.isEmailVerified ? 'Verified' : 'Unverified'}
                 </span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">Role</span>
-                <span className="font-eyebrow text-eyebrow uppercase text-foreground">{isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}</span>
+                <span className="font-eyebrow text-eyebrow uppercase text-foreground">
+                  {isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}
+                </span>
               </div>
               {isArtist && (
                 <div className="py-3 flex items-center justify-between gap-4">
@@ -738,9 +715,13 @@ function ProfileComponent() {
                 </span>
               </div>
               <div className="py-3 flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Pre-Saved Releases</span>
+                <span className="text-muted-foreground">
+                  Pre-Saved Releases
+                </span>
                 <span className="font-mono text-eyebrow text-foreground font-medium">
-                  {isLoadingPreSaves ? 'Loading...' : `${preSaves.length} drops scheduled`}
+                  {isLoadingPreSaves
+                    ? 'Loading...'
+                    : `${preSaves.length} drops scheduled`}
                 </span>
               </div>
             </div>
@@ -795,7 +776,9 @@ function ProfileComponent() {
                 {entitlements?.currentPeriodEnd && (
                   <p className="font-mono text-eyebrow text-muted-foreground mt-1">
                     Current billing period ends:{' '}
-                    {new Date(entitlements.currentPeriodEnd).toLocaleDateString()}
+                    {new Date(
+                      entitlements.currentPeriodEnd,
+                    ).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -836,7 +819,9 @@ function ProfileComponent() {
                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                   Lossless FLAC
                 </span>
-                <span className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-success' : 'text-muted-foreground'}`}>
+                <span
+                  className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.lossless ? 'text-success' : 'text-muted-foreground'}`}
+                >
                   {entitlements?.features?.lossless ? 'Enabled ✓' : 'Standard'}
                 </span>
               </div>
@@ -844,15 +829,21 @@ function ProfileComponent() {
                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                   Live Jam Rooms
                 </span>
-                <span className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-success' : 'text-muted-foreground'}`}>
-                  {entitlements?.features?.can_host_jam ? `Host (${entitlements.features.max_jam_participants ?? 3})` : 'Listener'}
+                <span
+                  className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.can_host_jam ? 'text-success' : 'text-muted-foreground'}`}
+                >
+                  {entitlements?.features?.can_host_jam
+                    ? `Host (${entitlements.features.max_jam_participants ?? 3})`
+                    : 'Listener'}
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-background border border-border">
                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
                   Ad-Free Audio
                 </span>
-                <span className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-success' : 'text-muted-foreground'}`}>
+                <span
+                  className={`font-mono text-body font-bold mt-0.5 block ${entitlements?.features?.ad_free ? 'text-success' : 'text-muted-foreground'}`}
+                >
                   {entitlements?.features?.ad_free ? 'Ad-Free ✓' : 'Sponsored'}
                 </span>
               </div>
@@ -895,11 +886,13 @@ function ProfileComponent() {
                   </span>
                 </div>
                 <p className="font-sans text-caption text-muted-foreground max-w-xl leading-relaxed">
-                  When your account is private, other curators must request to follow you. You review each follow request in your Activity desk before they gain access to your follower-only library.
+                  When your account is private, other curators must request to
+                  follow you. You review each follow request in your Activity
+                  desk before they gain access to your follower-only library.
                 </p>
               </div>
 
-              <ToggleSwitch
+              <Switch
                 id="private-account-toggle"
                 checked={isPrivateAccount}
                 onChange={setIsPrivateAccount}
@@ -914,7 +907,8 @@ function ProfileComponent() {
                   Live Turntable &bull; Listening Activity
                 </span>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 leading-relaxed">
-                  Choose who can see your real-time playback in the &quot;What Friends Are Listening To&quot; live deck.
+                  Choose who can see your real-time playback in the &quot;What
+                  Friends Are Listening To&quot; live deck.
                 </p>
               </div>
 
@@ -950,7 +944,9 @@ function ProfileComponent() {
                     >
                       <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center justify-between">
                         <span>{opt.title}</span>
-                        {isSelected && <span className="text-success font-bold">✓</span>}
+                        {isSelected && (
+                          <span className="text-success font-bold">✓</span>
+                        )}
                       </div>
                       <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
                         {opt.desc}
@@ -968,7 +964,8 @@ function ProfileComponent() {
                   Library &amp; Presaves Visibility
                 </span>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 leading-relaxed">
-                  Choose who can browse your public playlists, liked songs, and pre-saved releases.
+                  Choose who can browse your public playlists, liked songs, and
+                  pre-saved releases.
                 </p>
               </div>
 
@@ -1004,7 +1001,9 @@ function ProfileComponent() {
                     >
                       <div className="font-eyebrow text-eyebrow uppercase tracking-wider font-semibold text-foreground flex items-center justify-between">
                         <span>{opt.title}</span>
-                        {isSelected && <span className="text-success font-bold">✓</span>}
+                        {isSelected && (
+                          <span className="text-success font-bold">✓</span>
+                        )}
                       </div>
                       <p className="font-sans text-eyebrow text-muted-foreground mt-1 leading-snug">
                         {opt.desc}
@@ -1027,7 +1026,8 @@ function ProfileComponent() {
                   </span>
                 </div>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 leading-relaxed">
-                  Granularly control where your privately uploaded audio collection surfaces throughout Groovy.
+                  Granularly control where your privately uploaded audio
+                  collection surfaces throughout Groovy.
                 </p>
               </div>
 
@@ -1039,10 +1039,11 @@ function ProfileComponent() {
                       Include in Global Search
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Surface personal collection tracks in your own search bar (never visible to other curators).
+                      Surface personal collection tracks in your own search bar
+                      (never visible to other curators).
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={lockerIncludeInSearch}
                     onChange={setLockerIncludeInSearch}
                     aria-label="Include personal collection in search"
@@ -1056,10 +1057,11 @@ function ProfileComponent() {
                       Include in Recently Played &amp; Activity
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Record personal collection playback on your Recent shelf and listening history.
+                      Record personal collection playback on your Recent shelf
+                      and listening history.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={lockerIncludeInRecentlyPlayed}
                     onChange={setLockerIncludeInRecentlyPlayed}
                     aria-label="Include in recently played"
@@ -1073,10 +1075,11 @@ function ProfileComponent() {
                       Mix with Home Feed &amp; Recommendations
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Blend your personal collection uploads into home discovery shelves and mixes.
+                      Blend your personal collection uploads into home discovery
+                      shelves and mixes.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={lockerIncludeInHome}
                     onChange={setLockerIncludeInHome}
                     aria-label="Mix with home feed"
@@ -1090,10 +1093,12 @@ function ProfileComponent() {
                       Link to Verified Global Artists
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Show an &quot;In Your Collection&quot; shelf on verified artist pages when you have personal tracks matching that artist.
+                      Show an &quot;In Your Collection&quot; shelf on verified
+                      artist pages when you have personal tracks matching that
+                      artist.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={lockerLinkToGlobalArtists}
                     onChange={setLockerLinkToGlobalArtists}
                     aria-label="Link to verified global artists"
@@ -1108,7 +1113,9 @@ function ProfileComponent() {
                 disabled={isSavingPrivacy}
                 className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
               >
-                {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
+                {isSavingPrivacy
+                  ? 'Saving Privacy...'
+                  : 'Save Privacy Preferences'}
               </button>
             </div>
           </form>
@@ -1137,7 +1144,8 @@ function ProfileComponent() {
                   Notification Channels &amp; Delivery
                 </span>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 leading-relaxed">
-                  Configure real-time alerts for release drops, social interactions, and community jams.
+                  Configure real-time alerts for release drops, social
+                  interactions, and community jams.
                 </p>
               </div>
 
@@ -1149,10 +1157,11 @@ function ProfileComponent() {
                       Catalog Drops &amp; New Releases
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Alerts when followed artists publish new albums, singles, or EPs.
+                      Alerts when followed artists publish new albums, singles,
+                      or EPs.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={notifPrefs.emailReleases}
                     onChange={(val) =>
                       setNotifPrefs((prev) => ({ ...prev, emailReleases: val }))
@@ -1168,10 +1177,11 @@ function ProfileComponent() {
                       Discussion Replies &amp; Mentions
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Alerts when curators reply to your comments on tracks and public playlists.
+                      Alerts when curators reply to your comments on tracks and
+                      public playlists.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={notifPrefs.emailComments}
                     onChange={(val) =>
                       setNotifPrefs((prev) => ({ ...prev, emailComments: val }))
@@ -1187,10 +1197,11 @@ function ProfileComponent() {
                       Social Circles &amp; Follow Requests
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Alerts for incoming follow requests on private accounts and newly joined followers.
+                      Alerts for incoming follow requests on private accounts
+                      and newly joined followers.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={notifPrefs.pushSocial}
                     onChange={(val) =>
                       setNotifPrefs((prev) => ({ ...prev, pushSocial: val }))
@@ -1206,10 +1217,11 @@ function ProfileComponent() {
                       Live Jam Session Invites
                     </div>
                     <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      Real-time pulses when friends invite you to synchronize playback in a shared listening room.
+                      Real-time pulses when friends invite you to synchronize
+                      playback in a shared listening room.
                     </p>
                   </div>
-                  <ToggleSwitch
+                  <Switch
                     checked={notifPrefs.pushJams}
                     onChange={(val) =>
                       setNotifPrefs((prev) => ({ ...prev, pushJams: val }))
@@ -1256,7 +1268,8 @@ function ProfileComponent() {
               Change Password
             </h3>
             <p className="font-sans text-caption text-muted-foreground mb-5">
-              Update your account credentials to keep your session and collection safe.
+              Update your account credentials to keep your session and
+              collection safe.
             </p>
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
@@ -1338,7 +1351,8 @@ function ProfileComponent() {
                 Session &amp; Device Controls
               </h3>
               <p className="font-sans text-caption text-muted-foreground mt-0.5 leading-relaxed">
-                Manage active authentication tokens and sign out of remote browsers.
+                Manage active authentication tokens and sign out of remote
+                browsers.
               </p>
             </div>
 
@@ -1481,7 +1495,9 @@ function ProfileComponent() {
                                   : 'text-muted-foreground line-through'
                               }
                             >
-                              Host Live Jams ({plan.features.max_jam_participants ?? 3} listeners)
+                              Host Live Jams (
+                              {plan.features.max_jam_participants ?? 3}{' '}
+                              listeners)
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
