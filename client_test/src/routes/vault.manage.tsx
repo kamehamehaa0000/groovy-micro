@@ -1096,7 +1096,7 @@ function PersonalCollectionManagePage() {
 
   if (isAuthLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
+      <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
         Initializing Personal Vault...
       </div>
     )
@@ -1104,7 +1104,7 @@ function PersonalCollectionManagePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-12 w-full">
+      <div className="py-12 w-full">
         <div className="border border-border bg-card p-10 sm:p-14 text-center space-y-5 shadow-xs">
           <div className="w-14 h-14 bg-background border border-border text-primary flex items-center justify-center mx-auto text-2xl">
             <UploadCloudSVG className="w-7 h-7" />
@@ -1144,7 +1144,7 @@ function PersonalCollectionManagePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 w-full select-none pb-24 md:pb-16">
+    <div className="select-none">
       {/* Deletion Confirmation Modal Overlay */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150">

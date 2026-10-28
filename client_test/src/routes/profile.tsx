@@ -452,7 +452,7 @@ function ProfileComponent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-2 pb-24 md:pb-16 select-none space-y-6">
+    <div className="select-none space-y-6">
       {/* ===================== HERO PROFILE BANNER ===================== */}
       <div className="bg-card border border-border rounded-2xl p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">

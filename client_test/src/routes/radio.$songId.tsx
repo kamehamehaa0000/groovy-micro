@@ -303,7 +303,7 @@ function RadioMixPage() {
   )
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 select-none sm:px-8 sm:pt-10">
+    <div className="select-none">
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         className="-mx-4 sm:-mx-8"

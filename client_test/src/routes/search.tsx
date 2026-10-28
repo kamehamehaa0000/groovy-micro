@@ -424,7 +424,7 @@ function SearchPageComponent() {
   ]
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-2 pb-28 md:pb-16 select-none">
+    <div className="select-none">
       {/* ===================== STICKY SEARCH HEADER & PILLS ===================== */}
       <header className="sticky top-14 z-30 bg-background/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
         {!query.trim() && (

@@ -225,7 +225,7 @@ function GuestFeed() {
   const navigate = useNavigate()
 
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
         <FeedIcon className="h-6 w-6" />
       </div>
@@ -638,7 +638,7 @@ function FeedPage() {
   )
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
+    <div>
       <header className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">

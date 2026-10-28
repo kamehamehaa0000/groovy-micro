@@ -1150,28 +1150,7 @@ function RootComponent() {
           <div
             className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-24' : 'pb-16 md:pb-0'}`}
           >
-            <main
-              className={
-                pathname === '/feed' || pathname === '/feed/'
-                    ? 'flex-1 w-full max-w-6xl mx-auto'
-                    : pathname === '/' ||
-                        pathname === '/artists' ||
-                        pathname === '/artists/' ||
-                        pathname.startsWith('/artists/') ||
-                        pathname === '/playlists' ||
-                        pathname === '/playlists/' ||
-                        pathname.startsWith('/playlists/') ||
-                        pathname.startsWith('/albums/') ||
-                        pathname.startsWith('/radio/') ||
-                        pathname === '/liked' ||
-                        pathname === '/library' ||
-                        pathname === '/library/' ||
-                        pathname === '/vault' ||
-                        pathname.startsWith('/vault/')
-                      ? 'flex-1 w-full max-w-6xl mx-auto'
-                      : 'flex-1 max-w-5xl w-full mx-auto px-2 sm:px-12 sm:py-10'
-              }
-            >
+            <main className="flex-1 w-full max-w-6xl mx-auto px-4 pb-20 pt-6 sm:px-8 sm:pt-10">
               <Outlet />
             </main>
           </div>

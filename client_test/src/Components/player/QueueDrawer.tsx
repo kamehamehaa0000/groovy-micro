@@ -315,6 +315,14 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                       ♪
                     </div>
                   )}
+                  {(playbackStatus === 'playing' ||
+                    playbackStatus === 'loading') && (
+                    <div className="absolute inset-0 bg-foreground/45 flex items-center justify-center gap-0.5">
+                      <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-1" />
+                      <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-2" />
+                      <span className="w-0.5 h-full bg-primary-foreground rounded-full animate-eq-3" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Title & Artist */}

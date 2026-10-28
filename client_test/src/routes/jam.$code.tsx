@@ -110,7 +110,7 @@ function JamRouteComponent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="space-y-6">
       {/* Session Hero Banner */}
       <div className="p-6 sm:p-8 rounded-control bg-card border border-border shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">

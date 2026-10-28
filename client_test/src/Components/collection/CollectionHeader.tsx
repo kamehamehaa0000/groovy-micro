@@ -48,7 +48,6 @@ export function CollectionHeader({
   coverAction,
   meta,
   description,
-  backdropImageUrl,
   stickySubtitle,
   stickyThumbnail,
   className,
@@ -78,14 +77,9 @@ export function CollectionHeader({
         className={stickyClassName}
       />
 
-      <section
-        className={cn(
-          'relative isolate overflow-hidden',
-          className,
-        )}
-      >
+      <section className={cn('relative isolate overflow-hidden', className)}>
         {/* Ambient tint: the cover blurred into the page background. */}
-        <div
+        {/* <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
         >
@@ -100,7 +94,7 @@ export function CollectionHeader({
             <div className="h-full w-full bg-linear-to-br from-primary/15 via-background to-background" />
           )}
           <div className="absolute inset-0 bg-linear-to-b from-background/30 via-background/70 to-background" />
-        </div>
+        </div> */}
 
         <div
           className={cn(
@@ -111,9 +105,7 @@ export function CollectionHeader({
           <div
             className={cn(
               'flex flex-col items-center gap-6 transition-all duration-500 ease-out motion-reduce:transition-none md:flex-row md:items-end md:gap-8',
-              mounted
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-3 opacity-0',
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0',
             )}
           >
             <CollectionCover

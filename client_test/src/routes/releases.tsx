@@ -165,7 +165,7 @@ function FollowedReleasesComponent() {
   // Guest view if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center select-none">
+      <div className="mx-auto max-w-xl py-20 text-center select-none">
         <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mx-auto mb-6 text-primary shadow-md">
           <svg
             className="w-8 h-8"
@@ -197,7 +197,7 @@ function FollowedReleasesComponent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 w-full select-none">
+    <div className="select-none">
       {/* ===================== EDITORIAL HEADER ===================== */}
       <div className="border-b border-border pb-6 ">
         <div className="flex  sm:flex-row sm:items-end justify-between gap-6">

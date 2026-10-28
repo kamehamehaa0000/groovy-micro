@@ -183,7 +183,7 @@ function UserProfileComponent() {
 
   if (isLoadingProfile) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <div className="py-12">
         <div className="animate-pulse space-y-6">
           <div className="flex items-center gap-6 pb-8 border-b border-border">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-secondary/20" />
@@ -206,7 +206,7 @@ function UserProfileComponent() {
 
   if (!profile) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+      <div className="mx-auto max-w-2xl py-20 text-center">
         <div className="font-serif italic text-3xl text-foreground mb-3">User Not Found</div>
         <p className="font-sans text-body text-muted-foreground mb-6">
           The listener or artist profile you are looking for does not exist or has been deactivated.
@@ -228,7 +228,7 @@ function UserProfileComponent() {
   const likedSongsCount = library?.likedSongs?.totalCount || 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 select-none">
+    <div className="select-none">
       {/* Back breadcrumb */}
       <div className="mb-6">
         <Link

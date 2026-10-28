@@ -190,7 +190,7 @@ function PlaylistsDirectoryComponent() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
+    <div>
       <header className="border-b border-border pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">

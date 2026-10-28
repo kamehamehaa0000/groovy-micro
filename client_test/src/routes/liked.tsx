@@ -202,7 +202,7 @@ function LikedSongsPage() {
   // Unauthenticated view
   if (!isAuthenticated && !isAuthLoading) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-8 sm:py-24">
+      <div className="py-20 sm:py-24">
         <div className="mx-auto max-w-xl text-center">
           <span className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
             <HeartIconSVG filled className="h-9 w-9" />
@@ -247,7 +247,7 @@ function LikedSongsPage() {
   const showToolbar = isLoading || hasSongs || searchQuery.length > 0
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 select-none sm:px-8 sm:pt-10">
+    <div className="select-none">
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         className="-mx-4 sm:-mx-8"

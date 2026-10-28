@@ -220,7 +220,7 @@ function DesignPlayground() {
 
   if (!import.meta.env.DEV) {
     return (
-      <div className="p-8">
+      <div>
         <Eyebrow tone="muted">dev only</Eyebrow>
         <p className="mt-2 text-body text-muted-foreground">
           The design playground is only available in development.
@@ -231,7 +231,7 @@ function DesignPlayground() {
 
   return (
     <div
-      className="flex flex-col gap-10 py-6"
+      className="flex flex-col gap-10"
       style={
         {
           '--font-eyebrow': eyebrowMono ? 'var(--font-mono)' : 'var(--font-sans)',

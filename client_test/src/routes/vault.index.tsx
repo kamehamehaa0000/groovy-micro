@@ -261,7 +261,7 @@ function PersonalCollectionExplorePage() {
   const isSearchActive = isSearchOpen || searchQuery.trim().length > 0
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 select-none sm:px-8 sm:pt-10 md:pb-16">
+    <div className="select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS (Matched to /library) ===================== */}
       <header className="sticky top-14 z-30 bg-background backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}

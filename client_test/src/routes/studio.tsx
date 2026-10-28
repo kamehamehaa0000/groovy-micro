@@ -222,7 +222,7 @@ function StudioComponent() {
   // =========================================================================
   if (!artistProfile) {
     return (
-      <div className="max-w-xl mx-auto py-24 text-center">
+      <div className="mx-auto max-w-xl py-24 text-center">
         <p className="font-serif italic text-lg text-foreground">
           No artist profile detected.
         </p>
@@ -234,7 +234,7 @@ function StudioComponent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 w-full overflow-x-hidden min-w-0">
+    <div className="overflow-x-hidden min-w-0">
       <StudioHeader
         stageName={artistProfile.stageName}
         slug={artistProfile.slug}

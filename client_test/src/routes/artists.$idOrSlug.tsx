@@ -539,7 +539,7 @@ function ArtistPublicProfileComponent() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-4 py-32 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse sm:px-8">
+      <div className="py-32 text-center font-eyebrow text-caption uppercase tracking-wider text-muted-foreground animate-pulse">
         Retrieving artist catalog &amp; recordings...
       </div>
     )
@@ -547,7 +547,7 @@ function ArtistPublicProfileComponent() {
 
   if (queryError || !artist) {
     return (
-      <div className="mx-auto max-w-xl py-24 px-6 text-center">
+      <div className="mx-auto max-w-xl py-24 text-center">
         <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
           404 Archive Notice
         </span>
@@ -575,7 +575,7 @@ function ArtistPublicProfileComponent() {
     : personalTracks.slice(0, 5)
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 select-none sm:px-8 sm:pt-10">
+    <div className="select-none">
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         className="-mx-4 sm:-mx-8"

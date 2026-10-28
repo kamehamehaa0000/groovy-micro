@@ -89,7 +89,7 @@ function AdminSubscriptionsDeskComponent() {
 
   if (user?.role !== 'ADMIN') {
     return (
-      <div className="max-w-xl mx-auto py-24 px-6 text-center">
+      <div className="mx-auto max-w-xl py-24 text-center">
         <span className="font-eyebrow text-caption uppercase tracking-widest text-destructive block mb-2">
           403 Access Restricted
         </span>
@@ -244,7 +244,7 @@ function AdminSubscriptionsDeskComponent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 w-full">
+    <div>
       {/* Header */}
       <div className="border-b border-border pb-6 mb-8">
         <div className="flex items-center justify-between gap-4">

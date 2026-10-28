@@ -216,7 +216,7 @@ function LibraryPageComponent() {
   // If user is not authenticated, show Spotify-style guest promo
   if (!isAuthenticated) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 sm:py-24 text-center select-none">
+      <div className="mx-auto max-w-xl py-16 sm:py-24 text-center select-none">
         <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mx-auto mb-6 text-primary shadow-md">
           <svg
             className="w-8 h-8"
@@ -254,7 +254,7 @@ function LibraryPageComponent() {
   const isSearchActive = isSearchOpen || searchQuery.trim().length > 0
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 select-none sm:px-8 sm:pt-10 md:pb-16">
+    <div className="select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS ===================== */}
       <header className="sticky top-14 z-30 bg-background backdrop:backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}

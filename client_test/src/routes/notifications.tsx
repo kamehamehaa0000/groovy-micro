@@ -123,7 +123,7 @@ function NotificationsPageComponent() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center select-none">
+      <div className="mx-auto max-w-xl py-16 text-center select-none">
         <div className="border border-border bg-card p-8 sm:p-12 shadow-xs space-y-5 rounded-2xl">
           <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
             Inbox &nbsp;·&nbsp; Activity Pulse
@@ -159,7 +159,7 @@ function NotificationsPageComponent() {
   ]
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 select-none space-y-6">
+    <div className="select-none space-y-6">
       {/* ===================== PAGE HEADER ===================== */}
       <section className=" shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
