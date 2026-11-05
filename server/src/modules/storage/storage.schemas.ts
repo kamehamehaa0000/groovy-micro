@@ -60,8 +60,35 @@ export const createPersonalArtistSchema = z.object({
   bio: z.string().max(1000).nullish(),
 });
 
+export const personalReleasesQuerySchema = z.object({
+  search: z.string().optional(),
+  type: z.enum(["ALL", "SINGLE", "ALBUM", "EP", "LP", "MIXTAPE"]).optional().default("ALL"),
+  sort: z.enum(["recent", "title", "artist", "releaseDate"]).optional().default("recent"),
+  order: z.enum(["asc", "desc"]).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export const personalArtistsQuerySchema = z.object({
+  search: z.string().optional(),
+  sort: z.enum(["name", "releases", "tracks", "recent"]).optional().default("name"),
+  order: z.enum(["asc", "desc"]).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export const personalTracksQuerySchema = z.object({
+  shuffle: z.coerce.boolean().optional().default(false),
+  limit: z.coerce.number().int().min(1).max(500).optional().default(200),
+  albumType: z.enum(["SINGLE", "ALBUM", "EP", "LP", "MIXTAPE"]).optional(),
+  search: z.string().optional(),
+});
+
 export type PresignedUrlInput = z.infer<typeof presignedUrlSchema>;
 export type BatchPresignedUrlsInput = z.infer<typeof batchPresignedUrlsSchema>;
 export type BulkImportReleaseInput = z.infer<typeof bulkImportReleaseSchema>;
 export type BulkImportTrackInput = z.infer<typeof bulkImportTrackSchema>;
 export type CreatePersonalArtistInput = z.infer<typeof createPersonalArtistSchema>;
+export type PersonalReleasesQuery = z.infer<typeof personalReleasesQuerySchema>;
+export type PersonalArtistsQuery = z.infer<typeof personalArtistsQuerySchema>;
+export type PersonalTracksQuery = z.infer<typeof personalTracksQuerySchema>;

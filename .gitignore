@@ -15,6 +15,9 @@ tutorial_docs
 dist/
 build/
 .turbo/
+.opencode/
+.opencode/*
+.opencode
 
 # Logs
 npm-debug.log*

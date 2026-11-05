@@ -15,6 +15,7 @@ import type { Album, EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
 import { MediaTile } from '../components/common/MediaTile'
+import { ArtistCard } from '../components/artists/ArtistCard'
 import { SongRow } from '../components/common/SongRow'
 
 export const Route = createFileRoute('/')({
@@ -429,31 +430,14 @@ function HomeComponent() {
                   {feed.similarArtists.artists.map((artist) => (
                     <div
                       key={artist.id}
-                      className="w-35 sm:w-42.5 shrink-0 text-center"
+                      className="w-35 sm:w-42.5 shrink-0"
                     >
-                      <MediaTile
-                        to="/artists/$idOrSlug"
-                        params={{ idOrSlug: artist.slug }}
-                        title={artist.stageName}
-                        subtitle={
-                          <span className="flex items-center justify-center gap-1">
-                            <span>{artist.primaryGenre || 'Artist'}</span>
-                            {artist.verified && (
-                              <span
-                                className="text-primary font-bold text-eyebrow"
-                                title="Verified Artist"
-                              >
-                                ✓
-                              </span>
-                            )}
-                          </span>
-                        }
+                      <ArtistCard
+                        name={artist.stageName}
+                        slug={artist.slug}
                         imageUrl={artist.avatarUrl}
-                        artistName={artist.stageName}
-                        isRoundImage={true}
-                        fallbackInitials={artist.stageName
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        subtitle={artist.primaryGenre || 'Artist'}
+                        isVerified={artist.verified}
                       />
                     </div>
                   ))}

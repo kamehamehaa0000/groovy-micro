@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import {
@@ -8,9 +9,13 @@ import {
   type PersonalTrack,
 } from '../lib/storage.api'
 import { usePlayerStore } from '../stores/player.store'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../components/common/ProceduralCover'
+import { ArtistCard } from '../components/artists/ArtistCard'
 import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
+import { SortMenu, type SortOption } from '../Components/ui'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -31,24 +36,38 @@ type FilterPill =
 
 type ViewMode = 'grid' | 'list'
 
+type VaultReleaseSort = 'recent' | 'title' | 'artist' | 'releaseDate'
+type VaultArtistSort = 'name' | 'releases' | 'tracks' | 'recent'
+
+const RELEASE_SORT_OPTIONS: SortOption<VaultReleaseSort>[] = [
+  { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
+  { value: 'title', label: 'Title', defaultDirection: 'asc' },
+  { value: 'artist', label: 'Artist', defaultDirection: 'asc' },
+  { value: 'releaseDate', label: 'Release date', defaultDirection: 'desc' },
+]
+
+const ARTIST_SORT_OPTIONS: SortOption<VaultArtistSort>[] = [
+  { value: 'name', label: 'Name (A–Z)', defaultDirection: 'asc' },
+  { value: 'releases', label: 'Most releases', defaultDirection: 'desc' },
+  { value: 'tracks', label: 'Most tracks', defaultDirection: 'desc' },
+  { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
+]
+
 function PersonalCollectionExplorePage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
   const navigate = useNavigate()
 
-  // Data states
-  const [personalReleases, setPersonalReleases] = useState<PersonalRelease[]>(
-    [],
-  )
-  const [isLoadingReleases, setIsLoadingReleases] = useState(false)
-  const [personalArtists, setPersonalArtists] = useState<PersonalArtist[]>([])
-  const [isLoadingArtists, setIsLoadingArtists] = useState(false)
-
-  // Filter & Search states (matched to /library pattern)
+  // Filter, Sort & Search states
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activePill, setActivePill] = useState<FilterPill>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [releaseSort, setReleaseSort] = useState<VaultReleaseSort>('recent')
+  const [releaseDir, setReleaseDir] = useState<'asc' | 'desc'>('desc')
+  const [artistSort, setArtistSort] = useState<VaultArtistSort>('name')
+  const [artistDir, setArtistDir] = useState<'asc' | 'desc'>('asc')
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const debouncedSearch = useDebouncedValue(searchQuery, 300).trim()
 
   // Deletion state & modal
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -73,20 +92,6 @@ function PersonalCollectionExplorePage() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  // Initial load: fetch releases
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadReleases()
-    }
-  }, [isAuthenticated])
-
-  // Load artists when switching to artists pill
-  useEffect(() => {
-    if (activePill === 'artists' && personalArtists.length === 0) {
-      loadArtists()
-    }
-  }, [activePill])
-
   // Focus search input when toggled open
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -101,29 +106,106 @@ function PersonalCollectionExplorePage() {
     return () => clearTimeout(timer)
   }, [toastMessage])
 
-  const loadReleases = async () => {
-    try {
-      setIsLoadingReleases(true)
-      const res = await storageApi.getPersonalReleases()
-      setPersonalReleases(res.releases || [])
-    } catch (err: any) {
-      console.warn('Could not load releases:', err)
-    } finally {
-      setIsLoadingReleases(false)
-    }
-  }
+  // ===================== RELEASES QUERY (Paginated + Infinite Scroll) =====================
+  const releaseTypeParam =
+    activePill === 'artists' || activePill === 'all'
+      ? 'ALL'
+      : activePill.toUpperCase()
 
-  const loadArtists = async () => {
-    try {
-      setIsLoadingArtists(true)
-      const res = await storageApi.getPersonalArtists()
-      setPersonalArtists(res.artists || [])
-    } catch (err: any) {
-      console.warn('Could not load personal artists:', err)
-    } finally {
-      setIsLoadingArtists(false)
+  const releasesQuery = useInfiniteQuery({
+    queryKey: [
+      'vault',
+      'releases',
+      releaseTypeParam,
+      releaseSort,
+      releaseDir,
+      debouncedSearch,
+    ],
+    queryFn: ({ pageParam = 1 }) =>
+      storageApi.getPersonalReleases({
+        page: pageParam,
+        limit: 24,
+        type: releaseTypeParam,
+        sort: releaseSort,
+        order: releaseDir,
+        search: debouncedSearch || undefined,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination &&
+      lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
+        : undefined,
+    enabled: isAuthenticated && activePill !== 'artists',
+    staleTime: 60_000,
+  })
+
+  const personalReleases = useMemo(() => {
+    const list: PersonalRelease[] = []
+    for (const page of releasesQuery.data?.pages ?? []) {
+      list.push(...page.releases)
     }
-  }
+    return list
+  }, [releasesQuery.data])
+
+  const totalReleases =
+    releasesQuery.data?.pages[0]?.pagination?.total ?? personalReleases.length
+  const isLoadingReleases = releasesQuery.isLoading
+
+  const loadMoreReleasesRef = useInfiniteScroll({
+    enabled:
+      releasesQuery.hasNextPage &&
+      !releasesQuery.isFetching &&
+      !releasesQuery.isError,
+    onLoadMore: () => void releasesQuery.fetchNextPage(),
+  })
+
+  // ===================== ARTISTS QUERY (Paginated + Infinite Scroll) =====================
+  const artistsQuery = useInfiniteQuery({
+    queryKey: [
+      'vault',
+      'artists',
+      artistSort,
+      artistDir,
+      debouncedSearch,
+    ],
+    queryFn: ({ pageParam = 1 }) =>
+      storageApi.getPersonalArtists({
+        page: pageParam,
+        limit: 24,
+        sort: artistSort,
+        order: artistDir,
+        search: debouncedSearch || undefined,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination &&
+      lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
+        : undefined,
+    enabled: isAuthenticated && activePill === 'artists',
+    staleTime: 60_000,
+  })
+
+  const personalArtists = useMemo(() => {
+    const list: PersonalArtist[] = []
+    for (const page of artistsQuery.data?.pages ?? []) {
+      list.push(...page.artists)
+    }
+    return list
+  }, [artistsQuery.data])
+
+  const totalArtists =
+    artistsQuery.data?.pages[0]?.pagination?.total ?? personalArtists.length
+  const isLoadingArtists = artistsQuery.isLoading
+
+  const loadMoreArtistsRef = useInfiniteScroll({
+    enabled:
+      artistsQuery.hasNextPage &&
+      !artistsQuery.isFetching &&
+      !artistsQuery.isError,
+    onLoadMore: () => void artistsQuery.fetchNextPage(),
+  })
 
   // Helper to map PersonalTrack to PlayerTrack
   const toPlayerTrack = (
@@ -152,7 +234,7 @@ function PersonalCollectionExplorePage() {
     }
   }
 
-  // Play release
+  // Play a specific release
   const handlePlayRelease = (release: PersonalRelease) => {
     if (!release.tracks || release.tracks.length === 0) {
       setToastMessage('No audio tracks in this release.')
@@ -167,26 +249,38 @@ function PersonalCollectionExplorePage() {
     }
   }
 
-  // Shuffle entire vault
-  const handleShuffleVault = () => {
-    const allTracks: PlayerTrack[] = []
-    personalReleases.forEach((r) => {
-      ;(r.tracks || []).forEach((t) => {
-        allTracks.push(toPlayerTrack(r, t))
-      })
-    })
-    if (allTracks.length === 0) {
+  // Play first release from the vault
+  const handlePlayFirstRelease = () => {
+    const first = personalReleases[0]
+    if (!first) {
       setToastMessage('Your personal vault is empty.')
       return
     }
-    // Fisher-Yates shuffle
-    const shuffled = [...allTracks]
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    handlePlayRelease(first)
+  }
+
+  // Shuffle vault tracks via dedicated endpoint
+  const handleShuffleVault = async () => {
+    try {
+      setToastMessage('Shuffling vault...')
+      const res = await storageApi.getPersonalTracks({
+        shuffle: true,
+        limit: 250,
+        albumType:
+          activePill !== 'all' && activePill !== 'artists'
+            ? activePill.toUpperCase()
+            : undefined,
+        search: debouncedSearch || undefined,
+      })
+      if (!res.tracks || res.tracks.length === 0) {
+        setToastMessage('Your personal vault is empty.')
+        return
+      }
+      playTrack(res.tracks[0], res.tracks)
+      setToastMessage(`Shuffling ${res.tracks.length} tracks from your vault`)
+    } catch {
+      setToastMessage('Failed to shuffle vault tracks.')
     }
-    playTrack(shuffled[0], shuffled)
-    setToastMessage(`Shuffling ${shuffled.length} tracks from your vault`)
   }
 
   // Confirm delete release
@@ -194,7 +288,7 @@ function PersonalCollectionExplorePage() {
     try {
       setIsDeleting(true)
       await storageApi.deletePersonalRelease(releaseId)
-      setPersonalReleases((prev) => prev.filter((r) => r.id !== releaseId))
+      await Promise.all([releasesQuery.refetch(), artistsQuery.refetch()])
       setToastMessage('Release moved to 30-day recycle bin.')
       setDeleteConfirm(null)
     } catch (err: any) {
@@ -203,50 +297,6 @@ function PersonalCollectionExplorePage() {
       setIsDeleting(false)
     }
   }
-
-  // Filtered releases based on search & pill
-  const filteredReleases = useMemo(() => {
-    let list = personalReleases
-
-    if (activePill === 'singles') {
-      list = list.filter((r) => r.albumType === 'SINGLE')
-    } else if (activePill === 'albums') {
-      list = list.filter((r) => r.albumType === 'ALBUM')
-    } else if (activePill === 'mixtapes') {
-      list = list.filter((r) => r.albumType === 'MIXTAPE')
-    } else if (activePill === 'eps') {
-      list = list.filter((r) => r.albumType === 'EP')
-    } else if (activePill === 'lps') {
-      list = list.filter((r) => r.albumType === 'LP')
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      list = list.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.artistName.toLowerCase().includes(q) ||
-          (r.genre && r.genre.toLowerCase().includes(q)) ||
-          r.tracks?.some((t) => t.title.toLowerCase().includes(q)),
-      )
-    }
-
-    return list
-  }, [personalReleases, activePill, searchQuery])
-
-  // Filtered artists based on search
-  const filteredArtists = useMemo(() => {
-    let list = personalArtists
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      list = list.filter(
-        (a) =>
-          a.stageName.toLowerCase().includes(q) ||
-          (a.bio && a.bio.toLowerCase().includes(q)),
-      )
-    }
-    return list
-  }, [personalArtists, searchQuery])
 
   const filterPills: Array<{ key: FilterPill; label: string }> = [
     { key: 'all', label: 'All' },
@@ -371,15 +421,15 @@ function PersonalCollectionExplorePage() {
         )}
       </header>
 
-      {/* ===================== CONTROLS BAR (Play, Shuffle, Manage & View Mode) ===================== */}
-      <div className="flex items-center justify-between py-3 px-1 text-caption select-none">
+      {/* ===================== CONTROLS BAR (Play, Shuffle, Manage, Sort & View Mode) ===================== */}
+      <div className="flex flex-wrap items-center justify-between gap-y-2 py-3 px-1 text-caption select-none">
         {/* Left: Actions (Play, Shuffle, Manage) */}
         <div className="flex items-center gap-2">
-          {personalReleases.length > 0 && (
+          {totalReleases > 0 && activePill !== 'artists' && (
             <>
               <button
                 type="button"
-                onClick={() => handlePlayRelease(personalReleases[0])}
+                onClick={handlePlayFirstRelease}
                 className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-4 bg-primary text-background font-medium text-caption hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
               >
                 <PlayIconSVG className="w-3 h-3 text-background" />
@@ -389,7 +439,7 @@ function PersonalCollectionExplorePage() {
                 type="button"
                 onClick={handleShuffleVault}
                 className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-foreground font-medium text-caption transition-colors cursor-pointer group"
-                title="Shuffle all vault releases"
+                title="Shuffle vault releases"
               >
                 <ShuffleIconSVG className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 <span>Shuffle</span>
@@ -417,12 +467,30 @@ function PersonalCollectionExplorePage() {
           </Link>
         </div>
 
-        {/* Right: Count and View Switcher */}
-        <div className="flex items-center gap-2">
+        {/* Right: Sort, Count and View Switcher */}
+        <div className="flex items-center gap-3 ml-auto">
+          {activePill === 'artists' ? (
+            <SortMenu
+              options={ARTIST_SORT_OPTIONS}
+              value={artistSort}
+              onChange={setArtistSort}
+              direction={artistDir}
+              onDirectionChange={setArtistDir}
+            />
+          ) : (
+            <SortMenu
+              options={RELEASE_SORT_OPTIONS}
+              value={releaseSort}
+              onChange={setReleaseSort}
+              direction={releaseDir}
+              onDirectionChange={setReleaseDir}
+            />
+          )}
+
           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hidden sm:inline">
             {activePill === 'artists'
-              ? `${filteredArtists.length} ${filteredArtists.length === 1 ? 'Artist' : 'Artists'}`
-              : `${filteredReleases.length} ${filteredReleases.length === 1 ? 'Release' : 'Releases'}`}
+              ? `${totalArtists} ${totalArtists === 1 ? 'Artist' : 'Artists'}`
+              : `${totalReleases} ${totalReleases === 1 ? 'Release' : 'Releases'}`}
           </span>
 
           {activePill !== 'artists' && (
@@ -446,91 +514,75 @@ function PersonalCollectionExplorePage() {
       {activePill === 'artists' ? (
         /* ===================== ARTISTS VIEW (Clean & Minimal) ===================== */
         <div>
-          {isLoadingArtists ? (
+          {isLoadingArtists && personalArtists.length === 0 ? (
             <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading vault artists...
             </div>
-          ) : filteredArtists.length === 0 ? (
+          ) : personalArtists.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
               {searchQuery
                 ? `No artists match "${searchQuery}".`
                 : 'No personal artists found in your vault.'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
-              {filteredArtists.map((artist) => (
-                <Link
-                  key={artist.id}
-                  to="/artists/$idOrSlug"
-                  params={{ idOrSlug: artist.slug || artist.id }}
-                  className="group relative flex flex-col items-center p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none text-center"
-                >
-                  <div className="relative aspect-square w-full mb-2.5 flex items-center justify-center overflow-hidden rounded-full border border-border bg-background shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                    {artist.bannerUrl ? (
-                      <img
-                        src={artist.bannerUrl}
-                        alt={artist.stageName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center font-serif italic text-2xl text-primary bg-primary/10">
-                        {artist.stageName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-full">
-                    <div className="font-semibold text-body text-foreground group-hover:text-primary transition-colors truncate">
-                      {artist.stageName}
-                    </div>
-                    <div className="text-caption text-muted-foreground truncate mt-0.5">
-                      {artist.releaseCount}{' '}
-                      {artist.releaseCount === 1 ? 'release' : 'releases'}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+                {personalArtists.map((artist) => (
+                  <ArtistCard
+                    key={artist.id}
+                    name={artist.stageName}
+                    slug={artist.slug || artist.id}
+                    imageUrl={artist.bannerUrl}
+                    subtitle={`${artist.releaseCount} ${
+                      artist.releaseCount === 1 ? 'release' : 'releases'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div ref={loadMoreArtistsRef} className="h-6" />
+            </>
           )}
         </div>
       ) : (
         /* ===================== RELEASES VIEW ===================== */
         <div>
-          {isLoadingReleases ? (
+          {isLoadingReleases && personalReleases.length === 0 ? (
             <div className="py-24 text-center font-eyebrow text-caption uppercase tracking-widest text-muted-foreground animate-pulse">
               Loading personal vault...
             </div>
           ) : personalReleases.length === 0 ? (
-            /* Empty Collection State */
-            <div className="p-12 border border-dashed border-border bg-card/40 text-center space-y-4 my-6 rounded-2xl select-none">
-              <div className="w-14 h-14 bg-card border border-border text-primary flex items-center justify-center mx-auto rounded-full shadow-md">
-                <UploadCloudSVG className="w-7 h-7" />
+            debouncedSearch ? (
+              <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
+                No releases match "{searchQuery}" under {activePill.toUpperCase()}.
               </div>
-              <div className="space-y-1">
-                <h3 className="font-serif italic text-2xl text-foreground font-normal">
-                  Your Personal Vault is Empty
-                </h3>
-                <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  Upload your offline audio files in the Locker Manager to start
-                  building your private listening library.
-                </p>
+            ) : (
+              /* Empty Collection State */
+              <div className="p-12 border border-dashed border-border bg-card/40 text-center space-y-4 my-6 rounded-2xl select-none">
+                <div className="w-14 h-14 bg-card border border-border text-primary flex items-center justify-center mx-auto rounded-full shadow-md">
+                  <UploadCloudSVG className="w-7 h-7" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                    Your Personal Vault is Empty
+                  </h3>
+                  <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Upload your offline audio files in the Locker Manager to start
+                    building your private listening library.
+                  </p>
+                </div>
+                <Link
+                  to="/vault/manage"
+                  className="mt-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
+                >
+                  <UploadCloudSVG className="w-4 h-4" />
+                  <span>Go to Locker Manager</span>
+                </Link>
               </div>
-              <Link
-                to="/vault/manage"
-                className="mt-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer inline-flex items-center gap-2 shadow-xs rounded-full"
-              >
-                <UploadCloudSVG className="w-4 h-4" />
-                <span>Go to Locker Manager</span>
-              </Link>
-            </div>
-          ) : filteredReleases.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
-              No releases match "{searchQuery}" under {activePill.toUpperCase()}
-              .
-            </div>
+            )
           ) : viewMode === 'grid' ? (
             /* ===================== RELEASES GRID VIEW (Clean & Minimal, Artist Page Styling) ===================== */
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
-              {filteredReleases.map((release) => {
+              {personalReleases.map((release) => {
                 const isPlayingThisRelease =
                   currentTrack?.albumId === release.id &&
                   playbackStatus === 'playing'
@@ -626,7 +678,7 @@ function PersonalCollectionExplorePage() {
           ) : (
             /* ===================== RELEASES LIST VIEW (Clean & Minimal, Artist Page Styling) ===================== */
             <div className="flex flex-col gap-1.5">
-              {filteredReleases.map((release) => {
+              {personalReleases.map((release) => {
                 const releaseYear = release.releaseDate
                   ? new Date(release.releaseDate).getFullYear()
                   : release.createdAt
@@ -694,6 +746,7 @@ function PersonalCollectionExplorePage() {
               })}
             </div>
           )}
+          <div ref={loadMoreReleasesRef} className="h-6" />
         </div>
       )}
 

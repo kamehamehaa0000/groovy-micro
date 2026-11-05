@@ -692,24 +692,41 @@ export class ArtistsService {
     const whereClause = and(...conditions);
 
     // 2. Determine sort ordering
+    const defaultDirection = query.sort === "name" ? "asc" : "desc";
+    const isAsc = (query.order ?? defaultDirection) === "asc";
     let orderByClause;
     if (query.sort === "name") {
-      orderByClause = [asc(artistProfiles.stageName)];
+      orderByClause = isAsc
+        ? [asc(artistProfiles.stageName), asc(artistProfiles.id)]
+        : [desc(artistProfiles.stageName), desc(artistProfiles.id)];
     } else if (query.sort === "recent") {
-      orderByClause = [desc(artistProfiles.createdAt)];
+      orderByClause = isAsc
+        ? [asc(artistProfiles.createdAt), asc(artistProfiles.id)]
+        : [desc(artistProfiles.createdAt), desc(artistProfiles.id)];
     } else if (query.sort === "followers") {
       const followersCountExpr = sql<number>`(SELECT COUNT(*) FROM artist_followers WHERE artist_followers.artist_id = ${artistProfiles.id})`;
-      orderByClause = [
-        desc(followersCountExpr),
-        desc(artistProfiles.monthlyListeners),
-        desc(artistProfiles.createdAt),
-      ];
+      orderByClause = isAsc
+        ? [
+            asc(followersCountExpr),
+            asc(artistProfiles.monthlyListeners),
+            asc(artistProfiles.createdAt),
+          ]
+        : [
+            desc(followersCountExpr),
+            desc(artistProfiles.monthlyListeners),
+            desc(artistProfiles.createdAt),
+          ];
     } else {
       // Default: listeners
-      orderByClause = [
-        desc(artistProfiles.monthlyListeners),
-        desc(artistProfiles.createdAt),
-      ];
+      orderByClause = isAsc
+        ? [
+            asc(artistProfiles.monthlyListeners),
+            asc(artistProfiles.createdAt),
+          ]
+        : [
+            desc(artistProfiles.monthlyListeners),
+            desc(artistProfiles.createdAt),
+          ];
     }
 
     // Count and page rows are independent; run them together.

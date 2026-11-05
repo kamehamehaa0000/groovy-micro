@@ -116,6 +116,7 @@ export const searchArtistsQuerySchema = z.object({
   sort: z
     .enum(["listeners", "followers", "name", "recent"])
     .default("listeners"),
+  order: z.enum(["asc", "desc"]).optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
 });

@@ -140,6 +140,7 @@ export const artistsApi = {
       search?: string;
       scope?: "GLOBAL" | "PERSONAL" | "ALL";
       sort?: "listeners" | "followers" | "name" | "recent";
+      order?: "asc" | "desc";
       page?: number;
       limit?: number;
     },
@@ -149,6 +150,7 @@ export const artistsApi = {
     if (params?.search) query.set("search", params.search);
     if (params?.scope) query.set("scope", params.scope);
     if (params?.sort) query.set("sort", params.sort);
+    if (params?.order) query.set("order", params.order);
     if (params?.page) query.set("page", params.page.toString());
     if (params?.limit) query.set("limit", params.limit.toString());
 

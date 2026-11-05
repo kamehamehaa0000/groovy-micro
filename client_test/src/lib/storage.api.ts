@@ -1,4 +1,5 @@
 import { apiFetch } from "./api";
+import type { PlayerTrack } from "../types/player";
 
 export interface LockerQuota {
   planId: string;
@@ -104,6 +105,47 @@ export interface PersonalArtist {
   trackCount: number;
 }
 
+export interface StoragePaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PersonalReleasesQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  type?: string;
+  sort?: "recent" | "title" | "artist" | "releaseDate";
+  order?: "asc" | "desc";
+}
+
+export interface PersonalReleasesResponse {
+  releases: PersonalRelease[];
+  pagination?: StoragePaginationMeta;
+}
+
+export interface PersonalArtistsQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: "name" | "releases" | "tracks" | "recent";
+  order?: "asc" | "desc";
+}
+
+export interface PersonalArtistsResponse {
+  artists: PersonalArtist[];
+  pagination?: StoragePaginationMeta;
+}
+
+export interface PersonalTracksQuery {
+  shuffle?: boolean;
+  limit?: number;
+  albumType?: string;
+  search?: string;
+}
+
 export interface TrashedSong {
   id: string;
   title: string;
@@ -141,22 +183,56 @@ export const storageApi = {
   /**
    * Retrieves personal releases stored in user's personal collection.
    */
-  async getPersonalReleases(): Promise<{ releases: PersonalRelease[] }> {
-    return apiFetch<{ releases: PersonalRelease[] }>("/api/v1/storage/personal-collection/releases");
+  async getPersonalReleases(query?: PersonalReleasesQuery): Promise<PersonalReleasesResponse> {
+    const qs = new URLSearchParams();
+    if (query?.page) qs.set("page", String(query.page));
+    if (query?.limit) qs.set("limit", String(query.limit));
+    if (query?.search) qs.set("search", query.search);
+    if (query?.type && query.type !== "ALL") qs.set("type", query.type);
+    if (query?.sort) qs.set("sort", query.sort);
+    if (query?.order) qs.set("order", query.order);
+    const queryString = qs.toString();
+    return apiFetch<PersonalReleasesResponse>(
+      `/api/v1/storage/personal-collection/releases${queryString ? `?${queryString}` : ""}`
+    );
   },
 
   /**
    * Alias for backward compatibility.
    */
-  async getLockerReleases(): Promise<{ releases: PersonalRelease[] }> {
-    return this.getPersonalReleases();
+  async getLockerReleases(query?: PersonalReleasesQuery): Promise<PersonalReleasesResponse> {
+    return this.getPersonalReleases(query);
   },
 
   /**
    * Retrieves personal sandboxed artists created by user.
    */
-  async getPersonalArtists(): Promise<{ artists: PersonalArtist[] }> {
-    return apiFetch<{ artists: PersonalArtist[] }>("/api/v1/storage/personal-collection/artists");
+  async getPersonalArtists(query?: PersonalArtistsQuery): Promise<PersonalArtistsResponse> {
+    const qs = new URLSearchParams();
+    if (query?.page) qs.set("page", String(query.page));
+    if (query?.limit) qs.set("limit", String(query.limit));
+    if (query?.search) qs.set("search", query.search);
+    if (query?.sort) qs.set("sort", query.sort);
+    if (query?.order) qs.set("order", query.order);
+    const queryString = qs.toString();
+    return apiFetch<PersonalArtistsResponse>(
+      `/api/v1/storage/personal-collection/artists${queryString ? `?${queryString}` : ""}`
+    );
+  },
+
+  /**
+   * Retrieves flat personal tracks for direct playback or shuffle.
+   */
+  async getPersonalTracks(query?: PersonalTracksQuery): Promise<{ tracks: PlayerTrack[] }> {
+    const qs = new URLSearchParams();
+    if (query?.shuffle !== undefined) qs.set("shuffle", String(query.shuffle));
+    if (query?.limit) qs.set("limit", String(query.limit));
+    if (query?.albumType) qs.set("albumType", query.albumType);
+    if (query?.search) qs.set("search", query.search);
+    const queryString = qs.toString();
+    return apiFetch<{ tracks: PlayerTrack[] }>(
+      `/api/v1/storage/personal-collection/tracks${queryString ? `?${queryString}` : ""}`
+    );
   },
 
   /**

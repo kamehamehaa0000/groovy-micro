@@ -13,11 +13,10 @@ import type {
   UnifiedLibraryItem,
 } from '../types/library'
 import { LibraryItemCard } from '../components/library/LibraryItemCard'
-import { LibrarySortSheet } from '../components/library/LibrarySortSheet'
+import { SortMenu, type SortOption } from '../Components/ui'
 import {
   GridIconSVG,
   ListIconSVG,
-  SortIconSVG,
   SearchIconSVG,
 } from '../components/icons'
 
@@ -35,6 +34,7 @@ function LibraryPageComponent() {
   const {
     viewMode,
     activeSort,
+    sortDir,
     activeFilter,
     searchQuery,
     payload,
@@ -42,13 +42,13 @@ function LibraryPageComponent() {
     error,
     setViewMode,
     setActiveSort,
+    setSortDir,
     setActiveFilter,
     setSearchQuery,
     fetchLibrary,
   } = useLibraryStore()
 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -169,12 +169,13 @@ function LibraryPageComponent() {
       return bTime - aTime
     })
 
-    // Sort Regular items based on activeSort
+    // Sort Regular items based on activeSort & sortDir
     regularItems.sort((a, b) => {
       if (activeSort === 'alphabetical') {
-        return a.title.localeCompare(b.title, undefined, {
+        const cmp = a.title.localeCompare(b.title, undefined, {
           sensitivity: 'base',
         })
+        return sortDir === 'desc' ? -cmp : cmp
       }
       if (activeSort === 'creator') {
         const creatorCompare = a.creatorOrArtistName.localeCompare(
@@ -182,19 +183,29 @@ function LibraryPageComponent() {
           undefined,
           { sensitivity: 'base' },
         )
-        if (creatorCompare !== 0) return creatorCompare
-        return a.title.localeCompare(b.title, undefined, {
-          sensitivity: 'base',
-        })
+        const cmp =
+          creatorCompare !== 0
+            ? creatorCompare
+            : a.title.localeCompare(b.title, undefined, {
+                sensitivity: 'base',
+              })
+        return sortDir === 'desc' ? -cmp : cmp
       }
       // Default: 'recent' (addedAt descending)
       const aTime = new Date(a.addedAt).getTime()
       const bTime = new Date(b.addedAt).getTime()
-      return bTime - aTime
+      const cmp = bTime - aTime
+      return sortDir === 'asc' ? -cmp : cmp
     })
 
     return [...pinnedItems, ...regularItems]
-  }, [allItems, activeFilter, searchQuery, activeSort])
+  }, [allItems, activeFilter, searchQuery, activeSort, sortDir])
+
+  const SORT_OPTIONS: SortOption<LibrarySortType>[] = [
+    { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
+    { value: 'alphabetical', label: 'Alphabetical', defaultDirection: 'asc' },
+    { value: 'creator', label: 'Creator / Artist', defaultDirection: 'asc' },
+  ]
 
   // Pill definitions
   const filterPills: Array<{ key: LibraryFilterType; label: string }> = [
@@ -206,12 +217,6 @@ function LibraryPageComponent() {
     { key: 'artists', label: 'Artists' },
     { key: 'collection', label: 'Personal Vault' },
   ]
-
-  const sortLabelMap: Record<LibrarySortType, string> = {
-    recent: 'Recently added',
-    alphabetical: 'Alphabetical',
-    creator: 'Creator / Artist',
-  }
 
   // If user is not authenticated, show Spotify-style guest promo
   if (!isAuthenticated) {
@@ -362,22 +367,20 @@ function LibraryPageComponent() {
 
       {/* ===================== CONTROLS BAR (Sort & View Mode) ===================== */}
       <div className="flex items-center justify-between py-3 px-1 text-caption select-none">
-        {/* Sort trigger button */}
-        <button
-          type="button"
-          onClick={() => setIsSortSheetOpen(true)}
-          className="flex items-center align-middle  gap-1.5 text-muted-foreground  font-medium hover:text-primary transition-colors group"
-        >
-          <SortIconSVG className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
-          <span className="">{sortLabelMap[activeSort]}</span>
-        </button>
+        <SortMenu
+          options={SORT_OPTIONS}
+          value={activeSort}
+          onChange={setActiveSort}
+          direction={sortDir}
+          onDirectionChange={setSortDir}
+        />
 
         {/* View Mode Switcher */}
         <button
           type="button"
           onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
           aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
         >
           {viewMode === 'list' ? (
             <GridIconSVG className="w-5 h-5" />
@@ -512,14 +515,6 @@ function LibraryPageComponent() {
           ))}
         </div>
       )}
-
-      {/* ===================== SORT SHEET MODAL ===================== */}
-      <LibrarySortSheet
-        isOpen={isSortSheetOpen}
-        activeSort={activeSort}
-        onSelectSort={(sort) => setActiveSort(sort)}
-        onClose={() => setIsSortSheetOpen(false)}
-      />
 
       {/* ===================== FLOATING TOAST ===================== */}
       {toastMessage && (

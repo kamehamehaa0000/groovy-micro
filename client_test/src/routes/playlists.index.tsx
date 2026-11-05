@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { playlistsApi } from '../lib/playlists.api'
 import type { PlaylistDirectoryItem } from '../types/playlist'
 import { useAuthStore } from '../stores/auth.store'
@@ -9,7 +9,7 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
-import { Button, IconButton, Input } from '../components/ui'
+import { Button, IconButton, Input, SortMenu, type SortOption } from '../Components/ui'
 import { cn } from '../components/ui/cn'
 import { PlusIconSVG, SearchIconSVG } from '../components/icons'
 import { MediaTile } from '../Components/common/MediaTile'
@@ -27,18 +27,20 @@ type PlaylistSort = (typeof SORTS)[number]
 interface PlaylistsSearchParams {
   search?: string
   sort?: PlaylistSort
+  dir?: 'asc' | 'desc'
 }
 
-const SORT_OPTIONS: Array<{ value: PlaylistSort; label: string }> = [
-  { value: 'popular', label: 'Most saved' },
-  { value: 'recent', label: 'Newest' },
-  { value: 'tracks', label: 'Most tracks' },
+const SORT_OPTIONS: SortOption<PlaylistSort>[] = [
+  { value: 'popular', label: 'Most saved', defaultDirection: 'desc' },
+  { value: 'recent', label: 'Newest', defaultDirection: 'desc' },
+  { value: 'tracks', label: 'Most tracks', defaultDirection: 'desc' },
 ]
 
 export const Route = createFileRoute('/playlists/')({
   component: PlaylistsDirectoryComponent,
   validateSearch: (search: Record<string, unknown>): PlaylistsSearchParams => {
     const rawSort = typeof search.sort === 'string' ? search.sort : ''
+    const rawDir = typeof search.dir === 'string' ? search.dir : ''
 
     return {
       search:
@@ -48,6 +50,7 @@ export const Route = createFileRoute('/playlists/')({
       sort: SORTS.includes(rawSort as PlaylistSort)
         ? (rawSort as PlaylistSort)
         : 'popular',
+      dir: rawDir === 'asc' || rawDir === 'desc' ? rawDir : undefined,
     }
   },
 })
@@ -63,6 +66,7 @@ function PlaylistsDirectoryComponent() {
   const navigate = useNavigate()
 
   const sort = searchParams.sort ?? 'popular'
+  const dir = searchParams.dir ?? 'desc'
   const [query, setQuery] = useState(searchParams.search ?? '')
   const lastWrittenQuery = useRef(searchParams.search ?? '')
   const debouncedSearch = useDebouncedValue(query, 300).trim()
@@ -78,12 +82,13 @@ function PlaylistsDirectoryComponent() {
   }, [searchParams.search])
 
   const playlistsQuery = useInfiniteQuery({
-    queryKey: ['playlists', 'directory', userId, sort, debouncedSearch],
+    queryKey: ['playlists', 'directory', userId, sort, dir, debouncedSearch],
     queryFn: ({ pageParam, signal }) =>
       playlistsApi.searchPlaylists(
         {
           search: debouncedSearch || undefined,
           sort,
+          order: dir,
           page: pageParam,
           limit: PAGE_SIZE,
         },
@@ -99,7 +104,8 @@ function PlaylistsDirectoryComponent() {
     // get a fresh skeleton so stale rows are never implied.
     placeholderData: (previousData, previousQuery) =>
       previousQuery?.queryKey[2] === userId &&
-      previousQuery?.queryKey[3] === sort
+      previousQuery?.queryKey[3] === sort &&
+      previousQuery?.queryKey[4] === dir
         ? previousData
         : undefined,
   })
@@ -154,10 +160,6 @@ function PlaylistsDirectoryComponent() {
   }
 
   const clearQuery = () => handleQueryChange('')
-
-  const handleSortChange = (value: string) => {
-    updateSearch({ sort: value as PlaylistSort }, false)
-  }
 
   const handleCreatePlaylistClick = () => {
     if (!isAuthenticated) {
@@ -241,29 +243,17 @@ function PlaylistsDirectoryComponent() {
             )}
           </div>
 
-          <div className="relative shrink-0 self-end sm:self-auto">
-            <label htmlFor="playlist-sort" className="sr-only">
-              Sort playlists by
-            </label>
-            <select
-              id="playlist-sort"
+          <div className="shrink-0 self-end sm:self-auto">
+            <SortMenu
+              options={SORT_OPTIONS}
               value={sort}
-              onChange={(event) => handleSortChange(event.target.value)}
-              className={cn(
-                'min-h-9 w-auto max-w-full cursor-pointer appearance-none rounded-full border border-border bg-card py-1.5 pl-3 pr-8 font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-muted-foreground transition-colors',
-                'hover:border-foreground/30 hover:text-foreground',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-              )}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
+              onChange={(newSort) =>
+                updateSearch({ sort: newSort, dir: undefined }, false)
+              }
+              direction={dir}
+              onDirectionChange={(newDir) =>
+                updateSearch({ dir: newDir }, false)
+              }
             />
           </div>
         </div>

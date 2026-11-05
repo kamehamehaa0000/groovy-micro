@@ -4,6 +4,8 @@ import type { UnifiedLibraryItem, LibraryViewMode } from '../../types/library'
 import { useLibraryStore } from '../../stores/library.store'
 import { PinIconSVG, UploadCloudSVG } from '../icons'
 import { LikedSongsCover } from '../LikeSongsCover'
+import { ProceduralCover } from '../common/ProceduralCover'
+import { ArtistCard } from '../artists/ArtistCard'
 
 interface LibraryItemCardProps {
   item: UnifiedLibraryItem
@@ -164,6 +166,20 @@ export function LibraryItemCard({
       )
     }
 
+    // Artists use the same procedural gradient fallback as the home page.
+    if (item.kind === 'artist') {
+      return (
+        <div className={`${sizeClasses} overflow-hidden shrink-0 rounded-full`}>
+          <ProceduralCover
+            fill
+            title={item.title}
+            artistName={item.title}
+            className="rounded-full"
+          />
+        </div>
+      )
+    }
+
     // Fallback initials placeholder
     return (
       <div
@@ -273,6 +289,56 @@ export function LibraryItemCard({
   }
 
   // 2. GRID / TILED VIEW (Desktop hover top-right Pin/Unpin; static pinned badge on mobile)
+  if (item.kind === 'artist') {
+    const slug = item.linkTo.replace(/^\/artists\//, '') || item.itemId
+
+    return (
+      <ArtistCard
+        name={item.title}
+        slug={slug}
+        imageUrl={item.imageUrl}
+        subtitle={item.subtitle}
+        action={
+          <>
+            {/* Mobile: static pinned indicator (touch has no hover) */}
+            {item.isPinned && (
+              <div
+                title="Pinned to top"
+                className="md:hidden bg-card/90 backdrop-blur-md text-success p-1 rounded-full shadow-md border border-border/40"
+              >
+                <PinIconSVG className="w-3 h-3" />
+              </div>
+            )}
+
+            {/* Desktop hover Pin/Unpin (hidden on mobile) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handlePinToggle()
+              }}
+              title={item.isPinned ? 'Unpin' : 'Pin to top'}
+              aria-label={
+                item.isPinned
+                  ? `Unpin ${item.title}`
+                  : `Pin ${item.title} to top`
+              }
+              aria-pressed={item.isPinned}
+              className={`hidden md:flex items-center justify-center p-1.5 rounded-full bg-card/90 backdrop-blur-md border border-border/40 shadow-md cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 ${
+                item.isPinned
+                  ? 'text-success hover:bg-card'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card'
+              }`}
+            >
+              <PinIconSVG className="w-3.5 h-3.5" />
+            </button>
+          </>
+        }
+      />
+    )
+  }
+
   return (
     <div className="group relative flex flex-col p-2.5 rounded-xl hover:bg-muted/70 active:scale-[0.98] transition-all duration-150 select-none">
       <Link to={item.linkTo} className="flex flex-col w-full">

@@ -61,6 +61,7 @@ export type ReorderTracksInput = z.infer<typeof reorderTracksSchema>;
 export const searchPlaylistsQuerySchema = z.object({
   search: z.string().optional(),
   sort: z.enum(["popular", "recent", "tracks"]).optional().default("popular"),
+  order: z.enum(["asc", "desc"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });

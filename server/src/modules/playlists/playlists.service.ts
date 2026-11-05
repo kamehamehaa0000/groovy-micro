@@ -489,7 +489,8 @@ export class PlaylistsService {
     params: SearchPlaylistsQuery,
     currentUserId?: string
   ): Promise<{ data: PublicPlaylistSummary[]; total: number; page: number; limit: number }> {
-    const { search, sort = "popular", page, limit } = params;
+    const { search, sort = "popular", order = "desc", page, limit } = params;
+    const isAsc = order === "asc";
     const offset = (page - 1) * limit;
 
     const conditions = [eq(playlists.visibility, "PUBLIC")];
@@ -547,23 +548,41 @@ export class PlaylistsService {
 
     let orderByClause;
     if (sort === "recent") {
-      orderByClause = [
-        desc(playlists.createdAt),
-        desc(playlists.savesCount),
-        desc(playlists.id),
-      ];
+      orderByClause = isAsc
+        ? [
+            asc(playlists.createdAt),
+            asc(playlists.savesCount),
+            asc(playlists.id),
+          ]
+        : [
+            desc(playlists.createdAt),
+            desc(playlists.savesCount),
+            desc(playlists.id),
+          ];
     } else if (sort === "tracks") {
-      orderByClause = [
-        desc(tracksCountSql),
-        desc(playlists.savesCount),
-        desc(playlists.id),
-      ];
+      orderByClause = isAsc
+        ? [
+            asc(tracksCountSql),
+            asc(playlists.savesCount),
+            asc(playlists.id),
+          ]
+        : [
+            desc(tracksCountSql),
+            desc(playlists.savesCount),
+            desc(playlists.id),
+          ];
     } else {
-      orderByClause = [
-        desc(playlists.savesCount),
-        desc(playlists.createdAt),
-        desc(playlists.id),
-      ];
+      orderByClause = isAsc
+        ? [
+            asc(playlists.savesCount),
+            asc(playlists.createdAt),
+            asc(playlists.id),
+          ]
+        : [
+            desc(playlists.savesCount),
+            desc(playlists.createdAt),
+            desc(playlists.id),
+          ];
     }
 
     const [[countResult], playlistRows] = await Promise.all([

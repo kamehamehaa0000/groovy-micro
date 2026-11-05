@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistSummary } from '../types/artist'
 import { SearchIconSVG } from '../components/icons'
@@ -9,8 +9,8 @@ import { useAuthStore } from '../stores/auth.store'
 import { useFollowsStore } from '../stores/follows.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
-import { Button, IconButton, Input } from '../Components/ui'
-import { ArtistTile } from '../Components/artists/ArtistTile'
+import { Button, IconButton, Input, SortMenu, type SortOption } from '../Components/ui'
+import { ArtistCard } from '../Components/artists/ArtistCard'
 import {
   ArtistEmptyPanel,
   ArtistGridSkeleton,
@@ -18,6 +18,10 @@ import {
 import { cn } from '../Components/ui/cn'
 
 const PAGE_SIZE = 24
+const compactNumber = new Intl.NumberFormat(undefined, {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
 const SCOPES = ['ALL', 'GLOBAL', 'PERSONAL'] as const
 const SORTS = ['listeners', 'followers', 'name', 'recent'] as const
 
@@ -29,12 +33,20 @@ interface ArtistsSearchParams {
   scope?: ArtistScope
   /** `order` avoids colliding with the playlists directory's `sort` param. */
   order?: ArtistSort
+  dir?: 'asc' | 'desc'
 }
 
 const SCOPE_OPTIONS: Array<{ value: ArtistScope; label: string }> = [
   { value: 'ALL', label: 'All' },
   { value: 'GLOBAL', label: 'Groovy' },
   { value: 'PERSONAL', label: 'Personal' },
+]
+
+const SORT_OPTIONS: SortOption<ArtistSort>[] = [
+  { value: 'listeners', label: 'Listeners', defaultDirection: 'desc' },
+  { value: 'followers', label: 'Followers', defaultDirection: 'desc' },
+  { value: 'name', label: 'A–Z', defaultDirection: 'asc' },
+  { value: 'recent', label: 'Recent', defaultDirection: 'desc' },
 ]
 
 export const Route = createFileRoute('/artists/')({
@@ -44,6 +56,7 @@ export const Route = createFileRoute('/artists/')({
   ): ArtistsSearchParams => {
     const rawScope = typeof search.scope === 'string' ? search.scope : ''
     const rawSort = typeof search.order === 'string' ? search.order : ''
+    const rawDir = typeof search.dir === 'string' ? search.dir : ''
 
     return {
       q: typeof search.q === 'string' ? search.q : undefined,
@@ -53,6 +66,7 @@ export const Route = createFileRoute('/artists/')({
       order: SORTS.includes(rawSort as ArtistSort)
         ? (rawSort as ArtistSort)
         : 'listeners',
+      dir: rawDir === 'asc' || rawDir === 'desc' ? rawDir : undefined,
     }
   },
 })
@@ -66,6 +80,8 @@ function ArtistsDirectoryComponent() {
 
   const scope = searchParams.scope ?? 'ALL'
   const sort = searchParams.order ?? 'listeners'
+  const defaultDir = sort === 'name' ? 'asc' : 'desc'
+  const dir = searchParams.dir ?? defaultDir
   const [query, setQuery] = useState(searchParams.q ?? '')
   const lastWrittenQuery = useRef(searchParams.q ?? '')
   const debouncedQuery = useDebouncedValue(query, 300).trim()
@@ -87,6 +103,7 @@ function ArtistsDirectoryComponent() {
       user?.id ?? null,
       scope,
       sort,
+      dir,
       debouncedQuery,
     ],
     queryFn: ({ pageParam, signal }) =>
@@ -95,6 +112,7 @@ function ArtistsDirectoryComponent() {
           search: debouncedQuery || undefined,
           scope,
           sort,
+          order: dir,
           page: pageParam,
           limit: PAGE_SIZE,
         },
@@ -111,7 +129,8 @@ function ArtistsDirectoryComponent() {
     placeholderData: (previousData, previousQuery) =>
       previousQuery?.queryKey[2] === (user?.id ?? null) &&
       previousQuery?.queryKey[3] === scope &&
-      previousQuery?.queryKey[4] === sort
+      previousQuery?.queryKey[4] === sort &&
+      previousQuery?.queryKey[5] === dir
         ? previousData
         : undefined,
   })
@@ -289,33 +308,17 @@ function ArtistsDirectoryComponent() {
               ))}
             </div>
 
-            <div className="relative ml-auto shrink-0">
-              <label htmlFor="artist-sort" className="sr-only">
-                Sort artists by
-              </label>
-              <select
-                id="artist-sort"
+            <div className="ml-auto shrink-0">
+              <SortMenu
+                options={SORT_OPTIONS}
                 value={sort}
-                onChange={(event) =>
-                  updateSearch(
-                    { order: event.target.value as ArtistSort },
-                    false,
-                  )
+                onChange={(newSort) =>
+                  updateSearch({ order: newSort, dir: undefined }, false)
                 }
-                className={cn(
-                  'min-h-9 w-auto max-w-full cursor-pointer appearance-none rounded-full border border-border bg-card py-1.5 pl-2.5 pr-7 font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-muted-foreground transition-colors sm:pl-3 sm:pr-8',
-                  'hover:border-foreground/30 hover:text-foreground',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                )}
-              >
-                <option value="listeners">Listeners</option>
-                <option value="followers">Followers</option>
-                <option value="name">A–Z</option>
-                <option value="recent">Recent</option>
-              </select>
-              <ChevronDown
-                className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-                aria-hidden="true"
+                direction={dir}
+                onDirectionChange={(newDir) =>
+                  updateSearch({ dir: newDir }, false)
+                }
               />
             </div>
           </div>
@@ -396,13 +399,27 @@ function ArtistsDirectoryComponent() {
                 isRefreshing && 'opacity-60',
               )}
             >
-              {artists.map((artist) => (
-                <ArtistTile
-                  key={artist.id}
-                  artist={artist}
-                  isFollowing={followedArtistIds.has(artist.id)}
-                />
-              ))}
+              {artists.map((artist) => {
+                const isPersonal = artist.scope === 'PERSONAL'
+                const listeners = `${compactNumber.format(artist.monthlyListeners)} ${
+                  artist.monthlyListeners === 1 ? 'listener' : 'listeners'
+                }`
+
+                return (
+                  <ArtistCard
+                    key={artist.id}
+                    name={artist.stageName}
+                    slug={artist.slug}
+                    imageUrl={artist.avatarUrl}
+                    isVerified={artist.verified}
+                    isFollowing={followedArtistIds.has(artist.id)}
+                    isPersonal={isPersonal}
+                    subtitle={
+                      isPersonal ? `@${artist.slug}` : `@${artist.slug} · ${listeners}`
+                    }
+                  />
+                )
+              })}
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">

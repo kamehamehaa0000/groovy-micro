@@ -23,6 +23,7 @@ export const playlistsApi = {
     const params = new URLSearchParams();
     if (query.search) params.append("search", query.search);
     if (query.sort) params.append("sort", query.sort);
+    if (query.order) params.append("order", query.order);
     if (query.page) params.append("page", String(query.page));
     if (query.limit) params.append("limit", String(query.limit));
 

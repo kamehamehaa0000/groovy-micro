@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { ArrowUp, Shuffle, X } from 'lucide-react'
+import { Shuffle, X } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -14,7 +14,6 @@ import { LikedSongsCover } from '../components/LikeSongsCover'
 import {
   HeartIconSVG,
   SearchIconSVG,
-  SortIconSVG,
   DiscIconSVG,
 } from '../components/icons'
 import { CollectionActionBar, CollectionHeader } from '../components/collection'
@@ -24,14 +23,23 @@ import {
   Eyebrow,
   IconButton,
   Input,
-  Select,
-} from '../components/ui'
+  SortMenu,
+  type SortOption,
+} from '../Components/ui'
 
 export const Route = createFileRoute('/liked')({
   component: LikedSongsPage,
 })
 
 type LikedSort = 'recent' | 'title' | 'artist' | 'album' | 'duration'
+
+const SORT_OPTIONS: SortOption<LikedSort>[] = [
+  { value: 'recent', label: 'Date Added', defaultDirection: 'desc' },
+  { value: 'title', label: 'Title', defaultDirection: 'asc' },
+  { value: 'artist', label: 'Artist', defaultDirection: 'asc' },
+  { value: 'album', label: 'Album', defaultDirection: 'asc' },
+  { value: 'duration', label: 'Duration', defaultDirection: 'desc' },
+]
 
 function LikedSongsPage() {
   const { isAuthenticated, user, isLoading: isAuthLoading } = useAuthStore()
@@ -342,46 +350,13 @@ function LikedSongsPage() {
               ) : null}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                <SortIconSVG className="h-3.5 w-3.5" />
-                Sort
-              </span>
-              <div className="w-40 shrink-0">
-                <Select
-                  value={sortBy}
-                  onChange={(event) =>
-                    setSortBy(event.target.value as LikedSort)
-                  }
-                  aria-label="Sort liked songs"
-                  className="pr-8"
-                >
-                  <option value="recent">Date Added</option>
-                  <option value="title">Title</option>
-                  <option value="artist">Artist</option>
-                  <option value="album">Album</option>
-                  <option value="duration">Duration</option>
-                </Select>
-              </div>
-              <IconButton
-                size="sm"
-                aria-label={
-                  sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-                title={
-                  sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
-                }
-                onClick={() =>
-                  setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-                }
-              >
-                <ArrowUp
-                  className={`h-4 w-4 transition-transform duration-200 ease-out ${
-                    sortOrder === 'desc' ? 'rotate-180' : 'rotate-0'
-                  }`}
-                />
-              </IconButton>
-            </div>
+            <SortMenu
+              options={SORT_OPTIONS}
+              value={sortBy}
+              onChange={setSortBy}
+              direction={sortOrder}
+              onDirectionChange={setSortOrder}
+            />
           </div>
         ) : null}
 

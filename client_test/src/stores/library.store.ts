@@ -16,6 +16,7 @@ import type {
 interface LibraryPreferences {
   viewMode: LibraryViewMode;
   activeSort: LibrarySortType;
+  sortDir: 'asc' | 'desc';
 }
 
 /**
@@ -36,6 +37,7 @@ interface LibraryStoreState extends LibraryPreferences {
 
   setViewMode: (mode: LibraryViewMode) => void;
   setActiveSort: (sort: LibrarySortType) => void;
+  setSortDir: (dir: 'asc' | 'desc') => void;
   setActiveFilter: (filter: LibraryFilterType) => void;
   setSearchQuery: (query: string) => void;
 
@@ -62,6 +64,7 @@ export const useLibraryStore = create<LibraryStoreState>()(
     (set, get) => ({
       viewMode: "list",
       activeSort: "recent",
+      sortDir: "desc",
       activeFilter: "all",
       searchQuery: "",
       payload: null,
@@ -73,6 +76,7 @@ export const useLibraryStore = create<LibraryStoreState>()(
 
       setViewMode: (viewMode) => set({ viewMode }),
       setActiveSort: (activeSort) => set({ activeSort }),
+      setSortDir: (sortDir) => set({ sortDir }),
       setActiveFilter: (activeFilter) => set({ activeFilter }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
 
@@ -322,6 +326,7 @@ export const useLibraryStore = create<LibraryStoreState>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         activeSort: state.activeSort,
+        sortDir: state.sortDir,
       }),
     }
   )

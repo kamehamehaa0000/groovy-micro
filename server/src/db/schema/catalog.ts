@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { asc, desc, sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -103,6 +103,12 @@ export const albums = pgTable(
     index("idx_albums_scheduled_at").on(table.scheduledReleaseAt),
     index("idx_albums_visibility").on(table.visibility),
     index("idx_albums_deleted_at").on(table.deletedAt),
+    index("idx_albums_personal_created")
+      .on(table.uploaderUserId, desc(table.createdAt), desc(table.id))
+      .where(sql`${table.scope} = 'PERSONAL' AND ${table.deletedAt} IS NULL`),
+    index("idx_albums_personal_title")
+      .on(table.uploaderUserId, table.title)
+      .where(sql`${table.scope} = 'PERSONAL' AND ${table.deletedAt} IS NULL`),
   ]
 );
 

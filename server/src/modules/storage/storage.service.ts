@@ -7,14 +7,19 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { s3Client } from './storage.client'
 import { UPLOAD_PRESETS, type UploadCategory } from './storage.presets'
 import { randomUUID, createHmac, timingSafeEqual } from 'crypto'
-import { eq, and, isNull, isNotNull, sql, ilike, desc, asc, inArray } from 'drizzle-orm'
+import { eq, and, isNull, isNotNull, sql, ilike, desc, asc, inArray, or } from 'drizzle-orm'
 import { db } from '../../db'
 import { songs, albums, artistProfiles, outboxEvents, songCredits } from '../../db/schema'
 import { slugify } from '../artists/artists.service'
 import { enqueueTranscodeJob } from '../../lib/queue/transcode.queue'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
 import { cacheManager, cacheKeys, playlistsCacheService } from '../../lib/cache'
-import type { BulkImportReleaseInput } from './storage.schemas'
+import type {
+  BulkImportReleaseInput,
+  PersonalReleasesQuery,
+  PersonalArtistsQuery,
+  PersonalTracksQuery,
+} from './storage.schemas'
 
 const subscriptionsService = new SubscriptionsService()
 
@@ -762,10 +767,68 @@ export class StorageService {
   }
 
   /**
-   * Retrieves all personal locker releases uploaded by the user.
+   * Retrieves personal locker releases uploaded by the user with pagination, filter, search, and sort.
    */
-  async getUserLockerReleases(userId: string) {
-    const userAlbums = await db
+  async getUserLockerReleases(userId: string, query?: PersonalReleasesQuery) {
+    const isPaginated = Boolean(query?.page && query?.limit)
+    const page = query?.page ?? 1
+    const limit = query?.limit ?? 50
+    const offset = (page - 1) * limit
+
+    const conditions = [
+      eq(albums.uploaderUserId, userId),
+      eq(albums.scope, 'PERSONAL'),
+      isNull(albums.deletedAt),
+    ]
+
+    if (query?.type && query.type !== 'ALL') {
+      conditions.push(eq(albums.albumType, query.type))
+    }
+
+    if (query?.search && query.search.trim()) {
+      const q = `%${query.search.trim()}%`
+      conditions.push(
+        or(
+          ilike(albums.title, q),
+          ilike(artistProfiles.stageName, q),
+          sql`EXISTS (
+            SELECT 1 FROM "songs"
+            WHERE "songs"."album_id" = "albums"."id"
+              AND "songs"."deleted_at" IS NULL
+              AND (${ilike(songs.title, q)})
+          )`
+        )!
+      )
+    }
+
+    const whereClause = and(...conditions)
+
+    const sort = query?.sort ?? 'recent'
+    const defaultDir = sort === 'title' || sort === 'artist' ? 'asc' : 'desc'
+    const isAsc = (query?.order ?? defaultDir) === 'asc'
+
+    let orderByClause
+    if (sort === 'title') {
+      orderByClause = isAsc
+        ? [asc(albums.title), asc(albums.id)]
+        : [desc(albums.title), desc(albums.id)]
+    } else if (sort === 'artist') {
+      orderByClause = isAsc
+        ? [asc(artistProfiles.stageName), asc(albums.title)]
+        : [desc(artistProfiles.stageName), desc(albums.title)]
+    } else if (sort === 'releaseDate') {
+      orderByClause = isAsc
+        ? [asc(albums.releaseDate), asc(albums.id)]
+        : [desc(albums.releaseDate), desc(albums.id)]
+    } else {
+      // Default: recent (createdAt)
+      orderByClause = isAsc
+        ? [asc(albums.createdAt), asc(albums.id)]
+        : [desc(albums.createdAt), desc(albums.id)]
+    }
+
+    let total = 0
+    let userAlbumsQuery = db
       .select({
         id: albums.id,
         title: albums.title,
@@ -783,14 +846,25 @@ export class StorageService {
       })
       .from(albums)
       .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
-      .where(
-        and(
-          eq(albums.uploaderUserId, userId),
-          eq(albums.scope, 'PERSONAL'),
-          isNull(albums.deletedAt),
-        ),
-      )
-      .orderBy(desc(albums.createdAt))
+      .where(whereClause)
+      .orderBy(...orderByClause)
+
+    let userAlbums: any[]
+    if (isPaginated) {
+      const [countRes, rows] = await Promise.all([
+        db
+          .select({ total: sql<number>`count(*)::int` })
+          .from(albums)
+          .innerJoin(artistProfiles, eq(albums.artistId, artistProfiles.id))
+          .where(whereClause),
+        userAlbumsQuery.limit(limit).offset(offset),
+      ])
+      total = countRes[0]?.total ?? 0
+      userAlbums = rows
+    } else {
+      userAlbums = await userAlbumsQuery
+      total = userAlbums.length
+    }
 
     const albumIds = userAlbums.map((a) => a.id)
     const songsByAlbum = new Map<string, any[]>()
@@ -820,6 +894,7 @@ export class StorageService {
         .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
         .where(
           and(
+            inArray(songs.albumId, albumIds),
             eq(songs.uploaderUserId, userId),
             eq(songs.scope, 'PERSONAL'),
             isNull(songs.deletedAt),
@@ -857,11 +932,16 @@ export class StorageService {
           .where(inArray(songCredits.songId, songIds))
       }
 
+      const creditsBySongId = new Map<string, typeof allCredits>()
+      for (const c of allCredits) {
+        const list = creditsBySongId.get(c.songId) || []
+        list.push(c)
+        creditsBySongId.set(c.songId, list)
+      }
+
       for (const song of userSongs) {
         if (song.albumId) {
-          const songCreditsList = allCredits.filter(
-            (c) => c.songId === song.id,
-          )
+          const songCreditsList = creditsBySongId.get(song.id) || []
           const primaryCredit = songCreditsList.find(
             (c) => c.role === 'PRIMARY',
           )
@@ -890,10 +970,24 @@ export class StorageService {
       }
     }
 
-    return userAlbums.map((a) => ({
+    const releases = userAlbums.map((a) => ({
       ...a,
       tracks: songsByAlbum.get(a.id) || [],
     }))
+
+    if (isPaginated) {
+      return {
+        releases,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      }
+    }
+
+    return { releases }
   }
 
   /**
@@ -1540,8 +1634,114 @@ export class StorageService {
   /**
    * Retrieves all personal artists created by the user with their release and track counts.
    */
-  async getUserPersonalArtists(userId: string) {
-    const personalArtists = await db
+  async getUserPersonalArtists(userId: string, query?: PersonalArtistsQuery) {
+    const isPaginated = Boolean(query?.page && query?.limit)
+    const page = query?.page ?? 1
+    const limit = query?.limit ?? 50
+    const offset = (page - 1) * limit
+
+    const releaseCountExpr = sql<number>`(
+      SELECT count(*)::int
+      FROM "albums"
+      WHERE "albums"."artist_id" = "artist_profiles"."id"
+        AND "albums"."uploader_user_id" = ${userId}
+        AND "albums"."scope" = 'PERSONAL'
+        AND "albums"."deleted_at" IS NULL
+    )`
+
+    const trackCountExpr = sql<number>`(
+      SELECT count(DISTINCT s_id)::int
+      FROM (
+        SELECT "song_credits"."song_id" AS s_id
+        FROM "song_credits"
+        INNER JOIN "songs" ON "songs"."id" = "song_credits"."song_id"
+        WHERE "song_credits"."artist_id" = "artist_profiles"."id"
+          AND "songs"."uploader_user_id" = ${userId}
+          AND "songs"."scope" = 'PERSONAL'
+          AND "songs"."deleted_at" IS NULL
+        UNION
+        SELECT "songs"."id" AS s_id
+        FROM "songs"
+        WHERE "songs"."artist_id" = "artist_profiles"."id"
+          AND "songs"."uploader_user_id" = ${userId}
+          AND "songs"."scope" = 'PERSONAL'
+          AND "songs"."deleted_at" IS NULL
+      ) t_sub
+    )`
+
+    const conditions = [
+      eq(artistProfiles.ownerUserId, userId),
+      eq(artistProfiles.scope, 'PERSONAL'),
+    ]
+
+    if (query?.search && query.search.trim()) {
+      conditions.push(ilike(artistProfiles.stageName, `%${query.search.trim()}%`))
+    }
+
+    const whereClause = and(...conditions)
+
+    const sort = query?.sort ?? 'name'
+    const defaultDir = sort === 'name' ? 'asc' : 'desc'
+    const isAsc = (query?.order ?? defaultDir) === 'asc'
+
+    let orderByClause
+    if (sort === 'releases') {
+      orderByClause = isAsc
+        ? [asc(releaseCountExpr), asc(artistProfiles.stageName), asc(artistProfiles.id)]
+        : [desc(releaseCountExpr), asc(artistProfiles.stageName), asc(artistProfiles.id)]
+    } else if (sort === 'tracks') {
+      orderByClause = isAsc
+        ? [asc(trackCountExpr), asc(artistProfiles.stageName), asc(artistProfiles.id)]
+        : [desc(trackCountExpr), asc(artistProfiles.stageName), asc(artistProfiles.id)]
+    } else if (sort === 'recent') {
+      orderByClause = isAsc
+        ? [asc(artistProfiles.createdAt), asc(artistProfiles.id)]
+        : [desc(artistProfiles.createdAt), desc(artistProfiles.id)]
+    } else {
+      // Default: name
+      orderByClause = isAsc
+        ? [asc(artistProfiles.stageName), asc(artistProfiles.id)]
+        : [desc(artistProfiles.stageName), desc(artistProfiles.id)]
+    }
+
+    if (isPaginated) {
+      const [countRes, artists] = await Promise.all([
+        db
+          .select({ total: sql<number>`count(*)::int` })
+          .from(artistProfiles)
+          .where(whereClause),
+        db
+          .select({
+            id: artistProfiles.id,
+            stageName: artistProfiles.stageName,
+            slug: artistProfiles.slug,
+            bio: artistProfiles.bio,
+            bannerUrl: artistProfiles.bannerUrl,
+            avatarUrl: artistProfiles.avatarUrl,
+            createdAt: artistProfiles.createdAt,
+            releaseCount: releaseCountExpr,
+            trackCount: trackCountExpr,
+          })
+          .from(artistProfiles)
+          .where(whereClause)
+          .orderBy(...orderByClause)
+          .limit(limit)
+          .offset(offset),
+      ])
+
+      const total = countRes[0]?.total ?? 0
+      return {
+        artists,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      }
+    }
+
+    const artists = await db
       .select({
         id: artistProfiles.id,
         stageName: artistProfiles.stageName,
@@ -1550,99 +1750,91 @@ export class StorageService {
         bannerUrl: artistProfiles.bannerUrl,
         avatarUrl: artistProfiles.avatarUrl,
         createdAt: artistProfiles.createdAt,
+        releaseCount: releaseCountExpr,
+        trackCount: trackCountExpr,
       })
       .from(artistProfiles)
-      .where(
-        and(
-          eq(artistProfiles.ownerUserId, userId),
-          eq(artistProfiles.scope, 'PERSONAL'),
-        ),
-      )
-      .orderBy(asc(artistProfiles.stageName))
+      .where(whereClause)
+      .orderBy(...orderByClause)
 
-    if (personalArtists.length === 0) {
-      return { artists: [] }
+    return { artists }
+  }
+
+  /**
+   * Retrieves flat personal tracks for direct playback or shuffle.
+   */
+  async getUserPersonalTracks(userId: string, query: PersonalTracksQuery) {
+    const conditions = [
+      eq(songs.uploaderUserId, userId),
+      eq(songs.scope, 'PERSONAL'),
+      isNull(songs.deletedAt),
+      isNull(albums.deletedAt),
+    ]
+
+    if (query.albumType) {
+      conditions.push(eq(albums.albumType, query.albumType))
     }
 
-    const artistIds = personalArtists.map((a) => a.id)
-
-    // Count active releases per artist
-    const releaseCounts = await db
-      .select({
-        artistId: albums.artistId,
-        count: sql<number>`count(${albums.id})::int`,
-      })
-      .from(albums)
-      .where(
-        and(
-          inArray(albums.artistId, artistIds),
-          eq(albums.uploaderUserId, userId),
-          eq(albums.scope, 'PERSONAL'),
-          isNull(albums.deletedAt),
-        ),
+    if (query.search && query.search.trim()) {
+      const q = `%${query.search.trim()}%`
+      conditions.push(
+        or(
+          ilike(songs.title, q),
+          ilike(albums.title, q),
+          ilike(artistProfiles.stageName, q)
+        )!
       )
-      .groupBy(albums.artistId)
-
-    const releaseCountMap = new Map<string, number>()
-    for (const r of releaseCounts) {
-      if (r.artistId) releaseCountMap.set(r.artistId, Number(r.count))
     }
 
-    // Count active songs per artist (as primary or featured credit)
-    const songCreditsRows = await db
-      .select({
-        artistId: songCredits.artistId,
-        songId: songCredits.songId,
-      })
-      .from(songCredits)
-      .innerJoin(songs, eq(songCredits.songId, songs.id))
-      .where(
-        and(
-          inArray(songCredits.artistId, artistIds),
-          eq(songs.uploaderUserId, userId),
-          eq(songs.scope, 'PERSONAL'),
-          isNull(songs.deletedAt),
-        ),
-      )
+    const whereClause = and(...conditions)
+    const limit = Math.min(query.limit ?? 200, 500)
 
-    const songCountMap = new Map<string, Set<string>>()
-    for (const row of songCreditsRows) {
-      const set = songCountMap.get(row.artistId) || new Set<string>()
-      set.add(row.songId)
-      songCountMap.set(row.artistId, set)
-    }
-
-    // Also include songs where songs.artistId is this artist but not yet in songCredits
-    const primarySongs = await db
+    const rows = await db
       .select({
-        artistId: songs.artistId,
         id: songs.id,
+        title: songs.title,
+        slug: songs.slug,
+        durationSeconds: songs.durationSeconds,
+        audioUrl: songs.audioUrl,
+        hlsManifestUrl: songs.hlsManifestUrl,
+        rawAudioKey: songs.rawAudioKey,
+        coverImageUrl: songs.coverImageUrl,
+        isExplicit: songs.isExplicit,
+        albumId: albums.id,
+        albumTitle: albums.title,
+        albumSlug: albums.slug,
+        albumCoverImageUrl: albums.coverImageUrl,
+        artistId: artistProfiles.id,
+        artistName: artistProfiles.stageName,
+        artistSlug: artistProfiles.slug,
       })
       .from(songs)
-      .where(
-        and(
-          inArray(songs.artistId, artistIds),
-          eq(songs.uploaderUserId, userId),
-          eq(songs.scope, 'PERSONAL'),
-          isNull(songs.deletedAt),
-        ),
-      )
+      .innerJoin(albums, eq(songs.albumId, albums.id))
+      .innerJoin(artistProfiles, eq(songs.artistId, artistProfiles.id))
+      .where(whereClause)
+      .orderBy(query.shuffle ? sql`RANDOM()` : desc(songs.createdAt))
+      .limit(limit)
 
-    for (const ps of primarySongs) {
-      if (ps.artistId) {
-        const set = songCountMap.get(ps.artistId) || new Set<string>()
-        set.add(ps.id)
-        songCountMap.set(ps.artistId, set)
-      }
-    }
-
-    const enrichedArtists = personalArtists.map((artist) => ({
-      ...artist,
-      releaseCount: releaseCountMap.get(artist.id) || 0,
-      trackCount: songCountMap.get(artist.id)?.size || 0,
+    const tracks = rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      artistId: r.artistId || '',
+      artistName: r.artistName || 'Personal Artist',
+      artistSlug: r.artistSlug,
+      albumId: r.albumId,
+      albumTitle: r.albumTitle,
+      albumSlug: r.albumSlug,
+      durationSeconds: r.durationSeconds || 0,
+      audioUrl: r.audioUrl || '',
+      hlsManifestUrl: r.hlsManifestUrl || undefined,
+      rawAudioKey: r.rawAudioKey,
+      coverImageUrl: r.coverImageUrl || r.albumCoverImageUrl,
+      scope: 'PERSONAL' as const,
+      isStreamable: true,
+      isExplicit: r.isExplicit,
     }))
 
-    return { artists: enrichedArtists }
+    return { tracks }
   }
 
   /**

@@ -10,6 +10,9 @@ import {
   batchPresignedUrlsSchema,
   bulkImportReleaseSchema,
   createPersonalArtistSchema,
+  personalReleasesQuerySchema,
+  personalArtistsQuerySchema,
+  personalTracksQuerySchema,
 } from './storage.schemas'
 
 export const storageRoutes: FastifyPluginAsync = async (fastify) => {
@@ -31,36 +34,39 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * GET /locker/releases & GET /personal-collection/releases
-   * Returns all personal releases and tracks stored in the user's personal collection.
+   * Returns personal releases and tracks stored in the user's personal collection.
    */
+  const handleGetPersonalReleases = async (request: any, reply: any) => {
+    const query = personalReleasesQuerySchema.parse(request.query)
+    const result = await storageService.getUserLockerReleases(
+      request.user.id,
+      query,
+    )
+    return reply.status(200).send(result)
+  }
+
   fastify.get(
     '/locker/releases',
     { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const releases = await storageService.getUserLockerReleases(
-        request.user.id,
-      )
-      return reply.status(200).send({ releases })
-    },
+    handleGetPersonalReleases,
   )
 
   fastify.get(
     '/personal-collection/releases',
     { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const releases = await storageService.getUserLockerReleases(
-        request.user.id,
-      )
-      return reply.status(200).send({ releases })
-    },
+    handleGetPersonalReleases,
   )
 
   /**
    * GET /personal-collection/artists & GET /locker/artists
-   * Returns all personal sandboxed artists created by the user with release & track counts.
+   * Returns personal sandboxed artists created by the user with release & track counts.
    */
   const handleGetPersonalArtists = async (request: any, reply: any) => {
-    const result = await storageService.getUserPersonalArtists(request.user.id)
+    const query = personalArtistsQuerySchema.parse(request.query)
+    const result = await storageService.getUserPersonalArtists(
+      request.user.id,
+      query,
+    )
     return reply.status(200).send(result)
   }
 
@@ -74,6 +80,31 @@ export const storageRoutes: FastifyPluginAsync = async (fastify) => {
     '/locker/artists',
     { preHandler: [requireAuth] },
     handleGetPersonalArtists,
+  )
+
+  /**
+   * GET /personal-collection/tracks & GET /locker/tracks
+   * Retrieves flat personal tracks for direct playback or shuffle.
+   */
+  const handleGetPersonalTracks = async (request: any, reply: any) => {
+    const query = personalTracksQuerySchema.parse(request.query)
+    const result = await storageService.getUserPersonalTracks(
+      request.user.id,
+      query,
+    )
+    return reply.status(200).send(result)
+  }
+
+  fastify.get(
+    '/personal-collection/tracks',
+    { preHandler: [requireAuth] },
+    handleGetPersonalTracks,
+  )
+
+  fastify.get(
+    '/locker/tracks',
+    { preHandler: [requireAuth] },
+    handleGetPersonalTracks,
   )
 
   /**

@@ -27,3 +27,6 @@ export type { SwitchProps, SwitchSize } from './Switch'
 
 export { SectionHeader } from './SectionHeader'
 export type { SectionHeaderProps } from './SectionHeader'
+
+export { SortMenu } from './SortMenu'
+export type { SortMenuProps, SortOption } from './SortMenu'

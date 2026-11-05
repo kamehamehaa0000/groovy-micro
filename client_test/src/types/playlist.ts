@@ -124,6 +124,7 @@ export interface PlaylistDirectoryItem {
 export interface SearchPlaylistsQuery {
   search?: string;
   sort?: "popular" | "recent" | "tracks";
+  order?: "asc" | "desc";
   page?: number;
   limit?: number;
 }

@@ -1,4 +1,4 @@
-import { desc, sql } from "drizzle-orm";
+import { asc, desc, sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -47,6 +47,12 @@ export const playlists = pgTable(
       .where(sql`${table.visibility} = 'PUBLIC'`),
     index("idx_playlists_directory_recent")
       .on(desc(table.createdAt), desc(table.savesCount), desc(table.id))
+      .where(sql`${table.visibility} = 'PUBLIC'`),
+    index("idx_playlists_directory_popular_asc")
+      .on(asc(table.savesCount), asc(table.createdAt), asc(table.id))
+      .where(sql`${table.visibility} = 'PUBLIC'`),
+    index("idx_playlists_directory_recent_asc")
+      .on(asc(table.createdAt), asc(table.savesCount), asc(table.id))
       .where(sql`${table.visibility} = 'PUBLIC'`),
   ]
 );

@@ -36,14 +36,10 @@ export function ArtistGridSkeleton() {
         className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
       >
         {Array.from({ length: 12 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center rounded-surface border border-border bg-card p-3 sm:p-4"
-          >
-            <div className="h-14 w-14 animate-pulse rounded-full bg-muted" />
-            <div className="mt-3 h-4 w-20 animate-pulse rounded-control bg-muted" />
-            <div className="mt-2 h-3 w-14 animate-pulse rounded-control bg-muted" />
-            <div className="mt-2 h-3 w-16 animate-pulse rounded-control bg-muted" />
+          <div key={index} className="flex flex-col p-2.5">
+            <div className="aspect-square w-full animate-pulse rounded-full bg-muted" />
+            <div className="mt-2.5 h-4 w-3/4 animate-pulse rounded-control bg-muted" />
+            <div className="mt-1.5 h-3 w-1/2 animate-pulse rounded-control bg-muted" />
           </div>
         ))}
       </div>

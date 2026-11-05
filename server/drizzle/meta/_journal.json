@@ -29,6 +29,13 @@
       "when": 1792878795225,
       "tag": "0003_playlist_songs_song_index",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0004_playlist_asc_and_vault_indexes",
+      "breakpoints": true
     }
   ]
 }

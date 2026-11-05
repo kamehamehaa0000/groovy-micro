@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  ArrowUp,
   ListPlus,
   PlusCircle,
   Shuffle,
@@ -30,15 +29,23 @@ import {
   Eyebrow,
   IconButton,
   Input,
-  Select,
-} from '../components/ui'
-import { DiscIconSVG, SearchIconSVG, SortIconSVG } from '../components/icons'
+  SortMenu,
+  type SortOption,
+} from '../Components/ui'
+import { DiscIconSVG, SearchIconSVG } from '../components/icons'
 
 export const Route = createFileRoute('/radio/$songId')({
   component: RadioMixPage,
 })
 
 type RadioSort = 'recommended' | 'title' | 'artist' | 'duration'
+
+const SORT_OPTIONS: SortOption<RadioSort>[] = [
+  { value: 'recommended', label: 'Recommended', supportsDirection: false },
+  { value: 'title', label: 'Title', defaultDirection: 'asc' },
+  { value: 'artist', label: 'Artist', defaultDirection: 'asc' },
+  { value: 'duration', label: 'Duration', defaultDirection: 'desc' },
+]
 
 function MetaItem({ children }: { children: ReactNode }) {
   return (
@@ -449,47 +456,13 @@ function RadioMixPage() {
               ) : null}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                <SortIconSVG className="h-3.5 w-3.5" />
-                Sort
-              </span>
-              <div className="w-44 shrink-0">
-                <Select
-                  value={sortBy}
-                  onChange={(event) =>
-                    setSortBy(event.target.value as RadioSort)
-                  }
-                  aria-label="Sort radio tracks"
-                  className="pr-8"
-                >
-                  <option value="recommended">Recommended</option>
-                  <option value="title">Title</option>
-                  <option value="artist">Artist</option>
-                  <option value="duration">Duration</option>
-                </Select>
-              </div>
-              {sortBy !== 'recommended' ? (
-                <IconButton
-                  size="sm"
-                  aria-label={
-                    sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
-                  }
-                  title={
-                    sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'
-                  }
-                  onClick={() =>
-                    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-                  }
-                >
-                  <ArrowUp
-                    className={`h-4 w-4 transition-transform duration-200 ease-out ${
-                      sortOrder === 'desc' ? 'rotate-180' : 'rotate-0'
-                    }`}
-                  />
-                </IconButton>
-              ) : null}
-            </div>
+            <SortMenu
+              options={SORT_OPTIONS}
+              value={sortBy}
+              onChange={setSortBy}
+              direction={sortOrder}
+              onDirectionChange={setSortOrder}
+            />
           </div>
         ) : null}
 
