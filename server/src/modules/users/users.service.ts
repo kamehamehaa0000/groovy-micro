@@ -245,24 +245,7 @@ export class UsersService {
       })
 
     if (input.lockerIncludeInHome !== undefined) {
-      await redis
-        .del(
-          cacheKeys.recommendations.homeFeed(userId, "global"),
-          cacheKeys.recommendations.homeFeed(userId, "mixed"),
-          cacheKeys.recommendations.similarArtists(userId, "global"),
-          cacheKeys.recommendations.similarArtists(userId, "mixed"),
-          cacheKeys.recommendations.moreLikeSong(userId, "global"),
-          cacheKeys.recommendations.moreLikeSong(userId, "mixed"),
-          cacheKeys.recommendations.newReleases(userId, "global"),
-          cacheKeys.recommendations.newReleases(userId, "mixed"),
-          cacheKeys.recommendations.globalHits(userId, "global"),
-          cacheKeys.recommendations.globalHits(userId, "mixed"),
-          cacheKeys.recommendations.radioMixes(userId, "global"),
-          cacheKeys.recommendations.radioMixes(userId, "mixed"),
-          `groovy:rec:home:${userId}`,
-          `groovy:rec:more_art:${userId}`
-        )
-        .catch(() => null);
+      await cacheManager.invalidateRecommendationsForUser(userId).catch(() => null);
     }
 
     if (input.lockerIncludeInSearch !== undefined) {

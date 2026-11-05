@@ -1126,6 +1126,7 @@ export class StorageService {
     if (albumSongs.length > 0) {
       await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((t) => t.id))
     }
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return {
       success: true,
@@ -1264,6 +1265,7 @@ export class StorageService {
       await cacheManager.invalidate(cacheKeys.catalog.artist(song.artistId))
     }
     await playlistsCacheService.invalidatePlaylistsForSongs([songId])
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return { success: true, message: 'Song restored to personal collection' }
   }
@@ -1364,6 +1366,7 @@ export class StorageService {
     if (trashedTracks.length > 0) {
       await playlistsCacheService.invalidatePlaylistsForSongs(trashedTracks.map((t) => t.id))
     }
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return {
       success: true,
@@ -1453,6 +1456,7 @@ export class StorageService {
       await cacheManager.invalidate(cacheKeys.catalog.artist(aId))
     }
     await playlistsCacheService.invalidatePlaylistsForSongs([songId])
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return {
       success: true,
@@ -1531,6 +1535,7 @@ export class StorageService {
     if (albumSongs.length > 0) {
       await playlistsCacheService.invalidatePlaylistsForSongs(albumSongs.map((s) => s.id))
     }
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return {
       success: true,
@@ -1622,6 +1627,7 @@ export class StorageService {
     if (trashedSongs.length > 0) {
       await playlistsCacheService.invalidatePlaylistsForSongs(trashedSongs.map((s) => s.id))
     }
+    await cacheManager.invalidateRecommendationsForUser(userId)
 
     return {
       success: true,

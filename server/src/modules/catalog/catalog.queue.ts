@@ -164,6 +164,7 @@ export async function executePublishRelease(albumId: string): Promise<void> {
         cacheKeys.catalog.artistAlbumsTag(updatedArtistId)
       );
     }
+    await cacheManager.invalidateGlobalDiscoveryFeeds();
   } catch (err) {
     console.warn(`[executePublishRelease] Cache invalidation failed:`, err);
   }

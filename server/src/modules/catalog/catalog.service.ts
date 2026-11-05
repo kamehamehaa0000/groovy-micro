@@ -880,6 +880,9 @@ export class CatalogService {
     // owner's artist row, which their own studio view reports
     await cacheManager.invalidateSelfArtist(userId);
 
+    await cacheManager.invalidateGlobalDiscoveryFeeds();
+    await cacheManager.invalidateRecommendationsForUser(userId);
+
     await cancelScheduledReleaseJob(albumId);
 
     const albumSongs = await db
@@ -950,6 +953,9 @@ export class CatalogService {
       slug: existing.slug,
       artistId: artist.id,
     });
+
+    await cacheManager.invalidateGlobalDiscoveryFeeds();
+    await cacheManager.invalidateRecommendationsForUser(userId);
 
     const albumSongs = await db
       .select({ id: songs.id })
@@ -1036,6 +1042,8 @@ export class CatalogService {
     }
     await cancelScheduledReleaseJob(albumId);
     await presavesCacheService.cleanupUserPreSavedAlbums(albumId);
+    await cacheManager.invalidateGlobalDiscoveryFeeds();
+    await cacheManager.invalidateRecommendationsForUser(userId);
 
     return {
       success: true,
@@ -2732,6 +2740,8 @@ export class CatalogService {
       cacheKeys.catalog.artist(artist.id),
       cacheKeys.catalog.artistAlbumsTag(artist.id)
     );
+    await cacheManager.invalidateGlobalDiscoveryFeeds();
+    await cacheManager.invalidateRecommendationsForUser(userId);
 
     return {
       success: true,

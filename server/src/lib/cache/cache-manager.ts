@@ -144,6 +144,7 @@ export class CacheManager {
     }
 
     await this.invalidate(...keysToDelete);
+    await this.invalidateVisitorRecommendations();
   }
 
   /**
@@ -223,6 +224,85 @@ export class CacheManager {
       cacheKeys.social.userLikedSongs(userId),
       cacheKeys.social.userLikedAlbums(userId)
     );
+  }
+
+  /**
+   * Scans and non-blockingly unlinks all keys matching a specific pattern.
+   */
+  async invalidatePattern(pattern: string): Promise<void> {
+    try {
+      let cursor = "0";
+      do {
+        const [nextCursor, keys] = await redis.scan(
+          cursor,
+          "MATCH",
+          pattern,
+          "COUNT",
+          100
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          await redis.unlink(...keys);
+        }
+      } while (cursor !== "0");
+    } catch (err) {
+      console.warn(
+        `[CacheManager] Failed to scan & unlink pattern "${pattern}":`,
+        err
+      );
+    }
+  }
+
+  /**
+   * Invalidates visitor recommendations and unauthenticated home discovery shelves.
+   */
+  async invalidateVisitorRecommendations(): Promise<void> {
+    await this.invalidate(
+      cacheKeys.recommendations.homeFeed(null),
+      cacheKeys.recommendations.newReleases(null),
+      cacheKeys.recommendations.globalHits(null),
+      cacheKeys.recommendations.similarArtists(null),
+      cacheKeys.recommendations.moreLikeArtist(null),
+      cacheKeys.recommendations.moreLikeSong(null),
+      cacheKeys.recommendations.radioMixes(null)
+    );
+  }
+
+  /**
+   * Invalidates personalized recommendation and home feed shelves for a specific user.
+   */
+  async invalidateRecommendationsForUser(userId: string): Promise<void> {
+    const modes = ["global", "mixed"];
+    const keys: string[] = [];
+    for (const mode of modes) {
+      keys.push(
+        cacheKeys.recommendations.homeFeed(userId, mode),
+        cacheKeys.recommendations.newReleases(userId, mode),
+        cacheKeys.recommendations.radar(userId, mode),
+        cacheKeys.recommendations.globalHits(userId, mode),
+        cacheKeys.recommendations.forYou(userId, mode),
+        cacheKeys.recommendations.heavyRotation(userId, mode),
+        cacheKeys.recommendations.radioMixes(userId, mode)
+      );
+    }
+    keys.push(
+      cacheKeys.recommendations.tasteProfile(userId),
+      cacheKeys.recommendations.playlistAssisted(userId),
+      cacheKeys.recommendations.userPlaylists(userId)
+    );
+    await this.invalidate(...keys);
+  }
+
+  /**
+   * Invalidates global discovery & feed caches across the platform
+   * (e.g. after an album is published, unpublished, deleted, or restored).
+   */
+  async invalidateGlobalDiscoveryFeeds(): Promise<void> {
+    await this.invalidateVisitorRecommendations();
+    await this.invalidatePattern("groovy:rec:home:*");
+    await this.invalidatePattern("groovy:rec:new_rel:*");
+    await this.invalidatePattern("groovy:rec:radar:*");
+    await this.invalidatePattern("groovy:rec:hits:*");
   }
 }
 
