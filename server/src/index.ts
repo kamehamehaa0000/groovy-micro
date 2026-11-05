@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 import sensible from '@fastify/sensible'
 import Redis from 'ioredis'
 import { client as pgClient } from './db'
+import { seedDefaultPlans } from './db/seed'
 import { authRoutes } from './modules/auth'
 import { usersRoutes } from './modules/users'
 import { storageRoutes } from './modules/storage'
@@ -161,6 +162,14 @@ export async function bootstrap(
       timestamp: new Date().toISOString(),
     }
   })
+
+  // Seed default subscription plans and feature definitions if not present
+  try {
+    await seedDefaultPlans()
+    app.log.info('✅ Default subscription plans verified')
+  } catch (err: any) {
+    app.log.warn(`⚠️ Failed to verify/seed default subscription plans: ${err.message}`)
+  }
 
   // Connect to Redis in background
   try {

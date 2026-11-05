@@ -65,17 +65,7 @@ export async function seedDefaultPlans() {
     await db
       .insert(planFeatureDefinitions)
       .values(feat)
-      .onConflictDoUpdate({
-        target: planFeatureDefinitions.key,
-        set: {
-          name: feat.name,
-          description: feat.description,
-          valueType: feat.valueType,
-          defaultValue: feat.defaultValue,
-          category: feat.category,
-          isActive: feat.isActive,
-        },
-      });
+      .onConflictDoNothing();
   }
 
   const plans = [
@@ -133,15 +123,7 @@ export async function seedDefaultPlans() {
     await db
       .insert(subscriptionPlans)
       .values(plan)
-      .onConflictDoUpdate({
-        target: subscriptionPlans.id,
-        set: {
-          name: plan.name,
-          priceCents: plan.priceCents,
-          features: plan.features,
-          isActive: plan.isActive,
-        },
-      });
+      .onConflictDoNothing();
   }
 
   console.log("✅ Default subscription plans seeded successfully!");

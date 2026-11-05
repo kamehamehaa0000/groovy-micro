@@ -34,6 +34,19 @@ export const Route = createFileRoute('/vault/')({
 type FilterPill =
   'all' | 'singles' | 'albums' | 'mixtapes' | 'eps' | 'lps' | 'artists'
 
+const PILL_TO_RELEASE_TYPE: Record<
+  FilterPill,
+  'ALL' | 'SINGLE' | 'ALBUM' | 'EP' | 'LP' | 'MIXTAPE'
+> = {
+  all: 'ALL',
+  artists: 'ALL',
+  singles: 'SINGLE',
+  albums: 'ALBUM',
+  eps: 'EP',
+  lps: 'LP',
+  mixtapes: 'MIXTAPE',
+}
+
 type ViewMode = 'grid' | 'list'
 
 type VaultReleaseSort = 'recent' | 'title' | 'artist' | 'releaseDate'
@@ -107,10 +120,7 @@ function PersonalCollectionExplorePage() {
   }, [toastMessage])
 
   // ===================== RELEASES QUERY (Paginated + Infinite Scroll) =====================
-  const releaseTypeParam =
-    activePill === 'artists' || activePill === 'all'
-      ? 'ALL'
-      : activePill.toUpperCase()
+  const releaseTypeParam = PILL_TO_RELEASE_TYPE[activePill]
 
   const releasesQuery = useInfiniteQuery({
     queryKey: [
@@ -268,7 +278,7 @@ function PersonalCollectionExplorePage() {
         limit: 250,
         albumType:
           activePill !== 'all' && activePill !== 'artists'
-            ? activePill.toUpperCase()
+            ? PILL_TO_RELEASE_TYPE[activePill]
             : undefined,
         search: debouncedSearch || undefined,
       })
