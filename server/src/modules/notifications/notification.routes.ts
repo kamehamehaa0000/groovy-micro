@@ -97,7 +97,7 @@ export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
     { preHandler: [requireAuth] },
     async (request, reply) => {
       const preferences = await notificationService.getPreferences(request.user.id);
-      return reply.status(200).send(preferences);
+      return reply.status(200).send({ preferences });
     }
   );
 
@@ -122,7 +122,7 @@ export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
         request.user.id,
         parsedBody.data
       );
-      return reply.status(200).send(preferences);
+      return reply.status(200).send({ preferences });
     }
   );
 
