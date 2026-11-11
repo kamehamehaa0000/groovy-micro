@@ -72,9 +72,8 @@ export function StudioUpgradeScreen({
           Launch Your Artist Identity
         </h1>
         <p className="font-sans text-caption text-muted-foreground mt-2 leading-relaxed">
-          Upgrade instantly from a listener account to an official Groovy
-          artist profile. Release master tracks, manage your presence, and
-          curate your discography.
+          Create your official Groovy artist profile. Release master tracks,
+          manage your presence, and curate your discography.
         </p>
       </div>
 

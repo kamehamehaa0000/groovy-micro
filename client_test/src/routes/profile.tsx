@@ -13,6 +13,7 @@ import { catalogApi } from '../lib/catalog.api'
 import { subscriptionsApi } from '../lib/subscriptions.api'
 import { socialApi } from '../lib/social.api'
 import { artistsApi } from '../lib/artists.api'
+import { isArtistAccount } from '../lib/artist-status'
 import type { ArtistProfile } from '../types/artist'
 import {
   notificationsApi,
@@ -173,11 +174,10 @@ function ProfileComponent() {
     )
   }
 
-  const isArtist =
-    user.role === 'ARTIST' ||
-    user.role === 'ADMIN' ||
-    !!artistProfile ||
-    !!(user as any)?.artistProfile
+  // Owning an artist profile is what makes an account an artist. An admin
+  // without a profile is still only an admin, so the studio messaging must not
+  // claim an artist presence that /studio cannot find.
+  const isArtist = isArtistAccount(user, artistProfile)
 
   // --- Profile Update (Display Name) ---
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -1467,16 +1467,18 @@ function AccountIdentityTab(
             Maison Artist Presence
           </div>
           <h3 className="font-sans font-bold text-title sm:text-lg text-foreground">
-            {isArtist
+            {artistProfile
               ? 'Artist Studio Suite Active'
-              : 'Musician or Recording Artist?'}
+              : isArtist
+                ? 'Artist Studio Setup Incomplete'
+                : 'Musician or Recording Artist?'}
           </h3>
           <p className="font-sans text-caption text-muted-foreground mt-0.5 max-w-xl leading-relaxed">
-            {isArtist
-              ? artistProfile
-                ? `Publishing as "${artistProfile.stageName}". Manage stage identity, discographies, verification badge, and listener telemetry.`
-                : 'Manage stage identity, discographies, verification badge, and listener telemetry.'
-              : 'Upgrade to an Artist account to upload music, build your discography, and release albums to the world.'}
+            {artistProfile
+              ? `Publishing as "${artistProfile.stageName}". Manage stage identity, discographies, verification badge, and listener telemetry.`
+              : isArtist
+                ? 'Your account has artist access but no artist profile yet. Create your stage identity to start releasing music.'
+                : 'Upgrade to an Artist account to upload music, build your discography, and release albums to the world.'}
           </p>
           {isArtist && artistProfile?.slug && (
             <div className="mt-2.5">
@@ -1498,7 +1500,11 @@ function AccountIdentityTab(
           to="/studio"
           className="self-start sm:self-auto shrink-0 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
         >
-          {isArtist ? 'Open Artist Studio →' : '✦ Become an Artist'}
+          {artistProfile
+            ? 'Open Artist Studio →'
+            : isArtist
+              ? 'Finish Artist Setup →'
+              : '✦ Become an Artist'}
         </Link>
       </div>
 
@@ -1586,7 +1592,7 @@ function AccountIdentityTab(
                   ? 'Verifying...'
                   : artistProfile
                     ? `${artistProfile.stageName}${artistProfile.verified ? ' ✓' : ''}`
-                    : 'Studio Active'}
+                    : 'Not set up yet'}
               </span>
             </div>
           )}

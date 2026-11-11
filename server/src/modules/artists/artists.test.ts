@@ -173,6 +173,37 @@ async function runArtistTests() {
     }
     console.log("   ✅ Slug collision successfully resolved to:", upgradeData3.profile.slug, "\n");
 
+    // 2d. An admin who creates an artist profile keeps ADMIN privileges
+    console.log("2️⃣d Testing Admin Profile Creation Preserves ADMIN Role...");
+    const adminUpgradeRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/artists",
+      headers: { authorization: `Bearer ${admin.tokens.accessToken}` },
+      payload: {
+        stageName: "System Admin Sound",
+        slug: `system-admin-sound-${Date.now()}`,
+      },
+    });
+
+    if (adminUpgradeRes.statusCode !== 201) {
+      throw new Error(
+        `Expected 201 Created for admin artist profile, got ${adminUpgradeRes.statusCode}: ${adminUpgradeRes.body}`
+      );
+    }
+
+    const adminUpgradeData = JSON.parse(adminUpgradeRes.body);
+    const [dbAdminAfterUpgrade] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, admin.user.id));
+    if (
+      adminUpgradeData.user.role !== "ADMIN" ||
+      dbAdminAfterUpgrade?.role !== "ADMIN"
+    ) {
+      throw new Error("Creating an artist profile demoted the admin account");
+    }
+    console.log("   ✅ Admin kept ADMIN role after creating an artist profile\n");
+
     // 3. Studio Profile Access & Update (GET /me, PATCH /me)
     console.log("3️⃣ Testing Studio Profile Endpoints (GET /me, PATCH /me)...");
     const meRes = await app.inject({

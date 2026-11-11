@@ -95,8 +95,15 @@ export class ArtistsService {
       finalSlug = await this.generateUniqueSlug(input.stageName);
     }
 
-    // 3. Database transaction: Insert profile & promote user role to ARTIST
+    // 3. Database transaction: Insert profile & promote the account to ARTIST
+    // (admins keep their role so creating a profile never drops privileges).
     const result = await db.transaction(async (tx) => {
+      const [currentUser] = await tx
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
       const [newProfile] = await tx
         .insert(artistProfiles)
         .values({
@@ -114,7 +121,7 @@ export class ArtistsService {
       const [updatedUser] = await tx
         .update(users)
         .set({
-          role: "ARTIST",
+          role: currentUser?.role === "ADMIN" ? "ADMIN" : "ARTIST",
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId))
@@ -132,8 +139,8 @@ export class ArtistsService {
       };
     });
 
-    // The composite profile gains the artist pointer and the effective role flips
-    // to ARTIST; the artist view also has to stop answering "no profile".
+    // The composite profile gains the artist pointer, so the artist view has to
+    // stop answering "no profile". Listeners inherit ARTIST; admins keep ADMIN.
     await cacheManager.invalidateSelfArtist(userId);
 
     return result;

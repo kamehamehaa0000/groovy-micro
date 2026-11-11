@@ -200,6 +200,17 @@ function HomeComponent() {
     )
   }
 
+  // True when at least one personalized shelf has something to render.
+  const hasFeedContent =
+    !!feed &&
+    ((feed.globalHits?.length ?? 0) > 0 ||
+      (feed.newReleasesForYou?.length ?? 0) > 0 ||
+      (feed.artistRadar?.length ?? 0) > 0 ||
+      (feed.similarArtists?.artists?.length ?? 0) > 0 ||
+      (feed.moreLikeSong?.tracks?.length ?? 0) > 0 ||
+      (feed.userPlaylists?.length ?? 0) > 0 ||
+      (feed.radioMixes?.length ?? 0) > 0)
+
   return (
     <div className="space-y-6">
       {/* ------------------------------------------------------------ */}
@@ -574,6 +585,50 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Empty personalized feed — keeps / from rendering a blank page */}
+          {!isLoadingFeed && feed && !hasFeedContent && (
+            <section className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
+              <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 15V9l8-2v6" />
+                  <circle cx="6" cy="17" r="2" />
+                  <circle cx="14" cy="15" r="2" />
+                </svg>
+              </span>
+              <h2 className="font-serif italic text-title text-foreground">
+                Your stream is warming up
+              </h2>
+              <p className="mx-auto mt-1.5 max-w-md font-sans text-caption text-muted-foreground">
+                Play a few tracks, like what you love, or follow an artist and
+                your personalized shelves will appear here.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  to="/search"
+                  className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+                >
+                  Explore the catalog
+                </Link>
+                <Link
+                  to="/artists"
+                  className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
+                >
+                  Find artists
+                </Link>
               </div>
             </section>
           )}

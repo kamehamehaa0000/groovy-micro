@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi } from '../lib/catalog.api'
+import { isArtistAccount } from '../lib/artist-status'
 import type { ArtistProfile } from '../types/artist'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { ConfirmPurgeModal } from '../components/studio/ConfirmPurgeModal'
@@ -38,6 +39,9 @@ function StudioComponent() {
 
   const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
+  // Kept separate from artistProfile so "this account has no profile" (a settled
+  // answer) never looks like "the studio request failed" (recoverable error).
+  const [studioLoadError, setStudioLoadError] = useState(false)
   const [activeTab, setActiveTab] = useState<StudioTab>('releases')
 
   const releases = useReleases()
@@ -98,18 +102,20 @@ function StudioComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  // Bootstrap the studio. Artists and admins get profile + releases + trash
-  // tallies in a single request; everyone else keeps the profile-only probe that
-  // drives the upgrade screen. An account whose role is stale but already owns a
+  // Bootstrap the studio. Artist accounts get profile + releases + trash tallies
+  // in a single request; everyone else keeps the profile-only probe that drives
+  // the upgrade screen. An account whose role is stale but already owns a
   // profile (healed server side by this very call) still gets its catalogue.
   useEffect(() => {
     if (!user) return
 
     setIsLoadingProfile(true)
+    setStudioLoadError(false)
 
-    // Listeners keep the profile-only probe. A 404 there is the normal "no
-    // profile yet" answer, so it is a settled outcome rather than a failure.
-    if (user.role !== 'ARTIST' && user.role !== 'ADMIN') {
+    // Listeners (and admins without a profile) keep the profile-only probe. A
+    // 404 there is the normal "no profile yet" answer, so it is a settled
+    // outcome rather than a failure.
+    if (!isArtistAccount(user)) {
       artistsApi
         .getMyProfile()
         .then((profile) => {
@@ -140,6 +146,7 @@ function StudioComponent() {
       try {
         const overview = await catalogApi.getStudioOverview()
         if (cancelled) return
+        setStudioLoadError(false)
 
         // A null artist is settled, not a failure: this account has no profile yet
         if (overview.artist) {
@@ -162,6 +169,7 @@ function StudioComponent() {
           return
         }
         setArtistProfile(null)
+        setStudioLoadError(true)
       }
       if (!cancelled) setIsLoadingProfile(false)
     }
@@ -211,26 +219,34 @@ function StudioComponent() {
   }
 
   // =========================================================================
-  // STATE A: LISTENER UPGRADE EXPERIENCE
+  // STATE A: BOOTSTRAP FAILED / NO ARTIST PROFILE YET
   // =========================================================================
-  if ((user.role === 'LISTENER' || !user.role) && !artistProfile) {
-    return <StudioUpgradeScreen setArtistProfile={setArtistProfile} />
-  }
-
-  // =========================================================================
-  // STATE B: FULL ARTIST STUDIO DASHBOARD
-  // =========================================================================
-  if (!artistProfile) {
+  // The bootstrap failed after its retries, so this is not "no profile": show a
+  // recoverable error instead of offering a profile creation that would conflict.
+  if (studioLoadError) {
     return (
       <div className="mx-auto max-w-xl py-24 text-center">
         <p className="font-serif italic text-lg text-foreground">
-          No artist profile detected.
+          Couldn't load your studio.
         </p>
         <p className="font-mono text-caption text-muted-foreground mt-1">
-          Please try refreshing the page.
+          The studio service did not respond. Please refresh the page.
         </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-semibold cursor-pointer"
+        >
+          Refresh Studio
+        </button>
       </div>
     )
+  }
+
+  // A settled "no profile" answer is the same for listeners, admins and stale
+  // artist roles: offer the profile creation flow rather than a false error.
+  if (!artistProfile) {
+    return <StudioUpgradeScreen setArtistProfile={setArtistProfile} />
   }
 
   return (
