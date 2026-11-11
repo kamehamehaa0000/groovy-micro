@@ -6,7 +6,6 @@ export function MobileBottomBar() {
   const isAuthPage =
     pathname === '/login' ||
     pathname === '/register' ||
-    pathname === '/signup' ||
     pathname === '/verify-email' ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password'

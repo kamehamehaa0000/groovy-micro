@@ -22,11 +22,11 @@ import {
   VolumeX,
   Heart,
   ListMusic,
-  Headphones,
   ChevronUp,
   MoreHorizontal,
   MonitorSpeaker,
   X,
+  RadioIcon,
 } from 'lucide-react'
 
 function formatTime(totalSeconds: number): string {
@@ -170,11 +170,16 @@ export function PlayerBar() {
   // else is playing yet — the panel carries the "Moving playback to" state
   // until the move lands (rule A9).
   const otherSpeaker =
-    speaker && speaker.confirmed && !youAreSpeaker && !isThisTab(speaker.deviceId, speaker.instanceId)
+    speaker &&
+    speaker.confirmed &&
+    !youAreSpeaker &&
+    !isThisTab(speaker.deviceId, speaker.instanceId)
       ? speaker
       : null
   const isOtherSpeakerPlaying = sessionView?.session.playback.isPlaying ?? false
-  const supersededSpeaker = isThisTab(supersededByDevice?.deviceId) ? null : supersededByDevice
+  const supersededSpeaker = isThisTab(supersededByDevice?.deviceId)
+    ? null
+    : supersededByDevice
   const connectBannerDeviceId =
     otherSpeaker?.deviceId ?? supersededSpeaker?.deviceId ?? null
   const connectBannerName =
@@ -196,7 +201,7 @@ export function PlayerBar() {
       {/* ===================== SOMEONE PUSHED PLAYBACK HERE ===================== */}
       {/* Rule A9/A10: this tab must answer before the Speaker role moves. */}
       {incomingTransfer && (
-        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-50 bg-card/98 backdrop-blur-md border-t border-primary/40 px-5 py-2.5 flex items-center justify-between gap-3 shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-23 left-0 right-0 z-50 bg-card/98 backdrop-blur-md border-t border-primary/40 px-5 py-2.5 flex items-center justify-between gap-3 shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
           <div className="min-w-0">
             <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground truncate">
               {incomingTransfer.fromDeviceName
@@ -233,7 +238,7 @@ export function PlayerBar() {
 
       {/* ===================== ANOTHER DEVICE IS THE SPEAKER ===================== */}
       {showConnectBanner && (
-        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-23 left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
           <div className="flex items-center gap-3 text-caption text-foreground max-w-[70%] truncate">
             <span className="flex h-2.5 w-2.5 relative shrink-0">
               {isOtherSpeakerPlaying && (
@@ -241,7 +246,9 @@ export function PlayerBar() {
               )}
               <span
                 className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  isOtherSpeakerPlaying ? 'bg-primary' : 'bg-muted-foreground/50'
+                  isOtherSpeakerPlaying
+                    ? 'bg-primary'
+                    : 'bg-muted-foreground/50'
                 }`}
               ></span>
             </span>
@@ -283,27 +290,29 @@ export function PlayerBar() {
       {/* A transport command that didn't reach the Speaker, or a push transfer
           that was refused. Deliberately quiet: the button simply didn't do
           anything, and this says why (rules B3 / A6). */}
-      {(commandError || transferError) && !showConnectBanner && !incomingTransfer && (
-        <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-[92px] left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
-          <span className="text-caption text-foreground truncate">
-            {commandError ?? transferError}
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              clearCommandError()
-              clearTransferError()
-            }}
-            className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors shrink-0"
-            aria-label="Dismiss"
-          >
-            <X size={15} strokeWidth={2} />
-          </button>
-        </div>
-      )}
+      {(commandError || transferError) &&
+        !showConnectBanner &&
+        !incomingTransfer && (
+          <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] md:bottom-23 left-0 right-0 z-40 bg-muted/95 backdrop-blur-md border-t border-border px-5 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 duration-200 select-none">
+            <span className="text-caption text-foreground truncate">
+              {commandError ?? transferError}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                clearCommandError()
+                clearTransferError()
+              }}
+              className="text-muted-foreground hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 cursor-pointer transition-colors shrink-0"
+              aria-label="Dismiss"
+            >
+              <X size={15} strokeWidth={2} />
+            </button>
+          </div>
+        )}
 
       {/* Live Jam Floating Bar */}
-      <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-[92px] md:left-0 md:right-0 z-40 select-none pointer-events-auto">
+      <div className="fixed bottom-[calc(7.875rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-23 md:left-0 md:right-0 z-40 select-none pointer-events-auto">
         <LiveJamBar />
       </div>
 
@@ -313,10 +322,10 @@ export function PlayerBar() {
       {/* ===================== DESKTOP BOTTOM PLAYER BAR ===================== */}
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-[88px] pb-safe bg-card/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-22 pb-safe bg-card/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
       >
         {/* ━━━━━━━━ LEFT: Track Artwork & Info + Actions ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="flex items-center gap-3.5 min-w-0 w-[30%] min-w-[220px] max-w-[360px]">
+        <div className="flex items-center gap-3.5 min-w-0 w-[30%]">
           {/* Cover Art (56x56px) — toggles Now Playing view */}
           <button
             type="button"
@@ -405,38 +414,37 @@ export function PlayerBar() {
                 </>
               )}
             </div>
-          </div>
-
-          {/* Quick Actions: Like Button & 3-Dot Menu */}
-          <div className="flex items-center gap-0.5 shrink-0 ml-1">
-            <button
-              type="button"
-              onClick={handleToggleLike}
-              aria-label={isLiked ? 'Unlike song' : 'Like song'}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
-              title={
-                isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
-              }
-            >
-              <Heart
-                size={20}
-                strokeWidth={isLiked ? 0 : 2}
-                fill={isLiked ? 'currentColor' : 'none'}
-                className={
-                  isLiked
-                    ? 'text-destructive fill-destructive'
-                    : 'text-muted-foreground hover:text-foreground transition-colors'
+            {/* Quick Actions: Like Button & 3-Dot Menu */}
+            <div className="flex items-center gap-0.5 shrink-0 ml-1">
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                aria-label={isLiked ? 'Unlike song' : 'Like song'}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
+                title={
+                  isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
                 }
-              />
-            </button>
+              >
+                <Heart
+                  size={20}
+                  strokeWidth={isLiked ? 0 : 2}
+                  fill={isLiked ? 'currentColor' : 'none'}
+                  className={
+                    isLiked
+                      ? 'text-destructive fill-destructive'
+                      : 'text-muted-foreground hover:text-foreground transition-colors'
+                  }
+                />
+              </button>
 
-            <div className="shrink-0 hidden xs:block">
-              <SongActionMenu
-                track={currentTrack}
-                align="left"
-                buttonClassName="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
-                triggerIcon={<MoreHorizontal size={20} strokeWidth={2} />}
-              />
+              <div className="shrink-0 hidden xs:block">
+                <SongActionMenu
+                  track={currentTrack}
+                  align="left"
+                  buttonClassName="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
+                  triggerIcon={<MoreHorizontal size={20} strokeWidth={2} />}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -456,7 +464,12 @@ export function PlayerBar() {
             ) : isPlaying ? (
               <Pause size={18} fill="currentColor" strokeWidth={0} />
             ) : (
-              <Play size={18} fill="currentColor" strokeWidth={0} className="ml-0.5" />
+              <Play
+                size={18}
+                fill="currentColor"
+                strokeWidth={0}
+                className="ml-0.5"
+              />
             )}
           </button>
 
@@ -475,7 +488,7 @@ export function PlayerBar() {
         </div>
 
         {/* ━━━━━━━━ CENTER: Playback Controls & Scrubber ━━━━━━━━━━━━━ */}
-        <div className="hidden sm:flex flex-1 max-w-[700px] flex-col items-center justify-center px-4">
+        <div className="hidden sm:flex flex-1 max-w-175 flex-col items-center justify-center px-4">
           {/* Transport buttons row */}
           <div className="flex items-center gap-5 sm:gap-6">
             {/* Shuffle */}
@@ -529,7 +542,12 @@ export function PlayerBar() {
               ) : isPlaying ? (
                 <Pause size={22} fill="currentColor" strokeWidth={0} />
               ) : (
-                <Play size={22} fill="currentColor" strokeWidth={0} className="ml-0.5" />
+                <Play
+                  size={22}
+                  fill="currentColor"
+                  strokeWidth={0}
+                  className="ml-0.5"
+                />
               )}
             </button>
 
@@ -604,7 +622,7 @@ export function PlayerBar() {
         </div>
 
         {/* ━━━━━━━━ RIGHT: Volume Slider, Jam, Queue ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="hidden sm:flex items-center justify-end gap-2 w-[30%] min-w-[220px] max-w-[360px]">
+        <div className="hidden sm:flex items-center justify-end gap-2 w-[30%] min-w-55 max-w-90">
           {/* Volume Control */}
           <div className="flex items-center gap-1.5 group/vol">
             <button
@@ -645,7 +663,7 @@ export function PlayerBar() {
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
-            <Headphones size={20} strokeWidth={2} />
+            <RadioIcon size={20} strokeWidth={2} />
             {activeRoom && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-success rounded-full animate-pulse ring-2 ring-card" />
             )}
@@ -656,9 +674,7 @@ export function PlayerBar() {
             type="button"
             onClick={() => toggleDesktopRightSidebarDevices('devices')}
             title={
-              otherSpeaker
-                ? `Playing on ${otherSpeaker.deviceName}`
-                : 'Devices'
+              otherSpeaker ? `Playing on ${otherSpeaker.deviceName}` : 'Devices'
             }
             aria-label="Devices"
             className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all cursor-pointer ${

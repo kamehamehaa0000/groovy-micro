@@ -251,7 +251,7 @@ function HomeComponent() {
       {/* Editorial Hero Section (Unauthenticated Visitors)             */}
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
-        <section className="border border-border bg-card p-8 sm:p-12 shadow-xs relative overflow-hidden">
+        <section className="border border-border bg-card p-8 sm:p-12 rounded-lg shadow-xs relative overflow-hidden">
           <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
@@ -266,16 +266,9 @@ function HomeComponent() {
 
           <div className="flex flex-wrap items-center gap-4 relative z-10">
             <Link
-              to="/login"
-              search={{ redirect: '/' }}
-              className="bg-foreground text-background border border-foreground py-3 px-6 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground shadow-raised"
-            >
-              Enter the collective &rarr;
-            </Link>
-            <Link
               to="/register"
               search={{ redirect: '/' }}
-              className="border border-border bg-card hover:bg-muted text-foreground py-3 px-6 font-eyebrow text-eyebrow uppercase tracking-wider transition-all shadow-raised"
+              className="rounded-full  border border-border bg-card hover:bg-background text-foreground py-3 px-6 font-eyebrow text-eyebrow uppercase tracking-wider transition-all shadow-raised"
             >
               Join the Collective
             </Link>
@@ -439,10 +432,7 @@ function HomeComponent() {
 
                 <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {feed.similarArtists.artists.map((artist) => (
-                    <div
-                      key={artist.id}
-                      className="w-35 sm:w-42.5 shrink-0"
-                    >
+                    <div key={artist.id} className="w-35 sm:w-42.5 shrink-0">
                       <ArtistCard
                         name={artist.stageName}
                         slug={artist.slug}

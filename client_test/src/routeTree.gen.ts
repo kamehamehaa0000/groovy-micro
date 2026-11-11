@@ -23,7 +23,6 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReleasesRouteImport } from './routes/releases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SearchRouteImport } from './routes/search'
-import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
@@ -110,11 +109,6 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioRoute = StudioRouteImport.update({
@@ -218,7 +212,6 @@ export interface FileRoutesByFullPath {
   '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
@@ -252,7 +245,6 @@ export interface FileRoutesByTo {
   '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -286,7 +278,6 @@ export interface FileRoutesById {
   '/releases': typeof ReleasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/signup': typeof SignupRoute
   '/studio': typeof StudioRoute
   '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
@@ -322,7 +313,6 @@ export interface FileRouteTypes {
     | '/releases'
     | '/reset-password'
     | '/search'
-    | '/signup'
     | '/studio'
     | '/vault'
     | '/verify-email'
@@ -356,7 +346,6 @@ export interface FileRouteTypes {
     | '/releases'
     | '/reset-password'
     | '/search'
-    | '/signup'
     | '/studio'
     | '/verify-email'
     | '/admin/subscriptions'
@@ -389,7 +378,6 @@ export interface FileRouteTypes {
     | '/releases'
     | '/reset-password'
     | '/search'
-    | '/signup'
     | '/studio'
     | '/vault'
     | '/verify-email'
@@ -424,7 +412,6 @@ export interface RootRouteChildren {
   ReleasesRoute: typeof ReleasesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
-  SignupRoute: typeof SignupRoute
   StudioRoute: typeof StudioRoute
   VaultRoute: typeof VaultRouteWithChildren
   VerifyEmailRoute: typeof VerifyEmailRoute
@@ -540,13 +527,6 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio': {
@@ -698,7 +678,6 @@ const rootRouteChildren: RootRouteChildren = {
   ReleasesRoute: ReleasesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
-  SignupRoute: SignupRoute,
   StudioRoute: StudioRoute,
   VaultRoute: VaultRouteWithChildren,
   VerifyEmailRoute: VerifyEmailRoute,
