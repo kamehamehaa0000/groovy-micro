@@ -88,7 +88,7 @@ export function SortMenu<T extends string = string>({
           onClick={() => onDirectionChange(direction === 'asc' ? 'desc' : 'asc')}
           title={direction === 'asc' ? 'Sort descending' : 'Sort ascending'}
           aria-label={direction === 'asc' ? 'Sort descending' : 'Sort ascending'}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer sm:h-7 sm:w-7"
         >
           <ArrowUp
             className={cn(

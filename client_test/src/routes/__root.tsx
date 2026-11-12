@@ -254,7 +254,7 @@ function RootComponent() {
               type="button"
               onClick={() => setLeftSidebarOpen(true)}
               aria-label="Open profile and navigation menu"
-              className="w-8 h-8 rounded-full border border-border bg-card hover:border-foreground flex items-center justify-center overflow-hidden cursor-pointer shadow-raised transition-colors shrink-0"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border bg-card cursor-pointer shadow-raised transition-colors shrink-0 hover:border-foreground sm:h-8 sm:w-8"
             >
               {isAuthenticated && user?.avatarUrl ? (
                 <img
@@ -310,7 +310,7 @@ function RootComponent() {
                 type="button"
                 onClick={() => setRightActionDrawerOpen(true)}
                 aria-label="Create and quick actions"
-                className="w-8 h-8 rounded-full hover:border-foreground hover:text-foreground text-muted-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors cursor-pointer shrink-0 hover:border-foreground hover:text-foreground sm:h-8 sm:w-8"
               >
                 <PlusIconSVG className="w-7 h-7" />
               </button>
@@ -975,7 +975,7 @@ function RootComponent() {
               <button
                 type="button"
                 onClick={() => setLeftSidebarOpen(false)}
-                className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded-control cursor-pointer transition-colors shrink-0 ml-2"
+                className="flex h-10 w-10 shrink-0 ml-2 items-center justify-center rounded-control border border-border text-muted-foreground transition-colors cursor-pointer hover:border-foreground hover:text-foreground"
                 aria-label="Close navigation menu"
               >
                 <svg

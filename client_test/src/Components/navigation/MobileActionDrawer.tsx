@@ -86,7 +86,7 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded-control cursor-pointer transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-control border border-border text-muted-foreground transition-colors cursor-pointer hover:border-foreground hover:text-foreground"
               aria-label="Close action drawer"
             >
               <svg

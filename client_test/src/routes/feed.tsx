@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
-import { playerApi } from '../lib/player.api'
+import { playerApi, type FriendActivityItem } from '../lib/player.api'
 import {
   socialApi,
   type FeedItem,
@@ -26,6 +26,16 @@ import { dayKey, dayLabel } from '../Components/feed/feed.utils'
 export const Route = createFileRoute('/feed')({
   component: FeedPage,
 })
+
+/**
+ * Stable empty lists.
+ *
+ * A `?? []` inside a render creates a new array every time, which makes every
+ * memo that depends on it recompute on every render.
+ */
+const EMPTY_REQUESTS: IncomingFollowRequest[] = []
+const EMPTY_ACTIVITIES: FriendActivityItem[] = []
+const EMPTY_PEOPLE: UserSummary[] = []
 
 type FeedFilter = 'all' | 'releases' | 'playlists' | 'friends'
 
@@ -435,9 +445,21 @@ function FeedPage() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const incomingRequests = requestsQuery.data?.requests ?? []
-  const liveActivities = liveQuery.data?.activities ?? []
-  const people = peopleQueryResult.data?.users ?? []
+  const incomingRequests = requestsQuery.data?.requests ?? EMPTY_REQUESTS
+  const liveActivities = liveQuery.data?.activities ?? EMPTY_ACTIVITIES
+  const people = peopleQueryResult.data?.users ?? EMPTY_PEOPLE
+
+  // The local follow overrides are merged into the people list once, not on
+  // every render: a new array every time would re-render every row in the
+  // panel on every tick of anything else on the page.
+  const peopleWithOverrides = useMemo(
+    () =>
+      people.map((user) => ({
+        ...user,
+        relationship: followOverrides[user.id] ?? user.relationship,
+      })),
+    [people, followOverrides],
+  )
 
   const isRefreshing =
     feedQuery.isFetching || liveQuery.isFetching || requestsQuery.isFetching
@@ -572,11 +594,6 @@ function FeedPage() {
   if (!isAuthenticated) {
     return <GuestFeed />
   }
-
-  const peopleWithOverrides = people.map((user) => ({
-    ...user,
-    relationship: followOverrides[user.id] ?? user.relationship,
-  }))
 
   const requestSection = requestsQuery.isError ? (
     <p className="text-caption text-muted-foreground">

@@ -509,7 +509,7 @@ function PersonalCollectionExplorePage() {
               type="button"
               onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
               aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors cursor-pointer hover:bg-muted hover:text-foreground sm:h-8 sm:w-8"
             >
               {viewMode === 'list' ? (
                 <GridIconSVG className="w-5 h-5" />

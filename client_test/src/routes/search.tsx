@@ -502,7 +502,7 @@ function SearchPageComponent() {
                 setDebouncedQuery('')
                 inputRef.current?.focus()
               }}
-              className="mr-2 sm:mr-3 w-7 h-7 rounded-full flex items-center justify-center text-caption font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="mr-1 sm:mr-3 flex h-10 w-10 items-center justify-center rounded-full text-caption font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:h-7 sm:w-7"
               title="Clear search"
             >
               ✕
@@ -519,7 +519,7 @@ function SearchPageComponent() {
                 type="button"
                 onClick={() => setActiveCategory('all')}
                 aria-label="Clear category filter"
-                className="shrink-0 w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-caption font-bold cursor-pointer"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border text-muted-foreground transition-colors text-caption font-bold cursor-pointer hover:bg-muted hover:text-foreground sm:h-7 sm:w-7"
               >
                 ✕
               </button>
