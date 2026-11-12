@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { subscriptionsApi } from '../lib/subscriptions.api'
+import { EmptyState } from '../Components/ui/EmptyState'
+import { AdminShell } from '../Components/admin/AdminShell'
 import type {
   SubscriptionPlan,
   PlanFeatureDefinition,
@@ -247,51 +249,46 @@ function AdminSubscriptionsDeskComponent() {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="border-b border-border pb-6 mb-8">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
-              Groovy Administration
-            </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
-              Subscriptions &amp; Feature Catalog
-            </h1>
-            <p className="font-sans text-caption text-muted-foreground mt-1">
-              Configure subscription tiers, manage pricing, and define dynamic
-              perks and capabilities for the entitlement engine.
-            </p>
-          </div>
-
-          <Link
-            to="/admin/verification"
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
-          >
-            Artist Verifications &rarr;
-          </Link>
+    <AdminShell
+      title="Subscriptions & Feature Catalog"
+      description="Configure subscription tiers, manage pricing, and define dynamic perks and capabilities for the entitlement engine."
+      activePath="/admin/subscriptions"
+      nav={[
+        { label: 'Artist Verifications', to: '/admin/verification' },
+        {
+          label: 'Subscription Plans & Feature Catalog',
+          to: '/admin/subscriptions',
+        },
+      ]}
+      actions={
+        <Link
+          to="/admin/verification"
+          className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
+        >
+          Artist Verifications &rarr;
+        </Link>
+      }
+    >
+      {/* Global Action Alert */}
+      {actionNotice && (
+        <div
+          className={`mb-6 p-3 border font-mono text-caption ${
+            actionNotice.type === 'success'
+              ? 'border-success/40 bg-success-soft text-success'
+              : 'border-destructive/40 bg-destructive-soft text-destructive'
+          }`}
+        >
+          {actionNotice.text}
         </div>
+      )}
 
-        {/* Global Action Alert */}
-        {actionNotice && (
-          <div
-            className={`mt-4 p-3 border font-mono text-caption ${
-              actionNotice.type === 'success'
-                ? 'border-success/40 bg-success-soft text-success'
-                : 'border-destructive/40 bg-destructive-soft text-destructive'
-            }`}
-          >
-            {actionNotice.text}
-          </div>
-        )}
-
-        {/* Admin Desk Navigation Tabs */}
-        <div className="mt-8 flex items-center justify-between border-b border-border pb-0 flex-wrap gap-4">
-          <div className="flex items-center gap-6 font-mono text-caption">
-            <button
-              type="button"
-              onClick={() => setActiveTab('plans')}
-              className={`pb-3 border-b-2 font-medium tracking-wider uppercase transition-colors cursor-pointer ${
+      {/* Plan / feature tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-0">
+        <div className="flex items-center gap-6 font-mono text-caption">
+          <button
+            type="button"
+            onClick={() => setActiveTab('plans')}
+            className={`pb-3 border-b-2 font-medium tracking-wider uppercase transition-colors cursor-pointer ${
                 activeTab === 'plans'
                   ? 'border-foreground text-foreground font-semibold'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -332,7 +329,6 @@ function AdminSubscriptionsDeskComponent() {
             )}
           </div>
         </div>
-      </div>
 
       {/* TAB CONTENT: PLANS */}
       {activeTab === 'plans' && (
@@ -342,18 +338,19 @@ function AdminSubscriptionsDeskComponent() {
               Loading active subscription tiers...
             </div>
           ) : plans.length === 0 ? (
-            <div className="p-12 border border-dashed border-border bg-card text-center">
-              <p className="font-serif italic text-lg text-foreground">
-                No subscription plans configured yet
-              </p>
-              <button
-                type="button"
-                onClick={handleOpenCreatePlan}
-                className="mt-3 font-eyebrow text-caption uppercase tracking-wider text-primary hover:underline"
-              >
-                Create your first plan
-              </button>
-            </div>
+            <EmptyState
+              title="No subscription plans configured yet"
+              description="Create the first tier to start selling access."
+              action={
+                <button
+                  type="button"
+                  onClick={handleOpenCreatePlan}
+                  className="font-eyebrow text-caption uppercase tracking-wider text-primary hover:underline"
+                >
+                  Create your first plan
+                </button>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {plans.map((plan) => (
@@ -822,6 +819,6 @@ function AdminSubscriptionsDeskComponent() {
           </div>
         </div>
       )}
-    </div>
+    </AdminShell>
   )
 }

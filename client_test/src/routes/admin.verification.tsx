@@ -5,6 +5,7 @@ import { artistsApi } from '../lib/artists.api'
 import type { AdminArtistListItem } from '../types/artist'
 import { VerifiedBadgeSVG, ExternalLinkSVG } from '../Components/Icons'
 import { EmptyState } from '../Components/ui/EmptyState'
+import { AdminShell } from '../Components/admin/AdminShell'
 
 export const Route = createFileRoute('/admin/verification')({
   staticData: { layout: 'full' },
@@ -141,61 +142,40 @@ function AdminVerificationDeskComponent() {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="border-b border-border pb-6 mb-8">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
-              Groovy Administration
-            </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
-              Artist Verification Desk
-            </h1>
-            <p className="font-sans text-caption text-muted-foreground mt-1">
-              Review artist pitch materials, confirm external platform presence,
-              and issue verified badges.
-            </p>
-          </div>
-
-          <Link
-            to="/studio"
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
-          >
-            My Studio &rarr;
-          </Link>
-        </div>
-
-        {/* Admin Desk Navigation Tabs */}
-        <div className="mt-6 flex items-center gap-6 border-b border-border pb-0 font-mono text-caption">
-          <Link
-            to="/admin/verification"
-            className="pb-3 border-b-2 border-foreground text-foreground font-semibold tracking-wider uppercase transition-colors"
-          >
-            Artist Verifications
-          </Link>
-          <Link
-            to="/admin/subscriptions"
-            className="pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground tracking-wider uppercase transition-colors"
-          >
-            Subscription Plans &amp; Feature Catalog
-          </Link>
-        </div>
-
-        {/* Action Alerts */}
-        {actionSuccess && (
-          <div className="mt-4 p-3 border border-success/40 bg-success-soft text-success font-mono text-caption">
+    <AdminShell
+      title="Artist Verification Desk"
+      description="Review artist pitch materials, confirm external platform presence, and issue verified badges."
+      activePath="/admin/verification"
+      nav={[
+        { label: 'Artist Verifications', to: '/admin/verification' },
+        {
+          label: 'Subscription Plans & Feature Catalog',
+          to: '/admin/subscriptions',
+        },
+      ]}
+      actions={
+        <Link
+          to="/studio"
+          className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-card text-foreground hover:bg-background transition-colors hidden sm:inline-block"
+        >
+          My Studio &rarr;
+        </Link>
+      }
+    >
+      {/* Action Alerts */}
+      {actionSuccess && (
+        <div className="mb-6 p-3 border border-success/40 bg-success-soft text-success font-mono text-caption">
             {actionSuccess}
           </div>
         )}
         {actionError && (
-          <div className="mt-4 p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption">
+          <div className="mb-6 p-3 border border-destructive/40 bg-destructive-soft text-destructive font-mono text-caption">
             {actionError}
           </div>
         )}
 
         {/* Filter Tabs & Search Bar */}
-        <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-1 border-b sm:border-b-0 border-border pb-2 sm:pb-0 font-mono text-caption">
             {(['PENDING', 'VERIFIED', 'REJECTED', 'ALL'] as const).map(
               (tab) => (
@@ -225,7 +205,6 @@ function AdminVerificationDeskComponent() {
             />
           </div>
         </div>
-      </div>
 
       {/* Applications List */}
       {isLoading ? (
@@ -441,6 +420,6 @@ function AdminVerificationDeskComponent() {
           )}
         </div>
       )}
-    </div>
+    </AdminShell>
   )
 }

@@ -29,6 +29,7 @@ import { Switch } from '../Components/ui'
 import { Loader2Icon } from 'lucide-react'
 import { notify } from '../lib/toast'
 import { ConfirmDialog } from '../Components/ui/Modal'
+import { SettingsShell } from '../Components/settings/SettingsShell'
 import type { UserProfile } from '../types/auth'
 
 export const Route = createFileRoute('/profile')({
@@ -108,6 +109,9 @@ function ProfileComponent() {
     pushSocial: true,
     pushJams: true,
   })
+  /** The stored values, so the form can say whether it has unsaved changes. */
+  const [savedNotifPrefs, setSavedNotifPrefs] =
+    useState<NotificationPreferences | null>(null)
   const [isSavingNotifPrefs, setIsSavingNotifPrefs] = useState(false)
 
   // Artist Profile State
@@ -151,7 +155,10 @@ function ProfileComponent() {
       notificationsApi
         .getPreferences()
         .then((res) => {
-          if (res.preferences) setNotifPrefs(res.preferences)
+          if (res.preferences) {
+            setNotifPrefs(res.preferences)
+            setSavedNotifPrefs(res.preferences)
+          }
         })
         .catch((err) =>
           console.warn('Could not load notification preferences:', err),
@@ -274,9 +281,32 @@ function ProfileComponent() {
     }
   }
 
+  // --- Privacy: dirty state -------------------------------------------------
+  // Toggling a switch and leaving the page used to discard the edit silently.
+  const isPrivacyDirty =
+    isPrivateAccount !== !!user?.isPrivateAccount ||
+    listeningActivityPrivacy !==
+      (user?.listeningActivityPrivacy || 'FRIENDS_ONLY') ||
+    libraryPrivacy !== (user?.libraryPrivacy || 'PUBLIC') ||
+    lockerIncludeInSearch !== (user?.lockerIncludeInSearch ?? true) ||
+    lockerIncludeInHome !== (user?.lockerIncludeInHome ?? false) ||
+    lockerIncludeInRecentlyPlayed !==
+      (user?.lockerIncludeInRecentlyPlayed ?? true) ||
+    lockerLinkToGlobalArtists !== (user?.lockerLinkToGlobalArtists ?? false)
+
+  const revertPrivacy = () => {
+    if (!user) return
+    setIsPrivateAccount(!!user.isPrivateAccount)
+    setListeningActivityPrivacy(user.listeningActivityPrivacy || 'FRIENDS_ONLY')
+    setLibraryPrivacy(user.libraryPrivacy || 'PUBLIC')
+    setLockerIncludeInSearch(user.lockerIncludeInSearch ?? true)
+    setLockerIncludeInHome(user.lockerIncludeInHome ?? false)
+    setLockerIncludeInRecentlyPlayed(user.lockerIncludeInRecentlyPlayed ?? true)
+    setLockerLinkToGlobalArtists(user.lockerLinkToGlobalArtists ?? false)
+  }
+
   // --- Privacy Settings Update ---
-  const handleUpdatePrivacy = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleUpdatePrivacy = async (e: React.FormEvent) => {    e.preventDefault()
     setIsSavingPrivacy(true)
 
     try {
@@ -307,7 +337,10 @@ function ProfileComponent() {
 
     try {
       const res = await notificationsApi.updatePreferences(notifPrefs)
-      if (res.preferences) setNotifPrefs(res.preferences)
+      if (res.preferences) {
+        setNotifPrefs(res.preferences)
+        setSavedNotifPrefs(res.preferences)
+      }
       notify.success(
         'Notification channels and delivery preferences updated successfully.',
       )
@@ -316,6 +349,17 @@ function ProfileComponent() {
     } finally {
       setIsSavingNotifPrefs(false)
     }
+  }
+
+  const isNotifPrefsDirty = !!savedNotifPrefs &&
+    (notifPrefs.emailReleases !== savedNotifPrefs.emailReleases ||
+      notifPrefs.emailComments !== savedNotifPrefs.emailComments ||
+      notifPrefs.pushSocial !== savedNotifPrefs.pushSocial ||
+      notifPrefs.pushJams !== savedNotifPrefs.pushJams)
+
+  const revertNotifPrefs = () => {
+    if (!savedNotifPrefs) return
+    setNotifPrefs(savedNotifPrefs)
   }
 
   // --- Subscription Handlers ---
@@ -481,62 +525,43 @@ function ProfileComponent() {
         </div>
       </div>
 
-      {/* ===================== STICKY TAB NAVIGATION ===================== */}
-      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md pt-2 pb-2.5 transition-colors border-b border-border/40">
-        <nav className="flex px-2 items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
-          {[
-            { id: 'account' as const, label: 'Account' },
-            { id: 'subscription' as const, label: 'Subscription' },
-            { id: 'privacy' as const, label: 'Privacy' },
-            { id: 'notifications' as const, label: 'Notifications' },
-            { id: 'security' as const, label: 'Security' },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`shrink-0 font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium whitespace-nowrap ${
-                  isActive
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </nav>
-      </div>
+      {/* ===================== SETTINGS AREA ===================== */}
+      <SettingsShell
+        nav={[
+          { id: 'account', label: 'Account' },
+          { id: 'subscription', label: 'Subscription' },
+          { id: 'privacy', label: 'Privacy' },
+          { id: 'notifications', label: 'Notifications' },
+          { id: 'security', label: 'Security' },
+        ]}
+        value={activeTab}
+        onChange={(id) => setActiveTab(id as ProfileTab)}
+      >
+        {/* 1. ACCOUNT & IDENTITY */}
+        {activeTab === 'account' &&
+          AccountIdentityTab(
+            isArtist,
+            artistProfile,
+            handleUpdateProfile,
+            displayName,
+            setDisplayName,
+            isUpdatingProfile,
+            user,
+            isLoadingArtistProfile,
+            entitlements,
+            isLoadingPreSaves,
+            preSaves,
+          )}
 
-      {/* ===================== TAB PANELS ===================== */}
-
-      {/* 1. ACCOUNT & IDENTITY */}
-      {activeTab === 'account' &&
-        AccountIdentityTab(
-          isArtist,
-          artistProfile,
-          handleUpdateProfile,
-          displayName,
-          setDisplayName,
-          isUpdatingProfile,
-          user,
-          isLoadingArtistProfile,
-          entitlements,
-          isLoadingPreSaves,
-          preSaves,
-        )}
-
-      {/* 2. SUBSCRIPTION & MEMBERSHIP */}
-      {activeTab === 'subscription' &&
-        SubscriptionTab(
-          entitlements,
-          user,
-          isLoadingEntitlements,
-          handleOpenUpgradeModal,
-          () => setIsConfirmCancelOpen(true),
-        )}
+        {/* 2. SUBSCRIPTION & MEMBERSHIP */}
+        {activeTab === 'subscription' &&
+          SubscriptionTab(
+            entitlements,
+            user,
+            isLoadingEntitlements,
+            handleOpenUpgradeModal,
+            () => setIsConfirmCancelOpen(true),
+          )}
 
       {/* 3. PRIVACY & SOCIAL CIRCLES */}
       {activeTab === 'privacy' &&
@@ -557,6 +582,8 @@ function ProfileComponent() {
           lockerLinkToGlobalArtists,
           setLockerLinkToGlobalArtists,
           isSavingPrivacy,
+          isPrivacyDirty,
+          revertPrivacy,
         )}
 
       {/* 4. NOTIFICATION DELIVERY */}
@@ -566,6 +593,8 @@ function ProfileComponent() {
           notifPrefs,
           setNotifPrefs,
           isSavingNotifPrefs,
+          isNotifPrefsDirty,
+          revertNotifPrefs,
         )}
 
       {/* 5. SECURITY & SESSIONS */}
@@ -584,6 +613,7 @@ function ProfileComponent() {
           logout,
           revokeAll,
         )}
+      </SettingsShell>
 
       {/* ===================== UPGRADE / CHANGE PLAN MODAL ===================== */}
       <ConfirmDialog
@@ -966,6 +996,8 @@ function PrivacyTab(
   lockerLinkToGlobalArtists: boolean,
   setLockerLinkToGlobalArtists: Dispatch<SetStateAction<boolean>>,
   isSavingPrivacy: boolean,
+  isDirty: boolean,
+  onRevert: () => void,
 ): import('react').ReactNode {
   return (
     <div className="space-y-3 animate-in fade-in duration-150">
@@ -1206,10 +1238,25 @@ function PrivacyTab(
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+          {isDirty ? (
+            <>
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning">
+                Unsaved changes
+              </span>
+              <button
+                type="button"
+                onClick={onRevert}
+                disabled={isSavingPrivacy}
+                className="rounded-full border border-border px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              >
+                Revert
+              </button>
+            </>
+          ) : null}
           <button
             type="submit"
-            disabled={isSavingPrivacy}
+            disabled={isSavingPrivacy || !isDirty}
             className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
           >
             {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
@@ -1225,6 +1272,8 @@ function NotificationPreferenceTab(
   notifPrefs: NotificationPreferences,
   setNotifPrefs: Dispatch<SetStateAction<NotificationPreferences>>,
   isSavingNotifPrefs: boolean,
+  isDirty: boolean,
+  onRevert: () => void,
 ): import('react').ReactNode {
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
@@ -1323,10 +1372,25 @@ function NotificationPreferenceTab(
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+          {isDirty ? (
+            <>
+              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning">
+                Unsaved changes
+              </span>
+              <button
+                type="button"
+                onClick={onRevert}
+                disabled={isSavingNotifPrefs}
+                className="rounded-full border border-border px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              >
+                Revert
+              </button>
+            </>
+          ) : null}
           <button
             type="submit"
-            disabled={isSavingNotifPrefs}
+            disabled={isSavingNotifPrefs || !isDirty}
             className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
           >
             {isSavingNotifPrefs

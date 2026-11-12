@@ -26,16 +26,17 @@ export function StudioTabs({
   }
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2 border-b border-border pb-2.5 mb-6 sm:mb-8 font-eyebrow text-caption uppercase tracking-wider overflow-x-auto no-scrollbar scroll-smooth">
+    <div className="sticky top-14 z-30 -mx-4 mb-6 flex items-center gap-1.5 overflow-x-auto border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur-md no-scrollbar scroll-smooth sm:mx-0 sm:mb-8 sm:gap-2 sm:px-0 font-eyebrow text-caption uppercase tracking-wider">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onTabChange(tab.id)}
-          className={`py-2 px-3 sm:px-4 rounded-control cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
+          aria-current={activeTab === tab.id ? 'page' : undefined}
+          className={`shrink-0 cursor-pointer whitespace-nowrap rounded-control px-3 py-2 transition-colors sm:px-4 ${
             activeTab === tab.id
               ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           {tab.label}

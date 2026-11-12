@@ -25,6 +25,18 @@ import { VerificationTab } from '../Components/studio/tabs/VerificationTab'
 
 export const Route = createFileRoute('/studio')({
   staticData: { layout: 'full' },
+  validateSearch: (search: Record<string, unknown>): { tab?: StudioTab } => {
+    const tab = search.tab
+    return {
+      tab:
+        tab === 'trash' ||
+        tab === 'profile' ||
+        tab === 'verification' ||
+        tab === 'releases'
+          ? tab
+          : undefined,
+    }
+  },
   component: StudioComponent,
 })
 
@@ -43,7 +55,18 @@ function StudioComponent() {
   // Kept separate from artistProfile so "this account has no profile" (a settled
   // answer) never looks like "the studio request failed" (recoverable error).
   const [studioLoadError, setStudioLoadError] = useState(false)
-  const [activeTab, setActiveTab] = useState<StudioTab>('releases')
+  // The tab lives in the URL, so a section can be linked to, bookmarked and
+  // reached with the back button.
+  const { tab: searchTab } = Route.useSearch()
+  const activeTab: StudioTab = searchTab ?? 'releases'
+
+  const setActiveTab = (tab: StudioTab) => {
+    navigate({
+      to: '/studio',
+      search: (prev) => ({ ...prev, tab: tab === 'releases' ? undefined : tab }),
+      replace: true,
+    })
+  }
 
   const releases = useReleases()
 
