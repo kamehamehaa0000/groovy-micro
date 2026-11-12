@@ -22,6 +22,7 @@ export interface RadioPillProps {
    * 'compact': h-16 on mobile, h-20 on tablet/desktop (h-16 sm:h-20)
    */
   size?: 'default' | 'compact'
+  haveBorder?: boolean
 }
 
 export const RadioPill = memo(function RadioPill({
@@ -37,10 +38,11 @@ export const RadioPill = memo(function RadioPill({
   onPlay,
   className,
   size = 'default',
+  haveBorder = false,
 }: RadioPillProps) {
   const isCompact = size === 'compact'
   const heightClass = isCompact ? 'h-14 sm:h-20' : 'h-20'
-
+  const border = haveBorder ? 'dark:border dark:border-border ' : ''
   const content = (
     <>
       {/* Left Cover Image Container */}
@@ -120,8 +122,9 @@ export const RadioPill = memo(function RadioPill({
     'group flex w-full select-none overflow-hidden rounded-full transition-colors',
     heightClass,
     'bg-primary text-primary-foreground hover:bg-primary-strong',
-    'dark:bg-card dark:text-card-foreground dark:border dark:border-border dark:hover:bg-accent dark:hover:border-foreground/20',
+    'dark:bg-card dark:text-card-foreground dark:hover:bg-accent dark:hover:border-foreground/20',
     'shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+    border,
     className,
   )
 
