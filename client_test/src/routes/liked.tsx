@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Shuffle } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
@@ -45,9 +46,6 @@ function LikedSongsPage() {
   const { isAuthenticated, user, isLoading: isAuthLoading } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
-  const [songs, setSongs] = useState<EnrichedSong[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<LikedSort>('recent')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -67,36 +65,27 @@ function LikedSongsPage() {
   const isCurrentContext = contextUri === 'library:liked'
   const isPlayingThisContext = isCurrentContext && playbackStatus === 'playing'
 
-  // Fetch liked songs on mount
+  // React Query owns the request: it caches the list, survives tab switches
+  // and never leaves the page showing a stale empty state.
+  const likedQuery = useQuery({
+    queryKey: ['liked-songs'],
+    queryFn: () => catalogApi.getLikedSongs(1, 100),
+    enabled: isAuthenticated,
+  })
+
+  const songs = useMemo(() => likedQuery.data?.data ?? [], [likedQuery.data])
+  const isLoading = likedQuery.isLoading
+  const errorMsg = likedQuery.isError
+    ? likedQuery.error instanceof Error
+      ? likedQuery.error.message
+      : 'Failed to load liked songs'
+    : null
+
+  // The likes store powers the heart icons; it only needs the ids.
   useEffect(() => {
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-
-    let isMounted = true
-    const loadLikedSongs = async () => {
-      setIsLoading(true)
-      setErrorMsg(null)
-      try {
-        const res = await catalogApi.getLikedSongs(1, 100)
-        if (!isMounted) return
-        setSongs(res.data)
-        hydrateSongs(res.data.map((s) => ({ id: s.id, isLiked: true })))
-      } catch (err: any) {
-        if (!isMounted) return
-        setErrorMsg(err.message || 'Failed to load liked songs')
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-
-    loadLikedSongs()
-
-    return () => {
-      isMounted = false
-    }
-  }, [isAuthenticated, hydrateSongs])
+    if (songs.length === 0) return
+    hydrateSongs(songs.map((song) => ({ id: song.id, isLiked: true })))
+  }, [songs, hydrateSongs])
 
   // Map EnrichedSong to PlayerTrack
   const toPlayerTrack = useCallback((s: EnrichedSong): PlayerTrack => {
@@ -123,7 +112,7 @@ function LikedSongsPage() {
 
   // Everything currently liked, independent of the search filter.
   const librarySongs = useMemo(
-    () => songs.filter((s) => likedSongIds.has(s.id)),
+    () => songs.filter((s) => likedSongIds.has(s.id) || s.isLiked),
     [songs, likedSongIds],
   )
 

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { artistsApi, type FollowedArtistRelease } from '../lib/artists.api'
@@ -7,6 +8,7 @@ import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { GridIconSVG, ListIconSVG } from '../Components/Icons'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 
 export const Route = createFileRoute('/releases')({
   staticData: { layout: 'wide' },
@@ -43,100 +45,45 @@ function formatDurationSeconds(sec: number): string {
 }
 
 function FollowedReleasesComponent() {
-  const { isAuthenticated } = useAuthStore()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [releases, setReleases] = useState<FollowedArtistRelease[]>([])
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  // React Query owns the paging: it caches the pages, keeps them while you
+  // switch tabs and dedupes the requests the old manual loader repeated.
+  const releasesQuery = useInfiniteQuery({
+    queryKey: ['releases', 'followed'],
+    queryFn: ({ pageParam }) =>
+      artistsApi.getFollowedReleases({ page: pageParam, limit: 30 }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+    enabled: isAuthenticated,
+  })
 
-  // Initial load
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
+  const releases = useMemo(
+    () => releasesQuery.data?.pages.flatMap((page) => page.releases ?? []) ?? [],
+    [releasesQuery.data],
+  )
+  const isLoading = releasesQuery.isLoading
+  const isLoadingMore = releasesQuery.isFetchingNextPage
+  const hasMore = releasesQuery.hasNextPage
+  const error = releasesQuery.isError
+    ? releasesQuery.error instanceof Error
+      ? releasesQuery.error.message
+      : 'Your release feed could not be loaded.'
+    : null
 
-    let isMounted = true
-    setIsLoading(true)
+  const sentinelRef = useInfiniteScroll({
+    enabled: hasMore && !isLoading && !isLoadingMore,
+    onLoadMore: () => {
+      if (releasesQuery.hasNextPage && !releasesQuery.isFetchingNextPage) {
+        void releasesQuery.fetchNextPage()
+      }
+    },
+  })
 
-    artistsApi
-      .getFollowedReleases({ page: 1, limit: 30 })
-      .then((res) => {
-        if (!isMounted) return
-        setReleases(res.releases || [])
-        setHasMore(res.hasMore)
-        setPage(res.page)
-      })
-      .catch((err) => {
-        console.warn('[Releases] Failed to load followed releases:', err)
-        // Without this the page rendered "no recent releases" for a failed
-        // request, which reads as "you follow nobody".
-        if (isMounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Your release feed could not be loaded.',
-          )
-        }
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false)
-      })
 
-    return () => {
-      isMounted = false
-    }
-  }, [isAuthenticated])
-
-  // Infinite scroll next page loader
-  const fetchNextPage = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return
-
-    setIsLoadingMore(true)
-    const nextPage = page + 1
-
-    try {
-      const res = await artistsApi.getFollowedReleases({
-        page: nextPage,
-        limit: 30,
-      })
-      setReleases((prev) => [...prev, ...(res.releases || [])])
-      setHasMore(res.hasMore)
-      setPage(res.page)
-    } catch (err) {
-      console.warn('[Releases] Failed to load more releases:', err)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [page, isLoadingMore, hasMore])
-
-  // Attach IntersectionObserver for smooth infinite scroll
-  useEffect(() => {
-    if (!hasMore || isLoading || isLoadingMore) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage()
-        }
-      },
-      { threshold: 0.1, rootMargin: '300px' },
-    )
-
-    const el = sentinelRef.current
-    if (el) observer.observe(el)
-
-    return () => {
-      if (el) observer.unobserve(el)
-    }
-  }, [hasMore, isLoading, isLoadingMore, fetchNextPage])
 
   // High-performance chronological Month grouping
   const monthGroups: ReleaseMonthGroup[] = useMemo(() => {

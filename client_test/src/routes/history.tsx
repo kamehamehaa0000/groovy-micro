@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -8,6 +9,7 @@ import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { EmptyState } from '../Components/ui/EmptyState'
 import { SectionTitle } from '../Components/ui/SectionTitle'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -70,87 +72,42 @@ function HistoryPageComponent() {
   const togglePlay = usePlayerStore((s) => s.togglePlay)
 
   const [groupBy, setGroupBy] = useState<GroupByInterval>('day')
-  const [items, setItems] = useState<HistoryItem[]>([])
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [expandedReleaseKey, setExpandedReleaseKey] = useState<string | null>(
     null,
   )
 
-  const sentinelRef = useRef<HTMLDivElement>(null)
-
-  // Initial load
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-
-    let isMounted = true
-    setIsLoading(true)
-
-    playerApi
-      .getHistory({ limit: 50 })
-      .then((res) => {
-        if (!isMounted) return
-        setItems(res.items || [])
-        setNextCursor(res.nextCursor)
-        setHasMore(res.hasMore)
-      })
-      .catch((err) => {
-        console.warn('[History] Failed to load listening history:', err)
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false)
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [isAuthenticated])
-
-  // Infinite scroll next page loader
-  const fetchNextPage = useCallback(async () => {
-    if (!nextCursor || isLoadingMore || !hasMore) return
-
-    setIsLoadingMore(true)
-    try {
-      const res = await playerApi.getHistory({
+  // React Query owns the paging: the cursor lives in the query, so switching
+  // tabs or coming back to the page keeps the history you already loaded.
+  const historyQuery = useInfiniteQuery({
+    queryKey: ['listening-history'],
+    queryFn: ({ pageParam }) =>
+      playerApi.getHistory({
         limit: 50,
-        cursor: nextCursor,
-      })
-      setItems((prev) => [...prev, ...(res.items || [])])
-      setNextCursor(res.nextCursor)
-      setHasMore(res.hasMore)
-    } catch (err) {
-      console.warn('[History] Failed to load more history:', err)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [nextCursor, isLoadingMore, hasMore])
+        cursor: pageParam as string | undefined,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
+    enabled: isAuthenticated,
+  })
 
-  // Attach IntersectionObserver for smooth infinite scroll
-  useEffect(() => {
-    if (!hasMore || isLoading || isLoadingMore) return
+  const items = useMemo(
+    () => historyQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [],
+    [historyQuery.data],
+  )
+  const isLoading = historyQuery.isLoading
+  const isLoadingMore = historyQuery.isFetchingNextPage
+  const hasMore = historyQuery.hasNextPage
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage()
-        }
-      },
-      { threshold: 0.1, rootMargin: '300px' },
-    )
-
-    const el = sentinelRef.current
-    if (el) observer.observe(el)
-
-    return () => {
-      if (el) observer.unobserve(el)
-    }
-  }, [hasMore, isLoading, isLoadingMore, fetchNextPage])
+  // The shared sentinel: one implementation for every infinite list.
+  const sentinelRef = useInfiniteScroll({
+    enabled: hasMore && !isLoading && !isLoadingMore,
+    onLoadMore: () => {
+      if (historyQuery.hasNextPage && !historyQuery.isFetchingNextPage) {
+        void historyQuery.fetchNextPage()
+      }
+    },
+  })
 
   // High-performance bucket & release aggregator
   const releaseGroups: ReleaseGroup[] = useMemo(() => {
