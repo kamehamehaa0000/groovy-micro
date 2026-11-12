@@ -1,23 +1,51 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useJamStore } from "../stores/jam.store";
 import { useAuthStore } from "../stores/auth.store";
 import { usePlayerStore } from "../stores/player.store";
+import { Button } from "../Components/ui/Button";
+import { ErrorState } from "../Components/ui/EmptyState";
+import type { JamSyncStatus } from "../types/jam";
 
 export const Route = createFileRoute("/jam/$code")({
   component: JamRouteComponent,
 });
+
+/** The sync badge says what the connection is actually doing. */
+const SYNC_LABEL: Record<JamSyncStatus, { label: string; className: string }> = {
+  synced: {
+    label: "Synced",
+    className: "bg-success-soft text-success border border-success/20",
+  },
+  drift_correcting: {
+    label: "Catching up…",
+    className: "bg-warning-soft text-warning border border-warning/20 animate-pulse",
+  },
+  syncing: {
+    label: "Calibrating",
+    className: "bg-secondary/20 text-muted-foreground border border-border",
+  },
+  disconnected: {
+    label: "Reconnecting",
+    className: "bg-destructive-soft text-destructive border border-destructive/20",
+  },
+};
 
 function JamRouteComponent() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  // Subscribed, not read from the store during render: a member list that
+  // labels the signed-in listener "You" has to update when the session does.
+  const currentUserId = useAuthStore((s) => s.user?.id);
   const activeRoom = useJamStore((s) => s.activeRoom);
   const isHost = useJamStore((s) => s.isHost);
   const members = useJamStore((s) => s.members);
   const jamQueue = useJamStore((s) => s.jamQueue);
   const syncStatus = useJamStore((s) => s.syncStatus);
+  const clockOffsetMs = useJamStore((s) => s.clockOffsetMs);
+  const rttMs = useJamStore((s) => s.rttMs);
   const joinRoom = useJamStore((s) => s.joinRoom);
   const leaveRoom = useJamStore((s) => s.leaveRoom);
   const transferHost = useJamStore((s) => s.transferHost);
@@ -26,6 +54,7 @@ function JamRouteComponent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -34,8 +63,11 @@ function JamRouteComponent() {
       return;
     }
 
+    let cancelled = false;
+
     const connectToJam = async () => {
-      if (activeRoom && activeRoom.roomCode.toUpperCase() === code.toUpperCase()) {
+      const current = useJamStore.getState().activeRoom;
+      if (current && current.roomCode.toUpperCase() === code.toUpperCase()) {
         setLoading(false);
         return;
       }
@@ -44,21 +76,34 @@ function JamRouteComponent() {
       setError(null);
       try {
         await joinRoom(code);
+        if (!cancelled) setLoading(false);
       } catch (err: any) {
-        setError(err.message || "Failed to join Live Jam. Verify the room code and your privacy permissions.");
-      } finally {
+        if (cancelled) return;
+        setError(
+          err.message ||
+            "Failed to join Live Jam. Verify the room code and your privacy permissions."
+        );
         setLoading(false);
       }
     };
 
-    connectToJam();
-  }, [code, isAuthenticated]);
+    void connectToJam();
 
-  const handleCopyLink = () => {
+    return () => {
+      cancelled = true;
+    };
+  }, [code, isAuthenticated, attempt, joinRoom]);
+
+  const handleCopyLink = useCallback(() => {
     const url = `${window.location.origin}/jam/${code.toUpperCase()}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    window.setTimeout(() => setCopied(false), 2000);
+  }, [code]);
+
+  const retry = () => {
+    setError(null);
+    setAttempt((n) => n + 1);
   };
 
   if (loading) {
@@ -76,38 +121,38 @@ function JamRouteComponent() {
 
   if (error) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6 select-none">
-        <div className="w-12 h-12 rounded-full bg-destructive-soft border border-destructive/20 text-destructive flex items-center justify-center text-heading font-bold mb-4">
-          ✕
-        </div>
-        <h2 className="font-serif italic text-2xl text-foreground mb-2">Could Not Join Jam</h2>
-        <p className="text-caption text-muted-foreground max-w-md mb-6 leading-relaxed">{error}</p>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 p-6 select-none">
+        <ErrorState
+          title="Could not join the jam"
+          description={error}
+          onRetry={retry}
+          className="w-full max-w-md"
+        />
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/" })}
-            className="px-4 py-2 rounded-control border border-border bg-card hover:bg-background text-foreground font-eyebrow text-caption uppercase tracking-wider transition-colors cursor-pointer shadow-raised"
-          >
+          <Button variant="outline" size="md" onClick={() => navigate({ to: "/" })}>
             &larr; Back to Catalog
-          </button>
+          </Button>
           {!isAuthenticated && (
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={() =>
                 navigate({
                   to: "/login",
                   search: { redirect: `/jam/${code}` },
                 })
               }
-              className="px-4 py-2 rounded-control bg-foreground hover:bg-primary text-background hover:text-primary-foreground font-eyebrow text-caption uppercase tracking-wider transition-colors cursor-pointer shadow-raised"
             >
               Sign In
-            </button>
+            </Button>
           )}
         </div>
       </div>
     );
   }
+
+  const sync = SYNC_LABEL[syncStatus] ?? SYNC_LABEL.disconnected;
+  const drift = Math.abs(Math.round(clockOffsetMs));
 
   return (
     <div className="space-y-6">
@@ -133,65 +178,52 @@ function JamRouteComponent() {
               </span>
               <span>•</span>
               <span>{members.length} {members.length === 1 ? "listener" : "listeners"} connected</span>
-              {!isHost && (
-                <>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider">
-                    {syncStatus === "synced" && (
-                      <span className="px-1.5 py-0.5 rounded-control bg-success-soft text-success border border-success/20">
-                        ● Synced
-                      </span>
-                    )}
-                    {syncStatus === "drift_correcting" && (
-                      <span className="px-1.5 py-0.5 rounded-control bg-warning-soft text-warning border border-warning/20 animate-pulse">
-                        ◐ Catching up...
-                      </span>
-                    )}
-                    {syncStatus === "syncing" && (
-                      <span className="px-1.5 py-0.5 rounded-control bg-secondary/20 text-muted-foreground border border-border">
-                        ○ Calibrating
-                      </span>
-                    )}
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 font-eyebrow text-eyebrow uppercase tracking-wider">
+                <span className={`px-1.5 py-0.5 rounded-control ${sync.className}`}>
+                  {sync.label}
+                </span>
+                {syncStatus === "synced" ? (
+                  <span className="text-muted-foreground/80">
+                    {drift}ms drift · {Math.round(rttMs)}ms rtt
                   </span>
-                </>
-              )}
+                ) : null}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="px-3.5 py-1.5 rounded-control border border-border bg-card hover:bg-background hover:border-foreground text-foreground font-eyebrow text-caption uppercase tracking-wider transition-colors cursor-pointer shadow-raised flex items-center gap-1.5"
-            >
-              <span>{copied ? "Copied Link!" : "Copy Invite Link"}</span>
-            </button>
+            <Button variant="outline" size="md" onClick={handleCopyLink}>
+              {copied ? "Copied Link!" : "Copy Invite Link"}
+            </Button>
 
-            <button
-              type="button"
+            <Button
+              variant="danger"
+              size="md"
               onClick={() => {
                 leaveRoom();
                 navigate({ to: "/" });
               }}
-              className="px-3.5 py-1.5 rounded-control border border-destructive/25 bg-destructive-soft hover:bg-destructive/20 text-destructive font-eyebrow text-caption uppercase tracking-wider font-semibold transition-colors cursor-pointer shadow-raised"
             >
               Leave Jam
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Now Playing & Collaborative Queue */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* The room is a wide stage with a narrow rail beside it. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-6">
           {/* Current Playing Card */}
           <div className="p-5 sm:p-6 rounded-control bg-card border border-border space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground font-semibold">
                 Now Playing in Jam
               </span>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-success">
-                Synchronized
+              <span
+                className={`font-eyebrow text-eyebrow uppercase tracking-wider ${syncStatus === "synced" ? "text-success" : "text-muted-foreground"}`}
+              >
+                {sync.label}
               </span>
             </div>
 
@@ -275,7 +307,7 @@ function JamRouteComponent() {
           </div>
         </div>
 
-        {/* Right Col: Connected Listeners & Room Details */}
+        {/* Right rail: connected listeners */}
         <div className="space-y-6">
           <div className="p-5 sm:p-6 rounded-control bg-card border border-border space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-border pb-3">
@@ -302,7 +334,10 @@ function JamRouteComponent() {
                       )}
                     </div>
                     <span className="font-medium text-foreground truncate">
-                      {m.displayName} {m.userId === useAuthStore.getState().user?.id && <span className="text-muted-foreground text-eyebrow">(You)</span>}
+                      {m.displayName}{" "}
+                      {m.userId === currentUserId && (
+                        <span className="text-muted-foreground text-eyebrow">(You)</span>
+                      )}
                     </span>
                   </div>
 
@@ -316,7 +351,7 @@ function JamRouteComponent() {
                         <button
                           type="button"
                           onClick={() => transferHost(m.userId)}
-                          className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-border hover:border-success bg-card hover:bg-success hover:text-success-foreground text-muted-foreground transition cursor-pointer"
+                          className="min-h-8 cursor-pointer rounded-control border border-border bg-card px-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition hover:border-success hover:bg-success hover:text-success-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                           title="Pass the DJ control to this listener"
                         >
                           Pass Aux
