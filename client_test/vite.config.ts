@@ -13,6 +13,7 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
   ],
   server: {
+    allowedHosts: ['studying-sierra-putting-exit.trycloudflare.com'],
     port: 5173,
     proxy: {
       '/api': {

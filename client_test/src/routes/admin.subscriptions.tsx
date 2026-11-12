@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
 import { subscriptionsApi } from '../lib/subscriptions.api'
 import { EmptyState } from '../Components/ui/EmptyState'
@@ -17,12 +18,10 @@ export const Route = createFileRoute('/admin/subscriptions')({
 
 function AdminSubscriptionsDeskComponent() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
 
   const [activeTab, setActiveTab] = useState<'plans' | 'features'>('plans')
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
-  const [features, setFeatures] = useState<PlanFeatureDefinition[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [actionNotice, setActionNotice] = useState<{
     type: 'success' | 'error'
     text: string
@@ -56,33 +55,29 @@ function AdminSubscriptionsDeskComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  const loadData = async (options?: { keepNotice?: boolean }) => {
-    setIsLoading(true)
-    // A successful action sets its notice and then reloads the tables — wiping
-    // the notice here meant the confirmation was gone before anyone saw it.
-    if (!options?.keepNotice) setActionNotice(null)
-    try {
-      const [plansRes, featuresRes] = await Promise.all([
-        subscriptionsApi.adminListPlans(),
-        subscriptionsApi.adminListFeatures(),
-      ])
-      setPlans(plansRes.plans)
-      setFeatures(featuresRes.features)
-    } catch (err: any) {
-      setActionNotice({
-        type: 'error',
-        text: err.message || 'Failed to retrieve administrative records',
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // React Query owns the two tables. A mutation invalidates them, so the
+  // desk stops refetching everything after every change and the confirmation
+  // notice survives the reload.
+  const plansQuery = useQuery({
+    queryKey: ['admin', 'plans'],
+    queryFn: () => subscriptionsApi.adminListPlans(),
+    enabled: user?.role === 'ADMIN',
+  })
 
-  useEffect(() => {
-    if (user?.role === 'ADMIN') {
-      loadData()
-    }
-  }, [user])
+  const featuresQuery = useQuery({
+    queryKey: ['admin', 'features'],
+    queryFn: () => subscriptionsApi.adminListFeatures(),
+    enabled: user?.role === 'ADMIN',
+  })
+
+  const plans = plansQuery.data?.plans ?? []
+  const features = featuresQuery.data?.features ?? []
+  const isLoading = plansQuery.isLoading || featuresQuery.isLoading
+
+  const invalidatePlans = () => {
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'plans'] })
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'features'] })
+  }
 
   if (isAuthLoading) {
     return (
@@ -144,7 +139,7 @@ function AdminSubscriptionsDeskComponent() {
       setNewFeatureKey('')
       setNewFeatureName('')
       setNewFeatureDesc('')
-      await loadData({ keepNotice: true })
+      invalidatePlans()
     } catch (err: any) {
       setActionNotice({
         type: 'error',
@@ -164,7 +159,7 @@ function AdminSubscriptionsDeskComponent() {
         type: 'success',
         text: `Feature '${feat.key}' ${!feat.isActive ? 'activated' : 'deactivated'}.`,
       })
-      await loadData({ keepNotice: true })
+      invalidatePlans()
     } catch (err: any) {
       setActionNotice({
         type: 'error',
@@ -237,7 +232,7 @@ function AdminSubscriptionsDeskComponent() {
         })
       }
       setIsPlanModalOpen(false)
-      await loadData({ keepNotice: true })
+      invalidatePlans()
     } catch (err: any) {
       setActionNotice({
         type: 'error',

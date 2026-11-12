@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
 import type { TrashCounts } from '../../../lib/catalog.api'
@@ -8,10 +9,7 @@ import type { ReleaseDeleteRequest, DetachCutRequest } from '../studio.types'
 
 export function useReleases() {
   const user = useAuthStore((s) => s.user)
-
-  // Catalog Releases State
-  const [albums, setAlbums] = useState<Album[]>([])
-  const [isLoadingReleases, setIsLoadingReleases] = useState(false)
+  const queryClient = useQueryClient()
 
   // Soft Delete Confirmation State (Modal)
   const [deleteConfirm, setDeleteConfirm] =
@@ -44,18 +42,36 @@ export function useReleases() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [visibilityMenuId])
 
-  // Load Releases for the artist
+  // The artist's releases are a query: the studio keeps them while you work in
+  // another tab, and a mutation only refreshes the list.
+  const releasesQuery = useQuery({
+    queryKey: ['studio', 'releases'],
+    queryFn: () => catalogApi.getStudioReleases(false),
+    enabled: !!user && (user.role === 'ARTIST' || user.role === 'ADMIN'),
+  })
+
+  const albums = releasesQuery.data?.albums ?? []
+  const isLoadingReleases = releasesQuery.isLoading
+
+  /**
+   * Writes the release list back to the cache, so the studio keeps a single
+   * source of truth for it.
+   */
+  const setAlbums = (
+    value: Album[] | ((prev: Album[]) => Album[]),
+  ) => {
+    queryClient.setQueryData<{ albums: Album[] }>(
+      ['studio', 'releases'],
+      (prev) => {
+        const next =
+          typeof value === 'function' ? value(prev?.albums ?? []) : value
+        return { ...(prev ?? { albums: [] }), albums: next }
+      },
+    )
+  }
+
   const loadReleases = async () => {
-    if (!user || (user.role !== 'ARTIST' && user.role !== 'ADMIN')) return
-    setIsLoadingReleases(true)
-    try {
-      const res = await catalogApi.getStudioReleases(false)
-      setAlbums(res.albums)
-    } catch (err: any) {
-      console.warn('Could not load releases:', err)
-    } finally {
-      setIsLoadingReleases(false)
-    }
+    await releasesQuery.refetch()
   }
 
   // Toggle expand album tracks
@@ -176,16 +192,21 @@ export function useReleases() {
       const updated = await catalogApi.updateAlbum(album.id, {
         visibility: newVisibility,
       })
-      setAlbums((prev) =>
-        prev.map((a) =>
-          a.id === album.id
-            ? {
-                ...a,
-                visibility: updated.visibility,
-                shareToken: updated.shareToken ?? a.shareToken,
-              }
-            : a,
-        ),
+      queryClient.setQueryData<{ albums: Album[] }>(
+        ['studio', 'releases'],
+        (prev) =>
+          prev && {
+            ...prev,
+            albums: prev.albums.map((a) =>
+              a.id === album.id
+                ? {
+                    ...a,
+                    visibility: updated.visibility,
+                    shareToken: updated.shareToken ?? a.shareToken,
+                  }
+                : a,
+            ),
+          },
       )
       notify.success(
         `Visibility for "${album.title}" updated to ${newVisibility}${
@@ -201,7 +222,6 @@ export function useReleases() {
     albums,
     setAlbums,
     isLoadingReleases,
-    setIsLoadingReleases,
     isCreateReleaseOpen,
     setIsCreateReleaseOpen,
     editingAlbum,
