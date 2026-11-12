@@ -7,8 +7,12 @@ import {
 import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
-import { GoogleIcon, SvgArtworkSpiral } from '../Components/Icons'
-import { resolveRedirectTarget } from '../lib/auth-redirect'
+import { GoogleIcon } from '../Components/Icons'
+import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
+import { AuthField, PasswordInput } from '../Components/auth/AuthField'
+import { Button } from '../Components/ui'
+import { Tabs } from '../Components/ui/Tabs'
+import { resolveRedirectTarget, saveAuthRedirect } from '../lib/auth-redirect'
 
 const registerSearchSchema = z.object({
   redirect: z.string().optional(),
@@ -47,7 +51,6 @@ function RegisterComponent() {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -111,285 +114,178 @@ function RegisterComponent() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-4 border border-border bg-background shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[640px] overflow-hidden">
-      {/* ===================== BRAND PANEL ===================== */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-muted border-r border-border relative overflow-hidden select-none">
-        <div className="flex items-center justify-between z-10">
-          <Link
-            to="/"
-            className="font-serif italic text-2xl text-foreground hover:opacity-80 transition-opacity"
+    <AuthShell>
+      {registeredEmail ? (
+        /* Check Your Inbox View */
+        <div className="flex flex-col">
+          <button
+            type="button"
+            onClick={() => setRegisteredEmail(null)}
+            className="mb-6 self-start font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
           >
-            Groovy
-          </Link>
-          <Link
-            to="/"
-            className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group"
-          >
-            <span className="transition-transform duration-200 group-hover:-translate-x-1">
-              &larr;
-            </span>
-            <span>Back to home</span>
-          </Link>
-        </div>
+            &larr; Back to form
+          </button>
 
-        <div className="max-w-md my-auto relative z-10">
-          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-4">
-            Serentiy · Curation · Preservation
+          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
+            Correspondence · Account
+          </span>
+          <h2 className="font-serif text-3xl leading-tight text-foreground">
+            Check your inbox
+          </h2>
+          <p className="mt-3 text-caption leading-relaxed text-muted-foreground">
+            We dispatched a verification link to
+          </p>
+          <strong className="mt-1.5 block border border-border bg-muted p-2 font-mono text-eyebrow text-foreground">
+            {registeredEmail}
+          </strong>
+          <p className="mt-3 text-caption leading-relaxed text-muted-foreground">
+            Follow the link in that message to activate your membership before
+            entering the Maison.
+          </p>
+
+          {resendNotice && (
+            <AuthNotice
+              tone={resendNotice.type === 'success' ? 'success' : 'error'}
+              className="mt-5"
+            >
+              {resendNotice.text}
+            </AuthNotice>
+          )}
+
+          <div className="mt-6 flex flex-col gap-3 border-t border-border pt-4">
+            <Link
+              to="/login"
+              search={redirectParam ? { redirect: redirectParam } : undefined}
+              className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-opacity hover:opacity-90"
+            >
+              Go to Sign In &rarr;
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={isResending || cooldown > 0}
+              className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-eyebrow text-eyebrow uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {cooldown > 0
+                ? `Resend available in ${cooldown}s`
+                : isResending
+                  ? 'Dispatching...'
+                  : 'Resend Verification Link'}
+            </button>
           </div>
-          <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
-            A quiet space in the catalog.
-          </h1>
-          <p className="font-sans text-body leading-[1.7] text-muted-foreground max-w-sm">
-            Join the collective to access our full fidelity catalog, preserved
-            experience, and dedicated personal archives.
+
+          <p className="mt-6 text-center font-eyebrow text-muted-foreground/80">
+            Wrong address?{' '}
+            <button
+              type="button"
+              onClick={() => setRegisteredEmail(null)}
+              className="text-primary underline cursor-pointer"
+            >
+              Edit and resend
+            </button>
           </p>
         </div>
-        {/* Decorative Geometric Vinyl Record SVG Art */}
-        <SvgArtworkSpiral />
+      ) : (
+        /* Register Form View */
+        <div className="flex flex-col">
+          <Tabs
+            variant="underline"
+            ariaLabel="Authentication"
+            className="mb-7"
+            value="register"
+            onChange={() => undefined}
+            items={[
+              {
+                id: 'login',
+                label: (
+                  <Link
+                    to="/login"
+                    search={redirectParam ? { redirect: redirectParam } : undefined}
+                    className="hover:underline"
+                  >
+                    Sign In
+                  </Link>
+                ),
+              },
+              { id: 'register', label: 'Create Account' },
+            ]}
+          />
 
-        <div className="flex justify-between items-center font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground relative z-10">
-          <span>© 2026 Groovy </span>
-          <span>Est. MMXXVI</span>
-        </div>
-      </div>
+          <h2 className="font-serif text-2xl text-foreground">Join the Maison</h2>
+          <p className="mt-1.5 text-caption leading-relaxed text-muted-foreground">
+            A quiet, curated corner of the catalog — reserved once you're in.
+          </p>
 
-      {/* ===================== FORM PANEL ===================== */}
-      <div className="flex items-center justify-center p-8 sm:p-14">
-        <div className="w-full max-w-90">
-          {/* Mobile Back to Home Navigation */}
-          <div className="lg:hidden mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <span className="transition-transform duration-200 group-hover:-translate-x-1">
-                &larr;
-              </span>
-              <span>Back to home</span>
-            </Link>
+          {error && (
+            <AuthNotice tone="error" className="mt-6">
+              {error}
+            </AuthNotice>
+          )}
+
+          {/* Google OAuth Button */}
+          <a
+            href="/api/v1/auth/google"
+            onClick={() => {
+              const destination = resolveRedirectTarget(redirectParam)
+              saveAuthRedirect(destination)
+            }}
+            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-control border border-border bg-card px-4 py-3 text-caption font-medium text-foreground shadow-raised transition-colors hover:bg-muted"
+          >
+            <GoogleIcon className="shrink-0" />
+            Continue with Google
+          </a>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center gap-3.5 before:content-[''] before:h-px before:flex-1 before:bg-border after:content-[''] after:h-px after:flex-1 after:bg-border">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+              Or with credentials
+            </span>
           </div>
 
-          {registeredEmail ? (
-            /* Check Your Inbox View */
-            <div className="flex flex-col">
-              <button
-                type="button"
-                onClick={() => setRegisteredEmail(null)}
-                className="self-start font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-6 cursor-pointer"
-              >
-                &larr; Back to form
-              </button>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <AuthField
+              label="Display Name"
+              type="text"
+              required
+              autoComplete="name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="How should we address you"
+            />
 
-              <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
-                Correspondence · Account
-              </div>
-              <h2 className="font-serif italic font-medium text-3xl text-foreground mb-3 leading-tight">
-                Check your inbox
-              </h2>
-              <p className="text-caption text-muted-foreground leading-relaxed mb-6">
-                We've dispatched a verification link to{' '}
-                <strong className="text-foreground font-mono text-eyebrow block mt-1.5 p-2 bg-muted border border-border">
-                  {registeredEmail}
-                </strong>
-              </p>
-              <p className="text-caption text-muted-foreground leading-relaxed mb-6">
-                Please follow the correspondence link in your message to
-                activate your membership before entering the Maison.
-              </p>
+            <AuthField
+              label="Email Address"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@domain.com"
+            />
 
-              {resendNotice && (
-                <div
-                  className={`mb-6 p-3 border text-caption ${
-                    resendNotice.type === 'success'
-                      ? 'border-success/30 bg-success-soft text-success'
-                      : 'border-destructive/30 bg-destructive-soft text-destructive'
-                  }`}
-                >
-                  {resendNotice.text}
-                </div>
-              )}
+            <PasswordInput
+              label="Password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              hint="Require 1 uppercase, 1 lowercase, 1 number, min 8 chars."
+            />
 
-              <div className="flex flex-col gap-3 pt-4 border-t border-border">
-                <Link
-                  to="/login"
-                  search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="w-full text-center bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground"
-                >
-                  Go to Sign In &rarr;
-                </Link>
+            <Button type="submit" disabled={isSubmitting} block className="mt-1">
+              {isSubmitting ? 'Creating...' : 'Create Account'}
+            </Button>
+          </form>
 
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={isResending || cooldown > 0}
-                  className="w-full border border-border bg-card hover:bg-muted py-2.5 px-4 font-eyebrow text-eyebrow uppercase tracking-widest text-foreground transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {cooldown > 0
-                    ? `Resend available in ${cooldown}s`
-                    : isResending
-                      ? 'Dispatching...'
-                      : 'Resend Verification Link'}
-                </button>
-              </div>
-
-              <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground text-center mt-6">
-                Wrong address?{' '}
-                <button
-                  type="button"
-                  onClick={() => setRegisteredEmail(null)}
-                  className="text-primary underline cursor-pointer"
-                >
-                  Edit and resend
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Register Form View */
-            <div className="flex flex-col">
-              {/* Navigation Tabs */}
-              <div className="flex gap-7 mb-8 border-b border-border">
-                <Link
-                  to="/login"
-                  search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Sign In
-                </Link>
-                <span className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
-                  Create Account
-                </span>
-              </div>
-
-              <h2 className="font-serif italic font-medium text-2xl text-foreground mb-1.5">
-                Join the Maison
-              </h2>
-              <p className="text-caption text-muted-foreground leading-relaxed mb-7">
-                A quiet, curated corner of the catalog — reserved once you're
-                in.
-              </p>
-
-              {/* Error Notice */}
-              {error && (
-                <div className="mb-6 p-3.5 border border-destructive/30 bg-destructive-soft text-caption text-destructive">
-                  {error}
-                </div>
-              )}
-
-              {/* Google OAuth Button */}
-              <a
-                href="/api/v1/auth/google"
-                className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-caption font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-raised"
-              >
-                <GoogleIcon />
-                Continue with Google
-              </a>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                  Or with credentials
-                </span>
-              </div>
-
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="su-name"
-                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-                  >
-                    Display Name
-                  </label>
-                  <input
-                    id="su-name"
-                    type="text"
-                    required
-                    autoComplete="name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="How should we address you"
-                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="su-email"
-                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    id="su-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@domain.com"
-                    className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="su-password"
-                    className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="su-password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 8 characters"
-                      className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
-                    >
-                      {showPassword ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <p className="text-eyebrow text-muted-foreground mt-1">
-                    Require 1 uppercase, 1 lowercase, 1 number, min 8 chars.
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Account'}
-                </button>
-              </form>
-
-              <div className="font-sans text-caption text-muted-foreground text-center mt-7">
-                Already a member?{' '}
-                <Link
-                  to="/login"
-                  search={redirectParam ? { redirect: redirectParam } : undefined}
-                  className="text-primary hover:underline transition-colors"
-                >
-                  Sign in
-                </Link>
-              </div>
-
-              <p className="font-sans text-eyebrow text-muted-foreground/80 text-center mt-5 leading-relaxed">
-                By creating an account, you agree to the Maison terms of access
-                and privacy charter.
-              </p>
-            </div>
-          )}
+          <p className="mt-5 text-center font-eyebrow leading-relaxed text-muted-foreground/80">
+            By creating an account, you agree to the Maison terms of access and
+            privacy charter.
+          </p>
         </div>
-      </div>
-    </div>
+      )}
+    </AuthShell>
   )
 }

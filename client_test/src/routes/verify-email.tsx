@@ -2,6 +2,9 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState, useRef } from 'react'
 import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
+import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
+import { AuthField } from '../Components/auth/AuthField'
+import { Button } from '../Components/ui'
 
 const searchSchema = z.object({
   token: z.string().optional(),
@@ -92,62 +95,56 @@ function VerifyEmailComponent() {
   }
 
   return (
-    <div className="w-full max-w-[460px] mx-auto my-6 border border-border bg-background p-8 sm:p-12 shadow-xs">
-      {/* Brand Header */}
-      <div className="text-center mb-8 select-none">
-        <div className="font-serif italic text-3xl tracking-[-0.03em] text-foreground">
-          Groov<span className="not-italic text-primary font-serif">y</span>
-        </div>
-        <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1.5">
-          Sound Atelier
-        </div>
-      </div>
+    <AuthShell variant="narrow">
+      <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block text-center">
+        Sound Atelier
+      </span>
 
       {/* ================= STATE: VERIFYING ================= */}
       {status === 'verifying' && (
-        <div className="border-y border-border py-8 text-center">
-          <div className="mx-auto w-12 h-12 mb-6 text-primary flex items-center justify-center">
+        <div className="py-8 text-center">
+          <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center text-primary">
             <svg
-              className="animate-spin w-8 h-8"
+              className="h-8 w-8 animate-spin"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
               <path d="M12 2a10 10 0 0 1 10 10" />
             </svg>
           </div>
 
-          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
             Correspondence · Cryptographic Check
-          </div>
-          <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
+          </span>
+          <h1 className="font-serif text-2xl leading-tight text-foreground">
             Authenticating token...
           </h1>
-          <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            Please wait while the Maison cryptographic engine validates your
-            token and activates your member privileges.
+          <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
+            Please wait while the Maison validates your token and activates
+            your member privileges.
           </p>
         </div>
       )}
 
       {/* ================= STATE: SUCCESS ================= */}
       {status === 'success' && (
-        <div className="border-y border-border py-8 text-center">
-          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-success mb-2">
-            Membership Confirmed · Est. MMXXVI
-          </div>
-          <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
+        <div className="py-8 text-center">
+          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-success block mb-2">
+            Membership Confirmed
+          </span>
+          <h1 className="font-serif text-2xl leading-tight text-foreground">
             Account verified.
           </h1>
-          <p className="font-sans text-caption text-muted-foreground leading-relaxed mb-6 max-w-sm mx-auto">
-            Welcome to Groovy. Your account has been authenticated. Redirecting
-            you to your private atelier profile...
+          <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
+            Welcome to Groovy. Your account has been authenticated.
           </p>
           <Link
             to="/profile"
-            className="inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground text-center"
+            className="mt-6 inline-block w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-opacity hover:opacity-90 text-center"
           >
             Enter the Maison &rarr;
           </Link>
@@ -156,126 +153,104 @@ function VerifyEmailComponent() {
 
       {/* ================= STATE: ERROR ================= */}
       {status === 'error' && (
-        <div className="border-y border-border py-8">
-          <div className="text-center mb-6">
-            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-destructive mb-2">
+        <div className="py-8">
+          <div className="text-center">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-destructive block mb-2">
               Correspondence · Security Notice
-            </div>
-            <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
+            </span>
+            <h1 className="font-serif text-2xl leading-tight text-foreground">
               Token expired.
             </h1>
-            <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
               {errorMessage}
             </p>
           </div>
 
           {resendNotice && (
-            <div
-              className={`mb-5 p-3 border text-caption ${
-                resendNotice.type === 'success'
-                  ? 'border-success/30 bg-success-soft text-success'
-                  : 'border-destructive/30 bg-destructive-soft text-destructive'
-              }`}
+            <AuthNotice
+              tone={resendNotice.type === 'success' ? 'success' : 'error'}
+              className="mt-5"
             >
               {resendNotice.text}
-            </div>
+            </AuthNotice>
           )}
 
           <form onSubmit={handleResend} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="resend-email"
-                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-              >
-                Account Email
-              </label>
-              <input
-                id="resend-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-              />
-            </div>
+            <AuthField
+              label="Account Email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@domain.com"
+            />
 
-            <button
+            <Button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              block
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
                 : isResending
                   ? 'Dispatching...'
                   : 'Request New Verification Link'}
-            </button>
+            </Button>
           </form>
         </div>
       )}
 
       {/* ================= STATE: IDLE ================= */}
       {status === 'idle' && (
-        <div className="border-y border-border py-8">
-          <div className="text-center mb-6">
-            <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-2">
+        <div className="py-8">
+          <div className="text-center">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               Correspondence · Dispatch
-            </div>
-            <h1 className="font-serif italic font-normal text-3xl text-foreground leading-tight mb-3">
+            </span>
+            <h1 className="font-serif text-2xl leading-tight text-foreground">
               Verify your email
             </h1>
-            <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
               Provide the email address associated with your Maison membership
               to receive an authentication correspondence.
             </p>
           </div>
 
           {resendNotice && (
-            <div
-              className={`mb-5 p-3 border text-caption ${
-                resendNotice.type === 'success'
-                  ? 'border-success/30 bg-success-soft text-success'
-                  : 'border-destructive/30 bg-destructive-soft text-destructive'
-              }`}
+            <AuthNotice
+              tone={resendNotice.type === 'success' ? 'success' : 'error'}
+              className="mt-5"
             >
               {resendNotice.text}
-            </div>
+            </AuthNotice>
           )}
 
           <form onSubmit={handleResend} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="idle-email"
-                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-              >
-                Account Email
-              </label>
-              <input
-                id="idle-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-              />
-            </div>
+            <AuthField
+              label="Account Email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@domain.com"
+            />
 
-            <button
+            <Button
               type="submit"
               disabled={isResending || cooldown > 0}
-              className="mt-2 w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
+              block
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
                 : isResending
                   ? 'Dispatching...'
                   : 'Send Verification Link'}
-            </button>
+            </Button>
           </form>
 
-          <div className="font-sans text-caption text-muted-foreground text-center mt-7">
+          <div className="mt-7 text-center text-caption text-muted-foreground">
             Already verified?{' '}
             <Link
               to="/login"
@@ -286,13 +261,6 @@ function VerifyEmailComponent() {
           </div>
         </div>
       )}
-
-      {/* Footer Info */}
-      <div className="mt-8 text-center">
-        <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground/70">
-          Maison Édition MMXXVI · Security & Correspondence
-        </span>
-      </div>
-    </div>
+    </AuthShell>
   )
 }

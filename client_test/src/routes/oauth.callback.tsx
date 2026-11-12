@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useAuthStore } from "../stores/auth.store";
+import { AuthShell } from "../Components/auth/AuthShell";
 import {
   getSavedAuthRedirect,
   clearSavedAuthRedirect,
@@ -56,23 +57,35 @@ function OAuthCallbackComponent() {
   }, [token, error, redirectParam, setAccessToken, refreshProfile, clearAuth, navigate]);
 
   return (
-    <div className="py-24 text-center">
-      <div className="mx-auto w-10 h-10 mb-4 text-primary flex items-center justify-center">
-        <svg
-          className="animate-spin w-7 h-7"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+    <AuthShell variant="narrow">
+      <div className="py-10 text-center">
+        <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center text-primary">
+          <svg
+            className="h-7 w-7 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
+            <path d="M12 2a10 10 0 0 1 10 10" />
+          </svg>
+        </div>
+        <p
+          role="status"
+          className="font-eyebrow text-caption uppercase tracking-widest text-muted-foreground"
         >
-          <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
-          <path d="M12 2a10 10 0 0 1 10 10" />
-        </svg>
+          {statusText}
+        </p>
+        <Link
+          to="/login"
+          className="mt-6 inline-block font-eyebrow text-caption uppercase tracking-wider text-primary hover:underline"
+        >
+          Back to sign in
+        </Link>
       </div>
-      <p className="font-eyebrow text-caption uppercase tracking-widest text-muted-foreground">
-        {statusText}
-      </p>
-    </div>
+    </AuthShell>
   );
 }
 

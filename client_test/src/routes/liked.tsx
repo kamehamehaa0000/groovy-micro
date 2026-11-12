@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Shuffle, X } from 'lucide-react'
+import { Shuffle } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -13,7 +13,6 @@ import { SongRow } from '../Components/common/SongRow'
 import { LikedSongsCover } from '../Components/LikeSongsCover'
 import {
   HeartIconSVG,
-  SearchIconSVG,
   DiscIconSVG,
 } from '../Components/Icons'
 import { CollectionActionBar, CollectionHeader } from '../Components/collection'
@@ -22,10 +21,11 @@ import {
   Button,
   Eyebrow,
   IconButton,
-  Input,
   SortMenu,
   type SortOption,
 } from '../Components/ui'
+import { FilterBar } from '../Components/ui/FilterBar'
+import { SectionTitle } from '../Components/ui/SectionTitle'
 
 export const Route = createFileRoute('/liked')({
   component: LikedSongsPage,
@@ -325,49 +325,36 @@ function LikedSongsPage() {
       <div className="mt-6 space-y-8 sm:mt-10">
         {/* ===================== FILTER & SORT TOOLBAR ===================== */}
         {showToolbar ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-xs">
-              <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search liked songs"
-                aria-label="Search liked songs"
-                className="pl-9 pr-9"
+          <FilterBar
+            search={{
+              value: searchQuery,
+              onChange: setSearchQuery,
+              onClear: () => setSearchQuery(''),
+              placeholder: 'Search liked songs',
+              ariaLabel: 'Search liked songs',
+            }}
+            sort={
+              <SortMenu
+                options={SORT_OPTIONS}
+                value={sortBy}
+                onChange={setSortBy}
+                direction={sortOrder}
+                onDirectionChange={setSortOrder}
               />
-              {searchQuery ? (
-                <IconButton
-                  size="sm"
-                  aria-label="Clear search"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-75 duration-150"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </IconButton>
-              ) : null}
-            </div>
-
-            <SortMenu
-              options={SORT_OPTIONS}
-              value={sortBy}
-              onChange={setSortBy}
-              direction={sortOrder}
-              onDirectionChange={setSortOrder}
-            />
-          </div>
+            }
+          />
         ) : null}
 
         {/* ===================== TRACKLIST SECTION ===================== */}
         <div className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-sans text-heading font-semibold text-foreground">
-              Tracklist
-            </h2>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-              {totalCutsCount} {totalCutsCount === 1 ? 'Cut' : 'Cuts'}
-            </span>
-          </div>
+          <SectionTitle
+            title="Tracklist"
+            action={
+              <span className="font-eyebrow uppercase tracking-widest text-muted-foreground">
+                {totalCutsCount} {totalCutsCount === 1 ? 'Cut' : 'Cuts'}
+              </span>
+            }
+          />
 
           {isLoading ? (
             <div className="space-y-0.5">
