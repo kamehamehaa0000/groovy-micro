@@ -352,11 +352,14 @@ function HomeComponent() {
           <h1 className="sr-only">Home</h1>
 
           {/* 1. Recently Played Shelf (Current one, kept untouched) */}
-          <RecentlyPlayedShelf limit={12} />
+          <RecentlyPlayedShelf limit={9} />
 
           {/* 4. Global Hits Matching Your Taste */}
           {feed?.globalHits && feed.globalHits.length > 0 && (
-            <ShelfSection title="Global Hits For You" subtitle="Trending cuts in your favorite genres">
+            <ShelfSection
+              title="Global Hits For You"
+              subtitle="Trending cuts in your favorite genres"
+            >
               <TrackCarousel>
                 {feed.globalHits.map((track) => (
                   <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
@@ -399,7 +402,10 @@ function HomeComponent() {
 
           {/* 2. New Releases For You */}
           {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
-            <ShelfSection title="New Releases For You" subtitle="Fresh albums & singles matching your sonic profile">
+            <ShelfSection
+              title="New Releases For You"
+              subtitle="Fresh albums & singles matching your sonic profile"
+            >
               <TrackCarousel>
                 {feed.newReleasesForYou.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
@@ -419,7 +425,11 @@ function HomeComponent() {
 
           {/* 2. New Releases From Followed Artists (Release Radar) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
-            <ShelfSection title="Release Radar" subtitle="New drops from artists you follow" action={{ label: 'Release Archive', to: '/releases' }}>
+            <ShelfSection
+              title="Release Radar"
+              subtitle="New drops from artists you follow"
+              action={{ label: 'Release Archive', to: '/releases' }}
+            >
               <TrackCarousel>
                 {feed.artistRadar.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
@@ -513,7 +523,10 @@ function HomeComponent() {
 
           {/* 7. My Saved or Created Playlists */}
           {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
-            <ShelfSection title="Your Playlists" subtitle="Jump back into your personal and saved playlists">
+            <ShelfSection
+              title="Your Playlists"
+              subtitle="Jump back into your personal and saved playlists"
+            >
               <TrackCarousel>
                 {feed.userPlaylists.map((pl) => (
                   <div key={pl.id} className="w-35 sm:w-42.5 shrink-0">

@@ -17,6 +17,11 @@ export interface RadioPillProps {
   onClick?: () => void
   onPlay?: () => void
   className?: string
+  /**
+   * 'default': h-20
+   * 'compact': h-16 on mobile, h-20 on tablet/desktop (h-16 sm:h-20)
+   */
+  size?: 'default' | 'compact'
 }
 
 export const RadioPill = memo(function RadioPill({
@@ -31,11 +36,20 @@ export const RadioPill = memo(function RadioPill({
   onClick,
   onPlay,
   className,
+  size = 'default',
 }: RadioPillProps) {
+  const isCompact = size === 'compact'
+  const heightClass = isCompact ? 'h-14 sm:h-20' : 'h-20'
+
   const content = (
     <>
       {/* Left Cover Image Container */}
-      <div className="relative w-[44%] shrink-0 overflow-hidden bg-muted sm:w-[46%]">
+      <div
+        className={cn(
+          'relative shrink-0 overflow-hidden bg-muted',
+          isCompact ? 'w-[25%] sm:w-[30%]' : 'w-[44%] sm:w-[46%]',
+        )}
+      >
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -47,7 +61,7 @@ export const RadioPill = memo(function RadioPill({
           <ProceduralCover title={title} fill />
         )}
 
-        {/* Optional Play Button / Playing Animation */}
+        {/* Optional Play Button / Playing Animation (Omitted for purely navigational pills) */}
         {onPlay && (
           <button
             type="button"
@@ -57,33 +71,44 @@ export const RadioPill = memo(function RadioPill({
               onPlay()
             }}
             aria-label={isPlaying ? `Pause ${title}` : `Play ${title}`}
-            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground  opacity-0 transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:opacity-100 group-hover:opacity-100"
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:opacity-100 group-hover:opacity-100"
           >
-            <PlayIcon className="h-4 w-4" fill="" />
+            <PlayIcon className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {/* Right Content Area */}
-      <div className="flex min-w-0 flex-1 items-center justify-between gap-2 pl-4 pr-5 sm:pl-5 sm:pr-6">
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 items-center justify-between gap-2',
+          isCompact
+            ? 'pl-3.5 pr-4 sm:pl-5 sm:pr-6'
+            : 'pl-4 pr-5 sm:pl-5 sm:pr-6',
+        )}
+      >
         <div className="min-w-0">
-          <p className="font-eyebrow text-eyebrow font-semibold uppercase tracking-[0.16em] text-primary-foreground/60 dark:text-muted-foreground">
+          <p className="font-eyebrow text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/60 dark:text-muted-foreground">
             {category}
           </p>
-          <h3 className="mt-1 truncate text-base font-semibold leading-tight text-primary-foreground dark:text-card-foreground">
+          <h3
+            className={cn(
+              'truncate font-semibold leading-tight text-primary-foreground dark:text-card-foreground',
+              isCompact ? 'mt-0.5 text-sm sm:text-base' : 'mt-1 text-base',
+            )}
+          >
             {title}
           </h3>
-          {subtitle && (
+          {!isCompact && subtitle && (
             <p className="mt-0.5 truncate text-xs text-primary-foreground/70 dark:text-muted-foreground">
               {subtitle}
             </p>
           )}
         </div>
-
-        {/* Sliding Arrow on Hover */}
+        {/* /* Sliding Arrow on Hover  */}
         <div
           aria-hidden="true"
-          className="shrink-0 -translate-x-1 text-primary-foreground/80 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 dark:text-card-foreground"
+          className="hidden sm:block shrink-0 -translate-x-1 text-primary-foreground/80 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 dark:text-card-foreground"
         >
           <ArrowRight className="h-5 w-5" />
         </div>
@@ -92,7 +117,8 @@ export const RadioPill = memo(function RadioPill({
   )
 
   const containerClasses = cn(
-    'group flex h-20 w-full select-none overflow-hidden rounded-full transition-colors',
+    'group flex w-full select-none overflow-hidden rounded-full transition-colors',
+    heightClass,
     'bg-primary text-primary-foreground hover:bg-primary-strong',
     'dark:bg-card dark:text-card-foreground dark:border dark:border-border dark:hover:bg-accent dark:hover:border-foreground/20',
     'shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
