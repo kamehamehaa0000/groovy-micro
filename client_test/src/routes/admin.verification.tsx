@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useDeferredValue } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
 import type { AdminArtistListItem } from '../types/artist'
 import { VerifiedBadgeSVG, ExternalLinkSVG } from '../Components/Icons'
 import { EmptyState } from '../Components/ui/EmptyState'
+import { Tabs } from '../Components/ui/Tabs'
 import { AdminShell } from '../Components/admin/AdminShell'
 
 export const Route = createFileRoute('/admin/verification')({
@@ -12,17 +13,29 @@ export const Route = createFileRoute('/admin/verification')({
   component: AdminVerificationDeskComponent,
 })
 
+type StatusFilter = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'ALL'
+
+const STATUS_FILTERS: StatusFilter[] = [
+  'PENDING',
+  'VERIFIED',
+  'REJECTED',
+  'ALL',
+]
+
 function AdminVerificationDeskComponent() {
   const navigate = useNavigate()
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
 
-  const [activeTab, setActiveTab] = useState<
-    'PENDING' | 'VERIFIED' | 'REJECTED' | 'ALL'
-  >('PENDING')
+  const [activeTab, setActiveTab] = useState<StatusFilter>('PENDING')
   const [search, setSearch] = useState('')
+  // The list renders against the deferred value, so typing never waits for
+  // the (debounced) request to come back.
+  const deferredSearch = useDeferredValue(search)
   const [applications, setApplications] = useState<AdminArtistListItem[]>([])
+  const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
@@ -40,40 +53,50 @@ function AdminVerificationDeskComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  const fetchApplications = async () => {
-    setIsLoading(true)
+  const PAGE_SIZE = 50
+
+  const fetchApplications = async (nextPage = 1, append = false) => {
+    if (append) setIsLoadingMore(true)
+    else setIsLoading(true)
     setActionError(null)
     try {
       const res = await artistsApi.adminListArtists({
         status: activeTab,
-        search: search.trim() || undefined,
-        limit: 100,
+        search: deferredSearch.trim() || undefined,
+        page: nextPage,
+        limit: PAGE_SIZE,
       })
-      setApplications(res.data)
-      // The desk used to fetch 50 applications and never say so — everything
-      // past the first page was silently invisible.
-      setHasMore(res.data.length >= 100)
+      setApplications((prev) => (append ? [...prev, ...res.data] : res.data))
+      setPage(nextPage)
+      setHasMore(res.data.length >= PAGE_SIZE)
     } catch (err: any) {
       setActionError(err.message || 'Failed to retrieve applications')
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
+  }
+
+  const loadMore = () => {
+    if (isLoadingMore || !hasMore) return
+    void fetchApplications(page + 1, true)
   }
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
-      fetchApplications()
+      void fetchApplications(1, false)
     }
-  }, [activeTab, user])
+  }, [activeTab, deferredSearch, user])
 
-  // Search debounce
+  // Search debounce: the request waits for the field to settle.
   useEffect(() => {
     if (user?.role !== 'ADMIN') return
+    if (deferredSearch === search) return
     const timer = setTimeout(() => {
-      fetchApplications()
+      void fetchApplications(1, false)
     }, 300)
     return () => clearTimeout(timer)
-  }, [search])
+  }, [search, deferredSearch])
 
   const handleApprove = async (artistId: string) => {
     setIsApprovingId(artistId)
@@ -175,33 +198,26 @@ function AdminVerificationDeskComponent() {
         )}
 
         {/* Filter Tabs & Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 border-b sm:border-b-0 border-border pb-2 sm:pb-0 font-mono text-caption">
-            {(['PENDING', 'VERIFIED', 'REJECTED', 'ALL'] as const).map(
-              (tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer ${
-                    activeTab === tab
-                      ? 'border-b-2 border-primary text-foreground font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ),
-            )}
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Tabs
+            variant="mono"
+            ariaLabel="Verification status"
+            value={activeTab}
+            onChange={(next) => setActiveTab(next as StatusFilter)}
+            items={STATUS_FILTERS.map((filter) => ({
+              id: filter,
+              label: filter,
+            }))}
+          />
 
           <div className="relative max-w-xs w-full">
             <input
-              type="text"
+              type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter by artist, slug, or email..."
-              className="w-full font-mono text-caption py-1.5 px-3 border border-border bg-card text-foreground focus:outline-none focus:border-foreground"
+              aria-label="Filter applications"
+              className="w-full rounded-control border border-border bg-card px-3 py-2 font-mono text-caption text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-primary focus:outline-none"
             />
           </div>
         </div>
@@ -413,10 +429,19 @@ function AdminVerificationDeskComponent() {
           })}
 
           {hasMore && (
-            <p className="pt-1 text-center font-mono text-caption text-muted-foreground">
-              Showing the first {applications.length} applications — refine the
-              search to narrow the list.
-            </p>
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="rounded-control border border-border bg-card px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-foreground transition-colors hover:border-foreground disabled:opacity-50"
+              >
+                {isLoadingMore ? 'Loading...' : 'Load more applications'}
+              </button>
+              <p className="font-mono text-caption text-muted-foreground">
+                Showing {applications.length}
+              </p>
+            </div>
           )}
         </div>
       )}
