@@ -32,6 +32,7 @@ import {
 } from '../Components/ui'
 import { FilterBar } from '../Components/ui/FilterBar'
 import { SectionTitle } from '../Components/ui/SectionTitle'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { DiscIconSVG } from '../Components/Icons'
 
 export const Route = createFileRoute('/radio/$songId')({
@@ -183,21 +184,22 @@ function RadioMixPage() {
   }, [contextUri, songId, playbackStatus, fullQueue, currentTrack])
 
   const toPlayerTrack = useCallback(
-    (s: ScoredRecommendationTrack): PlayerTrack => ({
-      id: s.id,
-      title: s.title,
-      artistId: s.artistId || '',
-      artistName: s.artistStageName || 'Unknown Artist',
-      artistSlug: s.artistSlug,
-      albumId: s.albumId || undefined,
-      albumTitle: s.albumTitle || undefined,
-      albumSlug: s.albumSlug || undefined,
-      coverImageUrl: s.coverImageUrl,
-      durationSeconds: s.durationSeconds,
-      audioUrl: s.audioUrl,
-      hlsManifestUrl: s.hlsManifestUrl,
-      isLiked: s.isLiked,
-    }),
+    (s: ScoredRecommendationTrack): PlayerTrack =>
+      mapToPlayerTrack({
+        id: s.id,
+        title: s.title,
+        artistId: s.artistId || '',
+        artistName: s.artistStageName || 'Unknown Artist',
+        artistSlug: s.artistSlug,
+        albumId: s.albumId || undefined,
+        albumTitle: s.albumTitle || undefined,
+        albumSlug: s.albumSlug || undefined,
+        coverImageUrl: s.coverImageUrl,
+        durationSeconds: s.durationSeconds,
+        audioUrl: s.audioUrl,
+        hlsManifestUrl: s.hlsManifestUrl,
+        isLiked: s.isLiked,
+      }),
     [],
   )
 

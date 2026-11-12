@@ -36,6 +36,7 @@ import {
 } from '../Components/ui'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { shuffleArray } from '../lib/shuffle'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { Heart, Pencil, Plus, PlusCircle, Shuffle } from 'lucide-react'
 
 interface PlaylistSearchParams {
@@ -191,7 +192,7 @@ function PlaylistDetailComponent() {
 
   const toPlayerTrack = (track: PlaylistTrack): PlayerTrack => {
     const song = track.song || (track as any)
-    return {
+    return mapToPlayerTrack({
       id: track.songId || song.id || track.id,
       title: song.title || track.title || 'Untitled',
       artistId: song.artistId || track.artistId || '',
@@ -214,7 +215,7 @@ function PlaylistDetailComponent() {
       isExplicit: song.isExplicit ?? track.isExplicit ?? false,
       scope: song.scope || (track as any).scope || 'GLOBAL',
       credits: song.credits || (track as any).credits,
-    }
+    })
   }
 
   const handlePlayTrack = (track: PlaylistTrack, index?: number) => {
