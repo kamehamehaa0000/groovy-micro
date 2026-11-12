@@ -21,16 +21,13 @@ import {
   type NotificationPreferences,
 } from '../lib/notifications.api'
 import type { PreSavedRelease } from '../types/catalog'
-import type {
-  SubscriptionPlan,
-  PlanFeatureDefinition,
-  UserEntitlements,
-} from '../types/subscriptions'
+import type { UserEntitlements } from '../types/subscriptions'
 import { Switch } from '../Components/ui'
 import { Loader2Icon } from 'lucide-react'
 import { notify } from '../lib/toast'
 import { ConfirmDialog } from '../Components/ui/Modal'
 import { SettingsShell } from '../Components/settings/SettingsShell'
+import { PlanComparison } from '../Components/subscriptions/PlanComparison'
 import type { UserProfile } from '../types/auth'
 
 export const Route = createFileRoute('/profile')({
@@ -67,11 +64,6 @@ function ProfileComponent() {
   // Subscriptions & Plans Selection Modal State
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
-  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
-  const [featureCatalog, setFeatureCatalog] = useState<PlanFeatureDefinition[]>(
-    [],
-  )
-  const [isLoadingPlans, setIsLoadingPlans] = useState(false)
   const [isUpgradingPlan, setIsUpgradingPlan] = useState(false)
 
   // Avatar Upload State
@@ -366,21 +358,25 @@ function ProfileComponent() {
   }
 
   // --- Subscription Handlers ---
-  const handleOpenUpgradeModal = async () => {
-    setIsUpgradeModalOpen(true)
-    setIsLoadingPlans(true)
-    try {
-      const [plansRes, featRes] = await Promise.all([
+  // The plans and the feature catalogue are a query: they change rarely, and
+  // every account page needs the same pair.
+  const plansQuery = useQuery({
+    queryKey: ['subscriptions', 'plans'],
+    queryFn: async () => {
+      const [plansRes, featuresRes] = await Promise.all([
         subscriptionsApi.getPlans(),
         subscriptionsApi.getFeatures(),
       ])
-      setAvailablePlans(plansRes.plans)
-      setFeatureCatalog(featRes.features)
-    } catch (err: any) {
-      notify.error(err.message || 'Failed to retrieve plans')
-    } finally {
-      setIsLoadingPlans(false)
-    }
+      return {
+        plans: plansRes.plans,
+        features: featuresRes.features,
+      }
+    },
+    enabled: isUpgradeModalOpen,
+  })
+
+  const handleOpenUpgradeModal = async () => {
+    setIsUpgradeModalOpen(true)
   }
 
   const handleSwitchPlan = async (planId: string) => {
@@ -633,218 +629,15 @@ function ProfileComponent() {
         onCancel={() => setIsConfirmCancelOpen(false)}
       />
 
-      {isUpgradeModalOpen && (
-        <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="max-w-4xl w-full bg-card border border-border rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
-                  Maison Sound Tiers &bull; Dev Mock Checkout
-                </span>
-                <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground">
-                  Select Your Audio Experience
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsUpgradeModalOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-body font-bold cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {isLoadingPlans ? (
-              <div className="py-20 text-center font-mono text-caption text-muted-foreground animate-pulse">
-                Querying active subscription tiers and feature catalog...
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-                {availablePlans.map((plan) => {
-                  const isCurrent = entitlements?.planId === plan.id
-                  return (
-                    <div
-                      key={plan.id}
-                      className={`p-5 rounded-2xl border flex flex-col justify-between space-y-5 transition-all ${
-                        isCurrent
-                          ? 'border-foreground bg-background shadow-xs'
-                          : 'border-border bg-card hover:border-foreground/50'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 rounded-full border border-border bg-card font-semibold text-primary">
-                            {plan.id}
-                          </span>
-                          {isCurrent && (
-                            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 rounded-full border border-success/40 bg-success-soft text-success font-semibold">
-                              Current Plan
-                            </span>
-                          )}
-                        </div>
-
-                        <div>
-                          <h4 className="font-serif italic text-2xl text-foreground font-medium">
-                            {plan.name}
-                          </h4>
-                          <div className="font-mono text-caption text-muted-foreground mt-1">
-                            <span className="text-heading font-bold text-foreground">
-                              {(plan.priceCents / 100).toLocaleString(
-                                undefined,
-                                {
-                                  style: 'currency',
-                                  currency: plan.currency || 'USD',
-                                },
-                              )}
-                            </span>
-                            <span> / {plan.interval}</span>
-                          </div>
-                        </div>
-
-                        {/* Feature comparison checklist */}
-                        <div className="pt-3 border-t border-border-soft space-y-2 font-sans text-caption">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-success font-bold">
-                              ✓
-                            </span>
-                            <span>
-                              Audio:{' '}
-                              <strong className="font-mono text-caption">
-                                {plan.features.max_bitrate_kbps ?? 128} kbps
-                              </strong>
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-mono font-bold ${
-                                plan.features.lossless
-                                  ? 'text-success'
-                                  : 'text-muted-foreground/40'
-                              }`}
-                            >
-                              {plan.features.lossless ? '✓' : '✕'}
-                            </span>
-                            <span
-                              className={
-                                plan.features.lossless
-                                  ? 'text-foreground'
-                                  : 'text-muted-foreground line-through'
-                              }
-                            >
-                              FLAC Lossless Audio
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-mono font-bold ${
-                                plan.features.can_host_jam
-                                  ? 'text-success'
-                                  : 'text-muted-foreground/40'
-                              }`}
-                            >
-                              {plan.features.can_host_jam ? '✓' : '✕'}
-                            </span>
-                            <span
-                              className={
-                                plan.features.can_host_jam
-                                  ? 'text-foreground'
-                                  : 'text-muted-foreground line-through'
-                              }
-                            >
-                              Host Live Jams (
-                              {plan.features.max_jam_participants ?? 3}{' '}
-                              listeners)
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-mono font-bold ${
-                                plan.features.ad_free
-                                  ? 'text-success'
-                                  : 'text-muted-foreground/40'
-                              }`}
-                            >
-                              {plan.features.ad_free ? '✓' : '✕'}
-                            </span>
-                            <span
-                              className={
-                                plan.features.ad_free
-                                  ? 'text-foreground'
-                                  : 'text-muted-foreground'
-                              }
-                            >
-                              {plan.features.ad_free
-                                ? 'Ad-Free Playback'
-                                : 'Sponsored Audio'}
-                            </span>
-                          </div>
-
-                          {/* Dynamic Extra Perks */}
-                          {Object.entries(plan.features)
-                            .filter(
-                              ([k]) =>
-                                ![
-                                  'max_bitrate_kbps',
-                                  'lossless',
-                                  'can_host_jam',
-                                  'max_jam_participants',
-                                  'ad_free',
-                                ].includes(k),
-                            )
-                            .map(([k, v]) => {
-                              const featDef = featureCatalog.find(
-                                (f) => f.key === k,
-                              )
-                              return (
-                                <div
-                                  key={k}
-                                  className="flex items-center gap-2"
-                                >
-                                  <span className="font-mono text-success font-bold">
-                                    ✓
-                                  </span>
-                                  <span className="font-mono text-eyebrow text-foreground">
-                                    {featDef?.name || k}:{' '}
-                                    {typeof v === 'boolean'
-                                      ? v
-                                        ? 'Enabled'
-                                        : 'Disabled'
-                                      : String(v)}
-                                  </span>
-                                </div>
-                              )
-                            })}
-                        </div>
-                      </div>
-
-                      <div className="pt-3 border-t border-border">
-                        <button
-                          type="button"
-                          disabled={isCurrent || isUpgradingPlan}
-                          onClick={() => handleSwitchPlan(plan.id)}
-                          className={`w-full font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 rounded-full transition-all cursor-pointer font-semibold ${
-                            isCurrent
-                              ? 'bg-border/40 text-muted-foreground cursor-not-allowed border border-border'
-                              : 'bg-foreground text-background hover:opacity-90'
-                          }`}
-                        >
-                          {isCurrent
-                            ? 'Active Tier'
-                            : isUpgradingPlan
-                              ? 'Switching...'
-                              : plan.priceCents === 0
-                                ? 'Switch to Free Tier'
-                                : `Upgrade to ${plan.name}`}
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <PlanComparison
+        open={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        plans={plansQuery.data?.plans ?? []}
+        featureCatalog={plansQuery.data?.features ?? []}
+        currentPlanId={entitlements?.planId}
+        isBusy={isUpgradingPlan}
+        onSelectPlan={(planId) => void handleSwitchPlan(planId)}
+      />
     </div>
   )
 }
@@ -1410,7 +1203,7 @@ function SubscriptionTab(
   entitlements: UserEntitlements | null,
   user: UserProfile,
   isLoadingEntitlements: boolean,
-  handleOpenUpgradeModal: () => Promise<void>,
+  handleOpenUpgradeModal: () => void,
   onRequestCancel: () => void,
 ): import('react').ReactNode {
   return (
