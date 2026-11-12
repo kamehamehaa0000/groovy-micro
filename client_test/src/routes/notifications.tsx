@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useNotificationsStore } from '../stores/notifications.store'
 import { socialApi } from '../lib/social.api'
+import { EmptyState } from '../Components/ui/EmptyState'
 import type {
   NotificationResponseItem,
   NotificationFilter,
@@ -276,22 +277,19 @@ function NotificationsPageComponent() {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="border border-dashed border-border p-12 text-center rounded-2xl space-y-3">
-          <div className="font-serif italic text-2xl text-foreground"></div>
-          <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-md mx-auto leading-relaxed">
-            No notifications at the moment.
-          </p>
-        </div>
+        <EmptyState
+          title="Nothing new"
+          description="Follow artists and join the conversation — activity shows up here."
+        />
       ) : (
         <div className="space-y-3">
           {notifications.map((item) => {
             const isActing = actingNotificationId === item.id
 
             return (
-              <div
+              <article
                 key={item.id}
-                onClick={() => handleItemClick(item)}
-                className={`p-4 sm:p-5 border rounded-2xl transition-all cursor-pointer space-y-3 shadow-raised ${
+                className={`p-4 sm:p-5 border rounded-2xl transition-all space-y-3 shadow-raised ${
                   item.isRead
                     ? 'border-border bg-card hover:border-foreground/40'
                     : 'border-primary/40 bg-primary/5 hover:border-primary/60'
@@ -302,7 +300,10 @@ function NotificationsPageComponent() {
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Unread Indicator */}
                     {!item.isRead && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 animate-pulse" />
+                      <span
+                        aria-label="Unread"
+                        className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 motion-safe:animate-pulse"
+                      />
                     )}
 
                     {/* Actor Avatar */}
@@ -325,9 +326,15 @@ function NotificationsPageComponent() {
                     )}
 
                     <div className="min-w-0">
-                      <span className="font-sans font-semibold text-body text-foreground block truncate">
+                      {/* The title is the action: a real button, so the row is
+                          reachable with the keyboard and announced properly. */}
+                      <button
+                        type="button"
+                        onClick={() => handleItemClick(item)}
+                        className="block w-full truncate text-left font-sans font-semibold text-body text-foreground transition-colors hover:text-primary"
+                      >
                         {item.title}
-                      </span>
+                      </button>
                       {item.actor && (
                         <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                           {item.actor.displayName}
@@ -403,12 +410,12 @@ function NotificationsPageComponent() {
                 {item.type === 'JAM_INVITE' && (
                   <div className="pt-1 pl-5 sm:pl-6">
                     <span className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-success">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success animate-ping" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-success motion-safe:animate-ping" />
                       <span>Live Session Ready</span>
                     </span>
                   </div>
                 )}
-              </div>
+              </article>
             )
           })}
 

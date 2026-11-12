@@ -27,9 +27,14 @@ function formatDate(dateStr?: string | Date) {
 
 function UserProfileComponent() {
   const { id } = Route.useParams();
-  const { user: currentUser, isAuthenticated } = useAuthStore();
+  const currentUser = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { openAuthModal } = useAuthModalStore();
-  const { currentTrack, playTrack, togglePlay } = usePlayerStore();
+  // Selected slices only: a whole-store subscription re-rendered this page on
+  // every playback tick.
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const playTrack = usePlayerStore((s) => s.playTrack);
+  const togglePlay = usePlayerStore((s) => s.togglePlay);
 
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [relationship, setRelationship] = useState<RelationshipStatus>("NONE");
@@ -43,6 +48,7 @@ function UserProfileComponent() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingLibrary, setIsLoadingLibrary] = useState(true);
   const [isActing, setIsActing] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"playlists" | "albums" | "liked">("playlists");
 
   const isOwnProfile = currentUser?.id === id || relationship === "SELF";
@@ -50,12 +56,19 @@ function UserProfileComponent() {
   // Fetch Profile & Relationship
   const fetchProfile = async () => {
     setIsLoadingProfile(true);
+    setProfileError(null);
     try {
       const res = await usersApi.getUserProfile(id);
       setProfile(res.user);
       setRelationship(res.relationship);
     } catch (err: any) {
       console.warn("[UserProfile] Failed to load user profile:", err);
+      // Without this the page rendered nothing at all on a server error.
+      setProfileError(
+        err?.statusCode === 404
+          ? "This profile could not be found."
+          : err?.message || "This profile could not be loaded.",
+      );
       setProfile(null);
     } finally {
       setIsLoadingProfile(false);
@@ -207,16 +220,30 @@ function UserProfileComponent() {
   if (!profile) {
     return (
       <div className="mx-auto max-w-2xl py-20 text-center">
-        <div className="font-serif italic text-3xl text-foreground mb-3">User Not Found</div>
+        <div className="font-serif text-3xl text-foreground mb-3">
+          {profileError ? 'Something went wrong' : 'User Not Found'}
+        </div>
         <p className="font-sans text-body text-muted-foreground mb-6">
-          The listener or artist profile you are looking for does not exist or has been deactivated.
+          {profileError ??
+            'The listener or artist profile you are looking for does not exist or has been deactivated.'}
         </p>
-        <Link
-          to="/"
-          className="inline-block bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors"
-        >
-          Return Home
-        </Link>
+        <div className="flex items-center justify-center gap-3">
+          {profileError && (
+            <button
+              type="button"
+              onClick={fetchProfile}
+              className="bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground transition-opacity hover:opacity-90"
+            >
+              Try again
+            </button>
+          )}
+          <Link
+            to="/"
+            className="inline-block border border-border font-eyebrow text-caption uppercase tracking-wider px-6 py-3 text-foreground transition-colors hover:border-foreground"
+          >
+            Return Home
+          </Link>
+        </div>
       </div>
     );
   }

@@ -729,8 +729,6 @@ function PlaylistDetailComponent() {
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         key={playlist.id}
-        className="-mx-4 sm:-mx-8"
-        stickyClassName="-mx-4 sm:-mx-8"
         title={playlist.title}
         eyebrow={
           <Eyebrow

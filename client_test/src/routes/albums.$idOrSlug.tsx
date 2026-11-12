@@ -433,8 +433,6 @@ function AlbumDetailComponent() {
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
         key={album.id}
-        className="-mx-4 sm:-mx-8"
-        stickyClassName="-mx-4 sm:-mx-8"
         title={album.title}
         eyebrow={<Badge tone="brand">{album.albumType}</Badge>}
         badges={

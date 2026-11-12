@@ -4,8 +4,10 @@ import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
 import type { AdminArtistListItem } from '../types/artist'
 import { VerifiedBadgeSVG, ExternalLinkSVG } from '../Components/Icons'
+import { EmptyState } from '../Components/ui/EmptyState'
 
 export const Route = createFileRoute('/admin/verification')({
+  staticData: { layout: 'full' },
   component: AdminVerificationDeskComponent,
 })
 
@@ -18,6 +20,7 @@ function AdminVerificationDeskComponent() {
   >('PENDING')
   const [search, setSearch] = useState('')
   const [applications, setApplications] = useState<AdminArtistListItem[]>([])
+  const [hasMore, setHasMore] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
@@ -43,9 +46,12 @@ function AdminVerificationDeskComponent() {
       const res = await artistsApi.adminListArtists({
         status: activeTab,
         search: search.trim() || undefined,
-        limit: 50,
+        limit: 100,
       })
       setApplications(res.data)
+      // The desk used to fetch 50 applications and never say so — everything
+      // past the first page was silently invisible.
+      setHasMore(res.data.length >= 100)
     } catch (err: any) {
       setActionError(err.message || 'Failed to retrieve applications')
     } finally {
@@ -227,14 +233,10 @@ function AdminVerificationDeskComponent() {
           Loading applications...
         </div>
       ) : applications.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-border p-8 bg-card/30">
-          <p className="font-serif italic text-lg text-foreground">
-            No applications in this category
-          </p>
-          <p className="font-mono text-caption text-muted-foreground mt-1">
-            Status: {activeTab}
-          </p>
-        </div>
+        <EmptyState
+          title="No applications in this category"
+          description={`Nothing is currently ${activeTab.toLowerCase()}.`}
+        />
       ) : (
         <div className="flex flex-col gap-6">
           {applications.map((app) => {
@@ -430,6 +432,13 @@ function AdminVerificationDeskComponent() {
               </div>
             )
           })}
+
+          {hasMore && (
+            <p className="pt-1 text-center font-mono text-caption text-muted-foreground">
+              Showing the first {applications.length} applications — refine the
+              search to narrow the list.
+            </p>
+          )}
         </div>
       )}
     </div>

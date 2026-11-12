@@ -16,6 +16,8 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
+import { usePageLayout } from '../hooks/usePageLayout'
+import { Container } from '../Components/layout/Container'
 import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../Components/Icons'
 import { GlobalAudioEngine } from '../Components/player/GlobalAudioEngine'
 import { PlayerBar } from '../Components/player/PlayerBar'
@@ -174,12 +176,13 @@ function RootComponent() {
     setUserMenuOpen(false)
   }, [pathname])
 
-  const isAuthPage =
-    pathname === '/login' ||
-    pathname === '/register' ||
-    pathname === '/verify-email' ||
-    pathname === '/forgot-password' ||
-    pathname === '/reset-password'
+  // The auth shell owns its own chrome, so the full app chrome is hidden on
+  // every auth route — including /oauth/callback, which the previous inline
+  // list forgot.
+  const isAuthPage = isAuthRoute(pathname)
+
+  // Pages declare how wide they want to be; the shell applies it.
+  const pageLayout = usePageLayout()
 
   const currentRedirect = !isAuthPage
     ? pathname + (location.searchStr ? `?${location.searchStr}` : '')
@@ -1139,7 +1142,7 @@ function RootComponent() {
       {isAuthPage ? (
         /* Dedicated Auth Content Outside Main Layout Outlet */
         <div
-          className={`flex-1 flex items-center justify-center p-2 sm:p-8 ${currentTrack ? 'pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-24' : 'pb-16 md:pb-0'}`}
+          className={`flex-1 flex items-center justify-center p-2 sm:p-8 ${currentTrack ? 'pb-[calc(var(--player-chrome-mobile)+0.75rem)] md:pb-[calc(var(--player-chrome-desktop)+1rem)]' : 'pb-[calc(var(--player-chrome-mobile-idle)+0.75rem)] md:pb-0'}`}
         >
           <Outlet />
         </div>
@@ -1147,14 +1150,17 @@ function RootComponent() {
         <div className="flex-1 flex min-w-0 relative">
           {/* Main App Page Flow */}
           <div
-            className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-24' : 'pb-16 md:pb-0'}`}
+            className={`flex-1 flex flex-col min-w-0 ${currentTrack ? 'pb-[calc(var(--player-chrome-mobile)+0.75rem)] md:pb-[calc(var(--player-chrome-desktop)+1rem)]' : 'pb-[calc(var(--player-chrome-mobile-idle)+0.75rem)] md:pb-0'}`}
           >
-            <main className="flex-1 w-full max-w-6xl mx-auto px-4 pb-20 pt-6 sm:px-8 sm:pt-10">
-              <Outlet />
+            <main className="flex-1 w-full min-w-0 pb-20 pt-6 sm:pt-10">
+              <Container width={pageLayout}>
+                <Outlet />
+              </Container>
             </main>
           </div>
 
-          {/* Desktop Right Sidebar (Now Playing & Queue Docked Panel) */}
+          {/* Desktop Right Sidebar (Now Playing & Queue) — an overlay, so
+              opening it never reflows the page behind it. */}
           <Suspense fallback={null}>
             <DesktopRightSidebar />
           </Suspense>

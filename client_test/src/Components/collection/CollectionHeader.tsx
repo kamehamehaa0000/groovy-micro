@@ -98,7 +98,9 @@ export function CollectionHeader({
 
         <div
           className={cn(
-            'relative mx-auto w-full max-w-6xl px-4 pb-2 pt-2 sm:px-8 md:pb-8 md:pt-2',
+            // The page container owns the gutters and the measure — the header
+            // only decides how much vertical air it needs.
+            'relative w-full pb-2 pt-2 md:pb-8 md:pt-2',
             contentClassName,
           )}
         >

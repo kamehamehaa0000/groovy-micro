@@ -5,8 +5,11 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { artistsApi, type FollowedArtistRelease } from '../lib/artists.api'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { GridIconSVG, ListIconSVG } from '../Components/Icons'
+import { MediaGrid } from '../Components/media/MediaGrid'
+import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 
 export const Route = createFileRoute('/releases')({
+  staticData: { layout: 'wide' },
   component: FollowedReleasesComponent,
 })
 
@@ -49,6 +52,7 @@ function FollowedReleasesComponent() {
   const [hasMore, setHasMore] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -72,6 +76,15 @@ function FollowedReleasesComponent() {
       })
       .catch((err) => {
         console.warn('[Releases] Failed to load followed releases:', err)
+        // Without this the page rendered "no recent releases" for a failed
+        // request, which reads as "you follow nobody".
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Your release feed could not be loaded.',
+          )
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)
@@ -202,30 +215,46 @@ function FollowedReleasesComponent() {
       <div className="border-b border-border pb-6 ">
         <div className="flex  sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
-              Latest releases
-            </h1>
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               ✦ Artist Radar
             </span>
+            <h1 className="font-serif text-3xl sm:text-4xl text-foreground tracking-tight">
+              Latest releases
+            </h1>
           </div>
           {/* Controls Bar: Only View Mode (Grid / List) */}
-          <div className="flex w-fit items-center p-1 bg-card  rounded-lg self-start sm:self-auto shrink-0 shadow-raised">
+          <div
+            role="group"
+            aria-label="View mode"
+            className="flex w-fit items-center gap-0.5 self-start rounded-control border border-border bg-card p-0.5 shadow-raised sm:self-auto"
+          >
             <button
               type="button"
-              onClick={() => {
-                if (viewMode !== 'list') setViewMode('list')
-                if (viewMode === 'list') setViewMode('grid')
-              }}
-              title="Grid View"
-              aria-label="Grid View"
-              className={`p-1.5 rounded-md transition-all cursor-pointer`}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              title="Grid view"
+              aria-label="Grid view"
+              className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {viewMode === 'grid' ? (
-                <ListIconSVG className="w-5 h-5" />
-              ) : (
-                <GridIconSVG className="w-5 h-5" />
-              )}
+              <GridIconSVG className="w-4.5 h-4.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+              title="List view"
+              aria-label="List view"
+              className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ListIconSVG className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
@@ -270,35 +299,40 @@ function FollowedReleasesComponent() {
             </div>
           ))}
         </div>
+      ) : error ? (
+        /* Request failed */
+        <ErrorState
+          title="Your release feed could not be loaded"
+          description={error}
+          onRetry={() => window.location.reload()}
+        />
       ) : monthGroups.length === 0 ? (
         /* Empty State */
-        <div className="py-20 text-center">
-          <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mx-auto mb-4 text-muted-foreground">
+        <EmptyState
+          icon={
             <svg
-              className="w-6 h-6"
+              className="h-5 w-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-          </div>
-          <h2 className="font-serif italic text-heading text-foreground font-medium">
-            No recent releases found
-          </h2>
-          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
-            None of your followed artists have released music in the past 6
-            months, or you aren't following any artists yet.
-          </p>
-          <Link
-            to="/artists"
-            className="inline-block mt-6 font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
-          >
-            Explore Artists Roster
-          </Link>
-        </div>
+          }
+          title="No recent releases found"
+          description="None of your followed artists have released music in the past 6 months, or you aren't following any artists yet."
+          action={
+            <Link
+              to="/artists"
+              className="inline-block font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+            >
+              Explore Artists Roster
+            </Link>
+          }
+        />
       ) : (
         /* Month Grouped Release Sections */
         <div className="space-y-1">
@@ -317,7 +351,7 @@ function FollowedReleasesComponent() {
 
               {/* View Mode: Grid View */}
               {viewMode === 'grid' ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                <MediaGrid maxColumns={6}>
                   {group.releases.map((release) => (
                     <Link
                       key={release.id}
@@ -374,7 +408,7 @@ function FollowedReleasesComponent() {
                       </div>
                     </Link>
                   ))}
-                </div>
+                </MediaGrid>
               ) : (
                 /* View Mode: List View */
                 <div className="space-y-2">

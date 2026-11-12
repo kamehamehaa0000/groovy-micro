@@ -7,7 +7,11 @@ import {
 import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
-import { GoogleIcon, SvgArtworkSpiral } from '../Components/Icons'
+import { GoogleIcon } from '../Components/Icons'
+import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
+import { AuthField, PasswordInput } from '../Components/auth/AuthField'
+import { Button } from '../Components/ui'
+import { Tabs } from '../Components/ui/Tabs'
 import {
   resolveRedirectTarget,
   saveAuthRedirect,
@@ -38,8 +42,10 @@ export const Route = createFileRoute('/login')({
 function LoginComponent() {
   const { redirect: redirectParam } = Route.useSearch()
   const navigate = useNavigate()
-  const { login, resendVerification, isAuthenticated, isLoading } =
-    useAuthStore()
+  const login = useAuthStore((s) => s.login)
+  const resendVerification = useAuthStore((s) => s.resendVerification)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -49,7 +55,6 @@ function LoginComponent() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -119,221 +124,137 @@ function LoginComponent() {
   }
 
   return (
-    <div className="rounded-lg  w-full max-w-5xl mx-auto my-4 border border-border bg-background shadow-xs grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-160 overflow-hidden">
-      {/* ===================== BRAND PANEL ===================== */}
-      <div className="hidden  lg:flex flex-col justify-between p-12 bg-muted border-r border-border relative overflow-hidden select-none">
-        <div className="flex items-center justify-between z-10">
-          <Link
-            to="/"
-            className="font-serif italic text-2xl text-foreground hover:opacity-80 transition-opacity"
-          >
-            Groovy
-          </Link>
-          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 group">
-            <span className="transition-transform duration-200 group-hover:-translate-x-1">
-              &larr;
-            </span>
-            <span>Catalog that grooves</span>
-          </span>
-        </div>
-
-        <div className="max-w-md my-auto relative z-10">
-          <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-4">
-            Serentiy · Curation · Preservation
-          </div>
-          <h1 className="font-serif italic text-4xl text-foreground leading-[1.1] mb-4 font-normal">
-            The Collective keeps a seat for you.
-          </h1>
-          <p className="font-sans text-body leading-[1.7] text-muted-foreground max-w-sm">
-            A private catalog of unhurried, perfect music — kept, curated, and
-            reserved for members. Sign in to pick up where the record left off.
-          </p>
-        </div>
-
-        {/* Decorative Geometric Vinyl Record SVG Art */}
-        <SvgArtworkSpiral />
-
-        <div className="flex justify-between items-center font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground relative z-10">
-          <span>© 2026 Groovy </span>
-          <span>Est. MMXXVI</span>
-        </div>
+    <AuthShell>
+      {/* Mobile Back to Home Navigation */}
+      <div className="mb-6 lg:hidden">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span aria-hidden="true">&larr;</span>
+          <span>Back to home</span>
+        </Link>
       </div>
 
-      {/* ===================== FORM PANEL ===================== */}
-      <div className="flex items-center justify-center p-8 sm:p-14">
-        <div className="w-full max-w-90">
-          {/* Mobile Back to Home Navigation */}
-          <div className="lg:hidden mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <span className="transition-transform duration-200 group-hover:-translate-x-1">
-                &larr;
-              </span>
-              <span>Back to home</span>
-            </Link>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="flex gap-7 mb-8 border-b border-border">
-            <span className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-primary text-foreground font-medium">
-              Sign In
-            </span>
-            <Link
-              to="/register"
-              search={redirectParam ? { redirect: redirectParam } : undefined}
-              className="font-eyebrow text-caption uppercase tracking-wider pb-3 border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Create Account
-            </Link>
-          </div>
-
-          <h2 className="font-serif italic font-medium text-2xl text-foreground mb-1.5">
-            Welcome back
-          </h2>
-          <p className="text-caption text-muted-foreground leading-relaxed mb-7">
-            Enter your <span className="italic">groove</span> with the account
-            you keep on file.
-          </p>
-
-          {/* Error Notice */}
-          {error && (
-            <div className="mb-6 p-4 border border-destructive/30 bg-destructive-soft text-caption text-destructive">
-              <p>{error}</p>
-              {isUnverifiedError && (
-                <div className="mt-3 pt-3 border-t border-destructive/20 flex items-center justify-between">
-                  <span className="text-eyebrow text-muted-foreground">
-                    Didn't receive the email?
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={isResending || cooldown > 0}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline disabled:opacity-50 transition-colors"
-                  >
-                    {cooldown > 0
-                      ? `Resend in ${cooldown}s`
-                      : isResending
-                        ? 'Sending...'
-                        : 'Resend Link'}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Resend Notice */}
-          {resendNotice && (
-            <div
-              className={`mb-6 p-3 border text-caption ${
-                resendNotice.type === 'success'
-                  ? 'border-success/30 bg-success-soft text-success'
-                  : 'border-destructive/30 bg-destructive-soft text-destructive'
-              }`}
-            >
-              {resendNotice.text}
-            </div>
-          )}
-
-          {/* Google OAuth Button */}
-          <a
-            href="/api/v1/auth/google"
-            onClick={() => {
-              const destination = resolveRedirectTarget(redirectParam)
-              saveAuthRedirect(destination)
-            }}
-            className="w-full rounded-lg flex items-center justify-center gap-2.5 border border-border bg-card hover:bg-muted text-foreground text-caption font-medium py-3 px-4 transition-all mb-6 cursor-pointer shadow-raised"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </a>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3.5 mb-6 before:content-[''] before:flex-1 before:h-px before:bg-border after:content-[''] after:flex-1 after:h-px after:bg-border">
-            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-              Or with email
-            </span>
-          </div>
-
-          {/* Credentials Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="si-email"
-                className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
+      <Tabs
+        variant="underline"
+        ariaLabel="Authentication"
+        className="mb-7"
+        value="signin"
+        onChange={() => undefined}
+        items={[
+          { id: 'signin', label: 'Sign In' },
+          {
+            id: 'register',
+            label: (
+              <Link
+                to="/register"
+                search={redirectParam ? { redirect: redirectParam } : undefined}
+                className="hover:underline"
               >
-                Email Address
-              </label>
-              <input
-                id="si-email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@domain.com"
-                className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-              />
+                Create Account
+              </Link>
+            ),
+          },
+        ]}
+      />
+
+      <h2 className="font-serif text-2xl text-foreground">Welcome back</h2>
+      <p className="mt-1.5 text-caption leading-relaxed text-muted-foreground">
+        Enter your <span className="italic">groove</span> with the account you
+        keep on file.
+      </p>
+
+      {/* Error Notice */}
+      {error && (
+        <AuthNotice tone="error" className="mt-6">
+          <p>{error}</p>
+          {isUnverifiedError && (
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-destructive/20 pt-3">
+              <span className="font-eyebrow text-muted-foreground">
+                Didn't receive the email?
+              </span>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending || cooldown > 0}
+                className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary transition-colors hover:underline disabled:opacity-50"
+              >
+                {cooldown > 0
+                  ? `Resend in ${cooldown}s`
+                  : isResending
+                    ? 'Sending...'
+                    : 'Resend Link'}
+              </button>
             </div>
+          )}
+        </AuthNotice>
+      )}
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="si-password"
-                  className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-                >
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary hover:underline"
-                >
-                  Forgot?
-                </Link>
-              </div>
-              <div className="relative">
-                <input
-                  id="si-password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 pr-12 focus:border-foreground placeholder:text-secondary transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
+      {/* Resend Notice */}
+      {resendNotice && (
+        <AuthNotice
+          tone={resendNotice.type === 'success' ? 'success' : 'error'}
+          className="mt-6"
+        >
+          {resendNotice.text}
+        </AuthNotice>
+      )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-50 cursor-pointer"
-            >
-              {isSubmitting ? 'Entering...' : 'Enter the Maison'}
-            </button>
-          </form>
+      {/* Google OAuth Button */}
+      <a
+        href="/api/v1/auth/google"
+        onClick={() => {
+          const destination = resolveRedirectTarget(redirectParam)
+          saveAuthRedirect(destination)
+        }}
+        className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-control border border-border bg-card px-4 py-3 text-caption font-medium text-foreground shadow-raised transition-colors hover:bg-muted"
+      >
+        <GoogleIcon className="shrink-0" />
+        Continue with Google
+      </a>
 
-          <div className="font-sans text-caption text-muted-foreground text-center mt-7">
-            New here?{' '}
-            <Link
-              to="/register"
-              search={redirectParam ? { redirect: redirectParam } : undefined}
-              className="text-primary hover:underline transition-colors"
-            >
-              Create an account
-            </Link>
-          </div>
-        </div>
+      {/* Divider */}
+      <div className="my-6 flex items-center gap-3.5 before:content-[''] before:h-px before:flex-1 before:bg-border after:content-[''] after:h-px after:flex-1 after:bg-border">
+        <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+          Or with email
+        </span>
       </div>
-    </div>
+
+      {/* Credentials Form */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <AuthField
+          label="Email Address"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@domain.com"
+        />
+
+        <PasswordInput
+          label="Password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          action={
+            <Link
+              to="/forgot-password"
+              search={redirectParam ? { redirect: redirectParam } : undefined}
+              className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary hover:underline"
+            >
+              Forgot?
+            </Link>
+          }
+        />
+
+        <Button type="submit" disabled={isSubmitting} block className="mt-1">
+          {isSubmitting ? 'Entering...' : 'Enter the Maison'}
+        </Button>
+      </form>
+    </AuthShell>
   )
 }

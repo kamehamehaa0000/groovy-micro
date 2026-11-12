@@ -212,6 +212,14 @@
   --text-eyebrow--line-height: 1rem;
   --text-eyebrow--letter-spacing: 0.05em;
 
+  /* --- Layout roles ------------------------------------------------------- */
+  /* Page widths. The shell owns the gutters; a page only chooses how wide it
+     wants to be. `content` is for forms and reading, `default` for detail
+     pages, `wide` for directories and grids, `full` for tools (studio, admin). */
+  --container-content: 42rem;
+  --container-default: 72rem;
+  --container-wide: 90rem;
+
   /* --- Radius roles ------------------------------------------------------ */
   --radius-control: 0.25rem; /* buttons, inputs */
   --radius-inset: 0.5rem; /* nested surfaces */
@@ -220,6 +228,19 @@
   /* --- Elevation roles (dark overrides live in `.dark`) ------------------ */
   --shadow-raised: 0 1px 2px 0 rgba(23, 22, 15, 0.06);
   --shadow-floating: 0 10px 30px -6px rgba(23, 22, 15, 0.2);
+}
+
+/* Chrome heights. The bottom of every page has to clear the player, and the
+   player itself sits above the mobile tab bar — those numbers used to be
+   hard-coded in five places, which is how they drifted apart. */
+:root {
+  --header-height: 3.5rem; /* top bar (h-14) */
+  --tabbar-height: 3.5rem; /* mobile bottom navigation */
+  --miniplayer-height: 3.75rem; /* mobile mini player */
+  --playerbar-height: 5.5rem; /* desktop player bar (h-22) */
+  --player-chrome-mobile: calc(var(--miniplayer-height) + var(--tabbar-height));
+  --player-chrome-desktop: var(--playerbar-height);
+  --player-chrome-mobile-idle: var(--tabbar-height);
 }
 
 html,

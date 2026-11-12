@@ -9,6 +9,7 @@ import type {
 } from '../types/subscriptions'
 
 export const Route = createFileRoute('/admin/subscriptions')({
+  staticData: { layout: 'full' },
   component: AdminSubscriptionsDeskComponent,
 })
 
@@ -53,9 +54,11 @@ function AdminSubscriptionsDeskComponent() {
     }
   }, [isAuthLoading, isAuthenticated, navigate])
 
-  const loadData = async () => {
+  const loadData = async (options?: { keepNotice?: boolean }) => {
     setIsLoading(true)
-    setActionNotice(null)
+    // A successful action sets its notice and then reloads the tables — wiping
+    // the notice here meant the confirmation was gone before anyone saw it.
+    if (!options?.keepNotice) setActionNotice(null)
     try {
       const [plansRes, featuresRes] = await Promise.all([
         subscriptionsApi.adminListPlans(),
@@ -139,7 +142,7 @@ function AdminSubscriptionsDeskComponent() {
       setNewFeatureKey('')
       setNewFeatureName('')
       setNewFeatureDesc('')
-      await loadData()
+      await loadData({ keepNotice: true })
     } catch (err: any) {
       setActionNotice({
         type: 'error',
@@ -159,7 +162,7 @@ function AdminSubscriptionsDeskComponent() {
         type: 'success',
         text: `Feature '${feat.key}' ${!feat.isActive ? 'activated' : 'deactivated'}.`,
       })
-      await loadData()
+      await loadData({ keepNotice: true })
     } catch (err: any) {
       setActionNotice({
         type: 'error',
@@ -232,7 +235,7 @@ function AdminSubscriptionsDeskComponent() {
         })
       }
       setIsPlanModalOpen(false)
-      await loadData()
+      await loadData({ keepNotice: true })
     } catch (err: any) {
       setActionNotice({
         type: 'error',

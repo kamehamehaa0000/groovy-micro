@@ -19,6 +19,8 @@ import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { MediaTile } from '../Components/common/MediaTile'
 import { SongRow } from '../Components/common/SongRow'
 import { PlaylistCover } from '../Components/PlaylistCover'
+import { Button } from '../Components/ui'
+import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 
 interface SearchPageParams {
   q?: string
@@ -26,6 +28,7 @@ interface SearchPageParams {
 }
 
 export const Route = createFileRoute('/search')({
+  staticData: { layout: 'wide' },
   component: SearchPageComponent,
   validateSearch: (search: Record<string, unknown>): SearchPageParams => {
     const rawType = typeof search.type === 'string' ? search.type : 'all'
@@ -192,12 +195,20 @@ function SearchPageComponent() {
     'all' | 'songs' | 'albums' | 'artists' | 'playlists' | 'users'
   >(searchParams.type || 'all')
 
-  const { currentTrack, playbackStatus, playTrack, togglePlay } =
-    usePlayerStore()
-  const { isSongLiked, toggleSongLike, isAlbumLiked, toggleAlbumLike } =
-    useLikesStore()
-  const { isFollowing, toggleFollow } = useFollowsStore()
-  const { isAuthenticated, user } = useAuthStore()
+  // Selected slices only: whole-store subscriptions re-rendered this page on
+  // every playback tick and on every like anywhere in the app.
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
+  const isSongLiked = useLikesStore((s) => s.isSongLiked)
+  const toggleSongLike = useLikesStore((s) => s.toggleSongLike)
+  const isAlbumLiked = useLikesStore((s) => s.isAlbumLiked)
+  const toggleAlbumLike = useLikesStore((s) => s.toggleAlbumLike)
+  const isFollowing = useFollowsStore((s) => s.isFollowing)
+  const toggleFollow = useFollowsStore((s) => s.toggleFollow)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const user = useAuthStore((s) => s.user)
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
 
   // Sync internal state when URL search params change
@@ -285,7 +296,7 @@ function SearchPageComponent() {
 
   const fetchLimit = activeCategory === 'all' ? 8 : 24
 
-  const { data: results, isFetching } = useQuery({
+  const { data: results, isFetching, isError, error, refetch } = useQuery({
     queryKey: ['search', debouncedQuery, activeCategory, fetchLimit, user?.id],
     queryFn: ({ signal }) =>
       searchApi.search(debouncedQuery, fetchLimit, activeCategory, signal),
@@ -655,19 +666,19 @@ function SearchPageComponent() {
                     setDebouncedQuery(cat.query)
                     addRecentSearch(cat.query)
                   }}
-                  className={`group relative h-24 sm:h-28 border border-muted-foreground rounded-xl overflow-hidden p-3 sm:p-4 text-left shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50`}
+                  className={`group relative h-24 cursor-pointer overflow-hidden rounded-xl border border-border/60 bg-linear-to-br p-3 text-left shadow-raised transition-all duration-150 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50 sm:h-28 sm:p-4 ${cat.gradient}`}
                 >
-                  <span className="text-body sm:text-title font-bold tracking-tight text-white leading-tight max-w-[65%] line-clamp-2 block drop-shadow-xs">
+                  <span className="line-clamp-2 block max-w-[65%] text-body font-bold leading-tight tracking-tight text-white drop-shadow-xs sm:text-title">
                     {cat.name}
                   </span>
 
                   {/* Angled vinyl artwork motif */}
-                  <div className="absolute -right-3 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 rotate-24 shadow-xl rounded-md overflow-hidden bg-black/40 border border-white/15 flex items-center justify-center pointer-events-none group-hover:rotate-18 group-hover:scale-105 transition-all duration-200">
+                  <div className="pointer-events-none absolute -bottom-2 -right-3 flex h-16 w-16 rotate-24 items-center justify-center overflow-hidden rounded-md border border-white/15 bg-black/40 shadow-xl transition-all duration-200 group-hover:rotate-18 group-hover:scale-105 sm:h-20 sm:w-20">
                     <div
-                      className={`w-full h-full relative flex items-center justify-center bg-linear-to-br ${cat.discGradient}`}
+                      className={`relative flex h-full w-full items-center justify-center bg-linear-to-br ${cat.discGradient}`}
                     >
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/25 flex items-center justify-center bg-black/50 shadow-inner">
-                        <div className="w-4 h-4 rounded-full bg-white/40 border border-white/50" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/25 bg-black/50 shadow-inner sm:h-14 sm:w-14">
+                        <div className="h-4 w-4 rounded-full border border-white/50 bg-white/40" />
                       </div>
                     </div>
                   </div>
@@ -678,29 +689,41 @@ function SearchPageComponent() {
         </div>
       )}
 
+      {/* ===================== REQUEST FAILED ===================== */}
+      {query.trim() && isError && (
+        <ErrorState
+          title="Search is unavailable"
+          description={
+            error instanceof Error
+              ? error.message
+              : 'The search request could not be completed.'
+          }
+          onRetry={() => {
+            void refetch()
+          }}
+          className="my-6"
+        />
+      )}
+
       {/* ===================== NO RESULTS STATE ===================== */}
-      {query.trim() && !isSearching && !hasAnyResults && (
-        <div className="py-16 text-center border border-dashed border-border bg-card/30 rounded-xl my-6">
-          <div className="font-serif italic text-heading text-foreground mb-1.5">
-            No results found for &ldquo;{query}&rdquo;
-          </div>
-          <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            Please check your spelling or search by an artist name, song title,
-            album title, or curator.
-          </p>
-          <div className="mt-4">
-            <button
-              type="button"
+      {query.trim() && !isSearching && !isError && !hasAnyResults && (
+        <EmptyState
+          title={`No results for "${query}"`}
+          description="Check the spelling, or search by artist, song, album or curator."
+          className="my-6"
+          action={
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setQuery('')
                 setDebouncedQuery('')
               }}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider px-4 py-2 border border-border bg-card hover:bg-background text-foreground transition-colors cursor-pointer rounded-full"
             >
-              Clear Query
-            </button>
-          </div>
-        </div>
+              Clear query
+            </Button>
+          }
+        />
       )}
 
       {/* ===================== SEARCH RESULTS SECTION ===================== */}

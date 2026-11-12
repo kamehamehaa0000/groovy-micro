@@ -313,8 +313,6 @@ function RadioMixPage() {
     <div className="select-none">
       {/* ===================== COLLECTION HERO HEADER ===================== */}
       <CollectionHeader
-        className="-mx-4 sm:-mx-8"
-        stickyClassName="-mx-4 sm:-mx-8"
         title={seedSong ? `${seedSong.title} Radio` : 'Radio'}
         eyebrow={
           <Eyebrow

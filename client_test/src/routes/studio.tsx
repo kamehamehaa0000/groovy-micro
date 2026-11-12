@@ -24,6 +24,7 @@ import { TrashTab } from '../Components/studio/tabs/TrashTab'
 import { VerificationTab } from '../Components/studio/tabs/VerificationTab'
 
 export const Route = createFileRoute('/studio')({
+  staticData: { layout: 'full' },
   component: StudioComponent,
 })
 

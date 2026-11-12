@@ -2,7 +2,15 @@ import { usePlayerStore } from "../../stores/player.store";
 import { QueueContent } from "./QueueDrawer";
 import { DevicesContent } from "./DevicePanel";
 import { DesktopNowPlayingSidebar } from "./DesktopNowPlayingSidebar";
+import { cn } from "../ui/cn";
 
+/**
+ * Now Playing / Queue panel.
+ *
+ * It is an overlay, not a column: it slides over the page instead of pushing
+ * it. When it used to be a flex sibling whose width animated from 0, every
+ * open and close re-laid out the entire page behind it.
+ */
 export function DesktopRightSidebar() {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const sidebarView = usePlayerStore((s) => s.desktopRightSidebarView);
@@ -11,41 +19,52 @@ export function DesktopRightSidebar() {
   const isOpen = sidebarView !== "none";
 
   return (
-    <aside
-      aria-label="Desktop Right Sidebar (Now Playing & Queue)"
-      style={{
-        height: currentTrack
-          ? "calc(100vh - 3.5rem - 5rem)"
-          : "calc(100vh - 3.5rem)",
-      }}
-      className={`hidden md:flex flex-col shrink-0 sticky top-14 z-30 bg-card border-l border-border transition-[width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-        isOpen
-          ? "w-95 lg:w-100 opacity-100"
-          : "w-0 opacity-0 border-l-0 pointer-events-none"
-      }`}
-    >
-      <div className="w-95 lg:w-100 h-full flex flex-col min-h-0">
-        {sidebarView === "now-playing" && (
-          <DesktopNowPlayingSidebar
-            onClose={() => setSidebarView("none")}
-            onSwitchToQueue={() => setSidebarView("queue")}
-          />
+    <>
+      {/* Clicking the page closes the panel. */}
+      <div
+        aria-hidden={!isOpen}
+        onClick={() => setSidebarView("none")}
+        className={cn(
+          "hidden md:block fixed inset-x-0 top-14 bottom-0 z-30 bg-scrim/50 transition-opacity duration-200 motion-reduce:transition-none",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
+      />
 
-        {sidebarView === "queue" && (
-          <QueueContent
-            mode="desktop"
-            onClose={() => setSidebarView("none")}
-          />
+      <aside
+        aria-label="Now Playing & Queue"
+        style={{
+          bottom: currentTrack ? "var(--player-chrome-desktop)" : 0,
+        }}
+        className={cn(
+          "hidden md:flex flex-col fixed right-0 top-14 z-40 w-95 lg:w-100 bg-card border-l border-border shadow-floating transition-transform duration-300 ease-out motion-reduce:transition-none",
+          isOpen
+            ? "translate-x-0"
+            : "translate-x-full pointer-events-none",
         )}
+      >
+        <div className="h-full flex flex-col min-h-0">
+          {sidebarView === "now-playing" && (
+            <DesktopNowPlayingSidebar
+              onClose={() => setSidebarView("none")}
+              onSwitchToQueue={() => setSidebarView("queue")}
+            />
+          )}
 
-        {sidebarView === "devices" && (
-          <DevicesContent
-            mode="desktop"
-            onClose={() => setSidebarView("none")}
-          />
-        )}
-      </div>
-    </aside>
+          {sidebarView === "queue" && (
+            <QueueContent
+              mode="desktop"
+              onClose={() => setSidebarView("none")}
+            />
+          )}
+
+          {sidebarView === "devices" && (
+            <DevicesContent
+              mode="desktop"
+              onClose={() => setSidebarView("none")}
+            />
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

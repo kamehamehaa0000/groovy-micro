@@ -6,6 +6,9 @@ import {
 } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
+import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
+import { AuthField } from '../Components/auth/AuthField'
+import { Button } from '../Components/ui'
 
 export const Route = createFileRoute('/forgot-password')({
   beforeLoad: async () => {
@@ -26,7 +29,9 @@ export const Route = createFileRoute('/forgot-password')({
 
 function ForgotPasswordComponent() {
   const navigate = useNavigate()
-  const { forgotPassword, isAuthenticated, isLoading } = useAuthStore()
+  const forgotPassword = useAuthStore((s) => s.forgotPassword)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -83,81 +88,66 @@ function ForgotPasswordComponent() {
   }
 
   return (
-    <div className="w-full max-w-120 mx-auto my-12 px-4 select-none">
-      <div className="rounded-lg border border-border bg-background p-8 sm:p-10 shadow-xs">
-        {/* Brand Header */}
+    <AuthShell variant="narrow">
+      <div className="text-center">
+        <h1 className="font-serif text-2xl tracking-tight text-foreground">
+          Forgot your password?
+        </h1>
+        <p className="mx-auto mt-2 max-w-sm text-caption leading-relaxed text-muted-foreground">
+          Enter the email address associated with your account, and we will
+          dispatch a link to reset your credentials.
+        </p>
+      </div>
 
-        <div className="text-center mb-6 space-y-6">
-          <h1 className="font-serif italic text-3xl tracking-[-0.03em] text-foreground">
-            Forgot your password?
-          </h1>
-          <p className="font-sans text-caption text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            Enter the email address associated with your account, and we will
-            dispatch a link to reset your credentials.
-          </p>
+      {/* Status Notice */}
+      {notice && (
+        <AuthNotice
+          tone={notice.type === 'success' ? 'success' : 'error'}
+          className="mt-6"
+        >
+          {notice.text}
+        </AuthNotice>
+      )}
+
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
+        <AuthField
+          label="Email Address"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@domain.com"
+        />
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || cooldown > 0 || !email}
+          block
+          className="mt-1"
+        >
+          {isSubmitting
+            ? 'Dispatching...'
+            : cooldown > 0
+              ? `Resend available in ${cooldown}s`
+              : 'Send Reset Link'}
+        </Button>
+      </form>
+
+      <div className="mt-8 flex flex-col items-center gap-2 border-t border-border-soft pt-6 text-caption text-muted-foreground">
+        <div>
+          Remember your credentials?{' '}
+          <Link to="/login" className="text-primary hover:underline">
+            Sign In
+          </Link>
         </div>
-
-        {/* Status Notice */}
-        {notice && (
-          <div
-            className={`mb-6 p-3.5 border text-caption leading-relaxed ${
-              notice.type === 'success'
-                ? 'border-success/30 bg-success-soft text-success'
-                : 'border-destructive/30 bg-destructive-soft text-destructive'
-            }`}
-          >
-            {notice.text}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="fp-email"
-              className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground"
-            >
-              Email Address
-            </label>
-            <input
-              id="fp-email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              className="w-full border-0 border-b border-border bg-transparent outline-none font-sans text-body text-foreground py-2 focus:border-foreground placeholder:text-secondary transition-colors"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || cooldown > 0 || !email}
-            className="mt-2 rounded-lg w-full bg-foreground text-background border border-foreground py-3.5 px-4 font-eyebrow text-eyebrow uppercase tracking-wider font-medium transition-all hover:bg-background hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isSubmitting
-              ? 'Dispatching...'
-              : cooldown > 0
-                ? `Resend available in ${cooldown}s`
-                : 'Send Reset Link'}
-          </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-border/60 flex flex-col items-center gap-2 font-sans text-caption text-muted-foreground">
-          <div>
-            Remember your credentials?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              Sign In
-            </Link>
-          </div>
-          <div>
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Create an account
-            </Link>
-          </div>
+        <div>
+          Don't have an account?{' '}
+          <Link to="/register" className="text-primary hover:underline">
+            Create an account
+          </Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   )
 }

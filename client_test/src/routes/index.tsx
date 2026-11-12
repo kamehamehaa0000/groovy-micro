@@ -17,6 +17,10 @@ import { RecentlyPlayedShelf } from '../Components/player/RecentlyPlayedShelf'
 import { MediaTile } from '../Components/common/MediaTile'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import { SongRow } from '../Components/common/SongRow'
+import { ShelfSection, TrackCarousel } from '../Components/home/ShelfSection'
+import { MediaGrid } from '../Components/media/MediaGrid'
+import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
+import { notify } from '../lib/toast'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -28,12 +32,16 @@ function HomeComponent() {
   // High-performance client-side likes store
   const hydrateSongs = useLikesStore((s) => s.hydrateSongs)
 
-  // Player integration
-  const { currentTrack, playTrack, togglePlay } = usePlayerStore()
+  // Player integration — selected slices only, so a playback tick does not
+  // re-render the whole home page.
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
 
   // Authenticated Personalized Feed State
   const [feed, setFeed] = useState<PersonalizedHomeFeed | null>(null)
   const [isLoadingFeed, setIsLoadingFeed] = useState(false)
+  const [feedError, setFeedError] = useState<string | null>(null)
 
   // Unauthenticated Catalog State
   const [liveAlbums, setLiveAlbums] = useState<
@@ -47,6 +55,7 @@ function HomeComponent() {
 
     if (isAuthenticated) {
       setIsLoadingFeed(true)
+      setFeedError(null)
       recommendationsApi
         .getHomeFeed()
         .then((data) => {
@@ -65,7 +74,15 @@ function HomeComponent() {
           }
         })
         .catch((err) => {
+          if (!isMounted) return
+          // The feed is the page: without it there is nothing to show, so the
+          // failure has to be visible rather than silently blank.
           console.warn('[HomeComponent] Failed to load home feed:', err)
+          setFeedError(
+            err instanceof Error
+              ? err.message
+              : 'Your personalized stream could not be loaded.',
+          )
         })
         .finally(() => {
           if (isMounted) setIsLoadingFeed(false)
@@ -177,7 +194,7 @@ function HomeComponent() {
 
   const handlePlayCatalogSong = (song: EnrichedSong, index?: number) => {
     if (song.isStreamable === false) {
-      alert('This cut is scheduled and locked until release.')
+      notify.info('This cut is scheduled and locked until release.')
       return
     }
 
@@ -283,23 +300,17 @@ function HomeComponent() {
       {/* ------------------------------------------------------------ */}
       {isAuthenticated && (
         <>
+          {/* The shelves below are the page; this keeps the document outline
+              sane for screen readers and search engines. */}
+          <h1 className="sr-only">Home</h1>
+
           {/* 1. Recently Played Shelf (Current one, kept untouched) */}
           <RecentlyPlayedShelf limit={12} />
           {/* 4. Global Hits Matching Your Taste */}
           {feed?.globalHits && feed.globalHits.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    Global Hits For You
-                  </h2>
-                  <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                    Trending cuts in your favorite genres
-                  </p>
-                </div>
-              </div>
+            <ShelfSection title="Global Hits For You" subtitle="Trending cuts in your favorite genres">
+                <TrackCarousel>
 
-              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.globalHits.map((track) => (
                   <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -335,25 +346,15 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-              </div>
-            </section>
+                </TrackCarousel>
+              </ShelfSection>
           )}
 
           {/* 2. New Releases For You */}
           {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    New Releases For You
-                  </h2>
-                  <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                    Fresh albums & singles matching your sonic profile
-                  </p>
-                </div>
-              </div>
+            <ShelfSection title="New Releases For You" subtitle="Fresh albums & singles matching your sonic profile">
+                <TrackCarousel>
 
-              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.newReleasesForYou.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -366,31 +367,15 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-              </div>
-            </section>
+                </TrackCarousel>
+              </ShelfSection>
           )}
 
           {/* 2. New Releases From Followed Artists (Release Radar) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    Release Radar
-                  </h2>
-                  <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                    New drops from artists you follow
-                  </p>
-                </div>
-                <Link
-                  to="/releases"
-                  className="font-eyebrow text-eyebrow hover:underline uppercase tracking-wider text-muted-foreground shrink-0"
-                >
-                  Release Archive
-                </Link>
-              </div>
+            <ShelfSection title="Release Radar" subtitle="New drops from artists you follow" action={{ label: 'Release Archive', to: '/releases' }}>
+                <TrackCarousel>
 
-              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.artistRadar.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -403,34 +388,21 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-              </div>
-            </section>
+                </TrackCarousel>
+              </ShelfSection>
           )}
 
           {/* 5. Similar Artists */}
           {feed?.similarArtists?.seedArtist &&
             feed.similarArtists.artists &&
             feed.similarArtists.artists.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                  <div>
-                    <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                      Similar to {feed.similarArtists.seedArtist.stageName}
-                    </h2>
-                    <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                      Curated artists sharing soundscapes, energy, and
-                      subculture
-                    </p>
-                  </div>
-                  <Link
-                    to="/artists"
-                    className="font-eyebrow hover:underline text-eyebrow uppercase tracking-wider text-muted-foreground shrink-0"
-                  >
-                    Explore Artists
-                  </Link>
-                </div>
+              <ShelfSection
+                title={'Similar to ' + feed.similarArtists.seedArtist.stageName}
+                subtitle="Curated artists sharing soundscapes, energy, and subculture"
+                action={{ label: 'Explore Artists', to: '/artists' }}
+              >
+                  <TrackCarousel>
 
-                <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {feed.similarArtists.artists.map((artist) => (
                     <div key={artist.id} className="w-35 sm:w-42.5 shrink-0">
                       <ArtistCard
@@ -442,33 +414,21 @@ function HomeComponent() {
                       />
                     </div>
                   ))}
-                </div>
-              </section>
+                  </TrackCarousel>
+                </ShelfSection>
             )}
 
           {/* 6. More Like Favorite Song */}
           {feed?.moreLikeSong?.seedSong &&
             feed.moreLikeSong.tracks &&
             feed.moreLikeSong.tracks.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                  <div>
-                    <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                      More Like "{feed.moreLikeSong.seedSong.title}"
-                    </h2>
-                    <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                      Harmonic continuity matching your repeat spin
-                    </p>
-                  </div>
-                  <Link
-                    to="/search"
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground shrink-0"
-                  >
-                    Explore more
-                  </Link>
-                </div>
+              <ShelfSection
+                title={'More Like "' + feed.moreLikeSong.seedSong.title + '"'}
+                subtitle="Harmonic continuity matching your repeat spin"
+                action={{ label: 'Explore more', to: '/search' }}
+              >
+                  <TrackCarousel>
 
-                <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {feed.moreLikeSong.tracks.map((track) => (
                     <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
                       <MediaTile
@@ -504,28 +464,15 @@ function HomeComponent() {
                       />
                     </div>
                   ))}
-                </div>
-              </section>
+                  </TrackCarousel>
+                </ShelfSection>
             )}
 
           {/* 7. My Saved or Created Playlists */}
           {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    Your Playlists
-                  </h2>
-                  <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                    Jump back into your personal and saved playlists
-                  </p>
-                </div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground shrink-0">
-                  Library
-                </span>
-              </div>
+            <ShelfSection title="Your Playlists" subtitle="Jump back into your personal and saved playlists">
+                <TrackCarousel>
 
-              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {feed.userPlaylists.map((pl) => (
                   <div key={pl.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -538,25 +485,17 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-              </div>
-            </section>
+                </TrackCarousel>
+              </ShelfSection>
           )}
 
           {/* 8. Radio Mixes (Kept at the end as requested) */}
           {feed?.radioMixes && feed.radioMixes.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex justify-between items-baseline border-b border-border pb-2.5">
-                <div>
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    Personalized Radio Mixes
-                  </h2>
-                  <p className="font-sans text-caption text-muted-foreground mt-0.5">
-                    Infinite flow seeded from 5 diverse songs in your rotation
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <ShelfSection
+              title="Personalized Radio Mixes"
+              subtitle="Infinite flow seeded from 5 diverse songs in your rotation"
+            >
+              <TrackCarousel>
                 {feed.radioMixes.map((mix) => (
                   <div key={mix.id} className="w-40 sm:w-47.5 shrink-0">
                     <MediaTile
@@ -575,14 +514,23 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-              </div>
-            </section>
+              </TrackCarousel>
+            </ShelfSection>
+          )}
+
+          {/* The feed failed — say so, and offer a way back. */}
+          {feedError && (
+            <ErrorState
+              title="Your stream could not be loaded"
+              description={feedError}
+              onRetry={() => window.location.reload()}
+            />
           )}
 
           {/* Empty personalized feed — keeps / from rendering a blank page */}
-          {!isLoadingFeed && feed && !hasFeedContent && (
-            <section className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
-              <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          {!isLoadingFeed && !feedError && feed && !hasFeedContent && (
+            <EmptyState
+              icon={
                 <svg
                   className="h-5 w-5"
                   viewBox="0 0 24 24"
@@ -598,29 +546,26 @@ function HomeComponent() {
                   <circle cx="6" cy="17" r="2" />
                   <circle cx="14" cy="15" r="2" />
                 </svg>
-              </span>
-              <h2 className="font-serif italic text-title text-foreground">
-                Your stream is warming up
-              </h2>
-              <p className="mx-auto mt-1.5 max-w-md font-sans text-caption text-muted-foreground">
-                Play a few tracks, like what you love, or follow an artist and
-                your personalized shelves will appear here.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  to="/search"
-                  className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
-                >
-                  Explore the catalog
-                </Link>
-                <Link
-                  to="/artists"
-                  className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
-                >
-                  Find artists
-                </Link>
-              </div>
-            </section>
+              }
+              title="Your stream is warming up"
+              description="Play a few tracks, like what you love, or follow an artist and your personalized shelves will appear here."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    to="/search"
+                    className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
+                  >
+                    Explore the catalog
+                  </Link>
+                  <Link
+                    to="/artists"
+                    className="font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
+                  >
+                    Find artists
+                  </Link>
+                </div>
+              }
+            />
           )}
 
           {/* Loading indicator if feed is still fetching */}
@@ -655,7 +600,7 @@ function HomeComponent() {
                 Loading master releases...
               </div>
             ) : liveAlbums.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
+              <MediaGrid maxColumns={6}>
                 {liveAlbums.slice(0, 6).map((album) => (
                   <MediaTile
                     key={album.id}
@@ -667,13 +612,12 @@ function HomeComponent() {
                     artistName={album.artistStageName}
                   />
                 ))}
-              </div>
+              </MediaGrid>
             ) : (
-              <div className="border border-border bg-card divide-y divide-border/60">
-                <h3 className="font-serif font-medium text-body text-foreground p-5">
-                  No releases found
-                </h3>
-              </div>
+              <EmptyState
+                title="No releases found"
+                description="Nothing has been published yet. Check back soon."
+              />
             )}
           </section>
 

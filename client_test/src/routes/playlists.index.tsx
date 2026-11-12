@@ -37,6 +37,7 @@ const SORT_OPTIONS: SortOption<PlaylistSort>[] = [
 ]
 
 export const Route = createFileRoute('/playlists/')({
+  staticData: { layout: 'wide' },
   component: PlaylistsDirectoryComponent,
   validateSearch: (search: Record<string, unknown>): PlaylistsSearchParams => {
     const rawSort = typeof search.sort === 'string' ? search.sort : ''

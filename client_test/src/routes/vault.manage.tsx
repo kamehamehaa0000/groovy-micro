@@ -39,6 +39,7 @@ interface CollectionManageSearchParams {
 }
 
 export const Route = createFileRoute('/vault/manage')({
+  staticData: { layout: 'full' },
   component: PersonalCollectionManagePage,
   validateSearch: (
     search: Record<string, unknown>,

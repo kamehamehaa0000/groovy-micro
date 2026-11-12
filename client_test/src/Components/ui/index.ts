@@ -30,3 +30,17 @@ export type { SectionHeaderProps } from './SectionHeader'
 
 export { SortMenu } from './SortMenu'
 export type { SortMenuProps, SortOption } from './SortMenu'
+
+export { Tabs } from './Tabs'
+export type { TabsProps, TabsVariant, TabItem } from './Tabs'
+
+export { EmptyState, ErrorState, Skeleton, SkeletonGrid } from './EmptyState'
+export type {
+  EmptyStateProps,
+  ErrorStateProps,
+  SkeletonProps,
+  SkeletonGridProps,
+} from './EmptyState'
+
+export { Modal, ConfirmDialog } from './Modal'
+export type { ModalProps, ConfirmDialogProps } from './Modal'

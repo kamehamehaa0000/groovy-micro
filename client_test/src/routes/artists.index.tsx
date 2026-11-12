@@ -50,6 +50,7 @@ const SORT_OPTIONS: SortOption<ArtistSort>[] = [
 ]
 
 export const Route = createFileRoute('/artists/')({
+  staticData: { layout: 'wide' },
   component: ArtistsDirectoryComponent,
   validateSearch: (
     search: Record<string, unknown>,

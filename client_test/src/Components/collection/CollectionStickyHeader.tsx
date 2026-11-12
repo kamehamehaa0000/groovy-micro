@@ -36,7 +36,7 @@ export function CollectionStickyHeader({
             : '-translate-y-full opacity-0',
         )}
       >
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:px-8">
+        <div className="flex h-14 w-full items-center gap-3">
           {thumbnail ? (
             <div
               className={cn(

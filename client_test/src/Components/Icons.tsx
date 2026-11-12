@@ -29,8 +29,10 @@ export const LightModeSVG = () => (
   </svg>
 )
 
-export const SvgArtworkSpiral = () => (
-  <div className="pointer-events-none absolute -right-16 -bottom-16 w-80 h-80 opacity-70">
+export const SvgArtworkSpiral = ({
+  className = "pointer-events-none absolute -right-16 -bottom-16 w-80 h-80 opacity-70",
+}: { className?: string }) => (
+  <div className={className}>
     {/* Decorative Geometric Vinyl Record SVG Art */}
     <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
       <g
@@ -80,12 +82,14 @@ export const SpiralCoverArtBig = ({ i }: { i: number }) => (
   </svg>
 )
 
-export const GoogleIcon = () => (
+export const GoogleIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg
     height="16"
     viewBox="0 0 18 18"
     width="16"
     xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
   >
     <path
       d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"
