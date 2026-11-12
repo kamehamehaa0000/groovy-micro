@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { searchApi, type SearchSongItem } from '../lib/search.api'
+import { toPlayerTrack } from '../lib/player-track'
 import { usePlayerStore } from '../stores/player.store'
 import { useLikesStore } from '../stores/likes.store'
 import { useFollowsStore } from '../stores/follows.store'
@@ -332,20 +333,21 @@ function SearchPageComponent() {
     }
   }, [results])
 
-  const toPlayerTrackFromSearch = (song: SearchSongItem): PlayerTrack => ({
-    id: song.id,
-    title: song.title,
-    artistId: song.artistId,
-    artistName: song.artistName,
-    artistSlug: song.artistSlug,
-    albumId: song.albumId || '',
-    albumTitle: song.albumTitle || '',
-    coverImageUrl: song.coverImageUrl,
-    durationSeconds: song.durationSeconds,
-    audioUrl: song.audioUrl,
-    isExplicit: song.isExplicit,
-    scope: song.isPersonal ? 'PERSONAL' : 'GLOBAL',
-  })
+  const toPlayerTrackFromSearch = (song: SearchSongItem): PlayerTrack =>
+    toPlayerTrack({
+      id: song.id,
+      title: song.title,
+      artistId: song.artistId,
+      artistName: song.artistName,
+      artistSlug: song.artistSlug,
+      albumId: song.albumId || '',
+      albumTitle: song.albumTitle || '',
+      coverImageUrl: song.coverImageUrl,
+      durationSeconds: song.durationSeconds,
+      audioUrl: song.audioUrl,
+      isExplicit: song.isExplicit,
+      scope: song.isPersonal ? 'PERSONAL' : 'GLOBAL',
+    })
 
   // Play a song from search results
   const handlePlaySong = (

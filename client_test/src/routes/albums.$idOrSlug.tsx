@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { catalogApi, formatDuration } from '../lib/catalog.api'
 import type { AlbumDetail, EnrichedSong } from '../types/catalog'
 import {
@@ -265,27 +266,28 @@ function AlbumDetailComponent() {
     }
   }
 
-  const toPlayerTrack = (song: EnrichedSong): PlayerTrack => ({
-    id: song.id,
-    title: song.title,
-    artistId: album?.artistId || '',
-    artistName: album?.artistStageName || '',
-    artistSlug: album?.artistSlug,
-    albumId: album?.id,
-    albumTitle: album?.title,
-    albumSlug: album?.slug,
-    coverImageUrl: song.coverImageUrl || album?.coverImageUrl,
-    durationSeconds: song.durationSeconds,
-    audioUrl: song.audioUrl,
-    hlsManifestUrl: song.hlsManifestUrl,
-    rawAudioKey: song.rawAudioKey,
-    isExplicit: song.isExplicit,
-    credits: song.credits,
-    scope: song.scope || album?.scope || 'GLOBAL',
-    isStreamable: isCreator
-      ? true
-      : song.isStreamable !== false && !album?.isUpcoming,
-  })
+  const toPlayerTrack = (song: EnrichedSong): PlayerTrack =>
+    mapToPlayerTrack({
+      id: song.id,
+      title: song.title,
+      artistId: album?.artistId || '',
+      artistName: album?.artistStageName || '',
+      artistSlug: album?.artistSlug,
+      albumId: album?.id,
+      albumTitle: album?.title,
+      albumSlug: album?.slug,
+      coverImageUrl: song.coverImageUrl || album?.coverImageUrl,
+      durationSeconds: song.durationSeconds,
+      audioUrl: song.audioUrl,
+      hlsManifestUrl: song.hlsManifestUrl,
+      rawAudioKey: song.rawAudioKey,
+      isExplicit: song.isExplicit,
+      credits: song.credits,
+      scope: (song.scope || album?.scope || 'GLOBAL') as 'GLOBAL' | 'PERSONAL',
+      isStreamable: isCreator
+        ? true
+        : song.isStreamable !== false && !album?.isUpcoming,
+    })
 
   const handlePlaySong = (song: EnrichedSong, index: number) => {
     const isLocked =

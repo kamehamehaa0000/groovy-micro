@@ -13,6 +13,7 @@ import {
 } from '../lib/recommendations.api'
 import type { Album, EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
+import { toPlayerTrack } from '../lib/player-track'
 import { RecentlyPlayedShelf } from '../Components/player/RecentlyPlayedShelf'
 import { MediaTile } from '../Components/common/MediaTile'
 import { ArtistCard } from '../Components/artists/ArtistCard'
@@ -114,39 +115,41 @@ function HomeComponent() {
   }, [isAuthenticated, isAuthLoading, hydrateSongs])
 
   // Conversion Helpers
-  const scoredToPlayerTrack = (s: ScoredRecommendationTrack): PlayerTrack => ({
-    id: s.id,
-    title: s.title,
-    artistId: s.artistId || '',
-    artistName: s.artistStageName || 'Unknown Artist',
-    artistSlug: s.artistSlug,
-    albumId: s.albumId || undefined,
-    albumTitle: s.albumTitle || undefined,
-    albumSlug: s.albumSlug || undefined,
-    coverImageUrl: s.coverImageUrl,
-    durationSeconds: s.durationSeconds,
-    audioUrl: s.audioUrl,
-    hlsManifestUrl: s.hlsManifestUrl,
-    isLiked: s.isLiked,
-  })
+  const scoredToPlayerTrack = (s: ScoredRecommendationTrack): PlayerTrack =>
+    toPlayerTrack({
+      id: s.id,
+      title: s.title,
+      artistId: s.artistId || '',
+      artistName: s.artistStageName || 'Unknown Artist',
+      artistSlug: s.artistSlug,
+      albumId: s.albumId || undefined,
+      albumTitle: s.albumTitle || undefined,
+      albumSlug: s.albumSlug || undefined,
+      coverImageUrl: s.coverImageUrl,
+      durationSeconds: s.durationSeconds,
+      audioUrl: s.audioUrl,
+      hlsManifestUrl: s.hlsManifestUrl,
+      isLiked: s.isLiked,
+    })
 
-  const catalogToPlayerTrack = (song: EnrichedSong): PlayerTrack => ({
-    id: song.id,
-    title: song.title,
-    artistId: song.artistId || '',
-    artistName: song.artistStageName || 'Unknown Artist',
-    artistSlug: song.artistSlug,
-    albumId: song.albumId || undefined,
-    albumTitle: song.albumTitle || undefined,
-    albumSlug: song.albumSlug || undefined,
-    coverImageUrl: song.coverImageUrl || song.albumCoverImageUrl,
-    durationSeconds: song.durationSeconds,
-    audioUrl: song.audioUrl,
-    hlsManifestUrl: song.hlsManifestUrl,
-    rawAudioKey: song.rawAudioKey,
-    isExplicit: song.isExplicit,
-    credits: song.credits,
-  })
+  const catalogToPlayerTrack = (song: EnrichedSong): PlayerTrack =>
+    toPlayerTrack({
+      id: song.id,
+      title: song.title,
+      artistId: song.artistId || '',
+      artistName: song.artistStageName || 'Unknown Artist',
+      artistSlug: song.artistSlug,
+      albumId: song.albumId || undefined,
+      albumTitle: song.albumTitle || undefined,
+      albumSlug: song.albumSlug || undefined,
+      coverImageUrl: song.coverImageUrl || song.albumCoverImageUrl,
+      durationSeconds: song.durationSeconds,
+      audioUrl: song.audioUrl,
+      hlsManifestUrl: song.hlsManifestUrl,
+      rawAudioKey: song.rawAudioKey,
+      isExplicit: song.isExplicit,
+      credits: song.credits,
+    })
 
   // Playback handlers
   const handlePlayScoredSong = (

@@ -27,6 +27,7 @@ import { EmptyState } from '../Components/ui/EmptyState'
 import { TrackCarousel } from '../Components/home/ShelfSection'
 import { Badge, Button, Eyebrow, IconButton } from '../Components/ui'
 import { cn } from '../Components/ui/cn'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePreSavesStore } from '../stores/presaves.store'
@@ -276,24 +277,25 @@ function ArtistPublicProfileComponent() {
   }
 
   const toPlayerTrack = useCallback(
-    (song: EnrichedSong): PlayerTrack => ({
-      id: song.id,
-      title: song.title,
-      artistId: artist?.id || song.artistId || '',
-      artistName: artist?.stageName || song.artistStageName || 'Unknown Artist',
-      artistSlug: artist?.slug || song.artistSlug,
-      albumId: song.albumId || undefined,
-      albumTitle: song.albumTitle || undefined,
-      albumSlug: song.albumSlug || undefined,
-      coverImageUrl:
-        song.coverImageUrl || song.albumCoverImageUrl || artist?.avatarUrl,
-      durationSeconds: song.durationSeconds,
-      audioUrl: song.audioUrl,
-      hlsManifestUrl: song.hlsManifestUrl,
-      rawAudioKey: song.rawAudioKey,
-      isExplicit: song.isExplicit,
-      credits: song.credits,
-    }),
+    (song: EnrichedSong): PlayerTrack =>
+      mapToPlayerTrack({
+        id: song.id,
+        title: song.title,
+        artistId: artist?.id || song.artistId || '',
+        artistName: artist?.stageName || song.artistStageName || 'Unknown Artist',
+        artistSlug: artist?.slug || song.artistSlug,
+        albumId: song.albumId || undefined,
+        albumTitle: song.albumTitle || undefined,
+        albumSlug: song.albumSlug || undefined,
+        coverImageUrl:
+          song.coverImageUrl || song.albumCoverImageUrl || artist?.avatarUrl,
+        durationSeconds: song.durationSeconds,
+        audioUrl: song.audioUrl,
+        hlsManifestUrl: song.hlsManifestUrl,
+        rawAudioKey: song.rawAudioKey,
+        isExplicit: song.isExplicit,
+        credits: song.credits,
+      }),
     [artist],
   )
 
