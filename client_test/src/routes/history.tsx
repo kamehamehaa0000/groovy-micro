@@ -7,8 +7,10 @@ import { usePlayerStore } from '../stores/player.store'
 import { playerApi, type HistoryItem } from '../lib/player.api'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { SongRow } from '../Components/common/SongRow'
 import { EmptyState } from '../Components/ui/EmptyState'
 import { SectionTitle } from '../Components/ui/SectionTitle'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import {
   PlayIconSVG,
@@ -53,13 +55,6 @@ function formatPlayTime(isoDate: string): string {
   } catch {
     return ''
   }
-}
-
-function formatDurationSeconds(sec: number): string {
-  if (!sec || isNaN(sec) || sec <= 0) return '0:00'
-  const m = Math.floor(sec / 60)
-  const s = Math.floor(sec % 60)
-  return `${m}:${String(s).padStart(2, '0')}`
 }
 
 function HistoryPageComponent() {
@@ -318,7 +313,7 @@ function HistoryPageComponent() {
     }
 
     const firstItem = release.tracksPlayed[0]
-    const playerTrack: PlayerTrack = {
+    const playerTrack: PlayerTrack = mapToPlayerTrack({
       id: firstItem.song.id,
       title: firstItem.song.title,
       artistId: firstItem.song.artistId,
@@ -336,27 +331,29 @@ function HistoryPageComponent() {
       hlsManifestUrl: firstItem.song.hlsManifestUrl || undefined,
       rawAudioKey: firstItem.song.rawAudioKey || undefined,
       isExplicit: firstItem.song.isExplicit,
-      scope: (firstItem.song.scope as any) || 'GLOBAL',
-    }
+      scope: (firstItem.song.scope as 'GLOBAL' | 'PERSONAL') || 'GLOBAL',
+    })
 
-    const queue: PlayerTrack[] = release.tracksPlayed.map((t) => ({
-      id: t.song.id,
-      title: t.song.title,
-      artistId: t.song.artistId,
-      artistName: t.song.artistName,
-      artistSlug: t.song.artistSlug,
-      albumId: t.song.albumId || undefined,
-      albumTitle: t.song.albumTitle || undefined,
-      albumSlug: t.song.albumSlug || undefined,
-      durationSeconds: t.song.durationSeconds,
-      coverImageUrl:
-        t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
-      audioUrl: t.song.audioUrl || undefined,
-      hlsManifestUrl: t.song.hlsManifestUrl || undefined,
-      rawAudioKey: t.song.rawAudioKey || undefined,
-      isExplicit: t.song.isExplicit,
-      scope: (t.song.scope as any) || 'GLOBAL',
-    }))
+    const queue: PlayerTrack[] = release.tracksPlayed.map((t) =>
+      mapToPlayerTrack({
+        id: t.song.id,
+        title: t.song.title,
+        artistId: t.song.artistId,
+        artistName: t.song.artistName,
+        artistSlug: t.song.artistSlug,
+        albumId: t.song.albumId || undefined,
+        albumTitle: t.song.albumTitle || undefined,
+        albumSlug: t.song.albumSlug || undefined,
+        durationSeconds: t.song.durationSeconds,
+        coverImageUrl:
+          t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
+        audioUrl: t.song.audioUrl || undefined,
+        hlsManifestUrl: t.song.hlsManifestUrl || undefined,
+        rawAudioKey: t.song.rawAudioKey || undefined,
+        isExplicit: t.song.isExplicit,
+        scope: (t.song.scope as 'GLOBAL' | 'PERSONAL') || 'GLOBAL',
+      }),
+    )
 
     playTrack(
       playerTrack,
@@ -377,7 +374,7 @@ function HistoryPageComponent() {
       return
     }
 
-    const playerTrack: PlayerTrack = {
+    const playerTrack: PlayerTrack = mapToPlayerTrack({
       id: item.song.id,
       title: item.song.title,
       artistId: item.song.artistId,
@@ -393,27 +390,29 @@ function HistoryPageComponent() {
       hlsManifestUrl: item.song.hlsManifestUrl || undefined,
       rawAudioKey: item.song.rawAudioKey || undefined,
       isExplicit: item.song.isExplicit,
-      scope: (item.song.scope as any) || 'GLOBAL',
-    }
+      scope: (item.song.scope as 'GLOBAL' | 'PERSONAL') || 'GLOBAL',
+    })
 
-    const queue: PlayerTrack[] = allReleaseItems.map((t) => ({
-      id: t.song.id,
-      title: t.song.title,
-      artistId: t.song.artistId,
-      artistName: t.song.artistName,
-      artistSlug: t.song.artistSlug,
-      albumId: t.song.albumId || undefined,
-      albumTitle: t.song.albumTitle || undefined,
-      albumSlug: t.song.albumSlug || undefined,
-      durationSeconds: t.song.durationSeconds,
-      coverImageUrl:
-        t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
-      audioUrl: t.song.audioUrl || undefined,
-      hlsManifestUrl: t.song.hlsManifestUrl || undefined,
-      rawAudioKey: t.song.rawAudioKey || undefined,
-      isExplicit: t.song.isExplicit,
-      scope: (t.song.scope as any) || 'GLOBAL',
-    }))
+    const queue: PlayerTrack[] = allReleaseItems.map((t) =>
+      mapToPlayerTrack({
+        id: t.song.id,
+        title: t.song.title,
+        artistId: t.song.artistId,
+        artistName: t.song.artistName,
+        artistSlug: t.song.artistSlug,
+        albumId: t.song.albumId || undefined,
+        albumTitle: t.song.albumTitle || undefined,
+        albumSlug: t.song.albumSlug || undefined,
+        durationSeconds: t.song.durationSeconds,
+        coverImageUrl:
+          t.song.coverImageUrl || t.song.albumCoverImageUrl || undefined,
+        audioUrl: t.song.audioUrl || undefined,
+        hlsManifestUrl: t.song.hlsManifestUrl || undefined,
+        rawAudioKey: t.song.rawAudioKey || undefined,
+        isExplicit: t.song.isExplicit,
+        scope: (t.song.scope as 'GLOBAL' | 'PERSONAL') || 'GLOBAL',
+      }),
+    )
 
     const trackIndex = allReleaseItems.findIndex(
       (t) => t.historyId === item.historyId,
@@ -721,49 +720,44 @@ function HistoryPageComponent() {
                             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
                               Tracks played:
                             </span>
-                            {release.tracksPlayed.map((t, idx) => {
-                              const isPlayingThisTrack =
-                                currentTrack?.id === t.song.id &&
-                                playbackStatus === 'playing'
-
-                              return (
-                                <button
-                                  key={t.historyId}
-                                  type="button"
-                                  onClick={() =>
-                                    handlePlaySingleTrack(
-                                      t,
-                                      release.tracksPlayed,
-                                    )
-                                  }
-                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2 rounded-md text-eyebrow transition-colors cursor-pointer ${
-                                    isPlayingThisTrack
-                                      ? 'bg-primary/10 text-primary font-medium'
-                                      : 'hover:bg-background text-muted-foreground hover:text-foreground'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
-                                    <span className="font-mono text-eyebrow text-muted-foreground/60 w-4 text-right shrink-0">
-                                      {idx + 1}
-                                    </span>
-                                    <span className="shrink-0 text-eyebrow">
-                                      {isPlayingThisTrack ? '▶' : '♪'}
-                                    </span>
-                                    <span className="truncate">
-                                      {t.song.title}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-3 shrink-0 font-mono text-eyebrow opacity-70">
-                                    <span>{formatPlayTime(t.playedAt)}</span>
-                                    <span>
-                                      {formatDurationSeconds(
-                                        t.song.durationSeconds,
-                                      )}
-                                    </span>
-                                  </div>
-                                </button>
-                              )
-                            })}
+                            {release.tracksPlayed.map((t, idx) => (
+                              <SongRow
+                                key={t.historyId}
+                                track={mapToPlayerTrack({
+                                  id: t.song.id,
+                                  title: t.song.title,
+                                  artistId: t.song.artistId,
+                                  artistName: t.song.artistName,
+                                  artistSlug: t.song.artistSlug,
+                                  albumId: t.song.albumId || undefined,
+                                  albumTitle: t.song.albumTitle || undefined,
+                                  albumSlug: t.song.albumSlug || undefined,
+                                  durationSeconds: t.song.durationSeconds,
+                                  coverImageUrl:
+                                    t.song.coverImageUrl ||
+                                    t.song.albumCoverImageUrl ||
+                                    undefined,
+                                  audioUrl: t.song.audioUrl || undefined,
+                                  hlsManifestUrl: t.song.hlsManifestUrl || undefined,
+                                  rawAudioKey: t.song.rawAudioKey || undefined,
+                                  isExplicit: t.song.isExplicit,
+                                  scope:
+                                    (t.song.scope as 'GLOBAL' | 'PERSONAL') ||
+                                    'GLOBAL',
+                                })}
+                                index={idx}
+                                variant="album"
+                                surface="transparent"
+                                density="compact"
+                                hideGoToAlbum
+                                onPlay={() =>
+                                  handlePlaySingleTrack(
+                                    t,
+                                    release.tracksPlayed,
+                                  )
+                                }
+                              />
+                            ))}
                           </div>
                         )}
                       </div>
