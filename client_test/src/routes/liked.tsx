@@ -9,14 +9,14 @@ import { catalogApi, formatDuration } from '../lib/catalog.api'
 import { shuffleArray } from '../lib/shuffle'
 import type { EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
-import { SongRow } from '../components/common/SongRow'
-import { LikedSongsCover } from '../components/LikeSongsCover'
+import { SongRow } from '../Components/common/SongRow'
+import { LikedSongsCover } from '../Components/LikeSongsCover'
 import {
   HeartIconSVG,
   SearchIconSVG,
   DiscIconSVG,
-} from '../components/icons'
-import { CollectionActionBar, CollectionHeader } from '../components/collection'
+} from '../Components/Icons'
+import { CollectionActionBar, CollectionHeader } from '../Components/collection'
 import {
   Badge,
   Button,

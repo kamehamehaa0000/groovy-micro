@@ -12,9 +12,9 @@ import { usePlayerStore } from '../stores/player.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import type { PlayerTrack } from '../types/player'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { ArtistCard } from '../components/artists/ArtistCard'
-import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { ArtistCard } from '../Components/artists/ArtistCard'
+import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
 import {
   PlayIconSVG,
@@ -25,7 +25,7 @@ import {
   GridIconSVG,
   ListIconSVG,
   SearchIconSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 
 export const Route = createFileRoute('/vault/')({
   component: PersonalCollectionExplorePage,

@@ -7,6 +7,7 @@ import { useAuthModalStore } from "../stores/auth-modal.store";
 /**
  * Detects whether the current keyboard event target is an active typing or editable context.
  * When true, global playback shortcuts must be skipped to avoid hijacking text input.
+ * A focused seek slider counts as well: it handles the arrow keys itself.
  */
 export function isTypingContext(target: EventTarget | null): boolean {
   if (!target) return false;
@@ -35,6 +36,12 @@ export function isTypingContext(target: EventTarget | null): boolean {
 
   // 4. If focus is inside an open modal dialog, avoid hijacking keys like Space or Arrows
   if (el.closest?.('[role="dialog"]') || el.closest?.('[aria-modal="true"]')) {
+    return true;
+  }
+
+  // 5. A focused slider (the seek bar) owns the arrow keys itself — otherwise
+  //    the global seek shortcut would fire a second time on top of it.
+  if (el.getAttribute?.("role") === "slider") {
     return true;
   }
 

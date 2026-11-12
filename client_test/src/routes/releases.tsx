@@ -3,8 +3,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { artistsApi, type FollowedArtistRelease } from '../lib/artists.api'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { GridIconSVG, ListIconSVG } from '../components/icons'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { GridIconSVG, ListIconSVG } from '../Components/Icons'
 
 export const Route = createFileRoute('/releases')({
   component: FollowedReleasesComponent,

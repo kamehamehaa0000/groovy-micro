@@ -5,11 +5,11 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { usePlayerStore } from '../stores/player.store'
 import { playerApi, type HistoryItem } from '../lib/player.api'
 import type { PlayerTrack } from '../types/player'
-import { ProceduralCover } from '../components/common/ProceduralCover'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
 import {
   PlayIconSVG,
   PauseIconSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPageComponent,

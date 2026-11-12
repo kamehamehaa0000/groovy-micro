@@ -18,7 +18,7 @@ import {
   HeartIconSVG,
   LockIconSVG,
   PlusIconSVG,
-} from '../icons'
+} from '../Icons'
 import type { PlayerTrack } from '../../types/player'
 
 export interface SongRowArtistCredit {

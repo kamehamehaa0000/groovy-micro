@@ -16,16 +16,16 @@ import { usePlaylistsStore } from '../stores/playlists.store'
 import { useLibraryStore } from '../stores/library.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
-import { PlaylistCover } from '../components/PlaylistCover'
-import { CollectionActionBar, CollectionHeader } from '../components/collection'
-import { CommentSection } from '../components/comments/CommentSection'
-import { PlaylistTrackReorderList } from '../components/playlists/PlaylistTrackReorderList'
+import { PlaylistCover } from '../Components/PlaylistCover'
+import { CollectionActionBar, CollectionHeader } from '../Components/collection'
+import { CommentSection } from '../Components/comments/CommentSection'
+import { PlaylistTrackReorderList } from '../Components/playlists/PlaylistTrackReorderList'
 import {
   PlaylistSettingsForm,
   type PlaylistSettingsValues,
-} from '../components/playlists/PlaylistSettingsForm'
-import { PlaylistActionMenu } from '../components/common/PlaylistActionMenu'
-import { ImageCropModal } from '../components/common/ImageCropModal'
+} from '../Components/playlists/PlaylistSettingsForm'
+import { PlaylistActionMenu } from '../Components/common/PlaylistActionMenu'
+import { ImageCropModal } from '../Components/common/ImageCropModal'
 import {
   Badge,
   Button,
@@ -33,7 +33,7 @@ import {
   IconButton,
   Input,
   Sheet,
-} from '../components/ui'
+} from '../Components/ui'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { shuffleArray } from '../lib/shuffle'
 import { Heart, Pencil, Plus, PlusCircle, Shuffle } from 'lucide-react'

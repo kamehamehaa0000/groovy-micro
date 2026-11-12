@@ -14,11 +14,11 @@ import {
   HeartIconSVG,
   VerifiedBadgeSVG,
   LockIconSVG,
-} from '../components/icons'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { MediaTile } from '../components/common/MediaTile'
-import { SongRow } from '../components/common/SongRow'
-import { PlaylistCover } from '../components/PlaylistCover'
+} from '../Components/Icons'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { MediaTile } from '../Components/common/MediaTile'
+import { SongRow } from '../Components/common/SongRow'
+import { PlaylistCover } from '../Components/PlaylistCover'
 
 interface SearchPageParams {
   q?: string

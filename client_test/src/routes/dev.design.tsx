@@ -14,11 +14,11 @@ import {
   Sheet,
   Switch,
   Textarea,
-} from '../components/ui'
-import { cn } from '../components/ui/cn'
-import { MediaTile } from '../components/common/MediaTile'
-import type { MediaTileProps } from '../components/common/MediaTile'
-import { SongRow } from '../components/common/SongRow'
+} from '../Components/ui'
+import { cn } from '../Components/ui/cn'
+import { MediaTile } from '../Components/common/MediaTile'
+import type { MediaTileProps } from '../Components/common/MediaTile'
+import { SongRow } from '../Components/common/SongRow'
 import { useThemeStore } from '../stores/theme.store'
 import type { PlayerTrack } from '../types/player'
 import {
@@ -31,7 +31,7 @@ import {
   SortIconSVG,
   TrashIconSVG,
   UploadCloudSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 
 export const Route = createFileRoute('/dev/design')({
   component: DesignPlayground,

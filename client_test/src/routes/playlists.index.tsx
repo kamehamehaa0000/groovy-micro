@@ -10,8 +10,8 @@ import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.sto
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import { Button, IconButton, Input, SortMenu, type SortOption } from '../Components/ui'
-import { cn } from '../components/ui/cn'
-import { PlusIconSVG, SearchIconSVG } from '../components/icons'
+import { cn } from '../Components/ui/cn'
+import { PlusIconSVG, SearchIconSVG } from '../Components/Icons'
 import { MediaTile } from '../Components/common/MediaTile'
 import { PlaylistCover } from '../Components/PlaylistCover'
 import {

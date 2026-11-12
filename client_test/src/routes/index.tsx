@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePlayerStore } from '../stores/player.store'
-import { SvgArtworkSpiral } from '../components/icons'
+import { SvgArtworkSpiral } from '../Components/Icons'
 import { catalogApi } from '../lib/catalog.api'
 import {
   recommendationsApi,
@@ -13,10 +13,10 @@ import {
 } from '../lib/recommendations.api'
 import type { Album, EnrichedSong } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
-import { RecentlyPlayedShelf } from '../components/player/RecentlyPlayedShelf'
-import { MediaTile } from '../components/common/MediaTile'
-import { ArtistCard } from '../components/artists/ArtistCard'
-import { SongRow } from '../components/common/SongRow'
+import { RecentlyPlayedShelf } from '../Components/player/RecentlyPlayedShelf'
+import { MediaTile } from '../Components/common/MediaTile'
+import { ArtistCard } from '../Components/artists/ArtistCard'
+import { SongRow } from '../Components/common/SongRow'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -251,7 +251,7 @@ function HomeComponent() {
       {/* Editorial Hero Section (Unauthenticated Visitors)             */}
       {/* ------------------------------------------------------------ */}
       {!isAuthenticated && !isAuthLoading && (
-        <section className="border border-border bg-card p-8 sm:p-12 rounded-lg shadow-xs relative overflow-hidden">
+        <section className="p-8 sm:p-12 rounded-lg shadow-xs relative overflow-hidden">
           <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
@@ -681,7 +681,7 @@ function HomeComponent() {
           <section className="space-y-4">
             <div className="flex justify-between items-baseline border-b border-border pb-3">
               <h2 className="font-serif italic font-medium text-heading text-foreground">
-                Correspondence Slip &bull; Master Recordings
+                Newly Released Master Cuts
               </h2>
               <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                 {liveSongs.length > 0
@@ -691,7 +691,7 @@ function HomeComponent() {
             </div>
 
             {liveSongs.length > 0 ? (
-              <div className="border border-border rounded-lg overflow-clip bg-card divide-y divide-border/60 shadow-xs">
+              <div className="overflow-clip  shadow-xs">
                 {liveSongs.map((t, idx) => (
                   <SongRow
                     key={t.id}
@@ -699,6 +699,7 @@ function HomeComponent() {
                     index={idx}
                     variant="standard"
                     onPlay={() => handlePlayCatalogSong(t, idx)}
+                    surface="transparent"
                   />
                 ))}
               </div>

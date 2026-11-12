@@ -10,7 +10,7 @@ import { useAddToPlaylistModalStore } from '../../stores/add-to-playlist-modal.s
 import { navigateToArtist, useResolvedTrackCredits } from '../../lib/artist-resolver'
 import type { PlayerTrack } from '../../types/player'
 import { ProceduralCover } from '../common/ProceduralCover'
-import { PlayIconSVG, HeartIconSVG, DiscIconSVG } from '../icons'
+import { PlayIconSVG, HeartIconSVG, DiscIconSVG } from '../Icons'
 
 export interface SongActionCustomItem {
   label: string

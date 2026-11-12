@@ -7,7 +7,7 @@ import {
 } from '../../lib/search.api'
 import { usePlayerStore } from '../../stores/player.store'
 import type { PlayerTrack } from '../../types/player'
-import { PlayIconSVG, PauseIconSVG, LockIconSVG } from '../icons'
+import { PlayIconSVG, PauseIconSVG, LockIconSVG } from '../Icons'
 import { ProceduralCover } from '../common/ProceduralCover'
 
 interface GlobalSearchModalProps {

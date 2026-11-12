@@ -8,9 +8,9 @@ import { useAuthModalStore } from "../stores/auth-modal.store";
 import type { PlayerTrack } from "../types/player";
 import {
   LockIconSVG,
-} from "../components/icons";
-import { SongRow } from "../components/common/SongRow";
-import { MediaTile } from "../components/common/MediaTile";
+} from "../Components/Icons";
+import { SongRow } from "../Components/common/SongRow";
+import { MediaTile } from "../Components/common/MediaTile";
 
 export const Route = createFileRoute("/users/$id")({
   component: UserProfileComponent,

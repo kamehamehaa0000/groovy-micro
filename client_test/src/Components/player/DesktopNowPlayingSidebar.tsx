@@ -14,7 +14,7 @@ import {
 import { artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
 import { SongActionMenu } from './SongActionMenu'
-import { HeartIconSVG, VerifiedBadgeSVG } from '../icons'
+import { HeartIconSVG, VerifiedBadgeSVG } from '../Icons'
 
 interface DesktopNowPlayingSidebarProps {
   onClose: () => void

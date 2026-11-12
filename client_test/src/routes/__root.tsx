@@ -16,31 +16,31 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
-import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../components/icons'
-import { GlobalAudioEngine } from '../components/player/GlobalAudioEngine'
-import { PlayerBar } from '../components/player/PlayerBar'
-import { DeviceSheet } from '../components/player/DevicePanel'
-import { MobileExpandedPlayer } from '../components/player/MobileExpandedPlayer'
-import { AuthPromptModal } from '../components/auth/AuthPromptModal'
-import { GlobalSearchModal } from '../components/search/GlobalSearchModal'
-import { LiveJamModal } from '../components/jam/LiveJamModal'
+import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../Components/Icons'
+import { GlobalAudioEngine } from '../Components/player/GlobalAudioEngine'
+import { PlayerBar } from '../Components/player/PlayerBar'
+import { DeviceSheet } from '../Components/player/DevicePanel'
+import { MobileExpandedPlayer } from '../Components/player/MobileExpandedPlayer'
+import { AuthPromptModal } from '../Components/auth/AuthPromptModal'
+import { GlobalSearchModal } from '../Components/search/GlobalSearchModal'
+import { LiveJamModal } from '../Components/jam/LiveJamModal'
 import { useJamStore } from '../stores/jam.store'
-import { MobileBottomBar } from '../components/navigation/MobileBottomBar'
-import { MobileActionDrawer } from '../components/navigation/MobileActionDrawer'
-import { NotificationBell } from '../components/navigation/NotificationBell'
+import { MobileBottomBar } from '../Components/navigation/MobileBottomBar'
+import { MobileActionDrawer } from '../Components/navigation/MobileActionDrawer'
+import { NotificationBell } from '../Components/navigation/NotificationBell'
 import { useNotificationsStore } from '../stores/notifications.store'
-import { CreatePlaylistModal } from '../components/playlists/CreatePlaylistModal'
-import { AddToPlaylistModal } from '../components/playlists/AddToPlaylistModal'
-import { AppToaster } from '../components/common/AppToaster'
+import { CreatePlaylistModal } from '../Components/playlists/CreatePlaylistModal'
+import { AddToPlaylistModal } from '../Components/playlists/AddToPlaylistModal'
+import { AppToaster } from '../Components/common/AppToaster'
 import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
 
 const DesktopRightSidebar = lazy(() =>
-  import('../components/player/DesktopRightSidebar').then((m) => ({
+  import('../Components/player/DesktopRightSidebar').then((m) => ({
     default: m.DesktopRightSidebar,
   })),
 )
 const QueueDrawer = lazy(() =>
-  import('../components/player/QueueDrawer').then((m) => ({
+  import('../Components/player/QueueDrawer').then((m) => ({
     default: m.QueueDrawer,
   })),
 )

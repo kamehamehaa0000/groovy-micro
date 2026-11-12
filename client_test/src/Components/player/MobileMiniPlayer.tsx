@@ -5,8 +5,9 @@ import { useConnectStore } from '../../stores/connect.store'
 import { useLikesStore } from '../../stores/likes.store'
 import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
-import { HeartIconSVG, PlayIconSVG, PauseIconSVG } from '../icons'
+import { HeartIconSVG, PlayIconSVG, PauseIconSVG } from '../Icons'
 import { ProceduralCover } from '../common/ProceduralCover'
+import { Scrubber } from './Scrubber'
 import { MonitorSpeaker } from 'lucide-react'
 
 export function MobileMiniPlayer() {
@@ -14,8 +15,6 @@ export function MobileMiniPlayer() {
 
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const currentTime = usePlayerStore((s) => s.currentTime)
-  const duration = usePlayerStore((s) => s.duration)
   const togglePlay = usePlayerStore((s) => s.togglePlay)
   const next = usePlayerStore((s) => s.next)
   const previous = usePlayerStore((s) => s.previous)
@@ -57,8 +56,6 @@ export function MobileMiniPlayer() {
     !youAreSpeaker && connectSessionView?.session.speaker
       ? connectSessionView.session.speaker
       : null
-  const progressPercent =
-    duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
   const handleToggleLike = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -199,13 +196,13 @@ export function MobileMiniPlayer() {
       }}
       className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom))] left-2 right-2 z-40 md:hidden h-14 bg-card/95 dark:bg-[#282828]/95 backdrop-blur-xl border border-border/60 dark:border-white/10 rounded-lg shadow-lg dark:shadow-2xl shadow-black/10 dark:shadow-black/50 flex items-center justify-between px-2.5 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
     >
-      {/* 2px Hairline Progress Bar along the bottom of the card */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-border/20 dark:bg-white/10 overflow-hidden rounded-b-lg pointer-events-none">
-        <div
-          className="h-full bg-foreground dark:bg-[#1ed760] transition-[width] duration-150 ease-linear"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
+      {/* 2px Hairline Progress Bar along the bottom of the card — painted by the
+          shared scrubber, so it moves with the clock instead of stepping. */}
+      <Scrubber
+        variant="hairline"
+        interactive={false}
+        className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden rounded-b-lg pointer-events-none"
+      />
       {/* Left: Thumbnail & Song Info */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
         <div className="w-10 h-10 rounded-md bg-muted border border-border/40 dark:border-white/10 shrink-0 overflow-hidden shadow-xs flex items-center justify-center">

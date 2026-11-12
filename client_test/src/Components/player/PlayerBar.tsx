@@ -7,6 +7,7 @@ import { useLikesStore } from '../../stores/likes.store'
 import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { SongActionMenu } from './SongActionMenu'
+import { Scrubber } from './Scrubber'
 import { LiveJamBar } from '../jam/LiveJamBar'
 import { MobileMiniPlayer } from './MobileMiniPlayer'
 import {
@@ -29,18 +30,9 @@ import {
   RadioIcon,
 } from 'lucide-react'
 
-function formatTime(totalSeconds: number): string {
-  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
-  const mins = Math.floor(totalSeconds / 60)
-  const secs = Math.floor(totalSeconds % 60)
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`
-}
-
 export function PlayerBar() {
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const currentTime = usePlayerStore((s) => s.currentTime)
-  const duration = usePlayerStore((s) => s.duration)
   const volume = usePlayerStore((s) => s.volume)
   const isMuted = usePlayerStore((s) => s.isMuted)
   const isShuffle = usePlayerStore((s) => s.isShuffle)
@@ -53,7 +45,6 @@ export function PlayerBar() {
   const togglePlay = usePlayerStore((s) => s.togglePlay)
   const next = usePlayerStore((s) => s.next)
   const previous = usePlayerStore((s) => s.previous)
-  const seek = usePlayerStore((s) => s.seek)
   const setVolume = usePlayerStore((s) => s.setVolume)
   const toggleMute = usePlayerStore((s) => s.toggleMute)
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle)
@@ -120,7 +111,6 @@ export function PlayerBar() {
   if (!currentTrack) return null
 
   const isLiked = likedSongIds.has(currentTrack.id)
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0
   const isPlaying = playbackStatus === 'playing'
   const isLoading = playbackStatus === 'loading'
   const albumTarget = currentTrack.albumSlug || currentTrack.albumId
@@ -322,7 +312,7 @@ export function PlayerBar() {
       {/* ===================== DESKTOP BOTTOM PLAYER BAR ===================== */}
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-22 pb-safe bg-card/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-22 pb-safe bg-card/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
       >
         {/* ━━━━━━━━ LEFT: Track Artwork & Info + Actions ━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className="flex items-center gap-3.5 min-w-0 w-[30%]">
@@ -353,7 +343,7 @@ export function PlayerBar() {
               </div>
             )}
             {/* Hover overlay with chevron */}
-            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+            <div className="absolute inset-0 bg-scrim opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
               <ChevronUp
                 size={18}
                 strokeWidth={2.5}
@@ -366,23 +356,61 @@ export function PlayerBar() {
 
           {/* Title & Artist */}
           <div className="flex flex-col min-w-0 flex-1 justify-center">
-            {albumTarget ? (
-              <Link
-                to="/albums/$idOrSlug"
-                params={{ idOrSlug: albumTarget }}
-                className="font-sans text-sm font-semibold text-foreground truncate tracking-tight hover:underline transition-colors leading-snug"
-                title={currentTrack.title}
-              >
-                {currentTrack.title}
-              </Link>
-            ) : (
-              <span
-                className="font-sans text-sm font-semibold text-foreground truncate tracking-tight leading-snug"
-                title={currentTrack.title}
-              >
-                {currentTrack.title}
-              </span>
-            )}
+            {/* Title row: the title keeps its own line and the quick actions sit
+                right next to it, so a short title never strands the like button
+                at the far edge of the column. */}
+            <div className="flex items-center gap-1 min-w-0">
+              {albumTarget ? (
+                <Link
+                  to="/albums/$idOrSlug"
+                  params={{ idOrSlug: albumTarget }}
+                  className="font-sans text-sm font-semibold text-foreground truncate tracking-tight hover:underline transition-colors leading-snug min-w-0"
+                  title={currentTrack.title}
+                >
+                  {currentTrack.title}
+                </Link>
+              ) : (
+                <span
+                  className="font-sans text-sm font-semibold text-foreground truncate tracking-tight leading-snug min-w-0"
+                  title={currentTrack.title}
+                >
+                  {currentTrack.title}
+                </span>
+              )}
+
+              {/* Quick Actions: Like Button & 3-Dot Menu */}
+              <div className="flex items-center gap-0.5 shrink-0 ml-0.5">
+                <button
+                  type="button"
+                  onClick={handleToggleLike}
+                  aria-label={isLiked ? 'Unlike song' : 'Like song'}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
+                  title={
+                    isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
+                  }
+                >
+                  <Heart
+                    size={18}
+                    strokeWidth={isLiked ? 0 : 2}
+                    fill={isLiked ? 'currentColor' : 'none'}
+                    className={
+                      isLiked
+                        ? 'text-destructive fill-destructive'
+                        : 'text-muted-foreground hover:text-foreground transition-colors'
+                    }
+                  />
+                </button>
+
+                <div className="shrink-0 hidden xs:block">
+                  <SongActionMenu
+                    track={currentTrack}
+                    align="left"
+                    buttonClassName="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
+                    triggerIcon={<MoreHorizontal size={18} strokeWidth={2} />}
+                  />
+                </div>
+              </div>
+            </div>
 
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate mt-0.5 leading-normal">
               {currentTrack.artistId ? (
@@ -413,38 +441,6 @@ export function PlayerBar() {
                   </Link>
                 </>
               )}
-            </div>
-            {/* Quick Actions: Like Button & 3-Dot Menu */}
-            <div className="flex items-center gap-0.5 shrink-0 ml-1">
-              <button
-                type="button"
-                onClick={handleToggleLike}
-                aria-label={isLiked ? 'Unlike song' : 'Like song'}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
-                title={
-                  isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
-                }
-              >
-                <Heart
-                  size={20}
-                  strokeWidth={isLiked ? 0 : 2}
-                  fill={isLiked ? 'currentColor' : 'none'}
-                  className={
-                    isLiked
-                      ? 'text-destructive fill-destructive'
-                      : 'text-muted-foreground hover:text-foreground transition-colors'
-                  }
-                />
-              </button>
-
-              <div className="shrink-0 hidden xs:block">
-                <SongActionMenu
-                  track={currentTrack}
-                  align="left"
-                  buttonClassName="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
-                  triggerIcon={<MoreHorizontal size={20} strokeWidth={2} />}
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -583,42 +579,18 @@ export function PlayerBar() {
             </button>
           </div>
 
-          {/* Progress bar & timestamps row */}
-          <div className="w-full flex items-center gap-3 mt-1.5 select-none">
-            <span className="w-11 text-right text-eyebrow font-mono text-muted-foreground/80 tabular-nums">
-              {formatTime(currentTime)}
-            </span>
-
-            {/* Scrubber track container with comfortable hit padding */}
-            <div
-              className="relative flex-1 py-2 flex items-center cursor-pointer group"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect()
-                const clickX = e.clientX - rect.left
-                const ratio = Math.max(0, Math.min(1, clickX / rect.width))
-                seek(ratio * duration)
-              }}
-            >
-              {/* Background track */}
-              <div className="w-full h-1 group-hover:h-1.5 bg-secondary/50 rounded-full overflow-hidden transition-all duration-150">
-                {/* Active progress fill */}
-                <div
-                  className="h-full bg-foreground group-hover:bg-primary rounded-full transition-[width] duration-75 relative"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-
-              {/* Scrubber thumb knob on hover */}
-              <div
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-foreground group-hover:bg-primary rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                style={{ left: `${progressPercent}%` }}
-              />
-            </div>
-
-            <span className="w-11 text-left text-eyebrow font-mono text-muted-foreground/80 tabular-nums">
-              {formatTime(duration)}
-            </span>
-          </div>
+          {/* Progress bar & timestamps row — the shared scrubber paints the
+              position from the playback clock, so it moves at frame rate and
+              dragging tracks the pointer 1:1. */}
+          <Scrubber
+            className="w-full flex items-center gap-3 mt-1.5 select-none"
+            variant="bar"
+            layout="inline"
+            showElapsed
+            showDuration
+            elapsedClassName="w-11 text-right text-eyebrow font-mono text-muted-foreground/80 tabular-nums"
+            durationClassName="w-11 text-left text-eyebrow font-mono text-muted-foreground/80 tabular-nums"
+          />
         </div>
 
         {/* ━━━━━━━━ RIGHT: Volume Slider, Jam, Queue ━━━━━━━━━━━━━━━━━━━━━━━━ */}

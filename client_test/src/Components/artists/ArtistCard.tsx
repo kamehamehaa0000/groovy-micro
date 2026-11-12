@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { MarqueeText } from '../common/MarqueeText'
 import { ProceduralCover } from '../common/ProceduralCover'
-import { VerifiedBadgeSVG } from '../icons'
+import { VerifiedBadgeSVG } from '../Icons'
 import { cn } from '../ui/cn'
 
 export interface ArtistCardProps {

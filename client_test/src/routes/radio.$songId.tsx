@@ -20,9 +20,9 @@ import {
   type ScoredRecommendationTrack,
 } from '../lib/recommendations.api'
 import type { PlayerTrack } from '../types/player'
-import { SongRow } from '../components/common/SongRow'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { CollectionActionBar, CollectionHeader } from '../components/collection'
+import { SongRow } from '../Components/common/SongRow'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { CollectionActionBar, CollectionHeader } from '../Components/collection'
 import {
   Badge,
   Button,
@@ -32,7 +32,7 @@ import {
   SortMenu,
   type SortOption,
 } from '../Components/ui'
-import { DiscIconSVG, SearchIconSVG } from '../components/icons'
+import { DiscIconSVG, SearchIconSVG } from '../Components/Icons'
 
 export const Route = createFileRoute('/radio/$songId')({
   component: RadioMixPage,

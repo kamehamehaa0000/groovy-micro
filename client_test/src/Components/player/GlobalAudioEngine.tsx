@@ -6,6 +6,7 @@ import { useJamStore } from "../../stores/jam.store";
 import { useEntitlementsStore } from "../../stores/entitlements.store";
 import { useAuthStore } from "../../stores/auth.store";
 import { playerApi } from "../../lib/player.api";
+import { playbackClock } from "../../lib/playbackClock";
 import { getDeviceInfo, getInstanceId, isAudioUnlocked, markAudioUnlocked } from "../../lib/device";
 import { usePlayerKeyboardControls } from "../../hooks/usePlayerKeyboardControls";
 
@@ -20,6 +21,14 @@ export function GlobalAudioEngine() {
   const pendingSeekTimeRef = useRef<number | null>(null);
   const isSourceChangingRef = useRef<boolean>(false);
   const lastHeartbeatTimeRef = useRef<number>(0);
+
+  // Hand the media element to the playback clock. The clock samples it on every
+  // animation frame, which is what makes the seek bar move smoothly instead of
+  // stepping with the ~4 Hz `timeupdate` event.
+  useEffect(() => {
+    playbackClock.attach(audioRef.current);
+    return () => playbackClock.detach();
+  }, []);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const currentTrack = usePlayerStore((s) => s.currentTrack);

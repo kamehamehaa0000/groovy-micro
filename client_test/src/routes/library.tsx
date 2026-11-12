@@ -12,13 +12,13 @@ import type {
   LibrarySortType,
   UnifiedLibraryItem,
 } from '../types/library'
-import { LibraryItemCard } from '../components/library/LibraryItemCard'
+import { LibraryItemCard } from '../Components/library/LibraryItemCard'
 import { SortMenu, type SortOption } from '../Components/ui'
 import {
   GridIconSVG,
   ListIconSVG,
   SearchIconSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 
 export const Route = createFileRoute('/library')({
   component: LibraryPageComponent,

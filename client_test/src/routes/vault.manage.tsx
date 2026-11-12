@@ -22,8 +22,8 @@ import type { PlayerTrack } from '../types/player'
 import { seedArtistCache } from '../lib/artist-resolver'
 import { useLockerStore } from '../stores/locker.store'
 import { socialApi } from '../lib/social.api'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { SongRow } from '../components/common/SongRow'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { SongRow } from '../Components/common/SongRow'
 import {
   PlayIconSVG,
   TrashIconSVG,
@@ -32,7 +32,7 @@ import {
   PlusIconSVG,
   ExternalLinkSVG,
   SearchIconSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 
 interface CollectionManageSearchParams {
   tab?: 'import' | 'collection' | 'artists' | 'trash'

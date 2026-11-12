@@ -14,6 +14,7 @@ import {
 } from '../../lib/artist-resolver'
 import type { ArtistProfile } from '../../types/artist'
 import { SongActionMenu } from './SongActionMenu'
+import { Scrubber } from './Scrubber'
 import { MonitorSpeaker, Radio } from 'lucide-react'
 import { useConnectStore } from '../../stores/connect.store'
 import {
@@ -22,7 +23,7 @@ import {
   PlayIconSVG,
   PauseIconSVG,
   VerifiedBadgeSVG,
-} from '../icons'
+} from '../Icons'
 
 /* ---------------------------------------------------------------------------
  * Spotify-proportioned sizing (reference: 390 x 844 viewport)
@@ -54,13 +55,6 @@ const ARTWORK_SIZE = `max(160px, min(calc(100vw - 2 * clamp(16px, 6.15vw, 24px))
 // swallowed. Kept small so genuine interaction is never noticeably delayed.
 const GHOST_CLICK_WINDOW_MS = 350
 
-function formatTime(totalSeconds: number): string {
-  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00'
-  const mins = Math.floor(totalSeconds / 60)
-  const secs = Math.floor(totalSeconds % 60)
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`
-}
-
 export function MobileExpandedPlayer() {
   const navigate = useNavigate()
   const isExpanded = usePlayerStore((s) => s.isNowPlayingExpanded)
@@ -68,8 +62,6 @@ export function MobileExpandedPlayer() {
 
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const currentTime = usePlayerStore((s) => s.currentTime)
-  const duration = usePlayerStore((s) => s.duration)
   const isShuffle = usePlayerStore((s) => s.isShuffle)
   const repeatMode = usePlayerStore((s) => s.repeatMode)
   const contextTitle = usePlayerStore((s) => s.contextTitle)
@@ -80,7 +72,6 @@ export function MobileExpandedPlayer() {
   const togglePlay = usePlayerStore((s) => s.togglePlay)
   const next = usePlayerStore((s) => s.next)
   const previous = usePlayerStore((s) => s.previous)
-  const seek = usePlayerStore((s) => s.seek)
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle)
   const toggleRepeat = usePlayerStore((s) => s.toggleRepeat)
   const toggleQueueDrawer = usePlayerStore((s) => s.toggleQueueDrawer)
@@ -109,11 +100,6 @@ export function MobileExpandedPlayer() {
   const [artistDetails, setArtistDetails] = useState<ArtistProfile | null>(null)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [jamCopied, setJamCopied] = useState(false)
-
-  // Scrubber drag state
-  const [isScrubbing, setIsScrubbing] = useState(false)
-  const [scrubPosition, setScrubPosition] = useState(0)
-  const scrubBarRef = useRef<HTMLDivElement | null>(null)
 
   // Touch gesture state for fluid pull-down dismissal
   const [dragY, setDragY] = useState(0)
@@ -197,10 +183,6 @@ export function MobileExpandedPlayer() {
   const nextTrack =
     userQueue.length > 0 ? userQueue[0] : contextQueue[contextIndex + 1] || null
 
-  const displayTime = isScrubbing ? scrubPosition : currentTime
-  const progressPercent =
-    duration > 0 ? Math.min(100, (displayTime / duration) * 100) : 0
-
   const closePlayer = () => setNowPlayingExpanded(false)
 
   // Safety net for the click-through described in MobileMiniPlayer: even if a
@@ -268,37 +250,6 @@ export function MobileExpandedPlayer() {
       setIsClosing(false)
       setDragY(0)
     }, 280)
-  }
-
-  // Scrubber (pointer events + capture: one code path for touch, pen & mouse,
-  // and the finger can slide off the bar without losing the drag)
-  const positionFromClientX = (clientX: number) => {
-    const el = scrubBarRef.current
-    if (!el || duration <= 0) return 0
-    const rect = el.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-    return ratio * duration
-  }
-
-  const handleScrubDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (duration <= 0) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    setIsScrubbing(true)
-    setScrubPosition(positionFromClientX(e.clientX))
-  }
-
-  const handleScrubMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isScrubbing) return
-    setScrubPosition(positionFromClientX(e.clientX))
-  }
-
-  const handleScrubEnd = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isScrubbing) return
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId)
-    }
-    seek(scrubPosition)
-    setIsScrubbing(false)
   }
 
   const handleToggleLike = async () => {
@@ -540,43 +491,18 @@ export function MobileExpandedPlayer() {
             </button>
           </div>
 
-          {/* Scrubber */}
-          <div className={`${CONTENT} shrink-0 pt-[clamp(4px,1.2dvh,12px)]`}>
-            <div
-              ref={scrubBarRef}
-              role="slider"
-              aria-label="Seek"
-              aria-valuemin={0}
-              aria-valuemax={Math.floor(duration) || 0}
-              aria-valuenow={Math.floor(displayTime)}
-              aria-valuetext={`${formatTime(displayTime)} of ${formatTime(duration)}`}
-              className="relative h-11 flex items-center cursor-pointer touch-none"
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-              onPointerDown={handleScrubDown}
-              onPointerMove={handleScrubMove}
-              onPointerUp={handleScrubEnd}
-              onPointerCancel={handleScrubEnd}
-            >
-              <div className="w-full h-1 bg-border/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-foreground rounded-full"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <div
-                className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 bg-foreground rounded-full shadow-md pointer-events-none transition-[width,height] duration-100 ${
-                  isScrubbing ? 'w-4 h-4' : 'w-3 h-3'
-                }`}
-                style={{ left: `${progressPercent}%` }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-caption font-mono text-muted-foreground -mt-1.5 tabular-nums">
-              <span>{formatTime(displayTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-          </div>
+          {/* Scrubber — the shared component paints from the playback clock and
+              handles the pointer drag itself. */}
+          <Scrubber
+            className={`${CONTENT} shrink-0 pt-[clamp(4px,1.2dvh,12px)]`}
+            variant="expanded"
+            layout="stacked"
+            showElapsed
+            showDuration
+            labelsClassName="flex items-center justify-between text-caption font-mono text-muted-foreground -mt-1.5 tabular-nums"
+            elapsedClassName=""
+            durationClassName=""
+          />
 
           {/* Transport controls */}
           <div

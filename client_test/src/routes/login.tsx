@@ -7,7 +7,7 @@ import {
 import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import { useAuthStore } from '../stores/auth.store'
-import { GoogleIcon, SvgArtworkSpiral } from '../components/icons'
+import { GoogleIcon, SvgArtworkSpiral } from '../Components/Icons'
 import {
   resolveRedirectTarget,
   saveAuthRedirect,

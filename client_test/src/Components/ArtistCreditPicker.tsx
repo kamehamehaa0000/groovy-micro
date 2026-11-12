@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistSummary } from '../types/artist'
 import type { CreditRole } from '../types/catalog'
-import { VerifiedBadgeSVG } from './icons'
+import { VerifiedBadgeSVG } from './Icons'
 
 export interface SelectedCredit {
   artistId: string

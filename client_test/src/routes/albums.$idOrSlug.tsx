@@ -7,20 +7,20 @@ import {
   VerifiedBadgeSVG,
   HeartIconSVG,
   CalendarIconSVG,
-} from '../components/icons'
+} from '../Components/Icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePreSavesStore } from '../stores/presaves.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
-import { ProceduralCover } from '../components/common/ProceduralCover'
-import { ReleaseActionMenu } from '../components/common/ReleaseActionMenu'
-import { CollectionActionBar, CollectionHeader } from '../components/collection'
-import { Badge, IconButton } from '../components/ui'
+import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
+import { CollectionActionBar, CollectionHeader } from '../Components/collection'
+import { Badge, IconButton } from '../Components/ui'
 import { Check, Share2, Shuffle } from 'lucide-react'
 import type { PlayerTrack } from '../types/player'
-import { CommentSection } from '../components/comments/CommentSection'
-import { SongRow } from '../components/common/SongRow'
+import { CommentSection } from '../Components/comments/CommentSection'
+import { SongRow } from '../Components/common/SongRow'
 import { shuffleArray } from '../lib/shuffle'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({

@@ -8,6 +8,7 @@ import type {
 import type { SongCredit } from "../types/catalog";
 import { playerApi } from "../lib/player.api";
 import { routeToSpeaker } from "../lib/connect-bridge";
+import { playbackClock } from "../lib/playbackClock";
 import type {
   RemoteCommandPayload,
   RemoteCommandType,
@@ -391,6 +392,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (routeToSpeaker("SEEK", { positionMs: Math.round(targetSeconds * 1000) })) {
       return;
     }
+
+    // Move the media element first. The engine only corrected positions that
+    // drifted by more than 1.2s, so a small scrub used to move the UI and then
+    // get dragged back by the next `timeupdate`.
+    playbackClock.applySeek(targetSeconds);
 
     set({ currentTime: targetSeconds });
     get().saveSnapshot();
@@ -1029,3 +1035,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ isInitialized: true });
   },
 }));
+
+/**
+ * The playback clock needs a position when this device is not the one playing
+ * (a Remote mirroring the Speaker's needle, a Live Jam room). It reads it from
+ * here instead of importing the store, which would be a cycle.
+ */
+playbackClock.setFallback(() => {
+  const state = usePlayerStore.getState();
+  return { position: state.currentTime, duration: state.duration };
+});
