@@ -111,7 +111,10 @@ export function PlanComparison({
           <table className="w-full min-w-[36rem] border-collapse text-left">
             <thead>
               <tr>
-                <th scope="col" className="w-40 py-2 pr-4 align-bottom">
+                <th
+                  scope="col"
+                  className="sticky left-0 z-10 w-40 bg-card py-2 pr-4 align-bottom"
+                >
                   <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                     Feature
                   </span>
@@ -153,7 +156,7 @@ export function PlanComparison({
                 <tr key={row.key} className="border-t border-border-soft">
                   <th
                     scope="row"
-                    className="py-2.5 pr-4 align-middle font-sans text-caption font-normal text-muted-foreground"
+                    className="sticky left-0 z-10 bg-card py-2.5 pr-4 align-middle font-sans text-caption font-normal text-muted-foreground"
                   >
                     {row.label}
                   </th>
@@ -184,7 +187,7 @@ export function PlanComparison({
                 </tr>
               ))}
               <tr className="border-t border-border">
-                <td className="py-4" />
+                <td className="sticky left-0 z-10 bg-card py-4" />
                 {plans.map((plan) => {
                   const isCurrent = plan.id === currentPlanId
                   return (

@@ -86,14 +86,17 @@ export function TrackCarousel({ children, className }: TrackCarouselProps) {
   const scrollBy = (direction: 1 | -1) => {
     const node = trackRef.current
     if (!node) return
-    node.scrollBy({ left: direction * Math.max(240, node.clientWidth * 0.8), behavior: 'smooth' })
+    node.scrollBy({
+      left: direction * Math.max(240, node.clientWidth * 0.8),
+      behavior: 'smooth',
+    })
   }
 
   return (
     <div className={cn('group/carousel relative', className)}>
       <div
         ref={trackRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 pt-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>

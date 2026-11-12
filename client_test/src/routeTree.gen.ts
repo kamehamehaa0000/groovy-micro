@@ -40,10 +40,15 @@ import { Route as RadioSongIdRouteImport } from './routes/radio.$songId'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 import { Route as VaultIndexRouteImport } from './routes/vault.index'
 import { Route as VaultManageRouteImport } from './routes/vault.manage'
+import { Route as AdminSubscriptionsIndexRouteImport } from './routes/admin.subscriptions.index'
+import { Route as AdminSubscriptionsFeaturesRouteImport } from './routes/admin.subscriptions.features'
+import { Route as AdminSubscriptionsPlansRouteImport } from './routes/admin.subscriptions.plans'
+import { Route as VaultManageIndexRouteImport } from './routes/vault.manage.index'
 import { Route as VaultManageArtistsRouteImport } from './routes/vault.manage.artists'
 import { Route as VaultManageCollectionRouteImport } from './routes/vault.manage.collection'
 import { Route as VaultManageImportRouteImport } from './routes/vault.manage.import'
 import { Route as VaultManageTrashRouteImport } from './routes/vault.manage.trash'
+import { Route as AdminSubscriptionsPlanPlanIdRouteImport } from './routes/admin.subscriptions.plan.$planId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -200,6 +205,27 @@ const VaultManageRoute = VaultManageRouteImport.update({
   path: '/manage',
   getParentRoute: () => VaultRoute,
 } as any)
+const AdminSubscriptionsIndexRoute = AdminSubscriptionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminSubscriptionsRoute,
+} as any)
+const AdminSubscriptionsFeaturesRoute =
+  AdminSubscriptionsFeaturesRouteImport.update({
+    id: '/features',
+    path: '/features',
+    getParentRoute: () => AdminSubscriptionsRoute,
+  } as any)
+const AdminSubscriptionsPlansRoute = AdminSubscriptionsPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AdminSubscriptionsRoute,
+} as any)
+const VaultManageIndexRoute = VaultManageIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VaultManageRoute,
+} as any)
 const VaultManageArtistsRoute = VaultManageArtistsRouteImport.update({
   id: '/artists',
   path: '/artists',
@@ -220,6 +246,12 @@ const VaultManageTrashRoute = VaultManageTrashRouteImport.update({
   path: '/trash',
   getParentRoute: () => VaultManageRoute,
 } as any)
+const AdminSubscriptionsPlanPlanIdRoute =
+  AdminSubscriptionsPlanPlanIdRouteImport.update({
+    id: '/plan/$planId',
+    path: '/plan/$planId',
+    getParentRoute: () => AdminSubscriptionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -239,7 +271,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof StudioRoute
   '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRouteWithChildren
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
@@ -253,10 +285,15 @@ export interface FileRoutesByFullPath {
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
   '/vault/': typeof VaultIndexRoute
+  '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
+  '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
   '/vault/manage/trash': typeof VaultManageTrashRoute
+  '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
+  '/vault/manage/': typeof VaultManageIndexRoute
+  '/admin/subscriptions/plan/$planId': typeof AdminSubscriptionsPlanPlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -275,7 +312,6 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/studio': typeof StudioRoute
   '/verify-email': typeof VerifyEmailRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
@@ -285,14 +321,18 @@ export interface FileRoutesByTo {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
-  '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists': typeof ArtistsIndexRoute
   '/playlists': typeof PlaylistsIndexRoute
   '/vault': typeof VaultIndexRoute
+  '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
+  '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
   '/vault/manage/trash': typeof VaultManageTrashRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsIndexRoute
+  '/vault/manage': typeof VaultManageIndexRoute
+  '/admin/subscriptions/plan/$planId': typeof AdminSubscriptionsPlanPlanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -313,7 +353,7 @@ export interface FileRoutesById {
   '/studio': typeof StudioRoute
   '/vault': typeof VaultRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
-  '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRouteWithChildren
   '/admin/verification': typeof AdminVerificationRoute
   '/albums/$idOrSlug': typeof AlbumsIdOrSlugRoute
   '/artists/$idOrSlug': typeof ArtistsIdOrSlugRoute
@@ -327,10 +367,15 @@ export interface FileRoutesById {
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
   '/vault/': typeof VaultIndexRoute
+  '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
+  '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
   '/vault/manage/trash': typeof VaultManageTrashRoute
+  '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
+  '/vault/manage/': typeof VaultManageIndexRoute
+  '/admin/subscriptions/plan/$planId': typeof AdminSubscriptionsPlanPlanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -366,10 +411,15 @@ export interface FileRouteTypes {
     | '/artists/'
     | '/playlists/'
     | '/vault/'
+    | '/admin/subscriptions/features'
+    | '/admin/subscriptions/plans'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
     | '/vault/manage/trash'
+    | '/admin/subscriptions/'
+    | '/vault/manage/'
+    | '/admin/subscriptions/plan/$planId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -388,7 +438,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/studio'
     | '/verify-email'
-    | '/admin/subscriptions'
     | '/admin/verification'
     | '/albums/$idOrSlug'
     | '/artists/$idOrSlug'
@@ -398,14 +447,18 @@ export interface FileRouteTypes {
     | '/playlists/$id'
     | '/radio/$songId'
     | '/users/$id'
-    | '/vault/manage'
     | '/artists'
     | '/playlists'
     | '/vault'
+    | '/admin/subscriptions/features'
+    | '/admin/subscriptions/plans'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
     | '/vault/manage/trash'
+    | '/admin/subscriptions'
+    | '/vault/manage'
+    | '/admin/subscriptions/plan/$planId'
   id:
     | '__root__'
     | '/'
@@ -439,10 +492,15 @@ export interface FileRouteTypes {
     | '/artists/'
     | '/playlists/'
     | '/vault/'
+    | '/admin/subscriptions/features'
+    | '/admin/subscriptions/plans'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
     | '/vault/manage/trash'
+    | '/admin/subscriptions/'
+    | '/vault/manage/'
+    | '/admin/subscriptions/plan/$planId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -463,7 +521,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRoute
   VaultRoute: typeof VaultRouteWithChildren
   VerifyEmailRoute: typeof VerifyEmailRoute
-  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
+  AdminSubscriptionsRoute: typeof AdminSubscriptionsRouteWithChildren
   AdminVerificationRoute: typeof AdminVerificationRoute
   AlbumsIdOrSlugRoute: typeof AlbumsIdOrSlugRoute
   ArtistsIdOrSlugRoute: typeof ArtistsIdOrSlugRoute
@@ -696,6 +754,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VaultManageRouteImport
       parentRoute: typeof VaultRoute
     }
+    '/admin/subscriptions/': {
+      id: '/admin/subscriptions/'
+      path: '/'
+      fullPath: '/admin/subscriptions/'
+      preLoaderRoute: typeof AdminSubscriptionsIndexRouteImport
+      parentRoute: typeof AdminSubscriptionsRoute
+    }
+    '/admin/subscriptions/features': {
+      id: '/admin/subscriptions/features'
+      path: '/features'
+      fullPath: '/admin/subscriptions/features'
+      preLoaderRoute: typeof AdminSubscriptionsFeaturesRouteImport
+      parentRoute: typeof AdminSubscriptionsRoute
+    }
+    '/admin/subscriptions/plans': {
+      id: '/admin/subscriptions/plans'
+      path: '/plans'
+      fullPath: '/admin/subscriptions/plans'
+      preLoaderRoute: typeof AdminSubscriptionsPlansRouteImport
+      parentRoute: typeof AdminSubscriptionsRoute
+    }
+    '/vault/manage/': {
+      id: '/vault/manage/'
+      path: '/'
+      fullPath: '/vault/manage/'
+      preLoaderRoute: typeof VaultManageIndexRouteImport
+      parentRoute: typeof VaultManageRoute
+    }
     '/vault/manage/artists': {
       id: '/vault/manage/artists'
       path: '/artists'
@@ -724,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VaultManageTrashRouteImport
       parentRoute: typeof VaultManageRoute
     }
+    '/admin/subscriptions/plan/$planId': {
+      id: '/admin/subscriptions/plan/$planId'
+      path: '/plan/$planId'
+      fullPath: '/admin/subscriptions/plan/$planId'
+      preLoaderRoute: typeof AdminSubscriptionsPlanPlanIdRouteImport
+      parentRoute: typeof AdminSubscriptionsRoute
+    }
   }
 }
 
@@ -732,6 +825,7 @@ interface VaultManageRouteChildren {
   VaultManageCollectionRoute: typeof VaultManageCollectionRoute
   VaultManageImportRoute: typeof VaultManageImportRoute
   VaultManageTrashRoute: typeof VaultManageTrashRoute
+  VaultManageIndexRoute: typeof VaultManageIndexRoute
 }
 
 const VaultManageRouteChildren: VaultManageRouteChildren = {
@@ -739,6 +833,7 @@ const VaultManageRouteChildren: VaultManageRouteChildren = {
   VaultManageCollectionRoute: VaultManageCollectionRoute,
   VaultManageImportRoute: VaultManageImportRoute,
   VaultManageTrashRoute: VaultManageTrashRoute,
+  VaultManageIndexRoute: VaultManageIndexRoute,
 }
 
 const VaultManageRouteWithChildren = VaultManageRoute._addFileChildren(
@@ -756,6 +851,23 @@ const VaultRouteChildren: VaultRouteChildren = {
 }
 
 const VaultRouteWithChildren = VaultRoute._addFileChildren(VaultRouteChildren)
+
+interface AdminSubscriptionsRouteChildren {
+  AdminSubscriptionsFeaturesRoute: typeof AdminSubscriptionsFeaturesRoute
+  AdminSubscriptionsPlansRoute: typeof AdminSubscriptionsPlansRoute
+  AdminSubscriptionsIndexRoute: typeof AdminSubscriptionsIndexRoute
+  AdminSubscriptionsPlanPlanIdRoute: typeof AdminSubscriptionsPlanPlanIdRoute
+}
+
+const AdminSubscriptionsRouteChildren: AdminSubscriptionsRouteChildren = {
+  AdminSubscriptionsFeaturesRoute: AdminSubscriptionsFeaturesRoute,
+  AdminSubscriptionsPlansRoute: AdminSubscriptionsPlansRoute,
+  AdminSubscriptionsIndexRoute: AdminSubscriptionsIndexRoute,
+  AdminSubscriptionsPlanPlanIdRoute: AdminSubscriptionsPlanPlanIdRoute,
+}
+
+const AdminSubscriptionsRouteWithChildren =
+  AdminSubscriptionsRoute._addFileChildren(AdminSubscriptionsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -775,7 +887,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRoute,
   VaultRoute: VaultRouteWithChildren,
   VerifyEmailRoute: VerifyEmailRoute,
-  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
+  AdminSubscriptionsRoute: AdminSubscriptionsRouteWithChildren,
   AdminVerificationRoute: AdminVerificationRoute,
   AlbumsIdOrSlugRoute: AlbumsIdOrSlugRoute,
   ArtistsIdOrSlugRoute: ArtistsIdOrSlugRoute,

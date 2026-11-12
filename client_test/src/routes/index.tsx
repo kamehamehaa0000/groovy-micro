@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useLikesStore } from '../stores/likes.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -19,9 +19,34 @@ import { MediaTile } from '../Components/common/MediaTile'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import { SongRow } from '../Components/common/SongRow'
 import { ShelfSection, TrackCarousel } from '../Components/home/ShelfSection'
+import { RadioSection } from '../Components/home/RadioSection'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 import { notify } from '../lib/toast'
+
+const CURATED_RADIO_MIXES = [
+  {
+    id: 'curated-after-hours',
+    title: 'After Hours',
+    subtitle: 'Late night energy',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=500&h=300&fit=crop',
+  },
+  {
+    id: 'curated-indie-waves',
+    title: 'Indie Waves',
+    subtitle: 'Alternative discoveries',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=300&fit=crop',
+  },
+  {
+    id: 'curated-golden-hour',
+    title: 'Golden Hour',
+    subtitle: 'Warm & mellow',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&h=300&fit=crop',
+  },
+]
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -176,23 +201,25 @@ function HomeComponent() {
     )
   }
 
-  const handlePlayMix = (mix: RadioMixCard) => {
-    if (!mix.previewTracks || mix.previewTracks.length === 0) return
+  const handlePlayMix = (mix: RadioMixCard | any) => {
+    if (mix.previewTracks && mix.previewTracks.length > 0) {
+      const firstTrack = mix.previewTracks[0]
+      if (currentTrack?.id === firstTrack.id) {
+        togglePlay()
+        return
+      }
 
-    const firstTrack = mix.previewTracks[0]
-    if (currentTrack?.id === firstTrack.id) {
-      togglePlay()
-      return
+      const contextTracks = mix.previewTracks.map(scoredToPlayerTrack)
+      playTrack(
+        scoredToPlayerTrack(firstTrack),
+        contextTracks,
+        0,
+        `home:mix:${mix.seedSongId}`,
+        mix.title,
+      )
+    } else if (liveSongs.length > 0) {
+      handlePlayCatalogSong(liveSongs[0], 0)
     }
-
-    const contextTracks = mix.previewTracks.map(scoredToPlayerTrack)
-    playTrack(
-      scoredToPlayerTrack(firstTrack),
-      contextTracks,
-      0,
-      `home:mix:${mix.seedSongId}`,
-      mix.title,
-    )
   }
 
   const handlePlayCatalogSong = (song: EnrichedSong, index?: number) => {
@@ -230,6 +257,23 @@ function HomeComponent() {
       (feed.moreLikeSong?.tracks?.length ?? 0) > 0 ||
       (feed.userPlaylists?.length ?? 0) > 0 ||
       (feed.radioMixes?.length ?? 0) > 0)
+
+  const curatedRadioMixes = useMemo(() => {
+    return CURATED_RADIO_MIXES.map((mix, idx) => {
+      const matchedSong = liveSongs[idx]
+      return {
+        ...mix,
+        seedSongId: matchedSong?.id,
+        to: matchedSong ? '/radio/$songId' : '/search',
+        params: matchedSong ? { songId: matchedSong.id } : undefined,
+      }
+    })
+  }, [liveSongs])
+
+  const radioMixesToShow =
+    feed?.radioMixes && feed.radioMixes.length > 0
+      ? feed.radioMixes
+      : curatedRadioMixes
 
   return (
     <div className="space-y-6">
@@ -288,7 +332,7 @@ function HomeComponent() {
             <Link
               to="/register"
               search={{ redirect: '/' }}
-              className="rounded-full  border border-border bg-card hover:bg-background text-foreground py-3 px-6 font-eyebrow text-eyebrow uppercase tracking-wider transition-all shadow-raised"
+              className="rounded-full border border-border bg-card hover:bg-background text-foreground py-3 px-6 font-eyebrow text-eyebrow uppercase tracking-wider transition-all shadow-raised"
             >
               Join the Collective
             </Link>
@@ -309,11 +353,11 @@ function HomeComponent() {
 
           {/* 1. Recently Played Shelf (Current one, kept untouched) */}
           <RecentlyPlayedShelf limit={12} />
+
           {/* 4. Global Hits Matching Your Taste */}
           {feed?.globalHits && feed.globalHits.length > 0 && (
             <ShelfSection title="Global Hits For You" subtitle="Trending cuts in your favorite genres">
-                <TrackCarousel>
-
+              <TrackCarousel>
                 {feed.globalHits.map((track) => (
                   <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -349,15 +393,14 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-                </TrackCarousel>
-              </ShelfSection>
+              </TrackCarousel>
+            </ShelfSection>
           )}
 
           {/* 2. New Releases For You */}
           {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
             <ShelfSection title="New Releases For You" subtitle="Fresh albums & singles matching your sonic profile">
-                <TrackCarousel>
-
+              <TrackCarousel>
                 {feed.newReleasesForYou.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -370,15 +413,14 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-                </TrackCarousel>
-              </ShelfSection>
+              </TrackCarousel>
+            </ShelfSection>
           )}
 
           {/* 2. New Releases From Followed Artists (Release Radar) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
             <ShelfSection title="Release Radar" subtitle="New drops from artists you follow" action={{ label: 'Release Archive', to: '/releases' }}>
-                <TrackCarousel>
-
+              <TrackCarousel>
                 {feed.artistRadar.map((album) => (
                   <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -391,8 +433,8 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-                </TrackCarousel>
-              </ShelfSection>
+              </TrackCarousel>
+            </ShelfSection>
           )}
 
           {/* 5. Similar Artists */}
@@ -404,8 +446,7 @@ function HomeComponent() {
                 subtitle="Curated artists sharing soundscapes, energy, and subculture"
                 action={{ label: 'Explore Artists', to: '/artists' }}
               >
-                  <TrackCarousel>
-
+                <TrackCarousel>
                   {feed.similarArtists.artists.map((artist) => (
                     <div key={artist.id} className="w-35 sm:w-42.5 shrink-0">
                       <ArtistCard
@@ -417,8 +458,8 @@ function HomeComponent() {
                       />
                     </div>
                   ))}
-                  </TrackCarousel>
-                </ShelfSection>
+                </TrackCarousel>
+              </ShelfSection>
             )}
 
           {/* 6. More Like Favorite Song */}
@@ -430,8 +471,7 @@ function HomeComponent() {
                 subtitle="Harmonic continuity matching your repeat spin"
                 action={{ label: 'Explore more', to: '/search' }}
               >
-                  <TrackCarousel>
-
+                <TrackCarousel>
                   {feed.moreLikeSong.tracks.map((track) => (
                     <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
                       <MediaTile
@@ -467,15 +507,14 @@ function HomeComponent() {
                       />
                     </div>
                   ))}
-                  </TrackCarousel>
-                </ShelfSection>
+                </TrackCarousel>
+              </ShelfSection>
             )}
 
           {/* 7. My Saved or Created Playlists */}
           {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
             <ShelfSection title="Your Playlists" subtitle="Jump back into your personal and saved playlists">
-                <TrackCarousel>
-
+              <TrackCarousel>
                 {feed.userPlaylists.map((pl) => (
                   <div key={pl.id} className="w-35 sm:w-42.5 shrink-0">
                     <MediaTile
@@ -488,38 +527,16 @@ function HomeComponent() {
                     />
                   </div>
                 ))}
-                </TrackCarousel>
-              </ShelfSection>
-          )}
-
-          {/* 8. Radio Mixes (Kept at the end as requested) */}
-          {feed?.radioMixes && feed.radioMixes.length > 0 && (
-            <ShelfSection
-              title="Personalized Radio Mixes"
-              subtitle="Infinite flow seeded from 5 diverse songs in your rotation"
-            >
-              <TrackCarousel>
-                {feed.radioMixes.map((mix) => (
-                  <div key={mix.id} className="w-40 sm:w-47.5 shrink-0">
-                    <MediaTile
-                      to="/radio/$songId"
-                      params={{ songId: mix.seedSongId }}
-                      title={mix.title}
-                      subtitle={mix.subtitle}
-                      imageUrl={mix.coverImageUrl}
-                      artistName={mix.seedArtistName}
-                      badge={
-                        <span className="px-1.5 py-0.5 rounded-control text-caption font-eyebrow tracking-wider uppercase bg-foreground/40 text-accent font-bold shadow-xs">
-                          RADIO
-                        </span>
-                      }
-                      onPlay={() => handlePlayMix(mix)}
-                    />
-                  </div>
-                ))}
               </TrackCarousel>
             </ShelfSection>
           )}
+
+          {/* Radio Mixes Section */}
+          <RadioSection
+            mixes={radioMixesToShow}
+            currentTrackId={currentTrack?.id}
+            onPlayMix={handlePlayMix}
+          />
 
           {/* The feed failed — say so, and offer a way back. */}
           {feedError && (
@@ -624,6 +641,13 @@ function HomeComponent() {
             )}
           </section>
 
+          {/* Radio Mixes Section */}
+          <RadioSection
+            mixes={curatedRadioMixes}
+            currentTrackId={currentTrack?.id}
+            onPlayMix={handlePlayMix}
+          />
+
           {/* Master Tapes Correspondence Slip */}
           <section className="space-y-4">
             <div className="flex justify-between items-baseline border-b border-border pb-3">
@@ -638,7 +662,7 @@ function HomeComponent() {
             </div>
 
             {liveSongs.length > 0 ? (
-              <div className="overflow-clip  shadow-xs">
+              <div className="overflow-clip shadow-xs">
                 {liveSongs.map((t, idx) => (
                   <SongRow
                     key={t.id}

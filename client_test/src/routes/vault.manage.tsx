@@ -2,7 +2,6 @@ import {
   createFileRoute,
   Link,
   Outlet,
-  redirect,
   useLocation,
   useNavigate,
 } from '@tanstack/react-router'
@@ -54,10 +53,6 @@ const TAB_ROUTES: Record<
 export const Route = createFileRoute('/vault/manage')({
   staticData: { layout: 'full' },
   component: PersonalCollectionManagePage,
-  beforeLoad: () => {
-    // The manager always opens on a desk.
-    throw redirect({ to: '/vault/manage/import' })
-  },
 })
 
 function PersonalCollectionManagePage() {

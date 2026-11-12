@@ -230,12 +230,17 @@ function ProfileComponent() {
     setIsUploadingAvatar(true)
 
     try {
+      const ext = file.name.split('.').pop() || 'jpeg'
+
       const { uploadUrl, publicUrl } = await api.post<{
         uploadUrl: string
         publicUrl: string
-      }>('/api/v1/storage/presign', {
-        preset: 'AVATAR',
-        contentType: file.type,
+      }>('/api/v1/storage/presigned-url', {
+        category: 'USER_AVATAR',
+        resourceId: user.id,
+        mimeType: file.type || 'image/jpeg',
+        fileExtension: ext,
+        fileSizeBytes: file.size,
       })
 
       const uploadRes = await fetch(uploadUrl, {

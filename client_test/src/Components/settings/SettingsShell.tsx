@@ -33,36 +33,47 @@ export function SettingsShell({
   return (
     <div
       className={cn(
-        'grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10',
+        'lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10',
         className,
       )}
     >
+      {/*
+        Below `lg` the rail is a horizontal bar that pins under the app header,
+        so a section is always one tap away instead of a long scroll up. From
+        `lg` it becomes the vertical rail beside the content. The bar is
+        edge-to-edge on phones, which is why it pulls the page gutter back in
+        with a negative margin.
+      */}
       <nav
         aria-label="Settings sections"
-        className="lg:sticky lg:top-20 lg:self-start"
+        className={cn(
+          'sticky top-14 z-30 -mx-4 mb-6 flex items-center gap-1.5 overflow-x-auto no-scrollbar',
+          'bg-background/95 px-4 py-2 backdrop-blur-md',
+          'sm:mx-0 sm:px-0',
+          'lg:top-20 lg:mb-0 lg:flex-col lg:items-stretch lg:gap-0.5 lg:overflow-visible',
+          'lg:bg-transparent lg:p-0 lg:backdrop-blur-none lg:self-start',
+        )}
       >
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar lg:flex-col lg:gap-0.5">
-          {nav.map((item) => {
-            const isActive = item.id === value
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onChange(item.id)}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'shrink-0 whitespace-nowrap rounded-control px-3.5 py-2 text-left font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                  isActive
-                    ? 'bg-foreground text-background'
-                    : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',
-                )}
-              >
-                {item.label}
-              </button>
-            )
-          })}
-        </div>
+        {nav.map((item) => {
+          const isActive = item.id === value
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onChange(item.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap rounded-control px-3.5 py-2 text-left font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                isActive
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',
+              )}
+            >
+              {item.label}
+            </button>
+          )
+        })}
       </nav>
 
       <div className="min-w-0">{children}</div>
