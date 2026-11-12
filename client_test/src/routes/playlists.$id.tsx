@@ -66,11 +66,18 @@ function PlaylistDetailComponent() {
   const { shareToken, collabToken } = useSearch({ from: '/playlists/$id' })
   const navigate = useNavigate()
 
-  const { isAuthenticated, user } = useAuthStore()
-  const { isPlaylistSaved, toggleSavePlaylist, hydratePlaylists } =
-    usePlaylistsStore()
-  const { currentTrack, playbackStatus, playTrack, togglePlay, contextUri } =
-    usePlayerStore()
+  // Selected slices only: subscribing to the whole store re-rendered this
+  // page — and its reorder list — on every playback tick.
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const user = useAuthStore((s) => s.user)
+  const isPlaylistSaved = usePlaylistsStore((s) => s.isPlaylistSaved)
+  const toggleSavePlaylist = usePlaylistsStore((s) => s.toggleSavePlaylist)
+  const hydratePlaylists = usePlaylistsStore((s) => s.hydratePlaylists)
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
+  const contextUri = usePlayerStore((s) => s.contextUri)
 
   const isMobile = useMediaQuery('(max-width: 767px)')
   const settingsFormId = useId()

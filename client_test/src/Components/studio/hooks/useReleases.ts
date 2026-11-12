@@ -7,7 +7,7 @@ import { notify } from '../../../lib/toast'
 import type { ReleaseDeleteRequest, DetachCutRequest } from '../studio.types'
 
 export function useReleases() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
 
   // Catalog Releases State
   const [albums, setAlbums] = useState<Album[]>([])

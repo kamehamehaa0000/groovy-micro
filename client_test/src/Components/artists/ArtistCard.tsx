@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { memo, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { MarqueeText } from '../common/MarqueeText'
 import { ProceduralCover } from '../common/ProceduralCover'
@@ -28,7 +28,7 @@ export interface ArtistCardProps {
  * the procedural gradient cover from the home page is used, so the fallback
  * is identical everywhere.
  */
-export function ArtistCard({
+export const ArtistCard = memo(function ArtistCard({
   name,
   slug,
   imageUrl,
@@ -118,4 +118,4 @@ export function ArtistCard({
       )}
     </div>
   )
-}
+})

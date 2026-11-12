@@ -55,7 +55,10 @@ export const Route = createFileRoute('/vault/manage')({
 })
 
 function PersonalCollectionManagePage() {
-  const { isAuthenticated, isLoading: isAuthLoading, user, refreshProfile } = useAuthStore()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isAuthLoading = useAuthStore((s) => s.isLoading)
+  const user = useAuthStore((s) => s.user)
+  const refreshProfile = useAuthStore((s) => s.refreshProfile)
   const searchParams = Route.useSearch()
   const navigate = useNavigate()
 

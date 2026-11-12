@@ -32,22 +32,22 @@ function LibraryPageComponent() {
     (s) => s.openModal,
   )
 
-  const {
-    viewMode,
-    activeSort,
-    sortDir,
-    activeFilter,
-    searchQuery,
-    payload,
-    isLoading,
-    error,
-    setViewMode,
-    setActiveSort,
-    setSortDir,
-    setActiveFilter,
-    setSearchQuery,
-    fetchLibrary,
-  } = useLibraryStore()
+  // Selected slices only: the whole-store subscription re-rendered the grid on
+  // every store write.
+  const viewMode = useLibraryStore((s) => s.viewMode)
+  const activeSort = useLibraryStore((s) => s.activeSort)
+  const sortDir = useLibraryStore((s) => s.sortDir)
+  const activeFilter = useLibraryStore((s) => s.activeFilter)
+  const searchQuery = useLibraryStore((s) => s.searchQuery)
+  const payload = useLibraryStore((s) => s.payload)
+  const isLoading = useLibraryStore((s) => s.isLoading)
+  const error = useLibraryStore((s) => s.error)
+  const setViewMode = useLibraryStore((s) => s.setViewMode)
+  const setActiveSort = useLibraryStore((s) => s.setActiveSort)
+  const setSortDir = useLibraryStore((s) => s.setSortDir)
+  const setActiveFilter = useLibraryStore((s) => s.setActiveFilter)
+  const setSearchQuery = useLibraryStore((s) => s.setSearchQuery)
+  const fetchLibrary = useLibraryStore((s) => s.fetchLibrary)
 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ProceduralCover } from "./ProceduralCover";
 
@@ -18,7 +18,7 @@ export interface MediaTileProps {
   onPlay?: () => void;
 }
 
-export function MediaTile({
+export const MediaTile = memo(function MediaTile({
   to,
   params,
   title,
@@ -140,5 +140,5 @@ export function MediaTile({
         )}
       </div>
     );
-  }
+  })
 
