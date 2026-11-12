@@ -293,6 +293,23 @@ body {
     transform: scaleY(1);
   }
 }
+/* 5. Marquee (overflowing titles)
+   Declared once here: the component used to inject this block per instance,
+   which meant dozens of identical <style> tags on a page. */
+@keyframes marquee-pingpong {
+  0%,
+  18% {
+    transform: translateX(0);
+  }
+  68%,
+  86% {
+    transform: translateX(var(--marquee-distance, -50px));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @keyframes eq-bar-2 {
   0%,
   100% {
@@ -301,8 +318,7 @@ body {
   50% {
     transform: scaleY(0.3);
   }
-}
-@keyframes eq-bar-3 {
+}@keyframes eq-bar-3 {
   0%,
   100% {
     transform: scaleY(0.4);

@@ -74,13 +74,6 @@ export const MarqueeText = memo(function MarqueeText({
           : undefined
       }
     >
-      <style>{`
-        @keyframes marquee-pingpong {
-          0%, 18% { transform: translateX(0); }
-          68%, 86% { transform: translateX(var(--marquee-distance, -50px)); }
-          100% { transform: translateX(0); }
-        }
-      `}</style>
       <div
         ref={contentRef}
         className={`inline-block whitespace-nowrap ${innerClassName}`}

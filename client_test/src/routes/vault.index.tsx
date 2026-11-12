@@ -16,6 +16,7 @@ import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
+import { MediaGrid } from '../Components/media/MediaGrid'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -537,7 +538,7 @@ function PersonalCollectionExplorePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+              <MediaGrid maxColumns={6}>
                 {personalArtists.map((artist) => (
                   <ArtistCard
                     key={artist.id}
@@ -549,7 +550,7 @@ function PersonalCollectionExplorePage() {
                     }`}
                   />
                 ))}
-              </div>
+              </MediaGrid>
               <div ref={loadMoreArtistsRef} className="h-6" />
             </>
           )}
@@ -592,7 +593,7 @@ function PersonalCollectionExplorePage() {
             )
           ) : viewMode === 'grid' ? (
             /* ===================== RELEASES GRID VIEW (Clean & Minimal, Artist Page Styling) ===================== */
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
+            <MediaGrid maxColumns={6}>
               {personalReleases.map((release) => {
                 const isPlayingThisRelease =
                   currentTrack?.albumId === release.id &&
@@ -685,7 +686,7 @@ function PersonalCollectionExplorePage() {
                   </div>
                 )
               })}
-            </div>
+            </MediaGrid>
           ) : (
             /* ===================== RELEASES LIST VIEW (Clean & Minimal, Artist Page Styling) ===================== */
             <div className="flex flex-col gap-1.5">

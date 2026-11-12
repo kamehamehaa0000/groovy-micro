@@ -1593,10 +1593,10 @@ function PersonalCollectionManagePage() {
           <button
             type="button"
             onClick={() => handleTabChange('import')}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
+            className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
               activeTab === 'import'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
             }`}
           >
             <span>Import Music</span>
@@ -1607,10 +1607,10 @@ function PersonalCollectionManagePage() {
           <button
             type="button"
             onClick={() => handleTabChange('collection')}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+            className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
               activeTab === 'collection'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
             }`}
           >
             Releases (
@@ -1624,12 +1624,11 @@ function PersonalCollectionManagePage() {
             type="button"
             onClick={() => {
               handleTabChange('artists')
-              loadPersonalArtists()
             }}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+            className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
               activeTab === 'artists'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
             }`}
           >
             Artists ({personalArtists.length})
@@ -1639,12 +1638,11 @@ function PersonalCollectionManagePage() {
             type="button"
             onClick={() => {
               handleTabChange('trash')
-              loadTrash()
             }}
-            className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium flex items-center gap-1.5 ${
+            className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
               activeTab === 'trash'
-                ? 'bg-foreground text-background font-semibold shadow-xs'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
             }`}
           >
             <span>Recycle Bin</span>

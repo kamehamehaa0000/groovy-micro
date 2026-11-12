@@ -28,9 +28,21 @@ export function useStickyHeader<T extends HTMLElement>(
 
     let frame = 0
 
+    // The element's position is measured once instead of on every scroll
+    // frame: reading the rect during a scroll forces a layout, and this hook
+    // runs on every frame the page moves.
+    let documentTop = 0
+    let height = 0
+
+    const measure = () => {
+      const rect = target.getBoundingClientRect()
+      documentTop = rect.top + window.scrollY
+      height = rect.height
+    }
+
     const update = () => {
       frame = 0
-      const bottom = target.getBoundingClientRect().bottom
+      const bottom = documentTop + height - window.scrollY
       const next = stuckRef.current
         ? bottom <= topOffset + hysteresis
         : bottom <= topOffset
@@ -44,14 +56,20 @@ export function useStickyHeader<T extends HTMLElement>(
       frame = requestAnimationFrame(update)
     }
 
+    const remeasure = () => {
+      measure()
+      update()
+    }
+
+    measure()
     update()
     window.addEventListener('scroll', schedule, { passive: true })
-    window.addEventListener('resize', schedule)
+    window.addEventListener('resize', remeasure)
 
     return () => {
       if (frame) cancelAnimationFrame(frame)
       window.removeEventListener('scroll', schedule)
-      window.removeEventListener('resize', schedule)
+      window.removeEventListener('resize', remeasure)
     }
   }, [targetRef, topOffset, hysteresis])
 

@@ -6,6 +6,8 @@ import { usePlayerStore } from '../stores/player.store'
 import { playerApi, type HistoryItem } from '../lib/player.api'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
+import { EmptyState } from '../Components/ui/EmptyState'
+import { SectionTitle } from '../Components/ui/SectionTitle'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -535,10 +537,11 @@ function HistoryPageComponent() {
                       key={mode}
                       type="button"
                       onClick={() => setGroupBy(mode)}
-                      className={`font-eyebrow text-eyebrow uppercase tracking-wider px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      aria-pressed={isSelected}
+                      className={`rounded-control px-3 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors ${
                         isSelected
-                          ? 'bg-foreground text-background font-semibold shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                          ? 'bg-foreground text-background font-semibold'
+                          : 'text-muted-foreground hover:bg-background hover:text-foreground'
                       }`}
                     >
                       {mode === 'day'
@@ -583,51 +586,48 @@ function HistoryPageComponent() {
         </div>
       ) : releaseGroups.length === 0 ? (
         /* Empty State */
-        <div className="py-20 text-center">
-          <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mx-auto mb-4 text-muted-foreground">
+        <EmptyState
+          icon={
             <svg
-              className="w-6 h-6"
+              className="h-5 w-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-          </div>
-          <h2 className="font-serif italic text-heading text-foreground font-medium">
-            No listening history recorded yet
-          </h2>
-          <p className="font-sans text-caption text-muted-foreground mt-1.5 max-w-sm mx-auto">
-            Start playing records from the catalog or personal vault to see your
-            releases organized here.
-          </p>
-          <Link
-            to="/"
-            className="inline-block mt-6 font-eyebrow text-caption uppercase tracking-widest px-6 py-2.5 bg-foreground text-background rounded-full hover:opacity-90 transition-opacity"
-          >
-            Explore Catalog
-          </Link>
-        </div>
+          }
+          title="No listening history recorded yet"
+          description="Start playing records from the catalog or your personal vault to see your releases organized here."
+          action={
+            <Link
+              to="/"
+              className="inline-flex items-center rounded-control bg-foreground px-6 py-2.5 font-eyebrow text-caption uppercase tracking-widest text-background transition-opacity hover:opacity-90 no-underline"
+            >
+              Explore Catalog
+            </Link>
+          }
+        />
       ) : (
         /* Date Grouped Release Sections */
         <div className="space-y-12">
           {releaseGroups.map((group) => (
             <section key={group.key} className="space-y-4">
               {/* Group Section Header */}
-              <div className="flex items-baseline justify-between border-b border-border pb-2.5">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
-                    {group.label}
-                  </h2>
-                </div>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                  {group.releases.length}{' '}
-                  {group.releases.length === 1 ? 'release' : 'releases'} •{' '}
-                  {group.totalPlays} {group.totalPlays === 1 ? 'play' : 'plays'}
-                </span>
-              </div>
+              <SectionTitle
+                title={group.label}
+                action={
+                  <span className="font-eyebrow uppercase tracking-wider text-muted-foreground">
+                    {group.releases.length}{' '}
+                    {group.releases.length === 1 ? 'release' : 'releases'} •{' '}
+                    {group.totalPlays}{' '}
+                    {group.totalPlays === 1 ? 'play' : 'plays'}
+                  </span>
+                }
+              />
 
               {/* List View */}
               <div className="space-y-2">

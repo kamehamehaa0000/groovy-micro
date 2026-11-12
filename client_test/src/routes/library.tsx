@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
+import { MediaGrid } from '../Components/media/MediaGrid'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import {
@@ -315,10 +316,11 @@ function LibraryPageComponent() {
                 key={pill.key}
                 type="button"
                 onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
+                aria-pressed={isSelected}
+                className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
                   isSelected
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
                 }`}
               >
                 {pill.label}
@@ -505,7 +507,7 @@ function LibraryPageComponent() {
         </div>
       ) : (
         // Grid View (Tiled cards, no pin/unpin/share options)
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <MediaGrid maxColumns={6}>
           {filteredAndSortedItems.map((item) => (
             <LibraryItemCard
               key={item.id}
@@ -514,7 +516,7 @@ function LibraryPageComponent() {
               onShowToast={showToast}
             />
           ))}
-        </div>
+        </MediaGrid>
       )}
 
       {/* ===================== FLOATING TOAST ===================== */}

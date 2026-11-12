@@ -7,11 +7,11 @@ import { formatElapsed, liveItemToTrack } from './feed.utils'
 import type { FriendActivityItem } from '../../lib/player.api'
 
 export type LiveNowLayout = 'strip' | 'panel'
-
 interface LiveNowProps {
   activities: FriendActivityItem[]
   isLoading: boolean
-  layout: LiveNowLayout
+  /** Kept for callers that still pass it; the component is responsive now. */
+  layout?: LiveNowLayout
 }
 
 function LiveCard({
@@ -191,11 +191,8 @@ function SkeletonCard() {
   )
 }
 
-export function LiveNow({ activities, isLoading, layout }: LiveNowProps) {
-  const isStrip = layout === 'strip'
-
+export function LiveNow({ activities, isLoading }: LiveNowProps) {
   if (!isLoading && activities.length === 0) {
-    if (isStrip) return null
     return (
       <section aria-label="Live now">
         <Header count={0} />
@@ -206,44 +203,28 @@ export function LiveNow({ activities, isLoading, layout }: LiveNowProps) {
     )
   }
 
-  if (isStrip) {
-    return (
-      <section aria-label="Live now" className="xl:hidden">
-        <Header count={activities.length} />
-        <div className="no-scrollbar -mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
-          {isLoading
-            ? Array.from({ length: 2 }).map((_, index) => (
-                <div key={index} className="w-64 shrink-0 snap-start">
-                  <SkeletonCard />
-                </div>
-              ))
-            : activities.map((item) => (
-                <MemoLiveCard
-                  key={item.user.id}
-                  item={item}
-                  className="w-64 shrink-0 snap-start"
-                />
-              ))}
-        </div>
-      </section>
-    )
-  }
-
+  // One component, two arrangements: a horizontal strip on small screens and a
+  // stacked panel in the desktop rail. Rendering it twice (once per layout)
+  // meant the live data was fetched and painted twice.
   return (
-    <section aria-label="Live now" className="hidden xl:block">
+    <section aria-label="Live now">
       <Header count={activities.length} />
-      <div className="mt-3 space-y-2">
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : (
-          activities
-            .slice(0, 3)
-            .map((item) => <MemoLiveCard key={item.user.id} item={item} />)
-        )}
+      <div className="no-scrollbar -mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 xl:mx-0 xl:block xl:space-y-2 xl:overflow-visible xl:px-0 xl:pb-0 xl:snap-none">
+        {isLoading
+          ? Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="w-64 shrink-0 snap-start xl:w-auto xl:shrink">
+                <SkeletonCard />
+              </div>
+            ))
+          : activities.map((item) => (
+              <MemoLiveCard
+                key={item.user.id}
+                item={item}
+                className="w-64 shrink-0 snap-start xl:w-auto xl:shrink"
+              />
+            ))}
       </div>
     </section>
   )
 }
+
