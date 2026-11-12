@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { MediaGrid } from '../Components/media/MediaGrid'
+import { FilterBar } from '../Components/ui/FilterBar'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import {
@@ -18,7 +19,6 @@ import { SortMenu, type SortOption } from '../Components/ui'
 import {
   GridIconSVG,
   ListIconSVG,
-  SearchIconSVG,
 } from '../Components/Icons'
 
 export const Route = createFileRoute('/library')({
@@ -50,9 +50,7 @@ function LibraryPageComponent() {
   const setSearchQuery = useLibraryStore((s) => s.setSearchQuery)
   const fetchLibrary = useLibraryStore((s) => s.fetchLibrary)
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
@@ -95,13 +93,6 @@ function LibraryPageComponent() {
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [isAuthenticated])
-
-  // Focus search input when toggled open
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isSearchOpen])
 
   // Transform raw payload into unified items
   const allItems = useMemo(() => {
@@ -258,114 +249,25 @@ function LibraryPageComponent() {
     )
   }
 
-  const isSearchActive = isSearchOpen || searchQuery.trim().length > 0
 
   return (
     <div className="select-none">
-      {/* ===================== STICKY APP HEADER WITH PILLS ===================== */}
-      <header className="sticky top-14 z-30 bg-background backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
-        {/* Horizontal Scrollable Filter Pills + Search Button */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
-          {/* Quick Search Toggle Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSearchOpen((prev) => !prev)
-              if (isSearchOpen && searchQuery) {
-                setSearchQuery('')
-              }
-            }}
-            aria-label="Search in library"
-            className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
-              isSearchActive
-                ? 'bg-foreground text-background shadow-xs'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </button>
-
-          {/* Active Filter Clear Chip (✕) */}
-          {activeFilter !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setActiveFilter('all')}
-              aria-label="Clear active filter"
-              className="shrink-0 w-7 h-7 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-caption font-bold cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-
-          {/* Category Filter Pills */}
-          {filterPills.map((pill) => {
-            const isSelected = activeFilter === pill.key
-            return (
-              <button
-                key={pill.key}
-                type="button"
-                onClick={() => setActiveFilter(isSelected ? 'all' : pill.key)}
-                aria-pressed={isSelected}
-                className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
-                  isSelected
-                    ? 'border-foreground bg-foreground text-background'
-                    : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-                }`}
-              >
-                {pill.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Expandable Search Input */}
-        {isSearchOpen && (
-          <div className="mt-2.5 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="relative flex-1">
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Find in Your Library..."
-                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
-              />
-              <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setIsSearchOpen(false)
-                setSearchQuery('')
-              }}
-              className="font-mono text-caption text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
+      {/* ===================== STICKY TOOLBAR ===================== */}
+      <header className="sticky top-14 z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
+        <FilterBar
+          search={{
+            value: searchQuery,
+            onChange: setSearchQuery,
+            onClear: () => setSearchQuery(''),
+            placeholder: 'Find in Your Library...',
+            ariaLabel: 'Search in library',
+          }}
+          options={filterPills.map((pill) => ({ value: pill.key, label: pill.label }))}
+          value={activeFilter}
+          onOptionChange={(next) =>
+            setActiveFilter(next === activeFilter ? 'all' : next)
+          }
+        />
       </header>
 
       {/* ===================== CONTROLS BAR (Sort & View Mode) ===================== */}
