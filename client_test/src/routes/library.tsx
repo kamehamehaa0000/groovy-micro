@@ -253,7 +253,7 @@ function LibraryPageComponent() {
   return (
     <div className="select-none">
       {/* ===================== STICKY TOOLBAR ===================== */}
-      <header className="sticky top-14 z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
+      <header className="sticky top-[var(--header-height)] z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
         <FilterBar
           search={{
             value: searchQuery,

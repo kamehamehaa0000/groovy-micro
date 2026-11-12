@@ -15,7 +15,7 @@ import {
   type SocialFeedMeta,
   type UserSummary,
 } from '../lib/social.api'
-import { Button, IconButton, Sheet } from '../Components/ui'
+import { Button, IconButton, Sheet, Tabs } from '../Components/ui'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { FeedRow } from '../Components/feed/FeedRow'
 import { FollowRequests } from '../Components/feed/FollowRequests'
@@ -299,32 +299,14 @@ function FilterBar({
   onChange: (filter: FeedFilter) => void
 }) {
   return (
-    <div className="sticky top-14 z-20 -mx-4 mt-5 border-b border-border/60 bg-background/90 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8 xl:mt-0">
-      <div
-        role="tablist"
-        aria-label="Filter feed"
-        className="no-scrollbar flex items-center gap-1 overflow-x-auto"
-      >
-        {FILTERS.map((item) => {
-          const isActive = filter === item.value
-          return (
-            <button
-              key={item.value}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onChange(item.value)}
-              className={`shrink-0 rounded-full border px-3.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
-                isActive
-                  ? 'border-foreground bg-foreground font-semibold text-background'
-                  : 'border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              {item.label}
-            </button>
-          )
-        })}
-      </div>
+    <div className="sticky top-[var(--header-height)] z-20 mt-5 border-b border-border/60 bg-background/90 py-3 backdrop-blur-md xl:mt-0">
+      <Tabs
+        variant="pill"
+        ariaLabel="Filter feed"
+        value={filter}
+        onChange={(next) => onChange(next as FeedFilter)}
+        items={FILTERS.map((item) => ({ id: item.value, label: item.label }))}
+      />
     </div>
   )
 }
@@ -729,7 +711,7 @@ function FeedPage() {
           </section>
         </div>
 
-        <aside className="order-1 xl:order-2 scrollbar-none xl:sticky xl:top-20 xl:block xl:max-h-[calc(100dvh-6rem)] xl:space-y-6 xl:overflow-y-auto xl:pr-1">
+        <aside className="order-1 xl:order-2 scrollbar-none xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:block xl:max-h-[calc(100dvh-6rem)] xl:space-y-6 xl:overflow-y-auto xl:pr-1">
           {requestSection}
 
           <LiveNow

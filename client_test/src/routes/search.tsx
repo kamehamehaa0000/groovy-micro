@@ -19,6 +19,10 @@ import {
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { MediaTile } from '../Components/common/MediaTile'
 import { SongRow } from '../Components/common/SongRow'
+import {
+  ResultSection,
+  ResultSectionLink,
+} from '../Components/search/ResultSection'
 import { PlaylistCover } from '../Components/PlaylistCover'
 import { Button } from '../Components/ui'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
@@ -439,7 +443,7 @@ function SearchPageComponent() {
   return (
     <div className="select-none">
       {/* ===================== STICKY SEARCH HEADER & PILLS ===================== */}
-      <header className="sticky top-14 z-30 bg-background/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
+      <header className="sticky top-[var(--header-height)] z-30 bg-background/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
         {!query.trim() && (
           <div className="pt-1 pb-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-sans">
@@ -600,8 +604,8 @@ function SearchPageComponent() {
                         e.stopPropagation()
                         removeRecentSearch(term)
                       }}
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-eyebrow text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                      title="Remove"
+                      aria-label={`Remove ${term} from recent searches`}
+                      className="-mr-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-eyebrow text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       ✕
                     </button>
@@ -1096,27 +1100,17 @@ function SearchPageComponent() {
 
           {/* 2. TRACKS / SONGS SECTION (Artist Page List Style) */}
           {results.songs.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
-                    Tracks
-                  </h3>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    ({results.songs.length})
-                  </span>
-                </div>
-                {activeCategory === 'all' && results.songs.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('songs')}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    View all &rarr;
-                  </button>
-                )}
-              </div>
-
+            <ResultSection
+              title="Tracks"
+              count={results.songs.length}
+              action={
+                activeCategory === 'all' && results.songs.length >= 6 ? (
+                  <ResultSectionLink onClick={() => setActiveCategory('songs')}>
+                    View all →
+                  </ResultSectionLink>
+                ) : null
+              }
+            >
               <div className="border border-border rounded-md overflow-hidden bg-card divide-y divide-border/60 shadow-raised">
                 {results.songs.map((song, idx) => (
                   <SongRow
@@ -1131,32 +1125,22 @@ function SearchPageComponent() {
                   />
                 ))}
               </div>
-            </div>
+            </ResultSection>
           )}
 
           {/* 3. ARTISTS SECTION (MediaTile Grid Style) */}
           {results.artists.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
-                    Artists
-                  </h3>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    ({results.artists.length})
-                  </span>
-                </div>
-                {activeCategory === 'all' && results.artists.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('artists')}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    View all &rarr;
-                  </button>
-                )}
-              </div>
-
+            <ResultSection
+              title="Artists"
+              count={results.artists.length}
+              action={
+                activeCategory === 'all' && results.artists.length >= 6 ? (
+                  <ResultSectionLink onClick={() => setActiveCategory('artists')}>
+                    View all →
+                  </ResultSectionLink>
+                ) : null
+              }
+            >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.artists.map((artist) => (
                   <MediaTile
@@ -1171,32 +1155,22 @@ function SearchPageComponent() {
                   />
                 ))}
               </div>
-            </div>
+            </ResultSection>
           )}
 
           {/* 4. ALBUMS / RELEASES SECTION (MediaTile Grid Style) */}
           {results.albums.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
-                    Releases
-                  </h3>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    ({results.albums.length})
-                  </span>
-                </div>
-                {activeCategory === 'all' && results.albums.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('albums')}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    View all &rarr;
-                  </button>
-                )}
-              </div>
-
+            <ResultSection
+              title="Releases"
+              count={results.albums.length}
+              action={
+                activeCategory === 'all' && results.albums.length >= 6 ? (
+                  <ResultSectionLink onClick={() => setActiveCategory('albums')}>
+                    View all →
+                  </ResultSectionLink>
+                ) : null
+              }
+            >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.albums.map((album) => (
                   <MediaTile
@@ -1216,42 +1190,33 @@ function SearchPageComponent() {
                   />
                 ))}
               </div>
-            </div>
+            </ResultSection>
           )}
 
           {/* 5. PLAYLISTS SECTION (MediaTile Grid Style) */}
           {results.playlists.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
-                    Playlists
-                  </h3>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    ({results.playlists.length})
-                  </span>
-                </div>
+            <ResultSection
+              title="Playlists"
+              count={results.playlists.length}
+              action={
                 <div className="flex items-center gap-3">
-                  {activeCategory === 'all' &&
-                    results.playlists.length >= 6 && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveCategory('playlists')}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        Filter tracks &rarr;
-                      </button>
-                    )}
+                  {activeCategory === 'all' && results.playlists.length >= 6 ? (
+                    <ResultSectionLink
+                      onClick={() => setActiveCategory('playlists')}
+                    >
+                      Filter tracks →
+                    </ResultSectionLink>
+                  ) : null}
                   <Link
                     to="/playlists"
                     search={{ search: query.trim() || undefined }}
                     className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                   >
-                    Browse all &rarr;
+                    Browse all →
                   </Link>
                 </div>
-              </div>
-
+              }
+            >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.playlists.map((playlist) => {
                   const mosaicCovers =
@@ -1278,32 +1243,22 @@ function SearchPageComponent() {
                   )
                 })}
               </div>
-            </div>
+            </ResultSection>
           )}
 
           {/* 6. COMMUNITY / USERS SECTION (MediaTile Grid Style) */}
           {results.users.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif italic font-semibold text-lg sm:text-heading text-foreground">
-                    Community
-                  </h3>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    ({results.users.length})
-                  </span>
-                </div>
-                {activeCategory === 'all' && results.users.length >= 6 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('users')}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    View all &rarr;
-                  </button>
-                )}
-              </div>
-
+            <ResultSection
+              title="Community"
+              count={results.users.length}
+              action={
+                activeCategory === 'all' && results.users.length >= 6 ? (
+                  <ResultSectionLink onClick={() => setActiveCategory('users')}>
+                    View all →
+                  </ResultSectionLink>
+                ) : null
+              }
+            >
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                 {results.users.map((user) => (
                   <MediaTile
@@ -1320,7 +1275,7 @@ function SearchPageComponent() {
                   />
                 ))}
               </div>
-            </div>
+            </ResultSection>
           )}
         </div>
       )}

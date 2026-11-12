@@ -326,7 +326,7 @@ function PersonalCollectionExplorePage() {
   return (
     <div className="select-none">
       {/* ===================== STICKY APP HEADER WITH PILLS (Matched to /library) ===================== */}
-      <header className="sticky top-14 z-30 bg-background backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
+      <header className="sticky top-[var(--header-height)] z-30 bg-background backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
         {/* Horizontal Scrollable Filter Pills + Search Button */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
           {/* Quick Search Toggle Button */}
