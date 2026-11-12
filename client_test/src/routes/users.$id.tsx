@@ -11,6 +11,9 @@ import {
 } from "../Components/Icons";
 import { SongRow } from "../Components/common/SongRow";
 import { MediaTile } from "../Components/common/MediaTile";
+import { Tabs } from "../Components/ui/Tabs";
+import { FollowButton } from "../Components/social/FollowButton";
+import { PeopleListModal } from "../Components/social/PeopleListModal";
 
 export const Route = createFileRoute("/users/$id")({
   component: UserProfileComponent,
@@ -50,6 +53,9 @@ function UserProfileComponent() {
   const [isActing, setIsActing] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"playlists" | "albums" | "liked">("playlists");
+  const [peopleList, setPeopleList] = useState<"followers" | "following" | null>(
+    null,
+  );
 
   const isOwnProfile = currentUser?.id === id || relationship === "SELF";
 
@@ -312,23 +318,31 @@ function UserProfileComponent() {
 
             {/* Metrics Strip */}
             <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-8 border-t border-border/60 pt-4">
-              <div>
-                <span className="font-mono text-title sm:text-lg font-bold text-foreground block">
+              <button
+                type="button"
+                onClick={() => setPeopleList('followers')}
+                className="group cursor-pointer rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <span className="font-mono text-title sm:text-lg font-bold text-foreground block transition-colors group-hover:text-primary">
                   {profile.followersCount}
                 </span>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
                   Followers
                 </span>
-              </div>
+              </button>
               <div className="h-6 w-px bg-border" />
-              <div>
-                <span className="font-mono text-title sm:text-lg font-bold text-foreground block">
+              <button
+                type="button"
+                onClick={() => setPeopleList('following')}
+                className="group cursor-pointer rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <span className="font-mono text-title sm:text-lg font-bold text-foreground block transition-colors group-hover:text-primary">
                   {profile.followingCount}
                 </span>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
                   Following
                 </span>
-              </div>
+              </button>
               <div className="h-6 w-px bg-border" />
               <div>
                 <span className="font-mono text-title sm:text-lg font-bold text-foreground block">
@@ -350,56 +364,15 @@ function UserProfileComponent() {
               >
                 Edit Profile
               </Link>
-            ) : relationship === "PENDING_RECEIVED" ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={isActing}
-                  onClick={handleAcceptRequest}
-                  className="bg-foreground text-background hover:bg-foreground/80 font-eyebrow text-caption uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
-                >
-                  Accept
-                </button>
-                <button
-                  type="button"
-                  disabled={isActing}
-                  onClick={handleRejectRequest}
-                  className="bg-background border border-border text-muted-foreground hover:text-foreground font-eyebrow text-caption uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer"
-                >
-                  Decline
-                </button>
-              </div>
-            ) : relationship === "PENDING_SENT" ? (
-              <button
-                type="button"
-                disabled={isActing}
-                onClick={handleFollowAction}
-                className="group bg-muted border border-border text-muted-foreground font-eyebrow text-caption uppercase tracking-wider px-5 py-2.5 transition-colors cursor-pointer hover:border-destructive hover:text-destructive"
-              >
-                <span className="group-hover:hidden">Requested</span>
-                <span className="hidden group-hover:inline">Cancel Request</span>
-              </button>
-            ) : relationship === "FOLLOWING" || relationship === "FRIENDS" ? (
-              <button
-                type="button"
-                disabled={isActing}
-                onClick={handleFollowAction}
-                className="group bg-card border border-border text-foreground font-eyebrow text-caption uppercase tracking-wider px-5 py-2.5 transition-all cursor-pointer hover:border-destructive hover:text-destructive"
-              >
-                <span className="group-hover:hidden">
-                  {relationship === "FRIENDS" ? "Friends" : "Following"}
-                </span>
-                <span className="hidden group-hover:inline">Unfollow</span>
-              </button>
             ) : (
-              <button
-                type="button"
-                disabled={isActing}
-                onClick={handleFollowAction}
-                className="bg-foreground text-background hover:bg-foreground/80 font-eyebrow text-caption uppercase tracking-wider px-6 py-2.5 transition-colors cursor-pointer shadow-xs"
-              >
-                {profile.isPrivateAccount ? "Request Follow" : "Follow"}
-              </button>
+              <FollowButton
+                relationship={relationship}
+                isPrivateAccount={profile.isPrivateAccount}
+                isActing={isActing}
+                onFollow={handleFollowAction}
+                onAccept={handleAcceptRequest}
+                onDecline={handleRejectRequest}
+              />
             )}
           </div>
         </div>
@@ -426,20 +399,13 @@ function UserProfileComponent() {
 
             {libraryError.privacy === "FOLLOWERS_ONLY" && (
               <div>
-                {relationship === "NONE" ? (
-                  <button
-                    type="button"
-                    disabled={isActing}
-                    onClick={handleFollowAction}
-                    className="bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground hover:bg-background hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    Follow to Unlock
-                  </button>
-                ) : relationship === "PENDING_SENT" ? (
-                  <span className="font-eyebrow text-caption uppercase tracking-wider text-muted-foreground border border-border px-4 py-2 bg-background inline-block">
-                    Follow Request Pending
-                  </span>
-                ) : null}
+                <FollowButton
+                  relationship={relationship}
+                  isPrivateAccount={profile.isPrivateAccount}
+                  isActing={isActing}
+                  onFollow={handleFollowAction}
+                  followLabel="Follow to Unlock"
+                />
               </div>
             )}
           </div>
@@ -452,41 +418,18 @@ function UserProfileComponent() {
         ) : library ? (
           <div>
             {/* Library Navigation Tabs */}
-            <div className="flex items-center gap-2 border-b border-border pb-px mb-6 overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setActiveTab("playlists")}
-                className={`font-eyebrow text-caption uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
-                  activeTab === "playlists"
-                    ? "border-foreground text-foreground font-semibold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Playlists ({totalPlaylistsCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("albums")}
-                className={`font-eyebrow text-caption uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
-                  activeTab === "albums"
-                    ? "border-foreground text-foreground font-semibold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Albums & Releases ({savedAlbumsCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("liked")}
-                className={`font-eyebrow text-caption uppercase tracking-wider px-4 py-2.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
-                  activeTab === "liked"
-                    ? "border-foreground text-foreground font-semibold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Liked Songs ({likedSongsCount})
-              </button>
-            </div>
+            <Tabs
+              variant="underline"
+              ariaLabel="Library sections"
+              value={activeTab}
+              onChange={(next) => setActiveTab(next as typeof activeTab)}
+              className="mb-6"
+              items={[
+                { id: 'playlists', label: 'Playlists', count: totalPlaylistsCount },
+                { id: 'albums', label: 'Albums & Releases', count: savedAlbumsCount },
+                { id: 'liked', label: 'Liked Songs', count: likedSongsCount },
+              ]}
+            />
 
             {/* TAB 1: PLAYLISTS */}
             {activeTab === "playlists" && (
@@ -646,6 +589,16 @@ function UserProfileComponent() {
           </div>
         ) : null}
       </div>
+
+      {profile ? (
+        <PeopleListModal
+          open={peopleList !== null}
+          onClose={() => setPeopleList(null)}
+          userId={id}
+          displayName={profile.displayName}
+          kind={peopleList ?? 'followers'}
+        />
+      ) : null}
     </div>
   );
 }

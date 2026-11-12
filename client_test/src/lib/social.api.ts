@@ -24,6 +24,14 @@ export interface UserSummary {
   relationship: RelationshipStatus;
 }
 
+/** One entry in a follower or following list. */
+export interface FollowListItem {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
 export interface PrivacySettings {
   isPrivateAccount?: boolean;
   listeningActivityPrivacy?: "FRIENDS_ONLY" | "FOLLOWERS" | "OFF";
@@ -111,6 +119,24 @@ export const socialApi = {
    */
   async getRelationship(targetUserId: string): Promise<{ status: RelationshipStatus }> {
     return apiFetch(`/api/v1/social/users/${targetUserId}/relationship`);
+  },
+
+  /**
+   * Retrieves the people who follow a user.
+   */
+  async getFollowers(targetUserId: string): Promise<{
+    followers: FollowListItem[];
+  }> {
+    return apiFetch(`/api/v1/social/users/${targetUserId}/followers`);
+  },
+
+  /**
+   * Retrieves the people a user follows.
+   */
+  async getFollowing(targetUserId: string): Promise<{
+    following: FollowListItem[];
+  }> {
+    return apiFetch(`/api/v1/social/users/${targetUserId}/following`);
   },
 
   /**
