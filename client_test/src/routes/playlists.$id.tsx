@@ -837,56 +837,45 @@ function PlaylistDetailComponent() {
         onPlay={hasTracks ? handleHeroPlay : undefined}
         isPlaying={isPlaylistPlaying}
         playLabel={playlist.title}
-        adjacentAction={
-          <>
-            <IconButton
-              size="lg"
-              className={
-                isShuffleOn
-                  ? 'group text-primary! hover:text-primary!'
-                  : 'group'
-              }
-              aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
-              title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
-              aria-pressed={isShuffleOn}
-              onClick={() => setIsShuffleOn((prev) => !prev)}
-            >
-              <Shuffle
-                className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
-                  isShuffleOn ? 'rotate-180' : 'rotate-0'
-                }`}
-              />
-            </IconButton>
-            <IconButton
-              size="lg"
-              className={
-                saved
-                  ? 'group text-destructive! hover:text-destructive!'
-                  : 'group'
-              }
-              aria-label={saved ? 'Remove from library' : 'Save to library'}
-              title={saved ? 'Remove from library' : 'Save to library'}
-              onClick={handleToggleSave}
-            >
-              <Heart
-                className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90 ${
-                  saved ? 'fill-current' : ''
-                }`}
-              />
-            </IconButton>
-
-            {canEdit ? (
-              <IconButton
-                size="lg"
-                className="group"
-                aria-label="Add tracks"
-                title="Add tracks"
-                onClick={() => setIsAddTracksModalOpen(true)}
-              >
-                <PlusCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-              </IconButton>
-            ) : null}
-          </>
+        shuffle={
+          <IconButton
+            size="lg"
+            className={
+              isShuffleOn
+                ? 'group text-primary! hover:text-primary!'
+                : 'group'
+            }
+            aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            aria-pressed={isShuffleOn}
+            onClick={() => setIsShuffleOn((prev) => !prev)}
+          >
+            <Shuffle
+              className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                isShuffleOn ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </IconButton>
+        }
+        save={
+          <IconButton
+            size="lg"
+            className={
+              saved
+                ? 'group text-destructive! hover:text-destructive!'
+                : 'group'
+            }
+            aria-label={saved ? 'Remove from library' : 'Save to library'}
+            title={saved ? 'Remove from library' : 'Save to library'}
+            aria-pressed={saved}
+            onClick={handleToggleSave}
+          >
+            <Heart
+              className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90 ${
+                saved ? 'fill-current' : ''
+              }`}
+            />
+          </IconButton>
         }
         menu={
           <PlaylistActionMenu
@@ -899,7 +888,19 @@ function PlaylistDetailComponent() {
             buttonClassName="flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
           />
         }
-      ></CollectionActionBar>
+      >
+        {canEdit ? (
+          <IconButton
+            size="lg"
+            className="group"
+            aria-label="Add tracks"
+            title="Add tracks"
+            onClick={() => setIsAddTracksModalOpen(true)}
+          >
+            <PlusCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+          </IconButton>
+        ) : null}
+      </CollectionActionBar>
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">
         {/* ===================== TRACKLIST SECTION ===================== */}

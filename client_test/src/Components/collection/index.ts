@@ -15,3 +15,6 @@ export type { CollectionCoverProps } from './CollectionCover'
 
 export { CollectionStickyHeader } from './CollectionStickyHeader'
 export type { CollectionStickyHeaderProps } from './CollectionStickyHeader'
+
+export { TrackListHeader } from './TrackListHeader'
+export type { TrackListHeaderProps } from './TrackListHeader'

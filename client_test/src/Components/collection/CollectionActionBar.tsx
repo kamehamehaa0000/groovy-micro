@@ -13,20 +13,26 @@ export interface CollectionActionBarProps {
    * upcoming release's round pre-save button).
    */
   primaryAction?: ReactNode
+  /** Shuffle / play-in-order toggle. */
+  shuffle?: ReactNode
+  /** Save to library / like. */
+  save?: ReactNode
+  /** Share / copy link. */
+  share?: ReactNode
   /** Overflow menu / three-dot control. */
   menu?: ReactNode
-  /** Secondary icon actions. */
+  /** Anything else, rendered after the standard slots. */
   children?: ReactNode
-  /** Rendered immediately beside the primary control (e.g. shuffle). */
-  adjacentAction?: ReactNode
   className?: string
 }
 
 /**
  * Responsive collection control row, rendered outside the information header.
  *
- * Desktop → play first on the left, then secondary actions and the menu.
- * Mobile  → secondary actions and menu on the left, play pinned to the right.
+ * The order is fixed for every collection — play, shuffle, save, share,
+ * overflow — so an album, an artist, a playlist and a radio all answer the
+ * same way. On mobile the primary control pins to the right and the secondary
+ * actions collect on the left, which is what people expect from a player.
  */
 export function CollectionActionBar({
   onPlay,
@@ -34,9 +40,11 @@ export function CollectionActionBar({
   playDisabled = false,
   playLabel,
   primaryAction,
+  shuffle,
+  save,
+  share,
   menu,
   children,
-  adjacentAction,
   className,
 }: CollectionActionBarProps) {
   const primary =
@@ -51,20 +59,18 @@ export function CollectionActionBar({
     ) : null)
 
   return (
-    <div className={cn('flex w-full items-center gap-1 md:gap-6', className)}>
+    <div className={cn('flex w-full items-center gap-1 md:gap-2', className)}>
       {primary ? (
-        <div className="order-last ml-auto flex shrink-0 items-center gap-2 md:order-first md:ml-0 md:gap-3">
-          {adjacentAction ? (
-            <div className="md:order-last">{adjacentAction}</div>
-          ) : null}
+        <div className="order-last ml-auto shrink-0 md:order-none md:ml-0">
           {primary}
         </div>
       ) : null}
 
-      <div className="flex min-w-0 items-center gap-0.5 sm:gap-1">
-        {children}
-        {menu ? <div className="shrink-0">{menu}</div> : null}
-      </div>
+      {shuffle ? <div className="shrink-0">{shuffle}</div> : null}
+      {save ? <div className="shrink-0">{save}</div> : null}
+      {share ? <div className="shrink-0">{share}</div> : null}
+      {children}
+      {menu ? <div className="shrink-0">{menu}</div> : null}
     </div>
   )
 }

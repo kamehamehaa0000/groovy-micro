@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { X } from 'lucide-react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistSummary } from '../types/artist'
-import { SearchIconSVG } from '../Components/Icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useFollowsStore } from '../stores/follows.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
-import { Button, IconButton, Input, SortMenu, type SortOption } from '../Components/ui'
+import { Button, SortMenu, type SortOption } from '../Components/ui'
+import { FilterBar } from '../Components/ui/FilterBar'
+import { MediaGrid } from '../Components/media/MediaGrid'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import {
   ArtistEmptyPanel,
@@ -264,66 +264,30 @@ function ArtistsDirectoryComponent() {
           )}
         </div>
 
-        <div className="mt-5 flex flex-col gap-3">
-          <div className="relative w-full sm:max-w-sm">
-            <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              inputMode="search"
-              value={query}
-              onChange={(event) => handleQueryChange(event.target.value)}
-              placeholder="Search artists"
-              aria-label="Search artists"
-              className="pl-9 pr-10"
+        <FilterBar
+          className="mt-5"
+          search={{
+            value: query,
+            onChange: handleQueryChange,
+            onClear: clearQuery,
+            placeholder: 'Search artists',
+            ariaLabel: 'Search artists',
+          }}
+          options={SCOPE_OPTIONS}
+          value={scope}
+          onOptionChange={(next) => updateSearch({ scope: next }, false)}
+          sort={
+            <SortMenu
+              options={SORT_OPTIONS}
+              value={sort}
+              onChange={(newSort) =>
+                updateSearch({ order: newSort, dir: undefined }, false)
+              }
+              direction={dir}
+              onDirectionChange={(newDir) => updateSearch({ dir: newDir }, false)}
             />
-            {query && (
-              <IconButton
-                size="sm"
-                aria-label="Clear search"
-                onClick={clearQuery}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </IconButton>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {SCOPE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={scope === option.value}
-                  onClick={() => updateSearch({ scope: option.value }, false)}
-                  className={cn(
-                    'inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors sm:px-3',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                    scope === option.value
-                      ? 'border-foreground bg-foreground text-background'
-                      : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground',
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="ml-auto shrink-0">
-              <SortMenu
-                options={SORT_OPTIONS}
-                value={sort}
-                onChange={(newSort) =>
-                  updateSearch({ order: newSort, dir: undefined }, false)
-                }
-                direction={dir}
-                onDirectionChange={(newDir) =>
-                  updateSearch({ dir: newDir }, false)
-                }
-              />
-            </div>
-          </div>
-        </div>
+          }
+        />
       </header>
 
       <section aria-busy={artistsQuery.isFetching} className="mt-5">
@@ -394,11 +358,9 @@ function ArtistsDirectoryComponent() {
           />
         ) : (
           <>
-            <div
-              className={cn(
-                'grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
-                isRefreshing && 'opacity-60',
-              )}
+            <MediaGrid
+              maxColumns={6}
+              className={cn(isRefreshing && 'opacity-60')}
             >
               {artists.map((artist) => {
                 const isPersonal = artist.scope === 'PERSONAL'
@@ -421,7 +383,7 @@ function ArtistsDirectoryComponent() {
                   />
                 )
               })}
-            </div>
+            </MediaGrid>
 
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
               <p

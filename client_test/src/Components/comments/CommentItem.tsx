@@ -5,6 +5,8 @@ import { useAuthStore } from "../../stores/auth.store";
 import { useCommentVotesStore } from "../../stores/comment-votes.store";
 import { commentsApi } from "../../lib/comments.api";
 import { CommentForm } from "./CommentForm";
+import { notify } from '../../lib/toast'
+import { ConfirmDialog } from '../ui/Modal'
 
 interface CommentItemProps {
   comment: EnrichedComment;
@@ -143,6 +145,7 @@ export function CommentItem({
   const [repliesPage, setRepliesPage] = useState(1);
   const [repliesTotal, setRepliesTotal] = useState(comment.repliesCount);
   const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const isRoot = !comment.parentId;
   const activeRootId = isRoot ? comment.id : rootCommentId!;
@@ -150,7 +153,7 @@ export function CommentItem({
   // 0ms Synchronous Optimistic Vote Handler
   const handleVote = async (desired: 1 | -1) => {
     if (!isAuthenticated) {
-      alert("Please log in to vote on comments.");
+      notify.info("Please log in to vote on comments.");
       return;
     }
     try {
@@ -169,12 +172,16 @@ export function CommentItem({
 
   // Delete Comment Handler
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    setIsConfirmingDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsConfirmingDelete(false);
     try {
       const res = await commentsApi.deleteComment(comment.id);
       onCommentDeleted?.(comment.id, res.softDeleted);
     } catch (err: any) {
-      alert(err.message || "Failed to delete comment");
+      notify.error(err.message || "Failed to delete comment");
     }
   };
 
@@ -184,7 +191,7 @@ export function CommentItem({
       const res = await commentsApi.pinComment(comment.id);
       onPinToggled?.(comment.id, res.isPinned);
     } catch (err: any) {
-      alert(err.message || "Failed to toggle pin");
+      notify.error(err.message || "Failed to toggle pin");
     }
   };
 
@@ -509,6 +516,16 @@ export function CommentItem({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={isConfirmingDelete}
+        title="Delete this comment?"
+        description="The comment is removed for everyone. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setIsConfirmingDelete(false)}
+      />
     </div>
   );
 }

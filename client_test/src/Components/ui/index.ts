@@ -44,3 +44,9 @@ export type {
 
 export { Modal, ConfirmDialog } from './Modal'
 export type { ModalProps, ConfirmDialogProps } from './Modal'
+
+export { SectionTitle } from './SectionTitle'
+export type { SectionTitleProps } from './SectionTitle'
+
+export { FilterBar } from './FilterBar'
+export type { FilterBarProps, FilterBarOption } from './FilterBar'

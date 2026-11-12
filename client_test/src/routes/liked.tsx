@@ -301,7 +301,7 @@ function LikedSongsPage() {
         onPlay={hasSongs ? handlePlayAll : undefined}
         isPlaying={isPlayingThisContext}
         playLabel="Liked Songs"
-        adjacentAction={
+        shuffle={
           <IconButton
             size="lg"
             className={

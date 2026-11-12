@@ -22,7 +22,7 @@ import {
 import type { PlayerTrack } from '../types/player'
 import { SongRow } from '../Components/common/SongRow'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
-import { CollectionActionBar, CollectionHeader } from '../Components/collection'
+import { CollectionActionBar, CollectionHeader, TrackListHeader } from '../Components/collection'
 import {
   Badge,
   Button,
@@ -386,46 +386,45 @@ function RadioMixPage() {
         isPlaying={isRadioPlaying}
         playDisabled={isLoading}
         playLabel={seedSong ? `${seedSong.title} Radio` : 'Radio'}
-        adjacentAction={
-          <>
-            <IconButton
-              size="lg"
-              className={
-                isShuffleOn
-                  ? 'group text-primary! hover:text-primary!'
-                  : 'group'
-              }
-              aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
-              title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
-              aria-pressed={isShuffleOn}
-              disabled={!hasTracks || isLoading}
-              onClick={() => setIsShuffleOn((prev) => !prev)}
-            >
-              <Shuffle
-                className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
-                  isShuffleOn ? 'rotate-180' : 'rotate-0'
-                }`}
-              />
-            </IconButton>
-            <IconButton
-              size="lg"
-              aria-label={'Create a playlist from this radio mix'}
-              onClick={handleSaveAsPlaylist}
-              disabled={!hasTracks || isLoading}
-            >
-              <ListPlus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-            </IconButton>
-            <IconButton
-              size="lg"
-              aria-label={'Add to existing playlist'}
-              onClick={handleAddToExistingPlaylist}
-              disabled={!hasTracks || isLoading}
-            >
-              <PlusCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-            </IconButton>
-          </>
+        shuffle={
+          <IconButton
+            size="lg"
+            className={
+              isShuffleOn
+                ? 'group text-primary! hover:text-primary!'
+                : 'group'
+            }
+            aria-label={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            title={isShuffleOn ? 'Turn shuffle off' : 'Turn shuffle on'}
+            aria-pressed={isShuffleOn}
+            disabled={!hasTracks || isLoading}
+            onClick={() => setIsShuffleOn((prev) => !prev)}
+          >
+            <Shuffle
+              className={`h-5 w-5 transition-transform duration-300 ease-out group-hover:scale-110 group-active:scale-90 ${
+                isShuffleOn ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </IconButton>
         }
-      ></CollectionActionBar>
+      >
+        <IconButton
+          size="lg"
+          aria-label={'Create a playlist from this radio mix'}
+          onClick={handleSaveAsPlaylist}
+          disabled={!hasTracks || isLoading}
+        >
+          <ListPlus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+        </IconButton>
+        <IconButton
+          size="lg"
+          aria-label={'Add to existing playlist'}
+          onClick={handleAddToExistingPlaylist}
+          disabled={!hasTracks || isLoading}
+        >
+          <PlusCircle className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+        </IconButton>
+      </CollectionActionBar>
 
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">
@@ -538,16 +537,7 @@ function RadioMixPage() {
           ) : (
             <div className="overflow-hidden rounded-surface">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden items-center justify-between gap-4 border-b border-border/60 px-2 py-2.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground sm:flex sm:px-3">
-                <div className="flex min-w-0 flex-1 items-center gap-4">
-                  <span className="w-6 text-center">#</span>
-                  <span>Title &amp; Artist</span>
-                </div>
-                <div className="w-24 text-right">Streams</div>
-                <div className="flex min-w-30 shrink-0 items-center justify-end gap-3 pr-2 sm:gap-4">
-                  <span>Duration</span>
-                </div>
-              </div>
+              <TrackListHeader leading="artwork" showPlays />
 
               <div className="relative space-y-0.5">
                 {visibleQueue.map((track, idx) => (

@@ -28,6 +28,7 @@ import type {
 import { Switch } from '../Components/ui'
 import { Loader2Icon } from 'lucide-react'
 import { notify } from '../lib/toast'
+import { ConfirmDialog } from '../Components/ui/Modal'
 import type { UserProfile } from '../types/auth'
 
 export const Route = createFileRoute('/profile')({
@@ -65,6 +66,7 @@ function ProfileComponent() {
 
   // Subscriptions & Plans Selection Modal State
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
   const [featureCatalog, setFeatureCatalog] = useState<PlanFeatureDefinition[]>(
     [],
@@ -349,12 +351,6 @@ function ProfileComponent() {
   }
 
   const handleCancelSubscription = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to cancel your plan at the end of the current billing cycle?',
-      )
-    )
-      return
     try {
       await cancelSubscriptionStore()
       await refreshProfile()
@@ -539,7 +535,7 @@ function ProfileComponent() {
           user,
           isLoadingEntitlements,
           handleOpenUpgradeModal,
-          handleCancelSubscription,
+          () => setIsConfirmCancelOpen(true),
         )}
 
       {/* 3. PRIVACY & SOCIAL CIRCLES */}
@@ -590,6 +586,20 @@ function ProfileComponent() {
         )}
 
       {/* ===================== UPGRADE / CHANGE PLAN MODAL ===================== */}
+      <ConfirmDialog
+        open={isConfirmCancelOpen}
+        title="Cancel your plan?"
+        description="Your plan stays active until the end of the current billing cycle, then it is cancelled."
+        confirmLabel="Cancel plan"
+        cancelLabel="Keep my plan"
+        tone="danger"
+        onConfirm={() => {
+          setIsConfirmCancelOpen(false)
+          void handleCancelSubscription()
+        }}
+        onCancel={() => setIsConfirmCancelOpen(false)}
+      />
+
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 bg-foreground/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="max-w-4xl w-full bg-card border border-border rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6 my-auto max-h-[90vh] overflow-y-auto">
@@ -1334,7 +1344,7 @@ function SubscriptionTab(
   user: UserProfile,
   isLoadingEntitlements: boolean,
   handleOpenUpgradeModal: () => Promise<void>,
-  handleCancelSubscription: () => Promise<void>,
+  onRequestCancel: () => void,
 ): import('react').ReactNode {
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
@@ -1388,7 +1398,7 @@ function SubscriptionTab(
               !entitlements.cancelAtPeriodEnd && (
                 <button
                   type="button"
-                  onClick={handleCancelSubscription}
+                  onClick={onRequestCancel}
                   className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-background transition-colors cursor-pointer"
                 >
                   Cancel Plan

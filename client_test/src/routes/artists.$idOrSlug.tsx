@@ -20,7 +20,11 @@ import type { EnrichedSong, PersonalCollectionTrack } from '../types/catalog'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { MediaTile } from '../Components/common/MediaTile'
-import { CollectionActionBar, CollectionHeader } from '../Components/collection'
+import { CollectionActionBar, CollectionHeader, TrackListHeader } from '../Components/collection'
+import { SectionTitle } from '../Components/ui/SectionTitle'
+import { MediaGrid } from '../Components/media/MediaGrid'
+import { EmptyState } from '../Components/ui/EmptyState'
+import { TrackCarousel } from '../Components/home/ShelfSection'
 import { Badge, Button, Eyebrow, IconButton } from '../Components/ui'
 import { cn } from '../Components/ui/cn'
 import { useAuthStore } from '../stores/auth.store'
@@ -30,6 +34,7 @@ import { useFollowsStore } from '../stores/follows.store'
 import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { SongRow } from '../Components/common/SongRow'
+import { notify } from '../lib/toast'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
   component: ArtistPublicProfileComponent,
@@ -198,7 +203,7 @@ function ArtistPublicProfileComponent() {
           },
         }
       })
-      alert(err.message || 'Could not update pre-save status')
+      notify.error(err.message || 'Could not update pre-save status')
     } finally {
       setPreSavingAlbumId(null)
     }
@@ -264,7 +269,7 @@ function ArtistPublicProfileComponent() {
           },
         }
       })
-      alert(err.message || 'Could not update follow status')
+      notify.error(err.message || 'Could not update follow status')
     } finally {
       setIsFollowLoading(false)
     }
@@ -328,7 +333,7 @@ function ArtistPublicProfileComponent() {
       (t) => t.isStreamable !== false,
     )
     if (validTracks.length === 0) {
-      alert('No streamable tracks available for this artist.')
+      notify.info('No streamable tracks available for this artist.')
       return
     }
 
@@ -354,7 +359,7 @@ function ArtistPublicProfileComponent() {
 
   const handlePlaySong = (song: EnrichedSong, index?: number) => {
     if (song.isStreamable === false) {
-      alert('This cut is scheduled and locked until release.')
+      notify.info('This cut is scheduled and locked until release.')
       return
     }
 
@@ -669,7 +674,7 @@ function ArtistPublicProfileComponent() {
         onPlay={hasTopTracks ? handleHeroPlay : undefined}
         isPlaying={isArtistPlaying}
         playLabel={artist.stageName}
-        adjacentAction={
+        shuffle={
           <IconButton
             size="lg"
             className={
@@ -686,6 +691,20 @@ function ArtistPublicProfileComponent() {
                 isShuffleOn ? 'rotate-180' : 'rotate-0'
               }`}
             />
+          </IconButton>
+        }
+        share={
+          <IconButton
+            size="lg"
+            onClick={handleCopyShareLink}
+            aria-label="Share artist"
+            title="Share artist"
+          >
+            {copiedLink ? (
+              <Check className="h-5 w-5 text-success!" />
+            ) : (
+              <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+            )}
           </IconButton>
         }
       >
@@ -713,19 +732,6 @@ function ArtistPublicProfileComponent() {
           </Button>
         )}
 
-        <IconButton
-          size="lg"
-          onClick={handleCopyShareLink}
-          aria-label="Share artist"
-          title="Share artist"
-        >
-          {copiedLink ? (
-            <Check className="h-5 w-5 text-success!" />
-          ) : (
-            <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-          )}
-        </IconButton>
-
         {hasTopTracks && discography?.topTracks?.[0] ? (
           <Link
             to="/radio/$songId"
@@ -751,27 +757,14 @@ function ArtistPublicProfileComponent() {
             {/* Top Tracks Section */}
             {hasTopTracks && (
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border-soft pb-2.5">
-                  <h2 className="font-sans text-heading font-semibold text-foreground">
-                    Popular Tracks
-                  </h2>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    Ranked by Plays
-                  </span>
-                </div>
+                <SectionTitle
+                  title="Popular Tracks"
+                  subtitle="Ranked by plays"
+                />
 
                 <div className="overflow-hidden rounded-surface">
                   {/* Desktop Tracklist Column Header */}
-                  <div className="hidden items-center justify-between gap-4 border-b border-border/60 px-2 py-2.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground sm:flex sm:px-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <span className="w-6 text-center">#</span>
-                      <span>Title &amp; Credits</span>
-                    </div>
-                    <div className="w-24 text-right">Streams</div>
-                    <div className="flex min-w-30 shrink-0 items-center justify-end gap-3 pr-2 sm:gap-4">
-                      <span>Duration</span>
-                    </div>
-                  </div>
+                  <TrackListHeader leading="number" showPlays />
 
                   <div className="relative space-y-0.5">
                     {discography!.topTracks
@@ -809,20 +802,18 @@ function ArtistPublicProfileComponent() {
             {/* Upcoming Pre-Savable Releases Shelf */}
             {hasUpcoming && (
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-sans text-heading font-semibold text-foreground">
-                      Upcoming Releases
-                    </h2>
-                    <Badge tone="brand">Pre-Save</Badge>
-                  </div>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    {discography!.upcoming!.length}{' '}
-                    {discography!.upcoming!.length === 1
-                      ? 'Scheduled Drop'
-                      : 'Scheduled Drops'}
-                  </span>
-                </div>
+                <SectionTitle
+                  title="Upcoming Releases"
+                  subtitle={
+                    <>
+                      <Badge tone="brand">Pre-Save</Badge>{' '}
+                      {discography!.upcoming!.length}{' '}
+                      {discography!.upcoming!.length === 1
+                        ? 'Scheduled Drop'
+                        : 'Scheduled Drops'}
+                    </>
+                  }
+                />
 
                 <div className="space-y-3">
                   {discography!.upcoming!.map((up) => {
@@ -924,15 +915,12 @@ function ArtistPublicProfileComponent() {
             {hasAnyDiscography && (
               <div className="space-y-4">
                 {/* Header with Title & View Mode Toggle */}
-                <div className="flex items-end justify-between border-b border-border pb-3">
-                  <div>
-                    <p className="mb-0.5 text-eyebrow font-eyebrow uppercase tracking-widest text-muted-foreground">
-                      Catalog
-                    </p>
-                    <h2 className="font-sans text-heading font-semibold text-foreground">
-                      Discography
-                    </h2>
-                  </div>
+                <div className="flex items-end justify-between gap-4 border-b border-border-soft pb-2.5">
+                  <SectionTitle
+                    title="Discography"
+                    eyebrow="Catalog"
+                    className="mb-0 flex-1 border-b-0 pb-0"
+                  />
 
                   {/* Grid / List Mode Toggle */}
                   <div className="flex items-center gap-1 border border-border rounded-control p-0.5 bg-card">
@@ -1212,25 +1200,21 @@ function ArtistPublicProfileComponent() {
             {/* In Your Personal Collection (Vault) Shelf - Only shown on GLOBAL artists */}
             {hasInYourCollection && (
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <h2 className="font-sans text-heading font-semibold text-foreground">
-                      In Your Personal Collection{' '}
-                      {personalTracks.length > 0
-                        ? `(${personalTracks.length})`
-                        : ''}
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-3">
+                <SectionTitle
+                  title={
+                    'In Your Personal Collection' +
+                    (personalTracks.length > 0 ? ` (${personalTracks.length})` : '')
+                  }
+                  action={
                     <Link
                       to="/vault"
-                      className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline"
+                      className="font-eyebrow uppercase tracking-wider text-primary hover:underline"
                     >
                       Vault
                       <ChevronRight className="h-4 w-4 inline" />
                     </Link>
-                  </div>
-                </div>
+                  }
+                />
 
                 <div className="overflow-hidden rounded-surface">
                   {/* Desktop Tracklist Column Header */}
@@ -1282,20 +1266,18 @@ function ArtistPublicProfileComponent() {
             {/* Collaborated Artists Shelf */}
             {collaboratedArtists.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-sans text-heading font-semibold text-foreground">
-                      Collaborators &amp; Features
-                    </h2>
-                    <Badge tone="neutral">Cross-Artist</Badge>
-                  </div>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    {collaboratedArtists.length}{' '}
-                    {collaboratedArtists.length === 1 ? 'Artist' : 'Artists'}
-                  </span>
-                </div>
+                <SectionTitle
+                  title="Collaborators & Features"
+                  subtitle={
+                    <>
+                      <Badge tone="neutral">Cross-Artist</Badge>{' '}
+                      {collaboratedArtists.length}{' '}
+                      {collaboratedArtists.length === 1 ? 'Artist' : 'Artists'}
+                    </>
+                  }
+                />
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                <MediaGrid maxColumns={4}>
                   {collaboratedArtists.map((collab) => (
                     <Link
                       key={collab.slug || collab.id}
@@ -1330,27 +1312,25 @@ function ArtistPublicProfileComponent() {
                       </div>
                     </Link>
                   ))}
-                </div>
+                </MediaGrid>
               </div>
             )}
 
             {/* Similar Artists Shelf (Fans Also Like) */}
             {similarArtists.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-sans text-heading font-semibold text-foreground">
-                      Fans Also Like
-                    </h2>
-                    <Badge tone="neutral">Similar</Badge>
-                  </div>
-                  <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                    {similarArtists.length}{' '}
-                    {similarArtists.length === 1 ? 'Artist' : 'Artists'}
-                  </span>
-                </div>
+                <SectionTitle
+                  title="Fans Also Like"
+                  subtitle={
+                    <>
+                      <Badge tone="neutral">Similar</Badge>{' '}
+                      {similarArtists.length}{' '}
+                      {similarArtists.length === 1 ? 'Artist' : 'Artists'}
+                    </>
+                  }
+                />
 
-                <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <TrackCarousel>
                   {similarArtists.map((simArtist) => (
                     <div
                       key={simArtist.id}
@@ -1382,7 +1362,7 @@ function ArtistPublicProfileComponent() {
                       />
                     </div>
                   ))}
-                </div>
+                </TrackCarousel>
               </div>
             )}
 
@@ -1393,14 +1373,10 @@ function ArtistPublicProfileComponent() {
               !hasUpcoming &&
               collaboratedArtists.length === 0 &&
               similarArtists.length === 0 && (
-                <div className="p-8 border border-dashed border-border bg-card/30 rounded-surface text-center">
-                  <p className="font-serif italic text-title text-foreground">
-                    Master Tracks &amp; Albums In Preparation
-                  </p>
-                  <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1">
-                    No public releases have been published to this catalog yet.
-                  </p>
-                </div>
+                <EmptyState
+                  title="Master Tracks & Albums In Preparation"
+                  description="No public releases have been published to this catalog yet."
+                />
               )}
           </div>
 

@@ -15,13 +15,16 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
-import { CollectionActionBar, CollectionHeader } from '../Components/collection'
+import { CollectionActionBar, CollectionHeader, TrackListHeader } from '../Components/collection'
+import { MediaGrid } from '../Components/media/MediaGrid'
+import { SectionTitle } from '../Components/ui/SectionTitle'
 import { Badge, IconButton } from '../Components/ui'
 import { Check, Share2, Shuffle } from 'lucide-react'
 import type { PlayerTrack } from '../types/player'
 import { CommentSection } from '../Components/comments/CommentSection'
 import { SongRow } from '../Components/common/SongRow'
 import { shuffleArray } from '../lib/shuffle'
+import { notify } from '../lib/toast'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
   validateSearch: (
@@ -197,7 +200,7 @@ function AlbumDetailComponent() {
           isLiked: prevLiked,
         }
       })
-      alert(err.message || 'Could not update like status')
+      notify.error(err.message || 'Could not update like status')
     } finally {
       setIsLikeLoading(false)
     }
@@ -256,7 +259,7 @@ function AlbumDetailComponent() {
           isPreSaved: !willBePreSaved,
         }
       })
-      alert(err.message || 'Could not update pre-save status')
+      notify.error(err.message || 'Could not update pre-save status')
     } finally {
       setIsPreSaveLoading(false)
     }
@@ -288,7 +291,7 @@ function AlbumDetailComponent() {
     const isLocked =
       (album?.isUpcoming || song.isStreamable === false) && !isCreator
     if (isLocked) {
-      alert('This master cut is locked until the scheduled release date.')
+      notify.info('This master cut is locked until the scheduled release date.')
       return
     }
 
@@ -320,7 +323,7 @@ function AlbumDetailComponent() {
     if (firstPlayableIdx >= 0) {
       handlePlaySong(album.tracks[firstPlayableIdx], firstPlayableIdx)
     } else {
-      alert('No streamable audio files found for this release yet.')
+      notify.info('No streamable audio files found for this release yet.')
     }
   }
 
@@ -415,7 +418,7 @@ function AlbumDetailComponent() {
       (t) => isCreator || t.isStreamable !== false,
     )
     if (streamableTracks.length === 0) {
-      alert('No streamable audio files found for this release yet.')
+      notify.info('No streamable audio files found for this release yet.')
       return
     }
 
@@ -571,7 +574,7 @@ function AlbumDetailComponent() {
             buttonClassName="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground"
           />
         }
-        adjacentAction={
+        shuffle={
           !isPreSavePrimary ? (
             <IconButton
               size="lg"
@@ -594,42 +597,46 @@ function AlbumDetailComponent() {
             </IconButton>
           ) : null
         }
-      >
-        {!album.isUpcoming ? (
-          <button
-            type="button"
-            disabled={isLikeLoading}
-            onClick={handleToggleAlbumLike}
-            aria-label={isLiked ? 'Unlike release' : 'Like release'}
-            title={isLiked ? 'Unlike release' : 'Like release'}
-            className={`group inline-flex h-11 items-center justify-center gap-1.5 rounded-control px-3 transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
-              isLiked
-                ? 'text-destructive'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <HeartIconSVG
-              filled={isLiked}
-              className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
-            />
-          </button>
-        ) : null}
-        {album.scope !== 'PERSONAL' ? (
-          <IconButton
-            size="lg"
-            className="group"
-            onClick={handleCopyShareLink}
-            aria-label="Share release"
-            title="Share release"
-          >
-            {copiedLink ? (
-              <Check className="h-5 w-5 text-success!" />
-            ) : (
-              <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
-            )}
-          </IconButton>
-        ) : null}
-      </CollectionActionBar>
+        save={
+          !album.isUpcoming ? (
+            <button
+              type="button"
+              disabled={isLikeLoading}
+              onClick={handleToggleAlbumLike}
+              aria-label={isLiked ? 'Unlike release' : 'Like release'}
+              title={isLiked ? 'Unlike release' : 'Like release'}
+              aria-pressed={isLiked}
+              className={`group inline-flex h-11 w-11 items-center justify-center rounded-control transition-colors hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+                isLiked
+                  ? 'text-destructive'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <HeartIconSVG
+                filled={isLiked}
+                className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90"
+              />
+            </button>
+          ) : null
+        }
+        share={
+          album.scope !== 'PERSONAL' ? (
+            <IconButton
+              size="lg"
+              className="group"
+              onClick={handleCopyShareLink}
+              aria-label="Share release"
+              title="Share release"
+            >
+              {copiedLink ? (
+                <Check className="h-5 w-5 text-success!" />
+              ) : (
+                <Share2 className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 group-active:scale-90" />
+              )}
+            </IconButton>
+          ) : null
+        }
+      />
 
       {/* ===================== MAIN CONTENT ===================== */}
       <div className="mt-6 space-y-8 sm:mt-10">
@@ -727,15 +734,15 @@ function AlbumDetailComponent() {
 
         {/* ===================== TRACKLIST SECTION ===================== */}
         <div className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
-              Master Tracklist
-            </h2>
-            <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-              {(album.tracks ?? []).length}{' '}
-              {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
-            </span>
-          </div>
+          <SectionTitle
+            title="Master Tracklist"
+            action={
+              <span className="font-eyebrow uppercase tracking-widest text-muted-foreground">
+                {(album.tracks ?? []).length}{' '}
+                {(album.tracks ?? []).length === 1 ? 'Cut' : 'Cuts'}
+              </span>
+            }
+          />
 
           {(album.tracks ?? []).length === 0 ? (
             <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
@@ -749,16 +756,7 @@ function AlbumDetailComponent() {
           ) : (
             <div className="overflow-hidden rounded-surface">
               {/* Desktop Tracklist Column Header */}
-              <div className="hidden items-center justify-between gap-4 border-b border-border/60 px-2 py-2.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground sm:flex sm:px-3">
-                <div className="flex min-w-0 flex-1 items-center gap-4">
-                  <span className="w-6 text-center">#</span>
-                  <span>Title &amp; Credits</span>
-                </div>
-                <div className="w-24 text-right">Streams</div>
-                <div className="flex min-w-30 shrink-0 items-center justify-end gap-3 pr-2 sm:gap-4">
-                  <span>Duration</span>
-                </div>
-              </div>
+              <TrackListHeader leading="number" showPlays />
 
               <div className="relative space-y-0.5">
                 {(album.tracks ?? []).map((track, idx) => {
@@ -803,19 +801,19 @@ function AlbumDetailComponent() {
         {/* Sibling Releases: More by this Artist */}
         {album.moreByArtist && album.moreByArtist.length > 0 && (
           <div className="space-y-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
-                More by {album.artistStageName}
-              </h2>
-              <Link
-                to="/artists/$idOrSlug"
-                params={{ idOrSlug: album.artistSlug || album.artistId }}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary hover:underline"
-              >
-                View Discography &rarr;
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            <SectionTitle
+              title={'More by ' + album.artistStageName}
+              action={
+                <Link
+                  to="/artists/$idOrSlug"
+                  params={{ idOrSlug: album.artistSlug || album.artistId }}
+                  className="font-eyebrow uppercase tracking-wider text-primary hover:underline"
+                >
+                  View Discography &rarr;
+                </Link>
+              }
+            />
+            <MediaGrid maxColumns={6}>
               {album.moreByArtist.map((sibling) => (
                 <Link
                   key={sibling.id}
@@ -857,7 +855,7 @@ function AlbumDetailComponent() {
                   </div>
                 </Link>
               ))}
-            </div>
+            </MediaGrid>
           </div>
         )}
 

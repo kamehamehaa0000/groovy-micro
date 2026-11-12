@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { cn } from '../ui/cn'
+import { SectionTitle } from '../ui/SectionTitle'
 
 export interface ShelfSectionProps {
   title: string
@@ -26,26 +27,20 @@ export function ShelfSection({
 }: ShelfSectionProps) {
   return (
     <section className={cn('min-w-0', className)}>
-      <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-border-soft pb-2.5">
-        <div className="min-w-0">
-          <h2 className="truncate font-serif text-heading leading-tight text-foreground">
-            {title}
-          </h2>
-          {subtitle ? (
-            <p className="mt-0.5 truncate text-caption text-muted-foreground">
-              {subtitle}
-            </p>
-          ) : null}
-        </div>
-        {action ? (
-          <Link
-            to={action.to}
-            className="shrink-0 text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {action.label}
-          </Link>
-        ) : null}
-      </div>
+      <SectionTitle
+        title={title}
+        subtitle={subtitle}
+        action={
+          action ? (
+            <Link
+              to={action.to}
+              className="font-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {action.label}
+            </Link>
+          ) : null
+        }
+      />
       {children}
     </section>
   )
@@ -64,12 +59,7 @@ export interface TrackCarouselProps {
  */
 export function TrackCarousel({ children, className }: TrackCarouselProps) {
   return (
-    <div
-      className={cn(
-        'relative -mx-4 px-4 sm:mx-0 sm:px-0',
-        className,
-      )}
-    >
+    <div className={cn('relative -mx-4 px-4 sm:mx-0 sm:px-0', className)}>
       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {children}
       </div>

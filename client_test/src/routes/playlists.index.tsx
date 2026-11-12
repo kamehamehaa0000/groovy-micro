@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { X } from 'lucide-react'
 import { playlistsApi } from '../lib/playlists.api'
 import type { PlaylistDirectoryItem } from '../types/playlist'
 import { useAuthStore } from '../stores/auth.store'
@@ -9,9 +8,11 @@ import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
-import { Button, IconButton, Input, SortMenu, type SortOption } from '../Components/ui'
+import { Button, SortMenu, type SortOption } from '../Components/ui'
+import { FilterBar } from '../Components/ui/FilterBar'
+import { MediaGrid } from '../Components/media/MediaGrid'
 import { cn } from '../Components/ui/cn'
-import { PlusIconSVG, SearchIconSVG } from '../Components/Icons'
+import { PlusIconSVG } from '../Components/Icons'
 import { MediaTile } from '../Components/common/MediaTile'
 import { PlaylistCover } from '../Components/PlaylistCover'
 import {
@@ -220,31 +221,16 @@ function PlaylistsDirectoryComponent() {
           </Button>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-sm">
-            <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              inputMode="search"
-              value={query}
-              onChange={(event) => handleQueryChange(event.target.value)}
-              placeholder="Search public playlists"
-              aria-label="Search public playlists"
-              className="pl-9 pr-10"
-            />
-            {query && (
-              <IconButton
-                size="sm"
-                aria-label="Clear search"
-                onClick={clearQuery}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </IconButton>
-            )}
-          </div>
-
-          <div className="shrink-0 self-end sm:self-auto">
+        <FilterBar
+          className="mt-5"
+          search={{
+            value: query,
+            onChange: handleQueryChange,
+            onClear: clearQuery,
+            placeholder: 'Search public playlists',
+            ariaLabel: 'Search public playlists',
+          }}
+          sort={
             <SortMenu
               options={SORT_OPTIONS}
               value={sort}
@@ -256,8 +242,8 @@ function PlaylistsDirectoryComponent() {
                 updateSearch({ dir: newDir }, false)
               }
             />
-          </div>
-        </div>
+          }
+        />
       </header>
 
       <section aria-busy={playlistsQuery.isFetching} className="mt-5">
@@ -328,11 +314,9 @@ function PlaylistsDirectoryComponent() {
           />
         ) : (
           <>
-            <div
-              className={cn(
-                'grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
-                isRefreshing && 'opacity-60',
-              )}
+            <MediaGrid
+              maxColumns={6}
+              className={cn(isRefreshing && 'opacity-60')}
             >
               {playlists.map((playlist) => {
                 return (
@@ -359,7 +343,7 @@ function PlaylistsDirectoryComponent() {
                   />
                 )
               })}
-            </div>
+            </MediaGrid>
 
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
               <p
