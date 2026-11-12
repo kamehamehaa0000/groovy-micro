@@ -1792,19 +1792,18 @@ function PersonalCollectionManagePage() {
 
 
       <VaultManageContext.Provider value={vaultManageContext}>
-      {/* ==================== TAB 1: IMPORT MUSIC ==================== */}
-      <ImportDesk />
+        {/* ==================== TAB 1: IMPORT MUSIC ==================== */}
+        {activeTab === 'import' && <ImportDesk />}
 
-      {/* ==================== TAB 2: MY COLLECTION (RELEASES) ==================== */}
-      <CollectionDesk />
+        {/* ==================== TAB 2: MY COLLECTION (RELEASES) ==================== */}
+        {activeTab === 'collection' && <CollectionDesk />}
 
-      {/* ==================== TAB 2: ARTISTS ROSTER ==================== */}
-      <ArtistsDesk />
+        {/* ==================== TAB 3: ARTISTS ROSTER ==================== */}
+        {activeTab === 'artists' && <ArtistsDesk />}
 
+        {/* ==================== TAB 4: TRASH / RECYCLE BIN ==================== */}
+        {activeTab === 'trash' && <TrashDesk />}
       </VaultManageContext.Provider>
-
-      {/* ==================== TAB: TRASH / RECYCLE BIN ==================== */}
-      <TrashDesk />
     </div>
   )
 }
