@@ -6,6 +6,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
 import { useEntitlementsStore } from '../stores/entitlements.store'
 import { api } from '../lib/api'
@@ -62,8 +63,6 @@ function ProfileComponent() {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
 
   // Pre-Saved Releases State
-  const [preSaves, setPreSaves] = useState<PreSavedRelease[]>([])
-  const [isLoadingPreSaves, setIsLoadingPreSaves] = useState(false)
 
   // Subscriptions & Plans Selection Modal State
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
@@ -115,10 +114,6 @@ function ProfileComponent() {
   const [isSavingNotifPrefs, setIsSavingNotifPrefs] = useState(false)
 
   // Artist Profile State
-  const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(
-    (user as any)?.artistProfile || null,
-  )
-  const [isLoadingArtistProfile, setIsLoadingArtistProfile] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -143,36 +138,44 @@ function ProfileComponent() {
     }
   }, [user])
 
+  // The three requests the profile needs are cached by React Query, so
+  // switching tabs or coming back does not refetch them, and a failure in one
+  // no longer cancels the others.
+  const preSavesQuery = useQuery({
+    queryKey: ['pre-saves', 'mine'],
+    queryFn: () => catalogApi.getMyPreSaves(),
+    enabled: isAuthenticated,
+  })
+
+  const notifPrefsQuery = useQuery({
+    queryKey: ['notification-preferences'],
+    queryFn: () => notificationsApi.getPreferences(),
+    enabled: isAuthenticated,
+  })
+
+  const artistProfileQuery = useQuery({
+    queryKey: ['artist-profile', 'mine'],
+    queryFn: () => artistsApi.getMyProfile(),
+    enabled: isAuthenticated,
+    retry: false,
+  })
+
+  const preSaves = preSavesQuery.data?.presaves ?? []
+  const isLoadingPreSaves = preSavesQuery.isLoading
+  const artistProfile = artistProfileQuery.data ?? null
+  const isLoadingArtistProfile = artistProfileQuery.isLoading
+
+  // The stored preferences are the baseline the form is compared against.
   useEffect(() => {
-    if (isAuthenticated) {
-      setIsLoadingPreSaves(true)
-      catalogApi
-        .getMyPreSaves()
-        .then((res) => setPreSaves(res.presaves))
-        .catch((err) => console.warn('Could not load pre-saves:', err))
-        .finally(() => setIsLoadingPreSaves(false))
+    const preferences = notifPrefsQuery.data?.preferences
+    if (!preferences) return
+    setNotifPrefs(preferences)
+    setSavedNotifPrefs(preferences)
+  }, [notifPrefsQuery.data])
 
-      notificationsApi
-        .getPreferences()
-        .then((res) => {
-          if (res.preferences) {
-            setNotifPrefs(res.preferences)
-            setSavedNotifPrefs(res.preferences)
-          }
-        })
-        .catch((err) =>
-          console.warn('Could not load notification preferences:', err),
-        )
-
-      setIsLoadingArtistProfile(true)
-      artistsApi
-        .getMyProfile()
-        .then((res) => setArtistProfile(res))
-        .catch(() => setArtistProfile(null))
-        .finally(() => setIsLoadingArtistProfile(false))
-
-      useEntitlementsStore.getState().initializeEntitlements()
-    }
+  useEffect(() => {
+    if (!isAuthenticated) return
+    void useEntitlementsStore.getState().initializeEntitlements()
   }, [isAuthenticated])
 
   if (isLoading || !user) {
