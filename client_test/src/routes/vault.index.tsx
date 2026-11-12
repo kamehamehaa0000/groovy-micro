@@ -16,6 +16,7 @@ import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
+import { SORT_TERMS } from '../lib/sort'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import {
@@ -56,17 +57,21 @@ type VaultReleaseSort = 'recent' | 'title' | 'artist' | 'releaseDate'
 type VaultArtistSort = 'name' | 'releases' | 'tracks' | 'recent'
 
 const RELEASE_SORT_OPTIONS: SortOption<VaultReleaseSort>[] = [
-  { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
-  { value: 'title', label: 'Title', defaultDirection: 'asc' },
-  { value: 'artist', label: 'Artist', defaultDirection: 'asc' },
-  { value: 'releaseDate', label: 'Release date', defaultDirection: 'desc' },
+  { value: 'recent', label: SORT_TERMS.added, defaultDirection: 'desc' },
+  { value: 'title', label: SORT_TERMS.title, defaultDirection: 'asc' },
+  { value: 'artist', label: SORT_TERMS.artist, defaultDirection: 'asc' },
+  {
+    value: 'releaseDate',
+    label: SORT_TERMS.releaseDate,
+    defaultDirection: 'desc',
+  },
 ]
 
 const ARTIST_SORT_OPTIONS: SortOption<VaultArtistSort>[] = [
-  { value: 'name', label: 'Name (A–Z)', defaultDirection: 'asc' },
-  { value: 'releases', label: 'Most releases', defaultDirection: 'desc' },
-  { value: 'tracks', label: 'Most tracks', defaultDirection: 'desc' },
-  { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
+  { value: 'name', label: SORT_TERMS.name, defaultDirection: 'asc' },
+  { value: 'releases', label: SORT_TERMS.releases, defaultDirection: 'desc' },
+  { value: 'tracks', label: SORT_TERMS.tracks, defaultDirection: 'desc' },
+  { value: 'recent', label: SORT_TERMS.added, defaultDirection: 'desc' },
 ]
 
 function PersonalCollectionExplorePage() {

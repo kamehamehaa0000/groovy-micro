@@ -16,6 +16,7 @@ import type {
 } from '../types/library'
 import { LibraryItemCard } from '../Components/library/LibraryItemCard'
 import { SortMenu, type SortOption } from '../Components/ui'
+import { SORT_TERMS } from '../lib/sort'
 import {
   GridIconSVG,
   ListIconSVG,
@@ -195,9 +196,13 @@ function LibraryPageComponent() {
   }, [allItems, activeFilter, searchQuery, activeSort, sortDir])
 
   const SORT_OPTIONS: SortOption<LibrarySortType>[] = [
-    { value: 'recent', label: 'Recently added', defaultDirection: 'desc' },
-    { value: 'alphabetical', label: 'Alphabetical', defaultDirection: 'asc' },
-    { value: 'creator', label: 'Creator / Artist', defaultDirection: 'asc' },
+    { value: 'recent', label: SORT_TERMS.added, defaultDirection: 'desc' },
+    {
+      value: 'alphabetical',
+      label: SORT_TERMS.title,
+      defaultDirection: 'asc',
+    },
+    { value: 'creator', label: SORT_TERMS.creator, defaultDirection: 'asc' },
   ]
 
   // Pill definitions

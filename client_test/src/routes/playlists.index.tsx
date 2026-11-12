@@ -9,6 +9,7 @@ import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.sto
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import { Button, SortMenu, type SortOption } from '../Components/ui'
+import { SORT_TERMS } from '../lib/sort'
 import { FilterBar } from '../Components/ui/FilterBar'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { cn } from '../Components/ui/cn'
@@ -32,9 +33,9 @@ interface PlaylistsSearchParams {
 }
 
 const SORT_OPTIONS: SortOption<PlaylistSort>[] = [
-  { value: 'popular', label: 'Most saved', defaultDirection: 'desc' },
-  { value: 'recent', label: 'Newest', defaultDirection: 'desc' },
-  { value: 'tracks', label: 'Most tracks', defaultDirection: 'desc' },
+  { value: 'popular', label: SORT_TERMS.saved, defaultDirection: 'desc' },
+  { value: 'recent', label: SORT_TERMS.recent, defaultDirection: 'desc' },
+  { value: 'tracks', label: SORT_TERMS.tracks, defaultDirection: 'desc' },
 ]
 
 export const Route = createFileRoute('/playlists/')({

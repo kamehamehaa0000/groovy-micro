@@ -8,6 +8,7 @@ import { useFollowsStore } from '../stores/follows.store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import { Button, SortMenu, type SortOption } from '../Components/ui'
+import { SORT_TERMS } from '../lib/sort'
 import { FilterBar } from '../Components/ui/FilterBar'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { ArtistCard } from '../Components/artists/ArtistCard'
@@ -43,10 +44,18 @@ const SCOPE_OPTIONS: Array<{ value: ArtistScope; label: string }> = [
 ]
 
 const SORT_OPTIONS: SortOption<ArtistSort>[] = [
-  { value: 'listeners', label: 'Listeners', defaultDirection: 'desc' },
-  { value: 'followers', label: 'Followers', defaultDirection: 'desc' },
-  { value: 'name', label: 'A–Z', defaultDirection: 'asc' },
-  { value: 'recent', label: 'Recent', defaultDirection: 'desc' },
+  {
+    value: 'listeners',
+    label: SORT_TERMS.listeners,
+    defaultDirection: 'desc',
+  },
+  {
+    value: 'followers',
+    label: SORT_TERMS.followers,
+    defaultDirection: 'desc',
+  },
+  { value: 'name', label: SORT_TERMS.name, defaultDirection: 'asc' },
+  { value: 'recent', label: SORT_TERMS.recent, defaultDirection: 'desc' },
 ]
 
 export const Route = createFileRoute('/artists/')({
