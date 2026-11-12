@@ -13,16 +13,17 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
-import { ArtistCard } from '../Components/artists/ArtistCard'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
+import { ConfirmDialog } from '../Components/ui/Modal'
+import { notify } from '../lib/toast'
 import { SORT_TERMS } from '../lib/sort'
 import { MediaGrid } from '../Components/media/MediaGrid'
+import { VaultReleaseItem } from '../Components/vault/VaultReleaseItem'
 import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import {
   PlayIconSVG,
   PauseIconSVG,
-  TrashIconSVG,
   UploadCloudSVG,
   ShuffleIconSVG,
   GridIconSVG,
@@ -98,7 +99,6 @@ function PersonalCollectionExplorePage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Toast notice
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   // Audio Player Store
   const currentTrack = usePlayerStore((s) => s.currentTrack)
@@ -119,13 +119,6 @@ function PersonalCollectionExplorePage() {
       searchInputRef.current.focus()
     }
   }, [isSearchOpen])
-
-  // Auto-dismiss toast
-  useEffect(() => {
-    if (!toastMessage) return
-    const timer = setTimeout(() => setToastMessage(null), 3200)
-    return () => clearTimeout(timer)
-  }, [toastMessage])
 
   // ===================== RELEASES QUERY (Paginated + Infinite Scroll) =====================
   const releaseTypeParam = PILL_TO_RELEASE_TYPE[activePill]
@@ -255,7 +248,7 @@ function PersonalCollectionExplorePage() {
   // Play a specific release
   const handlePlayRelease = (release: PersonalRelease) => {
     if (!release.tracks || release.tracks.length === 0) {
-      setToastMessage('No audio tracks in this release.')
+      notify.info('No audio tracks in this release.')
       return
     }
     const playerTracks = release.tracks.map((t) => toPlayerTrack(release, t))
@@ -263,7 +256,7 @@ function PersonalCollectionExplorePage() {
       togglePlay()
     } else {
       playTrack(playerTracks[0], playerTracks)
-      setToastMessage(`Playing ${release.title}`)
+      notify.info(`Playing ${release.title}`)
     }
   }
 
@@ -271,7 +264,7 @@ function PersonalCollectionExplorePage() {
   const handlePlayFirstRelease = () => {
     const first = personalReleases[0]
     if (!first) {
-      setToastMessage('Your personal vault is empty.')
+      notify.info('Your personal vault is empty.')
       return
     }
     handlePlayRelease(first)
@@ -280,7 +273,7 @@ function PersonalCollectionExplorePage() {
   // Shuffle vault tracks via dedicated endpoint
   const handleShuffleVault = async () => {
     try {
-      setToastMessage('Shuffling vault...')
+      notify.info('Shuffling vault...')
       const res = await storageApi.getPersonalTracks({
         shuffle: true,
         limit: 250,
@@ -291,13 +284,13 @@ function PersonalCollectionExplorePage() {
         search: debouncedSearch || undefined,
       })
       if (!res.tracks || res.tracks.length === 0) {
-        setToastMessage('Your personal vault is empty.')
+        notify.info('Your personal vault is empty.')
         return
       }
       playTrack(res.tracks[0], res.tracks)
-      setToastMessage(`Shuffling ${res.tracks.length} tracks from your vault`)
+      notify.info(`Shuffling ${res.tracks.length} tracks from your vault`)
     } catch {
-      setToastMessage('Failed to shuffle vault tracks.')
+      notify.error('Failed to shuffle vault tracks.')
     }
   }
 
@@ -307,10 +300,10 @@ function PersonalCollectionExplorePage() {
       setIsDeleting(true)
       await storageApi.deletePersonalRelease(releaseId)
       await Promise.all([releasesQuery.refetch(), artistsQuery.refetch()])
-      setToastMessage('Release moved to 30-day recycle bin.')
+      notify.success('Release moved to 30-day recycle bin.')
       setDeleteConfirm(null)
     } catch (err: any) {
-      setToastMessage(err.message || 'Failed to delete release.')
+      notify.error(err.message || 'Failed to delete release.')
     } finally {
       setIsDeleting(false)
     }
@@ -545,18 +538,20 @@ function PersonalCollectionExplorePage() {
           ) : (
             <>
               <MediaGrid maxColumns={6}>
-                {personalArtists.map((artist) => (
-                  <ArtistCard
-                    key={artist.id}
-                    name={artist.stageName}
-                    slug={artist.slug || artist.id}
-                    imageUrl={artist.bannerUrl}
-                    subtitle={`${artist.releaseCount} ${
-                      artist.releaseCount === 1 ? 'release' : 'releases'
-                    }`}
-                  />
-                ))}
-              </MediaGrid>
+              {personalReleases.map((release) => (
+                <VaultReleaseItem
+                  key={release.id}
+                  release={release}
+                  view="grid"
+                  isPlaying={
+                    currentTrack?.albumId === release.id &&
+                    playbackStatus === 'playing'
+                  }
+                  onPlay={() => handlePlayRelease(release)}
+                  onDeleteRequest={setDeleteConfirm}
+                />
+              ))}
+            </MediaGrid>
               <div ref={loadMoreArtistsRef} className="h-6" />
             </>
           )}
@@ -696,72 +691,20 @@ function PersonalCollectionExplorePage() {
           ) : (
             /* ===================== RELEASES LIST VIEW (Clean & Minimal, Artist Page Styling) ===================== */
             <div className="flex flex-col gap-1.5">
-              {personalReleases.map((release) => {
-                const releaseYear = release.releaseDate
-                  ? new Date(release.releaseDate).getFullYear()
-                  : release.createdAt
-                    ? new Date(release.createdAt).getFullYear()
-                    : null
+              {personalReleases.map((release) => (
+                <VaultReleaseItem
+                  key={release.id}
+                  release={release}
+                  view="list"
+                  isPlaying={
+                    currentTrack?.albumId === release.id &&
+                    playbackStatus === 'playing'
+                  }
+                  onPlay={() => handlePlayRelease(release)}
+                  onDeleteRequest={setDeleteConfirm}
+                />
+              ))}
 
-                return (
-                  <div
-                    key={release.id}
-                    className="group flex items-center justify-between p-2 rounded-xl hover:bg-muted/80 active:scale-[0.99] transition-all select-none"
-                  >
-                    <Link
-                      to="/albums/$idOrSlug"
-                      params={{ idOrSlug: release.slug || release.id }}
-                      className="flex items-center gap-3.5 flex-1 min-w-0 text-inherit no-underline"
-                    >
-                      {/* Thumbnail Artwork */}
-                      <div className="w-12 h-12 rounded-md bg-muted border border-border shrink-0 overflow-hidden relative shadow-xs">
-                        {release.coverImageUrl ? (
-                          <img
-                            src={release.coverImageUrl}
-                            alt={release.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <ProceduralCover
-                            size="sm"
-                            title={release.title}
-                            artistName={release.artistName}
-                            className="w-full h-full rounded-none"
-                          />
-                        )}
-                      </div>
-
-                      {/* Text Information (NO release type bubble, NO cuts!) */}
-                      <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="font-semibold text-body text-foreground group-hover:text-primary transition-colors truncate">
-                          {release.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-caption text-muted-foreground mt-0.5 truncate">
-                          <span className="truncate">{release.artistName}</span>
-                          {releaseYear && (
-                            <>
-                              <span className="opacity-40">·</span>
-                              <span>{releaseYear}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-
-                    {/* Right Side: Duration & Global Action Menu */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-caption text-muted-foreground hidden sm:inline">
-                        {formatDuration(release.totalDurationSeconds)}
-                      </span>
-                      <ReleaseActionMenu
-                        release={release}
-                        onDeleteRequest={setDeleteConfirm}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
             </div>
           )}
           <div ref={loadMoreReleasesRef} className="h-6" />
@@ -769,64 +712,24 @@ function PersonalCollectionExplorePage() {
       )}
 
       {/* ===================== DELETE CONFIRMATION MODAL ===================== */}
-      {deleteConfirm && (
-        <div
-          className="fixed inset-0 bg-foreground/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150"
-          onClick={() => !isDeleting && setDeleteConfirm(null)}
-        >
-          <div
-            className="border border-border bg-card p-6 max-w-md w-full shadow-2xl space-y-4 rounded-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 text-destructive">
-              <TrashIconSVG className="w-5 h-5 shrink-0" />
-              <h3 className="font-serif italic font-bold text-lg text-foreground">
-                Move Release to Recycle Bin?
-              </h3>
-            </div>
-            <p className="font-sans text-caption text-muted-foreground leading-relaxed">
-              Are you sure you want to move{' '}
-              <strong className="text-foreground font-semibold">
-                "{deleteConfirm.title}"
-              </strong>{' '}
-              to the 30-day recycle bin? You can restore it anytime within 30
-              days from Locker Manager.
-            </p>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 border border-border bg-card hover:bg-background text-foreground text-caption font-medium rounded-full cursor-pointer transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isDeleting}
-                onClick={() => handleDeleteRelease(deleteConfirm.id)}
-                className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-caption font-semibold rounded-full cursor-pointer transition-colors shadow-xs"
-              >
-                {isDeleting ? 'Moving to Trash...' : 'Move to Trash'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={deleteConfirm !== null}
+        title="Move to recycle bin?"
+        description={
+          deleteConfirm
+            ? `"${deleteConfirm.title}" moves to the 30-day recycle bin. You can restore it any time from the Locker Manager.`
+            : ''
+        }
+        confirmLabel={isDeleting ? 'Moving...' : 'Move to Trash'}
+        tone="danger"
+        isBusy={isDeleting}
+        onConfirm={() => {
+          if (deleteConfirm) void handleDeleteRelease(deleteConfirm.id)
+        }}
+        onCancel={() => setDeleteConfirm(null)}
+      />
 
       {/* ===================== TOAST NOTIFICATION ===================== */}
-      {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] sm:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 rounded-full shadow-2xl animate-in fade-in duration-150 pointer-events-none">
-          {toastMessage}
-        </div>
-      )}
     </div>
   )
-}
-
-function formatDuration(totalSeconds: number): string {
-  if (!totalSeconds || isNaN(totalSeconds)) return '0:00'
-  const mins = Math.floor(totalSeconds / 60)
-  const secs = Math.floor(totalSeconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
