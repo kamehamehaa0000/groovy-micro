@@ -4,7 +4,7 @@ import { ProceduralCover } from '../../common/ProceduralCover'
 import type { ArtistProfile } from '../../../types/artist'
 import type { Album } from '../../../types/catalog'
 import type { ProfileState } from '../hooks/useProfileForm'
-import { FieldLabel, MonoInput, SerifInput, TextAreaField } from '../fields'
+import { IdentityForm } from './IdentityForm'
 
 interface ProfileTabProps {
   artistProfile: ArtistProfile
@@ -29,6 +29,8 @@ export function ProfileTab({
     handleBannerSelect,
     isEditingProfile,
     setIsEditingProfile,
+    isProfileDirty,
+    handleRevertProfile,
     handleSaveProfile,
     editStageName,
     setEditStageName,
@@ -215,98 +217,41 @@ export function ProfileTab({
         </div>
 
         {isEditingProfile ? (
-          <form
-            onSubmit={handleSaveProfile}
-            className="flex flex-col gap-5"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <FieldLabel>Stage Name</FieldLabel>
-                <SerifInput
-                  size="body"
-                  type="text"
-                  required
-                  value={editStageName}
-                  onChange={(e) => setEditStageName(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <FieldLabel>Vanity Slug</FieldLabel>
-                <MonoInput
-                  type="text"
-                  required
-                  value={editSlug}
-                  onChange={(e) => setEditSlug(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <FieldLabel>Biography</FieldLabel>
-              <TextAreaField
-                rows={4}
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <FieldLabel tone="muted" spacing="tight">
-                  Instagram
-                </FieldLabel>
-                <MonoInput
-                  size="sm"
-                  type="url"
-                  value={editInstagram}
-                  onChange={(e) => setEditInstagram(e.target.value)}
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-              <div>
-                <FieldLabel tone="muted" spacing="tight">
-                  Website
-                </FieldLabel>
-                <MonoInput
-                  size="sm"
-                  type="url"
-                  value={editWebsite}
-                  onChange={(e) => setEditWebsite(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <FieldLabel tone="muted" spacing="tight">
-                  Spotify
-                </FieldLabel>
-                <MonoInput
-                  size="sm"
-                  type="url"
-                  value={editSpotify}
-                  onChange={(e) => setEditSpotify(e.target.value)}
-                  placeholder="https://open.spotify.com/..."
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={isSavingEdit}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
-              >
-                {isSavingEdit ? 'Saving...' : 'Save Profile Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditingProfile(false)}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+          <IdentityForm
+            stageName={editStageName}
+            slug={editSlug}
+            bio={editBio}
+            instagram={editInstagram}
+            website={editWebsite}
+            spotify={editSpotify}
+            isDirty={isProfileDirty}
+            isSaving={isSavingEdit}
+            onChange={(field, value) => {
+              switch (field) {
+                case 'stageName':
+                  setEditStageName(value)
+                  break
+                case 'slug':
+                  setEditSlug(value)
+                  break
+                case 'bio':
+                  setEditBio(value)
+                  break
+                case 'instagram':
+                  setEditInstagram(value)
+                  break
+                case 'website':
+                  setEditWebsite(value)
+                  break
+                case 'spotify':
+                  setEditSpotify(value)
+                  break
+              }
+            }}
+            onSave={handleSaveProfile}
+            onRevert={handleRevertProfile}
+            onCancel={() => setIsEditingProfile(false)}
+          />
         ) : (
           <div className="flex flex-col gap-4 text-caption font-sans text-foreground">
             <div>

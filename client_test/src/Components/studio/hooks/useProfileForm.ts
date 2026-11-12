@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from 'react'
+import { useCallback, useMemo, useState, useRef } from 'react'
 import { artistsApi, slugifyText } from '../../../lib/artists.api'
 import type { ArtistProfile } from '../../../types/artist'
 import { notify } from '../../../lib/toast'
@@ -232,6 +232,40 @@ export function useProfileForm(
     setSpotlightStatusMessage(null)
   }
 
+  // The identity form is dirty when it differs from the saved profile. The
+  // form used to be savable at all times, so there was no way to tell
+  // whether anything had actually changed.
+  const isProfileDirty = useMemo(() => {
+    if (!artistProfile) return false
+    return (
+      editStageName.trim() !== artistProfile.stageName.trim() ||
+      editSlug.trim() !== artistProfile.slug.trim() ||
+      editBio.trim() !== (artistProfile.bio || '').trim() ||
+      editInstagram.trim() !== (artistProfile.socialLinks?.instagram || '').trim() ||
+      editWebsite.trim() !== (artistProfile.socialLinks?.website || '').trim() ||
+      editSpotify.trim() !== (artistProfile.socialLinks?.spotify || '').trim()
+    )
+  }, [
+    artistProfile,
+    editStageName,
+    editSlug,
+    editBio,
+    editInstagram,
+    editWebsite,
+    editSpotify,
+  ])
+
+  // Put the identity fields back the way the saved profile has them.
+  const handleRevertProfile = useCallback(() => {
+    if (!artistProfile) return
+    setEditStageName(artistProfile.stageName)
+    setEditSlug(artistProfile.slug)
+    setEditBio(artistProfile.bio || '')
+    setEditInstagram(artistProfile.socialLinks?.instagram || '')
+    setEditWebsite(artistProfile.socialLinks?.website || '')
+    setEditSpotify(artistProfile.socialLinks?.spotify || '')
+  }, [artistProfile])
+
   // Seed the profile form + spotlight fields from a loaded profile
   const hydrate = useCallback((artist: ArtistProfile) => {
     setEditStageName(artist.stageName)
@@ -257,6 +291,8 @@ export function useProfileForm(
     setAvatarCropFile,
     isEditingProfile,
     setIsEditingProfile,
+    isProfileDirty,
+    handleRevertProfile,
     editStageName,
     setEditStageName,
     editSlug,

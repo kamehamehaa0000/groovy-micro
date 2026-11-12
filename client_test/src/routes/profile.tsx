@@ -26,6 +26,7 @@ import { Switch } from '../Components/ui'
 import { Loader2Icon } from 'lucide-react'
 import { notify } from '../lib/toast'
 import { ConfirmDialog } from '../Components/ui/Modal'
+import { SaveBar } from '../Components/ui/SaveBar'
 import { SettingsShell } from '../Components/settings/SettingsShell'
 import { PlanComparison } from '../Components/subscriptions/PlanComparison'
 import type { UserProfile } from '../types/auth'
@@ -150,6 +151,24 @@ function ProfileComponent() {
     queryFn: () => artistsApi.getMyProfile(),
     enabled: isAuthenticated,
     retry: false,
+  })
+
+  // The plans and the feature catalogue are a query: they change rarely, and
+  // every account page needs the same pair. It waits for the picker to open,
+  // so it costs nothing until then.
+  const plansQuery = useQuery({
+    queryKey: ['subscriptions', 'plans'],
+    queryFn: async () => {
+      const [plansRes, featuresRes] = await Promise.all([
+        subscriptionsApi.getPlans(),
+        subscriptionsApi.getFeatures(),
+      ])
+      return {
+        plans: plansRes.plans,
+        features: featuresRes.features,
+      }
+    },
+    enabled: isUpgradeModalOpen,
   })
 
   const preSaves = preSavesQuery.data?.presaves ?? []
@@ -358,23 +377,6 @@ function ProfileComponent() {
   }
 
   // --- Subscription Handlers ---
-  // The plans and the feature catalogue are a query: they change rarely, and
-  // every account page needs the same pair.
-  const plansQuery = useQuery({
-    queryKey: ['subscriptions', 'plans'],
-    queryFn: async () => {
-      const [plansRes, featuresRes] = await Promise.all([
-        subscriptionsApi.getPlans(),
-        subscriptionsApi.getFeatures(),
-      ])
-      return {
-        plans: plansRes.plans,
-        features: featuresRes.features,
-      }
-    },
-    enabled: isUpgradeModalOpen,
-  })
-
   const handleOpenUpgradeModal = async () => {
     setIsUpgradeModalOpen(true)
   }
@@ -461,9 +463,9 @@ function ProfileComponent() {
           </div>
 
           {/* Identity & Status */}
-          <div className="flex-1 text-center sm:text-left min-w-0">
+          <div className="w-full min-w-0 flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-              <h1 className="text-heading sm:text-2xl font-bold font-sans text-foreground tracking-tight truncate">
+              <h1 className="max-w-full break-words text-heading sm:text-2xl font-bold font-sans text-foreground tracking-tight">
                 {user.displayName}
               </h1>
               {user.isEmailVerified ? (
@@ -478,7 +480,7 @@ function ProfileComponent() {
               )}
             </div>
 
-            <p className="text-caption text-muted-foreground font-sans truncate mb-3">
+            <p className="text-caption text-muted-foreground font-sans break-words mb-3">
               {user.email}
             </p>
 
@@ -682,7 +684,7 @@ function SecurityTab(
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
+                className="w-full select-text rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
               />
             </div>
 
@@ -700,20 +702,20 @@ function SecurityTab(
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
+                className="w-full select-text rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors font-sans"
               />
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
+            <label className="flex items-start gap-2 cursor-pointer select-none sm:items-center">
               <input
                 type="checkbox"
                 checked={revokeOthers}
                 onChange={(e) => setRevokeOthers(e.target.checked)}
-                className="accent-foreground w-4 h-4 rounded-control cursor-pointer"
+                className="accent-foreground w-4 h-4 shrink-0 mt-0.5 sm:mt-0 rounded-control cursor-pointer"
               />
-              <span className="font-sans text-caption text-muted-foreground">
+              <span className="font-sans text-caption text-muted-foreground min-w-0">
                 Revoke all other active sessions across devices
               </span>
             </label>
@@ -754,14 +756,14 @@ function SecurityTab(
           <button
             type="button"
             onClick={() => logout()}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider border border-border bg-background hover:bg-muted text-foreground px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
+            className="w-full sm:w-auto font-eyebrow text-eyebrow uppercase tracking-wider border border-border bg-background hover:bg-muted text-foreground px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
           >
             Sign Out This Device
           </button>
           <button
             type="button"
             onClick={() => revokeAll()}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider border border-destructive/40 bg-destructive-soft hover:bg-destructive/20 text-destructive px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
+            className="w-full sm:w-auto font-eyebrow text-eyebrow uppercase tracking-wider border border-destructive/40 bg-destructive-soft hover:bg-destructive/20 text-destructive px-5 py-2.5 rounded-full transition-colors cursor-pointer text-center font-medium"
           >
             Revoke All Sessions Everywhere
           </button>
@@ -799,7 +801,7 @@ function PrivacyTab(
     <div className="space-y-3 animate-in fade-in duration-150">
       <form onSubmit={handleUpdatePrivacy} className="space-y-3">
         {/* Account Privacy Toggle */}
-        <div className=" p-2 sm:p-4 rounded-2xl shadow-xs flex items-center justify-between gap-3 min-w-0">
+        <div className=" p-2 sm:p-4 rounded-2xl shadow-xs flex items-start sm:items-center justify-between gap-3 min-w-0">
           <div className="min-w-0 flex-1 pr-2 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-sans text-body sm:text-title font-bold text-foreground">
@@ -823,6 +825,7 @@ function PrivacyTab(
           </div>
 
           <Switch
+            className="mt-0.5 sm:mt-0"
             id="private-account-toggle"
             checked={isPrivateAccount}
             onChange={setIsPrivateAccount}
@@ -960,7 +963,7 @@ function PrivacyTab(
 
           <div className="space-y-3">
             {/* Toggle 1: Search */}
-            <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 first:pt-0 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Include in Global Search
@@ -971,6 +974,7 @@ function PrivacyTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={lockerIncludeInSearch}
                 onChange={setLockerIncludeInSearch}
                 aria-label="Include personal collection in search"
@@ -978,7 +982,7 @@ function PrivacyTab(
             </div>
 
             {/* Toggle 2: Recently Played */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Include in Recently Played &amp; Activity
@@ -989,6 +993,7 @@ function PrivacyTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={lockerIncludeInRecentlyPlayed}
                 onChange={setLockerIncludeInRecentlyPlayed}
                 aria-label="Include in recently played"
@@ -996,7 +1001,7 @@ function PrivacyTab(
             </div>
 
             {/* Toggle 3: Home Feed */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Mix with Home Feed &amp; Recommendations
@@ -1007,6 +1012,7 @@ function PrivacyTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={lockerIncludeInHome}
                 onChange={setLockerIncludeInHome}
                 aria-label="Mix with home feed"
@@ -1014,7 +1020,7 @@ function PrivacyTab(
             </div>
 
             {/* Toggle 4: Verified Artists Link */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Link to Verified Global Artists
@@ -1026,6 +1032,7 @@ function PrivacyTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={lockerLinkToGlobalArtists}
                 onChange={setLockerLinkToGlobalArtists}
                 aria-label="Link to verified global artists"
@@ -1034,30 +1041,13 @@ function PrivacyTab(
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-          {isDirty ? (
-            <>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning">
-                Unsaved changes
-              </span>
-              <button
-                type="button"
-                onClick={onRevert}
-                disabled={isSavingPrivacy}
-                className="rounded-full border border-border px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
-                Revert
-              </button>
-            </>
-          ) : null}
-          <button
-            type="submit"
-            disabled={isSavingPrivacy || !isDirty}
-            className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
-          >
-            {isSavingPrivacy ? 'Saving Privacy...' : 'Save Privacy Preferences'}
-          </button>
-        </div>
+        <SaveBar
+          isDirty={isDirty}
+          isBusy={isSavingPrivacy}
+          saveLabel="Save Privacy Preferences"
+          busyLabel="Saving Privacy..."
+          onRevert={onRevert}
+        />
       </form>
     </div>
   )
@@ -1087,7 +1077,7 @@ function NotificationPreferenceTab(
 
           <div className="space-y-3 ">
             {/* Toggle 1: Catalog Drops */}
-            <div className="pt-3 first:pt-0 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 first:pt-0 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Catalog Drops &amp; New Releases
@@ -1098,6 +1088,7 @@ function NotificationPreferenceTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={notifPrefs.emailReleases}
                 onChange={(val) =>
                   setNotifPrefs((prev) => ({ ...prev, emailReleases: val }))
@@ -1107,7 +1098,7 @@ function NotificationPreferenceTab(
             </div>
 
             {/* Toggle 2: Discussion Replies */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Discussion Replies &amp; Mentions
@@ -1118,6 +1109,7 @@ function NotificationPreferenceTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={notifPrefs.emailComments}
                 onChange={(val) =>
                   setNotifPrefs((prev) => ({ ...prev, emailComments: val }))
@@ -1127,7 +1119,7 @@ function NotificationPreferenceTab(
             </div>
 
             {/* Toggle 3: Social Circles */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Social Circles &amp; Follow Requests
@@ -1138,6 +1130,7 @@ function NotificationPreferenceTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={notifPrefs.pushSocial}
                 onChange={(val) =>
                   setNotifPrefs((prev) => ({ ...prev, pushSocial: val }))
@@ -1147,7 +1140,7 @@ function NotificationPreferenceTab(
             </div>
 
             {/* Toggle 4: Jam Invites */}
-            <div className="pt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="pt-3 flex items-start sm:items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1 pr-2">
                 <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground font-medium">
                   Live Jam Session Invites
@@ -1158,6 +1151,7 @@ function NotificationPreferenceTab(
                 </p>
               </div>
               <Switch
+                className="mt-0.5 sm:mt-0"
                 checked={notifPrefs.pushJams}
                 onChange={(val) =>
                   setNotifPrefs((prev) => ({ ...prev, pushJams: val }))
@@ -1168,32 +1162,13 @@ function NotificationPreferenceTab(
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-          {isDirty ? (
-            <>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning">
-                Unsaved changes
-              </span>
-              <button
-                type="button"
-                onClick={onRevert}
-                disabled={isSavingNotifPrefs}
-                className="rounded-full border border-border px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
-                Revert
-              </button>
-            </>
-          ) : null}
-          <button
-            type="submit"
-            disabled={isSavingNotifPrefs || !isDirty}
-            className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider font-semibold py-2.5 px-6 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-xs"
-          >
-            {isSavingNotifPrefs
-              ? 'Saving Preferences...'
-              : 'Save Notification Preferences'}
-          </button>
-        </div>
+        <SaveBar
+          isDirty={isDirty}
+          isBusy={isSavingNotifPrefs}
+          saveLabel="Save Notification Preferences"
+          busyLabel="Saving Preferences..."
+          onRevert={onRevert}
+        />
       </form>
     </div>
   )
@@ -1211,11 +1186,11 @@ function SubscriptionTab(
       {/* Active Plan Card */}
       <div className="border border-border bg-card p-5 sm:p-4 rounded-2xl shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
-          <div>
+          <div className="min-w-0">
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-1">
               Active Subscription Tier
             </span>
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground font-normal">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
               </h3>
@@ -1245,11 +1220,11 @@ function SubscriptionTab(
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5">
             <button
               type="button"
               onClick={handleOpenUpgradeModal}
-              className="bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
+              className="w-full sm:w-auto bg-foreground text-background font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 rounded-full hover:opacity-90 transition-opacity cursor-pointer font-semibold shadow-xs"
             >
               ✦ Change Plan / Upgrade
             </button>
@@ -1259,7 +1234,7 @@ function SubscriptionTab(
                 <button
                   type="button"
                   onClick={onRequestCancel}
-                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-background transition-colors cursor-pointer"
+                  className="w-full sm:w-auto font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-3.5 rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive bg-background transition-colors cursor-pointer"
                 >
                   Cancel Plan
                 </button>
@@ -1269,7 +1244,7 @@ function SubscriptionTab(
 
         {/* Audio & Perks Checklist */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-          <div className="p-3 rounded-xl bg-background border border-border">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-background border border-border">
             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
               Audio Quality
             </span>
@@ -1277,7 +1252,7 @@ function SubscriptionTab(
               {entitlements?.features?.max_bitrate_kbps ?? 128} kbps
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-background border border-border">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-background border border-border">
             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
               Lossless FLAC
             </span>
@@ -1287,7 +1262,7 @@ function SubscriptionTab(
               {entitlements?.features?.lossless ? 'Enabled ✓' : 'Standard'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-background border border-border">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-background border border-border">
             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
               Live Jam Rooms
             </span>
@@ -1299,7 +1274,7 @@ function SubscriptionTab(
                 : 'Listener'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-background border border-border">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-background border border-border">
             <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
               Ad-Free Audio
             </span>
@@ -1368,7 +1343,7 @@ function AccountIdentityTab(
 
         <Link
           to="/studio"
-          className="self-start sm:self-auto shrink-0 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
+          className="w-full sm:w-auto self-start sm:self-auto shrink-0 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-semibold shadow-xs no-underline text-center"
         >
           {artistProfile
             ? 'Open Artist Studio →'
@@ -1406,7 +1381,7 @@ function AccountIdentityTab(
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/50 font-sans"
+              className="w-full select-text rounded-xl border border-border bg-background px-4 py-2.5 sm:py-3 text-body text-foreground focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/50 font-sans"
               placeholder="Your curator name"
             />
           </div>
@@ -1432,12 +1407,16 @@ function AccountIdentityTab(
         </h3>
 
         <div className="divide-y divide-border/60 font-sans text-caption">
-          <div className="py-3 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">Email Address</span>
-            <span className="text-foreground font-medium">{user.email}</span>
+          <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="text-muted-foreground shrink-0">Email Address</span>
+            <span className="text-foreground font-medium min-w-0 break-words">
+              {user.email}
+            </span>
           </div>
-          <div className="py-3 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">Email Verification</span>
+          <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="text-muted-foreground shrink-0">
+              Email Verification
+            </span>
             <span
               className={
                 user.isEmailVerified
@@ -1448,16 +1427,18 @@ function AccountIdentityTab(
               {user.isEmailVerified ? 'Verified' : 'Unverified'}
             </span>
           </div>
-          <div className="py-3 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">Role</span>
+          <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="text-muted-foreground shrink-0">Role</span>
             <span className="font-eyebrow text-eyebrow uppercase text-foreground">
               {isArtist && user.role !== 'ADMIN' ? 'ARTIST' : user.role}
             </span>
           </div>
           {isArtist && (
-            <div className="py-3 flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Artist Profile</span>
-              <span className="font-mono text-eyebrow text-info font-semibold">
+            <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <span className="text-muted-foreground shrink-0">
+                Artist Profile
+              </span>
+              <span className="font-mono text-eyebrow text-info font-semibold break-words">
                 {isLoadingArtistProfile
                   ? 'Verifying...'
                   : artistProfile
@@ -1466,14 +1447,16 @@ function AccountIdentityTab(
               </span>
             </div>
           )}
-          <div className="py-3 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">Active Plan</span>
+          <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="text-muted-foreground shrink-0">Active Plan</span>
             <span className="font-eyebrow text-eyebrow uppercase text-primary font-semibold">
               {entitlements?.planName || user.plan?.name || 'Groovy Free'}
             </span>
           </div>
-          <div className="py-3 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">Pre-Saved Releases</span>
+          <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="text-muted-foreground shrink-0">
+              Pre-Saved Releases
+            </span>
             <span className="font-mono text-eyebrow text-foreground font-medium">
               {isLoadingPreSaves
                 ? 'Loading...'
