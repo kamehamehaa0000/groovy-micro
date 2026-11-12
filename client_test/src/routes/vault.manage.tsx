@@ -1,4 +1,11 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useLocation,
+  useNavigate,
+} from '@tanstack/react-router'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
@@ -23,32 +30,33 @@ import { seedArtistCache } from '../lib/artist-resolver'
 import { useLockerStore } from '../stores/locker.store'
 import { socialApi } from '../lib/social.api'
 import { VaultManageContext, type VaultManageContextValue } from '../Components/vault/manage/VaultManageContext'
-import { ImportDesk } from '../Components/vault/manage/ImportDesk'
-import { CollectionDesk } from '../Components/vault/manage/CollectionDesk'
-import { ArtistsDesk } from '../Components/vault/manage/ArtistsDesk'
-import { TrashDesk } from '../Components/vault/manage/TrashDesk'
 import {
   TrashIconSVG,
   UploadCloudSVG,
 } from '../Components/Icons'
 
-interface CollectionManageSearchParams {
-  tab?: 'import' | 'collection' | 'artists' | 'trash'
+/** The four desks of the vault manager. */
+export type VaultManageTab = 'import' | 'collection' | 'artists' | 'trash'
+
+const TAB_ROUTES: Record<
+  VaultManageTab,
+  | '/vault/manage/import'
+  | '/vault/manage/collection'
+  | '/vault/manage/artists'
+  | '/vault/manage/trash'
+> = {
+  import: '/vault/manage/import',
+  collection: '/vault/manage/collection',
+  artists: '/vault/manage/artists',
+  trash: '/vault/manage/trash',
 }
 
 export const Route = createFileRoute('/vault/manage')({
   staticData: { layout: 'full' },
   component: PersonalCollectionManagePage,
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): CollectionManageSearchParams => {
-    const rawTab = search.tab as string
-    const validTabs = ['import', 'collection', 'artists', 'trash']
-    return {
-      tab: validTabs.includes(rawTab)
-        ? (rawTab as CollectionManageSearchParams['tab'])
-        : undefined,
-    }
+  beforeLoad: () => {
+    // The manager always opens on a desk.
+    throw redirect({ to: '/vault/manage/import' })
   },
 })
 
@@ -57,7 +65,6 @@ function PersonalCollectionManagePage() {
   const isAuthLoading = useAuthStore((s) => s.isLoading)
   const user = useAuthStore((s) => s.user)
   const refreshProfile = useAuthStore((s) => s.refreshProfile)
-  const searchParams = Route.useSearch()
   const navigate = useNavigate()
 
   // Quick Home & Recommendations Scope Toggle
@@ -86,27 +93,15 @@ function PersonalCollectionManagePage() {
     }
   }
 
-  // Navigation Tabs: default to "import"
-  const [activeTab, setActiveTab] = useState<
-    'import' | 'collection' | 'artists' | 'trash'
-  >(searchParams.tab || 'import')
+  // The desk is a route of its own, so it can be linked to, bookmarked and
+  // reached with the back button.
+  const { pathname } = useLocation()
+  const activeTab = (
+    pathname.split('/').pop() || 'import'
+  ) as VaultManageTab
 
-  // Keep synced if searchParam changes
-  useEffect(() => {
-    if (searchParams.tab && searchParams.tab !== activeTab) {
-      setActiveTab(searchParams.tab)
-    }
-  }, [searchParams.tab])
-
-  const handleTabChange = (
-    tab: 'import' | 'collection' | 'artists' | 'trash',
-  ) => {
-    setActiveTab(tab)
-    navigate({
-      to: '/vault/manage',
-      search: tab === 'import' ? {} : { tab },
-      replace: true,
-    })
+  const handleTabChange = (tab: VaultManageTab) => {
+    navigate({ to: TAB_ROUTES[tab] })
   }
 
   // React Query owns the four datasets. A mutation now invalidates only the
@@ -1751,17 +1746,7 @@ function PersonalCollectionManagePage() {
 
 
       <VaultManageContext.Provider value={vaultManageContext}>
-        {/* ==================== TAB 1: IMPORT MUSIC ==================== */}
-        {activeTab === 'import' && <ImportDesk />}
-
-        {/* ==================== TAB 2: MY COLLECTION (RELEASES) ==================== */}
-        {activeTab === 'collection' && <CollectionDesk />}
-
-        {/* ==================== TAB 3: ARTISTS ROSTER ==================== */}
-        {activeTab === 'artists' && <ArtistsDesk />}
-
-        {/* ==================== TAB 4: TRASH / RECYCLE BIN ==================== */}
-        {activeTab === 'trash' && <TrashDesk />}
+        <Outlet />
       </VaultManageContext.Provider>
     </div>
   )

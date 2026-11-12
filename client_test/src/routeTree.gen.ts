@@ -40,6 +40,10 @@ import { Route as RadioSongIdRouteImport } from './routes/radio.$songId'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 import { Route as VaultIndexRouteImport } from './routes/vault.index'
 import { Route as VaultManageRouteImport } from './routes/vault.manage'
+import { Route as VaultManageArtistsRouteImport } from './routes/vault.manage.artists'
+import { Route as VaultManageCollectionRouteImport } from './routes/vault.manage.collection'
+import { Route as VaultManageImportRouteImport } from './routes/vault.manage.import'
+import { Route as VaultManageTrashRouteImport } from './routes/vault.manage.trash'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +200,26 @@ const VaultManageRoute = VaultManageRouteImport.update({
   path: '/manage',
   getParentRoute: () => VaultRoute,
 } as any)
+const VaultManageArtistsRoute = VaultManageArtistsRouteImport.update({
+  id: '/artists',
+  path: '/artists',
+  getParentRoute: () => VaultManageRoute,
+} as any)
+const VaultManageCollectionRoute = VaultManageCollectionRouteImport.update({
+  id: '/collection',
+  path: '/collection',
+  getParentRoute: () => VaultManageRoute,
+} as any)
+const VaultManageImportRoute = VaultManageImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => VaultManageRoute,
+} as any)
+const VaultManageTrashRoute = VaultManageTrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => VaultManageRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -225,10 +249,14 @@ export interface FileRoutesByFullPath {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
-  '/vault/manage': typeof VaultManageRoute
+  '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
   '/vault/': typeof VaultIndexRoute
+  '/vault/manage/artists': typeof VaultManageArtistsRoute
+  '/vault/manage/collection': typeof VaultManageCollectionRoute
+  '/vault/manage/import': typeof VaultManageImportRoute
+  '/vault/manage/trash': typeof VaultManageTrashRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -257,10 +285,14 @@ export interface FileRoutesByTo {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
-  '/vault/manage': typeof VaultManageRoute
+  '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists': typeof ArtistsIndexRoute
   '/playlists': typeof PlaylistsIndexRoute
   '/vault': typeof VaultIndexRoute
+  '/vault/manage/artists': typeof VaultManageArtistsRoute
+  '/vault/manage/collection': typeof VaultManageCollectionRoute
+  '/vault/manage/import': typeof VaultManageImportRoute
+  '/vault/manage/trash': typeof VaultManageTrashRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -291,10 +323,14 @@ export interface FileRoutesById {
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
   '/users/$id': typeof UsersIdRoute
-  '/vault/manage': typeof VaultManageRoute
+  '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists/': typeof ArtistsIndexRoute
   '/playlists/': typeof PlaylistsIndexRoute
   '/vault/': typeof VaultIndexRoute
+  '/vault/manage/artists': typeof VaultManageArtistsRoute
+  '/vault/manage/collection': typeof VaultManageCollectionRoute
+  '/vault/manage/import': typeof VaultManageImportRoute
+  '/vault/manage/trash': typeof VaultManageTrashRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,6 +366,10 @@ export interface FileRouteTypes {
     | '/artists/'
     | '/playlists/'
     | '/vault/'
+    | '/vault/manage/artists'
+    | '/vault/manage/collection'
+    | '/vault/manage/import'
+    | '/vault/manage/trash'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -362,6 +402,10 @@ export interface FileRouteTypes {
     | '/artists'
     | '/playlists'
     | '/vault'
+    | '/vault/manage/artists'
+    | '/vault/manage/collection'
+    | '/vault/manage/import'
+    | '/vault/manage/trash'
   id:
     | '__root__'
     | '/'
@@ -395,6 +439,10 @@ export interface FileRouteTypes {
     | '/artists/'
     | '/playlists/'
     | '/vault/'
+    | '/vault/manage/artists'
+    | '/vault/manage/collection'
+    | '/vault/manage/import'
+    | '/vault/manage/trash'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -648,16 +696,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VaultManageRouteImport
       parentRoute: typeof VaultRoute
     }
+    '/vault/manage/artists': {
+      id: '/vault/manage/artists'
+      path: '/artists'
+      fullPath: '/vault/manage/artists'
+      preLoaderRoute: typeof VaultManageArtistsRouteImport
+      parentRoute: typeof VaultManageRoute
+    }
+    '/vault/manage/collection': {
+      id: '/vault/manage/collection'
+      path: '/collection'
+      fullPath: '/vault/manage/collection'
+      preLoaderRoute: typeof VaultManageCollectionRouteImport
+      parentRoute: typeof VaultManageRoute
+    }
+    '/vault/manage/import': {
+      id: '/vault/manage/import'
+      path: '/import'
+      fullPath: '/vault/manage/import'
+      preLoaderRoute: typeof VaultManageImportRouteImport
+      parentRoute: typeof VaultManageRoute
+    }
+    '/vault/manage/trash': {
+      id: '/vault/manage/trash'
+      path: '/trash'
+      fullPath: '/vault/manage/trash'
+      preLoaderRoute: typeof VaultManageTrashRouteImport
+      parentRoute: typeof VaultManageRoute
+    }
   }
 }
 
+interface VaultManageRouteChildren {
+  VaultManageArtistsRoute: typeof VaultManageArtistsRoute
+  VaultManageCollectionRoute: typeof VaultManageCollectionRoute
+  VaultManageImportRoute: typeof VaultManageImportRoute
+  VaultManageTrashRoute: typeof VaultManageTrashRoute
+}
+
+const VaultManageRouteChildren: VaultManageRouteChildren = {
+  VaultManageArtistsRoute: VaultManageArtistsRoute,
+  VaultManageCollectionRoute: VaultManageCollectionRoute,
+  VaultManageImportRoute: VaultManageImportRoute,
+  VaultManageTrashRoute: VaultManageTrashRoute,
+}
+
+const VaultManageRouteWithChildren = VaultManageRoute._addFileChildren(
+  VaultManageRouteChildren,
+)
+
 interface VaultRouteChildren {
-  VaultManageRoute: typeof VaultManageRoute
+  VaultManageRoute: typeof VaultManageRouteWithChildren
   VaultIndexRoute: typeof VaultIndexRoute
 }
 
 const VaultRouteChildren: VaultRouteChildren = {
-  VaultManageRoute: VaultManageRoute,
+  VaultManageRoute: VaultManageRouteWithChildren,
   VaultIndexRoute: VaultIndexRoute,
 }
 
