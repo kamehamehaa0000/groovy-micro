@@ -26,6 +26,7 @@ import {
   type SortOption,
 } from '../Components/ui'
 import { FilterBar } from '../Components/ui/FilterBar'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { SectionTitle } from '../Components/ui/SectionTitle'
 
 export const Route = createFileRoute('/liked')({
@@ -87,28 +88,30 @@ function LikedSongsPage() {
     hydrateSongs(songs.map((song) => ({ id: song.id, isLiked: true })))
   }, [songs, hydrateSongs])
 
-  // Map EnrichedSong to PlayerTrack
-  const toPlayerTrack = useCallback((s: EnrichedSong): PlayerTrack => {
-    return {
-      id: s.id,
-      title: s.title,
-      artistId: s.artistId,
-      artistName: s.artistStageName || 'Unknown Artist',
-      artistSlug: s.artistSlug,
-      albumId: s.albumId,
-      albumTitle: s.albumTitle,
-      albumSlug: s.albumSlug,
-      coverImageUrl: s.coverImageUrl || s.albumCoverImageUrl,
-      durationSeconds: s.durationSeconds,
-      audioUrl: s.audioUrl,
-      hlsManifestUrl: s.hlsManifestUrl,
-      rawAudioKey: s.rawAudioKey,
-      isExplicit: s.isExplicit,
-      isLiked: true,
-      scope: s.scope || 'GLOBAL',
-      credits: s.credits,
-    }
-  }, [])
+  // Map a liked song to a player track.
+  const toPlayerTrack = useCallback(
+    (s: EnrichedSong): PlayerTrack =>
+      mapToPlayerTrack({
+        id: s.id,
+        title: s.title,
+        artistId: s.artistId,
+        artistName: s.artistStageName || 'Unknown Artist',
+        artistSlug: s.artistSlug,
+        albumId: s.albumId,
+        albumTitle: s.albumTitle,
+        albumSlug: s.albumSlug,
+        coverImageUrl: s.coverImageUrl || s.albumCoverImageUrl,
+        durationSeconds: s.durationSeconds,
+        audioUrl: s.audioUrl,
+        hlsManifestUrl: s.hlsManifestUrl,
+        rawAudioKey: s.rawAudioKey,
+        isExplicit: s.isExplicit,
+        isLiked: true,
+        scope: s.scope || 'GLOBAL',
+        credits: s.credits,
+      }),
+    [],
+  )
 
   // Everything currently liked, independent of the search filter.
   const librarySongs = useMemo(

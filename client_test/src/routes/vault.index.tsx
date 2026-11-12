@@ -17,6 +17,7 @@ import { ArtistCard } from '../Components/artists/ArtistCard'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
 import { MediaGrid } from '../Components/media/MediaGrid'
+import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import {
   PlayIconSVG,
   PauseIconSVG,
@@ -219,14 +220,14 @@ function PersonalCollectionExplorePage() {
     onLoadMore: () => void artistsQuery.fetchNextPage(),
   })
 
-  // Helper to map PersonalTrack to PlayerTrack
+  // Helper to map a personal track to a player track.
   const toPlayerTrack = (
     release: PersonalRelease,
     t: PersonalTrack,
   ): PlayerTrack => {
     const primaryCredit =
       t.credits?.find((c) => c.role === 'PRIMARY') || t.credits?.[0]
-    return {
+    return mapToPlayerTrack({
       id: t.id,
       title: t.title,
       artistId: primaryCredit?.artistId || release.artistId || '',
@@ -243,7 +244,7 @@ function PersonalCollectionExplorePage() {
       scope: 'PERSONAL',
       isStreamable: true,
       isExplicit: t.isExplicit,
-    }
+    })
   }
 
   // Play a specific release
