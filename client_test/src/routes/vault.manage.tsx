@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/auth.store'
 import {
   parseAudioFilesWithPool,
@@ -12,10 +13,9 @@ import {
   storageApi,
   type LockerQuota,
   type PersonalRelease,
+  type PersonalReleasesResponse,
+  type PersonalArtistsResponse,
   type PersonalTrack,
-  type PersonalArtist,
-  type TrashedSong,
-  type TrashedRelease,
 } from '../lib/storage.api'
 import { usePlayerStore } from '../stores/player.store'
 import type { PlayerTrack } from '../types/player'
@@ -109,10 +109,43 @@ function PersonalCollectionManagePage() {
     })
   }
 
+  // React Query owns the four datasets. A mutation now invalidates only the
+  // queries it actually changed, instead of refetching three or four endpoints
+  // every time something was restored, deleted or uploaded.
+  const trashQuery = useQuery({
+    queryKey: ['vault', 'trash'],
+    queryFn: () => storageApi.getTrash(),
+    enabled: isAuthenticated,
+  })
+
+  const artistsQuery = useQuery({
+    queryKey: ['vault', 'artists'],
+    queryFn: () => storageApi.getPersonalArtists(),
+    enabled: isAuthenticated,
+  })
+
+  const collectionQuery = useQuery({
+    queryKey: ['vault', 'collection'],
+    queryFn: () => storageApi.getPersonalReleases(),
+    enabled: isAuthenticated,
+  })
+
+  const quotaQuery = useQuery({
+    queryKey: ['vault', 'quota'],
+    queryFn: () => storageApi.getQuota(),
+    enabled: isAuthenticated,
+  })
+
+  const invalidateVault = (keys: Array<'trash' | 'artists' | 'collection' | 'quota'>) => {
+    for (const key of keys) {
+      void queryClient.invalidateQueries({ queryKey: ['vault', key] })
+    }
+  }
+
   // Trash State
-  const [trashedSongs, setTrashedSongs] = useState<TrashedSong[]>([])
-  const [trashedReleases, setTrashedReleases] = useState<TrashedRelease[]>([])
-  const [isLoadingTrash, setIsLoadingTrash] = useState(false)
+  const trashedSongs = trashQuery.data?.songs ?? []
+  const trashedReleases = trashQuery.data?.releases ?? []
+  const isLoadingTrash = trashQuery.isLoading
   const [isRestoring, setIsRestoring] = useState(false)
   const [isPurging, setIsPurging] = useState(false)
   const [trashConfirm, setTrashConfirm] = useState<{
@@ -122,8 +155,8 @@ function PersonalCollectionManagePage() {
   } | null>(null)
 
   // Artists Roster State
-  const [personalArtists, setPersonalArtists] = useState<PersonalArtist[]>([])
-  const [isLoadingArtists, setIsLoadingArtists] = useState(false)
+  const personalArtists = artistsQuery.data?.artists ?? []
+  const isLoadingArtists = artistsQuery.isLoading
   const [artistsSearch, setArtistsSearch] = useState('')
   const [isCreatingArtist, setIsCreatingArtist] = useState(false)
   const [newArtistName, setNewArtistName] = useState('')
@@ -134,18 +167,16 @@ function PersonalCollectionManagePage() {
   >(null)
 
   // Collection State
-  const [personalReleases, setPersonalReleases] = useState<PersonalRelease[]>(
-    [],
-  )
-  const [isLoadingReleases, setIsLoadingReleases] = useState(false)
+  const personalReleases = collectionQuery.data?.releases ?? []
+  const isLoadingReleases = collectionQuery.isLoading
   const [collectionSearch, setCollectionSearch] = useState('')
   const [expandedReleaseIds, setExpandedReleaseIds] = useState<Set<string>>(
     new Set(),
   )
 
   // Quota State
-  const [quota, setQuota] = useState<LockerQuota | null>(null)
-  const [quotaLoading, setQuotaLoading] = useState(true)
+  const quota = quotaQuery.data?.quota ?? null
+  const quotaLoading = quotaQuery.isLoading
 
   // Deletion State
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
@@ -206,35 +237,33 @@ function PersonalCollectionManagePage() {
   const togglePlay = usePlayerStore((s) => s.togglePlay)
   const addToQueue = usePlayerStore((s) => s.addToQueue)
   const triggerRefresh = useLockerStore((s) => s.triggerRefresh)
+  const queryClient = useQueryClient()
 
   // Load quota and personal releases when authenticated
+  // The artist cache is seeded from the loaded data so the artist resolver
+  // knows about personal artists.
   useEffect(() => {
-    if (isAuthenticated) {
-      loadInitialData()
-    }
-  }, [isAuthenticated])
+    const artists = artistsQuery.data?.artists
+    if (!artists || artists.length === 0) return
+    seedArtistCache(
+      artists.map((artist) => ({
+        id: artist.id,
+        stageName: artist.stageName,
+        slug: artist.slug,
+        scope: 'PERSONAL',
+      })),
+    )
+  }, [artistsQuery.data])
 
-  const loadInitialData = async () => {
-    await Promise.all([
-      loadQuota(),
-      loadCollection(),
-      loadPersonalArtists(),
-      loadTrash(),
-    ])
-  }
-
-  const loadTrash = async () => {
-    try {
-      setIsLoadingTrash(true)
-      const res = await storageApi.getTrash()
-      setTrashedSongs(res.songs || [])
-      setTrashedReleases(res.releases || [])
-    } catch (err: any) {
-      console.error('Failed to load trash:', err)
-    } finally {
-      setIsLoadingTrash(false)
-    }
-  }
+  // The first release starts open, the way it did when the collection was
+  // loaded by hand.
+  useEffect(() => {
+    const releases = collectionQuery.data?.releases
+    if (!releases || releases.length === 0) return
+    setExpandedReleaseIds((prev) =>
+      prev.size === 0 ? new Set([releases[0].id]) : prev,
+    )
+  }, [collectionQuery.data])
 
   const handleRestoreSong = async (songId: string) => {
     try {
@@ -242,12 +271,7 @@ function PersonalCollectionManagePage() {
       setErrorMessage(null)
       await storageApi.restorePersonalSong(songId)
       setSuccessMessage('Song restored to your personal collection')
-      await Promise.all([
-        loadQuota(),
-        loadCollection(),
-        loadTrash(),
-        loadPersonalArtists(),
-      ])
+      invalidateVault(['quota', 'collection', 'trash', 'artists'])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore song')
@@ -262,12 +286,7 @@ function PersonalCollectionManagePage() {
       setErrorMessage(null)
       await storageApi.restorePersonalRelease(releaseId)
       setSuccessMessage('Release restored to your personal collection')
-      await Promise.all([
-        loadQuota(),
-        loadCollection(),
-        loadTrash(),
-        loadPersonalArtists(),
-      ])
+      invalidateVault(['quota', 'collection', 'trash', 'artists'])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to restore release')
@@ -283,7 +302,7 @@ function PersonalCollectionManagePage() {
       await storageApi.permanentlyDeletePersonalSong(songId)
       setSuccessMessage('Song permanently deleted')
       setTrashConfirm(null)
-      await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      invalidateVault(['trash', 'artists', 'quota'])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to delete song permanently')
@@ -299,7 +318,7 @@ function PersonalCollectionManagePage() {
       await storageApi.permanentlyDeletePersonalRelease(releaseId)
       setSuccessMessage('Release permanently deleted')
       setTrashConfirm(null)
-      await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      invalidateVault(['trash', 'artists', 'quota'])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to delete release permanently')
@@ -315,33 +334,12 @@ function PersonalCollectionManagePage() {
       await storageApi.emptyTrash()
       setSuccessMessage('Recycle bin permanently emptied')
       setTrashConfirm(null)
-      await Promise.all([loadTrash(), loadPersonalArtists(), loadQuota()])
+      invalidateVault(['trash', 'artists', 'quota'])
       triggerRefresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to empty recycle bin')
     } finally {
       setIsPurging(false)
-    }
-  }
-
-  const loadPersonalArtists = async () => {
-    try {
-      setIsLoadingArtists(true)
-      const res = await storageApi.getPersonalArtists()
-      const artists = res.artists || []
-      setPersonalArtists(artists)
-      seedArtistCache(
-        artists.map((a) => ({
-          id: a.id,
-          stageName: a.stageName,
-          slug: a.slug,
-          scope: 'PERSONAL',
-        })),
-      )
-    } catch (err: any) {
-      console.error('Failed to load personal artists:', err)
-    } finally {
-      setIsLoadingArtists(false)
     }
   }
 
@@ -364,7 +362,13 @@ function PersonalCollectionManagePage() {
         setSuccessMessage(
           `Personal artist "${res.artist.stageName}" created successfully.`,
         )
-        setPersonalArtists((prev) => [res.artist, ...prev])
+        queryClient.setQueryData<PersonalArtistsResponse>(
+          ['vault', 'artists'],
+          (prev) =>
+            prev
+              ? { ...prev, artists: [res.artist, ...prev.artists] }
+              : prev,
+        )
         seedArtistCache([
           {
             id: res.artist.id,
@@ -384,69 +388,6 @@ function PersonalCollectionManagePage() {
     }
   }
 
-  const loadQuota = async () => {
-    try {
-      setQuotaLoading(true)
-      const res = await storageApi.getQuota()
-      setQuota(res.quota)
-    } catch (err: any) {
-      console.error('Failed to load personal collection quota:', err)
-    } finally {
-      setQuotaLoading(false)
-    }
-  }
-
-  const loadCollection = async () => {
-    try {
-      setIsLoadingReleases(true)
-      const res = await storageApi.getPersonalReleases()
-      const releases = res.releases || []
-      setPersonalReleases(releases)
-
-      const seeds: Array<{
-        id?: string
-        stageName?: string
-        slug?: string
-        scope?: 'GLOBAL' | 'PERSONAL'
-      }> = []
-
-      for (const rel of releases) {
-        if (rel.artistName && rel.artistSlug) {
-          seeds.push({
-            id: rel.artistId,
-            stageName: rel.artistName,
-            slug: rel.artistSlug,
-            scope: 'PERSONAL',
-          })
-        }
-        for (const trk of rel.tracks || []) {
-          if (trk.credits && trk.credits.length > 0) {
-            for (const c of trk.credits) {
-              seeds.push({
-                id: c.artistId,
-                stageName: c.stageName,
-                slug: c.slug,
-                scope: 'PERSONAL',
-              })
-            }
-          }
-        }
-      }
-
-      if (seeds.length > 0) {
-        seedArtistCache(seeds)
-      }
-
-      // Expand first release by default if available
-      if (releases.length > 0) {
-        setExpandedReleaseIds(new Set([releases[0].id]))
-      }
-    } catch (err: any) {
-      console.error('Failed to load personal collection releases:', err)
-    } finally {
-      setIsLoadingReleases(false)
-    }
-  }
 
   const toggleExpandRelease = (releaseId: string) => {
     setExpandedReleaseIds((prev) => {
@@ -544,40 +485,53 @@ function PersonalCollectionManagePage() {
       setErrorMessage(null)
       await storageApi.deletePersonalSong(songId)
 
-      // Optimistically update collection state
-      setPersonalReleases((prev) => {
-        return prev
-          .map((rel) => {
-            if (rel.id !== parentReleaseId) return rel
-            const updatedTracks = rel.tracks.filter((t) => t.id !== songId)
-            return {
-              ...rel,
-              totalTracks: updatedTracks.length,
-              totalDurationSeconds: updatedTracks.reduce(
-                (acc, t) => acc + t.durationSeconds,
-                0,
-              ),
-              tracks: updatedTracks,
-            }
-          })
-          .filter((rel) => rel.tracks.length > 0)
-      })
+      // Optimistically update the cached collection and quota.
+      queryClient.setQueryData<PersonalReleasesResponse>(
+        ['vault', 'collection'],
+        (prev) => {
+          const releases = prev?.releases ?? []
+          return {
+            ...prev,
+            releases: releases
+              .map((rel) => {
+                if (rel.id !== parentReleaseId) return rel
+                const updatedTracks = rel.tracks.filter((t) => t.id !== songId)
+                return {
+                  ...rel,
+                  totalTracks: updatedTracks.length,
+                  totalDurationSeconds: updatedTracks.reduce(
+                    (acc, t) => acc + t.durationSeconds,
+                    0,
+                  ),
+                  tracks: updatedTracks,
+                }
+              })
+              .filter((rel) => rel.tracks.length > 0),
+          }
+        },
+      )
 
-      // Update quota locally
-      setQuota((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          usedSongs: Math.max(0, prev.usedSongs - 1),
-          remainingSongs: Math.min(prev.maxSongs, prev.remainingSongs + 1),
-        }
-      })
+      queryClient.setQueryData<{ quota: LockerQuota }>(
+        ['vault', 'quota'],
+        (prev) => {
+          if (!prev?.quota) return prev
+          return {
+            quota: {
+              ...prev.quota,
+              usedSongs: Math.max(0, prev.quota.usedSongs - 1),
+              remainingSongs: Math.min(
+                prev.quota.maxSongs,
+                prev.quota.remainingSongs + 1,
+              ),
+            },
+          }
+        },
+      )
 
       triggerRefresh()
       setDeleteConfirm(null)
       setSuccessMessage('Track moved to recycle bin.')
-      loadTrash()
-      loadPersonalArtists()
+      invalidateVault(['trash', 'artists'])
     } catch (err: any) {
       console.error('Failed to delete personal track:', err)
       setErrorMessage(err.message || 'Failed to delete track')
@@ -595,27 +549,40 @@ function PersonalCollectionManagePage() {
 
       const deletedCount = res.deletedTracks ?? 1
 
-      // Optimistically remove release
-      setPersonalReleases((prev) => prev.filter((r) => r.id !== releaseId))
+      // Optimistically remove the release from the cached collection.
+      queryClient.setQueryData<PersonalReleasesResponse>(
+        ['vault', 'collection'],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                releases: prev.releases.filter((r) => r.id !== releaseId),
+              }
+            : prev,
+      )
 
-      // Update quota locally
-      setQuota((prev) => {
-        if (!prev) return null
-        return {
-          ...prev,
-          usedSongs: Math.max(0, prev.usedSongs - deletedCount),
-          remainingSongs: Math.min(
-            prev.maxSongs,
-            prev.remainingSongs + deletedCount,
-          ),
-        }
-      })
+      // Update the cached quota.
+      queryClient.setQueryData<{ quota: LockerQuota }>(
+        ['vault', 'quota'],
+        (prev) => {
+          if (!prev?.quota) return prev
+          return {
+            quota: {
+              ...prev.quota,
+              usedSongs: Math.max(0, prev.quota.usedSongs - deletedCount),
+              remainingSongs: Math.min(
+                prev.quota.maxSongs,
+                prev.quota.remainingSongs + deletedCount,
+              ),
+            },
+          }
+        },
+      )
 
       triggerRefresh()
       setDeleteConfirm(null)
       setSuccessMessage('Release moved to recycle bin.')
-      loadTrash()
-      loadPersonalArtists()
+      invalidateVault(['trash', 'artists'])
     } catch (err: any) {
       console.error('Failed to delete personal release:', err)
       setErrorMessage(err.message || 'Failed to delete release')
@@ -1039,7 +1006,7 @@ function PersonalCollectionManagePage() {
       setIsUploading(false)
 
       // Refresh collection and quota, trigger global refresh, and switch to collection tab
-      await loadInitialData()
+      invalidateVault(['collection', 'quota', 'trash', 'artists'])
       triggerRefresh()
       handleTabChange('collection')
       setSuccessMessage(
@@ -1147,22 +1114,18 @@ function PersonalCollectionManagePage() {
 
   const vaultManageContext: VaultManageContextValue = {
     trashedSongs,
-    setTrashedSongs,
     trashedReleases,
-    setTrashedReleases,
     isLoadingTrash,
     isRestoring,
     isPurging,
     trashConfirm,
     setTrashConfirm,
-    loadTrash,
     handleRestoreSong,
     handleRestoreRelease,
     handlePermanentDeleteSong,
     handlePermanentDeleteRelease,
     handleEmptyTrash,
     personalArtists,
-    setPersonalArtists,
     isLoadingArtists,
     artistsSearch,
     setArtistsSearch,
@@ -1176,11 +1139,9 @@ function PersonalCollectionManagePage() {
     setIsSubmittingArtist,
     selectedArtistFilter,
     setSelectedArtistFilter,
-    loadPersonalArtists,
     handleCreateArtist,
     filteredArtists,
     personalReleases,
-    setPersonalReleases,
     isLoadingReleases,
     collectionSearch,
     setCollectionSearch,
@@ -1189,7 +1150,6 @@ function PersonalCollectionManagePage() {
     toggleExpandRelease,
     filteredReleases,
     totalPersonalSongs,
-    loadCollection,
     handlePlayPersonalTrack,
     handleQueuePersonalRelease,
     deletingItemId,
@@ -1198,7 +1158,6 @@ function PersonalCollectionManagePage() {
     setDeleteConfirm,
     quota,
     quotaLoading,
-    loadQuota,
     totalSelectedTracks,
     isOverQuota,
     importReleases,

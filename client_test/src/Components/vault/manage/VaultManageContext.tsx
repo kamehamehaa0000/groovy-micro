@@ -39,19 +39,12 @@ export interface NewContainerForm {
 export interface VaultManageContextValue {
   // ── Trash ──────────────────────────────────────────────────────────────
   trashedSongs: TrashedSong[]
-  setTrashedSongs: (
-    value: TrashedSong[] | ((prev: TrashedSong[]) => TrashedSong[]),
-  ) => void
   trashedReleases: TrashedRelease[]
-  setTrashedReleases: (
-    value: TrashedRelease[] | ((prev: TrashedRelease[]) => TrashedRelease[]),
-  ) => void
   isLoadingTrash: boolean
   isRestoring: boolean
   isPurging: boolean
   trashConfirm: TrashConfirm | null
   setTrashConfirm: (value: TrashConfirm | null) => void
-  loadTrash: () => Promise<void>
   handleRestoreSong: (songId: string) => Promise<void>
   handleRestoreRelease: (releaseId: string) => Promise<void>
   handlePermanentDeleteSong: (songId: string) => Promise<void>
@@ -60,9 +53,6 @@ export interface VaultManageContextValue {
 
   // ── Artists ────────────────────────────────────────────────────────────
   personalArtists: PersonalArtist[]
-  setPersonalArtists: (
-    value: PersonalArtist[] | ((prev: PersonalArtist[]) => PersonalArtist[]),
-  ) => void
   isLoadingArtists: boolean
   artistsSearch: string
   setArtistsSearch: (value: string) => void
@@ -76,15 +66,11 @@ export interface VaultManageContextValue {
   setIsSubmittingArtist: (value: boolean | ((prev: boolean) => boolean)) => void
   selectedArtistFilter: string | null
   setSelectedArtistFilter: (value: string | null) => void
-  loadPersonalArtists: () => Promise<void>
   handleCreateArtist: (e: React.FormEvent) => Promise<void>
   filteredArtists: PersonalArtist[]
 
   // ── Collection ─────────────────────────────────────────────────────────
   personalReleases: PersonalRelease[]
-  setPersonalReleases: (
-    value: PersonalRelease[] | ((prev: PersonalRelease[]) => PersonalRelease[]),
-  ) => void
   isLoadingReleases: boolean
   collectionSearch: string
   setCollectionSearch: (value: string) => void
@@ -95,7 +81,6 @@ export interface VaultManageContextValue {
   toggleExpandRelease: (releaseId: string) => void
   filteredReleases: PersonalRelease[]
   totalPersonalSongs: number
-  loadCollection: () => Promise<void>
   handlePlayPersonalTrack: (
     release: PersonalRelease,
     track: PersonalTrack,
@@ -122,7 +107,6 @@ export interface VaultManageContextValue {
   // ── Import desk ───────────────────────────────────────────────────────
   quota: LockerQuota | null
   quotaLoading: boolean
-  loadQuota: () => Promise<void>
   totalSelectedTracks: number
   isOverQuota: boolean
   importReleases: ClusteredRelease[]
