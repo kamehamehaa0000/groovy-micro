@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { useNotificationsStore } from '../stores/notifications.store'
 import { socialApi } from '../lib/social.api'
 import { EmptyState } from '../Components/ui/EmptyState'
+import { Tabs } from '../Components/ui/Tabs'
 import type {
   NotificationResponseItem,
   NotificationFilter,
@@ -220,31 +221,22 @@ function NotificationsPageComponent() {
         </div>
       </section>
 
-      {/* ===================== FILTER PILLS & ACTION BAR ===================== */}
-      <div className="flex items-center justify-between border-b border-border pb-4 gap-3 flex-wrap">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setFilter(tab.id)}
-              className={`font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer shrink-0 ${
-                filter === tab.id
-                  ? 'bg-foreground text-background font-semibold shadow-xs'
-                  : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* ===================== FILTER TABS & ACTION BAR ===================== */}
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+        <Tabs
+          variant="pill"
+          ariaLabel="Notification filters"
+          value={filter}
+          onChange={(next) => setFilter(next as NotificationFilter)}
+          items={filterTabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+        />
 
         {hasUnread && (
           <button
             type="button"
             onClick={handleMarkAll}
             disabled={isMarkingAll}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg flex items-center gap-1.5 shrink-0 shadow-raised"
+            className="flex shrink-0 items-center gap-1.5 rounded-control border border-border bg-card px-3 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
           >
             <svg
               className="w-3 h-3 text-primary"
@@ -252,6 +244,7 @@ function NotificationsPageComponent() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
+              aria-hidden="true"
             >
               <polyline points="20 6 9 17 4 12" />
             </svg>

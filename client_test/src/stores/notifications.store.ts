@@ -34,8 +34,9 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   sseConnected: false,
 
   setFilter: (filter: NotificationFilter) => {
+    // The page watches the filter and fetches. Fetching here as well sent two
+    // requests for every filter change.
     set({ filter });
-    get().fetchNotifications(filter, true);
   },
 
   fetchUnreadCount: async () => {
