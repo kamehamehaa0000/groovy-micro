@@ -90,7 +90,7 @@ export const RadioPill = memo(function RadioPill({
         )}
       >
         <div className="min-w-0">
-          <p className="font-eyebrow text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/60 dark:text-muted-foreground">
+          <p className="font-eyebrow text-eyebrow font-semibold uppercase tracking-[0.16em] text-primary-foreground/60 dark:text-muted-foreground">
             {category}
           </p>
           <h3
