@@ -3,7 +3,6 @@ import {
   Calendar,
   CalendarClock,
   Check,
-  Disc3,
   PartyPopper,
   Plus,
   RotateCcw,
@@ -16,22 +15,16 @@ import { notify } from '../../lib/toast'
 import type { SelectedCredit } from '../ArtistCreditPicker'
 import { parseAudioFile, parseAudioFilesWithPool } from '../../lib/audio-metadata'
 import { catalogApi, formatDuration } from '../../lib/catalog.api'
-import { PRIMARY_GENRES, GENRE_SUBGENRES_MAP } from '../../lib/taxonomy'
 import type { ArtistProfile } from '../../types/artist'
 import type { AlbumType, ReleaseVisibility } from '../../types/catalog'
 import {
   CreditPickerField,
   ExplicitCheckbox,
   FieldLabel,
-  GovernanceToggle,
   MonoInput,
-  MoodChipRow,
-  SelectField,
-  SerifInput,
-  TagChipInput,
-  TextAreaField,
 } from './fields'
 import { TrackListEditor } from './TrackListEditor'
+import { ReleaseDetailsSection } from './release/ReleaseDetailsSection'
 
 interface TrackDraft {
   id: string
@@ -1083,302 +1076,36 @@ export function CreateReleaseDrawer({
           </div>
 
           <form onSubmit={handlePublishRelease} className="space-y-6">
-            {/* Basic Release Metadata */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <FieldLabel>
-                  {releaseType === 'SINGLE'
-                    ? 'Single Title'
-                    : 'Release Title'}{' '}
-                  <span className="text-destructive">*</span>
-                </FieldLabel>
-                <SerifInput
-                  type="text"
-                  required
-                  value={releaseTitle}
-                  onChange={(e) => setReleaseTitle(e.target.value)}
-                  placeholder={
-                    releaseType === 'SINGLE'
-                      ? 'e.g. Autumn in Saint-Germain'
-                      : 'e.g. Kind of Blue, Rue de Sèvres Sessions'
-                  }
-                />
-              </div>
-
-              <div>
-                <FieldLabel>Release Timing</FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setReleaseMode('IMMEDIATE')}
-                    className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center ${
-                      releaseMode === 'IMMEDIATE'
-                        ? 'border-foreground bg-foreground text-background font-semibold'
-                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    Immediate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReleaseMode('SCHEDULED')
-                      if (!scheduledDate) {
-                        const tomorrow = new Date(
-                          Date.now() + 24 * 60 * 60 * 1000,
-                        )
-                        setScheduledDate(
-                          tomorrow.toISOString().split('T')[0],
-                        )
-                        setScheduledTime('00:00')
-                      }
-                    }}
-                    className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-3 border transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
-                      releaseMode === 'SCHEDULED'
-                        ? 'border-foreground bg-foreground text-background font-semibold'
-                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <Calendar className="w-3.5 h-3.5 shrink-0" />
-                    <span>Scheduled Drop</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Scheduled Release Date & Time Settings */}
-            {releaseMode === 'SCHEDULED' && (
-              <div className="p-4 border border-primary/40 bg-primary/5 space-y-3">
-                <div className="flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span>Scheduled Drop & Pre-Save Configuration</span>
-                </div>
-                <p className="font-sans text-caption text-muted-foreground">
-                  Specify when your {releaseType.toLowerCase()}{' '}
-                  officially drops. Listeners can pre-save the release
-                  to their library immediately. Full audio playback
-                  remains locked until this exact timestamp.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <FieldLabel tone="muted" spacing="tight">
-                      Release Date (Local){' '}
-                      <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <MonoInput
-                      type="date"
-                      required
-                      min={new Date().toISOString().split('T')[0]}
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <FieldLabel tone="muted" spacing="tight">
-                      Release Time (Local){' '}
-                      <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <MonoInput
-                      type="time"
-                      required
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Catalog Visibility Tier Selector */}
-            <div>
-              <FieldLabel>Catalog Visibility Tier</FieldLabel>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {[
-                  {
-                    key: 'PUBLIC',
-                    label: 'Public',
-                    desc: 'Discoverable in search, artist profile, and pre-save feeds.',
-                  },
-                  {
-                    key: 'UNLISTED',
-                    label: 'Unlisted',
-                    desc: 'Hidden from search; accessible only via private secret share token link.',
-                  },
-                  {
-                    key: 'PRIVATE',
-                    label: 'Private',
-                    desc: 'Strictly restricted to you and collaborators in Studio.',
-                  },
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() =>
-                      setReleaseVisibility(opt.key as ReleaseVisibility)
-                    }
-                    className={`text-left p-3 border rounded-control transition-colors cursor-pointer ${
-                      releaseVisibility === opt.key
-                        ? 'border-foreground bg-background shadow-raised ring-1 ring-foreground'
-                        : 'border-border bg-card hover:bg-background'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-eyebrow text-caption font-semibold uppercase tracking-wider text-foreground">
-                        {opt.label}
-                      </span>
-                      {releaseVisibility === opt.key && (
-                        <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                      )}
-                    </div>
-                    <p className="font-sans text-eyebrow text-muted-foreground leading-snug">
-                      {opt.desc}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Release Artwork Upload (Square 1:1) */}
-            <div>
-              <FieldLabel spacing="tight">
-                {releaseType === 'SINGLE'
-                  ? 'Single Cover Artwork (Cloudflare R2)'
-                  : 'Release Cover Artwork (Cloudflare R2)'}{' '}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <p className="font-sans text-caption text-muted-foreground mb-2">
-                Square artwork (1:1 ratio), minimum 1400x1400px
-                recommended (JPEG, PNG, or WebP). Stored on Cloudflare
-                R2 edge CDN.
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {releaseCoverPreview || releaseCoverUrl ? (
-                    <img
-                      src={releaseCoverPreview || releaseCoverUrl}
-                      alt="Cover preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Disc3 className="w-8 h-8 text-muted-foreground/40 shrink-0" />
-                  )}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <label className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer inline-flex items-center gap-1.5">
-                      <span>
-                        {isUploadingCover
-                          ? 'Uploading to R2...'
-                          : releaseCoverPreview || releaseCoverUrl
-                            ? 'Replace Artwork'
-                            : 'Upload Cover Artwork'}
-                      </span>
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/*"
-                        disabled={isUploadingCover}
-                        onChange={handleCoverSelect}
-                        className="hidden"
-                      />
-                    </label>
-                    {(releaseCoverPreview || releaseCoverUrl) && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveCover}
-                        className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-2.5 border border-border text-muted-foreground hover:text-destructive hover:border-destructive cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <span className="font-mono text-eyebrow text-muted-foreground inline-flex items-center gap-1">
-                    {releaseCoverPreview || releaseCoverUrl ? (
-                      <>
-                        <Check className="w-3 h-3 shrink-0" />
-                        Artwork attached to release
-                      </>
-                    ) : (
-                      'Official release artwork required'
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Release Taxonomy & Classification */}
-            <div className="space-y-4 pt-2 border-t border-border-soft">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Primary Genre Dropdown */}
-                <div>
-                  <FieldLabel>Primary Genre</FieldLabel>
-                  <SelectField
-                    value={releasePrimaryGenre}
-                    onChange={(e) => {
-                      setReleasePrimaryGenre(e.target.value)
-                      setReleaseSubGenre('')
-                    }}
-                  >
-                    <option value="">Select Primary Genre...</option>
-                    {PRIMARY_GENRES.map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </SelectField>
-                </div>
-
-                {/* Sub-Genre Dropdown (Contextual to Primary Genre) */}
-                <div>
-                  <FieldLabel>Sub-Genre (Optional)</FieldLabel>
-                  <SelectField
-                    value={releaseSubGenre}
-                    onChange={(e) => setReleaseSubGenre(e.target.value)}
-                    disabled={
-                      !releasePrimaryGenre ||
-                      !GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.length
-                    }
-                  >
-                    <option value="">Select Sub-Genre...</option>
-                    {releasePrimaryGenre &&
-                      GENRE_SUBGENRES_MAP[releasePrimaryGenre]?.map(
-                        (sg) => (
-                          <option key={sg} value={sg}>
-                            {sg}
-                          </option>
-                        ),
-                      )}
-                  </SelectField>
-                </div>
-              </div>
-
-              {/* Mood Selection (1-3 optional) */}
-              <MoodChipRow
-                selected={releaseMoods}
-                onChange={setReleaseMoods}
-              />
-
-              {/* Custom Tags */}
-              <TagChipInput tags={releaseTags} onChange={setReleaseTags} />
-            </div>
-
-            {/* Liner Notes & Description */}
-            <div>
-              <FieldLabel>Liner Notes & Description (Optional)</FieldLabel>
-              <TextAreaField
-                rows={2}
-                value={releaseDescription}
-                onChange={(e) => setReleaseDescription(e.target.value)}
-                placeholder="Recording location, inspiration, gear, or credits..."
-              />
-            </div>
-
-            {/* Creator Governance: Comments & Discussions */}
-            <GovernanceToggle
-              checked={releaseAllowComments}
-              onChange={setReleaseAllowComments}
-              title="Discussion &amp; Comments"
-              description="Allow listeners and curators to post comments and replies on this release."
+            <ReleaseDetailsSection
+              releaseType={releaseType}
+              title={releaseTitle}
+              onTitleChange={setReleaseTitle}
+              mode={releaseMode}
+              onModeChange={setReleaseMode}
+              scheduledDate={scheduledDate}
+              onScheduledDateChange={setScheduledDate}
+              scheduledTime={scheduledTime}
+              onScheduledTimeChange={setScheduledTime}
+              visibility={releaseVisibility}
+              onVisibilityChange={setReleaseVisibility}
+              coverPreview={releaseCoverPreview}
+              coverUrl={releaseCoverUrl}
+              isUploadingCover={isUploadingCover}
+              coverInputRef={coverInputRef}
+              onCoverSelect={handleCoverSelect}
+              onRemoveCover={handleRemoveCover}
+              primaryGenre={releasePrimaryGenre}
+              onPrimaryGenreChange={setReleasePrimaryGenre}
+              subGenre={releaseSubGenre}
+              onSubGenreChange={setReleaseSubGenre}
+              moods={releaseMoods}
+              onMoodsChange={setReleaseMoods}
+              tags={releaseTags}
+              onTagsChange={setReleaseTags}
+              description={releaseDescription}
+              onDescriptionChange={setReleaseDescription}
+              allowComments={releaseAllowComments}
+              onAllowCommentsChange={setReleaseAllowComments}
             />
 
             {/* ADAPTIVE SECTION A: SINGLE RELEASE STREAMLINED FLOW */}

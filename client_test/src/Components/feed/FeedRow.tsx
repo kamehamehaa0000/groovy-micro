@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useShallow } from 'zustand/react/shallow'
 import { usePlayerStore } from '../../stores/player.store'
 import { Avatar } from '../../Components/ui'
 import { MusicIconSVG, PauseIconSVG, PlayIconSVG } from '../Icons'
@@ -137,11 +138,23 @@ function PlayControl({
 }
 
 export const FeedRow = memo(function FeedRow({ item }: { item: FeedItem }) {
-  const currentTrackId = usePlayerStore((s) => s.currentTrack?.id)
-  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
-  const playTrack = usePlayerStore((s) => s.playTrack)
-  const togglePlay = usePlayerStore((s) => s.togglePlay)
-  const addToQueue = usePlayerStore((s) => s.addToQueue)
+  // One subscription for the whole row. Five separate selectors meant five
+  // store reads for every row in the feed, and the feed can be long.
+  const {
+    currentTrackId,
+    playbackStatus,
+    playTrack,
+    togglePlay,
+    addToQueue,
+  } = usePlayerStore(
+    useShallow((s) => ({
+      currentTrackId: s.currentTrack?.id,
+      playbackStatus: s.playbackStatus,
+      playTrack: s.playTrack,
+      togglePlay: s.togglePlay,
+      addToQueue: s.addToQueue,
+    })),
+  )
 
   const [queued, setQueued] = useState(false)
   const queueTimer = useRef<number | null>(null)
