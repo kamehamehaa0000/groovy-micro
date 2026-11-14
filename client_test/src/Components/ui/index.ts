@@ -14,8 +14,15 @@ export type { AvatarProps, AvatarSize } from './Avatar'
 export { Card } from './Card'
 export type { CardProps, CardVariant, CardPadding } from './Card'
 
-export { Eyebrow } from './Eyebrow'
-export type { EyebrowProps, EyebrowTone } from './Eyebrow'
+export { Eyebrow } from './typography'
+export type { EyebrowProps, EyebrowTone } from './typography'
+
+export { H1, H2, H3, H4, Subtitle, SectionHeading } from './typography'
+export type {
+  HeadingProps,
+  SubtitleProps,
+  SectionHeadingProps,
+} from './typography'
 
 export { Badge } from './Badge'
 export type { BadgeProps, BadgeTone } from './Badge'

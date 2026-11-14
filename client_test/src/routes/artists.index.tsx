@@ -17,6 +17,7 @@ import {
   ArtistGridSkeleton,
 } from '../Components/artists/ArtistDirectoryStates'
 import { cn } from '../Components/ui/cn'
+import { H1 } from '../Components/ui/typography'
 
 const PAGE_SIZE = 24
 const compactNumber = new Intl.NumberFormat(undefined, {
@@ -61,9 +62,7 @@ const SORT_OPTIONS: SortOption<ArtistSort>[] = [
 export const Route = createFileRoute('/artists/')({
   staticData: { layout: 'wide' },
   component: ArtistsDirectoryComponent,
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): ArtistsSearchParams => {
+  validateSearch: (search: Record<string, unknown>): ArtistsSearchParams => {
     const rawScope = typeof search.scope === 'string' ? search.scope : ''
     const rawSort = typeof search.order === 'string' ? search.order : ''
     const rawDir = typeof search.dir === 'string' ? search.dir : ''
@@ -254,9 +253,9 @@ function ArtistsDirectoryComponent() {
             <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
               Directory
             </p>
-            <h1 className="mt-1 font-serif text-heading text-foreground sm:text-display">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Artists
-            </h1>
+            </H1>
             <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
               Browse artists on Groovy and in your personal collection.
             </p>
@@ -293,7 +292,9 @@ function ArtistsDirectoryComponent() {
                 updateSearch({ order: newSort, dir: undefined }, false)
               }
               direction={dir}
-              onDirectionChange={(newDir) => updateSearch({ dir: newDir }, false)}
+              onDirectionChange={(newDir) =>
+                updateSearch({ dir: newDir }, false)
+              }
             />
           }
         />
@@ -387,7 +388,9 @@ function ArtistsDirectoryComponent() {
                     isFollowing={followedArtistIds.has(artist.id)}
                     isPersonal={isPersonal}
                     subtitle={
-                      isPersonal ? `@${artist.slug}` : `@${artist.slug} · ${listeners}`
+                      isPersonal
+                        ? `@${artist.slug}`
+                        : `@${artist.slug} · ${listeners}`
                     }
                   />
                 )

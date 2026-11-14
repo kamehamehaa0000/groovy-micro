@@ -212,6 +212,10 @@
   --text-eyebrow--line-height: 1rem;
   --text-eyebrow--letter-spacing: 0.05em;
 
+  /* --- Tracking roles ---------------------------------------------------- */
+  /* The wide tracking of an eyebrow label. */
+  --tracking-eyebrow-wide: 0.16em;
+
   /* --- Layout roles ------------------------------------------------------- */
   /* Page widths. The shell owns the gutters; a page only chooses how wide it
      wants to be. `content` is for forms and reading, `default` for detail

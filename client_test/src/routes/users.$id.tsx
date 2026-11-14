@@ -27,7 +27,7 @@ import {
   SkeletonGrid,
 } from '../Components/ui/EmptyState'
 import { SectionTitle } from '../Components/ui/SectionTitle'
-import { H1 } from '../Components/ui/headings'
+import { H1 } from '../Components/ui/typography'
 import { Tabs } from '../Components/ui/Tabs'
 import { FollowButton } from '../Components/social/FollowButton'
 import { PeopleListModal } from '../Components/social/PeopleListModal'
