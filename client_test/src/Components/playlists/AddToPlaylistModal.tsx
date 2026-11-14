@@ -7,7 +7,7 @@ import { useAuthStore } from "../../stores/auth.store";
 import { useAuthModalStore } from "../../stores/auth-modal.store";
 import { playlistsApi } from "../../lib/playlists.api";
 import { notify } from "../../lib/toast";
-import { Button, IconButton } from "../ui";
+import { Button, Modal } from "../ui";
 import { cn } from "../ui/cn";
 import type { Playlist } from "../../types/playlist";
 
@@ -16,7 +16,6 @@ export function AddToPlaylistModal() {
   const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal);
   const { isAuthenticated } = useAuthStore();
   const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
   const flashTimers = useRef<Map<string, number>>(new Map());
 
   const trackCount = tracks.length;
@@ -73,49 +72,8 @@ export function AddToPlaylistModal() {
     };
   }, [isOpen, trackIds, isAuthenticated, closeModal]);
 
-  // Escape to close, focus into the panel, lock body scroll, trap Tab.
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const panel = panelRef.current;
-    panel?.focus({ preventScroll: true });
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeModal();
-        return;
-      }
-      if (event.key !== "Tab" || !panel) return;
-
-      const focusable = panel.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus?.();
-    };
-  }, [isOpen, closeModal]);
+  // Escape to close, focus into the panel, lock body scroll and trap Tab are
+  // all handled by the shared Modal.
 
   useEffect(() => {
     const timers = flashTimers.current;
@@ -272,48 +230,30 @@ export function AddToPlaylistModal() {
     : `${trackCount} tracks${contextLabel ? ` from ${contextLabel}` : ""}`;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4 backdrop-blur-sm animate-in fade-in duration-150"
-      onClick={closeModal}
+    <Modal
+      open
+      onClose={closeModal}
+      size="sm"
+      title={
+        <span id={titleId} className="font-serif italic">
+          Add to Playlist
+        </span>
+      }
+      description={subtitle}
+      footer={
+        <Button size="sm" variant="primary" onClick={closeModal}>
+          Done
+        </Button>
+      }
     >
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        className="relative flex max-h-[85dvh] w-full max-w-sm flex-col overflow-hidden rounded-surface border border-border bg-card shadow-floating outline-none animate-in fade-in zoom-in-95 duration-150"
-      >
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
-          <div className="min-w-0">
-            <h2
-              id={titleId}
-              className="font-serif italic text-heading text-foreground"
-            >
-              Add to Playlist
-            </h2>
-            <p className="mt-0.5 truncate text-caption text-muted-foreground">
-              {subtitle}
-            </p>
-            {isPersonalCut && (
-              <p className="mt-2 flex items-center gap-1.5 text-eyebrow text-warning">
-                <Lock className="h-3 w-3 shrink-0" />
-                Private playlists only
-              </p>
-            )}
-          </div>
-          <IconButton
-            size="sm"
-            aria-label="Close"
-            onClick={closeModal}
-            className="-mt-1 -mr-1.5"
-          >
-            <X className="h-4 w-4" />
-          </IconButton>
-        </div>
+      {isPersonalCut ? (
+        <p className="mb-3 flex items-center gap-1.5 text-eyebrow text-warning">
+          <Lock className="h-3 w-3 shrink-0" />
+          Private playlists only
+        </p>
+      ) : null}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-border">
+      <div className="-mx-5 -my-4 min-h-0 overflow-y-auto overscroll-contain border-t border-border">
           {isLoadingPlaylists ? (
             <div className="divide-y divide-border/60">
               {[0, 1, 2].map((row) => (
@@ -455,14 +395,7 @@ export function AddToPlaylistModal() {
               </button>
             </div>
           )}
-        </div>
-
-        <div className="flex shrink-0 items-center justify-end border-t border-border px-5 py-3">
-          <Button size="sm" variant="primary" onClick={closeModal}>
-            Done
-          </Button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

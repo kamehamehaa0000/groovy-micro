@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { useJamStore } from "../../stores/jam.store";
 import { useAuthStore } from "../../stores/auth.store";
 import type { RoomPrivacy } from "../../types/jam";
+import { Modal } from "../ui/Modal";
+import { Tabs } from "../ui/Tabs";
 
 export function LiveJamModal() {
   const isModalOpen = useJamStore((s) => s.isModalOpen);
@@ -90,73 +92,34 @@ export function LiveJamModal() {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="jam-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    <Modal
+      open
+      onClose={closeModal}
+      eyebrow="Groovy / Live Jam"
+      title={
+        <span id="jam-dialog-title" className="flex items-center gap-2">
+          <span>Live Jam</span>
+          <span className="mb-1 inline-block h-2 w-2 animate-pulse rounded-full bg-success" />
+        </span>
+      }
+      description="Real-time synchronized group listening"
+      size="md"
+      className="max-w-[460px]"
     >
-      {/* Backdrop overlay */}
-      <div
-        className="absolute inset-0 bg-foreground/45 backdrop-blur-[3px] animate-in fade-in duration-150 cursor-pointer"
-        onClick={closeModal}
-      />
-
-      {/* Modal Dialog Card */}
-      <div
-        className="relative w-full max-w-[460px] border border-border bg-background shadow-[0_24px_80px_rgba(23,22,15,0.20)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.6)] animate-in zoom-in-95 duration-150 rounded-control overflow-hidden select-none"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Top rule / Subtitle */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-3 sm:px-6">
-          <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-            Groovy / Live Jam
-          </span>
-
-          <button
-            type="button"
-            onClick={closeModal}
-            aria-label="Close"
-            className="group flex h-7 w-7 items-center justify-center text-muted-foreground transition hover:text-foreground cursor-pointer"
-          >
-            <svg
-              className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"
-              viewBox="0 0 16 16"
-              fill="none"
+      {/* Modal Body */}
+      <div>
+        {/* Error Banner */}
+        {(errorMessage || localError) && (
+          <div className="mb-4 p-3 rounded-control bg-destructive-soft border border-destructive/20 text-destructive flex items-center justify-between font-mono text-eyebrow">
+            <span>{localError || errorMessage}</span>
+            <button
+              type="button"
+              onClick={() => setLocalError(null)}
+              className="text-destructive font-bold ml-2 cursor-pointer"
             >
-              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.1" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-5 sm:p-7">
-          {/* Brand Header */}
-          <div className="mb-5">
-            <div
-              id="jam-dialog-title"
-              className="font-serif text-[26px] italic leading-none tracking-[-0.03em] text-foreground flex items-center gap-2"
-            >
-              <span>Live Jam</span>
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse inline-block mb-1" />
-            </div>
-            <div className="mt-1.5 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-              Real-time synchronized group listening
-            </div>
+              ✕
+            </button>
           </div>
-
-          {/* Error Banner */}
-          {(errorMessage || localError) && (
-            <div className="mb-4 p-3 rounded-control bg-destructive-soft border border-destructive/20 text-destructive flex items-center justify-between font-mono text-eyebrow">
-              <span>{localError || errorMessage}</span>
-              <button
-                type="button"
-                onClick={() => setLocalError(null)}
-                className="text-destructive font-bold ml-2 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
           )}
 
           {/* If user is ALREADY in an active room */}
@@ -283,30 +246,17 @@ export function LiveJamModal() {
           ) : (
             /* Start / Join Tabs */
             <div>
-              <div className="flex rounded-control bg-card p-1 mb-5 border border-border">
-                <button
-                  type="button"
-                  onClick={() => setTab("create")}
-                  className={`flex-1 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-medium rounded-control transition-colors cursor-pointer ${
-                    tab === "create"
-                      ? "bg-foreground text-background shadow-raised"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Start a Jam
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTab("join")}
-                  className={`flex-1 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider font-medium rounded-control transition-colors cursor-pointer ${
-                    tab === "join"
-                      ? "bg-foreground text-background shadow-raised"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Join with Code
-                </button>
-              </div>
+              <Tabs
+                variant="pill"
+                ariaLabel="Start or join a jam"
+                value={tab}
+                onChange={(next) => setTab(next as typeof tab)}
+                className="mb-5"
+                items={[
+                  { id: 'create', label: 'Start a Jam' },
+                  { id: 'join', label: 'Join with Code' },
+                ]}
+              />
 
               {tab === "create" ? (
                 <div className="space-y-4">
@@ -448,8 +398,7 @@ export function LiveJamModal() {
               )}
             </div>
           )}
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { X } from 'lucide-react'
 import { cn } from './cn'
 import { Button } from './Button'
 
@@ -6,11 +7,15 @@ export interface ModalProps {
   open: boolean
   onClose: () => void
   title?: ReactNode
+  /** A small label above the title. */
+  eyebrow?: ReactNode
   description?: ReactNode
   children?: ReactNode
   footer?: ReactNode
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  /** Hides the close button in the header. */
+  hideClose?: boolean
 }
 
 const SIZE = {
@@ -30,21 +35,47 @@ export function Modal({
   open,
   onClose,
   title,
+  eyebrow,
   description,
   children,
   footer,
   size = 'md',
   className,
+  hideClose = false,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!open) return
 
+    const previouslyFocused = document.activeElement as HTMLElement | null
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
         onClose()
+        return
+      }
+
+      // Keep the keyboard inside the dialog.
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+
+      const focusable = panel.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
@@ -59,6 +90,8 @@ export function Modal({
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = previousOverflow
       window.clearTimeout(focusTimer)
+      // Give the focus back to whatever opened the dialog.
+      previouslyFocused?.focus?.()
     }
   }, [open, onClose])
 
@@ -82,16 +115,33 @@ export function Modal({
           className,
         )}
       >
-        {(title || description) && (
-          <div className="border-b border-border px-5 py-4">
-            {title ? (
-              <h2 className="font-serif text-title text-foreground">{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="mt-1 text-caption leading-relaxed text-muted-foreground">
-                {description}
-              </p>
-            ) : null}
+        {(title || description || eyebrow) && (
+          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+            <div className="min-w-0">
+              {eyebrow ? (
+                <p className="mb-0.5 font-eyebrow uppercase tracking-widest text-muted-foreground">
+                  {eyebrow}
+                </p>
+              ) : null}
+              {title ? (
+                <h2 className="font-serif text-title text-foreground">{title}</h2>
+              ) : null}
+              {description ? (
+                <p className="mt-1 text-caption leading-relaxed text-muted-foreground">
+                  {description}
+                </p>
+              ) : null}
+            </div>
+            {hideClose ? null : (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close dialog"
+                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-secondary/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         )}
         {children ? <div className="px-5 py-4">{children}</div> : null}
