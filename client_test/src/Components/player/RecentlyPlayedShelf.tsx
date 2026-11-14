@@ -4,7 +4,7 @@ import { playerApi, type RecentHistoryItem } from '../../lib/player.api'
 import { useAuthStore } from '../../stores/auth.store'
 import { RadioPill } from '../home/RadioPill'
 import { cn } from '../ui/cn'
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 interface RecentlyPlayedShelfProps {
   eyebrow?: string
