@@ -1,20 +1,30 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import {
   Badge,
   Button,
   Card,
+  EmptyState,
+  ErrorState,
   Eyebrow,
   Field,
+  FilterBar,
   IconButton,
   Input,
   SectionHeader,
+  SectionTitle,
   Select,
   Sheet,
+  SkeletonGrid,
+  SortMenu,
   Switch,
+  Tabs,
   Textarea,
 } from '../Components/ui'
+import { ConfirmDialog, Modal } from '../Components/ui/Modal'
+import { SaveBar } from '../Components/ui/SaveBar'
+import { MediaGrid } from '../Components/media/MediaGrid'
 import { cn } from '../Components/ui/cn'
 import { MediaTile } from '../Components/common/MediaTile'
 import type { MediaTileProps } from '../Components/common/MediaTile'
@@ -220,6 +230,9 @@ function DesignPlayground() {
   const [eyebrowMono, setEyebrowMono] = useState(false)
   const [switchOn, setSwitchOn] = useState(true)
   const [switchOff, setSwitchOff] = useState(false)
+  const [tab, setTab] = useState('all')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   if (!import.meta.env.DEV) {
     return (
@@ -802,6 +815,189 @@ function DesignPlayground() {
           </div>
         </div>
       </Sheet>
+
+      {/* The kit that the pages are built from. */}
+      <Section
+        title="The kit"
+        hint="The components the pages are built from. If you need something that is not here, add it here first."
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Tabs</Eyebrow>
+            <div className="flex flex-col gap-3">
+              <Tabs
+                variant="pill"
+                ariaLabel="Pill tabs"
+                value={tab}
+                onChange={(next) => setTab(next as string)}
+                items={[
+                  { id: 'all', label: 'Everything', count: 128 },
+                  { id: 'new', label: 'New' },
+                  { id: 'mine', label: 'Mine' },
+                ]}
+              />
+              <Tabs
+                variant="underline"
+                ariaLabel="Underline tabs"
+                value={tab}
+                onChange={(next) => setTab(next as string)}
+                items={[
+                  { id: 'all', label: 'Everything', count: 128 },
+                  { id: 'new', label: 'New' },
+                  { id: 'mine', label: 'Mine' },
+                ]}
+              />
+              <Tabs
+                variant="mono"
+                ariaLabel="Mono tabs"
+                value={tab}
+                onChange={(next) => setTab(next as string)}
+                items={[
+                  { id: 'all', label: 'Everything', count: 128 },
+                  { id: 'new', label: 'New' },
+                  { id: 'mine', label: 'Mine' },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Empty &amp; error states</Eyebrow>
+            <EmptyState
+              title="Nothing here yet"
+              description="The one way this app says there is nothing to show."
+              action={
+                <Button variant="outline" size="sm">
+                  Do the thing
+                </Button>
+              }
+            />
+            <ErrorState
+              title="That did not work"
+              description="The request could not be completed."
+              onRetry={() => {}}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Loading</Eyebrow>
+            <SkeletonGrid count={4} />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Filter bar</Eyebrow>
+            <FilterBar
+              value={tab}
+              onOptionChange={(next) => setTab(next)}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'playlists', label: 'Playlists' },
+                { value: 'albums', label: 'Albums' },
+              ]}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Sort</Eyebrow>
+            <SortMenu
+              options={[
+                { value: 'recent', label: 'Most recent', defaultDirection: 'desc' },
+                { value: 'name', label: 'Name A–Z', defaultDirection: 'asc' },
+                { value: 'tracks', label: 'Most tracks', defaultDirection: 'desc' },
+              ]}
+              value="recent"
+              onChange={() => {}}
+              direction="desc"
+              onDirectionChange={() => {}}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Section title</Eyebrow>
+            <SectionTitle
+              title="A section"
+              subtitle="With a count and an action."
+              action={
+                <Link to="/" className="font-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                  See all →
+                </Link>
+              }
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Media grid</Eyebrow>
+            <MediaGrid maxColumns={6}>
+              {['Vinyl', 'Tape', 'CD'].map((label) => (
+                <MediaTile
+                  key={label}
+                  title={label}
+                  subtitle="A release"
+                  imageUrl={null}
+                  fallbackInitials={label.slice(0, 2)}
+                />
+              ))}
+            </MediaGrid>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Eyebrow tone="muted">Save bar</Eyebrow>
+            <SaveBar
+              isDirty
+              saveLabel="Save changes"
+              onRevert={() => {}}
+            />
+          </div>
+        </div>
+      </Section>
+
+      {/* The dialogs */}
+      <Section
+        title="Dialogs"
+        hint="One scrim, one panel, one focus trap, one way to dismiss."
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => setModalOpen(true)}>
+            Open dialog
+          </Button>
+          <Button variant="outline" onClick={() => setConfirmOpen(true)}>
+            Open confirmation
+          </Button>
+        </div>
+      </Section>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        eyebrow="Groovy"
+        title="A dialog"
+        description="With an eyebrow, a description and a close button."
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={() => setModalOpen(false)}>
+              Confirm
+            </Button>
+          </>
+        }
+      >
+        <p className="text-body text-muted-foreground">
+          The keyboard stays inside the dialog, Escape closes it, and the focus
+          goes back to whatever opened it.
+        </p>
+      </Modal>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Move to the recycle bin?"
+        description="You can restore it for 30 days."
+        confirmLabel="Move to Trash"
+        tone="danger"
+        onConfirm={() => setConfirmOpen(false)}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }
