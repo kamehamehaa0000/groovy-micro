@@ -109,6 +109,8 @@ export interface ConfirmDialogProps {
   open: boolean
   title: string
   description?: ReactNode
+  /** An icon shown above the title, e.g. a trash can for a destructive ask. */
+  icon?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   tone?: 'default' | 'danger'
@@ -122,6 +124,7 @@ export function ConfirmDialog({
   open,
   title,
   description,
+  icon,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   tone = 'default',
@@ -151,6 +154,18 @@ export function ConfirmDialog({
           </Button>
         </>
       }
-    />
+    >
+      {icon ? (
+        <span
+          aria-hidden="true"
+          className={cn(
+            'mb-3 flex h-9 w-9 items-center justify-center rounded-control border border-border bg-card',
+            tone === 'danger' ? 'text-destructive' : 'text-primary',
+          )}
+        >
+          {icon}
+        </span>
+      ) : null}
+    </Modal>
   )
 }
