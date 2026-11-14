@@ -38,6 +38,8 @@ import { useMediaQuery } from '../lib/useMediaQuery'
 import { shuffleArray } from '../lib/shuffle'
 import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { Heart, Pencil, Plus, PlusCircle, Shuffle } from 'lucide-react'
+import { ConfirmDialog } from '../Components/ui/Modal'
+import { notify } from '../lib/toast'
 
 interface PlaylistSearchParams {
   shareToken?: string
@@ -104,16 +106,13 @@ function PlaylistDetailComponent() {
   const [isAddTracksModalOpen, setIsAddTracksModalOpen] = useState(false)
 
   // In-app alert / confirm modal replacements
-  const [toastNotice, setToastNotice] = useState<{
-    message: string
-    type: 'info' | 'error' | 'success'
-  } | null>(null)
   const showToast = (
     message: string,
     type: 'info' | 'error' | 'success' = 'info',
   ) => {
-    setToastNotice({ message, type })
-    setTimeout(() => setToastNotice(null), 3200)
+    if (type === 'error') notify.error(message)
+    else if (type === 'success') notify.success(message)
+    else notify.info(message)
   }
 
   const [confirmModal, setConfirmModal] = useState<{
@@ -1157,48 +1156,21 @@ function PlaylistDetailComponent() {
 
       {/* Confirmation Modal */}
 
-      {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm border border-border bg-card p-6 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="font-serif italic text-heading text-foreground font-semibold mb-2">
-              {confirmModal.title}
-            </h3>
-            <p className="font-sans text-caption text-muted-foreground leading-relaxed mb-6">
-              {confirmModal.description}
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmModal(null)}
-                className="font-eyebrow text-caption uppercase tracking-wider py-2 px-4 border border-border text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  confirmModal.onConfirm()
-                  setConfirmModal(null)
-                }}
-                className={`font-eyebrow text-caption uppercase tracking-wider py-2 px-5 rounded-xl font-semibold cursor-pointer ${
-                  confirmModal.isDestructive
-                    ? 'bg-destructive text-destructive-foreground hover:bg-destructive/20'
-                    : 'bg-foreground text-background hover:opacity-90'
-                }`}
-              >
-                {confirmModal.confirmLabel || 'Confirm'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmModal !== null}
+        tone={confirmModal?.isDestructive ? 'danger' : 'default'}
+        title={confirmModal?.title ?? ''}
+        description={confirmModal?.description}
+        confirmLabel={confirmModal?.confirmLabel || 'Confirm'}
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          confirmModal?.onConfirm()
+          setConfirmModal(null)
+        }}
+        onCancel={() => setConfirmModal(null)}
+      />
 
       {/* Floating Toast Notification */}
-      {toastNotice && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8rem)] left-1/2 -translate-x-1/2 z-50 bg-foreground text-background font-mono text-caption px-5 py-2.5 rounded-full shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-          {toastNotice.message}
-        </div>
-      )}
     </div>
   )
 }
