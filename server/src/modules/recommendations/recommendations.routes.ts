@@ -172,7 +172,7 @@ export const recommendationRoutes: FastifyPluginAsync = async (fastify) => {
     { preHandler: [optionalAuth] },
     async (request, reply) => {
       const parseResult = recommendationLimitQuerySchema.safeParse(request.query);
-      const limit = parseResult.success ? parseResult.data.limit : 8;
+      const limit = parseResult.success ? parseResult.data.limit : 10;
 
       const result = await recommendationsService.getSimilarArtists(
         request.user?.id || null,

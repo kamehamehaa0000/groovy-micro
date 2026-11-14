@@ -16,10 +16,16 @@ import type { PlayerTrack } from '../types/player'
 import { toPlayerTrack } from '../lib/player-track'
 import { RecentlyPlayedShelf } from '../Components/player/RecentlyPlayedShelf'
 import { MediaTile } from '../Components/common/MediaTile'
-import { ArtistCard } from '../Components/artists/ArtistCard'
 import { SongRow } from '../Components/common/SongRow'
 import { ShelfSection, TrackCarousel } from '../Components/home/ShelfSection'
 import { RadioSection } from '../Components/home/RadioSection'
+import {
+  GlobalHitsSection,
+  NewReleasesSection,
+  SimilarArtistsSection,
+  MoreLikeSongSection,
+  PlaylistsSection,
+} from '../Components/home'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 import { notify } from '../lib/toast'
@@ -62,6 +68,7 @@ function HomeComponent() {
   // Player integration — selected slices only, so a playback tick does not
   // re-render the whole home page.
   const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playbackStatus = usePlayerStore((s) => s.playbackStatus)
   const playTrack = usePlayerStore((s) => s.playTrack)
   const togglePlay = usePlayerStore((s) => s.togglePlay)
 
@@ -355,76 +362,25 @@ function HomeComponent() {
           {/* 1. Recently Played Shelf (Current one, kept untouched) */}
           <RecentlyPlayedShelf limit={9} />
 
-          {/* 4. Global Hits Matching Your Taste */}
-          {feed?.globalHits && feed.globalHits.length > 0 && (
-            <ShelfSection
-              title="Global Hits For You"
-              subtitle="Trending cuts in your favorite genres"
-            >
-              <TrackCarousel>
-                {feed.globalHits.map((track) => (
-                  <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
-                    <MediaTile
-                      to={track.albumSlug ? '/albums/$idOrSlug' : undefined}
-                      params={
-                        track.albumSlug
-                          ? { idOrSlug: track.albumSlug }
-                          : undefined
-                      }
-                      title={track.title}
-                      subtitle={track.artistStageName}
-                      imageUrl={track.coverImageUrl}
-                      artistName={track.artistStageName}
-                      onClick={
-                        !track.albumSlug
-                          ? () =>
-                              handlePlayScoredSong(
-                                track,
-                                feed.globalHits,
-                                'home:hits',
-                                'Global Hits For You',
-                              )
-                          : undefined
-                      }
-                      onPlay={() =>
-                        handlePlayScoredSong(
-                          track,
-                          feed.globalHits,
-                          'home:hits',
-                          'Global Hits For You',
-                        )
-                      }
-                    />
-                  </div>
-                ))}
-              </TrackCarousel>
-            </ShelfSection>
-          )}
+          {/* 2. Global Hits Matching Your Taste */}
+          <GlobalHitsSection
+            tracks={feed?.globalHits}
+            currentTrackId={currentTrack?.id}
+            isPlaying={playbackStatus === 'playing'}
+            onPlayTrack={(track) =>
+              handlePlayScoredSong(
+                track,
+                feed?.globalHits || [],
+                'home:hits',
+                'Global Hits For You',
+              )
+            }
+          />
 
-          {/* 2. New Releases For You */}
-          {feed?.newReleasesForYou && feed.newReleasesForYou.length > 0 && (
-            <ShelfSection
-              title="New Releases For You"
-              subtitle="Fresh albums & singles matching your sonic profile"
-            >
-              <TrackCarousel>
-                {feed.newReleasesForYou.map((album) => (
-                  <div key={album.id} className="w-35 sm:w-42.5 shrink-0">
-                    <MediaTile
-                      to="/albums/$idOrSlug"
-                      params={{ idOrSlug: album.slug }}
-                      title={album.title}
-                      subtitle={`${album.artistStageName || 'Groovy Artist'} · ${album.albumType}`}
-                      imageUrl={album.coverImageUrl}
-                      artistName={album.artistStageName}
-                    />
-                  </div>
-                ))}
-              </TrackCarousel>
-            </ShelfSection>
-          )}
+          {/* 3. New Releases For You */}
+          <NewReleasesSection releases={feed?.newReleasesForYou} />
 
-          {/* 2. New Releases From Followed Artists (Release Radar) */}
+          {/* 4. Release Radar (kept untouched as requested) */}
           {feed?.artistRadar && feed.artistRadar.length > 0 && (
             <ShelfSection
               title="Release Radar"
@@ -449,101 +405,29 @@ function HomeComponent() {
           )}
 
           {/* 5. Similar Artists */}
-          {feed?.similarArtists?.seedArtist &&
-            feed.similarArtists.artists &&
-            feed.similarArtists.artists.length > 0 && (
-              <ShelfSection
-                title={'Similar to ' + feed.similarArtists.seedArtist.stageName}
-                subtitle="Curated artists sharing soundscapes, energy, and subculture"
-                action={{ label: 'Explore Artists', to: '/artists' }}
-              >
-                <TrackCarousel>
-                  {feed.similarArtists.artists.map((artist) => (
-                    <div key={artist.id} className="w-35 sm:w-42.5 shrink-0">
-                      <ArtistCard
-                        name={artist.stageName}
-                        slug={artist.slug}
-                        imageUrl={artist.avatarUrl}
-                        subtitle={artist.primaryGenre || 'Artist'}
-                        isVerified={artist.verified}
-                      />
-                    </div>
-                  ))}
-                </TrackCarousel>
-              </ShelfSection>
-            )}
+          <SimilarArtistsSection
+            seedArtist={feed?.similarArtists?.seedArtist}
+            artists={feed?.similarArtists?.artists}
+          />
 
           {/* 6. More Like Favorite Song */}
-          {feed?.moreLikeSong?.seedSong &&
-            feed.moreLikeSong.tracks &&
-            feed.moreLikeSong.tracks.length > 0 && (
-              <ShelfSection
-                title={'More Like "' + feed.moreLikeSong.seedSong.title + '"'}
-                subtitle="Harmonic continuity matching your repeat spin"
-                action={{ label: 'Explore more', to: '/search' }}
-              >
-                <TrackCarousel>
-                  {feed.moreLikeSong.tracks.map((track) => (
-                    <div key={track.id} className="w-35 sm:w-42.5 shrink-0">
-                      <MediaTile
-                        to={track.albumSlug ? '/albums/$idOrSlug' : undefined}
-                        params={
-                          track.albumSlug
-                            ? { idOrSlug: track.albumSlug }
-                            : undefined
-                        }
-                        title={track.title}
-                        subtitle={track.artistStageName}
-                        imageUrl={track.coverImageUrl}
-                        artistName={track.artistStageName}
-                        onClick={
-                          !track.albumSlug
-                            ? () =>
-                                handlePlayScoredSong(
-                                  track,
-                                  feed.moreLikeSong!.tracks,
-                                  `home:song:${feed.moreLikeSong!.seedSong!.id}`,
-                                  `More Like "${feed.moreLikeSong!.seedSong!.title}"`,
-                                )
-                            : undefined
-                        }
-                        onPlay={() =>
-                          handlePlayScoredSong(
-                            track,
-                            feed.moreLikeSong!.tracks,
-                            `home:song:${feed.moreLikeSong!.seedSong!.id}`,
-                            `More Like "${feed.moreLikeSong!.seedSong!.title}"`,
-                          )
-                        }
-                      />
-                    </div>
-                  ))}
-                </TrackCarousel>
-              </ShelfSection>
-            )}
+          <MoreLikeSongSection
+            seedSong={feed?.moreLikeSong?.seedSong}
+            tracks={feed?.moreLikeSong?.tracks}
+            currentTrackId={currentTrack?.id}
+            isPlaying={playbackStatus === 'playing'}
+            onPlayTrack={(track) =>
+              handlePlayScoredSong(
+                track,
+                feed?.moreLikeSong?.tracks || [],
+                `home:song:${feed?.moreLikeSong?.seedSong?.id}`,
+                `More Like "${feed?.moreLikeSong?.seedSong?.title}"`,
+              )
+            }
+          />
 
           {/* 7. My Saved or Created Playlists */}
-          {feed?.userPlaylists && feed.userPlaylists.length > 0 && (
-            <ShelfSection
-              title="Your Playlists"
-              subtitle="Jump back into your personal and saved playlists"
-            >
-              <TrackCarousel>
-                {feed.userPlaylists.map((pl) => (
-                  <div key={pl.id} className="w-35 sm:w-42.5 shrink-0">
-                    <MediaTile
-                      to="/playlists/$id"
-                      params={{ id: pl.id }}
-                      title={pl.title}
-                      subtitle={`${pl.totalTracks} tracks · ${pl.isOwner ? 'By you' : pl.ownerName}`}
-                      imageUrl={pl.coverImageUrl}
-                      fallbackInitials={pl.title.slice(0, 2).toUpperCase()}
-                    />
-                  </div>
-                ))}
-              </TrackCarousel>
-            </ShelfSection>
-          )}
+          <PlaylistsSection playlists={feed?.userPlaylists} />
 
           {/* Radio Mixes Section */}
           <RadioSection

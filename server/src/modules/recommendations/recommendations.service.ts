@@ -1289,7 +1289,7 @@ export class RecommendationsService {
       this.getNewReleasesForYou(ctx.userId, 8, ctx),
       ctx.userId ? this.getArtistRadar(ctx.userId, 8, ctx) : Promise.resolve([]),
       this.getGlobalHitsForYou(ctx.userId, 8, ctx),
-      this.getSimilarArtists(ctx.userId, 8, ctx),
+      this.getSimilarArtists(ctx.userId, 10, ctx),
       this.getMoreLikeTopArtist(ctx.userId, 8, ctx),
       this.getMoreLikeTopSong(ctx.userId, 8, ctx),
       ctx.userId ? this.getUserPlaylistsSummary(ctx.userId, 8) : Promise.resolve([]),
@@ -1795,7 +1795,7 @@ export class RecommendationsService {
   // =========================================================================
   async getSimilarArtists(
     userId?: string | null,
-    limit: number = 8,
+    limit: number = 10,
     existingCtx?: RecommendationContext
   ): Promise<{
     seedArtist: { id: string; stageName: string; slug: string; avatarUrl: string | null } | null;

@@ -145,7 +145,7 @@ export const recommendationsApi = {
   /**
    * Retrieves artists similar to user's top-played artist.
    */
-  getSimilarArtists: async (limit: number = 8) => {
+  getSimilarArtists: async (limit: number = 10) => {
     const res = await api.get<{
       seedArtist: { id: string; stageName: string; slug: string; avatarUrl: string | null } | null;
       artists: SimilarArtistCard[];
