@@ -6,6 +6,38 @@ let failedQueue: Array<{
   reject: (reason: any) => void;
 }> = [];
 
+/**
+ * The error every failed request throws.
+ *
+ * The server puts the useful parts of a failure in the body — the status
+ * code, the privacy level that blocked a library — and the fetch wrapper used
+ * to throw them away. A page could not tell a 403 from a 404, so a private
+ * library rendered as an empty one.
+ */
+export class ApiError extends Error {
+  /** The HTTP status, taken from the body when the server sends one. */
+  readonly statusCode: number;
+  /** The response body, minus the message. */
+  readonly details: Record<string, unknown>;
+  /** The body's own fields stay addressable: `err.libraryPrivacy`. */
+  readonly [key: string]: unknown;
+
+  constructor(
+    message: string,
+    statusCode: number,
+    details: Record<string, unknown> = {},
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.details = details;
+    for (const [key, value] of Object.entries(details)) {
+      if (key === 'statusCode' || key === 'message') continue;
+      ;(this as unknown as Record<string, unknown>)[key] = value
+    }
+  }
+}
+
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -128,21 +160,36 @@ export async function apiFetch<T = any>(
 
   if (!response.ok) {
     let message = response.statusText;
+    const details: Record<string, unknown> = {};
+
     if (typeof data === "object" && data !== null) {
-      if (data.message) {
+      for (const [key, value] of Object.entries(data)) {
+        details[key] = value;
+      }
+      if (typeof data.message === 'string') {
         message = data.message;
-        if (data.errors && typeof data.errors === "object") {
+        if (data.errors && typeof data.errors === 'object') {
           const detailed = Object.values(data.errors)
             .flat()
             .filter(Boolean)
-            .join("; ");
+            .join('; ');
           if (detailed && !message.includes(detailed)) {
             message = `${message} (${detailed})`;
           }
         }
       }
     }
-    throw new Error(message || `Request failed with status ${response.status}`);
+
+    const statusCode =
+      typeof details.statusCode === 'number'
+        ? details.statusCode
+        : response.status;
+
+    throw new ApiError(
+      message || `Request failed with status ${response.status}`,
+      statusCode,
+      details,
+    );
   }
 
   return data as T;

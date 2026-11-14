@@ -1,323 +1,343 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { usersApi, type PublicUserProfile, type UserLibraryResponse } from "../lib/users.api";
-import { socialApi, type RelationshipStatus } from "../lib/social.api";
-import { useAuthStore } from "../stores/auth.store";
-import { usePlayerStore } from "../stores/player.store";
-import { useAuthModalStore } from "../stores/auth-modal.store";
-import type { PlayerTrack } from "../types/player";
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  LockIconSVG,
-} from "../Components/Icons";
-import { SongRow } from "../Components/common/SongRow";
-import { MediaTile } from "../Components/common/MediaTile";
-import { Tabs } from "../Components/ui/Tabs";
-import { FollowButton } from "../Components/social/FollowButton";
-import { PeopleListModal } from "../Components/social/PeopleListModal";
+  usersApi,
+  type PublicUserProfile,
+} from '../lib/users.api'
+import { socialApi, type RelationshipStatus } from '../lib/social.api'
+import { ApiError } from '../lib/api'
+import { useAuthStore } from '../stores/auth.store'
+import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import { toPlayerTrack } from '../lib/player-track'
+import { notify } from '../lib/toast'
+import { LockIconSVG } from '../Components/Icons'
+import { SongRow } from '../Components/common/SongRow'
+import { MediaTile } from '../Components/common/MediaTile'
+import { PlaylistCover } from '../Components/PlaylistCover'
+import { MediaGrid } from '../Components/media/MediaGrid'
+import { Avatar } from '../Components/ui/Avatar'
+import { Badge } from '../Components/ui/Badge'
+import { ButtonLink } from '../Components/ui/ButtonLink'
+import {
+  EmptyState,
+  ErrorState,
+  Skeleton,
+  SkeletonGrid,
+} from '../Components/ui/EmptyState'
+import { SectionTitle } from '../Components/ui/SectionTitle'
+import { H1 } from '../Components/ui/headings'
+import { Tabs } from '../Components/ui/Tabs'
+import { FollowButton } from '../Components/social/FollowButton'
+import { PeopleListModal } from '../Components/social/PeopleListModal'
 
-export const Route = createFileRoute("/users/$id")({
+type LibraryTab = 'playlists' | 'albums' | 'liked'
+
+export const Route = createFileRoute('/users/$id')({
+  // The tab is part of the address, so a section can be linked to and the
+  // back button works.
+  validateSearch: (search: Record<string, unknown>): { tab?: LibraryTab } => {
+    const tab = search.tab
+    return {
+      tab:
+        tab === 'playlists' || tab === 'albums' || tab === 'liked'
+          ? tab
+          : undefined,
+    }
+  },
   component: UserProfileComponent,
-});
+})
 
 function formatDate(dateStr?: string | Date) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 function UserProfileComponent() {
-  const { id } = Route.useParams();
-  const currentUser = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { openAuthModal } = useAuthModalStore();
+  const { id } = Route.useParams()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const currentUser = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
   // Selected slices only: a whole-store subscription re-rendered this page on
   // every playback tick.
-  const currentTrack = usePlayerStore((s) => s.currentTrack);
-  const playTrack = usePlayerStore((s) => s.playTrack);
-  const togglePlay = usePlayerStore((s) => s.togglePlay);
+  const currentTrack = usePlayerStore((s) => s.currentTrack)
+  const playTrack = usePlayerStore((s) => s.playTrack)
+  const togglePlay = usePlayerStore((s) => s.togglePlay)
 
-  const [profile, setProfile] = useState<PublicUserProfile | null>(null);
-  const [relationship, setRelationship] = useState<RelationshipStatus>("NONE");
-  const [library, setLibrary] = useState<UserLibraryResponse | null>(null);
-  const [libraryError, setLibraryError] = useState<{
-    isForbidden: boolean;
-    privacy: "PRIVATE" | "FOLLOWERS_ONLY" | "PUBLIC";
-    message: string;
-  } | null>(null);
+  const [isActing, setIsActing] = useState(false)
+  const [peopleList, setPeopleList] = useState<
+    'followers' | 'following' | null
+  >(null)
 
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [isLoadingLibrary, setIsLoadingLibrary] = useState(true);
-  const [isActing, setIsActing] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"playlists" | "albums" | "liked">("playlists");
-  const [peopleList, setPeopleList] = useState<"followers" | "following" | null>(
-    null,
-  );
+  const search = Route.useSearch()
+  const activeTab: LibraryTab = search.tab ?? 'playlists'
 
-  const isOwnProfile = currentUser?.id === id || relationship === "SELF";
+  // The tab lives in the address, so a section can be linked to and the back
+  // button works.
+  const setTab = (tab: LibraryTab) => {
+    navigate({
+      to: '/users/$id',
+      params: { id },
+      search: { tab },
+    })
+  }
 
-  // Fetch Profile & Relationship
-  const fetchProfile = async () => {
-    setIsLoadingProfile(true);
-    setProfileError(null);
-    try {
-      const res = await usersApi.getUserProfile(id);
-      setProfile(res.user);
-      setRelationship(res.relationship);
-    } catch (err: any) {
-      console.warn("[UserProfile] Failed to load user profile:", err);
-      // Without this the page rendered nothing at all on a server error.
-      setProfileError(
-        err?.statusCode === 404
-          ? "This profile could not be found."
-          : err?.message || "This profile could not be loaded.",
-      );
-      setProfile(null);
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
+  const profileQuery = useQuery({
+    queryKey: ['users', id],
+    queryFn: () => usersApi.getUserProfile(id),
+    staleTime: 60_000,
+  })
 
-  // Fetch Shared Library
-  const fetchLibrary = async () => {
-    setIsLoadingLibrary(true);
-    setLibraryError(null);
-    try {
-      const res = await usersApi.getUserLibrary(id);
-      setLibrary(res);
-    } catch (err: any) {
-      if (err.statusCode === 403) {
-        setLibraryError({
-          isForbidden: true,
-          privacy: err.libraryPrivacy || "PRIVATE",
-          message: err.message || "This library is private.",
-        });
-      } else {
-        console.warn("[UserProfile] Failed to load user library:", err);
-      }
-      setLibrary(null);
-    } finally {
-      setIsLoadingLibrary(false);
-    }
-  };
+  const libraryQuery = useQuery({
+    queryKey: ['users', id, 'library'],
+    queryFn: () => usersApi.getUserLibrary(id),
+    // A private library is an answer, not a transient failure.
+    retry: false,
+    staleTime: 60_000,
+  })
 
-  useEffect(() => {
-    fetchProfile();
-    fetchLibrary();
-  }, [id, isAuthenticated]);
+  const profile = profileQuery.data?.user ?? null
+  const relationship = profileQuery.data?.relationship ?? 'NONE'
+
+  // The server answers a private library with a 403 and the privacy level
+  // that blocked it. The fetch wrapper keeps both.
+  const libraryPrivacy = useMemo(() => {
+    const error = libraryQuery.error
+    if (!(error instanceof ApiError) || error.statusCode !== 403) return null
+    const privacy = error.libraryPrivacy
+    return privacy === 'FOLLOWERS_ONLY' || privacy === 'PUBLIC'
+      ? privacy
+      : 'PRIVATE'
+  }, [libraryQuery.error])
+
+  const isOwnProfile = currentUser?.id === id || relationship === 'SELF'
+
+  // The relationship and the follower count live in the query cache, so the
+  // header never disagrees with what the server just said.
+  const setRelationship = (
+    next: RelationshipStatus,
+    followerDelta: number,
+  ) => {
+    queryClient.setQueryData<{
+      user: PublicUserProfile
+      relationship: RelationshipStatus
+    }>(['users', id], (prev) =>
+      prev
+        ? {
+            user: {
+              ...prev.user,
+              followersCount: Math.max(
+                0,
+                prev.user.followersCount + followerDelta,
+              ),
+            },
+            relationship: next,
+          }
+        : prev,
+    )
+  }
+
+  const refreshLibrary = () => {
+    void queryClient.invalidateQueries({ queryKey: ['users', id, 'library'] })
+  }
 
   // Social Action Handlers
   const handleFollowAction = async () => {
     if (!isAuthenticated) {
-      openAuthModal();
-      return;
+      openAuthModal()
+      return
     }
-    setIsActing(true);
+    setIsActing(true)
     try {
-      if (relationship === "FOLLOWING" || relationship === "FRIENDS" || relationship === "PENDING_SENT") {
+      if (
+        relationship === 'FOLLOWING' ||
+        relationship === 'FRIENDS' ||
+        relationship === 'PENDING_SENT'
+      ) {
         // Unfollow or Cancel Request
-        await socialApi.unfollowUser(id);
-        setRelationship("NONE");
-        setProfile((prev) => prev ? { ...prev, followersCount: Math.max(0, prev.followersCount - 1) } : prev);
-        // Refresh library to reflect new privacy gating
-        fetchLibrary();
+        await socialApi.unfollowUser(id)
+        setRelationship('NONE', -1)
+        // The library may have been unlocked by the follow, or locked again.
+        refreshLibrary()
       } else {
         // Follow target
-        const res = await socialApi.followUser(id);
-        if (res.status === "PENDING") {
-          setRelationship("PENDING_SENT");
+        const res = await socialApi.followUser(id)
+        if (res.status === 'PENDING') {
+          setRelationship('PENDING_SENT', 0)
         } else {
-          setRelationship(res.isMutualFriend ? "FRIENDS" : "FOLLOWING");
-          setProfile((prev) => prev ? { ...prev, followersCount: prev.followersCount + 1 } : prev);
-          // Unlock library immediately if it was followers-only!
-          fetchLibrary();
+          setRelationship(res.isMutualFriend ? 'FRIENDS' : 'FOLLOWING', 1)
+          refreshLibrary()
         }
       }
-    } catch (err: any) {
-      console.error("[UserProfile] Follow action failed:", err);
+    } catch (err: unknown) {
+      notify.error(
+        err instanceof Error ? err.message : 'Could not update that follow.',
+      )
     } finally {
-      setIsActing(false);
+      setIsActing(false)
     }
-  };
+  }
 
   const handleAcceptRequest = async () => {
-    setIsActing(true);
+    setIsActing(true)
     try {
-      const res = await socialApi.acceptRequest(id);
-      setRelationship(res.isMutualFriend ? "FRIENDS" : "FOLLOWING");
-      fetchLibrary();
-    } catch (err) {
-      console.error("[UserProfile] Accept request failed:", err);
+      const res = await socialApi.acceptRequest(id)
+      setRelationship(res.isMutualFriend ? 'FRIENDS' : 'FOLLOWING', 1)
+      refreshLibrary()
+    } catch (err: unknown) {
+      notify.error(
+        err instanceof Error ? err.message : 'Could not accept that request.',
+      )
     } finally {
-      setIsActing(false);
+      setIsActing(false)
     }
-  };
+  }
 
   const handleRejectRequest = async () => {
-    setIsActing(true);
+    setIsActing(true)
     try {
-      await socialApi.rejectRequest(id);
-      setRelationship("NONE");
-    } catch (err) {
-      console.error("[UserProfile] Reject request failed:", err);
+      await socialApi.rejectRequest(id)
+      setRelationship('NONE', 0)
+    } catch (err: unknown) {
+      notify.error(
+        err instanceof Error ? err.message : 'Could not decline that request.',
+      )
     } finally {
-      setIsActing(false);
+      setIsActing(false)
     }
-  };
+  }
 
-  // Play a track from Liked Songs
-  const handlePlayLikedSong = (item: any, index: number) => {
-    if (!library?.likedSongs?.items) return;
-    const isThisPlaying = currentTrack?.id === item.id;
-    if (isThisPlaying) {
-      togglePlay();
-      return;
+  // The liked songs become player tracks once, not on every render.
+  const likedTracks = useMemo(
+    () =>
+      (libraryQuery.data?.likedSongs.items ?? []).map((song) =>
+        toPlayerTrack({
+          id: song.id,
+          title: song.title,
+          artistId: song.artistId,
+          artistName: song.artistName,
+          artistSlug: song.artistSlug,
+          coverImageUrl: song.coverImageUrl,
+          durationSeconds: song.durationSeconds,
+          audioUrl: song.audioUrl,
+          isExplicit: song.isExplicit,
+        }),
+      ),
+    [libraryQuery.data?.likedSongs.items],
+  )
+
+  const handlePlayLikedSong = (index: number) => {
+    const track = likedTracks[index]
+    if (!track) return
+    if (currentTrack?.id === track.id) {
+      togglePlay()
+      return
     }
-
-    const playerTrackList: PlayerTrack[] = library.likedSongs.items.map((t) => ({
-      id: t.id,
-      title: t.title,
-      artistId: t.artistId,
-      artistName: t.artistName,
-      artistSlug: t.artistSlug,
-      albumId: "",
-      albumTitle: "",
-      coverImageUrl: t.coverImageUrl,
-      durationSeconds: t.durationSeconds,
-      audioUrl: t.audioUrl,
-      isExplicit: t.isExplicit,
-    }));
-
     playTrack(
-      playerTrackList[index],
-      playerTrackList,
+      track,
+      likedTracks,
       index,
       `user-library-liked:${id}`,
-      `${profile?.displayName}'s Liked Tracks`
-    );
-  };
+      `${profile?.displayName}'s Liked Tracks`,
+    )
+  }
 
-  if (isLoadingProfile) {
+  if (profileQuery.isLoading) {
     return (
-      <div className="py-12">
-        <div className="animate-pulse space-y-6">
-          <div className="flex items-center gap-6 pb-8 border-b border-border">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-secondary/20" />
-            <div className="space-y-3 flex-1">
-              <div className="h-4 bg-secondary/20 rounded-control w-24" />
-              <div className="h-8 bg-secondary/20 rounded-control w-64" />
-              <div className="h-4 bg-secondary/20 rounded-control w-48" />
-            </div>
-          </div>
-          <div className="h-10 bg-secondary/20 rounded-control w-72" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 bg-secondary/20 rounded-control" />
-            ))}
+      <div className="space-y-6">
+        <div className="flex items-center gap-6 border-b border-border pb-8">
+          <Skeleton className="h-24 w-24 rounded-full sm:h-32 sm:w-32" />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
           </div>
         </div>
+        <Skeleton className="h-10 w-72" />
+        <SkeletonGrid count={8} itemClassName="aspect-square" />
       </div>
-    );
+    )
   }
 
   if (!profile) {
+    const isNotFound =
+      profileQuery.error instanceof ApiError &&
+      profileQuery.error.statusCode === 404
+
     return (
-      <div className="mx-auto max-w-2xl py-20 text-center">
-        <div className="font-serif text-3xl text-foreground mb-3">
-          {profileError ? 'Something went wrong' : 'User Not Found'}
-        </div>
-        <p className="font-sans text-body text-muted-foreground mb-6">
-          {profileError ??
-            'The listener or artist profile you are looking for does not exist or has been deactivated.'}
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          {profileError && (
-            <button
-              type="button"
-              onClick={fetchProfile}
-              className="bg-foreground text-background font-eyebrow text-caption uppercase tracking-wider px-6 py-3 border border-foreground transition-opacity hover:opacity-90"
-            >
-              Try again
-            </button>
-          )}
-          <Link
-            to="/"
-            className="inline-block border border-border font-eyebrow text-caption uppercase tracking-wider px-6 py-3 text-foreground transition-colors hover:border-foreground"
-          >
-            Return Home
-          </Link>
-        </div>
-      </div>
-    );
+      <ErrorState
+        title={isNotFound ? 'User not found' : 'Something went wrong'}
+        description={
+          isNotFound
+            ? 'This listener or artist profile does not exist, or has been deactivated.'
+            : profileQuery.error instanceof Error
+              ? profileQuery.error.message
+              : 'The profile could not be loaded.'
+        }
+        // Retrying a missing profile only ever fails again.
+        onRetry={
+          isNotFound ? undefined : () => void profileQuery.refetch()
+        }
+        className="mx-auto max-w-xl"
+      />
+    )
   }
 
-  const createdCount = library?.createdPlaylists?.length || 0;
-  const savedPlaylistsCount = library?.savedPlaylists?.length || 0;
-  const totalPlaylistsCount = createdCount + savedPlaylistsCount;
-  const savedAlbumsCount = (library?.savedAlbums?.length || 0) + (library?.presavedReleases?.length || 0);
-  const likedSongsCount = library?.likedSongs?.totalCount || 0;
+  const library = libraryQuery.data
+  const createdCount = library?.createdPlaylists.length ?? 0
+  const savedPlaylistsCount = library?.savedPlaylists.length ?? 0
+  const totalPlaylistsCount = createdCount + savedPlaylistsCount
+  const savedAlbumsCount =
+    (library?.savedAlbums.length ?? 0) +
+    (library?.presavedReleases.length ?? 0)
+  const likedSongsCount = library?.likedSongs.totalCount ?? 0
 
   return (
-    <div className="select-none">
-      {/* Back breadcrumb */}
-      <div className="mb-6">
-        <Link
-          to="/feed"
-          className="inline-flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span>← Back to Community</span>
-        </Link>
-      </div>
-
+    <div>
       {/* User Hero Header */}
-      <div className="border border-border bg-card p-6 sm:p-8 shadow-xs mb-8">
+      <div className="p-6 sm:p-8 mb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
           {/* Avatar */}
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-muted border-2 border-border overflow-hidden shrink-0 flex items-center justify-center font-mono text-3xl sm:text-4xl font-semibold text-muted-foreground shadow-inner">
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              profile.displayName[0]?.toUpperCase() || "U"
-            )}
-          </div>
+          <Avatar
+            src={profile.avatarUrl}
+            name={profile.displayName}
+            size="hero"
+            className="border-2 sm:h-32 sm:w-32"
+          />
 
           {/* User Bio & Actions */}
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
-              <span className="bg-background border border-border text-muted-foreground font-eyebrow text-eyebrow uppercase tracking-widest px-2.5 py-0.5 rounded-full">
-                {profile.role}
-              </span>
               {profile.isPrivateAccount && (
-                <span className="flex items-center gap-1 bg-secondary/20 text-muted-foreground font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                <Badge tone="neutral">
                   <LockIconSVG className="w-2.5 h-2.5" />
                   Private Account
-                </span>
+                </Badge>
               )}
-              {relationship === "FRIENDS" && (
-                <span className="flex items-center gap-1 bg-success-soft text-success border border-success/20 font-eyebrow text-eyebrow uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+              {relationship === 'FRIENDS' && (
+                <Badge tone="success">
                   <span className="w-1.5 h-1.5 rounded-full bg-success" />
                   Mutual Friends
-                </span>
+                </Badge>
               )}
             </div>
 
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-semibold mb-2">
-              {profile.displayName}
-            </h1>
+            <H1>{profile.displayName}</H1>
 
             <p className="font-mono text-eyebrow text-muted-foreground mb-6">
               Member since {formatDate(profile.createdAt)}
             </p>
 
             {/* Metrics Strip */}
-            <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-8 border-t border-border/60 pt-4">
+            <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-8">
               <button
                 type="button"
                 onClick={() => setPeopleList('followers')}
@@ -330,7 +350,7 @@ function UserProfileComponent() {
                   Followers
                 </span>
               </button>
-              <div className="h-6 w-px bg-border" />
+
               <button
                 type="button"
                 onClick={() => setPeopleList('following')}
@@ -343,27 +363,34 @@ function UserProfileComponent() {
                   Following
                 </span>
               </button>
-              <div className="h-6 w-px bg-border" />
-              <div>
-                <span className="font-mono text-title sm:text-lg font-bold text-foreground block">
+
+              <button
+                type="button"
+                onClick={() => setTab('playlists')}
+                className="group cursor-pointer rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <span className="font-mono text-title sm:text-lg font-bold text-foreground block transition-colors group-hover:text-primary">
                   {profile.publicPlaylistsCount}
                 </span>
-                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
+                <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors group-hover:text-foreground">
                   Playlists
                 </span>
-              </div>
+              </button>
             </div>
           </div>
 
           {/* Social Relationship Action Button */}
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="w-full shrink-0 flex items-center gap-3 sm:w-auto">
             {isOwnProfile ? (
-              <Link
+              <ButtonLink
                 to="/profile"
-                className="bg-background border border-border text-foreground hover:border-foreground font-eyebrow text-caption uppercase tracking-wider px-5 py-2.5 transition-colors shadow-raised"
+                variant="outline"
+                size="md"
+                block
+                className="sm:w-auto"
               >
                 Edit Profile
-              </Link>
+              </ButtonLink>
             ) : (
               <FollowButton
                 relationship={relationship}
@@ -372,6 +399,8 @@ function UserProfileComponent() {
                 onFollow={handleFollowAction}
                 onAccept={handleAcceptRequest}
                 onDecline={handleRejectRequest}
+                block
+                className="sm:w-auto"
               />
             )}
           </div>
@@ -380,41 +409,44 @@ function UserProfileComponent() {
 
       {/* Shared Library Section */}
       <div>
-        {/* If Library is Forbidden */}
-        {libraryError?.isForbidden ? (
-          <div className="border border-border bg-card p-8 sm:p-12 text-center shadow-xs">
+        {libraryPrivacy ? (
+          <div className="border border-border bg-card p-8 sm:p-12 text-center shadow-raised">
             <div className="w-12 h-12 rounded-full bg-secondary/20 border border-border flex items-center justify-center mx-auto mb-4 text-muted-foreground">
               <LockIconSVG className="w-6 h-6" />
             </div>
-            <h3 className="font-serif italic text-2xl text-foreground mb-2">
-              {libraryError.privacy === "FOLLOWERS_ONLY"
-                ? "Followers-Only Library"
-                : "Private Library"}
+            <h3 className="font-serif text-2xl text-foreground mb-2">
+              {libraryPrivacy === 'FOLLOWERS_ONLY'
+                ? 'Followers-Only Library'
+                : 'Private Library'}
             </h3>
             <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
-              {libraryError.privacy === "FOLLOWERS_ONLY"
+              {libraryPrivacy === 'FOLLOWERS_ONLY'
                 ? `Follow ${profile.displayName} to unlock access to their shared playlists, saved albums, and liked tracks.`
                 : `${profile.displayName} has chosen to keep their music library private.`}
             </p>
 
-            {libraryError.privacy === "FOLLOWERS_ONLY" && (
-              <div>
-                <FollowButton
-                  relationship={relationship}
-                  isPrivateAccount={profile.isPrivateAccount}
-                  isActing={isActing}
-                  onFollow={handleFollowAction}
-                  followLabel="Follow to Unlock"
-                />
-              </div>
+            {libraryPrivacy === 'FOLLOWERS_ONLY' && (
+              <FollowButton
+                relationship={relationship}
+                isPrivateAccount={profile.isPrivateAccount}
+                isActing={isActing}
+                onFollow={handleFollowAction}
+                followLabel="Follow to Unlock"
+              />
             )}
           </div>
-        ) : isLoadingLibrary ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-pulse">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 bg-secondary/20 rounded-control" />
-            ))}
-          </div>
+        ) : libraryQuery.isLoading ? (
+          <SkeletonGrid count={8} itemClassName="aspect-square" />
+        ) : libraryQuery.isError ? (
+          <ErrorState
+            title="The library could not be loaded"
+            description={
+              libraryQuery.error instanceof Error
+                ? libraryQuery.error.message
+                : 'The request could not be completed.'
+            }
+            onRetry={() => void libraryQuery.refetch()}
+          />
         ) : library ? (
           <div>
             {/* Library Navigation Tabs */}
@@ -422,30 +454,40 @@ function UserProfileComponent() {
               variant="underline"
               ariaLabel="Library sections"
               value={activeTab}
-              onChange={(next) => setActiveTab(next as typeof activeTab)}
+              onChange={(next) => setTab(next as LibraryTab)}
               className="mb-6"
               items={[
-                { id: 'playlists', label: 'Playlists', count: totalPlaylistsCount },
-                { id: 'albums', label: 'Albums & Releases', count: savedAlbumsCount },
+                {
+                  id: 'playlists',
+                  label: 'Playlists',
+                  count: totalPlaylistsCount,
+                },
+                {
+                  id: 'albums',
+                  label: 'Albums & Releases',
+                  count: savedAlbumsCount,
+                },
                 { id: 'liked', label: 'Liked Songs', count: likedSongsCount },
               ]}
             />
 
             {/* TAB 1: PLAYLISTS */}
-            {activeTab === "playlists" && (
+            {activeTab === 'playlists' && (
               <div className="space-y-10">
                 {/* Created Playlists */}
                 <div>
-                  <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-4">
-                    Created by {profile.displayName} ({createdCount})
-                  </h3>
+                  <SectionTitle
+                    title={`Created by ${profile.displayName}`}
+                    subtitle={`${createdCount} public ${createdCount === 1 ? 'playlist' : 'playlists'}`}
+                  />
 
                   {createdCount === 0 ? (
-                    <div className="border border-border bg-card p-8 text-center text-caption text-muted-foreground">
-                      No public playlists created yet.
-                    </div>
+                    <EmptyState
+                      title="No public playlists yet"
+                      description={`${profile.displayName} has not published a playlist.`}
+                    />
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                    <MediaGrid maxColumns={6}>
                       {library.createdPlaylists.map((pl) => (
                         <MediaTile
                           key={pl.id}
@@ -453,48 +495,62 @@ function UserProfileComponent() {
                           params={{ id: pl.id }}
                           title={pl.title}
                           subtitle={`${pl.tracksCount} tracks · ${pl.savesCount} saves`}
-                          imageUrl={pl.coverImageUrl}
+                          customCover={
+                            <PlaylistCover
+                              coverImageUrl={pl.coverImageUrl}
+                              title={pl.title}
+                              className="w-full h-full"
+                            />
+                          }
                           fallbackInitials="♫"
                         />
                       ))}
-                    </div>
+                    </MediaGrid>
                   )}
                 </div>
 
                 {/* Saved Playlists */}
                 {savedPlaylistsCount > 0 && (
                   <div>
-                    <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-4">
-                      Saved Playlists ({savedPlaylistsCount})
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                    <SectionTitle
+                      title="Saved Playlists"
+                      subtitle={`${savedPlaylistsCount} ${savedPlaylistsCount === 1 ? 'playlist' : 'playlists'} ${profile.displayName} kept`}
+                    />
+                    <MediaGrid maxColumns={6}>
                       {library.savedPlaylists.map((pl) => (
                         <MediaTile
                           key={pl.id}
                           to="/playlists/$id"
                           params={{ id: pl.id }}
                           title={pl.title}
-                          subtitle={`By ${pl.ownerName || "Curator"} · ${pl.tracksCount} tracks`}
-                          imageUrl={pl.coverImageUrl}
+                          subtitle={`By ${pl.ownerName || 'Curator'} · ${pl.tracksCount} tracks`}
+                          customCover={
+                            <PlaylistCover
+                              coverImageUrl={pl.coverImageUrl}
+                              title={pl.title}
+                              className="w-full h-full"
+                            />
+                          }
                           fallbackInitials="♫"
                         />
                       ))}
-                    </div>
+                    </MediaGrid>
                   </div>
                 )}
               </div>
             )}
 
             {/* TAB 2: ALBUMS & RELEASES */}
-            {activeTab === "albums" && (
+            {activeTab === 'albums' && (
               <div className="space-y-10">
                 {/* Upcoming Pre-saved Releases */}
-                {library.presavedReleases?.length > 0 && (
+                {library.presavedReleases.length > 0 && (
                   <div>
-                    <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-4">
-                      Pre-Saved Drops ({library.presavedReleases.length})
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                    <SectionTitle
+                      title="Pre-Saved Drops"
+                      subtitle={`${library.presavedReleases.length} upcoming ${library.presavedReleases.length === 1 ? 'release' : 'releases'}`}
+                    />
+                    <MediaGrid maxColumns={6}>
                       {library.presavedReleases.map((album) => (
                         <MediaTile
                           key={album.id}
@@ -511,22 +567,24 @@ function UserProfileComponent() {
                           }
                         />
                       ))}
-                    </div>
+                    </MediaGrid>
                   </div>
                 )}
 
                 {/* Saved Albums */}
                 <div>
-                  <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-4">
-                    Saved Albums ({library.savedAlbums?.length || 0})
-                  </h3>
+                  <SectionTitle
+                    title="Saved Albums"
+                    subtitle={`${library.savedAlbums.length} ${library.savedAlbums.length === 1 ? 'album' : 'albums'} in the library`}
+                  />
 
-                  {!library.savedAlbums || library.savedAlbums.length === 0 ? (
-                    <div className="border border-border bg-card p-8 text-center text-caption text-muted-foreground">
-                      No saved albums found in library.
-                    </div>
+                  {library.savedAlbums.length === 0 ? (
+                    <EmptyState
+                      title="No saved albums"
+                      description="Nothing has been saved to this library yet."
+                    />
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                    <MediaGrid maxColumns={6}>
                       {library.savedAlbums.map((album) => (
                         <MediaTile
                           key={album.id}
@@ -538,50 +596,37 @@ function UserProfileComponent() {
                           artistName={album.artistName}
                         />
                       ))}
-                    </div>
+                    </MediaGrid>
                   )}
                 </div>
               </div>
             )}
 
             {/* TAB 3: LIKED SONGS */}
-            {activeTab === "liked" && (
+            {activeTab === 'liked' && (
               <div>
-                <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mb-4">
-                  Recent Liked Songs ({library.likedSongs?.items?.length || 0})
-                </h3>
+                <SectionTitle
+                  title="Recent Liked Songs"
+                  subtitle={`${likedTracks.length} ${likedTracks.length === 1 ? 'track' : 'tracks'} in the library`}
+                />
 
-                {!library.likedSongs?.items || library.likedSongs.items.length === 0 ? (
-                  <div className="border border-border bg-card p-8 text-center text-caption text-muted-foreground">
-                    No public liked tracks in this library.
-                  </div>
+                {likedTracks.length === 0 ? (
+                  <EmptyState
+                    title="No public liked songs"
+                    description={`${profile.displayName} has not made any likes public.`}
+                  />
                 ) : (
-                  <div className="border border-border bg-card shadow-xs divide-y divide-border">
-                    {library.likedSongs.items.map((song, index) => {
-                      const playerTrackData: PlayerTrack = {
-                        id: song.id,
-                        title: song.title,
-                        artistId: song.artistId,
-                        artistName: song.artistName,
-                        artistSlug: song.artistSlug,
-                        albumId: "",
-                        albumTitle: "",
-                        coverImageUrl: song.coverImageUrl,
-                        durationSeconds: song.durationSeconds,
-                        audioUrl: song.audioUrl,
-                        isExplicit: song.isExplicit,
-                      };
-
-                      return (
-                        <SongRow
-                          key={song.id}
-                          track={playerTrackData}
-                          index={index}
-                          variant="standard"
-                          onPlay={() => handlePlayLikedSong(song, index)}
-                        />
-                      );
-                    })}
+                  <div className="overflow-hidden rounded-surface">
+                    {likedTracks.map((track, index) => (
+                      <SongRow
+                        key={track.id}
+                        track={track}
+                        index={index}
+                        variant="standard"
+                        surface="transparent"
+                        onPlay={() => handlePlayLikedSong(index)}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -590,15 +635,13 @@ function UserProfileComponent() {
         ) : null}
       </div>
 
-      {profile ? (
-        <PeopleListModal
-          open={peopleList !== null}
-          onClose={() => setPeopleList(null)}
-          userId={id}
-          displayName={profile.displayName}
-          kind={peopleList ?? 'followers'}
-        />
-      ) : null}
+      <PeopleListModal
+        open={peopleList !== null}
+        onClose={() => setPeopleList(null)}
+        userId={id}
+        displayName={profile.displayName}
+        kind={peopleList ?? 'followers'}
+      />
     </div>
-  );
+  )
 }

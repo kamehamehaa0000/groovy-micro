@@ -12,6 +12,9 @@ export interface FollowButtonProps {
   onAccept?: () => void
   onDecline?: () => void
   className?: string
+  /** Stretch to the container width — for a phone, where a small pill is a
+   *  hard target. */
+  block?: boolean
   /** The label for the plain follow action. */
   followLabel?: string
 }
@@ -36,16 +39,18 @@ export function FollowButton({
   onAccept,
   onDecline,
   className,
+  block = false,
   followLabel,
 }: FollowButtonProps) {
   if (relationship === 'PENDING_RECEIVED') {
     return (
-      <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('flex items-center gap-2', block && 'w-full', className)}>
         <Button
           variant="primary"
           size="md"
           disabled={isActing}
           onClick={onAccept}
+          className={block ? 'flex-1' : undefined}
         >
           Accept
         </Button>
@@ -54,6 +59,7 @@ export function FollowButton({
           size="md"
           disabled={isActing}
           onClick={onDecline}
+          className={block ? 'flex-1' : undefined}
         >
           Decline
         </Button>
@@ -68,6 +74,7 @@ export function FollowButton({
         size="md"
         disabled={isActing}
         onClick={onFollow}
+        block={block}
         className={cn('hover:border-destructive hover:text-destructive', className)}
         title="Cancel the follow request"
       >
@@ -84,6 +91,7 @@ export function FollowButton({
         size="md"
         disabled={isActing}
         onClick={onFollow}
+        block={block}
         className={cn('hover:border-destructive hover:text-destructive', className)}
         title="Unfollow"
       >
@@ -103,6 +111,7 @@ export function FollowButton({
       size="md"
       disabled={isActing}
       onClick={onFollow}
+      block={block}
       className={className}
     >
       {followLabel ?? (isPrivateAccount ? 'Request Follow' : 'Follow')}

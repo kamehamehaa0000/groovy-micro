@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from './cn'
 
-export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero'
 
 export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
   /** Image URL. Falls back to the name's initial when absent. */
@@ -16,6 +16,8 @@ const SIZE: Record<AvatarSize, string> = {
   md: 'h-10 w-10 text-body',
   lg: 'h-12 w-12 text-title',
   xl: 'h-14 w-14 text-heading',
+  /** A profile portrait. Override the size at a breakpoint with `className`. */
+  hero: 'h-24 w-24 text-display',
 }
 
 function initialOf(name: string): string {

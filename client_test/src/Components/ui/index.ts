@@ -1,5 +1,9 @@
 export { Button } from './Button'
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button'
+export { buttonClasses } from './button-styles'
+
+export { ButtonLink } from './ButtonLink'
+export type { ButtonLinkProps } from './ButtonLink'
 
 export { IconButton } from './IconButton'
 export type { IconButtonProps, IconButtonSize } from './IconButton'

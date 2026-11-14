@@ -27,8 +27,9 @@ export interface TabsProps {
 
 const LIST: Record<TabsVariant, string> = {
   pill: 'flex items-center gap-1 overflow-x-auto no-scrollbar',
+  // A tighter gutter on a phone: three long labels fit without clipping.
   underline:
-    'flex items-center gap-5 overflow-x-auto no-scrollbar border-b border-border',
+    'flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-border sm:gap-5',
   mono: 'flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-border',
 }
 
