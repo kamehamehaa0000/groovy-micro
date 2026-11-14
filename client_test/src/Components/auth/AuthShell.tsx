@@ -82,7 +82,7 @@ export function BrandPanel() {
         <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
           Serentity · Curation · Preservation
         </p>
-        <h2 className="mt-3 max-w-sm font-serif text-3xl leading-tight tracking-tight text-foreground">
+        <h2 className="mt-3 max-w-sm text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
           A home for the records worth keeping.
         </h2>
         <p className="mt-3 max-w-sm text-caption leading-relaxed text-muted-foreground">

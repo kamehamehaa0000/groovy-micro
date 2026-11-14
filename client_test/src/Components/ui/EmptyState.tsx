@@ -36,7 +36,7 @@ export function EmptyState({
           {icon}
         </div>
       ) : null}
-      <p className="font-serif text-title text-foreground">{title}</p>
+      <p className="text-title font-semibold text-foreground">{title}</p>
       {description ? (
         <p className="mt-1.5 max-w-sm text-caption leading-relaxed text-muted-foreground">
           {description}
@@ -69,7 +69,7 @@ export function ErrorState({
         className,
       )}
     >
-      <p className="font-serif text-title text-foreground">{title}</p>
+      <p className="text-title font-semibold text-foreground">{title}</p>
       <p className="mt-1.5 max-w-sm text-caption leading-relaxed text-muted-foreground">
         {description}
       </p>

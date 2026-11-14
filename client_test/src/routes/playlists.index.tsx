@@ -20,6 +20,7 @@ import {
   PlaylistEmptyPanel,
   PlaylistGridSkeleton,
 } from '../Components/playlists/PlaylistDirectoryStates'
+import { H1 } from '../Components/ui/typography'
 
 const PAGE_SIZE = 24
 const SORTS = ['popular', 'recent', 'tracks'] as const
@@ -202,9 +203,9 @@ function PlaylistsDirectoryComponent() {
             <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
               Directory
             </p>
-            <h1 className="mt-1 font-serif text-heading text-foreground sm:text-display">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mt-1 sm:text-display">
               Public Playlists
-            </h1>
+            </H1>
             <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
               Browse public playlists curated by the Groovy community.
             </p>

@@ -33,7 +33,7 @@ export function RouteError({ error, reset, className }: RouteErrorProps) {
       <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-destructive">
             This page could not be loaded
       </span>
-      <h1 className="mt-3 font-serif text-3xl text-foreground">
+      <h1 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
         Something went wrong
       </h1>
       <p className="mt-2 max-w-md text-caption leading-relaxed text-muted-foreground">

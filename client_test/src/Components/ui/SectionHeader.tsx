@@ -34,7 +34,7 @@ export function SectionHeader({
             {eyebrow}
           </div>
         ) : null}
-        <h1 className="truncate font-serif text-heading text-foreground">{title}</h1>
+        <h1 className="truncate text-title font-semibold tracking-tight text-foreground sm:text-lg">{title}</h1>
         {description ? (
           <p className="mt-0.5 text-caption text-muted-foreground">{description}</p>
         ) : null}

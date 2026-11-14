@@ -9,6 +9,7 @@ import { GridIconSVG, ListIconSVG } from '../Components/Icons'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
+import { H1, H3 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/releases')({
   staticData: { layout: 'wide' },
@@ -138,9 +139,9 @@ function FollowedReleasesComponent() {
             <polygon points="10 8 16 12 10 16 10 8" />
           </svg>
         </div>
-        <h1 className="font-serif italic text-3xl font-medium text-foreground mb-3">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-3">
           Artist Radar
-        </h1>
+        </H1>
         <p className="font-sans text-caption text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
           Sign in to view new releases dropped in the past 6 months by artists
           you follow.
@@ -165,9 +166,9 @@ function FollowedReleasesComponent() {
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               ✦ Artist Radar
             </span>
-            <h1 className="font-serif text-3xl sm:text-4xl text-foreground tracking-tight">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Latest releases
-            </h1>
+            </H1>
           </div>
           {/* Controls Bar: Only View Mode (Grid / List) */}
           <div
@@ -287,9 +288,9 @@ function FollowedReleasesComponent() {
             <section key={group.key} className="space-y-4">
               {/* Group Section Header */}
               <div className="flex items-baseline justify-between border-b border-border pb-2.5">
-                <h2 className="font-serif italic font-medium text-lg sm:text-heading text-foreground">
+                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg sm:text-heading">
                   {group.label}
-                </h2>
+                </H3>
                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
                   {group.releases.length}{' '}
                   {group.releases.length === 1 ? 'release' : 'releases'}

@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
 import { PasswordInput } from '../Components/auth/AuthField'
 import { Button } from '../Components/ui'
+import { H1 } from '../Components/ui/typography'
 
 const searchSchema = z.object({
   token: z.string().optional(),
@@ -91,9 +92,9 @@ function ResetPasswordComponent() {
         /* Form State */
         <>
           <div className="text-center">
-            <h1 className="font-serif text-2xl text-foreground">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Choose a new password
-            </h1>
+            </H1>
             <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
               Set a strong, unique password for your Groovy account. All other
               active sessions will be revoked for your security.

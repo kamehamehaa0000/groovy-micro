@@ -4,6 +4,7 @@ import { playerApi, type RecentHistoryItem } from '../../lib/player.api'
 import { useAuthStore } from '../../stores/auth.store'
 import { RadioPill } from '../home/RadioPill'
 import { cn } from '../ui/cn'
+import { SectionHeading, HEADING_ACTION } from '../ui/typography'
 import { ChevronRight } from 'lucide-react'
 
 interface RecentlyPlayedShelfProps {
@@ -57,29 +58,16 @@ export function RecentlyPlayedShelf({
 
   return (
     <section className={cn('w-full font-sans text-foreground', className)}>
-      {/* Header matching Radio Section style */}
-      <div className="mb-7 flex items-end justify-between gap-4">
-        <div>
-          {eyebrow && (
-            <p className="mb-2 font-eyebrow text-eyebrow font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              {eyebrow}
-            </p>
-          )}
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
-
-        <Link
-          to="/history"
-          className="hidden sm:block shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground "
-        >
-          History &rarr;
-        </Link>
-      </div>
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        action={
+          <Link to="/history" className={cn(HEADING_ACTION, 'hidden sm:block')}>
+            History &rarr;
+          </Link>
+        }
+      />
 
       {isLoading ? (
         /* Loading Skeleton: compact pill shapes (h-16 sm:h-20) */

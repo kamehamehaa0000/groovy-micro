@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cn } from './cn'
 import { Button } from './Button'
+import { Eyebrow } from './typography'
 
 export interface ModalProps {
   open: boolean
@@ -119,12 +120,12 @@ export function Modal({
           <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
             <div className="min-w-0">
               {eyebrow ? (
-                <p className="mb-0.5 font-eyebrow uppercase tracking-widest text-muted-foreground">
-                  {eyebrow}
-                </p>
+                <Eyebrow className="mb-0.5">{eyebrow}</Eyebrow>
               ) : null}
               {title ? (
-                <h2 className="font-serif text-title text-foreground">{title}</h2>
+                <h2 className="font-semibold tracking-tight text-title text-foreground">
+                  {title}
+                </h2>
               ) : null}
               {description ? (
                 <p className="mt-1 text-caption leading-relaxed text-muted-foreground">

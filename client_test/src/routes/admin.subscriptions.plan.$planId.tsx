@@ -7,6 +7,7 @@ import { EmptyState, Skeleton } from '../Components/ui/EmptyState'
 import { notify } from '../lib/toast'
 import { cn } from '../Components/ui/cn'
 import type { PlanInterval } from '../types/subscriptions'
+import { H2, H3 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/admin/subscriptions/plan/$planId')({
   component: AdminPlanEditor,
@@ -193,9 +194,9 @@ function AdminPlanEditor() {
           >
             &larr; Plans
           </Link>
-          <h2 className="mt-2 font-serif italic text-2xl text-foreground">
+          <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mt-2">
             {isNew ? 'New subscription plan' : formName || planId}
-          </h2>
+          </H2>
           <p className="mt-1 font-sans text-caption text-muted-foreground">
             {isNew
               ? 'Name the tier, price it, and grant it the capabilities it should have.'
@@ -293,9 +294,9 @@ function AdminPlanEditor() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 className="font-serif italic text-heading text-foreground">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Feature matrix
-            </h3>
+            </H3>
             <p className="mt-0.5 font-sans text-caption text-muted-foreground">
               One row per capability, one column per plan. Edit the column of
               the plan you are changing.

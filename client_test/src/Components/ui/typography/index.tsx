@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../cn'
 import {
   EYEBROW,
@@ -45,29 +45,45 @@ export function Eyebrow({
   )
 }
 
-export interface HeadingProps {
+export interface HeadingProps
+  extends HTMLAttributes<HTMLHeadingElement> {
   children: ReactNode
-  className?: string
 }
 
 /** The page title. */
-export function H1({ children, className }: HeadingProps) {
-  return <h1 className={cn(HEADING_1, className)}>{children}</h1>
+export function H1({ children, className, ...rest }: HeadingProps) {
+  return (
+    <h1 className={cn(HEADING_1, className)} {...rest}>
+      {children}
+    </h1>
+  )
 }
 
 /** A section title. The same size as the page title — one voice. */
-export function H2({ children, className }: HeadingProps) {
-  return <h2 className={cn(HEADING_2, className)}>{children}</h2>
+export function H2({ children, className, ...rest }: HeadingProps) {
+  return (
+    <h2 className={cn(HEADING_2, className)} {...rest}>
+      {children}
+    </h2>
+  )
 }
 
 /** A sub-section or card heading. */
-export function H3({ children, className }: HeadingProps) {
-  return <h3 className={cn(HEADING_3, className)}>{children}</h3>
+export function H3({ children, className, ...rest }: HeadingProps) {
+  return (
+    <h3 className={cn(HEADING_3, className)} {...rest}>
+      {children}
+    </h3>
+  )
 }
 
 /** The smallest heading — a card title inside a dense panel. */
-export function H4({ children, className }: HeadingProps) {
-  return <h4 className={cn(HEADING_4, className)}>{children}</h4>
+export function H4({ children, className, ...rest }: HeadingProps) {
+  return (
+    <h4 className={cn(HEADING_4, className)} {...rest}>
+      {children}
+    </h4>
+  )
 }
 
 export interface SubtitleProps {
@@ -123,5 +139,6 @@ export {
   HEADING_2,
   HEADING_3,
   HEADING_4,
+  HEADING_ACTION,
   SUBTITLE,
 } from './styles'

@@ -21,6 +21,7 @@ import {
   GridIconSVG,
   ListIconSVG,
 } from '../Components/Icons'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/library')({
   staticData: { layout: 'wide' },
@@ -235,9 +236,9 @@ function LibraryPageComponent() {
             <circle cx="18" cy="16" r="3" />
           </svg>
         </div>
-        <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-bold mb-3 tracking-tight">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-3">
           Your Library, Amplified
-        </h1>
+        </H1>
         <p className="text-muted-foreground text-body max-w-md mx-auto mb-8 leading-relaxed">
           Log in or create a free account to pin your favorite playlists, save
           albums, follow artists, and unlock your private Personal Collection

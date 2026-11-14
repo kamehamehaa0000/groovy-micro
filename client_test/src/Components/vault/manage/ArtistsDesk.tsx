@@ -4,6 +4,7 @@
  * The shared state lives in VaultManageContext.
  */
 import { useVaultManage } from './VaultManageContext'
+import { H2, H4 } from '../../ui/typography'
 
 export function ArtistsDesk() {
   const {
@@ -122,9 +123,9 @@ export function ArtistsDesk() {
               </div>
             ) : personalArtists.length === 0 ? (
               <div className="p-12 border border-dashed border-border bg-muted/20 text-center space-y-3">
-                <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   No Personal Artists Yet
-                </h3>
+                </H2>
                 <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto">
                   When you import audio files, artists are automatically
                   identified and cataloged in your private roster with
@@ -155,9 +156,9 @@ export function ArtistsDesk() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <h4 className="font-serif italic text-lg text-foreground font-medium truncate">
+                          <H4 className="text-body font-semibold text-foreground truncate">
                             {artist.stageName}
-                          </h4>
+                          </H4>
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-1 py-0.2 shrink-0 font-semibold">
                             Personal
                           </span>

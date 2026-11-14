@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { BadgeCheck, ExternalLink, Plus } from 'lucide-react'
+import { H1 } from '../ui/typography'
 
 interface StudioHeaderProps {
   stageName: string
@@ -21,9 +22,9 @@ export function StudioHeader({
           Artist Studio
         </span>
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <h1 className="font-serif italic text-2xl sm:text-3xl text-foreground font-semibold truncate min-w-0">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl truncate min-w-0">
             {stageName}
-          </h1>
+          </H1>
           {verified && <BadgeCheck className="w-5 h-5 text-primary shrink-0" />}
         </div>
         <span className="font-mono text-caption text-muted-foreground">

@@ -13,6 +13,7 @@ import { AuthField, PasswordInput } from '../Components/auth/AuthField'
 import { Button } from '../Components/ui'
 import { Tabs } from '../Components/ui/Tabs'
 import { resolveRedirectTarget, saveAuthRedirect } from '../lib/auth-redirect'
+import { H1, H2 } from '../Components/ui/typography'
 
 const registerSearchSchema = z.object({
   redirect: z.string().optional(),
@@ -129,9 +130,9 @@ function RegisterComponent() {
           <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
             Correspondence · Account
           </span>
-          <h2 className="font-serif text-3xl leading-tight text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Check your inbox
-          </h2>
+          </H1>
           <p className="mt-3 text-caption leading-relaxed text-muted-foreground">
             We dispatched a verification link to
           </p>
@@ -212,7 +213,7 @@ function RegisterComponent() {
             ]}
           />
 
-          <h2 className="font-serif text-2xl text-foreground">Join the Maison</h2>
+          <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Join the Maison</H2>
           <p className="mt-1.5 text-caption leading-relaxed text-muted-foreground">
             A quiet, curated corner of the catalog — reserved once you're in.
           </p>

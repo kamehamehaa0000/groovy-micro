@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from './cn'
+import { Eyebrow, H3 } from './typography'
 
 export interface SectionTitleProps {
   title: ReactNode
@@ -14,9 +15,12 @@ export interface SectionTitleProps {
 /**
  * The heading of a section inside a page.
  *
- * Detail pages, directories and the home shelves all used their own version of
- * this — three fonts, two border weights, two paddings. One component now
+ * Detail pages, directories and the home shelves all used their own version
+ * of this — three fonts, two border weights, two paddings. One component now
  * owns it, so a section heading looks the same everywhere.
+ *
+ * It is the dense variant: a hairline rule under the label. The airy variant
+ * — an eyebrow, a big title and a subtitle — is `SectionHeading`.
  */
 export function SectionTitle({
   title,
@@ -33,16 +37,10 @@ export function SectionTitle({
       )}
     >
       <div className="min-w-0">
-        {eyebrow ? (
-          <p className="mb-0.5 font-eyebrow uppercase tracking-widest text-muted-foreground">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h2 className="truncate font-serif text-heading leading-tight text-foreground">
-          {title}
-        </h2>
+        {eyebrow ? <Eyebrow className="mb-1">{eyebrow}</Eyebrow> : null}
+        <H3 className="truncate">{title}</H3>
         {subtitle ? (
-          <p className="mt-0.5 truncate text-caption text-muted-foreground">
+          <p className="mt-1 truncate text-caption text-muted-foreground">
             {subtitle}
           </p>
         ) : null}

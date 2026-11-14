@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
 import { AuthField } from '../Components/auth/AuthField'
 import { Button } from '../Components/ui'
+import { H1 } from '../Components/ui/typography'
 
 const searchSchema = z.object({
   token: z.string().optional(),
@@ -120,9 +121,9 @@ function VerifyEmailComponent() {
           <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
             Correspondence · Cryptographic Check
           </span>
-          <h1 className="font-serif text-2xl leading-tight text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Authenticating token...
-          </h1>
+          </H1>
           <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
             Please wait while the Maison validates your token and activates
             your member privileges.
@@ -136,9 +137,9 @@ function VerifyEmailComponent() {
           <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-success block mb-2">
             Membership Confirmed
           </span>
-          <h1 className="font-serif text-2xl leading-tight text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Account verified.
-          </h1>
+          </H1>
           <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
             Welcome to Groovy. Your account has been authenticated.
           </p>
@@ -158,9 +159,9 @@ function VerifyEmailComponent() {
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-destructive block mb-2">
               Correspondence · Security Notice
             </span>
-            <h1 className="font-serif text-2xl leading-tight text-foreground">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Token expired.
-            </h1>
+            </H1>
             <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
               {errorMessage}
             </p>
@@ -208,9 +209,9 @@ function VerifyEmailComponent() {
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               Correspondence · Dispatch
             </span>
-            <h1 className="font-serif text-2xl leading-tight text-foreground">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Verify your email
-            </h1>
+            </H1>
             <p className="mt-2 text-caption leading-relaxed text-muted-foreground">
               Provide the email address associated with your Maison membership
               to receive an authentication correspondence.

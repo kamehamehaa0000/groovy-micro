@@ -3,6 +3,7 @@ import { slugifyText, artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
 import { notify } from '../../lib/toast'
 import { PartyPopper, Sparkles } from 'lucide-react'
+import { H1 } from '../ui/typography'
 
 interface StudioUpgradeScreenProps {
   setArtistProfile: React.Dispatch<React.SetStateAction<ArtistProfile | null>>
@@ -68,9 +69,9 @@ export function StudioUpgradeScreen({
         <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
           Maison Creator Studio
         </span>
-        <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Launch Your Artist Identity
-        </h1>
+        </H1>
         <p className="font-sans text-caption text-muted-foreground mt-2 leading-relaxed">
           Create your official Groovy artist profile. Release master tracks,
           manage your presence, and curate your discography.

@@ -16,6 +16,7 @@ import {
   PlayIconSVG,
   PauseIconSVG,
 } from '../Components/Icons'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPageComponent,
@@ -442,9 +443,9 @@ function HistoryPageComponent() {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
-        <h1 className="font-serif italic text-3xl font-medium text-foreground mb-3">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-3">
           Listening History
-        </h1>
+        </H1>
         <p className="font-sans text-caption text-muted-foreground mb-8 leading-relaxed max-w-sm mx-auto">
           Sign in to view every record and release spun across all your
           connected devices.
@@ -469,9 +470,9 @@ function HistoryPageComponent() {
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
               ✦ Activity &amp; Listening Telemetry
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Releases Played
-            </h1>
+            </H1>
             <p className="font-sans text-caption text-muted-foreground max-w-lg mt-2 leading-relaxed">
               A minimal archive of every record and release spun on your
               account, grouped chronologically.

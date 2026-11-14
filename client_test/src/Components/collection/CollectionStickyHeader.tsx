@@ -50,7 +50,7 @@ export function CollectionStickyHeader({
 
           <div className="min-w-0 flex-1">
             <p
-              className="truncate font-serif italic text-heading leading-tight text-foreground"
+              className="truncate text-title font-semibold tracking-tight text-foreground"
               title={title}
             >
               {title}

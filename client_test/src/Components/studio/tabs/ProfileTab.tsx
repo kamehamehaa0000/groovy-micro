@@ -5,6 +5,7 @@ import type { ArtistProfile } from '../../../types/artist'
 import type { Album } from '../../../types/catalog'
 import type { ProfileState } from '../hooks/useProfileForm'
 import { IdentityForm } from './IdentityForm'
+import { H3 } from '../../ui/typography'
 
 interface ProfileTabProps {
   artistProfile: ArtistProfile
@@ -64,9 +65,9 @@ export function ProfileTab({
       <div className="p-6 border border-border bg-card shadow-raised">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
-            <h2 className="font-serif italic text-heading text-foreground">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Artist Avatar / Profile Picture
-            </h2>
+            </H3>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
               Square profile artwork used for artist credits, jam sessions,
               and search results.
@@ -141,9 +142,9 @@ export function ProfileTab({
       <div className="p-6 border border-border bg-card shadow-raised">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h2 className="font-serif italic text-heading text-foreground">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Artist Profile Banner
-            </h2>
+            </H3>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
               Panoramic cover displayed across your public artist page.
               Interactive cropping and framing preview is provided before
@@ -196,9 +197,9 @@ export function ProfileTab({
       <div className="p-6 border border-border bg-card shadow-raised">
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
           <div>
-            <h2 className="font-serif italic text-heading text-foreground">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Identity & Presentation
-            </h2>
+            </H3>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
               Customize your public stage name, biography, and external
               links.
@@ -333,9 +334,9 @@ export function ProfileTab({
                     </span>
                   )}
                 </div>
-                <h2 className="font-serif italic text-heading text-foreground">
+                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                   Artist Pick &amp; Spotlight
-                </h2>
+                </H3>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 max-w-xl">
                   Feature a chosen release and personal note at the top of
                   your public artist profile. When none is selected, your

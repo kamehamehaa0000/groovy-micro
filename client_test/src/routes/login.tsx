@@ -16,6 +16,7 @@ import {
   resolveRedirectTarget,
   saveAuthRedirect,
 } from '../lib/auth-redirect'
+import { H2 } from '../Components/ui/typography'
 
 const loginSearchSchema = z.object({
   redirect: z.string().optional(),
@@ -159,7 +160,7 @@ function LoginComponent() {
         ]}
       />
 
-      <h2 className="font-serif text-2xl text-foreground">Welcome back</h2>
+      <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Welcome back</H2>
       <p className="mt-1.5 text-caption leading-relaxed text-muted-foreground">
         Enter your <span className="italic">groove</span> with the account you
         keep on file.

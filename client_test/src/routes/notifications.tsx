@@ -9,6 +9,7 @@ import type {
   NotificationResponseItem,
   NotificationFilter,
 } from '../lib/notifications.api'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/notifications')({
   component: NotificationsPageComponent,
@@ -130,9 +131,9 @@ function NotificationsPageComponent() {
           <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
             Inbox &nbsp;·&nbsp; Activity Pulse
           </div>
-          <h2 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Sign In for Notifications
-          </h2>
+          </H1>
           <p className="font-sans text-caption sm:text-body text-muted-foreground leading-relaxed max-w-md mx-auto">
             Stay tuned into your social circle, live listening sessions, new
             releases from artists you follow, and comment replies.
@@ -170,9 +171,9 @@ function NotificationsPageComponent() {
               Inbox &nbsp;·&nbsp; Activity Pulse
             </div>
             <div className="flex items-center gap-3">
-              <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground font-normal leading-tight">
+              <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 Notifications
-              </h1>
+              </H1>
               {unreadCount > 0 && (
                 <span className="bg-primary/15 text-primary text-caption font-mono px-2.5 py-0.5 rounded-full font-bold">
                   {unreadCount} unread

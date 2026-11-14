@@ -6,6 +6,7 @@ import { usePlayerStore } from "../stores/player.store";
 import { Button } from "../Components/ui/Button";
 import { ErrorState } from "../Components/ui/EmptyState";
 import type { JamSyncStatus } from "../types/jam";
+import { H1, H2 } from '../Components/ui/typography'
 
 export const Route = createFileRoute("/jam/$code")({
   component: JamRouteComponent,
@@ -110,7 +111,7 @@ function JamRouteComponent() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6 select-none">
         <div className="w-12 h-12 rounded-full border-2 border-border border-t-emerald-600 animate-spin mb-4" />
-        <h2 className="font-serif italic text-2xl text-foreground mb-1">Connecting to Live Jam</h2>
+        <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-1">Connecting to Live Jam</H2>
         <p className="text-caption font-mono text-muted-foreground tracking-widest">{code.toUpperCase()}</p>
         <p className="font-mono text-eyebrow text-muted-foreground/70 mt-2">
           Calibrating clock offset and synchronizing audio stream...
@@ -165,12 +166,12 @@ function JamRouteComponent() {
               <span>Live Listening Session</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-serif italic text-foreground tracking-tight flex flex-wrap items-center gap-3">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl flex flex-wrap items-center gap-3">
               <span>Room {activeRoom?.roomCode}</span>
               <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 rounded-control bg-secondary/20 text-muted-foreground border border-border not-italic font-normal">
                 {activeRoom?.privacy.replace("_", " ")}
               </span>
-            </h1>
+            </H1>
 
             <div className="text-caption text-muted-foreground mt-2 flex flex-wrap items-center gap-3 font-mono text-eyebrow">
               <span>

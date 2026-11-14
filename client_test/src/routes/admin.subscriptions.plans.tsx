@@ -4,6 +4,7 @@ import { subscriptionsApi } from '../lib/subscriptions.api'
 import { EmptyState, SkeletonGrid } from '../Components/ui/EmptyState'
 import { Button } from '../Components/ui/Button'
 import type { SubscriptionPlan } from '../types/subscriptions'
+import { H2 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/admin/subscriptions/plans')({
   component: AdminPlansDesk,
@@ -112,9 +113,9 @@ function AdminPlansDesk() {
               </div>
 
               <div>
-                <h3 className="font-serif italic text-2xl text-foreground font-medium">
+                <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   {plan.name}
-                </h3>
+                </H2>
                 <div className="mt-1 font-mono text-caption text-muted-foreground">
                   <span className="text-lg font-semibold text-foreground">
                     {formatPrice(plan)}

@@ -43,7 +43,7 @@ export function AdminShell({
     <div className={cn('min-w-0', className)}>
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
         <div className="min-w-0">
-          <h1 className="font-serif text-3xl text-foreground tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {title}
           </h1>
           {description ? (

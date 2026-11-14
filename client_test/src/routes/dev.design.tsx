@@ -42,6 +42,7 @@ import {
   TrashIconSVG,
   UploadCloudSVG,
 } from '../Components/Icons'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/dev/design')({
   component: DesignPlayground,
@@ -258,7 +259,7 @@ function DesignPlayground() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow tone="brand">design system</Eyebrow>
-          <h1 className="font-serif text-display text-foreground">Playground</h1>
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Playground</H1>
           <p className="mt-1 max-w-prose text-body text-muted-foreground">
             Every token and primitive in one screen, rendered with the system
             itself. Toggle the theme to check both surfaces.

@@ -4,6 +4,7 @@ import {
   useAuthModalStore,
   type AuthModalOptions,
 } from '../../stores/auth-modal.store'
+import { H1 } from '../ui/typography'
 
 interface AuthPromptModalProps extends AuthModalOptions {
   isOpen?: boolean
@@ -110,12 +111,12 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
               {activeCategory}
             </div>
 
-            <h1
+            <H1
               id="auth-dialog-title"
-              className="font-serif text-[39px] font-normal leading-[0.98] tracking-[-0.035em] sm:text-[43px] text-foreground"
+              className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl text-[39px] tracking-[-0.035em] sm:text-[43px]"
             >
               {activeTitle}
-            </h1>
+            </H1>
 
             <p className="mt-5 max-w-87.5 text-caption leading-6 text-muted-foreground">
               {activeDescription}

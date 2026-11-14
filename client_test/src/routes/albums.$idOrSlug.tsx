@@ -26,6 +26,7 @@ import { CommentSection } from '../Components/comments/CommentSection'
 import { SongRow } from '../Components/common/SongRow'
 import { shuffleArray } from '../lib/shuffle'
 import { notify } from '../lib/toast'
+import { H1, H3 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/albums/$idOrSlug')({
   validateSearch: (
@@ -376,9 +377,9 @@ function AlbumDetailComponent() {
           <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
             404 Catalog Notice
           </span>
-          <h1 className="font-serif italic text-3xl text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Release Not Found
-          </h1>
+          </H1>
           <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
             The requested album identifier{' '}
             <span className="font-mono text-foreground">"{idOrSlug}"</span>{' '}
@@ -650,7 +651,7 @@ function AlbumDetailComponent() {
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                 <span>Upcoming Scheduled Drop &bull; Master Vault Locked</span>
               </div>
-              <h2 className="font-serif italic text-lg sm:text-heading text-foreground font-semibold">
+              <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg sm:text-heading">
                 Official Drop:{' '}
                 {album.scheduledReleaseAt
                   ? new Date(album.scheduledReleaseAt).toLocaleString(
@@ -666,7 +667,7 @@ function AlbumDetailComponent() {
                       },
                     )
                   : 'Coming Soon'}
-              </h2>
+              </H3>
               {timeLeft && timeLeft.totalMs > 0 && (
                 <div className="pt-1">
                   <div className="grid grid-cols-4 gap-2 max-w-xs">

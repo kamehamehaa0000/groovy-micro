@@ -9,6 +9,7 @@ import { usePlayerStore } from '../../stores/player.store'
 import type { PlayerTrack } from '../../types/player'
 import { PlayIconSVG, PauseIconSVG, LockIconSVG } from '../Icons'
 import { ProceduralCover } from '../common/ProceduralCover'
+import { H3 } from '../ui/typography'
 
 interface GlobalSearchModalProps {
   isOpen: boolean
@@ -284,9 +285,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full inline-block mb-1">
                             Artist
                           </span>
-                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).stageName}
-                          </h3>
+                          </H3>
                           <p className="font-mono text-eyebrow text-muted-foreground">
                             {(
                               results.topResult.item as any
@@ -331,9 +332,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               </span>
                             )}
                           </div>
-                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate">
+                          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg truncate">
                             {(results.topResult.item as any).title}
-                          </h3>
+                          </H3>
                           <Link
                             to="/artists/$idOrSlug"
                             params={{
@@ -395,9 +396,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                               </span>
                             )}
                           </div>
-                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
-                          </h3>
+                          </H3>
                           <p className="font-sans text-caption text-muted-foreground truncate">
                             {(results.topResult.item as any).artistName}
                           </p>
@@ -436,9 +437,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning bg-warning-soft px-2 py-0.5 rounded-full inline-block mb-1">
                             Playlist
                           </span>
-                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).title}
-                          </h3>
+                          </H3>
                           <p className="font-mono text-eyebrow text-muted-foreground">
                             By {(results.topResult.item as any).ownerName} •{' '}
                             {(results.topResult.item as any).tracksCount} tracks
@@ -476,9 +477,9 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-secondary/80 bg-secondary/20 px-2 py-0.5 rounded-full inline-block mb-1">
                             {(results.topResult.item as any).role}
                           </span>
-                          <h3 className="font-serif italic text-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg truncate group-hover:text-primary transition-colors">
                             {(results.topResult.item as any).displayName}
-                          </h3>
+                          </H3>
                         </div>
                       </div>
                     )}

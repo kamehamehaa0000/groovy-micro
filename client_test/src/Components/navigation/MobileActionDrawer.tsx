@@ -4,6 +4,7 @@ import { useJamStore } from '../../stores/jam.store'
 import { useAuthStore } from '../../stores/auth.store'
 import { useAuthModalStore } from '../../stores/auth-modal.store'
 import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.store'
+import { H4 } from '../ui/typography'
 
 interface MobileActionDrawerProps {
   isOpen: boolean
@@ -79,9 +80,9 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
               <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
                 Quick Actions
               </div>
-              <h3 className="font-serif italic text-title font-bold text-foreground">
+              <H4 className="text-body font-semibold text-foreground">
                 Create &amp; Collect
-              </h3>
+              </H4>
             </div>
             <button
               type="button"

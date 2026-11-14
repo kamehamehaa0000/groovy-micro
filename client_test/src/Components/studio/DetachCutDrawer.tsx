@@ -4,6 +4,7 @@ import { notify } from '../../lib/toast'
 import { catalogApi } from '../../lib/catalog.api'
 import type { Song } from '../../types/catalog'
 import type { DetachCutRequest } from './studio.types'
+import { H3 } from '../ui/typography'
 
 interface DetachCutDrawerProps {
   /** The cut to detach and the release it currently belongs to. */
@@ -90,9 +91,9 @@ export function DetachCutDrawer({
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block">
               Catalog Action &bull; Spin-off Single
             </span>
-            <h3 className="font-serif italic text-heading text-foreground">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Detach Cut
-            </h3>
+            </H3>
           </div>
           <button
             type="button"

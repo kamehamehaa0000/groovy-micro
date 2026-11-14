@@ -27,7 +27,7 @@ import {
   SkeletonGrid,
 } from '../Components/ui/EmptyState'
 import { SectionTitle } from '../Components/ui/SectionTitle'
-import { H1 } from '../Components/ui/typography'
+import { H1, H2 } from '../Components/ui/typography'
 import { Tabs } from '../Components/ui/Tabs'
 import { FollowButton } from '../Components/social/FollowButton'
 import { PeopleListModal } from '../Components/social/PeopleListModal'
@@ -414,11 +414,11 @@ function UserProfileComponent() {
             <div className="w-12 h-12 rounded-full bg-secondary/20 border border-border flex items-center justify-center mx-auto mb-4 text-muted-foreground">
               <LockIconSVG className="w-6 h-6" />
             </div>
-            <h3 className="font-serif text-2xl text-foreground mb-2">
+            <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-2">
               {libraryPrivacy === 'FOLLOWERS_ONLY'
                 ? 'Followers-Only Library'
                 : 'Private Library'}
-            </h3>
+            </H2>
             <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
               {libraryPrivacy === 'FOLLOWERS_ONLY'
                 ? `Follow ${profile.displayName} to unlock access to their shared playlists, saved albums, and liked tracks.`

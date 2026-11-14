@@ -36,6 +36,7 @@ import { usePlayerStore } from '../stores/player.store'
 import { useAuthModalStore } from '../stores/auth-modal.store'
 import { SongRow } from '../Components/common/SongRow'
 import { notify } from '../lib/toast'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/artists/$idOrSlug')({
   component: ArtistPublicProfileComponent,
@@ -558,9 +559,9 @@ function ArtistPublicProfileComponent() {
         <span className="font-eyebrow text-caption uppercase tracking-widest text-primary block mb-2">
           404 Archive Notice
         </span>
-        <h1 className="font-serif italic text-3xl text-foreground">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Artist Profile Not Found
-        </h1>
+        </H1>
         <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
           The requested artist identifier{' '}
           <span className="font-mono text-foreground">"{idOrSlug}"</span> could

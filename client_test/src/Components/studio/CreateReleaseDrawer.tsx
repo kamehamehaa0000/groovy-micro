@@ -25,6 +25,7 @@ import {
 } from './fields'
 import { TrackListEditor } from './TrackListEditor'
 import { ReleaseDetailsSection } from './release/ReleaseDetailsSection'
+import { H4 } from '../ui/typography'
 
 interface TrackDraft {
   id: string
@@ -926,11 +927,11 @@ export function CreateReleaseDrawer({
         {/* Modal Header */}
         <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border flex items-center justify-between shrink-0">
           <div className="min-w-0 pr-3">
-            <h3 className="font-serif italic text-lg sm:text-xl text-foreground font-semibold truncate">
+            <H4 className="text-body font-semibold text-foreground truncate">
               {releaseType === 'SINGLE'
                 ? 'Publish Standalone Single'
                 : `Publish New ${releaseType}`}
-            </h3>
+            </H4>
             <p className="font-mono text-eyebrow text-muted-foreground truncate mt-0.5">
               Lossless R2 master pipeline &bull; Contributor attribution
             </p>

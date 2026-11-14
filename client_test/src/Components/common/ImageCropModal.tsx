@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { H3 } from '../ui/typography'
 
 interface ImageCropModalProps {
   isOpen: boolean
@@ -327,9 +328,9 @@ export function ImageCropModal({
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-0.5 truncate">
               {subtitle}
             </span>
-            <h2 className="font-serif italic text-lg sm:text-heading text-foreground truncate">
+            <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg sm:text-heading truncate">
               {title}
-            </h2>
+            </H3>
           </div>
           <button
             type="button"

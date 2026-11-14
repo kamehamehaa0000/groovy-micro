@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { subscriptionsApi } from '../lib/subscriptions.api'
 import { AdminShell } from '../Components/admin/AdminShell'
 import { Tabs } from '../Components/ui/Tabs'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/admin/subscriptions')({
   staticData: { layout: 'full' },
@@ -49,9 +50,9 @@ function AdminSubscriptionsLayout() {
         <span className="font-eyebrow text-caption uppercase tracking-widest text-destructive block mb-2">
           403 Access Restricted
         </span>
-        <h1 className="font-serif italic text-3xl text-foreground">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Administrative Desk
-        </h1>
+        </H1>
         <p className="font-sans text-caption text-muted-foreground mt-3 leading-relaxed">
           Access to subscription plans and dynamic feature catalog requires
           administrative clearance.

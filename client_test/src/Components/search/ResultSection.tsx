@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../ui/cn'
+import { H4 } from '../ui/typography'
 
 export interface ResultSectionProps {
   /** Section title, e.g. "Tracks". */
@@ -32,9 +33,9 @@ export function ResultSection({
     <section className={cn('space-y-3', className)}>
       <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
         <div className="flex items-center gap-2">
-          <h3 className="font-serif text-lg font-semibold italic text-foreground sm:text-heading">
+          <H4 className="text-body font-semibold text-foreground sm:text-heading">
             {title}
-          </h3>
+          </H4>
           <span className="font-eyebrow text-eyebrow tabular-nums uppercase tracking-widest text-muted-foreground">
             ({count})
           </span>

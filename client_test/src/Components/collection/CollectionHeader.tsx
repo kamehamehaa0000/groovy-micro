@@ -127,7 +127,7 @@ export function CollectionHeader({
               <h1
                 ref={titleRef}
                 title={title}
-                className="m-0 line-clamp-4 font-serif italic text-[28px] font-semibold leading-[1.1] tracking-tight text-foreground wrap-break-words md:text-[56px] md:leading-[1.05] md:tracking-[-0.01em]"
+                className="m-0 line-clamp-3 text-2xl font-semibold leading-[1.15] tracking-tight text-foreground wrap-break-words sm:text-3xl"
               >
                 {title}
               </h1>

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Button } from '../Components/ui/Button'
+import { H1 } from '../Components/ui/typography'
 
 /**
  * The catch-all route.
@@ -17,9 +18,9 @@ function NotFoundPage() {
       <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
         404 · Nothing here
       </span>
-      <h1 className="mt-3 font-serif text-3xl text-foreground">
+      <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mt-3">
         That page is not in the catalogue
-      </h1>
+      </H1>
       <p className="mt-2 max-w-md text-caption leading-relaxed text-muted-foreground">
         The link may be old, or the release may have been pulled. Everything
         still playable is one click away.

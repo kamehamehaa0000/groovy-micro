@@ -23,6 +23,7 @@ import { RadioSection } from '../Components/home/RadioSection'
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 import { notify } from '../lib/toast'
+import { H1, H3, H4 } from '../Components/ui/typography'
 
 const CURATED_RADIO_MIXES = [
   {
@@ -319,9 +320,9 @@ function HomeComponent() {
           <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary-strong mb-3">
             Introduction · Meaning of groove
           </div>
-          <h1 className="font-serif italic font-normal text-3xl sm:text-5xl text-foreground leading-[1.08] mb-4 max-w-2xl">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mb-4 max-w-2xl">
             A collection of sounds, Straight to your ears.
-          </h1>
+          </H1>
           <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl leading-relaxed mb-8">
             Crafted for uninterrupted listening. Powered by the community of
             listeners, curators and creators. Explore and experience the sound
@@ -619,9 +620,9 @@ function HomeComponent() {
           <section className="space-y-4">
             <div className="flex justify-between items-baseline border-b border-border pb-3">
               <div className="flex items-center gap-3">
-                <h2 className="font-serif italic font-medium text-heading text-foreground">
+                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                   Featured Master Releases
-                </h2>
+                </H3>
               </div>
               <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                 Archive MMXXVI
@@ -664,9 +665,9 @@ function HomeComponent() {
           {/* Master Tapes Correspondence Slip */}
           <section className="space-y-4">
             <div className="flex justify-between items-baseline border-b border-border pb-3">
-              <h2 className="font-serif italic font-medium text-heading text-foreground">
+              <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                 Newly Released Master Cuts
-              </h2>
+              </H3>
               <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
                 {liveSongs.length > 0
                   ? `${liveSongs.length} Master Works`
@@ -689,9 +690,9 @@ function HomeComponent() {
               </div>
             ) : (
               <div className="border border-border bg-card divide-y divide-border/60">
-                <h3 className="font-serif font-medium text-body text-foreground p-5">
+                <H4 className="text-body font-semibold text-foreground p-5">
                   No tracks found
-                </h3>
+                </H4>
               </div>
             )}
           </section>

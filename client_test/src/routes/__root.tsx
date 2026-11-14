@@ -36,6 +36,7 @@ import { CreatePlaylistModal } from '../Components/playlists/CreatePlaylistModal
 import { AddToPlaylistModal } from '../Components/playlists/AddToPlaylistModal'
 import { AppToaster } from '../Components/common/AppToaster'
 import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
+import { H1 } from '../Components/ui/typography'
 
 const DesktopRightSidebar = lazy(() =>
   import('../Components/player/DesktopRightSidebar').then((m) => ({
@@ -61,9 +62,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
         404 · Nothing here
       </span>
-      <h1 className="mt-3 font-serif text-3xl text-foreground">
+      <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mt-3">
         That page is not in the catalogue
-      </h1>
+      </H1>
       <p className="mt-2 max-w-md text-caption leading-relaxed text-muted-foreground">
         The link may be old, or the release may have been pulled.
       </p>
@@ -246,7 +247,7 @@ function RootComponent() {
         </header>
       ) : (
         /* ===================== TOP NAVIGATION HEADER ===================== */
-        <header className="sticky top-0 z-40 w-full h-14 border-b border-border bg-background/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
+        <header className="sticky top-0 z-40 w-full h-14 border-b border-border bg-background  px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
           {/* ---------------- MOBILE TOP BAR (< md) ---------------- */}
           <div className="md:hidden flex items-center justify-between w-full">
             {/* Left: Profile Icon (Left Sidebar Toggle) */}
@@ -339,7 +340,8 @@ function RootComponent() {
                       'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                    className:
+                      'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -352,7 +354,8 @@ function RootComponent() {
                       'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                    className:
+                      'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -365,7 +368,8 @@ function RootComponent() {
                       'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                    className:
+                      'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -378,7 +382,8 @@ function RootComponent() {
                       'text-foreground font-semibold border-b border-primary pb-0.5',
                   }}
                   inactiveProps={{
-                    className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                    className:
+                      'text-muted-foreground hover:text-foreground pb-0.5',
                   }}
                   className="transition-colors"
                 >
@@ -394,7 +399,8 @@ function RootComponent() {
                           'text-foreground font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
-                        className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                        className:
+                          'text-muted-foreground hover:text-foreground pb-0.5',
                       }}
                       className="transition-colors"
                     >
@@ -407,7 +413,8 @@ function RootComponent() {
                           'text-foreground font-semibold border-b border-primary pb-0.5',
                       }}
                       inactiveProps={{
-                        className: 'text-muted-foreground hover:text-foreground pb-0.5',
+                        className:
+                          'text-muted-foreground hover:text-foreground pb-0.5',
                       }}
                       className="transition-colors"
                     >
@@ -899,14 +906,22 @@ function RootComponent() {
                 <div className="flex items-center gap-2">
                   <Link
                     to="/login"
-                    search={currentRedirect ? { redirect: currentRedirect } : undefined}
+                    search={
+                      currentRedirect
+                        ? { redirect: currentRedirect }
+                        : undefined
+                    }
                     className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-card hover:bg-muted text-foreground transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
-                    search={currentRedirect ? { redirect: currentRedirect } : undefined}
+                    search={
+                      currentRedirect
+                        ? { redirect: currentRedirect }
+                        : undefined
+                    }
                     className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 bg-foreground text-background border border-foreground hover:bg-background hover:text-foreground font-medium transition-colors"
                   >
                     Join
@@ -995,7 +1010,9 @@ function RootComponent() {
               <div className="grid grid-cols-2 gap-2 border-b border-border pb-4">
                 <Link
                   to="/login"
-                  search={currentRedirect ? { redirect: currentRedirect } : undefined}
+                  search={
+                    currentRedirect ? { redirect: currentRedirect } : undefined
+                  }
                   onClick={() => setLeftSidebarOpen(false)}
                   className="font-eyebrow text-center text-caption uppercase tracking-wider py-2 px-3 border border-border bg-background hover:bg-card text-foreground transition-colors"
                 >
@@ -1003,7 +1020,9 @@ function RootComponent() {
                 </Link>
                 <Link
                   to="/register"
-                  search={currentRedirect ? { redirect: currentRedirect } : undefined}
+                  search={
+                    currentRedirect ? { redirect: currentRedirect } : undefined
+                  }
                   onClick={() => setLeftSidebarOpen(false)}
                   className="font-eyebrow text-center text-caption uppercase tracking-wider py-2 px-3 bg-foreground text-background hover:bg-background hover:text-foreground border border-foreground font-semibold transition-colors"
                 >

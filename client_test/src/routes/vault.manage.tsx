@@ -35,6 +35,7 @@ import {
   TrashIconSVG,
   UploadCloudSVG,
 } from '../Components/Icons'
+import { H1 } from '../Components/ui/typography'
 
 /** The four desks of the vault manager. */
 export type VaultManageTab = 'import' | 'collection' | 'artists' | 'trash'
@@ -1074,9 +1075,9 @@ function PersonalCollectionManagePage() {
             <div className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary">
               Private Audio Vault
             </div>
-            <h2 className="font-serif italic text-3xl text-foreground font-normal">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Sign in to Access Your Personal Collection
-            </h2>
+            </H1>
             <p className="font-sans text-caption text-muted-foreground max-w-lg mx-auto leading-relaxed">
               Your Personal Collection lets you privately upload and stream your
               offline music library across devices. Files remain strictly
@@ -1472,9 +1473,9 @@ function PersonalCollectionManagePage() {
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
               Groovy Personal Vault
             </span>
-            <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
+            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Locker Management
-            </h1>
+            </H1>
             <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
               Stage and import audio files, organize private releases and artist
               rosters, and monitor your personal storage allocation.

@@ -4,6 +4,7 @@ import { CreateReleaseDrawer } from '../CreateReleaseDrawer'
 import { ReleaseCard } from '../ReleaseCard'
 import type { ArtistProfile } from '../../../types/artist'
 import type { ReleasesState } from '../hooks/useReleases'
+import { H3 } from '../../ui/typography'
 
 interface ReleasesTabProps {
   artistProfile: ArtistProfile
@@ -35,9 +36,9 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
       {/* Top Overview */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif italic text-xl sm:text-2xl text-foreground font-semibold">
+          <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
             Master Releases & Recordings
-          </h2>
+          </H3>
           <p className="font-sans text-caption text-muted-foreground mt-0.5">
             Manage your studio master tapes, published albums, and
             standalone singles.

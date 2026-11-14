@@ -4,6 +4,7 @@
  * The shared state lives in VaultManageContext.
  */
 import { useVaultManage } from './VaultManageContext'
+import { H2, H3 } from '../../ui/typography'
 
 export function TrashDesk() {
   const {
@@ -22,9 +23,9 @@ export function TrashDesk() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-border bg-card/60">
               <div>
-                <h2 className="font-serif italic text-heading text-foreground">
+                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                   Recycle Bin
-                </h2>
+                </H3>
                 <p className="font-sans text-caption text-muted-foreground mt-1">
                   Soft-deleted songs and releases do not consume personal quota.
                   You can restore them or permanently purge them.
@@ -48,9 +49,9 @@ export function TrashDesk() {
               </div>
             ) : trashedSongs.length === 0 && trashedReleases.length === 0 ? (
               <div className="p-16 border border-dashed border-border bg-muted/20 text-center space-y-2">
-                <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   Recycle Bin is Empty
-                </h3>
+                </H2>
                 <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto">
                   No soft-deleted songs or releases found. When you delete items
                   from your collection, they will appear here before being

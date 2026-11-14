@@ -9,6 +9,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { AuthShell, AuthNotice } from '../Components/auth/AuthShell'
 import { AuthField } from '../Components/auth/AuthField'
 import { Button } from '../Components/ui'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/forgot-password')({
   beforeLoad: async () => {
@@ -90,9 +91,9 @@ function ForgotPasswordComponent() {
   return (
     <AuthShell variant="narrow">
       <div className="text-center">
-        <h1 className="font-serif text-2xl tracking-tight text-foreground">
+        <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Forgot your password?
-        </h1>
+        </H1>
         <p className="mx-auto mt-2 max-w-sm text-caption leading-relaxed text-muted-foreground">
           Enter the email address associated with your account, and we will
           dispatch a link to reset your credentials.

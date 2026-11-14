@@ -22,6 +22,7 @@ import { FollowRequests } from '../Components/feed/FollowRequests'
 import { LiveNow } from '../Components/feed/LiveNow'
 import { PeoplePanel } from '../Components/feed/PeoplePanel'
 import { dayKey, dayLabel } from '../Components/feed/feed.utils'
+import { H1, H3 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/feed')({
   component: FeedPage,
@@ -193,7 +194,7 @@ function EmptyFeed({
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
         <FeedIcon />
       </div>
-      <h2 className="mt-4 font-serif text-heading text-foreground">{title}</h2>
+      <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg mt-4">{title}</H3>
       <p className="mx-auto mt-1 max-w-sm text-caption leading-relaxed text-muted-foreground">
         {description}
       </p>
@@ -242,9 +243,9 @@ function GuestFeed() {
       <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
         Socials
       </span>
-      <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
+      <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
         Feed
-      </h1>
+      </H1>
       <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
         Sign in to follow artists and listeners, and see their latest releases,
         playlists and listening in one place.
@@ -643,9 +644,9 @@ function FeedPage() {
           <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
             Socials
           </p>
-          <h1 className="font-serif italic text-3xl sm:text-4xl text-foreground tracking-tight font-semibold">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Feed
-          </h1>
+          </H1>
           <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
             Releases, playlists and listening from artists and people you
             follow.
@@ -667,9 +668,9 @@ function FeedPage() {
               <FeedSkeleton />
             ) : feedQuery.isError ? (
               <div className="mt-6 rounded-surface border border-border bg-card px-6 py-10 text-center">
-                <h2 className="font-serif text-heading text-foreground">
+                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                   Could not load your feed
-                </h2>
+                </H3>
                 <p className="mx-auto mt-1 max-w-sm text-caption leading-relaxed text-muted-foreground">
                   Check your connection and try again.
                 </p>

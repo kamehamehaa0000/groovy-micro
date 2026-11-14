@@ -1,6 +1,7 @@
 import { BadgeCheck, Plus } from 'lucide-react'
 import type { ArtistProfile } from '../../../types/artist'
 import type { VerificationState } from '../hooks/useVerification'
+import { H3, H4 } from '../../ui/typography'
 
 interface VerificationTabProps {
   artistProfile: ArtistProfile
@@ -29,9 +30,9 @@ export function VerificationTab({
   return (
     <div className="p-6 border border-border bg-card shadow-raised">
       <div className="mb-6 pb-4 border-b border-border-soft">
-        <h2 className="font-serif italic text-heading text-foreground">
+        <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
           Creator Verification
-        </h2>
+        </H3>
         <p className="font-sans text-caption text-muted-foreground mt-0.5">
           Verified badges certify official recording artists and unlock
           prominent catalog placement.
@@ -42,9 +43,9 @@ export function VerificationTab({
         <div className="p-6 border border-primary/20 bg-primary/5 flex items-center gap-4">
           <BadgeCheck className="w-8 h-8 text-primary shrink-0" />
           <div>
-            <h3 className="font-serif italic text-title text-foreground">
+            <H4 className="text-body font-semibold text-foreground">
               Officially Verified Artist
-            </h3>
+            </H4>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
               Your artist profile has been verified by the administration
               desk. The verified emblem is active on your public profile and
@@ -56,9 +57,9 @@ export function VerificationTab({
         <div className="p-6 border border-warning/40 bg-warning-soft flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-warning animate-ping" />
-            <h3 className="font-serif italic text-title text-foreground">
+            <H4 className="text-body font-semibold text-foreground">
               Application Under Review
-            </h3>
+            </H4>
           </div>
           <p className="font-sans text-caption text-muted-foreground leading-relaxed">
             Your verification application was received and is queued for
@@ -75,9 +76,9 @@ export function VerificationTab({
         !showResubmitForm ? (
         <div className="p-6 border border-destructive/60 bg-destructive-soft flex flex-col gap-4">
           <div>
-            <h3 className="font-serif italic text-title text-destructive">
+            <H4 className="text-body font-semibold text-foreground text-destructive">
               Application Needs Revision
-            </h3>
+            </H4>
             <p className="font-sans text-caption text-muted-foreground mt-1">
               The administrative review requested adjustments to your
               verification materials:

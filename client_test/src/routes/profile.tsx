@@ -30,6 +30,7 @@ import { SaveBar } from '../Components/ui/SaveBar'
 import { SettingsShell } from '../Components/settings/SettingsShell'
 import { PlanComparison } from '../Components/subscriptions/PlanComparison'
 import type { UserProfile } from '../types/auth'
+import { H2 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileComponent,
@@ -1196,9 +1197,9 @@ function SubscriptionTab(
               Active Subscription Tier
             </span>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h3 className="font-serif italic text-2xl sm:text-3xl text-foreground font-normal">
+              <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 {entitlements?.planName || user.plan?.name || 'Groovy Free'}
-              </h3>
+              </H2>
               <span
                 className={`font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                   isLoadingEntitlements

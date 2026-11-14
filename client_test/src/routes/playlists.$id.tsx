@@ -40,6 +40,7 @@ import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { Heart, Pencil, Plus, PlusCircle, Shuffle } from 'lucide-react'
 import { ConfirmDialog } from '../Components/ui/Modal'
 import { notify } from '../lib/toast'
+import { H1, H4 } from '../Components/ui/typography'
 
 interface PlaylistSearchParams {
   shareToken?: string
@@ -613,9 +614,9 @@ function PlaylistDetailComponent() {
           >
             404 Catalog Notice
           </Eyebrow>
-          <h1 className="font-serif italic text-3xl text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Playlist Not Found
-          </h1>
+          </H1>
           <p className="mt-3 font-sans text-caption leading-relaxed text-muted-foreground">
             {errorMessage ||
               'The requested playlist could not be located in the archive.'}
@@ -686,9 +687,9 @@ function PlaylistDetailComponent() {
         <div className="mb-4">
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-surface border border-success/40 bg-success-soft p-4">
             <div>
-              <h4 className="font-serif italic text-title text-success flex items-center gap-2">
+              <H4 className="text-body font-semibold text-foreground text-success flex items-center gap-2">
                 <span>✓</span> You are a Collaborator on this playlist
-              </h4>
+              </H4>
               <p className="font-mono text-eyebrow text-muted-foreground mt-0.5">
                 You have already joined as a collaborator. You can add tracks
                 and reorder the tracklist.
@@ -705,9 +706,9 @@ function PlaylistDetailComponent() {
         <div className="mb-4">
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-surface border border-primary bg-primary/10 p-4">
             <div>
-              <h4 className="font-serif italic text-title text-foreground">
+              <H4 className="text-body font-semibold text-foreground">
                 Collaborator Invitation
-              </h4>
+              </H4>
               <p className="font-mono text-eyebrow text-muted-foreground mt-0.5">
                 You were invited to contribute tracks and curate this playlist
                 with the community.

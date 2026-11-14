@@ -28,6 +28,7 @@ import {
 import { FilterBar } from '../Components/ui/FilterBar'
 import { toPlayerTrack as mapToPlayerTrack } from '../lib/player-track'
 import { SectionTitle } from '../Components/ui/SectionTitle'
+import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/liked')({
   component: LikedSongsPage,
@@ -214,9 +215,9 @@ function LikedSongsPage() {
           >
             Collection
           </Eyebrow>
-          <h1 className="font-serif italic text-3xl text-foreground">
+          <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Your Liked Songs
-          </h1>
+          </H1>
           <p className="mt-3 font-sans text-body leading-relaxed text-muted-foreground">
             Sign in or create an account to view and play all tracks you've
             saved across your listening sessions.

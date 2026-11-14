@@ -18,6 +18,7 @@ import {
 
 
 import { useVaultManage } from './VaultManageContext'
+import { H2 } from '../../ui/typography'
 
 export function CollectionDesk() {
   const {
@@ -109,9 +110,9 @@ export function CollectionDesk() {
                   <UploadCloudSVG className="w-7 h-7" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                  <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     Your Personal Collection is Empty
-                  </h3>
+                  </H2>
                   <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Upload your offline MP3, FLAC, WAV, AAC, or OGG files. They
                     will be stored securely in your private vault with full

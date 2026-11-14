@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { cn } from '../ui/cn'
-import { SectionTitle } from '../ui/SectionTitle'
+import { SectionHeading, HEADING_ACTION } from '../ui/typography'
 
 export interface ShelfSectionProps {
   title: string
@@ -27,15 +27,12 @@ export function ShelfSection({
 }: ShelfSectionProps) {
   return (
     <section className={cn('min-w-0', className)}>
-      <SectionTitle
+      <SectionHeading
         title={title}
         subtitle={subtitle}
         action={
           action ? (
-            <Link
-              to={action.to}
-              className="font-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-            >
+            <Link to={action.to} className={HEADING_ACTION}>
               {action.label}
             </Link>
           ) : null

@@ -312,7 +312,7 @@ export function PlayerBar() {
       {/* ===================== DESKTOP BOTTOM PLAYER BAR ===================== */}
       <footer
         aria-label="Audio Player"
-        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-22 pb-safe bg-card/95 backdrop-blur-xl border-t border-border px-5 lg:px-8 items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-all duration-200 select-none"
+        className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-22 pb-safe bg-background/95 backdrop-blur-md border-t border-border px-5 lg:px-8 items-center  justify-between transition-all duration-200 select-none shadow-raised"
       >
         {/* ━━━━━━━━ LEFT: Track Artwork & Info + Actions ━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className="flex items-center gap-3.5 min-w-0 w-[30%]">
@@ -386,7 +386,9 @@ export function PlayerBar() {
                   aria-label={isLiked ? 'Unlike song' : 'Like song'}
                   className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary/40 active:scale-95 cursor-pointer transition-all shrink-0"
                   title={
-                    isLiked ? 'Saved in your library (L)' : 'Save to library (L)'
+                    isLiked
+                      ? 'Saved in your library (L)'
+                      : 'Save to library (L)'
                   }
                 >
                   <Heart

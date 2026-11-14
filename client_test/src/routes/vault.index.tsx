@@ -30,6 +30,7 @@ import {
   ListIconSVG,
   SearchIconSVG,
 } from '../Components/Icons'
+import { H2 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/vault/')({
   staticData: { layout: 'wide' },
@@ -575,9 +576,9 @@ function PersonalCollectionExplorePage() {
                   <UploadCloudSVG className="w-7 h-7" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                  <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     Your Personal Vault is Empty
-                  </h3>
+                  </H2>
                   <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Upload your offline audio files in the Locker Manager to start
                     building your private listening library.

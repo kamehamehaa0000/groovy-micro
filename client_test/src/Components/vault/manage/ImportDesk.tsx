@@ -10,6 +10,7 @@ import {
 
 
 import { useVaultManage } from './VaultManageContext'
+import { H2, H3 } from '../../ui/typography'
 
 export function ImportDesk() {
   const {
@@ -133,9 +134,9 @@ export function ImportDesk() {
               <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
                   <div>
-                    <h3 className="font-serif italic text-heading sm:text-2xl text-foreground font-semibold">
+                    <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
                       Import Staging Desk
-                    </h3>
+                    </H3>
                     <p className="font-sans text-caption sm:text-body text-muted-foreground mt-0.5">
                       Review and refine release tags before uploading to your
                       private storage vault.
@@ -550,9 +551,9 @@ export function ImportDesk() {
                   <UploadCloudSVG className="w-7 h-7" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-serif italic text-2xl text-foreground font-normal">
+                  <H2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     Drop audio files or whole music folders here
-                  </h3>
+                  </H2>
                   <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-lg mx-auto leading-relaxed">
                     Supports MP3, FLAC, WAV, AAC, M4A, OGG. Tags and embedded
                     cover art are extracted in-browser using zero-copy streaming

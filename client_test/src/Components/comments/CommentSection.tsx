@@ -207,7 +207,7 @@ export function CommentSection({
       {/* Section Header: Title, Count, and Sort Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-3">
-          <h3 className="font-serif text-heading sm:text-2xl font-bold tracking-tight text-foreground">
+          <h3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
             Comments
           </h3>
           <span className="font-mono text-caption text-muted-foreground bg-secondary/30 px-2 py-0.5 rounded-full">

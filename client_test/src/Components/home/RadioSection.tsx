@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { cn } from '../ui/cn'
+import { SectionHeading, HEADING_ACTION } from '../ui/typography'
 import { RadioPill } from './RadioPill'
 import type { RadioMixCard } from '../../lib/recommendations.api'
 
@@ -44,31 +45,21 @@ export const RadioSection = memo(function RadioSection({
 
   return (
     <section className={cn('w-full font-sans text-foreground', className)}>
-      {/* Heading */}
-      <div className="mb-7 flex items-end justify-between gap-4">
-        <div>
-          {eyebrow && (
-            <p className="mb-2 font-eyebrow text-eyebrow font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              {eyebrow}
-            </p>
-          )}
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
-
-        {showAllTo && (
-          <Link
-            to={showAllTo as any}
-            className="shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {showAllLabel} &rarr;
-          </Link>
-        )}
-      </div>
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        action={
+          showAllTo ? (
+            <Link
+              to={showAllTo as any}
+              className={HEADING_ACTION}
+            >
+              {showAllLabel} &rarr;
+            </Link>
+          ) : null
+        }
+      />
 
       {/* Radio cards grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:gap-4">
