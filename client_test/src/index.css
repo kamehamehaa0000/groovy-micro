@@ -179,7 +179,8 @@
    ========================================================================= */
 @theme {
   /* --- Typefaces --------------------------------------------------------- */
-  --font-serif: 'Fraunces', Georgia, serif; /* display headings only */
+  --font-serif:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* purposefully using sans font in serif, will fix later */
   --font-sans:
     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* body + UI */
   --font-mono:
@@ -322,7 +323,8 @@ body {
   50% {
     transform: scaleY(0.3);
   }
-}@keyframes eq-bar-3 {
+}
+@keyframes eq-bar-3 {
   0%,
   100% {
     transform: scaleY(0.4);

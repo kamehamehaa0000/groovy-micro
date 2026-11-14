@@ -11,11 +11,16 @@ interface MobileActionDrawerProps {
   onClose: () => void
 }
 
-export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps) {
+export function MobileActionDrawer({
+  isOpen,
+  onClose,
+}: MobileActionDrawerProps) {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const openAuthModal = useAuthModalStore((s) => s.openAuthModal)
-  const openCreatePlaylistModal = useCreatePlaylistModalStore((s) => s.openModal)
+  const openCreatePlaylistModal = useCreatePlaylistModalStore(
+    (s) => s.openModal,
+  )
   const activeJamRoom = useJamStore((s) => s.activeRoom)
 
   // ESC key listener
@@ -39,7 +44,8 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
     if (!isAuthenticated) {
       openAuthModal({
         title: 'Create Playlists',
-        description: 'Sign in to build custom playlists and collaborative mixes on Groovy.',
+        description:
+          'Sign in to build custom playlists and collaborative mixes on Groovy.',
       })
       return
     }
@@ -51,7 +57,8 @@ export function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps)
     if (!isAuthenticated) {
       openAuthModal({
         title: 'Personal Locker Access',
-        description: 'Sign in to access and upload lossless audio in your personal collection.',
+        description:
+          'Sign in to access and upload lossless audio in your personal collection.',
       })
       return
     }

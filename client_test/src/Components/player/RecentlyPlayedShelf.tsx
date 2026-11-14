@@ -88,7 +88,7 @@ export function RecentlyPlayedShelf({
         </div>
       ) : (
         /* Navigational Pill Grid (purely navigational with h-16 on mobile and h-20 on desktop) */
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:gap-4">
           {displayedItems.map((item) => {
             const releaseTitle = item.song.albumTitle || item.song.title
             const releaseCover =

@@ -56,6 +56,7 @@ const CURATED_RADIO_MIXES = [
 ]
 
 export const Route = createFileRoute('/')({
+  staticData: { layout: 'default' },
   component: HomeComponent,
 })
 
