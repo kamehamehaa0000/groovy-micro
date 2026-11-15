@@ -16,12 +16,6 @@ export function useReleases() {
     useState<ReleaseDeleteRequest | null>(null)
   const [isDeletingItem, setIsDeletingItem] = useState(false)
 
-  // Release Creation Modal State (Unified Spotify-style Release Model)
-  const [isCreateReleaseOpen, setIsCreateReleaseOpen] = useState(false)
-
-  // Edit Release Modal State
-  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
-
   // Detach Cut Modal State
   const [detachModalData, setDetachModalData] =
     useState<DetachCutRequest | null>(null)
@@ -223,10 +217,6 @@ export function useReleases() {
     albums,
     setAlbums,
     isLoadingReleases,
-    isCreateReleaseOpen,
-    setIsCreateReleaseOpen,
-    editingAlbum,
-    setEditingAlbum,
     detachModalData,
     setDetachModalData,
     deleteConfirm,

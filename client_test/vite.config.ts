@@ -12,6 +12,25 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
   ],
+  resolve: {
+    alias: {
+      'hls.js': 'hls.js/dist/hls.light.mjs',
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('hls.js') || id.includes('hls.light')) {
+            return 'vendor-audio'
+          }
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) {
+            return 'vendor-react'
+          }
+        },
+      },
+    },
+  },
   server: {
     allowedHosts: ['studying-sierra-putting-exit.trycloudflare.com'],
     port: 5173,

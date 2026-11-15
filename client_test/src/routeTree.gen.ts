@@ -37,12 +37,14 @@ import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as PlaylistsIndexRouteImport } from './routes/playlists.index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as RadioSongIdRouteImport } from './routes/radio.$songId'
+import { Route as StudioNewRouteImport } from './routes/studio_.new'
 import { Route as UsersIdRouteImport } from './routes/users.$id'
 import { Route as VaultIndexRouteImport } from './routes/vault.index'
 import { Route as VaultManageRouteImport } from './routes/vault.manage'
 import { Route as AdminSubscriptionsIndexRouteImport } from './routes/admin.subscriptions.index'
 import { Route as AdminSubscriptionsFeaturesRouteImport } from './routes/admin.subscriptions.features'
 import { Route as AdminSubscriptionsPlansRouteImport } from './routes/admin.subscriptions.plans'
+import { Route as StudioEditIdRouteImport } from './routes/studio_.edit.$id'
 import { Route as VaultManageIndexRouteImport } from './routes/vault.manage.index'
 import { Route as VaultManageArtistsRouteImport } from './routes/vault.manage.artists'
 import { Route as VaultManageCollectionRouteImport } from './routes/vault.manage.collection'
@@ -190,6 +192,11 @@ const RadioSongIdRoute = RadioSongIdRouteImport.update({
   path: '/radio/$songId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioNewRoute = StudioNewRouteImport.update({
+  id: '/studio_/new',
+  path: '/studio/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersIdRoute = UsersIdRouteImport.update({
   id: '/users/$id',
   path: '/users/$id',
@@ -220,6 +227,11 @@ const AdminSubscriptionsPlansRoute = AdminSubscriptionsPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
   getParentRoute: () => AdminSubscriptionsRoute,
+} as any)
+const StudioEditIdRoute = StudioEditIdRouteImport.update({
+  id: '/studio_/edit/$id',
+  path: '/studio/edit/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const VaultManageIndexRoute = VaultManageIndexRouteImport.update({
   id: '/',
@@ -280,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
+  '/studio/new': typeof StudioNewRoute
   '/users/$id': typeof UsersIdRoute
   '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists/': typeof ArtistsIndexRoute
@@ -287,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/vault/': typeof VaultIndexRoute
   '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
   '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
+  '/studio/edit/$id': typeof StudioEditIdRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
@@ -320,12 +334,14 @@ export interface FileRoutesByTo {
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
+  '/studio/new': typeof StudioNewRoute
   '/users/$id': typeof UsersIdRoute
   '/artists': typeof ArtistsIndexRoute
   '/playlists': typeof PlaylistsIndexRoute
   '/vault': typeof VaultIndexRoute
   '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
   '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
+  '/studio/edit/$id': typeof StudioEditIdRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
@@ -362,6 +378,7 @@ export interface FileRoutesById {
   '/oauth/callback': typeof OauthCallbackRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/radio/$songId': typeof RadioSongIdRoute
+  '/studio_/new': typeof StudioNewRoute
   '/users/$id': typeof UsersIdRoute
   '/vault/manage': typeof VaultManageRouteWithChildren
   '/artists/': typeof ArtistsIndexRoute
@@ -369,6 +386,7 @@ export interface FileRoutesById {
   '/vault/': typeof VaultIndexRoute
   '/admin/subscriptions/features': typeof AdminSubscriptionsFeaturesRoute
   '/admin/subscriptions/plans': typeof AdminSubscriptionsPlansRoute
+  '/studio_/edit/$id': typeof StudioEditIdRoute
   '/vault/manage/artists': typeof VaultManageArtistsRoute
   '/vault/manage/collection': typeof VaultManageCollectionRoute
   '/vault/manage/import': typeof VaultManageImportRoute
@@ -406,6 +424,7 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
+    | '/studio/new'
     | '/users/$id'
     | '/vault/manage'
     | '/artists/'
@@ -413,6 +432,7 @@ export interface FileRouteTypes {
     | '/vault/'
     | '/admin/subscriptions/features'
     | '/admin/subscriptions/plans'
+    | '/studio/edit/$id'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
@@ -446,12 +466,14 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
+    | '/studio/new'
     | '/users/$id'
     | '/artists'
     | '/playlists'
     | '/vault'
     | '/admin/subscriptions/features'
     | '/admin/subscriptions/plans'
+    | '/studio/edit/$id'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
@@ -487,6 +509,7 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/playlists/$id'
     | '/radio/$songId'
+    | '/studio_/new'
     | '/users/$id'
     | '/vault/manage'
     | '/artists/'
@@ -494,6 +517,7 @@ export interface FileRouteTypes {
     | '/vault/'
     | '/admin/subscriptions/features'
     | '/admin/subscriptions/plans'
+    | '/studio_/edit/$id'
     | '/vault/manage/artists'
     | '/vault/manage/collection'
     | '/vault/manage/import'
@@ -530,9 +554,11 @@ export interface RootRouteChildren {
   OauthCallbackRoute: typeof OauthCallbackRoute
   PlaylistsIdRoute: typeof PlaylistsIdRoute
   RadioSongIdRoute: typeof RadioSongIdRoute
+  StudioNewRoute: typeof StudioNewRoute
   UsersIdRoute: typeof UsersIdRoute
   ArtistsIndexRoute: typeof ArtistsIndexRoute
   PlaylistsIndexRoute: typeof PlaylistsIndexRoute
+  StudioEditIdRoute: typeof StudioEditIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -733,6 +759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RadioSongIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio_/new': {
+      id: '/studio_/new'
+      path: '/studio/new'
+      fullPath: '/studio/new'
+      preLoaderRoute: typeof StudioNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users/$id': {
       id: '/users/$id'
       path: '/users/$id'
@@ -774,6 +807,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/subscriptions/plans'
       preLoaderRoute: typeof AdminSubscriptionsPlansRouteImport
       parentRoute: typeof AdminSubscriptionsRoute
+    }
+    '/studio_/edit/$id': {
+      id: '/studio_/edit/$id'
+      path: '/studio/edit/$id'
+      fullPath: '/studio/edit/$id'
+      preLoaderRoute: typeof StudioEditIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/vault/manage/': {
       id: '/vault/manage/'
@@ -896,9 +936,11 @@ const rootRouteChildren: RootRouteChildren = {
   OauthCallbackRoute: OauthCallbackRoute,
   PlaylistsIdRoute: PlaylistsIdRoute,
   RadioSongIdRoute: RadioSongIdRoute,
+  StudioNewRoute: StudioNewRoute,
   UsersIdRoute: UsersIdRoute,
   ArtistsIndexRoute: ArtistsIndexRoute,
   PlaylistsIndexRoute: PlaylistsIndexRoute,
+  StudioEditIdRoute: StudioEditIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

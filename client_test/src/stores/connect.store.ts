@@ -15,6 +15,12 @@ import type {
 } from "../lib/connect-bridge";
 import { useAuthStore } from "./auth.store";
 import { usePlayerStore } from "./player.store";
+import {
+  getDeviceInfo,
+  getInstanceId,
+  isAudioUnlocked,
+  markAudioUnlocked,
+} from "../lib/device";
 import type { PlayerTrack } from "../types/player";
 
 /** Pulling playback onto this device, optionally with a specific song. */
@@ -137,7 +143,6 @@ export function selectIsRemote(state: {
 
 /** Reads the per-tab / per-browser identity off the client. */
 async function readIdentity() {
-  const { getDeviceInfo, getInstanceId } = await import("../lib/device");
   const { deviceId, deviceName } = getDeviceInfo();
   return { deviceId, deviceName, instanceId: getInstanceId() };
 }
@@ -430,9 +435,6 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
   },
 
   register: async () => {
-    const { getDeviceInfo, getInstanceId, isAudioUnlocked } = await import(
-      "../lib/device"
-    );
     const { deviceId, deviceName } = getDeviceInfo();
     const instanceId = getInstanceId();
 
@@ -466,8 +468,6 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
   },
 
   playHere: async (options) => {
-    const { getDeviceInfo, getInstanceId, isAudioUnlocked, markAudioUnlocked } =
-      await import("../lib/device");
     const { deviceId, deviceName } = getDeviceInfo();
     const instanceId = getInstanceId();
 
@@ -1072,10 +1072,9 @@ export const useConnectStore = create<ConnectState>((set, get) => ({
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
 
-    const open = async () => {
+    const open = () => {
       if (disposed) return;
 
-      const { getDeviceInfo, getInstanceId } = await import("../lib/device");
       const { deviceId } = getDeviceInfo();
       const instanceId = getInstanceId();
       if (disposed) return;

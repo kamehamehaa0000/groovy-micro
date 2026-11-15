@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import { SaveBar } from '../../ui/SaveBar'
 import { FieldLabel, MonoInput, TitleInput, TextAreaField } from '../fields'
+import { Button } from '../../ui'
 
 export interface IdentityFormProps {
   stageName: string
@@ -11,7 +12,10 @@ export interface IdentityFormProps {
   spotify: string
   isDirty: boolean
   isSaving: boolean
-  onChange: (field: 'stageName' | 'slug' | 'bio' | 'instagram' | 'website' | 'spotify', value: string) => void
+  onChange: (
+    field: 'stageName' | 'slug' | 'bio' | 'instagram' | 'website' | 'spotify',
+    value: string,
+  ) => void
   onSave: (e: FormEvent) => void
   onRevert: () => void
   onCancel: () => void
@@ -47,6 +51,7 @@ export function IdentityForm({
             type="text"
             required
             value={stageName}
+            className="border-none rounded-lg"
             onChange={(e) => onChange('stageName', e.target.value)}
           />
         </div>
@@ -57,6 +62,7 @@ export function IdentityForm({
             type="text"
             required
             value={slug}
+            className="border-none rounded-lg"
             onChange={(e) => onChange('slug', e.target.value)}
           />
         </div>
@@ -67,6 +73,7 @@ export function IdentityForm({
         <TextAreaField
           rows={4}
           value={bio}
+          className="border-none rounded-lg"
           onChange={(e) => onChange('bio', e.target.value)}
         />
       </div>
@@ -80,6 +87,7 @@ export function IdentityForm({
             size="sm"
             type="url"
             value={instagram}
+            className="border-none rounded-lg"
             onChange={(e) => onChange('instagram', e.target.value)}
             placeholder="https://instagram.com/..."
           />
@@ -92,6 +100,7 @@ export function IdentityForm({
             size="sm"
             type="url"
             value={website}
+            className="border-none rounded-lg"
             onChange={(e) => onChange('website', e.target.value)}
             placeholder="https://..."
           />
@@ -104,6 +113,7 @@ export function IdentityForm({
             size="sm"
             type="url"
             value={spotify}
+            className="border-none rounded-lg"
             onChange={(e) => onChange('spotify', e.target.value)}
             placeholder="https://open.spotify.com/..."
           />
@@ -117,13 +127,15 @@ export function IdentityForm({
         busyLabel="Saving..."
         onRevert={onRevert}
         actions={
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
+            className="rounded-full"
             onClick={onCancel}
-            className="cursor-pointer border border-border px-4 py-2 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
           >
             Cancel
-          </button>
+          </Button>
         }
       />
     </form>

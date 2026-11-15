@@ -3,7 +3,16 @@ import { slugifyText, artistsApi } from '../../lib/artists.api'
 import type { ArtistProfile } from '../../types/artist'
 import { notify } from '../../lib/toast'
 import { PartyPopper, Sparkles } from 'lucide-react'
-import { H1 } from '../ui/typography'
+import {
+  Button,
+  Card,
+  Eyebrow,
+  Field,
+  H1,
+  Input,
+  Subtitle,
+  Textarea,
+} from '../ui'
 
 interface StudioUpgradeScreenProps {
   setArtistProfile: React.Dispatch<React.SetStateAction<ArtistProfile | null>>
@@ -66,131 +75,133 @@ export function StudioUpgradeScreen({
   return (
     <div className="max-w-3xl mx-auto px-5 sm:px-8 py-12">
       <div className="border-b border-border pb-6 mb-8">
-        <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2">
+        <Eyebrow tone="brand" className="mb-2 block">
           Maison Creator Studio
-        </span>
+        </Eyebrow>
         <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Launch Your Artist Identity
         </H1>
-        <p className="font-sans text-caption text-muted-foreground mt-2 leading-relaxed">
+        <Subtitle className="mt-2 leading-relaxed">
           Create your official Groovy artist profile. Release master tracks,
           manage your presence, and curate your discography.
-        </p>
+        </Subtitle>
       </div>
 
       <form onSubmit={handleInstantUpgrade} className="flex flex-col gap-6">
-        <div className="p-6 border border-border bg-card flex flex-col gap-5 shadow-raised">
-          <div>
-            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
-              Stage / Ensemble Name{' '}
-              <span className="text-destructive">*</span>
-            </label>
-            <input
+        <Card
+          variant="plain"
+          padding="lg"
+          className="flex flex-col gap-5 shadow-raised border-none rounded-lg"
+        >
+          <Field
+            label={
+              <span>
+                Stage / Ensemble Name{' '}
+                <span className="text-destructive">*</span>
+              </span>
+            }
+          >
+            <Input
               type="text"
               required
               value={stageName}
               onChange={(e) => setStageName(e.target.value)}
               placeholder="e.g. Hélène Vane, The Cinematic Trio"
-              className="w-full text-title py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors font-medium"
+              className="text-title font-medium  bg-background border-none rounded-lg"
             />
-          </div>
+          </Field>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground">
-                Vanity Handle (Slug)
-              </label>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground">
-                Auto-generated if blank
+          <Field
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Vanity Handle (Slug)</span>
+                <span className="text-muted-foreground normal-case font-normal text-caption">
+                  Auto-generated if blank
+                </span>
+              </div>
+            }
+            hint={
+              <span className="font-mono text-eyebrow flex items-center gap-1">
+                <span>Public profile URL:</span>
+                <span className="text-primary font-semibold">
+                  groovy.app/artists/{previewSlug}
+                </span>
               </span>
-            </div>
-            <input
+            }
+          >
+            <Input
               type="text"
               value={customSlug}
               onChange={(e) => setCustomSlug(e.target.value)}
               placeholder="e.g. helene-vane"
-              className="w-full font-mono text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
+              className="font-mono text-caption   bg-background border-none rounded-lg"
             />
-            <div className="mt-2 font-mono text-eyebrow text-muted-foreground flex items-center gap-1">
-              <span>Public profile URL:</span>
-              <span className="text-primary font-semibold">
-                groovy.app/artists/{previewSlug}
-              </span>
-            </div>
-          </div>
+          </Field>
 
-          <div>
-            <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-foreground block mb-2">
-              Artist Biography
-            </label>
-            <textarea
+          <Field label="Artist Biography">
+            <Textarea
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Share your musical background, style, influences, or instruments..."
-              className="w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors resize-y leading-relaxed"
+              className="font-sans text-caption leading-relaxed  bg-background border-none rounded-lg"
             />
-          </div>
+          </Field>
 
-          <div className="pt-4 border-t border-border-soft">
-            <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-3">
+          <div className="pt-4 border-t border-border">
+            <Eyebrow className="block mb-3">
               Official Channels (Optional)
-            </span>
+            </Eyebrow>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                  Instagram URL
-                </label>
-                <input
+              <Field label="Instagram URL">
+                <Input
                   type="url"
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
                   placeholder="https://instagram.com/..."
-                  className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                  className="font-mono text-caption  bg-background border-none rounded-lg"
                 />
-              </div>
-              <div>
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                  Website URL
-                </label>
-                <input
+              </Field>
+              <Field label="Website URL">
+                <Input
                   type="url"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://yourwebsite.com"
-                  className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+                  className="font-mono text-caption  bg-background border-none rounded-lg "
                 />
-              </div>
+              </Field>
               <div className="sm:col-span-2">
-                <label className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block mb-1">
-                  Spotify Artist URL
-                </label>
-                <input
-                  type="url"
-                  value={spotify}
-                  onChange={(e) => setSpotify(e.target.value)}
-                  placeholder="https://open.spotify.com/artist/..."
-                  className="w-full font-mono text-caption py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
-                />
+                <Field label="Spotify Artist URL">
+                  <Input
+                    type="url"
+                    value={spotify}
+                    onChange={(e) => setSpotify(e.target.value)}
+                    placeholder="https://open.spotify.com/artist/..."
+                    className="font-mono text-caption  bg-background border-none rounded-lg"
+                  />
+                </Field>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="md"
           disabled={isSubmittingUpgrade}
-          className="w-full font-eyebrow text-caption uppercase tracking-widest py-3.5 px-6 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 font-semibold inline-flex items-center justify-center gap-1.5"
+          leftIcon={
+            !isSubmittingUpgrade ? (
+              <Sparkles className="w-4 h-4 shrink-0" />
+            ) : undefined
+          }
+          className="ml-auto text-muted text-xs "
         >
-          {isSubmittingUpgrade ? (
-            'Activating Studio...'
-          ) : (
-            <>
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              Activate Artist Studio (Instant Upgrade)
-            </>
-          )}
-        </button>
+          {isSubmittingUpgrade
+            ? 'Activating Studio...'
+            : 'Create Artist Profile'}
+        </Button>
       </form>
     </div>
   )

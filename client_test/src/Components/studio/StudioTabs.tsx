@@ -19,8 +19,8 @@ const TABS: { id: StudioTab; label: string }[] = [
 export function StudioTabs({
   activeTab,
   onTabChange,
-  releaseCount,
-  trashCount,
+  releaseCount: _releaseCount,
+  trashCount: _trashCount,
 }: StudioTabsProps) {
   return (
     <nav

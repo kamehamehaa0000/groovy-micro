@@ -26,6 +26,7 @@ import { Switch } from '../Components/ui'
 import { Loader2Icon } from 'lucide-react'
 import { notify } from '../lib/toast'
 import { ConfirmDialog } from '../Components/ui/Modal'
+import { ImageCropModal } from '../Components/common/ImageCropModal'
 import { SaveBar } from '../Components/ui/SaveBar'
 import { SettingsShell } from '../Components/settings/SettingsShell'
 import { PlanComparison } from '../Components/subscriptions/PlanComparison'
@@ -70,6 +71,7 @@ function ProfileComponent() {
 
   // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarCropFile, setAvatarCropFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Password State
@@ -222,16 +224,20 @@ function ProfileComponent() {
   }
 
   // --- Avatar Pre-Signed URL Direct Upload ---
-  const handleAvatarFileChange = async (
+  const handleAvatarFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setAvatarCropFile(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
+  const handleAvatarCropComplete = async (croppedFile: File) => {
     setIsUploadingAvatar(true)
 
     try {
-      const ext = file.name.split('.').pop() || 'jpeg'
+      const ext = croppedFile.name.split('.').pop() || 'webp'
 
       const { uploadUrl, publicUrl } = await api.post<{
         uploadUrl: string
@@ -239,36 +245,34 @@ function ProfileComponent() {
       }>('/api/v1/storage/presigned-url', {
         category: 'USER_AVATAR',
         resourceId: user.id,
-        mimeType: file.type || 'image/jpeg',
+        mimeType: croppedFile.type || 'image/webp',
         fileExtension: ext,
-        fileSizeBytes: file.size,
+        fileSizeBytes: croppedFile.size,
       })
 
       const uploadRes = await fetch(uploadUrl, {
         method: 'PUT',
-        body: file,
+        body: croppedFile,
         headers: {
-          'Content-Type': file.type,
+          'Content-Type': croppedFile.type || 'image/webp',
         },
       })
 
       if (!uploadRes.ok) {
         throw new Error(
-          `Direct S3/R2 storage rejected upload (${uploadRes.status})`,
+          `Storage rejected upload (${uploadRes.status})`,
         )
       }
 
       await api.patch('/api/v1/users/profile', { avatarUrl: publicUrl })
       await refreshProfile()
 
-      notify.success(
-        'Avatar uploaded directly to Cloudflare R2 storage archive.',
-      )
+      notify.success('Avatar updated successfully.')
+      setAvatarCropFile(null)
     } catch (err: any) {
       notify.error('Failed to upload avatar: ' + err.message)
     } finally {
       setIsUploadingAvatar(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -326,7 +330,8 @@ function ProfileComponent() {
   }
 
   // --- Privacy Settings Update ---
-  const handleUpdatePrivacy = async (e: React.FormEvent) => {    e.preventDefault()
+  const handleUpdatePrivacy = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsSavingPrivacy(true)
 
     try {
@@ -371,7 +376,8 @@ function ProfileComponent() {
     }
   }
 
-  const isNotifPrefsDirty = !!savedNotifPrefs &&
+  const isNotifPrefsDirty =
+    !!savedNotifPrefs &&
     (notifPrefs.emailReleases !== savedNotifPrefs.emailReleases ||
       notifPrefs.emailComments !== savedNotifPrefs.emailComments ||
       notifPrefs.pushSocial !== savedNotifPrefs.pushSocial ||
@@ -471,7 +477,7 @@ function ProfileComponent() {
           {/* Identity & Status */}
           <div className="w-full min-w-0 flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-              <h1 className="max-w-full break-words text-heading sm:text-2xl font-bold font-sans text-foreground tracking-tight">
+              <h1 className="max-w-full wrap-break-words text-heading sm:text-2xl font-bold font-sans text-foreground tracking-tight">
                 {user.displayName}
               </h1>
               {user.isEmailVerified ? (
@@ -486,7 +492,7 @@ function ProfileComponent() {
               )}
             </div>
 
-            <p className="text-caption text-muted-foreground font-sans break-words mb-3">
+            <p className="text-caption text-muted-foreground font-sans wrap-break-words mb-3">
               {user.email}
             </p>
 
@@ -570,56 +576,56 @@ function ProfileComponent() {
             () => setIsConfirmCancelOpen(true),
           )}
 
-      {/* 3. PRIVACY & SOCIAL CIRCLES */}
-      {activeTab === 'privacy' &&
-        PrivacyTab(
-          handleUpdatePrivacy,
-          isPrivateAccount,
-          setIsPrivateAccount,
-          listeningActivityPrivacy,
-          setListeningActivityPrivacy,
-          libraryPrivacy,
-          setLibraryPrivacy,
-          lockerIncludeInSearch,
-          setLockerIncludeInSearch,
-          lockerIncludeInRecentlyPlayed,
-          setLockerIncludeInRecentlyPlayed,
-          lockerIncludeInHome,
-          setLockerIncludeInHome,
-          lockerLinkToGlobalArtists,
-          setLockerLinkToGlobalArtists,
-          isSavingPrivacy,
-          isPrivacyDirty,
-          revertPrivacy,
-        )}
+        {/* 3. PRIVACY & SOCIAL CIRCLES */}
+        {activeTab === 'privacy' &&
+          PrivacyTab(
+            handleUpdatePrivacy,
+            isPrivateAccount,
+            setIsPrivateAccount,
+            listeningActivityPrivacy,
+            setListeningActivityPrivacy,
+            libraryPrivacy,
+            setLibraryPrivacy,
+            lockerIncludeInSearch,
+            setLockerIncludeInSearch,
+            lockerIncludeInRecentlyPlayed,
+            setLockerIncludeInRecentlyPlayed,
+            lockerIncludeInHome,
+            setLockerIncludeInHome,
+            lockerLinkToGlobalArtists,
+            setLockerLinkToGlobalArtists,
+            isSavingPrivacy,
+            isPrivacyDirty,
+            revertPrivacy,
+          )}
 
-      {/* 4. NOTIFICATION DELIVERY */}
-      {activeTab === 'notifications' &&
-        NotificationPreferenceTab(
-          handleUpdateNotifPrefs,
-          notifPrefs,
-          setNotifPrefs,
-          isSavingNotifPrefs,
-          isNotifPrefsDirty,
-          revertNotifPrefs,
-        )}
+        {/* 4. NOTIFICATION DELIVERY */}
+        {activeTab === 'notifications' &&
+          NotificationPreferenceTab(
+            handleUpdateNotifPrefs,
+            notifPrefs,
+            setNotifPrefs,
+            isSavingNotifPrefs,
+            isNotifPrefsDirty,
+            revertNotifPrefs,
+          )}
 
-      {/* 5. SECURITY & SESSIONS */}
-      {activeTab === 'security' &&
-        SecurityTab(
-          handleUpdatePassword,
-          showPasswords,
-          currentPassword,
-          setCurrentPassword,
-          newPassword,
-          setNewPassword,
-          revokeOthers,
-          setRevokeOthers,
-          setShowPasswords,
-          isUpdatingPassword,
-          logout,
-          revokeAll,
-        )}
+        {/* 5. SECURITY & SESSIONS */}
+        {activeTab === 'security' &&
+          SecurityTab(
+            handleUpdatePassword,
+            showPasswords,
+            currentPassword,
+            setCurrentPassword,
+            newPassword,
+            setNewPassword,
+            revokeOthers,
+            setRevokeOthers,
+            setShowPasswords,
+            isUpdatingPassword,
+            logout,
+            revokeAll,
+          )}
       </SettingsShell>
 
       {/* ===================== UPGRADE / CHANGE PLAN MODAL ===================== */}
@@ -645,6 +651,21 @@ function ProfileComponent() {
         currentPlanId={entitlements?.planId}
         isBusy={isUpgradingPlan}
         onSelectPlan={(planId) => void handleSwitchPlan(planId)}
+      />
+
+      {/* Avatar Crop Modal */}
+      <ImageCropModal
+        isOpen={!!avatarCropFile}
+        onClose={() => setAvatarCropFile(null)}
+        imageFile={avatarCropFile}
+        title="Crop Profile Avatar"
+        subtitle="Account Profile"
+        aspectRatio={1}
+        isCircularMask={true}
+        targetMaxWidth={600}
+        targetMaxHeight={600}
+        isSubmitting={isUploadingAvatar}
+        onCropComplete={handleAvatarCropComplete}
       />
     </div>
   )
@@ -1414,7 +1435,9 @@ function AccountIdentityTab(
 
         <div className="divide-y divide-border/60 font-sans text-caption">
           <div className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <span className="text-muted-foreground shrink-0">Email Address</span>
+            <span className="text-muted-foreground shrink-0">
+              Email Address
+            </span>
             <span className="text-foreground font-medium min-w-0 break-words">
               {user.email}
             </span>

@@ -1,21 +1,21 @@
-import { Disc3 } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { Disc3, Plus } from 'lucide-react'
 import { notify } from '../../../lib/toast'
-import { CreateReleaseDrawer } from '../CreateReleaseDrawer'
 import { ReleaseCard } from '../ReleaseCard'
 import type { ArtistProfile } from '../../../types/artist'
 import type { ReleasesState } from '../hooks/useReleases'
 import { H3 } from '../../ui/typography'
+import { ButtonLink } from '../../ui'
 
 interface ReleasesTabProps {
   artistProfile: ArtistProfile
   releases: ReleasesState
 }
 
-export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
+export function ReleasesTab({ artistProfile: _artistProfile, releases }: ReleasesTabProps) {
+  const navigate = useNavigate()
   const {
-    isCreateReleaseOpen,
-    setIsCreateReleaseOpen,
-    loadReleases,
+    loadReleases: _loadReleases,
     albums,
     isLoadingReleases,
     expandedAlbumId,
@@ -25,7 +25,6 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
     setVisibilityMenuId,
     handleQuickChangeVisibility,
     handleToggleAlbumExpand,
-    setEditingAlbum,
     handleDeleteAlbum,
     handleOpenDetachModal,
     handleDeleteSong,
@@ -46,15 +45,6 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
         </div>
       </div>
 
-      {/* Unified Master Release Modal / Drawer */}
-      {isCreateReleaseOpen && (
-        <CreateReleaseDrawer
-          artistProfile={artistProfile}
-          onClose={() => setIsCreateReleaseOpen(false)}
-          onReleasesChanged={loadReleases}
-        />
-      )}
-
       {/* Releases List */}
       <div className="space-y-4">
         <h3 className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
@@ -66,15 +56,23 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
             Querying studio releases...
           </div>
         ) : albums.length === 0 ? (
-          <div className="p-10 border border-dashed border-border bg-card text-center">
+          <div className="p-10 bg-card shadow-raised rounded-2xl text-center flex flex-col items-center justify-center">
             <Disc3 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2 shrink-0" />
             <p className="text-title text-foreground font-medium">
               No active master releases yet
             </p>
-            <p className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-1">
-              Click "+ New Release" above to release your first album, EP or
-              single.
+            <p className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-1 max-w-sm">
+              Release your first album, EP, or single to start building your studio catalog.
             </p>
+            <ButtonLink
+              to="/studio/new"
+              variant="pixel"
+              size="sm"
+              className="mt-4"
+            >
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>New Release</span>
+            </ButtonLink>
           </div>
         ) : (
           <div className="space-y-4">
@@ -107,7 +105,12 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
                       `Copied secret share link for "${album.title}"!`,
                     )
                   }}
-                  onEdit={() => setEditingAlbum(album)}
+                  onEdit={() =>
+                    navigate({
+                      to: '/studio/edit/$id',
+                      params: { id: album.id },
+                    })
+                  }
                   onDelete={() =>
                     handleDeleteAlbum(
                       album.id,

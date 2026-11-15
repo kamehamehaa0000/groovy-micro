@@ -52,7 +52,7 @@ export function TrackListEditor<T extends StudioTrackDraft>({
       {tracks.map((track, idx) => (
         <div
           key={track.id}
-          className="p-3.5 border border-border bg-background space-y-3"
+          className="p-3.5 rounded-xl bg-background space-y-3"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <span className="font-mono text-caption text-muted-foreground w-6">

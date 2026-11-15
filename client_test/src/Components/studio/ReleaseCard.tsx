@@ -61,10 +61,10 @@ export function ReleaseCard({
         : 'Public'
   const visClass =
     vis === 'UNLISTED'
-      ? 'border-info/40 bg-info-soft text-info'
+      ? 'bg-info-soft text-info'
       : vis === 'PRIVATE'
-        ? 'border-destructive/40 bg-destructive-soft text-destructive'
-        : 'border-border bg-background text-muted-foreground'
+        ? 'bg-destructive-soft text-destructive'
+        : 'bg-background text-muted-foreground hover:text-foreground'
   const VisIcon =
     vis === 'UNLISTED' ? Link2 : vis === 'PRIVATE' ? Lock : Globe
   const isScheduled = album.status === 'SCHEDULED'
@@ -73,10 +73,10 @@ export function ReleaseCard({
   return (
     <div
       key={album.id}
-      className="border border-border bg-card rounded-control shadow-raised min-w-0"
+      className="bg-card rounded-2xl shadow-raised min-w-0 overflow-hidden"
     >
-      <div className="flex items-start gap-3 p-3 sm:p-4 min-w-0">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-control border border-border bg-muted overflow-hidden shrink-0">
+      <div className="flex items-start gap-3.5 p-4 sm:p-5 min-w-0">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-muted overflow-hidden shrink-0 relative shadow-xs">
           {album.coverImageUrl ? (
             <img
               src={album.coverImageUrl}
@@ -85,14 +85,14 @@ export function ReleaseCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Disc3 className="w-5 h-5 text-muted-foreground/40" />
+              <Disc3 className="w-6 h-6 text-muted-foreground/40" />
             </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background text-primary font-semibold rounded-control shrink-0">
+            <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-background text-primary font-semibold rounded-full shrink-0">
               {album.albumType}
             </span>
 
@@ -100,7 +100,7 @@ export function ReleaseCard({
               <button
                 type="button"
                 onClick={onToggleVisibilityMenu}
-                className={`font-eyebrow text-eyebrow uppercase tracking-wider pl-1.5 pr-1 py-0.5 border rounded-control flex items-center gap-1 cursor-pointer transition-colors ${visClass}`}
+                className={`font-eyebrow text-eyebrow uppercase tracking-wider pl-2 pr-1.5 py-0.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors ${visClass}`}
                 title="Change release visibility"
                 aria-haspopup="menu"
                 aria-expanded={isVisibilityMenuOpen}
@@ -121,7 +121,7 @@ export function ReleaseCard({
                   />
                   <div
                     role="menu"
-                    className="absolute left-0 top-full mt-1 z-50 w-40 bg-card border border-border rounded-control shadow-floating p-1"
+                    className="absolute left-0 top-full mt-1.5 z-50 w-40 bg-card rounded-xl shadow-floating p-1.5 border-none"
                   >
                     <button
                       type="button"
@@ -130,12 +130,12 @@ export function ReleaseCard({
                         onCloseVisibilityMenu()
                         onChangeVisibility('PUBLIC')
                       }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
                     >
-                      <Globe className="w-3 h-3 shrink-0" />
+                      <Globe className="w-3.5 h-3.5 shrink-0" />
                       <span className="flex-1">Public</span>
                       {vis === 'PUBLIC' && (
-                        <Check className="w-3 h-3 shrink-0 text-primary" />
+                        <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
                       )}
                     </button>
 
@@ -146,12 +146,12 @@ export function ReleaseCard({
                         onCloseVisibilityMenu()
                         onChangeVisibility('UNLISTED')
                       }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
                     >
-                      <Link2 className="w-3 h-3 shrink-0" />
+                      <Link2 className="w-3.5 h-3.5 shrink-0" />
                       <span className="flex-1">Unlisted</span>
                       {vis === 'UNLISTED' && (
-                        <Check className="w-3 h-3 shrink-0 text-primary" />
+                        <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
                       )}
                     </button>
 
@@ -162,12 +162,12 @@ export function ReleaseCard({
                         onCloseVisibilityMenu()
                         onChangeVisibility('PRIVATE')
                       }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-control text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left font-eyebrow text-eyebrow uppercase tracking-wider hover:bg-muted cursor-pointer transition-colors"
                     >
-                      <Lock className="w-3 h-3 shrink-0" />
+                      <Lock className="w-3.5 h-3.5 shrink-0" />
                       <span className="flex-1">Private</span>
                       {vis === 'PRIVATE' && (
-                        <Check className="w-3 h-3 shrink-0 text-primary" />
+                        <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
                       )}
                     </button>
                   </div>
@@ -251,11 +251,11 @@ export function ReleaseCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 border-t border-border-soft px-3 sm:px-4 py-2">
+      <div className="flex items-center justify-end gap-1.5 border-t border-border-soft px-3 sm:px-4 py-2.5 bg-card/60">
         <button
           type="button"
           onClick={onDelete}
-          className="p-2 border border-border bg-background text-muted-foreground hover:text-destructive hover:border-destructive rounded-control cursor-pointer transition-colors"
+          className="p-2 rounded-full bg-background hover:bg-destructive-soft text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
           title="Move to 30-Day Trash"
           aria-label={`Move ${album.title} to 30-Day Trash`}
         >
@@ -266,7 +266,7 @@ export function ReleaseCard({
           <button
             type="button"
             onClick={onCopySecretLink}
-            className="p-2 border border-info/40 bg-info-soft text-info hover:bg-info/20 rounded-control cursor-pointer transition-colors"
+            className="p-2 rounded-full bg-info-soft text-info hover:bg-info/20 cursor-pointer transition-colors"
             title="Copy secret share link"
             aria-label={`Copy secret share link for ${album.title}`}
           >
@@ -282,7 +282,7 @@ export function ReleaseCard({
               ? { shareToken: album.shareToken }
               : {}
           }
-          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors rounded-control flex items-center justify-center"
+          className="p-2 rounded-full bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center"
           title="View release in catalog"
           aria-label={`View ${album.title} in catalog`}
         >
@@ -292,7 +292,7 @@ export function ReleaseCard({
         <button
           type="button"
           onClick={onEdit}
-          className="p-2 border border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer rounded-control"
+          className="p-2 rounded-full bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           title="Edit release details"
           aria-label={`Edit ${album.title}`}
         >
@@ -302,10 +302,10 @@ export function ReleaseCard({
         <button
           type="button"
           onClick={onToggleExpand}
-          className={`p-2 border rounded-control cursor-pointer transition-colors ${
+          className={`p-2 rounded-full cursor-pointer transition-colors ${
             isExpanded
-              ? 'border-foreground bg-muted text-foreground'
-              : 'border-border bg-background text-muted-foreground hover:text-foreground'
+              ? 'bg-foreground text-background shadow-xs'
+              : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground'
           }`}
           title={
             isExpanded
@@ -324,7 +324,7 @@ export function ReleaseCard({
       </div>
 
       {isExpanded && (
-        <div className="border-t border-border-soft px-3 sm:px-4 py-2.5 space-y-2">
+        <div className="border-t border-border-soft px-3 sm:px-4 py-3 space-y-2.5">
           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground block">
             Master Cuts ({tracks.length})
           </span>
@@ -338,11 +338,11 @@ export function ReleaseCard({
               No cuts in this release yet.
             </div>
           ) : (
-            <div className="border border-border-soft bg-background rounded-control divide-y divide-border-soft overflow-hidden">
+            <div className="bg-background rounded-xl divide-y divide-border-soft overflow-hidden">
               {tracks.map((track, i) => (
                 <div
                   key={track.id}
-                  className="flex items-center gap-2.5 px-2.5 py-2 text-caption min-w-0"
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-caption min-w-0"
                 >
                   <span className="font-mono text-eyebrow text-muted-foreground w-5 shrink-0 text-right">
                     {String(
@@ -360,7 +360,7 @@ export function ReleaseCard({
                   </div>
 
                   {track.isExplicit && (
-                    <span className="font-mono text-eyebrow px-1 border border-border text-muted-foreground rounded-control shrink-0">
+                    <span className="font-mono text-eyebrow px-1 bg-muted text-muted-foreground rounded-control shrink-0">
                       E
                     </span>
                   )}
@@ -373,7 +373,7 @@ export function ReleaseCard({
                     <button
                       type="button"
                       onClick={() => onDetachCut(track)}
-                      className="p-1.5 border border-border-soft bg-card hover:border-foreground text-muted-foreground hover:text-foreground cursor-pointer rounded-control shrink-0"
+                      className="p-1.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shrink-0 transition-colors"
                       title="Detach cut into a standalone single"
                       aria-label={`Detach ${track.title} into a standalone single`}
                     >
@@ -384,7 +384,7 @@ export function ReleaseCard({
                   <button
                     type="button"
                     onClick={() => onDeleteCut(track)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive cursor-pointer rounded-control shrink-0"
+                    className="p-1.5 rounded-full hover:bg-destructive-soft text-muted-foreground hover:text-destructive cursor-pointer shrink-0 transition-colors"
                     title="Move cut to 30-Day Trash"
                     aria-label={`Move ${track.title} to trash`}
                   >

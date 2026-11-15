@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from './cn'
+import { Button } from './Button'
 
 export interface SaveBarProps {
   /** There are unsaved changes. */
@@ -53,14 +54,16 @@ export function SaveBar({
           <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-warning">
             Unsaved changes
           </span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
+            className="rounded-full"
             onClick={onRevert}
             disabled={isBusy}
-            className="cursor-pointer rounded-full border border-border px-5 py-2.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
           >
             Revert
-          </button>
+          </Button>
         </>
       ) : null}
       {actions}

@@ -118,7 +118,7 @@ export function ArtistCreditPicker({
           {credits.map((c) => (
             <div
               key={c.artistId}
-              className="inline-flex items-center gap-2 py-1 px-2.5 border border-border bg-background font-mono text-eyebrow shadow-raised"
+              className="inline-flex items-center gap-2 py-1 px-2.5 rounded-lg bg-background font-mono text-eyebrow shadow-raised"
             >
               <span className="font-medium text-foreground flex items-center gap-1">
                 {c.stageName}
@@ -135,7 +135,7 @@ export function ArtistCreditPicker({
                 onChange={(e) =>
                   handleRoleChange(c.artistId, e.target.value as CreditRole)
                 }
-                className="bg-card border border-border-soft text-foreground font-eyebrow text-eyebrow uppercase tracking-wider py-0.5 px-1.5 focus:outline-none"
+                className="bg-card text-foreground font-eyebrow text-eyebrow uppercase tracking-wider py-0.5 px-1.5 rounded-lg focus:outline-none"
               >
                 <option value="FEATURED">Featured</option>
                 <option value="PRODUCER">Producer</option>
@@ -164,14 +164,14 @@ export function ArtistCreditPicker({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1 px-2.5 border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground cursor-pointer inline-flex items-center gap-1"
+          className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 rounded-lg bg-background hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center gap-1.5 transition-colors"
         >
-          <Plus className="w-3 h-3 shrink-0" />
-          <span>Add Collaborator / Credit</span>
+          <Plus className="w-3.5 h-3.5 shrink-0" />
+          <span>Add Collaborator</span>
         </button>
       ) : (
         <div className="relative max-w-md">
-          <div className="flex items-center gap-1.5 border border-border bg-background px-2.5 py-1.5 shadow-raised">
+          <div className="flex items-center gap-1.5 rounded-lg bg-background px-3 py-1.5 shadow-raised ring-1 ring-foreground/20">
             <span className="font-mono text-eyebrow text-muted-foreground">Search:</span>
             <input
               type="text"
@@ -202,7 +202,7 @@ export function ArtistCreditPicker({
 
           {/* Autocomplete Results Panel */}
           {query.trim().length >= 2 && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-card border border-border shadow-md divide-y divide-border/40 max-h-56 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 z-30 rounded-lg bg-card shadow-lg divide-y divide-border-soft/40 max-h-56 overflow-y-auto">
               {results.length > 0 ? (
                 results.map((artist) => (
                   <button

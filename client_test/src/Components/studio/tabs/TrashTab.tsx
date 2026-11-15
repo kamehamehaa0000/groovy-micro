@@ -1,5 +1,6 @@
 import { RotateCcw } from 'lucide-react'
 import type { TrashState } from '../hooks/useTrash'
+import { Button } from '../../ui'
 
 interface TrashTabProps {
   trash: TrashState
@@ -18,7 +19,7 @@ export function TrashTab({ trash }: TrashTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="p-4 border border-warning/40 bg-warning-soft text-warning font-sans text-caption flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 bg-warning-soft text-warning font-sans text-caption flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl shadow-raised">
         <div>
           <span className="font-eyebrow text-eyebrow uppercase tracking-widest font-semibold block mb-0.5">
             30-Day Recovery Guarantee
@@ -31,14 +32,16 @@ export function TrashTab({ trash }: TrashTabProps) {
           </p>
         </div>
         {(trashAlbums.length > 0 || trashSongs.length > 0) && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
             disabled={isPurging}
             onClick={() => setTrashConfirm({ type: 'empty' })}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-destructive/40 bg-destructive-soft hover:bg-destructive/20 text-destructive transition-colors font-semibold cursor-pointer shrink-0"
+            className="rounded-full text-destructive border-destructive/40 hover:bg-destructive/10 shrink-0"
           >
-            {isPurging ? 'Emptying...' : 'Empty Trash'}
-          </button>
+            <span>{isPurging ? 'Emptying...' : 'Empty Trash'}</span>
+          </Button>
         )}
       </div>
 
@@ -48,11 +51,11 @@ export function TrashTab({ trash }: TrashTabProps) {
         </h3>
 
         {isLoadingTrash ? (
-          <div className="p-6 text-center font-mono text-caption text-muted-foreground animate-pulse">
+          <div className="p-8 text-center font-mono text-caption text-muted-foreground animate-pulse">
             Loading trash archive...
           </div>
         ) : trashAlbums.length === 0 ? (
-          <div className="p-6 border border-border bg-card text-center font-mono text-caption text-muted-foreground rounded-control">
+          <div className="p-8 bg-card shadow-raised text-center font-mono text-caption text-muted-foreground rounded-2xl">
             Trash is empty. No deleted albums found.
           </div>
         ) : (
@@ -60,14 +63,14 @@ export function TrashTab({ trash }: TrashTabProps) {
             {trashAlbums.map((album) => (
               <div
                 key={album.id}
-                className="p-4 border border-border rounded-control bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="p-4 sm:p-5 bg-card shadow-raised rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 min-w-0">
                     <h4 className="font-sans font-semibold text-body sm:text-title text-foreground truncate min-w-0">
                       {album.title}
                     </h4>
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 bg-background border border-border text-muted-foreground rounded-control shrink-0">
+                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-2 py-0.5 bg-background text-muted-foreground rounded-full shrink-0">
                       {album.albumType}
                     </span>
                   </div>
@@ -80,15 +83,18 @@ export function TrashTab({ trash }: TrashTabProps) {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
+                  <Button
+                    variant="pixel"
+                    size="sm"
                     type="button"
                     onClick={() => handleRestoreAlbum(album.id)}
-                    className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3.5 bg-foreground text-background hover:opacity-90 cursor-pointer flex items-center gap-1.5"
                   >
-                    <RotateCcw className="w-3 h-3 shrink-0" />
+                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                     <span>Restore Release</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     type="button"
                     disabled={isPurging}
                     onClick={() =>
@@ -98,10 +104,10 @@ export function TrashTab({ trash }: TrashTabProps) {
                         title: album.title,
                       })
                     }
-                    className="font-eyebrow rounded-control text-eyebrow uppercase tracking-wider py-2 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
+                    className="rounded-full text-destructive border-destructive/40 hover:bg-destructive/10"
                   >
-                    Delete Forever
-                  </button>
+                    <span>Delete Forever</span>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -120,7 +126,7 @@ export function TrashTab({ trash }: TrashTabProps) {
             {trashSongs.map((song) => (
               <div
                 key={song.id}
-                className="p-3 border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="p-3.5 sm:p-4 bg-card shadow-raised rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="min-w-0">
                   <span className="font-sans font-semibold text-body text-foreground truncate block">
@@ -135,15 +141,18 @@ export function TrashTab({ trash }: TrashTabProps) {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
+                  <Button
+                    variant="pixel"
+                    size="sm"
                     type="button"
                     onClick={() => handleRestoreSong(song.id)}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground cursor-pointer flex items-center gap-1"
                   >
-                    <RotateCcw className="w-3 h-3 shrink-0" />
+                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                     <span>Restore</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     type="button"
                     disabled={isPurging}
                     onClick={() =>
@@ -153,10 +162,10 @@ export function TrashTab({ trash }: TrashTabProps) {
                         title: song.title,
                       })
                     }
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-destructive/40 hover:bg-destructive/20 text-destructive font-semibold cursor-pointer transition-colors"
+                    className="rounded-full text-destructive border-destructive/40 hover:bg-destructive/10"
                   >
-                    Delete Forever
-                  </button>
+                    <span>Delete Forever</span>
+                  </Button>
                 </div>
               </div>
             ))}

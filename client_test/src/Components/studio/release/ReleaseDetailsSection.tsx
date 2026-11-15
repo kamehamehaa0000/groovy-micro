@@ -89,7 +89,7 @@ export function ReleaseDetailsSection({
   return (
     <>
       {/* Basic Release Metadata */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <FieldLabel>
             {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
@@ -114,10 +114,10 @@ export function ReleaseDetailsSection({
             <button
               type="button"
               onClick={() => onModeChange('IMMEDIATE')}
-              className={`cursor-pointer border px-3 py-2 text-center font-eyebrow text-caption uppercase tracking-wider transition-colors ${
+              className={`cursor-pointer rounded-lg px-3 py-1.5 text-center font-eyebrow text-caption uppercase tracking-wider transition-colors ${
                 mode === 'IMMEDIATE'
-                  ? 'border-foreground bg-foreground font-semibold text-background'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                  ? 'bg-foreground font-semibold text-background shadow-raised'
+                  : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               Immediate
@@ -132,10 +132,10 @@ export function ReleaseDetailsSection({
                   onScheduledTimeChange('00:00')
                 }
               }}
-              className={`flex cursor-pointer items-center justify-center gap-1.5 border px-3 py-2 text-center font-eyebrow text-caption uppercase tracking-wider transition-colors ${
+              className={`flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-center font-eyebrow text-caption uppercase tracking-wider transition-colors ${
                 mode === 'SCHEDULED'
-                  ? 'border-foreground bg-foreground font-semibold text-background'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                  ? 'bg-foreground font-semibold text-background shadow-raised'
+                  : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               <Calendar className="w-3.5 h-3.5 shrink-0" />
@@ -147,20 +147,18 @@ export function ReleaseDetailsSection({
 
       {/* Scheduled Release Date & Time Settings */}
       {mode === 'SCHEDULED' && (
-        <div className="space-y-3 border border-primary/40 bg-primary/5 p-4">
+        <div className="space-y-2.5 rounded-xl bg-primary/5 p-3.5">
           <div className="flex items-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
             <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span>Scheduled Drop & Pre-Save Configuration</span>
+            <span>Scheduled Drop</span>
           </div>
           <p className="font-sans text-caption text-muted-foreground">
-            Specify when your {releaseType.toLowerCase()} officially drops.
-            Listeners can pre-save the release to their library immediately.
-            Full audio playback remains locked until this exact timestamp.
+            Set when this {releaseType.toLowerCase()} goes live. Listeners can pre-save it to their library.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <FieldLabel tone="muted" spacing="tight">
-                Release Date (Local) <span className="text-destructive">*</span>
+                Release Date <span className="text-destructive">*</span>
               </FieldLabel>
               <MonoInput
                 type="date"
@@ -172,7 +170,7 @@ export function ReleaseDetailsSection({
             </div>
             <div>
               <FieldLabel tone="muted" spacing="tight">
-                Release Time (Local) <span className="text-destructive">*</span>
+                Release Time <span className="text-destructive">*</span>
               </FieldLabel>
               <MonoInput
                 type="time"
@@ -185,67 +183,70 @@ export function ReleaseDetailsSection({
         </div>
       )}
 
-      {/* Catalog Visibility Tier Selector */}
+      {/* Catalog Visibility Selector */}
       <div>
-        <FieldLabel>Catalog Visibility Tier</FieldLabel>
+        <FieldLabel>Catalog Visibility</FieldLabel>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
           {[
             {
               key: 'PUBLIC',
               label: 'Public',
-              desc: 'Discoverable in search, artist profile, and pre-save feeds.',
+              desc: 'Discoverable in search & feeds',
             },
             {
               key: 'UNLISTED',
               label: 'Unlisted',
-              desc: 'Hidden from search; accessible only via private secret share token link.',
+              desc: 'Accessible with direct link only',
             },
             {
               key: 'PRIVATE',
               label: 'Private',
-              desc: 'Strictly restricted to you and collaborators in Studio.',
+              desc: 'Visible only in Studio',
             },
-          ].map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => onVisibilityChange(opt.key as ReleaseVisibility)}
-              className={`cursor-pointer rounded-control border p-3 text-left transition-colors ${
-                visibility === opt.key
-                  ? 'border-foreground bg-background shadow-raised ring-1 ring-foreground'
-                  : 'border-border bg-card hover:bg-background'
-              }`}
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <span className="font-eyebrow text-caption font-semibold uppercase tracking-wider text-foreground">
-                  {opt.label}
+          ].map((opt) => {
+            const isSelected = visibility === opt.key
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => onVisibilityChange(opt.key as ReleaseVisibility)}
+                className={`p-3 sm:p-3.5 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 min-w-0 ${
+                  isSelected
+                    ? 'bg-foreground text-background shadow-raised font-semibold'
+                    : 'bg-background hover:bg-muted text-foreground'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-eyebrow text-caption uppercase tracking-wider truncate">
+                    {opt.label}
+                  </span>
+                  {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                </div>
+                <span
+                  className={`font-mono text-eyebrow ${
+                    isSelected
+                      ? 'text-background/80'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {opt.desc}
                 </span>
-                {visibility === opt.key && (
-                  <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                )}
-              </div>
-              <p className="font-sans text-eyebrow leading-snug text-muted-foreground">
-                {opt.desc}
-              </p>
-            </button>
-          ))}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* Release Artwork Upload (Square 1:1) */}
+      {/* Release Artwork Upload */}
       <div>
         <FieldLabel spacing="tight">
-          {releaseType === 'SINGLE'
-            ? 'Single Cover Artwork (Cloudflare R2)'
-            : 'Release Cover Artwork (Cloudflare R2)'}{' '}
-          <span className="text-destructive">*</span>
+          Cover Artwork <span className="text-destructive">*</span>
         </FieldLabel>
         <p className="mb-2 font-sans text-caption text-muted-foreground">
-          Square artwork (1:1 ratio), minimum 1400x1400px recommended (JPEG,
-          PNG, or WebP). Stored on Cloudflare R2 edge CDN.
+          Square image (1:1 ratio), 1400×1400px or larger recommended (JPEG, PNG, or WebP).
         </p>
-        <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-border bg-muted">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-16 w-16 sm:h-18 sm:w-18 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
             {cover ? (
               <img
                 src={cover}
@@ -253,18 +254,18 @@ export function ReleaseDetailsSection({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <Disc3 className="w-8 h-8 shrink-0 text-muted-foreground/40" />
+              <Disc3 className="w-7 h-7 shrink-0 text-muted-foreground/40" />
             )}
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-1.5 border border-border bg-background px-3 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-foreground hover:border-foreground">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-background px-3 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-foreground hover:bg-muted transition-colors">
                 <span>
                   {isUploadingCover
-                    ? 'Uploading to R2...'
+                    ? 'Uploading...'
                     : cover
                       ? 'Replace Artwork'
-                      : 'Upload Cover Artwork'}
+                      : 'Upload Cover'}
                 </span>
                 <input
                   ref={coverInputRef}
@@ -279,7 +280,7 @@ export function ReleaseDetailsSection({
                 <button
                   type="button"
                   onClick={onRemoveCover}
-                  className="cursor-pointer border border-border px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:border-destructive hover:text-destructive"
+                  className="cursor-pointer rounded-lg bg-background px-2.5 py-1.5 font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   Remove
                 </button>
@@ -288,11 +289,11 @@ export function ReleaseDetailsSection({
             <span className="inline-flex items-center gap-1 font-mono text-eyebrow text-muted-foreground">
               {cover ? (
                 <>
-                  <Check className="w-3 h-3 shrink-0" />
-                  Artwork attached to release
+                  <Check className="w-3 h-3 shrink-0 text-success" />
+                  Artwork attached
                 </>
               ) : (
-                'Official release artwork required'
+                'Artwork required'
               )}
             </span>
           </div>
@@ -300,8 +301,8 @@ export function ReleaseDetailsSection({
       </div>
 
       {/* Release Taxonomy & Classification */}
-      <div className="space-y-4 border-t border-border-soft pt-2">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="space-y-3.5 border-t border-border-soft pt-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <FieldLabel>Primary Genre</FieldLabel>
             <SelectField
@@ -344,12 +345,12 @@ export function ReleaseDetailsSection({
 
       {/* Liner Notes & Description */}
       <div>
-        <FieldLabel>Liner Notes & Description (Optional)</FieldLabel>
+        <FieldLabel>Liner Notes / Description (Optional)</FieldLabel>
         <TextAreaField
           rows={2}
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Recording location, inspiration, gear, or credits..."
+          placeholder="Recording notes, inspiration, or credits..."
         />
       </div>
 
@@ -358,7 +359,7 @@ export function ReleaseDetailsSection({
         checked={allowComments}
         onChange={onAllowCommentsChange}
         title="Discussion &amp; Comments"
-        description="Allow listeners and curators to post comments and replies on this release."
+        description="Allow listeners to post comments and replies on this release."
       />
     </>
   )

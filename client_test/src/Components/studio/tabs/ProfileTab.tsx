@@ -5,7 +5,8 @@ import type { ArtistProfile } from '../../../types/artist'
 import type { Album } from '../../../types/catalog'
 import type { ProfileState } from '../hooks/useProfileForm'
 import { IdentityForm } from './IdentityForm'
-import { H3 } from '../../ui/typography'
+import { H1, H3 } from '../../ui/typography'
+import { Button } from '../../ui'
 
 interface ProfileTabProps {
   artistProfile: ArtistProfile
@@ -62,40 +63,42 @@ export function ProfileTab({
   return (
     <div className="space-y-10">
       {/* Avatar Customizer */}
-      <div className="p-6 border border-border bg-card shadow-raised">
+      <div className="p-6 bg-card shadow-raised rounded-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
             <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Artist Avatar / Profile Picture
             </H3>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
-              Square profile artwork used for artist credits, jam sessions,
-              and search results.
+              Square profile artwork used for artist credits, jam sessions, and
+              search results.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             {artistProfile.avatarUrl && (
-              <button
+              <Button
+                variant="pixel"
+                size="sm"
                 type="button"
                 disabled={isUploadingAvatar}
                 onClick={handleRemoveAvatar}
-                className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-3 border border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground transition-colors cursor-pointer disabled:opacity-50"
+                className=""
               >
                 Remove
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              variant="pixel"
+              size="sm"
               type="button"
               disabled={isUploadingAvatar}
               onClick={() => avatarInputRef.current?.click()}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0 shadow-xs"
+              className=""
             >
               <UploadCloud className="w-4 h-4 shrink-0" />
-              <span>
-                {isUploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
-              </span>
-            </button>
+              <span>{isUploadingAvatar ? 'Uploading...' : 'Upload'}</span>
+            </Button>
             <input
               ref={avatarInputRef}
               type="file"
@@ -107,7 +110,7 @@ export function ProfileTab({
         </div>
 
         <div className="flex items-center gap-5">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-border bg-muted overflow-hidden relative shrink-0 flex items-center justify-center shadow-inner">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-muted overflow-hidden relative shrink-0 flex items-center justify-center shadow-inner">
             {artistProfile.avatarUrl ? (
               <img
                 src={artistProfile.avatarUrl}
@@ -127,19 +130,18 @@ export function ProfileTab({
           </div>
 
           <div className="font-mono text-caption text-muted-foreground space-y-1">
-            <div className="text-foreground text-title font-medium">
+            <H1 className="text-foreground text-title font-medium">
               {artistProfile.stageName}
-            </div>
+            </H1>
             <p className="text-eyebrow text-muted-foreground/80">
-              Recommended: Minimum 500 × 500px square image. An interactive
-              cropper with circular guide is provided before upload.
+              Recommended: Minimum 500 × 500px square image.
             </p>
           </div>
         </div>
       </div>
 
       {/* Banner Customizer */}
-      <div className="p-6 border border-border bg-card shadow-raised">
+      <div className="p-6 bg-card shadow-raised rounded-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
@@ -152,17 +154,16 @@ export function ProfileTab({
             </p>
           </div>
 
-          <button
+          <Button
+            variant="pixel"
+            size="sm"
             type="button"
             disabled={isUploadingBanner}
             onClick={() => bannerInputRef.current?.click()}
-            className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
           >
             <UploadCloud className="w-4 h-4 shrink-0" />
-            <span>
-              {isUploadingBanner ? 'Uploading to R2...' : 'Upload Banner'}
-            </span>
-          </button>
+            <span>{isUploadingBanner ? 'Uploading to R2...' : 'Upload'}</span>
+          </Button>
           <input
             ref={bannerInputRef}
             type="file"
@@ -172,7 +173,7 @@ export function ProfileTab({
           />
         </div>
 
-        <div className="w-full h-44 sm:h-56 bg-muted border border-border overflow-hidden relative">
+        <div className="w-full h-44 sm:h-56 bg-muted overflow-hidden relative">
           {artistProfile.bannerUrl ? (
             <img
               src={artistProfile.bannerUrl}
@@ -194,15 +195,14 @@ export function ProfileTab({
       </div>
 
       {/* Identity & Details Editor */}
-      <div className="p-6 border border-border bg-card shadow-raised">
+      <div className="p-6 bg-card shadow-raised rounded-2xl">
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
           <div>
             <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
               Identity & Presentation
             </H3>
             <p className="font-sans text-caption text-muted-foreground mt-0.5">
-              Customize your public stage name, biography, and external
-              links.
+              Customize your public stage name, biography, and external links.
             </p>
           </div>
 
@@ -210,7 +210,7 @@ export function ProfileTab({
             <button
               type="button"
               onClick={() => setIsEditingProfile(true)}
-              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-foreground text-foreground transition-colors cursor-pointer"
+              className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 bg-background hover:border-foreground text-foreground transition-colors cursor-pointer"
             >
               Edit Details
             </button>
@@ -271,20 +271,18 @@ export function ProfileTab({
                     Social Channels
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(artistProfile.socialLinks).map(
-                      ([k, v]) => (
-                        <a
-                          key={k}
-                          href={v}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-eyebrow py-1 px-2.5 border border-border bg-background hover:border-foreground text-foreground capitalize inline-flex items-center gap-1"
-                        >
-                          <span>{k}</span>
-                          <ExternalLink className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
-                        </a>
-                      ),
-                    )}
+                    {Object.entries(artistProfile.socialLinks).map(([k, v]) => (
+                      <a
+                        key={k}
+                        href={v}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-eyebrow py-1 px-2.5 bg-background hover:border-foreground text-foreground capitalize inline-flex items-center gap-1"
+                      >
+                        <span>{k}</span>
+                        <ExternalLink className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+                      </a>
+                    ))}
                   </div>
                 </div>
               )}
@@ -302,7 +300,7 @@ export function ProfileTab({
           spotlightComment.trim() !== (artistProfile.pinnedComment || '')
 
         return (
-          <div className="p-6 sm:p-7 border border-border bg-card shadow-raised space-y-6 relative rounded-control">
+          <div className="p-6 sm:p-7 bg-card shadow-raised space-y-6 relative rounded-2xl">
             {/* Header & Status Indicator */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-soft">
               <div>
@@ -311,7 +309,7 @@ export function ProfileTab({
                     <Sparkles className="w-3 h-3 shrink-0" />
                     Profile Spotlight
                   </span>
-                  {artistProfile.pinnedReleaseId ? (
+                  {artistProfile.pinnedReleaseId && (
                     <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-control flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                       <span>
@@ -320,11 +318,6 @@ export function ProfileTab({
                           ? `"${currentPinnedRelease.title}"`
                           : 'Custom Pick'}
                       </span>
-                    </span>
-                  ) : (
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground bg-background border border-border px-2 py-0.5 rounded-control flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                      <span>Active: Automatic Latest Drop</span>
                     </span>
                   )}
                   {isSpotlightDirty && (
@@ -338,9 +331,9 @@ export function ProfileTab({
                   Artist Pick &amp; Spotlight
                 </H3>
                 <p className="font-sans text-caption text-muted-foreground mt-0.5 max-w-xl">
-                  Feature a chosen release and personal note at the top of
-                  your public artist profile. When none is selected, your
-                  newest release is showcased automatically.
+                  Feature a chosen release and personal note at the top of your
+                  public artist profile. When none is selected, your newest
+                  release is showcased automatically.
                 </p>
               </div>
 
@@ -349,7 +342,7 @@ export function ProfileTab({
                   type="button"
                   disabled={isSavingSpotlight}
                   onClick={handleClearSpotlight}
-                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 border border-border bg-background hover:border-destructive hover:text-destructive text-muted-foreground transition-colors cursor-pointer self-start sm:self-auto rounded-control shrink-0"
+                  className="font-eyebrow text-eyebrow uppercase tracking-wider py-1.5 px-3 bg-background hover:border-destructive hover:text-destructive text-muted-foreground transition-colors cursor-pointer self-start sm:self-auto rounded-control shrink-0"
                 >
                   Reset to Latest Release
                 </button>
@@ -392,15 +385,6 @@ export function ProfileTab({
                 <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-caption">
                   <Check className="w-3 h-3" />
                 </span>
-                <div>
-                  <span className="font-semibold block">
-                    Spotlight Reset to Dynamic Mode
-                  </span>
-                  <span className="font-sans text-eyebrow opacity-80 block">
-                    Your public profile will now dynamically showcase your
-                    newest catalog release.
-                  </span>
-                </div>
               </div>
             )}
 
@@ -444,7 +428,7 @@ export function ProfileTab({
                       setSpotlightReleaseId(e.target.value)
                       setSpotlightStatus('idle')
                     }}
-                    className="w-full text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-control transition-colors font-medium"
+                    className="w-full text-body py-2 px-3 rounded-control bg-background text-foreground focus:outline-none focus:border-foreground transition-colors font-medium"
                   >
                     <option value="">
                       -- Automatic Default: Always show latest release --
@@ -466,8 +450,8 @@ export function ProfileTab({
                   </p>
                   {albums.length === 0 && !isLoadingReleases && (
                     <p className="font-mono text-eyebrow text-warning mt-1">
-                      No published releases found yet. Upload a single or
-                      album in the Releases tab to feature it here.
+                      No published releases found yet. Upload a single or album
+                      in the Releases tab to feature it here.
                     </p>
                   )}
                 </div>
@@ -481,10 +465,10 @@ export function ProfileTab({
                     {spotlightReleaseId && (
                       <span
                         className={`font-mono text-eyebrow ${
-                              spotlightComment.length > 250
-                                ? 'text-warning font-semibold'
-                                : 'text-muted-foreground'
-                            }`}
+                          spotlightComment.length > 250
+                            ? 'text-warning font-semibold'
+                            : 'text-muted-foreground'
+                        }`}
                       >
                         {spotlightComment.length}/280
                       </span>
@@ -505,7 +489,7 @@ export function ProfileTab({
                           ? 'e.g. Turn the volume up! Celebrating our new drop with you all.'
                           : 'Select a specific release first to add a custom quote'
                       }
-                      className="w-full font-sans text-caption py-2 pl-3 pr-8 border border-border bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50 disabled:bg-muted rounded-control transition-colors"
+                      className="w-full font-sans text-caption py-2 pl-3 pr-8 bg-background text-foreground focus:outline-none focus:border-foreground disabled:opacity-50 disabled:bg-muted rounded-control transition-colors"
                     />
                     {spotlightReleaseId && spotlightComment && (
                       <button
@@ -567,11 +551,11 @@ export function ProfileTab({
                       )}
                     </div>
 
-                    <div className="max-w-md border border-border rounded-control bg-background p-4 sm:p-5 shadow-raised space-y-3">
+                    <div className="max-w-md rounded-control bg-background p-4 sm:p-5 shadow-raised space-y-3">
                       <div className="flex items-center justify-between gap-2 border-b border-border-soft pb-2.5">
                         <div className="flex items-center gap-2">
                           {artistProfile.avatarUrl && (
-                            <div className="w-5 h-5 rounded-full overflow-hidden border border-border bg-background shrink-0">
+                            <div className="w-5 h-5 rounded-full overflow-hidden bg-background shrink-0">
                               <img
                                 src={artistProfile.avatarUrl}
                                 alt={artistProfile.stageName}
@@ -589,20 +573,20 @@ export function ProfileTab({
                           </span>
                         </div>
                         {previewRelease.albumType && (
-                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control border border-border bg-background text-muted-foreground">
+                          <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 rounded-control bg-background text-muted-foreground">
                             {previewRelease.albumType}
                           </span>
                         )}
                       </div>
 
                       {spotlightReleaseId && spotlightComment.trim() && (
-                        <p className="text-caption text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control border border-border-soft font-medium">
+                        <p className="text-caption text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control rounded-2xl-soft font-medium">
                           "{spotlightComment.trim()}"
                         </p>
                       )}
 
                       <div className="flex items-center gap-3.5 group">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-control bg-muted border border-border shrink-0 overflow-hidden relative shadow-xs">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-control bg-muted shrink-0 overflow-hidden relative shadow-xs">
                           {previewRelease.coverImageUrl ? (
                             <img
                               src={previewRelease.coverImageUrl}
@@ -629,9 +613,7 @@ export function ProfileTab({
                                 ).getFullYear()
                               : 'Recent'}{' '}
                             &bull; {previewRelease.totalTracks}{' '}
-                            {previewRelease.totalTracks === 1
-                              ? 'cut'
-                              : 'cuts'}
+                            {previewRelease.totalTracks === 1 ? 'cut' : 'cuts'}
                           </p>
                         </div>
                       </div>
@@ -646,12 +628,12 @@ export function ProfileTab({
                   type="submit"
                   disabled={isSavingSpotlight}
                   className={`font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-5 transition-all cursor-pointer rounded-control flex items-center gap-2 ${
-                        spotlightStatus === 'saved'
-                          ? 'bg-success text-success-foreground border border-success shadow-sm'
-                          : isSpotlightDirty
-                            ? 'bg-foreground text-background hover:bg-primary hover:text-primary-foreground shadow-sm'
-                            : 'bg-foreground text-background hover:opacity-90'
-                      } disabled:opacity-50`}
+                    spotlightStatus === 'saved'
+                      ? 'bg-success text-success-foreground border border-success shadow-sm'
+                      : isSpotlightDirty
+                        ? 'bg-foreground text-background hover:bg-primary hover:text-primary-foreground shadow-sm'
+                        : 'bg-foreground text-background hover:opacity-90'
+                  } disabled:opacity-50`}
                 >
                   {isSavingSpotlight ? (
                     <>
@@ -678,7 +660,7 @@ export function ProfileTab({
                     type="button"
                     onClick={handleDiscardSpotlightChanges}
                     disabled={isSavingSpotlight}
-                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 border border-border bg-background hover:bg-card text-muted-foreground transition-colors cursor-pointer rounded-control"
+                    className="font-eyebrow text-eyebrow uppercase tracking-wider py-2 px-4 bg-background hover:bg-card text-muted-foreground transition-colors cursor-pointer rounded-control"
                   >
                     Revert Changes
                   </button>

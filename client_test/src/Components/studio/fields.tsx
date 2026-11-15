@@ -26,6 +26,7 @@ import {
 } from 'react'
 import { Plus, X } from 'lucide-react'
 import { cn } from '../ui/cn'
+import { Switch } from '../ui/Switch'
 import { ArtistCreditPicker, type SelectedCredit } from '../ArtistCreditPicker'
 import { CATALOG_MOODS } from '../../lib/taxonomy'
 
@@ -90,11 +91,11 @@ export function TitleInput({
   return (
     <input
       className={cn(
-        'border border-border text-foreground',
+        'rounded-lg text-foreground transition-colors',
         compact
           ? 'text-caption py-1.5 px-2.5 bg-card'
           : cn(
-              'w-full py-2 px-3 bg-background focus:border-foreground focus:outline-none',
+              'w-full py-2 px-3 bg-background focus:outline-none focus:ring-1 focus:ring-foreground/20',
               size === 'body' ? 'text-body' : 'text-title',
             ),
         className,
@@ -133,14 +134,14 @@ export function MonoInput({
   return (
     <input
       className={cn(
-        'font-mono border border-border text-foreground',
+        'font-mono rounded-lg text-foreground transition-colors',
         size === 'md' && 'w-full text-caption py-2 px-3',
         size === 'sm' && 'w-full text-caption py-1.5 px-2.5',
         size === 'xs' &&
           cn('text-eyebrow py-0.5 px-2', width === 'key' ? 'w-24' : 'w-20'),
         onCard
           ? 'bg-card'
-          : 'bg-background focus:border-foreground focus:outline-none',
+          : 'bg-background focus:outline-none focus:ring-1 focus:ring-foreground/20',
         className,
       )}
       {...props}
@@ -156,7 +157,7 @@ export function TextAreaField({ className, ...props }: TextAreaFieldProps) {
   return (
     <textarea
       className={cn(
-        'w-full font-sans text-caption py-2.5 px-3 border border-border bg-background text-foreground focus:border-foreground focus:outline-none resize-y leading-relaxed',
+        'w-full font-sans text-caption py-2 px-3 rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 resize-y leading-relaxed',
         className,
       )}
       {...props}
@@ -180,8 +181,8 @@ export function SelectField({
     <select
       disabled={disabled}
       className={cn(
-        'w-full font-mono text-caption border border-border bg-background text-foreground focus:border-foreground focus:outline-none',
-        size === 'lg' ? 'py-2.5 px-3' : 'py-2 px-3',
+        'w-full font-mono text-caption rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer',
+        size === 'lg' ? 'py-2 px-3' : 'py-1.5 px-2.5',
         disabled && 'disabled:opacity-50',
         className,
       )}
@@ -206,19 +207,24 @@ export function ExplicitCheckbox({
   label = 'Explicit',
 }: ExplicitCheckboxProps) {
   return (
-    <label
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onChange(!checked)}
+      onKeyDown={(e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault()
+          onChange(!checked)
+        }
+      }}
       className={cn(
-        'font-eyebrow uppercase tracking-wider text-muted-foreground flex items-center cursor-pointer',
-        size === 'caption' ? 'text-caption gap-1.5' : 'text-eyebrow gap-1',
+        'font-eyebrow uppercase tracking-wider text-muted-foreground flex items-center gap-2 cursor-pointer select-none',
+        size === 'caption' ? 'text-caption' : 'text-eyebrow',
       )}
     >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+      <Switch checked={checked} onChange={onChange} size="sm" />
       <span>{label}</span>
-    </label>
+    </div>
   )
 }
 
@@ -263,10 +269,10 @@ export function MoodChipRow({
               }}
               className={cn(
                 EYEBROW,
-                'py-1 px-2.5 border transition-colors cursor-pointer',
+                'py-1 px-2.5 rounded-lg transition-colors cursor-pointer',
                 isSelected
-                  ? 'border-foreground bg-foreground text-background font-semibold'
-                  : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-foreground/50',
+                  ? 'bg-foreground text-background font-semibold shadow-raised'
+                  : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted',
               )}
             >
               {mood}
@@ -317,14 +323,14 @@ export function TagChipInput({
             }
           }}
           placeholder={placeholder}
-          className="flex-1 font-mono text-caption py-1.5 px-3 border border-border bg-background text-foreground focus:border-foreground focus:outline-none"
+          className="flex-1 font-mono text-caption py-1.5 px-3 rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20"
         />
         <button
           type="button"
           onClick={commit}
           className={cn(
             EYEBROW,
-            'py-1.5 px-3 border border-border bg-card hover:bg-background text-foreground cursor-pointer inline-flex items-center gap-1.5',
+            'py-1.5 px-3 rounded-lg bg-card hover:bg-muted text-foreground cursor-pointer inline-flex items-center gap-1.5 transition-colors',
           )}
         >
           <Plus className="w-3.5 h-3.5 shrink-0" />
@@ -336,7 +342,7 @@ export function TagChipInput({
           {tags.map((tag) => (
             <span
               key={tag}
-              className="font-mono text-eyebrow py-0.5 px-2 border border-border bg-card text-foreground flex items-center gap-1.5"
+              className="font-mono text-eyebrow py-0.5 px-2.5 rounded-full bg-card text-foreground flex items-center gap-1.5"
             >
               <span>#{tag}</span>
               <button
@@ -375,7 +381,7 @@ export function GovernanceToggle({
   return (
     <div
       className={cn(
-        'p-3.5 border border-border flex items-center justify-between',
+        'p-4 rounded-xl flex items-center justify-between gap-4 transition-colors',
         surface === 'background' ? 'bg-background' : 'bg-card',
       )}
     >
@@ -387,17 +393,12 @@ export function GovernanceToggle({
           {description}
         </p>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer shrink-0">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="accent-primary w-4 h-4"
-        />
+      <div className="flex items-center gap-2.5 shrink-0">
+        <Switch checked={checked} onChange={onChange} size="md" />
         <span className="font-mono text-caption text-foreground font-medium">
           {checked ? 'Enabled' : 'Disabled'}
         </span>
-      </label>
+      </div>
     </div>
   )
 }

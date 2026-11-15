@@ -4,7 +4,7 @@ import {
   Outlet,
   useLocation,
 } from '@tanstack/react-router'
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore } from '../stores/theme.store'
 import { useLikesStore } from '../stores/likes.store'
@@ -13,6 +13,9 @@ import { usePreSavesStore } from '../stores/presaves.store'
 import { useEntitlementsStore } from '../stores/entitlements.store'
 import { usePlaylistsStore } from '../stores/playlists.store'
 import { usePlayerStore } from '../stores/player.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
+import { useCreatePlaylistModalStore } from '../stores/create-playlist-modal.store'
+import { useAddToPlaylistModalStore } from '../stores/add-to-playlist-modal.store'
 import { useGoogleFedCM } from '../hooks/useGoogleFedCM'
 import { usePageLayout } from '../hooks/usePageLayout'
 import { Container } from '../Components/layout/Container'
@@ -20,18 +23,10 @@ import { RouteError } from '../Components/ui/RouteError'
 import { DarkModeSVG, LightModeSVG } from '../Components/Icons'
 import { GlobalAudioEngine } from '../Components/player/GlobalAudioEngine'
 import { PlayerBar } from '../Components/player/PlayerBar'
-import { DeviceSheet } from '../Components/player/DevicePanel'
-import { MobileExpandedPlayer } from '../Components/player/MobileExpandedPlayer'
-import { AuthPromptModal } from '../Components/auth/AuthPromptModal'
-import { GlobalSearchModal } from '../Components/search/GlobalSearchModal'
-import { LiveJamModal } from '../Components/jam/LiveJamModal'
 import { useJamStore } from '../stores/jam.store'
 import { TopNavbar } from '../Components/navigation/TopNavbar'
 import { MobileBottomBar } from '../Components/navigation/MobileBottomBar'
-import { MobileActionDrawer } from '../Components/navigation/MobileActionDrawer'
 import { useNotificationsStore } from '../stores/notifications.store'
-import { CreatePlaylistModal } from '../Components/playlists/CreatePlaylistModal'
-import { AddToPlaylistModal } from '../Components/playlists/AddToPlaylistModal'
 import { AppToaster } from '../Components/common/AppToaster'
 import { trackLastVisitedPath, isAuthRoute } from '../lib/auth-redirect'
 import { H1 } from '../Components/ui/typography'
@@ -44,6 +39,46 @@ const DesktopRightSidebar = lazy(() =>
 const QueueDrawer = lazy(() =>
   import('../Components/player/QueueDrawer').then((m) => ({
     default: m.QueueDrawer,
+  })),
+)
+const DeviceSheet = lazy(() =>
+  import('../Components/player/DevicePanel').then((m) => ({
+    default: m.DeviceSheet,
+  })),
+)
+const MobileExpandedPlayer = lazy(() =>
+  import('../Components/player/MobileExpandedPlayer').then((m) => ({
+    default: m.MobileExpandedPlayer,
+  })),
+)
+const AuthPromptModal = lazy(() =>
+  import('../Components/auth/AuthPromptModal').then((m) => ({
+    default: m.AuthPromptModal,
+  })),
+)
+const LiveJamModal = lazy(() =>
+  import('../Components/jam/LiveJamModal').then((m) => ({
+    default: m.LiveJamModal,
+  })),
+)
+const CreatePlaylistModal = lazy(() =>
+  import('../Components/playlists/CreatePlaylistModal').then((m) => ({
+    default: m.CreatePlaylistModal,
+  })),
+)
+const AddToPlaylistModal = lazy(() =>
+  import('../Components/playlists/AddToPlaylistModal').then((m) => ({
+    default: m.AddToPlaylistModal,
+  })),
+)
+const GlobalSearchModal = lazy(() =>
+  import('../Components/search/GlobalSearchModal').then((m) => ({
+    default: m.GlobalSearchModal,
+  })),
+)
+const MobileActionDrawer = lazy(() =>
+  import('../Components/navigation/MobileActionDrawer').then((m) => ({
+    default: m.MobileActionDrawer,
   })),
 )
 
@@ -83,6 +118,38 @@ function RootComponent() {
   const [rightActionDrawerOpen, setRightActionDrawerOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const currentTrack = usePlayerStore((s) => s.currentTrack)
+
+  // Track modal open states to enable on-demand code splitting without breaking exit transitions
+  const isAuthModalOpen = useAuthModalStore((s) => s.isOpen)
+  const isCreatePlaylistOpen = useCreatePlaylistModalStore((s) => s.isOpen)
+  const isAddToPlaylistOpen = useAddToPlaylistModalStore((s) => s.isOpen)
+  const isJamModalOpen = useJamStore((s) => s.isModalOpen)
+  const isDevicesOpen = usePlayerStore((s) => s.isDevicesOpen)
+  const isNowPlayingExpanded = usePlayerStore((s) => s.isNowPlayingExpanded)
+
+  const hasOpenedSearch = useRef(false)
+  if (searchOpen) hasOpenedSearch.current = true
+
+  const hasOpenedRightDrawer = useRef(false)
+  if (rightActionDrawerOpen) hasOpenedRightDrawer.current = true
+
+  const hasOpenedAuthModal = useRef(false)
+  if (isAuthModalOpen) hasOpenedAuthModal.current = true
+
+  const hasOpenedJamModal = useRef(false)
+  if (isJamModalOpen) hasOpenedJamModal.current = true
+
+  const hasOpenedCreatePlaylist = useRef(false)
+  if (isCreatePlaylistOpen) hasOpenedCreatePlaylist.current = true
+
+  const hasOpenedAddToPlaylist = useRef(false)
+  if (isAddToPlaylistOpen) hasOpenedAddToPlaylist.current = true
+
+  const hasOpenedDevices = useRef(false)
+  if (isDevicesOpen) hasOpenedDevices.current = true
+
+  const hasOpenedMobilePlayer = useRef(false)
+  if (isNowPlayingExpanded) hasOpenedMobilePlayer.current = true
 
   // Global keyboard shortcut: Ctrl+K / Cmd+K opens search
   useEffect(() => {
@@ -448,23 +515,55 @@ function RootComponent() {
       {/* ===================== GLOBAL AUDIO ENGINE & CONTROLS ===================== */}
       <GlobalAudioEngine key="permanent-audio-engine" />
       <PlayerBar key="permanent-player-bar" />
-      <MobileExpandedPlayer key="permanent-mobile-expanded-player" />
+      {(isNowPlayingExpanded || hasOpenedMobilePlayer.current) && (
+        <Suspense fallback={null}>
+          <MobileExpandedPlayer key="permanent-mobile-expanded-player" />
+        </Suspense>
+      )}
       <Suspense fallback={null}>
         <QueueDrawer key="permanent-queue-drawer" />
       </Suspense>
-      <DeviceSheet key="permanent-device-sheet" />
-      <AuthPromptModal key="permanent-auth-modal" />
-      <LiveJamModal key="permanent-live-jam-modal" />
-      <CreatePlaylistModal key="permanent-create-playlist-modal" />
-      <AddToPlaylistModal key="permanent-add-to-playlist-modal" />
-      <GlobalSearchModal
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
-      <MobileActionDrawer
-        isOpen={rightActionDrawerOpen}
-        onClose={() => setRightActionDrawerOpen(false)}
-      />
+      {(isDevicesOpen || hasOpenedDevices.current) && (
+        <Suspense fallback={null}>
+          <DeviceSheet key="permanent-device-sheet" />
+        </Suspense>
+      )}
+      {(isAuthModalOpen || hasOpenedAuthModal.current) && (
+        <Suspense fallback={null}>
+          <AuthPromptModal key="permanent-auth-modal" />
+        </Suspense>
+      )}
+      {(isJamModalOpen || hasOpenedJamModal.current) && (
+        <Suspense fallback={null}>
+          <LiveJamModal key="permanent-live-jam-modal" />
+        </Suspense>
+      )}
+      {(isCreatePlaylistOpen || hasOpenedCreatePlaylist.current) && (
+        <Suspense fallback={null}>
+          <CreatePlaylistModal key="permanent-create-playlist-modal" />
+        </Suspense>
+      )}
+      {(isAddToPlaylistOpen || hasOpenedAddToPlaylist.current) && (
+        <Suspense fallback={null}>
+          <AddToPlaylistModal key="permanent-add-to-playlist-modal" />
+        </Suspense>
+      )}
+      {(searchOpen || hasOpenedSearch.current) && (
+        <Suspense fallback={null}>
+          <GlobalSearchModal
+            isOpen={searchOpen}
+            onClose={() => setSearchOpen(false)}
+          />
+        </Suspense>
+      )}
+      {(rightActionDrawerOpen || hasOpenedRightDrawer.current) && (
+        <Suspense fallback={null}>
+          <MobileActionDrawer
+            isOpen={rightActionDrawerOpen}
+            onClose={() => setRightActionDrawerOpen(false)}
+          />
+        </Suspense>
+      )}
       <AppToaster key="global-toaster" />
       <MobileBottomBar />
     </div>

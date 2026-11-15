@@ -9,7 +9,6 @@ import { ImageCropModal } from '../Components/common/ImageCropModal'
 import { ConfirmPurgeModal } from '../Components/studio/ConfirmPurgeModal'
 import { ConfirmSoftDeleteModal } from '../Components/studio/ConfirmSoftDeleteModal'
 import { DetachCutDrawer } from '../Components/studio/DetachCutDrawer'
-import { EditReleaseDrawer } from '../Components/studio/EditReleaseDrawer'
 import { StudioHeader } from '../Components/studio/StudioHeader'
 import { StudioTabs } from '../Components/studio/StudioTabs'
 import { StudioUpgradeScreen } from '../Components/studio/StudioUpgradeScreen'
@@ -78,15 +77,12 @@ function StudioComponent() {
     confirmSoftDelete,
     deleteConfirm,
     detachModalData,
-    editingAlbum,
     isDeletingItem,
     isLoadingReleases,
     setAlbumTrackMap,
     setAlbums,
     setDeleteConfirm,
     setDetachModalData,
-    setEditingAlbum,
-    setIsCreateReleaseOpen,
   } = releases
 
   const trash = useTrash()
@@ -291,7 +287,7 @@ function StudioComponent() {
         stageName={artistProfile.stageName}
         slug={artistProfile.slug}
         verified={artistProfile.verified}
-        onNewRelease={() => setIsCreateReleaseOpen(true)}
+        onNewRelease={() => navigate({ to: '/studio/new' })}
       />
 
       <StudioTabs
@@ -344,16 +340,6 @@ function StudioComponent() {
           onAlbumTracksChanged={(albumId, tracks) =>
             setAlbumTrackMap((prev) => ({ ...prev, [albumId]: tracks }))
           }
-        />
-      )}
-
-      {/* Edit Master Release Modal / Drawer */}
-      {editingAlbum && (
-        <EditReleaseDrawer
-          request={editingAlbum}
-          artistProfile={artistProfile}
-          onClose={() => setEditingAlbum(null)}
-          onReleasesChanged={releases.loadReleases}
         />
       )}
 
