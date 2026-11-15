@@ -65,7 +65,7 @@ function ChevronIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 function TargetArtwork({ target }: { target: FeedTarget }) {
   return (
-    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-control border border-border/70 bg-muted">
+    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-control  bg-muted">
       {target.coverImageUrl ? (
         <img
           src={target.coverImageUrl}
@@ -108,8 +108,8 @@ function TargetText({ target }: { target: FeedTarget }) {
 }
 
 const TILE =
-  'flex items-center gap-3 rounded-inset border border-border bg-card p-2 transition-colors'
-const LINK_TILE = `${TILE} hover:border-foreground/20 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`
+  'flex items-center gap-3 rounded-inset  bg-card p-2 transition-colors'
+const LINK_TILE = `${TILE}  hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`
 
 function PlayControl({
   playing,
@@ -140,21 +140,16 @@ function PlayControl({
 export const FeedRow = memo(function FeedRow({ item }: { item: FeedItem }) {
   // One subscription for the whole row. Five separate selectors meant five
   // store reads for every row in the feed, and the feed can be long.
-  const {
-    currentTrackId,
-    playbackStatus,
-    playTrack,
-    togglePlay,
-    addToQueue,
-  } = usePlayerStore(
-    useShallow((s) => ({
-      currentTrackId: s.currentTrack?.id,
-      playbackStatus: s.playbackStatus,
-      playTrack: s.playTrack,
-      togglePlay: s.togglePlay,
-      addToQueue: s.addToQueue,
-    })),
-  )
+  const { currentTrackId, playbackStatus, playTrack, togglePlay, addToQueue } =
+    usePlayerStore(
+      useShallow((s) => ({
+        currentTrackId: s.currentTrack?.id,
+        playbackStatus: s.playbackStatus,
+        playTrack: s.playTrack,
+        togglePlay: s.togglePlay,
+        addToQueue: s.addToQueue,
+      })),
+    )
 
   const [queued, setQueued] = useState(false)
   const queueTimer = useRef<number | null>(null)

@@ -33,13 +33,19 @@ export function ArtistGridSkeleton() {
       <span className="sr-only">Loading artists…</span>
       <div
         aria-hidden="true"
-        className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+        className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         {Array.from({ length: 12 }).map((_, index) => (
-          <div key={index} className="flex flex-col p-2.5">
-            <div className="aspect-square w-full animate-pulse rounded-full bg-muted" />
-            <div className="mt-2.5 h-4 w-3/4 animate-pulse rounded-control bg-muted" />
-            <div className="mt-1.5 h-3 w-1/2 animate-pulse rounded-control bg-muted" />
+          <div
+            key={index}
+            className="flex h-[76px] max-sm:h-[68px] items-center gap-3.5 max-sm:gap-3 p-1.5 pr-2.5 rounded-full bg-secondary/70 animate-pulse"
+          >
+            <div className="h-16 w-16 max-sm:h-14 max-sm:w-14 rounded-full bg-muted shrink-0" />
+            <div className="flex flex-col justify-center flex-1 min-w-0">
+              <div className="h-4 w-28 rounded-control bg-muted" />
+              <div className="mt-2 h-3 w-20 rounded-control bg-muted" />
+            </div>
+            <div className="h-11 w-11 rounded-full bg-muted shrink-0" />
           </div>
         ))}
       </div>

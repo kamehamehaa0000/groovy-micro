@@ -745,6 +745,7 @@ export class ArtistsService {
       db
         .select({
           id: artistProfiles.id,
+          userId: artistProfiles.userId,
           stageName: artistProfiles.stageName,
           slug: artistProfiles.slug,
           bannerUrl: artistProfiles.bannerUrl,

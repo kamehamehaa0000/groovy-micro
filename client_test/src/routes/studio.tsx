@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import { artistsApi } from '../lib/artists.api'
 import { catalogApi } from '../lib/catalog.api'
@@ -24,7 +24,7 @@ import { TrashTab } from '../Components/studio/tabs/TrashTab'
 import { VerificationTab } from '../Components/studio/tabs/VerificationTab'
 
 export const Route = createFileRoute('/studio')({
-  staticData: { layout: 'full' },
+  staticData: { layout: 'wide' },
   validateSearch: (search: Record<string, unknown>): { tab?: StudioTab } => {
     const tab = search.tab
     return {
@@ -63,7 +63,10 @@ function StudioComponent() {
   const setActiveTab = (tab: StudioTab) => {
     navigate({
       to: '/studio',
-      search: (prev) => ({ ...prev, tab: tab === 'releases' ? undefined : tab }),
+      search: (prev) => ({
+        ...prev,
+        tab: tab === 'releases' ? undefined : tab,
+      }),
       replace: true,
     })
   }
@@ -119,6 +122,15 @@ function StudioComponent() {
 
   const { hydrateContact } = verification
 
+  const hydrateRef = useRef(hydrate)
+  hydrateRef.current = hydrate
+  const hydrateContactRef = useRef(hydrateContact)
+  hydrateContactRef.current = hydrateContact
+  const setAlbumsRef = useRef(setAlbums)
+  setAlbumsRef.current = setAlbums
+  const seedTrashCountsRef = useRef(seedTrashCounts)
+  seedTrashCountsRef.current = seedTrashCounts
+
   // Authentication check
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -144,11 +156,11 @@ function StudioComponent() {
         .getMyProfile()
         .then((profile) => {
           setArtistProfile(profile)
-          hydrate(profile)
-          hydrateContact(user.email)
+          hydrateRef.current(profile)
+          hydrateContactRef.current(user.email)
           return catalogApi
             .getStudioReleases(false)
-            .then((res) => setAlbums(res.albums))
+            .then((res) => setAlbumsRef.current(res.albums))
             .catch(() => {
               // Dashboard still renders; the releases tab falls back to empty
             })
@@ -175,10 +187,10 @@ function StudioComponent() {
         // A null artist is settled, not a failure: this account has no profile yet
         if (overview.artist) {
           setArtistProfile(overview.artist)
-          hydrate(overview.artist)
-          hydrateContact(user.email)
-          setAlbums(overview.albums)
-          seedTrashCounts(overview.trashCounts)
+          hydrateRef.current(overview.artist)
+          hydrateContactRef.current(user.email)
+          setAlbumsRef.current(overview.albums)
+          seedTrashCountsRef.current(overview.trashCounts)
         } else {
           setArtistProfile(null)
         }
@@ -204,7 +216,7 @@ function StudioComponent() {
       cancelled = true
       if (retryTimer) clearTimeout(retryTimer)
     }
-  }, [user, hydrate, hydrateContact, setAlbums, seedTrashCounts])
+  }, [user?.id, user?.role, user?.email])
 
   // Trash loads lazily on its first visit. The badge tally already arrived with
   // the bootstrap payload, so switching tabs never refetches anything.

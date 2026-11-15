@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../../stores/auth.store'
 import { catalogApi } from '../../../lib/catalog.api'
@@ -57,18 +57,19 @@ export function useReleases() {
    * Writes the release list back to the cache, so the studio keeps a single
    * source of truth for it.
    */
-  const setAlbums = (
-    value: Album[] | ((prev: Album[]) => Album[]),
-  ) => {
-    queryClient.setQueryData<{ albums: Album[] }>(
-      ['studio', 'releases'],
-      (prev) => {
-        const next =
-          typeof value === 'function' ? value(prev?.albums ?? []) : value
-        return { ...(prev ?? { albums: [] }), albums: next }
-      },
-    )
-  }
+  const setAlbums = useCallback(
+    (value: Album[] | ((prev: Album[]) => Album[])) => {
+      queryClient.setQueryData<{ albums: Album[] }>(
+        ['studio', 'releases'],
+        (prev) => {
+          const next =
+            typeof value === 'function' ? value(prev?.albums ?? []) : value
+          return { ...(prev ?? { albums: [] }), albums: next }
+        },
+      )
+    },
+    [queryClient],
+  )
 
   const loadReleases = async () => {
     await releasesQuery.refetch()

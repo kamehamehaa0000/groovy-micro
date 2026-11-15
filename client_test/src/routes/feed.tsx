@@ -15,7 +15,7 @@ import {
   type SocialFeedMeta,
   type UserSummary,
 } from '../lib/social.api'
-import { Button, IconButton, Sheet, Tabs } from '../Components/ui'
+import { Button, Sheet, Tabs } from '../Components/ui'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { FeedRow } from '../Components/feed/FeedRow'
 import { FollowRequests } from '../Components/feed/FollowRequests'
@@ -194,7 +194,9 @@ function EmptyFeed({
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
         <FeedIcon />
       </div>
-      <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg mt-4">{title}</H3>
+      <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg mt-4">
+        {title}
+      </H3>
       <p className="mx-auto mt-1 max-w-sm text-caption leading-relaxed text-muted-foreground">
         {description}
       </p>
@@ -278,7 +280,8 @@ function QuickActions({
 }) {
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <IconButton
+      <Button
+        variant="pixel"
         size="md"
         aria-label="Find people"
         title="Find people"
@@ -286,8 +289,9 @@ function QuickActions({
         className="border border-border bg-card xl:hidden rounded-full "
       >
         <UsersIcon />
-      </IconButton>
-      <IconButton
+      </Button>
+      <Button
+        variant="pixel"
         size="md"
         aria-label="Refresh feed"
         title="Refresh feed"
@@ -297,7 +301,7 @@ function QuickActions({
         <RefreshIcon
           className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
         />
-      </IconButton>
+      </Button>
     </div>
   )
 }
@@ -310,7 +314,7 @@ function FilterBar({
   onChange: (filter: FeedFilter) => void
 }) {
   return (
-    <div className="sticky top-[var(--header-height)] z-20 mt-5 border-b border-border/60 bg-background/90 py-3 backdrop-blur-md xl:mt-0">
+    <div className="sticky top-(--header-height) z-20 mt-5 border-b border-border/60 bg-background/90 py-3 backdrop-blur-md xl:mt-0">
       <Tabs
         variant="pill"
         ariaLabel="Filter feed"
@@ -641,13 +645,13 @@ function FeedPage() {
     <div>
       <header className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
+          <p className=" hidden sm:block font-eyebrow text-eyebrow uppercase tracking-widest text-primary mb-2 font-medium">
             Socials
           </p>
           <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Feed
           </H1>
-          <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
+          <p className=" hidden sm:block  font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
             Releases, playlists and listening from artists and people you
             follow.
           </p>

@@ -17,10 +17,7 @@ import type {
 import { LibraryItemCard } from '../Components/library/LibraryItemCard'
 import { SortMenu, type SortOption } from '../Components/ui'
 import { SORT_TERMS } from '../lib/sort'
-import {
-  GridIconSVG,
-  ListIconSVG,
-} from '../Components/Icons'
+import { GridIconSVG, ListIconSVG } from '../Components/Icons'
 import { H1 } from '../Components/ui/typography'
 
 export const Route = createFileRoute('/library')({
@@ -255,11 +252,10 @@ function LibraryPageComponent() {
     )
   }
 
-
   return (
     <div className="select-none">
       {/* ===================== STICKY TOOLBAR ===================== */}
-      <header className="sticky top-[var(--header-height)] z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
+      <header className="sticky top-(--header-height) z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
         <FilterBar
           search={{
             value: searchQuery,
@@ -268,38 +264,46 @@ function LibraryPageComponent() {
             placeholder: 'Find in Your Library...',
             ariaLabel: 'Search in library',
           }}
-          options={filterPills.map((pill) => ({ value: pill.key, label: pill.label }))}
+          options={filterPills.map((pill) => ({
+            value: pill.key,
+            label: pill.label,
+          }))}
           value={activeFilter}
           onOptionChange={(next) =>
             setActiveFilter(next === activeFilter ? 'all' : next)
           }
+          sort={
+            <div className="flex items-center gap-1.5">
+              <SortMenu
+                options={SORT_OPTIONS}
+                value={activeSort}
+                onChange={setActiveSort}
+                direction={sortDir}
+                onDirectionChange={setSortDir}
+                // viewMode={viewMode}
+                // onViewModeChange={setViewMode}
+              />
+
+              {/* View Mode Switcher */}
+              <button
+                type="button"
+                onClick={() =>
+                  setViewMode(viewMode === 'list' ? 'grid' : 'list')
+                }
+                title={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
+                aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] cursor-pointer max-sm:h-11 max-sm:w-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+              >
+                {viewMode === 'list' ? (
+                  <GridIconSVG className="h-5 w-5 shrink-0" />
+                ) : (
+                  <ListIconSVG className="h-5 w-5 shrink-0" />
+                )}
+              </button>
+            </div>
+          }
         />
       </header>
-
-      {/* ===================== CONTROLS BAR (Sort & View Mode) ===================== */}
-      <div className="flex items-center justify-between py-3 px-1 text-caption select-none">
-        <SortMenu
-          options={SORT_OPTIONS}
-          value={activeSort}
-          onChange={setActiveSort}
-          direction={sortDir}
-          onDirectionChange={setSortDir}
-        />
-
-        {/* View Mode Switcher */}
-        <button
-          type="button"
-          onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-          aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors cursor-pointer hover:bg-muted hover:text-foreground sm:h-8 sm:w-8"
-        >
-          {viewMode === 'list' ? (
-            <GridIconSVG className="w-5 h-5" />
-          ) : (
-            <ListIconSVG className="w-5 h-5" />
-          )}
-        </button>
-      </div>
 
       {/* ===================== LIBRARY CONTENT STREAM ===================== */}
       {isLoading && !payload ? (
@@ -321,7 +325,9 @@ function LibraryPageComponent() {
       ) : error ? (
         // Error state
         <div className="p-8 text-center bg-card border border-border rounded-xl my-6">
-          <p className="text-destructive font-mono text-caption mb-3">{error}</p>
+          <p className="text-destructive font-mono text-caption mb-3">
+            {error}
+          </p>
           <button
             type="button"
             onClick={() => fetchLibrary(true)}

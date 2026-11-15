@@ -68,7 +68,7 @@ export function FollowRequests({
               <div className="flex shrink-0 items-center gap-1.5">
                 <Button
                   size="md"
-                  variant="primary"
+                  variant="pixel"
                   disabled={isProcessing}
                   onClick={() => onAccept(request.requesterId)}
                   aria-label={`Accept follow request from ${request.displayName}`}

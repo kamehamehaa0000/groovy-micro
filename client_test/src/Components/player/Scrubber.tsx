@@ -56,8 +56,8 @@ const VARIANTS: Record<ScrubberVariant, VariantStyle> = {
   // Mini player hairline: decorative, no thumb, no labels.
   hairline: {
     hit: 'w-full h-full',
-    track: 'w-full h-full bg-border/20 dark:bg-white/10 rounded-full overflow-hidden',
-    fill: 'h-full w-full bg-success origin-left',
+    track: 'w-full h-full bg-border rounded-full overflow-hidden',
+    fill: 'h-full w-full bg-foreground origin-left',
     thumb: '',
   },
 }

@@ -266,8 +266,8 @@ export function MobileMiniPlayer() {
             filled={isLiked}
             className={`w-5 h-5 transition-transform ${
               isLiked
-                ? 'text-[#1ed760] fill-[#1ed760]'
-                : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+                ? 'text-destructive fill-current'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           />
         </button>

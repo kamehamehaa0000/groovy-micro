@@ -1,4 +1,6 @@
 import type { StudioTab } from './studio.types'
+import { Button } from '../ui/Button'
+import { cn } from '../ui/cn'
 
 interface StudioTabsProps {
   activeTab: StudioTab
@@ -20,29 +22,33 @@ export function StudioTabs({
   releaseCount,
   trashCount,
 }: StudioTabsProps) {
-  const counts: Partial<Record<StudioTab, number>> = {
-    releases: releaseCount,
-    trash: trashCount,
-  }
-
   return (
-    <div className="sticky top-14 z-30 -mx-4 mb-6 flex items-center gap-1.5 overflow-x-auto border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur-md no-scrollbar scroll-smooth sm:mx-0 sm:mb-8 sm:gap-2 sm:px-0 font-eyebrow text-caption uppercase tracking-wider">
-      {TABS.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => onTabChange(tab.id)}
-          aria-current={activeTab === tab.id ? 'page' : undefined}
-          className={`shrink-0 cursor-pointer whitespace-nowrap rounded-control px-3 py-2 transition-colors sm:px-4 ${
-            activeTab === tab.id
-              ? 'bg-foreground text-background font-semibold'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
-        >
-          {tab.label}
-          {counts[tab.id] !== undefined ? ` (${counts[tab.id]})` : ''}
-        </button>
-      ))}
-    </div>
+    <nav
+      aria-label="Studio sections"
+      className="sticky top-14 z-30 -mx-4 mb-6 flex items-center gap-1.5 overflow-x-auto sm:border-b sm:border-border bg-background/95 px-4 py-2.5 backdrop-blur-md no-scrollbar scroll-smooth sm:mx-0 sm:mb-8 sm:gap-2 sm:px-0"
+    >
+      <div className="inline-flex items-center gap-1 rounded-full bg-muted/30 p-1 ">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id
+          return (
+            <Button
+              key={tab.id}
+              variant="pixel"
+              size="sm"
+              onClick={() => onTabChange(tab.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap transition-all duration-150',
+                isActive
+                  ? 'bg-foreground text-background font-semibold shadow-raised hover:bg-foreground hover:text-background'
+                  : 'bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              )}
+            >
+              <span>{tab.label}</span>
+            </Button>
+          )
+        })}
+      </div>
+    </nav>
   )
 }

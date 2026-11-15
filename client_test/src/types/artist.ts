@@ -69,6 +69,7 @@ export type AdminVerifyArtistInput =
 /** Lean row returned by the public artist directory search. */
 export interface ArtistSummary {
   id: string;
+  userId?: string | null;
   stageName: string;
   slug: string;
   bannerUrl: string | null;

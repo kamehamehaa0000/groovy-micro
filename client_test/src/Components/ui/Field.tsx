@@ -18,7 +18,12 @@ export function Input({ className, ...rest }: InputProps) {
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>
 
 export function Textarea({ className, ...rest }: TextareaProps) {
-  return <textarea className={cn(CONTROL, 'min-h-24 resize-y', className)} {...rest} />
+  return (
+    <textarea
+      className={cn(CONTROL, 'min-h-24 resize-y', className)}
+      {...rest}
+    />
+  )
 }
 
 export type SelectProps = SelectHTMLAttributes<HTMLSelectElement>

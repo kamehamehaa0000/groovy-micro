@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { Avatar, Button, Input } from '../../Components/ui'
-import { SearchIconSVG } from '../Icons'
 import type { RelationshipStatus, UserSummary } from '../../lib/social.api'
+import { SearchIcon } from 'lucide-react'
 
 interface PeoplePanelProps {
   users: UserSummary[]
@@ -114,13 +114,14 @@ function PersonRow({
           size={size}
           variant={
             isRequested
-              ? 'primary'
+              ? 'pixel'
               : isFollowed || isPending
-                ? 'outline'
-                : 'primary'
+                ? 'primary'
+                : 'pixel'
           }
           disabled={isActing}
           onClick={handleClick}
+          className="rounded-full"
           aria-label={
             isRequested
               ? `Accept follow request from ${user.displayName}`
@@ -131,11 +132,7 @@ function PersonRow({
                   : `Follow ${user.displayName}`
           }
           title={
-            isFollowed
-              ? 'Unfollow'
-              : isPending
-                ? 'Cancel request'
-                : undefined
+            isFollowed ? 'Unfollow' : isPending ? 'Cancel request' : undefined
           }
         >
           {label}
@@ -164,15 +161,15 @@ export function PeoplePanel({
   return (
     <div>
       <div className="relative">
-        <SearchIconSVG className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          type="search"
+          type="text"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Search people"
           aria-label="Search people"
           autoComplete="off"
-          className="pl-9 pr-9"
+          className="pl-9 pr-9 border-none rounded-full "
         />
         {query ? (
           <button

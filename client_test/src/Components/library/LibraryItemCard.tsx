@@ -294,6 +294,7 @@ export function LibraryItemCard({
 
     return (
       <ArtistCard
+        variant="square"
         name={item.title}
         slug={slug}
         imageUrl={item.imageUrl}

@@ -1,4 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router'
+import { Disc3Icon, LibraryIcon, SearchIcon } from 'lucide-react'
 
 export function MobileBottomBar() {
   const { pathname } = useLocation()
@@ -33,18 +34,8 @@ export function MobileBottomBar() {
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
-        <svg
-          className="w-5 h-5 mb-0.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={isCatalogActive ? '2.5' : '2'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+        <Disc3Icon className="w-5 h-5 mb-0.5" strokeWidth="2.5" />
+
         <span className="font-eyebrow text-eyebrow uppercase tracking-wider">
           Catalog
         </span>
@@ -59,18 +50,7 @@ export function MobileBottomBar() {
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
-        <svg
-          className="w-5 h-5 mb-0.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={isSearchActive ? '2.5' : '2'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
+        <SearchIcon className="w-5 h-5 mb-0.5" strokeWidth="2.5" />
         <span className="font-eyebrow text-eyebrow uppercase tracking-wider">
           Search
         </span>
@@ -85,23 +65,7 @@ export function MobileBottomBar() {
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
-        <svg
-          className="w-5 h-5 mb-0.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={isLibraryActive ? '2.5' : '2'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="8" y1="6" x2="21" y2="6" />
-          <line x1="8" y1="12" x2="21" y2="12" />
-          <line x1="8" y1="18" x2="16" y2="18" />
-          <polygon
-            points="3 6 3 18 6 12 3 6"
-            fill={isLibraryActive ? 'currentColor' : 'none'}
-          />
-        </svg>
+        <LibraryIcon className="w-5 h-5 mb-0.5" strokeWidth="2.5" />
         <span className="font-eyebrow text-eyebrow uppercase tracking-wider">
           Library
         </span>

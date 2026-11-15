@@ -8,6 +8,7 @@ import { useCreatePlaylistModalStore } from '../../stores/create-playlist-modal.
 import { DarkModeSVG, LightModeSVG, PlusIconSVG } from '../Icons'
 import { NotificationBell } from './NotificationBell'
 import { isAuthRoute } from '../../lib/auth-redirect'
+import { cn } from '../ui/cn'
 import {
   BadgeCheckIcon,
   HeadphonesIcon,
@@ -159,28 +160,14 @@ export function TopNavbar({
           )}
         </button>
 
-        {/* Center: Spotify-style dual pill navigation (Home & Following) */}
+        {/* Center: the dual pill navigation (Home & Following) */}
         <div className="flex items-center gap-2 ml-2 flex-1 min-w-0">
-          <Link
-            to="/"
-            className={`px-3.5 py-2 rounded-full text-caption font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
-              pathname === '/'
-                ? 'bg-[#1ed760] text-black shadow-xs font-bold'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border/70'
-            }`}
-          >
-            Home
-          </Link>
-          <Link
+          <MobileNavPill to="/" label="Home" active={pathname === '/'} />
+          <MobileNavPill
             to="/releases"
-            className={`px-3.5 py-2 rounded-full text-caption font-semibold tracking-tight transition-all duration-150 select-none no-underline active:scale-95 shrink-0 ${
-              pathname.startsWith('/releases')
-                ? 'bg-[#1ed760] text-black shadow-xs font-bold'
-                : 'bg-card text-muted-foreground hover:text-foreground border border-border/70'
-            }`}
-          >
-            Following
-          </Link>
+            label="Following"
+            active={pathname.startsWith('/releases')}
+          />
         </div>
         {/* Right: Notifications & Plus (+) Icon */}
         <div className="flex items-center gap-1.5 shrink-0">
@@ -571,13 +558,46 @@ const NavBarLink = ({ to, label }: { to: string; label: string }) => {
     <Link
       to={to}
       activeProps={{
-        className: 'text-pimary bg-primary/10 font-medium ',
+        className: 'text-primary bg-primary/10 font-medium ',
       }}
       inactiveProps={{
         className:
           'text-muted-foreground hover:text-foreground hover:bg-muted ',
       }}
       className="transition-colors duration-200 px-3 py-1.5 rounded-full "
+    >
+      {label}
+    </Link>
+  )
+}
+
+/**
+ * One of the two destinations on a phone.
+ *
+ * The same pill as the filter bar: a 40dp target, a filled surface for the
+ * current one and a plain card for the other. The accent is the brand
+ * colour, not a hardcoded green.
+ */
+const MobileNavPill = ({
+  to,
+  label,
+  active,
+}: {
+  to: string
+  label: string
+  active: boolean
+}) => {
+  return (
+    <Link
+      to={to}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'inline-flex min-h-10 shrink-0 select-none items-center justify-center rounded-full px-4 py-2 text-sm font-medium tracking-normal no-underline transition-colors duration-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2',
+        active
+          ? 'bg-muted text-primary shadow-sm'
+          : 'bg-card text-foreground hover:bg-muted',
+      )}
     >
       {label}
     </Link>

@@ -144,7 +144,14 @@ const ACCENT_CANDIDATES = [
   { name: 'Rose', hex: '#e8796b' },
 ]
 
-const BUTTON_VARIANTS = ['primary', 'brand', 'outline', 'ghost', 'danger'] as const
+const BUTTON_VARIANTS = [
+  'primary',
+  'brand',
+  'outline',
+  'ghost',
+  'danger',
+  'pixel',
+] as const
 const BUTTON_SIZES = ['sm', 'md'] as const
 const ICON_SIZES = ['sm', 'md', 'lg'] as const
 const BADGE_TONES = [
@@ -459,7 +466,7 @@ function DesignPlayground() {
       {/* Buttons */}
       <Section
         title="Buttons"
-        hint="Primary is solid ink with a brand-accent hover — Groovy's signature CTA."
+        hint="Primary is solid ink with a brand-accent hover — Groovy's signature CTA. Pixel is the Material 3 button: a pill, a 40dp target and a state layer instead of a scale-down."
       >
         <div className="flex flex-wrap items-center gap-3">
           {BUTTON_VARIANTS.map((variant) => (
@@ -479,6 +486,36 @@ function DesignPlayground() {
           </Button>
           <Button variant="outline" disabled>
             Disabled
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="ghost" size="sm" iconOnly aria-label="Shuffle">
+            <PlayIconSVG className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="md" iconOnly aria-label="Shuffle">
+            <PlayIconSVG className="h-4 w-4" />
+          </Button>
+          <Button variant="primary" size="sm" iconOnly aria-label="Play">
+            <PlayIconSVG className="h-4 w-4" />
+          </Button>
+          <Button variant="pixel" size="sm" iconOnly aria-label="Play">
+            <PlayIconSVG className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {BUTTON_SIZES.map((size) => (
+            <Button key={size} size={size} variant="pixel">
+              pixel · {size}
+            </Button>
+          ))}
+          <Button
+            variant="pixel"
+            leftIcon={<PlayIconSVG className="h-3.5 w-3.5" />}
+          >
+            Pixel with icon
+          </Button>
+          <Button variant="pixel" disabled>
+            Pixel disabled
           </Button>
         </div>
         <Button variant="brand" block>

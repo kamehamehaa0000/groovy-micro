@@ -4,13 +4,14 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { artistsApi } from '../lib/artists.api'
 import type { ArtistSummary } from '../types/artist'
 import { useAuthStore } from '../stores/auth.store'
+import { useAuthModalStore } from '../stores/auth-modal.store'
 import { useFollowsStore } from '../stores/follows.store'
+import { notify } from '../lib/toast'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll'
 import { Button, SortMenu, type SortOption } from '../Components/ui'
 import { SORT_TERMS } from '../lib/sort'
 import { FilterBar } from '../Components/ui/FilterBar'
-import { MediaGrid } from '../Components/media/MediaGrid'
 import { ArtistCard } from '../Components/artists/ArtistCard'
 import {
   ArtistEmptyPanel,
@@ -82,8 +83,13 @@ export const Route = createFileRoute('/artists/')({
 
 function ArtistsDirectoryComponent() {
   const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const followedArtistIds = useFollowsStore((s) => s.followedArtistIds)
+  const toggleFollow = useFollowsStore((s) => s.toggleFollow)
   const hydrateArtists = useFollowsStore((s) => s.hydrateArtists)
+  const [pendingFollowIds, setPendingFollowIds] = useState<Set<string>>(
+    new Set(),
+  )
   const searchParams = Route.useSearch()
   const navigate = useNavigate()
 
@@ -199,6 +205,38 @@ function ArtistsDirectoryComponent() {
 
   const clearQuery = () => handleQueryChange('')
 
+  const handleToggleFollow = async (
+    artist: ArtistSummary,
+    e: React.MouseEvent,
+  ) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      useAuthModalStore.getState().openAuthModal({
+        category: 'Artist Community',
+        subtitle: 'Artists',
+        title: 'Follow this artist.',
+        description:
+          'Sign in or create an account to follow your favorite artists and get updates when they drop new music.',
+      })
+      return
+    }
+
+    setPendingFollowIds((prev) => new Set(prev).add(artist.id))
+    try {
+      await toggleFollow(artist.id)
+    } catch (_err) {
+      notify.error('Could not update follow status. Please try again.')
+    } finally {
+      setPendingFollowIds((prev) => {
+        const next = new Set(prev)
+        next.delete(artist.id)
+        return next
+      })
+    }
+  }
+
   const showArtistCta = user?.role === 'LISTENER' && !user?.artistProfile
 
   let emptyTitle = 'No artists available yet.'
@@ -247,16 +285,16 @@ function ArtistsDirectoryComponent() {
 
   return (
     <div>
-      <header className="border-b border-border pb-5">
+      <header className="sm:border-b sm:border-border pb-3 sm:pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
+            <p className="hidden sm:block font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
               Directory
             </p>
             <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Artists
             </H1>
-            <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
+            <p className=" hidden sm:block mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
               Browse artists on Groovy and in your personal collection.
             </p>
           </div>
@@ -264,7 +302,8 @@ function ArtistsDirectoryComponent() {
           {showArtistCta && (
             <Button
               size="sm"
-              className="w-full shrink-0 sm:w-auto"
+              variant="pixel"
+              className="w-fit shrink-0 sm:w-auto"
               onClick={() => navigate({ to: '/studio' })}
             >
               Become an artist
@@ -300,7 +339,7 @@ function ArtistsDirectoryComponent() {
         />
       </header>
 
-      <section aria-busy={artistsQuery.isFetching} className="mt-5">
+      <section aria-busy={artistsQuery.isFetching} className="sm:mt-4">
         <div className="mb-3 flex min-h-5 items-center justify-end">
           <span
             aria-live="polite"
@@ -319,8 +358,6 @@ function ArtistsDirectoryComponent() {
                 {isRefreshing && (
                   <span className="sr-only">Updating artists</span>
                 )}
-                <span className="font-mono tabular-nums">{totalCount}</span>{' '}
-                {totalCount === 1 ? 'artist' : 'artists'}
               </>
             )}
           </span>
@@ -368,12 +405,23 @@ function ArtistsDirectoryComponent() {
           />
         ) : (
           <>
-            <MediaGrid
-              maxColumns={6}
-              className={cn(isRefreshing && 'opacity-60')}
+            <div
+              className={cn(
+                'grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+                isRefreshing && 'opacity-60',
+              )}
             >
               {artists.map((artist) => {
                 const isPersonal = artist.scope === 'PERSONAL'
+                const isSelf = Boolean(
+                  user &&
+                  ((user.artistProfile?.id &&
+                    user.artistProfile.id === artist.id) ||
+                    (user.artistProfile?.slug &&
+                      user.artistProfile.slug === artist.slug) ||
+                    (artist.ownerUserId && artist.ownerUserId === user.id) ||
+                    (artist.userId && artist.userId === user.id)),
+                )
                 const listeners = `${compactNumber.format(artist.monthlyListeners)} ${
                   artist.monthlyListeners === 1 ? 'listener' : 'listeners'
                 }`
@@ -381,11 +429,17 @@ function ArtistsDirectoryComponent() {
                 return (
                   <ArtistCard
                     key={artist.id}
+                    id={artist.id}
                     name={artist.stageName}
                     slug={artist.slug}
                     imageUrl={artist.avatarUrl}
                     isVerified={artist.verified}
                     isFollowing={followedArtistIds.has(artist.id)}
+                    isFollowLoading={pendingFollowIds.has(artist.id)}
+                    isSelf={isSelf}
+                    onToggleFollow={
+                      isSelf ? undefined : (e) => handleToggleFollow(artist, e)
+                    }
                     isPersonal={isPersonal}
                     subtitle={
                       isPersonal
@@ -395,7 +449,7 @@ function ArtistsDirectoryComponent() {
                   />
                 )
               })}
-            </MediaGrid>
+            </div>
 
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-border pt-5">
               <p

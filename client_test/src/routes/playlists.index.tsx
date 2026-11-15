@@ -197,28 +197,31 @@ function PlaylistsDirectoryComponent() {
 
   return (
     <div>
-      <header className="border-b border-border pb-5">
+      <header className="sm:border-b sm:border-border pb-3 sm:pb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
+            <p className="hidden sm:block font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
               Directory
             </p>
-            <H1 className="mt-1">Public Playlists</H1>
-            <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
+            <div className="w-full flex items-center justify-between ">
+              <H1 className="mt-1">Public Playlists</H1>{' '}
+              <Button
+                size="sm"
+                variant="pixel"
+                className="sm:hidden w-fit shrink-0 sm:w-auto"
+                onClick={handleCreatePlaylistClick}
+                leftIcon={
+                  <PlusIconSVG className="h-3.5 w-3.5" aria-hidden="true" />
+                }
+              >
+                New playlist
+              </Button>
+            </div>
+
+            <p className="hidden sm:block mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
               Browse public playlists curated by the Groovy community.
             </p>
           </div>
-
-          <Button
-            size="sm"
-            className="w-full shrink-0 sm:w-auto"
-            onClick={handleCreatePlaylistClick}
-            leftIcon={
-              <PlusIconSVG className="h-3.5 w-3.5" aria-hidden="true" />
-            }
-          >
-            New playlist
-          </Button>
         </div>
 
         <FilterBar

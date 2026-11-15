@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../stores/auth.store'
 import {
   storageApi,
@@ -15,6 +15,8 @@ import type { PlayerTrack } from '../types/player'
 import { ProceduralCover } from '../Components/common/ProceduralCover'
 import { ReleaseActionMenu } from '../Components/common/ReleaseActionMenu'
 import { SortMenu, type SortOption } from '../Components/ui'
+import { FilterBar } from '../Components/ui/FilterBar'
+import { Button } from '../Components/ui/Button'
 import { ConfirmDialog } from '../Components/ui/Modal'
 import { notify } from '../lib/toast'
 import { SORT_TERMS } from '../lib/sort'
@@ -28,9 +30,9 @@ import {
   ShuffleIconSVG,
   GridIconSVG,
   ListIconSVG,
-  SearchIconSVG,
 } from '../Components/Icons'
 import { H2 } from '../Components/ui/typography'
+import { Settings2Icon } from 'lucide-react'
 
 export const Route = createFileRoute('/vault/')({
   staticData: { layout: 'wide' },
@@ -82,14 +84,12 @@ function PersonalCollectionExplorePage() {
 
   // Filter, Sort & Search states
   const [searchQuery, setSearchQuery] = useState('')
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activePill, setActivePill] = useState<FilterPill>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [releaseSort, setReleaseSort] = useState<VaultReleaseSort>('recent')
   const [releaseDir, setReleaseDir] = useState<'asc' | 'desc'>('desc')
   const [artistSort, setArtistSort] = useState<VaultArtistSort>('name')
   const [artistDir, setArtistDir] = useState<'asc' | 'desc'>('asc')
-  const searchInputRef = useRef<HTMLInputElement>(null)
   const debouncedSearch = useDebouncedValue(searchQuery, 300).trim()
 
   // Deletion state & modal
@@ -113,13 +113,6 @@ function PersonalCollectionExplorePage() {
       navigate({ to: '/login', search: { redirect: '/vault' } })
     }
   }, [isAuthLoading, isAuthenticated, navigate])
-
-  // Focus search input when toggled open
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isSearchOpen])
 
   // ===================== RELEASES QUERY (Paginated + Infinite Scroll) =====================
   const releaseTypeParam = PILL_TO_RELEASE_TYPE[activePill]
@@ -174,13 +167,7 @@ function PersonalCollectionExplorePage() {
 
   // ===================== ARTISTS QUERY (Paginated + Infinite Scroll) =====================
   const artistsQuery = useInfiniteQuery({
-    queryKey: [
-      'vault',
-      'artists',
-      artistSort,
-      artistDir,
-      debouncedSearch,
-    ],
+    queryKey: ['vault', 'artists', artistSort, artistDir, debouncedSearch],
     queryFn: ({ pageParam = 1 }) =>
       storageApi.getPersonalArtists({
         page: pageParam,
@@ -207,8 +194,6 @@ function PersonalCollectionExplorePage() {
     return list
   }, [artistsQuery.data])
 
-  const totalArtists =
-    artistsQuery.data?.pages[0]?.pagination?.total ?? personalArtists.length
   const isLoadingArtists = artistsQuery.isLoading
 
   const loadMoreArtistsRef = useInfiniteScroll({
@@ -320,117 +305,69 @@ function PersonalCollectionExplorePage() {
     { key: 'artists', label: 'Artists' },
   ]
 
-  const isSearchActive = isSearchOpen || searchQuery.trim().length > 0
-
   return (
     <div className="select-none">
-      {/* ===================== STICKY APP HEADER WITH PILLS (Matched to /library) ===================== */}
-      <header className="sticky top-[var(--header-height)] z-30 bg-background backdrop-blur-2xl pt-2.5 pb-2.5 transition-colors">
-        {/* Horizontal Scrollable Filter Pills + Search Button */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 select-none -mx-1">
-          {/* Quick Search Toggle Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSearchOpen((prev) => !prev)
-              if (isSearchOpen && searchQuery) {
-                setSearchQuery('')
-              }
-            }}
-            aria-label="Search in vault"
-            className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
-              isSearchActive
-                ? 'bg-foreground text-background shadow-xs'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </button>
+      {/* ===================== STICKY TOOLBAR (the same bar as /library) ===================== */}
+      <header className="sticky top-[var(--header-height)] z-30 bg-background/95 pt-2.5 pb-2.5 backdrop-blur-xl transition-colors">
+        <FilterBar
+          search={{
+            value: searchQuery,
+            onChange: setSearchQuery,
+            onClear: () => setSearchQuery(''),
+            placeholder:
+              activePill === 'artists'
+                ? 'Find in Vault Artists...'
+                : 'Find in Personal Collection...',
+            ariaLabel: 'Search in vault',
+          }}
+          options={filterPills.map((pill) => ({
+            value: pill.key,
+            label: pill.label,
+          }))}
+          value={activePill}
+          onOptionChange={(next) =>
+            setActivePill(next === activePill ? 'all' : next)
+          }
+          sort={
+            <div className="flex items-center gap-1.5">
+              {activePill === 'artists' ? (
+                <SortMenu
+                  options={ARTIST_SORT_OPTIONS}
+                  value={artistSort}
+                  onChange={setArtistSort}
+                  direction={artistDir}
+                  onDirectionChange={setArtistDir}
+                />
+              ) : (
+                <SortMenu
+                  options={RELEASE_SORT_OPTIONS}
+                  value={releaseSort}
+                  onChange={setReleaseSort}
+                  direction={releaseDir}
+                  onDirectionChange={setReleaseDir}
+                />
+              )}
 
-          {/* Active Filter Clear Chip (✕) */}
-          {activePill !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setActivePill('all')}
-              aria-label="Clear active filter"
-              className="shrink-0 w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono text-caption font-bold cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-
-          {/* Category Filter Pills */}
-          {filterPills.map((pill) => {
-            const isSelected = activePill === pill.key
-            return (
-              <button
-                key={pill.key}
-                type="button"
-                onClick={() => setActivePill(isSelected ? 'all' : pill.key)}
-                className={`shrink-0 font-eyebrow text-eyebrow rounded-md uppercase tracking-wider px-3.5 py-1.5 transition-all cursor-pointer font-medium ${
-                  isSelected
-                    ? 'bg-foreground text-background font-semibold shadow-xs'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                }`}
-              >
-                {pill.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Expandable Search Input */}
-        {isSearchOpen && (
-          <div className="mt-2.5 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="relative flex-1">
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  activePill === 'artists'
-                    ? 'Find in Vault Artists...'
-                    : 'Find in Personal Collection...'
-                }
-                className="w-full font-mono text-caption py-2.5 pl-9 pr-9 border border-border bg-card rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-foreground/70 transition-all shadow-raised"
-              />
-              <SearchIconSVG className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-
-              {searchQuery && (
+              {activePill !== 'artists' && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-caption p-1"
-                  title="Clear search"
+                  onClick={() =>
+                    setViewMode(viewMode === 'list' ? 'grid' : 'list')
+                  }
+                  title={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
+                  aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors cursor-pointer hover:bg-muted hover:text-foreground sm:h-8 sm:w-8"
                 >
-                  ✕
+                  {viewMode === 'list' ? (
+                    <GridIconSVG className="h-5 w-5 shrink-0" />
+                  ) : (
+                    <ListIconSVG className="h-5 w-5 shrink-0" />
+                  )}
                 </button>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setIsSearchOpen(false)
-                setSearchQuery('')
-              }}
-              className="font-mono text-caption text-muted-foreground hover:text-foreground px-2 py-1.5 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
+          }
+        />
       </header>
 
       {/* ===================== CONTROLS BAR (Play, Shuffle, Manage, Sort & View Mode) ===================== */}
@@ -447,78 +384,30 @@ function PersonalCollectionExplorePage() {
                 <PlayIconSVG className="w-3 h-3 text-background" />
                 <span>Play</span>
               </button>
-              <button
-                type="button"
+              {/* Shuffle is an icon-only ghost button — the label was noise. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
                 onClick={handleShuffleVault}
-                className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-foreground font-medium text-caption transition-colors cursor-pointer group"
+                aria-label="Shuffle vault releases"
                 title="Shuffle vault releases"
+                className="rounded-full"
               >
-                <ShuffleIconSVG className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                <span>Shuffle</span>
-              </button>
+                <ShuffleIconSVG className="w-4 h-4" />
+              </Button>
             </>
           )}
 
           <Link
             to="/vault/manage"
-            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5 border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-caption transition-colors cursor-pointer"
+            className="rounded-full inline-flex items-center justify-center gap-1.5 h-8 px-3.5  bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-caption transition-colors cursor-pointer"
             title="Manage storage and upload files"
           >
-            <svg
-              className="w-3.5 h-3.5 text-muted-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
+            <Settings2Icon className="w-4 h-4" />
             <span className="hidden sm:inline">Manage Locker</span>
             <span className="sm:hidden">Manage</span>
           </Link>
-        </div>
-
-        {/* Right: Sort, Count and View Switcher */}
-        <div className="flex items-center gap-3 ml-auto">
-          {activePill === 'artists' ? (
-            <SortMenu
-              options={ARTIST_SORT_OPTIONS}
-              value={artistSort}
-              onChange={setArtistSort}
-              direction={artistDir}
-              onDirectionChange={setArtistDir}
-            />
-          ) : (
-            <SortMenu
-              options={RELEASE_SORT_OPTIONS}
-              value={releaseSort}
-              onChange={setReleaseSort}
-              direction={releaseDir}
-              onDirectionChange={setReleaseDir}
-            />
-          )}
-
-          <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground hidden sm:inline">
-            {activePill === 'artists'
-              ? `${totalArtists} ${totalArtists === 1 ? 'Artist' : 'Artists'}`
-              : `${totalReleases} ${totalReleases === 1 ? 'Release' : 'Releases'}`}
-          </span>
-
-          {activePill !== 'artists' && (
-            <button
-              type="button"
-              onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-              aria-label={`Switch to ${viewMode === 'list' ? 'Grid' : 'List'} view`}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors cursor-pointer hover:bg-muted hover:text-foreground sm:h-8 sm:w-8"
-            >
-              {viewMode === 'list' ? (
-                <GridIconSVG className="w-5 h-5" />
-              ) : (
-                <ListIconSVG className="w-5 h-5" />
-              )}
-            </button>
-          )}
         </div>
       </div>
 
@@ -539,20 +428,20 @@ function PersonalCollectionExplorePage() {
           ) : (
             <>
               <MediaGrid maxColumns={6}>
-              {personalReleases.map((release) => (
-                <VaultReleaseItem
-                  key={release.id}
-                  release={release}
-                  view="grid"
-                  isPlaying={
-                    currentTrack?.albumId === release.id &&
-                    playbackStatus === 'playing'
-                  }
-                  onPlay={() => handlePlayRelease(release)}
-                  onDeleteRequest={setDeleteConfirm}
-                />
-              ))}
-            </MediaGrid>
+                {personalReleases.map((release) => (
+                  <VaultReleaseItem
+                    key={release.id}
+                    release={release}
+                    view="grid"
+                    isPlaying={
+                      currentTrack?.albumId === release.id &&
+                      playbackStatus === 'playing'
+                    }
+                    onPlay={() => handlePlayRelease(release)}
+                    onDeleteRequest={setDeleteConfirm}
+                  />
+                ))}
+              </MediaGrid>
               <div ref={loadMoreArtistsRef} className="h-6" />
             </>
           )}
@@ -567,7 +456,8 @@ function PersonalCollectionExplorePage() {
           ) : personalReleases.length === 0 ? (
             debouncedSearch ? (
               <div className="p-12 text-center text-muted-foreground text-caption font-mono border border-border bg-card rounded-xl">
-                No releases match "{searchQuery}" under {activePill.toUpperCase()}.
+                No releases match "{searchQuery}" under{' '}
+                {activePill.toUpperCase()}.
               </div>
             ) : (
               /* Empty Collection State */
@@ -580,8 +470,8 @@ function PersonalCollectionExplorePage() {
                     Your Personal Vault is Empty
                   </H2>
                   <p className="font-sans text-caption text-muted-foreground max-w-md mx-auto leading-relaxed">
-                    Upload your offline audio files in the Locker Manager to start
-                    building your private listening library.
+                    Upload your offline audio files in the Locker Manager to
+                    start building your private listening library.
                   </p>
                 </div>
                 <Link
@@ -705,7 +595,6 @@ function PersonalCollectionExplorePage() {
                   onDeleteRequest={setDeleteConfirm}
                 />
               ))}
-
             </div>
           )}
           <div ref={loadMoreReleasesRef} className="h-6" />
