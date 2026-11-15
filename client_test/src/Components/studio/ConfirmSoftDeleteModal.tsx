@@ -20,7 +20,6 @@ export function ConfirmSoftDeleteModal({
     <ConfirmDialog
       open
       tone="danger"
-      icon={<Trash2 className="w-4 h-4 shrink-0" />}
       title={
         request.type === 'album'
           ? 'Move Release to Trash?'

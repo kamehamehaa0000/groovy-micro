@@ -26,6 +26,7 @@ import {
 import { PlaylistCover } from '../Components/PlaylistCover'
 import { Button } from '../Components/ui'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
+import { ClockIcon, SearchIcon, X } from 'lucide-react'
 
 interface SearchPageParams {
   q?: string
@@ -154,8 +155,7 @@ const COLLECTION_HUBS = [
     to: '/playlists',
     label: 'Public Playlists',
     tag: 'Curations',
-    tagColor:
-      'text-success bg-success-soft border-success/20',
+    tagColor: 'text-success bg-success-soft border-success/20',
     description: 'Community-curated sets, mixtapes, and public mixes',
     iconType: 'music',
   },
@@ -171,8 +171,7 @@ const COLLECTION_HUBS = [
     to: '/',
     label: 'New Releases',
     tag: 'Featured',
-    tagColor:
-      'text-info bg-info-soft border-info/20',
+    tagColor: 'text-info bg-info-soft border-info/20',
     description: 'Fresh master drops, singles, and projects',
     iconType: 'star',
   },
@@ -180,8 +179,7 @@ const COLLECTION_HUBS = [
     to: '/vault',
     label: 'Personal Vault',
     tag: 'Locker',
-    tagColor:
-      'text-warning bg-warning-soft border-warning/20',
+    tagColor: 'text-warning bg-warning-soft border-warning/20',
     description: 'Private lossless audio locker and personal cuts',
     iconType: 'lock',
   },
@@ -301,7 +299,13 @@ function SearchPageComponent() {
 
   const fetchLimit = activeCategory === 'all' ? 8 : 24
 
-  const { data: results, isFetching, isError, error, refetch } = useQuery({
+  const {
+    data: results,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['search', debouncedQuery, activeCategory, fetchLimit, user?.id],
     queryFn: ({ signal }) =>
       searchApi.search(debouncedQuery, fetchLimit, activeCategory, signal),
@@ -443,7 +447,7 @@ function SearchPageComponent() {
   return (
     <div className="select-none">
       {/* ===================== STICKY SEARCH HEADER & PILLS ===================== */}
-      <header className="sticky top-[var(--header-height)] z-30 bg-background/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
+      <header className="sticky top-(--header-height) z-30 bg-background/90 backdrop-blur-md pt-2 pb-2.5 transition-colors">
         {!query.trim() && (
           <div className="pt-1 pb-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-sans">
@@ -461,21 +465,10 @@ function SearchPageComponent() {
               inputRef.current?.blur()
             }
           }}
-          className="relative flex items-center bg-card border border-border rounded-xl sm:rounded-2xl focus-within:border-primary transition-colors shadow-xs h-11 sm:h-12"
+          className="relative flex items-center bg-card  rounded-xl sm:rounded-2xl focus-within:border-primary transition-colors shadow-xs h-11 sm:h-12"
         >
           <div className="pl-3.5 pr-2.5 text-muted-foreground shrink-0">
-            <svg
-              className="w-4 h-4 text-muted-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            <SearchIcon className="w-5 h-5" />
           </div>
 
           <input
@@ -505,7 +498,7 @@ function SearchPageComponent() {
               className="mr-1 sm:mr-3 flex h-10 w-10 items-center justify-center rounded-full text-caption font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:h-7 sm:w-7"
               title="Clear search"
             >
-              ✕
+              <X className="h-4 w-4" />
             </button>
           )}
         </form>
@@ -521,7 +514,7 @@ function SearchPageComponent() {
                 aria-label="Clear category filter"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border text-muted-foreground transition-colors text-caption font-bold cursor-pointer hover:bg-muted hover:text-foreground sm:h-7 sm:w-7"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             )}
 
@@ -573,42 +566,34 @@ function SearchPageComponent() {
                 {recentSearches.map((term) => (
                   <div
                     key={term}
-                    className="group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full bg-card border border-border hover:border-foreground/40 transition-colors shadow-raised"
+                    className="group inline-flex items-center gap-1.5 px-1 py-1 rounded-full bg-card  hover:border-foreground/40 transition-colors shadow-raised"
                   >
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       type="button"
                       onClick={() => {
                         setQuery(term)
                         setDebouncedQuery(term)
                         addRecentSearch(term)
                       }}
-                      className="text-caption font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
-                      <svg
-                        className="w-3.5 h-3.5 text-muted-foreground shrink-0"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
+                      <ClockIcon className="w-4 h-4" />
                       <span>{term}</span>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
                         removeRecentSearch(term)
                       }}
                       aria-label={`Remove ${term} from recent searches`}
-                      className="-mr-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-eyebrow text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      className=" flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-eyebrow text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       ✕
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -630,7 +615,7 @@ function SearchPageComponent() {
                 <Link
                   key={hub.to}
                   to={hub.to}
-                  className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl bg-card border border-${hub.tagColor} hover:border-foreground/40 hover:bg-muted/60 transition-all shadow-raised no-underline text-inherit`}
+                  className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl bg-${hub.tagColor} hover:border-foreground/40 hover:bg-muted/60 transition-all shadow-raised no-underline text-inherit`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
@@ -1135,7 +1120,9 @@ function SearchPageComponent() {
               count={results.artists.length}
               action={
                 activeCategory === 'all' && results.artists.length >= 6 ? (
-                  <ResultSectionLink onClick={() => setActiveCategory('artists')}>
+                  <ResultSectionLink
+                    onClick={() => setActiveCategory('artists')}
+                  >
                     View all →
                   </ResultSectionLink>
                 ) : null
@@ -1165,7 +1152,9 @@ function SearchPageComponent() {
               count={results.albums.length}
               action={
                 activeCategory === 'all' && results.albums.length >= 6 ? (
-                  <ResultSectionLink onClick={() => setActiveCategory('albums')}>
+                  <ResultSectionLink
+                    onClick={() => setActiveCategory('albums')}
+                  >
                     View all →
                   </ResultSectionLink>
                 ) : null

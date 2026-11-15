@@ -27,14 +27,15 @@ import { usePlayerStore } from '../stores/player.store'
 import type { PlayerTrack } from '../types/player'
 import { seedArtistCache } from '../lib/artist-resolver'
 import { useLockerStore } from '../stores/locker.store'
-import { socialApi } from '../lib/social.api'
-import { VaultManageContext, type VaultManageContextValue } from '../Components/vault/manage/VaultManageContext'
+import { notify } from '../lib/toast'
+import { cn } from '../Components/ui/cn'
+import {
+  VaultManageContext,
+  type VaultManageContextValue,
+} from '../Components/vault/manage/VaultManageContext'
 import { ConfirmDialog, Modal } from '../Components/ui/Modal'
 import { Button } from '../Components/ui/Button'
-import {
-  TrashIconSVG,
-  UploadCloudSVG,
-} from '../Components/Icons'
+import { TrashIconSVG, UploadCloudSVG } from '../Components/Icons'
 import { H1 } from '../Components/ui/typography'
 
 /** The four desks of the vault manager. */
@@ -62,41 +63,12 @@ function PersonalCollectionManagePage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const isAuthLoading = useAuthStore((s) => s.isLoading)
   const user = useAuthStore((s) => s.user)
-  const refreshProfile = useAuthStore((s) => s.refreshProfile)
   const navigate = useNavigate()
-
-  // Quick Home & Recommendations Scope Toggle
-  const [lockerIncludeInHome, setLockerIncludeInHome] = useState<boolean>(
-    user?.lockerIncludeInHome ?? false,
-  )
-  const [isUpdatingHomeSetting, setIsUpdatingHomeSetting] = useState(false)
-
-  useEffect(() => {
-    if (user?.lockerIncludeInHome !== undefined) {
-      setLockerIncludeInHome(user.lockerIncludeInHome)
-    }
-  }, [user?.lockerIncludeInHome])
-
-  const handleToggleLockerInHome = async (enabled: boolean) => {
-    setLockerIncludeInHome(enabled)
-    setIsUpdatingHomeSetting(true)
-    try {
-      await socialApi.updatePrivacySettings({ lockerIncludeInHome: enabled })
-      await refreshProfile()
-    } catch (err) {
-      console.error('Failed to update locker recommendation setting', err)
-      setLockerIncludeInHome(!enabled)
-    } finally {
-      setIsUpdatingHomeSetting(false)
-    }
-  }
 
   // The desk is a route of its own, so it can be linked to, bookmarked and
   // reached with the back button.
   const { pathname } = useLocation()
-  const activeTab = (
-    pathname.split('/').pop() || 'import'
-  ) as VaultManageTab
+  const activeTab = (pathname.split('/').pop() || 'import') as VaultManageTab
 
   const handleTabChange = (tab: VaultManageTab) => {
     navigate({ to: TAB_ROUTES[tab] })
@@ -129,7 +101,9 @@ function PersonalCollectionManagePage() {
     enabled: isAuthenticated,
   })
 
-  const invalidateVault = (keys: Array<'trash' | 'artists' | 'collection' | 'quota'>) => {
+  const invalidateVault = (
+    keys: Array<'trash' | 'artists' | 'collection' | 'quota'>,
+  ) => {
     for (const key of keys) {
       void queryClient.invalidateQueries({ queryKey: ['vault', key] })
     }
@@ -191,8 +165,18 @@ function PersonalCollectionManagePage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatusText, setUploadStatusText] = useState('')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errorMessage, _setErrorMessage] = useState<string | null>(null)
+  const [successMessage, _setSuccessMessage] = useState<string | null>(null)
+
+  const setSuccessMessage = (msg: string | null) => {
+    if (msg) notify.success(msg)
+    _setSuccessMessage(msg)
+  }
+
+  const setErrorMessage = (msg: string | null) => {
+    if (msg) notify.error(msg)
+    _setErrorMessage(msg)
+  }
   const [duplicateNotice, setDuplicateNotice] = useState<{
     count: number
     details: Array<{
@@ -358,9 +342,7 @@ function PersonalCollectionManagePage() {
         queryClient.setQueryData<PersonalArtistsResponse>(
           ['vault', 'artists'],
           (prev) =>
-            prev
-              ? { ...prev, artists: [res.artist, ...prev.artists] }
-              : prev,
+            prev ? { ...prev, artists: [res.artist, ...prev.artists] } : prev,
         )
         seedArtistCache([
           {
@@ -380,7 +362,6 @@ function PersonalCollectionManagePage() {
       setIsSubmittingArtist(false)
     }
   }
-
 
   const toggleExpandRelease = (releaseId: string) => {
     setExpandedReleaseIds((prev) => {
@@ -1192,9 +1173,9 @@ function PersonalCollectionManagePage() {
     handleTabChange,
     navigate,
     user,
-    lockerIncludeInHome,
-    isUpdatingHomeSetting,
-    handleToggleLockerInHome,
+    lockerIncludeInHome: false,
+    isUpdatingHomeSetting: false,
+    handleToggleLockerInHome: async () => {},
   }
 
   return (
@@ -1203,7 +1184,6 @@ function PersonalCollectionManagePage() {
       <ConfirmDialog
         open={deleteConfirm !== null}
         tone="danger"
-        icon={<TrashIconSVG className="w-4 h-4" />}
         title={
           deleteConfirm?.type === 'song'
             ? 'Delete Personal Track?'
@@ -1220,8 +1200,8 @@ function PersonalCollectionManagePage() {
               {deleteConfirm.type === 'release' ? (
                 <span className="block text-foreground font-medium mt-1">
                   This will permanently delete all{' '}
-                  {deleteConfirm.trackCount || 1} track(s) and immediately free{' '}
-                  {deleteConfirm.trackCount || 1} quota slot(s).
+                  {deleteConfirm.trackCount || 1} track and immediately free{' '}
+                  {deleteConfirm.trackCount || 1} quota slot.
                 </span>
               ) : (
                 <span className="block text-foreground font-medium mt-1">
@@ -1249,7 +1229,7 @@ function PersonalCollectionManagePage() {
       <ConfirmDialog
         open={trashConfirm !== null}
         tone="danger"
-        icon={<TrashIconSVG className="w-4 h-4" />}
+
         title={
           trashConfirm?.type === 'empty'
             ? 'Empty Recycle Bin?'
@@ -1259,7 +1239,7 @@ function PersonalCollectionManagePage() {
         }
         description={
           trashConfirm?.type === 'empty'
-            ? 'Are you sure you want to permanently delete all items in the recycle bin? Audio files will be removed from cloud storage. This action cannot be undone.'
+            ? 'Are you sure you want to permanently delete all items in the recycle bin? This action cannot be undone.'
             : trashConfirm?.type === 'permanent_release'
               ? `Are you sure you want to permanently delete "${trashConfirm.title}" and all its audio files? This action cannot be undone.`
               : `Are you sure you want to permanently delete "${trashConfirm?.title}"? This action cannot be undone.`
@@ -1290,9 +1270,7 @@ function PersonalCollectionManagePage() {
       <Modal
         open={movingTrackInfo !== null}
         onClose={() => setMovingTrackInfo(null)}
-        title={
-          movingTrackInfo ? `"${movingTrackInfo.track.title}"` : ''
-        }
+        title={movingTrackInfo ? `"${movingTrackInfo.track.title}"` : ''}
         description={
           movingTrackInfo
             ? `${movingTrackInfo.track.artistName || 'Unknown Artist'} · ${Math.floor(
@@ -1376,7 +1354,8 @@ function PersonalCollectionManagePage() {
                             </span>
                           </div>
                           <div className="font-sans text-eyebrow text-muted-foreground truncate">
-                            {targetRel.artistName} &bull; {targetRel.tracks.length}{' '}
+                            {targetRel.artistName} &bull;{' '}
+                            {targetRel.tracks.length}{' '}
                             {targetRel.tracks.length === 1 ? 'track' : 'tracks'}
                           </div>
                         </div>
@@ -1467,36 +1446,36 @@ function PersonalCollectionManagePage() {
       </Modal>
 
       {/* ===================== HERO BANNER ===================== */}
-      <div className="border-b border-border pb-6 sm:pb-8 mb-6 sm:mb-8">
+      <div className="pb-2 sm:pb-4 sm:mb-3">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div>
             <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-primary block mb-2 font-medium">
-              Groovy Personal Vault
+              Personal Vault
             </span>
             <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Locker Management
+              Vault Management
             </H1>
             <p className="font-sans text-caption sm:text-body text-muted-foreground max-w-xl mt-2 leading-relaxed">
-              Stage and import audio files, organize private releases and artist
-              rosters, and monitor your personal storage allocation.
+              Import and organize your private music library, manage artists,
+              and track your storage allocation.
             </p>
           </div>
 
-          {/* Right Header Actions & Storage Quota */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          {/* Minimal Storage Quota Card */}
+          <div className="flex items-center gap-3 shrink-0">
             {quotaLoading ? (
               <div className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground animate-pulse py-2">
                 Checking quota...
               </div>
             ) : quota ? (
-              <div className="bg-card border border-border rounded-xl p-3 sm:p-3.5 min-w-52.5 shadow-raised space-y-2">
-                <div className="flex items-center justify-between font-eyebrow text-eyebrow uppercase tracking-wider">
-                  <span className="text-muted-foreground">Storage Quota</span>
-                  <span className="text-foreground font-semibold font-mono">
-                    {quota.usedSongs} / {quota.maxSongs} Songs
+              <div className="bg-card rounded-xl p-3 sm:p-3.5 shadow-raised min-w-48 space-y-1.5 shrink-0 w-full sm:w-fit">
+                <div className="flex items-center justify-between gap-3 font-eyebrow text-eyebrow uppercase tracking-wider">
+                  <span className="text-muted-foreground">Storage</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {quota.usedSongs} / {quota.maxSongs}
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-background border border-border rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-muted/40 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
                       quota.usedSongs >= quota.maxSongs
@@ -1511,178 +1490,94 @@ function PersonalCollectionManagePage() {
                     }}
                   />
                 </div>
-                <div className="flex items-center justify-between font-mono text-eyebrow">
-                  <span className="text-muted-foreground">
+                <div className="flex items-center justify-between font-mono text-eyebrow text-muted-foreground">
+                  <span>
                     {quota.remainingSongs} slot
-                    {quota.remainingSongs === 1 ? '' : 's'} left
+                    {quota.remainingSongs === 1 ? '' : 's'} free
                   </span>
                   <span
                     className={`font-semibold ${
-                      quota.remainingSongs === 0 ? 'text-destructive' : 'text-primary'
+                      quota.remainingSongs === 0
+                        ? 'text-destructive'
+                        : 'text-foreground'
                     }`}
                   >
-                    {Math.round((quota.usedSongs / quota.maxSongs) * 100)}% Used
+                    {Math.round((quota.usedSongs / quota.maxSongs) * 100)}%
                   </span>
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
 
-            <Link
-              to="/vault"
-              className="inline-flex items-center justify-center gap-2 font-eyebrow text-eyebrow uppercase tracking-wider py-2.5 px-4 border border-border bg-card hover:bg-background text-foreground rounded-md transition-all shadow-raised cursor-pointer font-medium shrink-0 self-start sm:self-center"
+        {/* Scope Filter Tabs - Studio Style */}
+        <nav
+          aria-label="Vault sections"
+          className="mt-6 sm:mt-8 -mx-4 mb-2 flex items-center gap-1.5 overflow-x-auto sm:border-b sm:border-border bg-background px-4 py-2 backdrop-blur-md no-scrollbar scroll-smooth sm:mx-0 sm:gap-2 sm:px-0"
+        >
+          <div className="inline-flex items-center gap-1 rounded-full bg-muted/30 p-1">
+            <Button
+              variant="pixel"
+              size="sm"
+              onClick={() => handleTabChange('import')}
+              aria-current={activeTab === 'import' ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap transition-all duration-150',
+                activeTab === 'import'
+                  ? 'bg-foreground text-background font-semibold shadow-raised hover:bg-foreground hover:text-background'
+                  : 'bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              )}
             >
-              <span>♫ View Vault</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Quick Personal Collection Recommendation Setting */}
-        <div className="mt-5 p-3.5 border border-border bg-card/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-caption shadow-raised">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary font-semibold">
-                Recommendation Scope
-              </span>
-              <span
-                className={`px-1.5 py-0.5 rounded-control font-eyebrow text-eyebrow uppercase tracking-wider ${
-                  lockerIncludeInHome
-                    ? 'bg-primary/15 text-primary font-semibold'
-                    : 'bg-background text-muted-foreground border border-border'
-                }`}
-              >
-                {lockerIncludeInHome ? 'Mixed (Personal + Global)' : 'Global Only (Default)'}
-              </span>
-            </div>
-            <p className="text-muted-foreground text-eyebrow leading-snug">
-              {lockerIncludeInHome
-                ? 'Your personal uploads are blended into your personalized home shelves and recommendations.'
-                : 'Personal uploads are isolated from your home shelves. Recommendations strictly surface global artists and releases.'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={lockerIncludeInHome}
-                disabled={isUpdatingHomeSetting}
-                onChange={(e) => handleToggleLockerInHome(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-10 h-5.5 bg-muted border border-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-background after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-muted-foreground peer-checked:after:bg-background after:border-border after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-foreground"></div>
-            </label>
-            <Link
-              to="/profile"
-              className="text-muted-foreground hover:text-foreground font-eyebrow text-eyebrow uppercase tracking-wider underline decoration-border/80 hover:decoration-foreground"
+              <span>Import Music</span>
+              {importReleases.length > 0 && (
+                <span className="ml-1 opacity-80">({totalSelectedTracks})</span>
+              )}
+            </Button>
+            <Button
+              variant="pixel"
+              size="sm"
+              onClick={() => handleTabChange('collection')}
+              aria-current={activeTab === 'collection' ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap transition-all duration-150',
+                activeTab === 'collection'
+                  ? 'bg-foreground text-background font-semibold shadow-raised hover:bg-foreground hover:text-background'
+                  : 'bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              )}
             >
-              Preferences &rarr;
-            </Link>
+              <span>Releases</span>
+            </Button>
+            <Button
+              variant="pixel"
+              size="sm"
+              onClick={() => handleTabChange('artists')}
+              aria-current={activeTab === 'artists' ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap transition-all duration-150',
+                activeTab === 'artists'
+                  ? 'bg-foreground text-background font-semibold shadow-raised hover:bg-foreground hover:text-background'
+                  : 'bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              )}
+            >
+              <span>Artists</span>
+            </Button>
+            <Button
+              variant="pixel"
+              size="sm"
+              onClick={() => handleTabChange('trash')}
+              aria-current={activeTab === 'trash' ? 'page' : undefined}
+              className={cn(
+                'shrink-0 whitespace-nowrap transition-all duration-150',
+                activeTab === 'trash'
+                  ? 'bg-foreground text-background font-semibold shadow-raised hover:bg-foreground hover:text-background'
+                  : 'bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              )}
+            >
+              <span>Recycle Bin</span>
+            </Button>
           </div>
-        </div>
-
-        {/* Scope Filter Tabs */}
-        <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-2 border-b border-border pb-4">
-          <button
-            type="button"
-            onClick={() => handleTabChange('import')}
-            className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
-              activeTab === 'import'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-            }`}
-          >
-            <span>Import Music</span>
-            {importReleases.length > 0 && (
-              <span className="font-bold">({totalSelectedTracks})</span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleTabChange('collection')}
-            className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
-              activeTab === 'collection'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-            }`}
-          >
-            Releases (
-            {filteredReleases.length !== personalReleases.length
-              ? `${filteredReleases.length}/${personalReleases.length}`
-              : personalReleases.length}
-            ) &bull; {totalPersonalSongs} Tracks
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleTabChange('artists')
-            }}
-            className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
-              activeTab === 'artists'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-            }`}
-          >
-            Artists ({personalArtists.length})
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleTabChange('trash')
-            }}
-            className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 font-eyebrow text-eyebrow font-medium uppercase tracking-wider transition-colors ${
-              activeTab === 'trash'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground'
-            }`}
-          >
-            <span>Recycle Bin</span>
-            {trashedSongs.length + trashedReleases.length > 0 && (
-              <span
-                className={`font-mono text-eyebrow px-1.5 py-0.2 rounded-full ${
-                  activeTab === 'trash'
-                    ? 'bg-background text-foreground'
-                    : 'bg-background border border-border text-muted-foreground'
-                }`}
-              >
-                {trashedSongs.length + trashedReleases.length}
-              </span>
-            )}
-          </button>
-        </div>
+        </nav>
       </div>
-
-      {/* Notifications / Alerts */}
-      {errorMessage && (
-        <div className="p-3.5 bg-destructive-soft border border-destructive/20 text-destructive font-mono text-caption flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span>⚠</span>
-            <span>{errorMessage}</span>
-          </div>
-          <button
-            onClick={() => setErrorMessage(null)}
-            className="text-destructive font-bold ml-2 cursor-pointer font-mono"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="p-3.5 bg-success-soft border border-success/20 text-success font-mono text-caption flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>{successMessage}</span>
-          </div>
-          <button
-            onClick={() => setSuccessMessage(null)}
-            className="text-success font-bold ml-2 cursor-pointer font-mono"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
 
       <VaultManageContext.Provider value={vaultManageContext}>
         <Outlet />

@@ -692,7 +692,7 @@ export const SongRow = memo(function SongRow({
                 {track.isExplicit && (
                   <span
                     title="Explicit Content"
-                    className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-border text-muted-foreground bg-background shrink-0 leading-none"
+                    className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5  text-primary bg-primary/10 shrink-0 rounded-control leading-none"
                   >
                     E
                   </span>
@@ -701,9 +701,9 @@ export const SongRow = memo(function SongRow({
                 {(isPersonal || track.scope === 'PERSONAL') && (
                   <span
                     title="Personal Collection (Vault)"
-                    className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5 border border-primary/30 text-primary bg-primary/10 shrink-0 rounded-control leading-none"
+                    className="font-eyebrow text-eyebrow font-semibold uppercase tracking-wider px-1.5 py-0.5  text-primary bg-primary/10 shrink-0 rounded-control leading-none"
                   >
-                    V
+                    P
                   </span>
                 )}
               </div>
