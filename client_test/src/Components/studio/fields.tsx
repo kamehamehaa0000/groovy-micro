@@ -72,7 +72,7 @@ export function FieldLabel({
   )
 }
 
-export interface SerifInputProps
+export interface TitleInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Type role: release titles are `title`, the profile's stage name `body`. */
   size?: 'title' | 'body'
@@ -81,16 +81,16 @@ export interface SerifInputProps
 }
 
 /** The italic Fraunces control that carries a title. */
-export function SerifInput({
+export function TitleInput({
   size = 'title',
   compact = false,
   className,
   ...props
-}: SerifInputProps) {
+}: TitleInputProps) {
   return (
     <input
       className={cn(
-        'font-serif italic border border-border text-foreground',
+        'border border-border text-foreground',
         compact
           ? 'text-caption py-1.5 px-2.5 bg-card'
           : cn(

@@ -369,7 +369,7 @@ function LikedSongsPage() {
               </span>
               {searchQuery ? (
                 <>
-                  <p className="font-serif italic text-title text-foreground">
+                  <p className="text-title text-foreground font-medium">
                     No matching tracks found
                   </p>
                   <p className="mt-1 font-sans text-caption text-muted-foreground">
@@ -386,7 +386,7 @@ function LikedSongsPage() {
                 </>
               ) : (
                 <>
-                  <p className="font-serif italic text-title text-foreground">
+                  <p className="text-title text-foreground font-medium">
                     Songs you like will appear here
                   </p>
                   <p className="mx-auto mt-1 max-w-sm font-sans text-caption text-muted-foreground">

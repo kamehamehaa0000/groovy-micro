@@ -8,7 +8,7 @@ import {
   MonoInput,
   MoodChipRow,
   SelectField,
-  SerifInput,
+  TitleInput,
   TagChipInput,
   TextAreaField,
 } from '../fields'
@@ -95,7 +95,7 @@ export function ReleaseDetailsSection({
             {releaseType === 'SINGLE' ? 'Single Title' : 'Release Title'}{' '}
             <span className="text-destructive">*</span>
           </FieldLabel>
-          <SerifInput
+          <TitleInput
             type="text"
             required
             value={title}

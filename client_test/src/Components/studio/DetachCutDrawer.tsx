@@ -108,11 +108,11 @@ export function DetachCutDrawer({
 
         <p className="font-sans text-caption text-muted-foreground leading-relaxed">
           Detaching{' '}
-          <strong className="text-foreground font-medium font-serif italic">
+          <strong className="text-foreground font-medium">
             "{request.song.title}"
           </strong>{' '}
           from{' '}
-          <strong className="text-foreground font-medium font-serif italic">
+          <strong className="text-foreground font-medium">
             {request.parentAlbum.title}
           </strong>{' '}
           will turn it into an independent standalone{' '}

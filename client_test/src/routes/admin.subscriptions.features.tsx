@@ -238,7 +238,7 @@ function AdminFeaturesDesk() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Stems & Acapella Isolation"
-              className="w-full font-serif italic text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground"
+              className="w-full text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground font-medium"
             />
           </div>
 

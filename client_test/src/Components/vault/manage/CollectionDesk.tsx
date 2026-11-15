@@ -180,7 +180,7 @@ export function CollectionDesk() {
                               <Link
                                 to="/albums/$idOrSlug"
                                 params={{ idOrSlug: release.slug || release.id }}
-                                className="font-serif italic text-title sm:text-lg text-foreground font-medium hover:text-primary transition-colors line-clamp-1 truncate max-w-full"
+                                className="text-title sm:text-lg text-foreground font-medium hover:text-primary transition-colors line-clamp-1 truncate max-w-full"
                                 title={release.title}
                               >
                                 {release.title}

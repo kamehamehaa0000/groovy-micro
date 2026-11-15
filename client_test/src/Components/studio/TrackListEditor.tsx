@@ -16,7 +16,7 @@ import {
   CreditPickerField,
   ExplicitCheckbox,
   MonoInput,
-  SerifInput,
+  TitleInput,
 } from './fields'
 
 export interface TrackListEditorProps<T extends StudioTrackDraft> {
@@ -60,7 +60,7 @@ export function TrackListEditor<T extends StudioTrackDraft>({
             </span>
 
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-              <SerifInput
+              <TitleInput
                 type="text"
                 required
                 placeholder="Cut Title"

@@ -1322,7 +1322,7 @@ function PersonalCollectionManagePage() {
               </div>
               <div className="p-3 border border-border bg-background flex items-center justify-between gap-3 hover:border-foreground transition-colors rounded-xl shadow-raised">
                 <div>
-                  <div className="font-serif italic text-caption text-foreground">
+                  <div className="text-caption text-foreground font-medium">
                     Create Standalone Single Release
                   </div>
                   <div className="font-sans text-eyebrow text-muted-foreground">
@@ -1368,7 +1368,7 @@ function PersonalCollectionManagePage() {
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-serif italic text-caption text-foreground truncate">
+                            <span className="text-caption text-foreground truncate font-medium">
                               {targetRel.albumTitle}
                             </span>
                             <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1 py-0.2 border border-border bg-card text-primary font-semibold shrink-0 rounded-control">
@@ -1431,7 +1431,7 @@ function PersonalCollectionManagePage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-serif italic text-caption text-foreground truncate">
+                            <span className="text-caption text-foreground truncate font-medium">
                               {libRel.title}
                             </span>
                             <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1 py-0.2 border border-border bg-card text-primary font-semibold shrink-0 rounded-control">

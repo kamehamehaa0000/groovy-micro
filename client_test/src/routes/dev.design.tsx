@@ -292,7 +292,7 @@ function DesignPlayground() {
         <div className="flex flex-col gap-4">
           <div>
             <Token>text-display · Fraunces</Token>
-            <p className="font-serif text-display text-foreground">Groovy</p>
+            <p className="text-display text-foreground font-medium">Groovy</p>
           </div>
           <div>
             <Token>text-heading · Inter</Token>

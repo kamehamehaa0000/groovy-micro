@@ -115,7 +115,7 @@ export function ProfileTab({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="font-serif italic text-3xl sm:text-4xl text-muted-foreground select-none">
+              <span className="text-3xl sm:text-4xl text-muted-foreground select-none font-medium">
                 {artistProfile.stageName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -127,7 +127,7 @@ export function ProfileTab({
           </div>
 
           <div className="font-mono text-caption text-muted-foreground space-y-1">
-            <div className="text-foreground font-serif italic text-title">
+            <div className="text-foreground text-title font-medium">
               {artistProfile.stageName}
             </div>
             <p className="text-eyebrow text-muted-foreground/80">
@@ -444,7 +444,7 @@ export function ProfileTab({
                       setSpotlightReleaseId(e.target.value)
                       setSpotlightStatus('idle')
                     }}
-                    className="w-full font-serif italic text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-control transition-colors"
+                    className="w-full text-body py-2 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground rounded-control transition-colors font-medium"
                   >
                     <option value="">
                       -- Automatic Default: Always show latest release --
@@ -596,7 +596,7 @@ export function ProfileTab({
                       </div>
 
                       {spotlightReleaseId && spotlightComment.trim() && (
-                        <p className="font-serif italic text-caption text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control border border-border-soft">
+                        <p className="text-caption text-foreground/90 leading-relaxed bg-card p-2.5 rounded-control border border-border-soft font-medium">
                           "{spotlightComment.trim()}"
                         </p>
                       )}

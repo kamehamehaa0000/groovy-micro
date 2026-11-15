@@ -398,7 +398,7 @@ export function ImportDesk() {
                             <span className="font-mono text-eyebrow text-muted-foreground w-4 text-right shrink-0">
                               {track.trackNumber}
                             </span>
-                            <span className="font-serif italic text-caption text-foreground truncate">
+                            <span className="text-caption text-foreground truncate font-medium">
                               {track.title}
                             </span>
                             {track.artistName !== release.artistName && (

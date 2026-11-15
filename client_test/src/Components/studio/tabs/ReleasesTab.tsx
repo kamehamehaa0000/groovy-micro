@@ -68,7 +68,7 @@ export function ReleasesTab({ artistProfile, releases }: ReleasesTabProps) {
         ) : albums.length === 0 ? (
           <div className="p-10 border border-dashed border-border bg-card text-center">
             <Disc3 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2 shrink-0" />
-            <p className="font-serif italic text-title text-foreground">
+            <p className="text-title text-foreground font-medium">
               No active master releases yet
             </p>
             <p className="font-eyebrow text-eyebrow uppercase tracking-wider text-muted-foreground mt-1">

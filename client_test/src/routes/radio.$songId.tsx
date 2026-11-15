@@ -492,7 +492,7 @@ function RadioMixPage() {
               <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <DiscIconSVG className="h-5 w-5" />
               </span>
-              <p className="font-serif italic text-title text-foreground">
+              <p className="text-title text-foreground font-medium">
                 No radio tracks found
               </p>
               <p className="mx-auto mt-1 max-w-sm font-sans text-caption text-muted-foreground">
@@ -509,7 +509,7 @@ function RadioMixPage() {
             </div>
           ) : visibleQueue.length === 0 ? (
             <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
-              <p className="font-serif italic text-title text-foreground">
+              <p className="text-title text-foreground font-medium">
                 No matching tracks
               </p>
               <p className="mt-1 font-sans text-caption text-muted-foreground">

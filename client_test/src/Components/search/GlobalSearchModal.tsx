@@ -220,7 +220,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           {/* 1. Initial Empty Search State */}
           {!query.trim() && (
             <div className="py-12 text-center">
-              <div className="font-serif italic text-2xl text-foreground mb-2">
+              <div className="text-2xl text-foreground mb-2 font-medium">
                 What do you want to play?
               </div>
               <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto leading-relaxed">
@@ -234,7 +234,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           {/* 2. No Results Found State */}
           {query.trim() && !isSearching && !hasAnyResults && (
             <div className="py-12 text-center">
-              <div className="font-serif italic text-heading text-foreground mb-2">
+              <div className="text-heading text-foreground mb-2 font-medium">
                 No results found for "{query}"
               </div>
               <p className="font-sans text-caption text-muted-foreground max-w-sm mx-auto">

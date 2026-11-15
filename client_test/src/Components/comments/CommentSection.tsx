@@ -286,7 +286,7 @@ export function CommentSection({
           {/* Empty State */}
           {!isLoading && (comments?.length ?? 0) === 0 && (
             <div className="py-12 text-center text-muted-foreground">
-              <p className="font-serif text-lg italic mb-1">Quiet in here...</p>
+              <p className="text-lg mb-1 font-medium">Quiet in here...</p>
               <p className="font-mono text-caption">
                 Be the first to leave a comment on this {targetType}!
               </p>

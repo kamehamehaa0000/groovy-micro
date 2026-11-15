@@ -97,7 +97,7 @@ export const BentoTrackCard = memo(function BentoTrackCard({
       <div className="relative z-10 min-w-0 pr-6">
         {isBig ? (
           <>
-            <h4 className="font-serif text-xl sm:text-2xl lg:text-3xl font-semibold leading-tight text-white mb-1 line-clamp-2">
+            <h4 className="text-xl sm:text-2xl lg:text-3xl font-semibold leading-tight text-white mb-1 line-clamp-2">
               {track.title}
             </h4>
             <p className="text-body text-white/80 font-medium truncate">

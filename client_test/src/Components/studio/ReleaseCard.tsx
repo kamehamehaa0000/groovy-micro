@@ -178,7 +178,7 @@ export function ReleaseCard({
 
           <MarqueeText
             className="min-w-0 w-full"
-            innerClassName="font-serif italic text-title sm:text-lg font-semibold text-foreground"
+            innerClassName="text-title font-semibold text-foreground sm:text-lg"
           >
             {album.title}
           </MarqueeText>

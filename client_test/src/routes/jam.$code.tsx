@@ -258,7 +258,7 @@ function JamRouteComponent() {
                 </div>
               </div>
             ) : (
-              <div className="py-8 text-center text-muted-foreground italic font-serif text-body">
+              <div className="py-8 text-center text-muted-foreground text-body font-medium">
                 No track currently playing. The DJ can select a track from the catalog to start the music.
               </div>
             )}
@@ -276,7 +276,7 @@ function JamRouteComponent() {
             </div>
 
             {jamQueue.length === 0 ? (
-              <p className="text-caption text-muted-foreground italic py-6 text-center font-serif">
+              <p className="text-caption text-muted-foreground py-6 text-center font-medium">
                 The Jam queue is currently empty. Browse the catalog and click "Add to Jam Queue" on any song to contribute!
               </p>
             ) : (

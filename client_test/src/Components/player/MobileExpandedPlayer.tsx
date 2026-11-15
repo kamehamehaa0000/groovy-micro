@@ -426,7 +426,7 @@ export function MobileExpandedPlayer() {
               <button
                 type="button"
                 onClick={goToRelease}
-                className="font-serif italic font-bold text-[clamp(1.25rem,6.15vw,1.5rem)] text-foreground truncate leading-tight cursor-pointer text-left block max-w-full"
+                className="font-bold text-[clamp(1.25rem,6.15vw,1.5rem)] text-foreground truncate leading-tight cursor-pointer text-left block max-w-full"
               >
                 {currentTrack.title}
               </button>

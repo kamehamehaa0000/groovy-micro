@@ -136,7 +136,7 @@ export function CreatePlaylistModal() {
       onClose={closeModal}
       eyebrow="Playlist"
       title={
-        <span id={titleId} className="font-serif italic">
+        <span id={titleId} className="font-medium">
           Create new playlist
         </span>
       }

@@ -30,7 +30,7 @@ export function AuthShell({
         <div className="mb-6 flex items-center justify-between">
           <Link
             to="/"
-            className="font-serif text-xl tracking-tight text-foreground transition-opacity hover:opacity-80"
+            className="text-xl tracking-tight text-foreground transition-opacity hover:opacity-80 font-medium"
           >
             Groovy
           </Link>
@@ -72,7 +72,7 @@ export function BrandPanel() {
       <div className="relative">
         <Link
           to="/"
-          className="font-serif text-2xl tracking-tight text-foreground transition-opacity hover:opacity-80"
+          className="text-2xl tracking-tight text-foreground transition-opacity hover:opacity-80 font-medium"
         >
           Groovy
         </Link>

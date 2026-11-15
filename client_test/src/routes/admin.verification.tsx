@@ -251,7 +251,7 @@ function AdminVerificationDeskComponent() {
                       <Link
                         to="/artists/$idOrSlug"
                         params={{ idOrSlug: app.slug }}
-                        className="font-serif italic text-heading text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                        className="text-heading text-foreground hover:text-primary transition-colors flex items-center gap-1.5 font-medium"
                       >
                         <span>{app.stageName}</span>
                         <ExternalLinkSVG className="w-3.5 h-3.5 text-muted-foreground" />

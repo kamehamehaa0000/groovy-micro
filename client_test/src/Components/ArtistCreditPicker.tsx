@@ -120,7 +120,7 @@ export function ArtistCreditPicker({
               key={c.artistId}
               className="inline-flex items-center gap-2 py-1 px-2.5 border border-border bg-background font-mono text-eyebrow shadow-raised"
             >
-              <span className="font-serif italic font-medium text-foreground flex items-center gap-1">
+              <span className="font-medium text-foreground flex items-center gap-1">
                 {c.stageName}
                 {c.verified && (
                   <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />
@@ -225,7 +225,7 @@ export function ArtistCreditPicker({
                       </div>
 
                       <div className="truncate">
-                        <div className="font-serif italic text-caption text-foreground flex items-center gap-1">
+                        <div className="text-caption text-foreground flex items-center gap-1 font-medium">
                           <span className="truncate">{artist.stageName}</span>
                           {artist.verified && (
                             <VerifiedBadgeSVG className="w-3 h-3 text-primary shrink-0" />

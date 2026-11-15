@@ -91,7 +91,7 @@ export function StudioUpgradeScreen({
               value={stageName}
               onChange={(e) => setStageName(e.target.value)}
               placeholder="e.g. Hélène Vane, The Cinematic Trio"
-              className="w-full font-serif italic text-title py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors"
+              className="w-full text-title py-2.5 px-3 border border-border bg-background text-foreground focus:outline-none focus:border-foreground transition-colors font-medium"
             />
           </div>
 

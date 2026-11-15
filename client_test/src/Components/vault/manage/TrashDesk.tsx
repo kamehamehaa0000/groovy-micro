@@ -89,7 +89,7 @@ export function TrashDesk() {
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="font-serif italic text-title text-foreground truncate">
+                                <span className="text-title text-foreground truncate font-medium">
                                   {rel.title}
                                 </span>
                                 <span className="font-eyebrow text-eyebrow uppercase tracking-wider px-1.5 py-0.5 border border-border bg-background text-muted-foreground font-semibold">
@@ -153,7 +153,7 @@ export function TrashDesk() {
                           className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-background transition-colors"
                         >
                           <div className="min-w-0">
-                            <div className="font-serif italic text-body text-foreground truncate">
+                            <div className="text-body text-foreground truncate font-medium">
                               {song.title}
                             </div>
                             <div className="font-sans text-caption text-muted-foreground truncate mt-0.5">

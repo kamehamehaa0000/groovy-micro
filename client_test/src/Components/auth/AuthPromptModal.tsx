@@ -96,7 +96,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
         <div className="px-6 py-9 sm:px-10 sm:py-11">
           {/* Brand */}
           <div className="mb-8">
-            <div className="font-serif text-[29px] italic leading-none tracking-[-0.04em] text-foreground">
+            <div className="text-2xl font-semibold leading-none tracking-tight text-foreground">
               Groovy
             </div>
             <div className="mt-2 font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
@@ -111,12 +111,7 @@ export function AuthPromptModal(props: AuthPromptModalProps) {
               {activeCategory}
             </div>
 
-            <H1
-              id="auth-dialog-title"
-              className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl text-[39px] tracking-[-0.035em] sm:text-[43px]"
-            >
-              {activeTitle}
-            </H1>
+            <H1 id="auth-dialog-title">{activeTitle}</H1>
 
             <p className="mt-5 max-w-87.5 text-caption leading-6 text-muted-foreground">
               {activeDescription}

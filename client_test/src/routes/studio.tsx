@@ -250,7 +250,7 @@ function StudioComponent() {
   if (studioLoadError) {
     return (
       <div className="mx-auto max-w-xl py-24 text-center">
-        <p className="font-serif italic text-lg text-foreground">
+        <p className="text-lg text-foreground font-medium">
           Couldn't load your studio.
         </p>
         <p className="font-mono text-caption text-muted-foreground mt-1">

@@ -428,7 +428,7 @@ function ProfileComponent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-serif italic text-2xl sm:text-3xl font-semibold text-foreground">
+                <span className="text-2xl sm:text-3xl font-semibold text-foreground">
                   {user.displayName.charAt(0).toUpperCase()}
                 </span>
               )}

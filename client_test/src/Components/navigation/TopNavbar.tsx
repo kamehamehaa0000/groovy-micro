@@ -142,7 +142,7 @@ export function TopNavbar({
               className="w-full h-full object-cover"
             />
           ) : isAuthenticated && user ? (
-            <span className="font-serif  text-caption font-bold text-foreground">
+            <span className="text-caption font-bold text-foreground">
               {user.displayName.charAt(0).toUpperCase()}
             </span>
           ) : (
@@ -285,7 +285,7 @@ export function TopNavbar({
                   <div className="px-2 py-1 border-b border-border mb-1">
                     <div className="flex items-center gap-2.5 mb-1.5">
                       <div className="min-w-0 flex-1">
-                        <span className="font-serif text-sm font-semibold text-foreground truncate">
+                        <span className="text-sm font-semibold text-foreground truncate">
                           Creation Desk
                         </span>{' '}
                         <div className="font-mono text-eyebrow text-muted-foreground truncate">
@@ -404,11 +404,11 @@ export function TopNavbar({
                   <div className="px-2.5 py-1.5 border-b border-border mb-1">
                     <div className="flex items-center gap-2.5 mb-1.5">
                       <div className="min-w-0 flex-1">
-                        <div className="font-serif  text-caption font-semibold text-foreground  flex gap-1 items-center">
+                        <div className="text-caption font-semibold text-foreground flex gap-1 items-center">
                           <span className="truncate">{user.displayName}</span>
                           {user.isEmailVerified && (
                             <span aria-label="Email verified">
-                              <BadgeCheckIcon className="w-4 h-4 text-green-500" />
+                              <BadgeCheckIcon className="w-4 h-4 text-success" />
                             </span>
                           )}
                           {user.role && (

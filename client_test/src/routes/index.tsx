@@ -29,7 +29,7 @@ import {
 import { MediaGrid } from '../Components/media/MediaGrid'
 import { EmptyState, ErrorState } from '../Components/ui/EmptyState'
 import { notify } from '../lib/toast'
-import { H1, H3, H4 } from '../Components/ui/typography'
+import { H1, H4, SectionHeading } from '../Components/ui/typography'
 
 const CURATED_RADIO_MIXES = [
   {
@@ -502,17 +502,15 @@ function HomeComponent() {
       {!isAuthenticated && !isAuthLoading && (
         <>
           {/* Featured Master Releases Row */}
-          <section className="space-y-4">
-            <div className="flex justify-between items-baseline border-b border-border pb-3">
-              <div className="flex items-center gap-3">
-                <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
-                  Featured Master Releases
-                </H3>
-              </div>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                Archive MMXXVI
-              </span>
-            </div>
+          <section>
+            <SectionHeading
+              title="Featured Master Releases"
+              action={
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
+                  Archive MMXXVI
+                </span>
+              }
+            />
 
             {isLoadingCatalog ? (
               <div className="py-8 text-center font-mono text-caption text-muted-foreground animate-pulse">
@@ -548,17 +546,17 @@ function HomeComponent() {
           />
 
           {/* Master Tapes Correspondence Slip */}
-          <section className="space-y-4">
-            <div className="flex justify-between items-baseline border-b border-border pb-3">
-              <H3 className="text-title font-semibold tracking-tight text-foreground sm:text-lg">
-                Newly Released Master Cuts
-              </H3>
-              <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
-                {liveSongs.length > 0
-                  ? `${liveSongs.length} Master Works`
-                  : '6 Showcase Works'}
-              </span>
-            </div>
+          <section>
+            <SectionHeading
+              title="Newly Released Master Cuts"
+              action={
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
+                  {liveSongs.length > 0
+                    ? `${liveSongs.length} Master Works`
+                    : '6 Showcase Works'}
+                </span>
+              }
+            />
 
             {liveSongs.length > 0 ? (
               <div className="overflow-clip shadow-xs">

@@ -22,7 +22,7 @@ import {
   MonoInput,
   MoodChipRow,
   SelectField,
-  SerifInput,
+  TitleInput,
   TagChipInput,
   TextAreaField,
 } from './fields'
@@ -302,7 +302,7 @@ export function EditReleaseDrawer({
               </span>
               <MarqueeText
                 className="min-w-0 w-full"
-                innerClassName="font-serif italic text-title sm:text-2xl text-foreground font-semibold"
+                innerClassName="text-title font-semibold text-foreground sm:text-2xl"
               >
                 {`Edit Release: ${request.title}`}
               </MarqueeText>
@@ -332,7 +332,7 @@ export function EditReleaseDrawer({
                     Release Title{' '}
                     <span className="text-destructive">*</span>
                   </FieldLabel>
-                  <SerifInput
+                  <TitleInput
                     type="text"
                     required
                     value={editReleaseTitle}

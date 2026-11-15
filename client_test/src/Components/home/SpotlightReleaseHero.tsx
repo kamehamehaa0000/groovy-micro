@@ -55,7 +55,7 @@ export const SpotlightReleaseHero = memo(function SpotlightReleaseHero({
           {album.albumType || 'Album'}
         </span>
 
-        <h3 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight leading-tight mb-1 text-white line-clamp-2">
+        <h3 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight leading-tight mb-1 text-white line-clamp-2">
           {album.title}
         </h3>
 

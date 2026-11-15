@@ -925,7 +925,7 @@ function PlaylistDetailComponent() {
 
           {(playlist.tracks ?? []).length === 0 ? (
             <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
-              <p className="font-serif italic text-title text-foreground">
+              <p className="text-title text-foreground font-medium">
                 This playlist is currently empty.
               </p>
               {canEdit ? (

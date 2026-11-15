@@ -1451,7 +1451,7 @@ function ArtistSpotlightCard({
       </div>
 
       {isCustomPick && artist.pinnedComment ? (
-        <p className="mt-3 font-serif italic text-caption leading-relaxed text-muted-foreground">
+        <p className="mt-3 text-caption leading-relaxed text-muted-foreground font-medium">
           &ldquo;{artist.pinnedComment}&rdquo;
         </p>
       ) : null}

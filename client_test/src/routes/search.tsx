@@ -1013,7 +1013,7 @@ function SearchPageComponent() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
-                        <span className="font-serif italic text-2xl text-muted-foreground">
+                        <span className="text-2xl text-muted-foreground font-medium">
                           ♫
                         </span>
                       )}

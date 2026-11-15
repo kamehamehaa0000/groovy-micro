@@ -149,7 +149,7 @@ export function DesktopNowPlayingSidebar({
           <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground block truncate group-hover:text-foreground transition-colors">
             {contextTitle ? `From ${contextTitle}` : 'Now Playing'}
           </span>
-          <span className="font-serif italic font-semibold text-body text-foreground block truncate mt-0.5 group-hover:underline">
+          <span className="font-semibold text-body text-foreground block truncate mt-0.5 group-hover:underline">
             {currentTrack.title}
           </span>
         </button>
@@ -197,7 +197,7 @@ export function DesktopNowPlayingSidebar({
             <button
               type="button"
               onClick={() => navigateToRelease(currentTrack, navigate)}
-              className="font-serif italic font-semibold text-heading text-foreground truncate leading-snug hover:underline cursor-pointer text-left block max-w-full"
+              className="font-semibold text-heading text-foreground truncate leading-snug hover:underline cursor-pointer text-left block max-w-full"
             >
               {currentTrack.title}
             </button>

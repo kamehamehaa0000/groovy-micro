@@ -487,7 +487,7 @@ function AlbumDetailComponent() {
               <Link
                 to="/artists/$idOrSlug"
                 params={{ idOrSlug: album.artistSlug }}
-                className="inline-flex min-w-0 items-center gap-1.5 font-serif italic text-title text-foreground transition-colors hover:text-primary sm:text-lg"
+                className="inline-flex min-w-0 items-center gap-1.5 text-title text-foreground transition-colors hover:text-primary sm:text-lg font-medium"
               >
                 <span className="truncate">{album.artistStageName}</span>
                 {album.artistVerified ? (
@@ -749,7 +749,7 @@ function AlbumDetailComponent() {
 
           {(album.tracks ?? []).length === 0 ? (
             <div className="overflow-hidden rounded-surface border border-dashed border-border bg-card/40 p-10 text-center sm:p-12">
-              <p className="font-serif italic text-title text-foreground">
+              <p className="text-title text-foreground font-medium">
                 No tracks uploaded to this release yet.
               </p>
               <p className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground mt-1">

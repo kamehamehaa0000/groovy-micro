@@ -235,7 +235,7 @@ export function AddToPlaylistModal() {
       onClose={closeModal}
       size="sm"
       title={
-        <span id={titleId} className="font-serif italic">
+        <span id={titleId} className="font-medium">
           Add to Playlist
         </span>
       }

@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { SaveBar } from '../../ui/SaveBar'
-import { FieldLabel, MonoInput, SerifInput, TextAreaField } from '../fields'
+import { FieldLabel, MonoInput, TitleInput, TextAreaField } from '../fields'
 
 export interface IdentityFormProps {
   stageName: string
@@ -42,7 +42,7 @@ export function IdentityForm({
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <FieldLabel>Stage Name</FieldLabel>
-          <SerifInput
+          <TitleInput
             size="body"
             type="text"
             required

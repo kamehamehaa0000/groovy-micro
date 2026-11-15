@@ -131,7 +131,7 @@ export function PlanComparison({
                       )}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-serif text-title text-foreground">
+                        <span className="text-title text-foreground font-medium">
                           {plan.name}
                         </span>
                         {isCurrent ? (

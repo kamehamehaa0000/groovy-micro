@@ -341,7 +341,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
                 </div>
               </div>
             ) : (
-              <div className="py-6 text-center text-muted-foreground italic font-serif text-caption border border-dashed border-border rounded-control">
+              <div className="py-6 text-center text-muted-foreground text-caption border border-dashed border-border rounded-control font-medium">
                 No track currently loaded
               </div>
             )}
@@ -392,7 +392,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
             {userQueue.length === 0 ? (
               <div className="py-5 px-3 rounded-control border border-dashed border-border text-center space-y-1">
-                <p className="font-serif italic text-caption text-muted-foreground">
+                <p className="text-caption text-muted-foreground font-medium">
                   Queue is empty.
                 </p>
                 <p className="font-sans text-eyebrow text-muted-foreground/70">
@@ -464,7 +464,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
 
           {!isAuthenticated ? (
             <div className="py-8 px-4 text-center space-y-3">
-              <p className="font-serif italic text-body text-muted-foreground">
+              <p className="text-body text-muted-foreground font-medium">
                 Listening history requires an account
               </p>
               <p className="text-caption text-muted-foreground/80 max-w-xs mx-auto">
@@ -490,7 +490,7 @@ export function QueueContent({ mode, onClose, listRef }: QueueContentProps) {
               Loading listening history...
             </div>
           ) : historyItems.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground italic font-serif text-caption">
+            <div className="py-8 text-center text-muted-foreground text-caption font-medium">
               No listening history recorded yet. Start spinning some records!
             </div>
           ) : (
