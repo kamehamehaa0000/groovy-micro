@@ -7,13 +7,11 @@ import {
   Card,
   EmptyState,
   ErrorState,
-  Eyebrow,
   Field,
   FilterBar,
   IconButton,
   Input,
   SectionHeader,
-  SectionTitle,
   Select,
   Sheet,
   SkeletonGrid,
@@ -42,7 +40,17 @@ import {
   TrashIconSVG,
   UploadCloudSVG,
 } from '../Components/Icons'
-import { H1 } from '../Components/ui/typography'
+import {
+  Eyebrow,
+  H1,
+  H2,
+  H3,
+  H4,
+  HEADING_ACTION,
+  SectionHeading,
+  Subtitle,
+} from '../Components/ui/typography'
+import { SectionTitle } from '../Components/ui/SectionTitle'
 
 export const Route = createFileRoute('/dev/design')({
   component: DesignPlayground,
@@ -75,7 +83,11 @@ function Section({
 }
 
 function Token({ children }: { children: ReactNode }) {
-  return <code className="font-mono text-caption text-muted-foreground">{children}</code>
+  return (
+    <code className="block font-mono text-caption text-muted-foreground">
+      {children}
+    </code>
+  )
 }
 
 function SwatchGrid({
@@ -287,11 +299,11 @@ function DesignPlayground() {
       {/* Typography */}
       <Section
         title="Type roles"
-        hint="Fraunces for display, Inter for body/UI and labels, IBM Plex Mono for numerals and code. Use the header button to A/B the eyebrow face."
+        hint="Inter for everything the user reads, IBM Plex Mono for numerals and code. Fraunces survives only as the monogram that stands in for a missing cover."
       >
         <div className="flex flex-col gap-4">
           <div>
-            <Token>text-display · Fraunces</Token>
+            <Token>text-display · Inter</Token>
             <p className="text-display text-foreground font-medium">Groovy</p>
           </div>
           <div>
@@ -321,6 +333,77 @@ function DesignPlayground() {
             <p className="font-mono text-body text-foreground">
               128 · 3:47 · 24.9k · JAM-8K2Q
             </p>
+          </div>
+        </div>
+      </Section>
+
+      {/* Typography primitives */}
+      <Section
+        title="Typography primitives"
+        hint="The components every heading in the app is built from. One heading size, one eyebrow, one subtitle — so a page cannot drift from its neighbour."
+      >
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <Token>Eyebrow</Token>
+            <div className="flex flex-wrap items-center gap-3">
+              <Eyebrow>The small label above a heading</Eyebrow>
+              <Eyebrow tone="brand">brand</Eyebrow>
+              <Eyebrow tone="success">success</Eyebrow>
+              <Eyebrow tone="danger">danger</Eyebrow>
+              <Eyebrow tone="ink">ink</Eyebrow>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>H1 · the page title</Token>
+            <H1>Velvet Hours</H1>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>H2 · the section title</Token>
+            <H2>Master Tracklist</H2>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>H3 · the sub-section</Token>
+            <H3>Popular Tracks</H3>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>H4 · the card title</Token>
+            <H4>Honey &amp; Smoke</H4>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>Subtitle</Token>
+            <Subtitle>The line under a heading.</Subtitle>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>SectionHeading · the airy layout</Token>
+            <SectionHeading
+              eyebrow="Curated for you"
+              title="Your radio mixes"
+              subtitle="Familiar favorites, unexpected discoveries."
+              action={
+                <Link to="/" className={HEADING_ACTION}>
+                  Show all →
+                </Link>
+              }
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Token>SectionTitle · the dense layout</Token>
+            <SectionTitle
+              title="Master Tracklist"
+              subtitle="Ranked by plays"
+              action={
+                <span className="font-eyebrow text-eyebrow uppercase tracking-widest text-muted-foreground">
+                  4 cuts
+                </span>
+              }
+            />
           </div>
         </div>
       </Section>

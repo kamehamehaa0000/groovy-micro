@@ -203,9 +203,7 @@ function PlaylistsDirectoryComponent() {
             <p className="font-eyebrow text-eyebrow font-medium uppercase tracking-wider text-primary">
               Directory
             </p>
-            <H1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl mt-1 sm:text-display">
-              Public Playlists
-            </H1>
+            <H1 className="mt-1">Public Playlists</H1>
             <p className="mt-1.5 max-w-xl text-caption leading-relaxed text-muted-foreground sm:text-body">
               Browse public playlists curated by the Groovy community.
             </p>
