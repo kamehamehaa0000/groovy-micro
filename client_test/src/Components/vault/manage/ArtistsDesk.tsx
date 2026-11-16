@@ -14,15 +14,7 @@ export function ArtistsDesk() {
     isLoadingArtists,
     artistsSearch,
     setArtistsSearch,
-    isCreatingArtist,
-    setIsCreatingArtist,
-    newArtistName,
-    setNewArtistName,
-    newArtistBio,
-    setNewArtistBio,
-    isSubmittingArtist,
     setSelectedArtistFilter,
-    handleCreateArtist,
     filteredArtists,
     handleTabChange,
   } = useVaultManage()
@@ -87,7 +79,7 @@ export function ArtistsDesk() {
                     <H4 className="text-body font-semibold text-foreground truncate">
                       {artist.stageName}
                     </H4>
-                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 rounded px-1 py-0.2 shrink-0 font-semibold">
+                    <span className="font-eyebrow text-eyebrow uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1 py-0.2 shrink-0 font-semibold">
                       P
                     </span>
                   </div>

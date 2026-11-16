@@ -1,4 +1,3 @@
-import { Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '../ui/Modal'
 import type { TrashPurgeRequest } from './studio.types'
 

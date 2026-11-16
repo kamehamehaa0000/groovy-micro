@@ -9,9 +9,7 @@ import { SongRow } from '../../common/SongRow'
 import {
   TrashIconSVG,
   UploadCloudSVG,
-  PlusIconSVG,
   ExternalLinkSVG,
-  SearchIconSVG,
 } from '../../Icons'
 
 import { useVaultManage } from './VaultManageContext'

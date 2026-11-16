@@ -1,4 +1,3 @@
-import { Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '../ui/Modal'
 import type { ReleaseDeleteRequest } from './studio.types'
 

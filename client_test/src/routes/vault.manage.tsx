@@ -35,7 +35,7 @@ import {
 } from '../Components/vault/manage/VaultManageContext'
 import { ConfirmDialog, Modal } from '../Components/ui/Modal'
 import { Button } from '../Components/ui/Button'
-import { TrashIconSVG, UploadCloudSVG } from '../Components/Icons'
+import { UploadCloudSVG } from '../Components/Icons'
 import { H1 } from '../Components/ui/typography'
 
 /** The four desks of the vault manager. */

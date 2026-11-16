@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { config } from "../config";
 
@@ -34,17 +34,16 @@ export function resolveFfmpeg(): ResolvedBinaries {
   }
 
   // 2. Validate availability by running -version
-  try {
-    execSync(`"${ffmpegPath}" -version`, { stdio: "ignore" });
-  } catch {
+  //    spawnSync without a shell: no quoting issues, no shell injection.
+  const ffmpegVersion = spawnSync(ffmpegPath, ["-version"], { stdio: "ignore" });
+  if (ffmpegVersion.error || ffmpegVersion.status !== 0) {
     throw new Error(
       `FFmpeg executable not found at "${ffmpegPath}". Please install FFmpeg (e.g. Gyan.dev on Windows or via package manager) or set FFMPEG_PATH in .env.`
     );
   }
 
-  try {
-    execSync(`"${ffprobePath}" -version`, { stdio: "ignore" });
-  } catch {
+  const ffprobeVersion = spawnSync(ffprobePath, ["-version"], { stdio: "ignore" });
+  if (ffprobeVersion.error || ffprobeVersion.status !== 0) {
     throw new Error(
       `FFprobe executable not found at "${ffprobePath}". Please install FFprobe or set FFPROBE_PATH in .env.`
     );

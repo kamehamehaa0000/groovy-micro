@@ -241,8 +241,8 @@ function PersonalCollectionExplorePage() {
     if (currentTrack?.albumId === release.id) {
       togglePlay()
     } else {
+      // No toast: the player bar already says what is playing.
       playTrack(playerTracks[0], playerTracks)
-      notify.info(`Playing ${release.title}`)
     }
   }
 

@@ -11,19 +11,29 @@ import { config } from "../config";
 
 export const s3Client = new S3Client({
   region: "auto",
-  endpoint: `https://${config.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint:
+    config.R2_ENDPOINT ??
+    `https://${config.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  // Custom endpoints (local emulators) require path-style addressing.
+  forcePathStyle: Boolean(config.R2_ENDPOINT),
   credentials: {
     accessKeyId: config.R2_ACCESS_KEY_ID,
     secretAccessKey: config.R2_SECRET_ACCESS_KEY,
   },
 });
 
+export interface TransferOptions {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
+
 /**
  * Downloads a raw object from Cloudflare R2 to a local destination path.
  */
 export async function downloadRawAudio(
   rawKey: string,
-  localDestinationPath: string
+  localDestinationPath: string,
+  options: TransferOptions = {}
 ): Promise<void> {
   const dir = path.dirname(localDestinationPath);
   if (!fs.existsSync(dir)) {
@@ -34,7 +44,11 @@ export async function downloadRawAudio(
     new GetObjectCommand({
       Bucket: config.R2_BUCKET_NAME,
       Key: rawKey,
-    })
+    }),
+    {
+      abortSignal: options.signal,
+      requestTimeout: options.timeoutMs ?? config.DOWNLOAD_TIMEOUT_MS,
+    }
   );
 
   if (!res.Body) {
@@ -42,8 +56,9 @@ export async function downloadRawAudio(
   }
 
   const writeStream = fs.createWriteStream(localDestinationPath);
-  // Node / AWS SDK stream pipeline
-  await pipeline(res.Body as NodeJS.ReadableStream, writeStream);
+  await pipeline(res.Body as NodeJS.ReadableStream, writeStream, {
+    signal: options.signal,
+  });
 }
 
 /**
@@ -71,7 +86,8 @@ function getFilesRecursively(dir: string, baseDir: string = dir): string[] {
  */
 export async function uploadHlsDirectory(
   localDir: string,
-  s3Prefix: string
+  s3Prefix: string,
+  options: TransferOptions = {}
 ): Promise<{ uploadedKeys: string[] }> {
   const cleanPrefix = s3Prefix.replace(/^\/+|\/+$/g, "");
   const relativeFiles = getFilesRecursively(localDir);
@@ -86,7 +102,6 @@ export async function uploadHlsDirectory(
   const uploadPromises = relativeFiles.map((relFile) =>
     limit(async () => {
       const fullPath = path.join(localDir, relFile);
-      const fileBuffer = fs.readFileSync(fullPath);
       const s3Key = `${cleanPrefix}/${relFile}`;
 
       let contentType = "application/octet-stream";
@@ -103,14 +118,29 @@ export async function uploadHlsDirectory(
         cacheControl = "public, max-age=86400";
       }
 
+      // Read the segment into memory and send it with an explicit
+      // Content-Length.
+      //
+      // NOTE: the body is deliberately a Buffer rather than a Readable.
+      // A streaming body makes the AWS SDK emit `Transfer-Encoding: chunked`
+      // (it never propagates ContentLength to the header for streams), and
+      // R2 rejects chunked PutObject requests. Segments are 95-240 KB, so
+      // buffering costs nothing; the async read keeps the event loop free.
+      const fileBuffer = await fs.promises.readFile(fullPath);
+
       await s3Client.send(
         new PutObjectCommand({
           Bucket: config.R2_BUCKET_NAME,
           Key: s3Key,
           Body: fileBuffer,
+          ContentLength: fileBuffer.length,
           ContentType: contentType,
           CacheControl: cacheControl,
-        })
+        }),
+        {
+          abortSignal: options.signal,
+          requestTimeout: options.timeoutMs ?? config.UPLOAD_TIMEOUT_MS,
+        }
       );
 
       uploadedKeys.push(s3Key);

@@ -1,9 +1,14 @@
-import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 import MusicTempo from "music-tempo";
+import { config } from "../config";
 import { resolveFfmpeg } from "../lib/ffmpeg-resolver";
+import { runProcess } from "../lib/ffmpeg-process";
+import { runFfmpegPipeline, type OutputPlan } from "./ffmpeg";
 import type { SongAudioAnalysis } from "../lib/schema";
 
-interface ProbeResult {
+export interface ProbeResult {
   durationSeconds: number;
   format: string;
   sampleRate: number;
@@ -14,10 +19,37 @@ interface ProbeResult {
   probedKey?: string;
 }
 
+export interface LoudnessMetrics {
+  integratedLufs: number;
+  truePeakDbfs: number;
+  loudnessRangeLu: number;
+}
+
+/** Sample rate used for the client-facing waveform peaks. */
+export const WAVEFORM_SAMPLE_RATE = 8000;
+/** Sample rate used for the beat-detection buffer. */
+export const BPM_SAMPLE_RATE = 22050;
+/** music-tempo analyses a 2048-sample window every 441 samples. */
+export const MUSIC_TEMPO_HOP_SIZE = 441;
+
+const DEFAULT_LOUDNESS: LoudnessMetrics = {
+  integratedLufs: -14.0,
+  truePeakDbfs: -1.0,
+  loudnessRangeLu: 6.0,
+};
+
+export interface AnalysisOptions {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
+
 /**
  * Runs ffprobe to extract technical container and stream details, as well as metadata tags.
  */
-export function probeAudio(filePath: string): ProbeResult {
+export async function probeAudio(
+  filePath: string,
+  options: AnalysisOptions = {}
+): Promise<ProbeResult> {
   const { ffprobePath } = resolveFfmpeg();
 
   const args = [
@@ -30,12 +62,18 @@ export function probeAudio(filePath: string): ProbeResult {
     filePath,
   ];
 
-  const result = spawnSync(ffprobePath, args, { encoding: "utf-8" });
-  if (result.status !== 0) {
-    throw new Error(`ffprobe failed on "${filePath}": ${result.stderr || "Unknown error"}`);
+  const result = await runProcess(ffprobePath, args, {
+    timeoutMs: options.timeoutMs ?? config.PROBE_TIMEOUT_MS,
+    signal: options.signal,
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `ffprobe failed on "${filePath}": ${result.stderr || "Unknown error"}`
+    );
   }
 
-  const parsed = JSON.parse(result.stdout);
+  const parsed = JSON.parse(result.stdout.toString("utf8"));
   const audioStream = parsed.streams?.find(
     (s: { codec_type?: string }) => s.codec_type === "audio"
   );
@@ -91,96 +129,91 @@ export function probeAudio(filePath: string): ProbeResult {
 }
 
 /**
- * Extracts EBU R128 loudness metrics (integrated loudness in LUFS, True Peak in dBFS, LRA).
+ * Parses the EBU R128 summary that the `ebur128` filter prints to stderr.
+ *
+ * The summary is only emitted at FFmpeg's INFO log level, so callers must run
+ * FFmpeg with `-loglevel info` for this to return real measurements.
  */
-export function extractLoudness(filePath: string): {
-  integratedLufs: number;
-  truePeakDbfs: number;
-  loudnessRangeLu: number;
-} {
-  const { ffmpegPath } = resolveFfmpeg();
+export function parseLoudnessSummary(stderr: string): LoudnessMetrics {
+  const iMatch = stderr.match(/Integrated loudness:\s+I:\s+([-\d.]+)\s+LUFS/);
+  const integratedLufs = iMatch ? parseFloat(iMatch[1]) : NaN;
 
-  const args = [
-    "-v",
-    "error",
-    "-i",
-    filePath,
-    "-af",
-    "ebur128=peak=true",
-    "-f",
-    "null",
-    "-",
-  ];
+  const tpMatch = stderr.match(/True peak:\s+Peak:\s+([-\d.]+)\s+dBFS/);
+  const truePeakDbfs = tpMatch ? parseFloat(tpMatch[1]) : NaN;
 
-  const result = spawnSync(ffmpegPath, args, { encoding: "utf-8" });
-  const output = result.stderr || "";
-
-  // Parse Integrated loudness
-  const iMatch = output.match(/Integrated loudness:\s+I:\s+([-\d.]+)\s+LUFS/);
-  const integratedLufs = iMatch ? parseFloat(iMatch[1]) : -14.0;
-
-  // Parse True Peak
-  const tpMatch = output.match(/True peak:\s+Peak:\s+([-\d.]+)\s+dBFS/);
-  const truePeakDbfs = tpMatch ? parseFloat(tpMatch[1]) : -1.0;
-
-  // Parse Loudness Range
-  const lraMatch = output.match(/Loudness range:\s+LRA:\s+([-\d.]+)\s+LU/);
-  const loudnessRangeLu = lraMatch ? parseFloat(lraMatch[1]) : 6.0;
+  const lraMatch = stderr.match(/Loudness range:\s+LRA:\s+([-\d.]+)\s+LU/);
+  const loudnessRangeLu = lraMatch ? parseFloat(lraMatch[1]) : NaN;
 
   return {
-    integratedLufs: Number.isNaN(integratedLufs) ? -14.0 : integratedLufs,
-    truePeakDbfs: Number.isNaN(truePeakDbfs) ? -1.0 : truePeakDbfs,
-    loudnessRangeLu: Number.isNaN(loudnessRangeLu) ? 6.0 : loudnessRangeLu,
+    integratedLufs: Number.isNaN(integratedLufs)
+      ? DEFAULT_LOUDNESS.integratedLufs
+      : integratedLufs,
+    truePeakDbfs: Number.isNaN(truePeakDbfs)
+      ? DEFAULT_LOUDNESS.truePeakDbfs
+      : truePeakDbfs,
+    loudnessRangeLu: Number.isNaN(loudnessRangeLu)
+      ? DEFAULT_LOUDNESS.loudnessRangeLu
+      : loudnessRangeLu,
   };
 }
 
 /**
- * Extracts a normalized 100-point waveform array (values 0.0 to 1.0) for rapid client visualization.
+ * Extracts EBU R128 loudness metrics in a dedicated FFmpeg pass.
+ *
+ * Prefer `runAnalysisPipeline` / `transcodeSong`, which measure loudness as
+ * part of the same pass that encodes the HLS ladder.
  */
-export function extractWaveform(filePath: string, points: number = 100): number[] {
-  const { ffmpegPath } = resolveFfmpeg();
-
-  const args = [
-    "-v",
-    "error",
-    "-i",
+export async function extractLoudness(
+  filePath: string,
+  options: AnalysisOptions = {}
+): Promise<LoudnessMetrics> {
+  const { stderr } = await runFfmpegPipeline(
     filePath,
-    "-ac",
-    "1",
-    "-ar",
-    "8000",
-    "-f",
-    "f32le",
-    "-",
-  ];
-
-  const result = spawnSync(ffmpegPath, args, { maxBuffer: 50 * 1024 * 1024 });
-  if (!result.stdout || result.stdout.length === 0) {
-    // Fallback: return neutral flat waveform
-    return Array.from({ length: points }, () => 0.2);
-  }
-
-  const f32Array = new Float32Array(
-    result.stdout.buffer,
-    result.stdout.byteOffset,
-    result.stdout.length / 4
+    [{ kind: "loudness" }],
+    {
+      timeoutMs: options.timeoutMs ?? config.FFMPEG_TIMEOUT_MS,
+      signal: options.signal,
+    }
   );
+  return parseLoudnessSummary(stderr);
+}
 
-  if (f32Array.length < points) {
+/**
+ * Reinterprets a raw PCM buffer as 32-bit floats.
+ *
+ * The slice guarantees 4-byte alignment, which `Buffer.buffer` alone does not.
+ */
+export function bufferToFloat32(buffer: Buffer): Float32Array {
+  const usable = buffer.length - (buffer.length % 4);
+  const copy = buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + usable
+  );
+  return new Float32Array(copy);
+}
+
+/**
+ * Reduces a PCM buffer to a normalized 100-point waveform array.
+ */
+export function computeWaveformPeaks(
+  samples: Float32Array,
+  points: number = 100
+): number[] {
+  if (samples.length < points) {
     return Array.from({ length: points }, () => 0.2);
   }
 
-  const chunkSize = Math.floor(f32Array.length / points);
+  const chunkSize = Math.floor(samples.length / points);
   const waveform: number[] = [];
   let globalMax = 0.001;
 
   for (let p = 0; p < points; p++) {
     const start = p * chunkSize;
-    const end = Math.min(start + chunkSize, f32Array.length);
+    const end = Math.min(start + chunkSize, samples.length);
     let peak = 0;
 
     for (let i = start; i < end; i++) {
-      const abs = Math.abs(f32Array[i]);
+      const abs = Math.abs(samples[i]);
       if (abs > peak) {
         peak = abs;
       }
@@ -193,56 +226,82 @@ export function extractWaveform(filePath: string, points: number = 100): number[
   }
 
   // Normalize so highest peak = 1.0, rounded to 3 decimal places
-  return waveform.map((val) =>
-    Math.round((val / globalMax) * 1000) / 1000
-  );
+  return waveform.map((val) => Math.round((val / globalMax) * 1000) / 1000);
 }
 
 /**
- * Detects musical tempo (BPM) using metadata tags (Tier 1) or beat-interval analysis (Tier 2).
+ * Extracts a normalized 100-point waveform array for rapid client visualization.
  */
-export function detectBpm(filePath: string, durationSeconds: number, probedBpm?: number): number | undefined {
+export async function extractWaveform(
+  filePath: string,
+  points: number = 100,
+  options: AnalysisOptions = {}
+): Promise<number[]> {
+  const artifactsDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "groovy-waveform-")
+  );
+  const rawPath = path.join(artifactsDir, "waveform.f32");
+
+  try {
+    await runFfmpegPipeline(
+      filePath,
+      [{ kind: "pcm", path: rawPath, sampleRate: WAVEFORM_SAMPLE_RATE }],
+      {
+        timeoutMs: options.timeoutMs ?? config.FFMPEG_TIMEOUT_MS,
+        signal: options.signal,
+      }
+    );
+
+    if (!fs.existsSync(rawPath)) {
+      return Array.from({ length: points }, () => 0.2);
+    }
+
+    return computeWaveformPeaks(bufferToFloat32(fs.readFileSync(rawPath)), points);
+  } finally {
+    fs.rmSync(artifactsDir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Chooses the window of audio used for beat detection.
+ *
+ * Long tracks are sampled from 10 seconds in to skip the intro, short tracks
+ * are analysed from the beginning.
+ */
+export function computeBpmWindow(durationSeconds: number): {
+  seekSeconds: number;
+  durationSeconds: number;
+} {
+  const seekSeconds = durationSeconds > 45 ? 10 : 0;
+  const windowSeconds = Math.min(
+    30,
+    Math.max(durationSeconds - seekSeconds, 10)
+  );
+  return { seekSeconds, durationSeconds: windowSeconds };
+}
+
+/**
+ * Runs beat detection over an already-decoded mono PCM buffer.
+ *
+ * `music-tempo` assumes a 44100 Hz input (its 441-sample hop is hardcoded to a
+ * 10 ms timestep). Feeding it a buffer at a different rate without correcting
+ * the timestep reports a doubled tempo, so the timestep is derived from the
+ * actual sample rate here.
+ */
+export function detectBpmFromPcm(
+  samples: Float32Array,
+  sampleRate: number = BPM_SAMPLE_RATE,
+  probedBpm?: number
+): number | undefined {
   // Tier 1: Probed metadata tags
   if (probedBpm && probedBpm >= 40 && probedBpm <= 260) {
     return probedBpm;
   }
 
-  // Tier 2: Algorithmic beat tracking using music-tempo on a 30-second sample
+  // Tier 2: Algorithmic beat tracking
   try {
-    const { ffmpegPath } = resolveFfmpeg();
-    const seekOffset = durationSeconds > 45 ? 10 : 0;
-    const sampleDuration = Math.min(30, Math.max(durationSeconds - seekOffset, 10));
-
-    const args = [
-      "-v",
-      "error",
-      "-ss",
-      seekOffset.toString(),
-      "-t",
-      sampleDuration.toString(),
-      "-i",
-      filePath,
-      "-ac",
-      "1",
-      "-ar",
-      "22050",
-      "-f",
-      "f32le",
-      "-",
-    ];
-
-    const result = spawnSync(ffmpegPath, args, { maxBuffer: 20 * 1024 * 1024 });
-    if (!result.stdout || result.stdout.length === 0) {
-      return undefined;
-    }
-
-    const f32Array = new Float32Array(
-      result.stdout.buffer,
-      result.stdout.byteOffset,
-      result.stdout.length / 4
-    );
-
-    const mt = new MusicTempo(f32Array);
+    const timeStep = MUSIC_TEMPO_HOP_SIZE / sampleRate;
+    const mt = new MusicTempo(samples, { timeStep });
     const tempo = Math.round(mt.tempo);
 
     if (tempo >= 40 && tempo <= 260) {
@@ -253,6 +312,59 @@ export function detectBpm(filePath: string, durationSeconds: number, probedBpm?:
   }
 
   return undefined;
+}
+
+/**
+ * Detects musical tempo (BPM) using metadata tags (Tier 1) or beat-interval
+ * analysis over a dedicated 30-second window (Tier 2).
+ */
+export async function detectBpm(
+  filePath: string,
+  durationSeconds: number,
+  probedBpm?: number,
+  options: AnalysisOptions = {}
+): Promise<number | undefined> {
+  if (probedBpm && probedBpm >= 40 && probedBpm <= 260) {
+    return probedBpm;
+  }
+
+  const artifactsDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "groovy-bpm-")
+  );
+  const rawPath = path.join(artifactsDir, "bpm.f32");
+
+  try {
+    const window = computeBpmWindow(durationSeconds);
+
+    await runFfmpegPipeline(
+      filePath,
+      [
+        {
+          kind: "pcm",
+          path: rawPath,
+          sampleRate: BPM_SAMPLE_RATE,
+          maxSeconds: window.seekSeconds + window.durationSeconds,
+        },
+      ],
+      { timeoutMs: options.timeoutMs ?? config.FFMPEG_TIMEOUT_MS, signal: options.signal }
+    );
+
+    if (!fs.existsSync(rawPath)) {
+      return undefined;
+    }
+
+    const samples = bufferToFloat32(fs.readFileSync(rawPath));
+    const start = Math.floor(window.seekSeconds * BPM_SAMPLE_RATE);
+    const end = Math.min(
+      start + Math.floor(window.durationSeconds * BPM_SAMPLE_RATE),
+      samples.length
+    );
+    const slice = samples.subarray(start, Math.max(end, start));
+
+    return detectBpmFromPcm(slice, BPM_SAMPLE_RATE, probedBpm);
+  } finally {
+    fs.rmSync(artifactsDir, { recursive: true, force: true });
+  }
 }
 
 /**
@@ -272,19 +384,77 @@ export function computeEnergy(
   return Math.round(clamped * 100) / 100;
 }
 
+export interface AnalysisArtifacts {
+  waveformPath: string;
+  bpmPath: string;
+}
+
+export interface AnalysisResult {
+  analysis: SongAudioAnalysis;
+  loudness: LoudnessMetrics;
+}
+
 /**
- * Comprehensive audio analysis pipeline extracting technical specs, EBU R128 loudness,
- * a 100-point waveform peak array, musical BPM, and energy metric.
+ * Builds the output plans that measure a file in a single FFmpeg pass.
+ *
+ * The loudness, waveform and BPM outputs all hang off the same `asplit`, so
+ * the source file is decoded exactly once.
  */
-export function analyzeAudio(filePath: string): SongAudioAnalysis {
-  const probe = probeAudio(filePath);
-  const loudness = extractLoudness(filePath);
-  const waveform = extractWaveform(filePath, 100);
-  const bpm = detectBpm(filePath, probe.durationSeconds, probe.probedBpm);
-  const resolvedBpm = bpm || probe.probedBpm;
+export function buildAnalysisPlans(
+  artifacts: AnalysisArtifacts,
+  bpmWindow: { seekSeconds: number; durationSeconds: number }
+): OutputPlan[] {
+  return [
+    { kind: "loudness" },
+    {
+      kind: "pcm",
+      path: artifacts.waveformPath,
+      sampleRate: WAVEFORM_SAMPLE_RATE,
+    },
+    {
+      kind: "pcm",
+      path: artifacts.bpmPath,
+      sampleRate: BPM_SAMPLE_RATE,
+      maxSeconds: bpmWindow.seekSeconds + bpmWindow.durationSeconds,
+    },
+  ];
+}
+
+/**
+ * Turns the raw artifacts produced by an analysis pass into the final metrics.
+ */
+export function interpretAnalysisArtifacts(
+  artifacts: AnalysisArtifacts,
+  probe: ProbeResult,
+  stderr: string
+): AnalysisResult {
+  const loudness = parseLoudnessSummary(stderr);
+
+  let waveform: number[] = Array.from({ length: 100 }, () => 0.2);
+  if (fs.existsSync(artifacts.waveformPath)) {
+    waveform = computeWaveformPeaks(
+      bufferToFloat32(fs.readFileSync(artifacts.waveformPath)),
+      100
+    );
+  }
+
+  let detectedBpm: number | undefined;
+  if (fs.existsSync(artifacts.bpmPath)) {
+    const window = computeBpmWindow(probe.durationSeconds);
+    const samples = bufferToFloat32(fs.readFileSync(artifacts.bpmPath));
+    const start = Math.floor(window.seekSeconds * BPM_SAMPLE_RATE);
+    const end = Math.min(
+      start + Math.floor(window.durationSeconds * BPM_SAMPLE_RATE),
+      samples.length
+    );
+    const slice = samples.subarray(start, Math.max(end, start));
+    detectedBpm = detectBpmFromPcm(slice, BPM_SAMPLE_RATE, probe.probedBpm);
+  }
+
+  const resolvedBpm = detectedBpm || probe.probedBpm;
   const energy = computeEnergy(loudness, resolvedBpm);
 
-  return {
+  const analysis: SongAudioAnalysis = {
     durationSeconds: probe.durationSeconds,
     specs: {
       format: probe.format,
@@ -301,4 +471,43 @@ export function analyzeAudio(filePath: string): SongAudioAnalysis {
     },
     energy,
   };
+
+  return { analysis, loudness };
+}
+
+/**
+ * Comprehensive audio analysis pipeline extracting technical specs, EBU R128 loudness,
+ * a 100-point waveform peak array, musical BPM, and energy metric.
+ *
+ * The whole pipeline costs a single decode of the source file.
+ */
+export async function analyzeAudio(
+  filePath: string,
+  options: AnalysisOptions = {}
+): Promise<SongAudioAnalysis> {
+  const probe = await probeAudio(filePath, options);
+  const bpmWindow = computeBpmWindow(probe.durationSeconds);
+
+  const artifactsDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "groovy-analysis-")
+  );
+  const artifacts: AnalysisArtifacts = {
+    waveformPath: path.join(artifactsDir, "waveform.f32"),
+    bpmPath: path.join(artifactsDir, "bpm.f32"),
+  };
+
+  try {
+    const { stderr } = await runFfmpegPipeline(
+      filePath,
+      buildAnalysisPlans(artifacts, bpmWindow),
+      {
+        timeoutMs: options.timeoutMs ?? config.FFMPEG_TIMEOUT_MS,
+        signal: options.signal,
+      }
+    );
+
+    return interpretAnalysisArtifacts(artifacts, probe, stderr).analysis;
+  } finally {
+    fs.rmSync(artifactsDir, { recursive: true, force: true });
+  }
 }
