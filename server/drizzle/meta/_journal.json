@@ -8,34 +8,6 @@
       "when": 1788607010995,
       "tag": "0000_known_epoch",
       "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1791311163304,
-      "tag": "0001_add_notifications",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1792529729949,
-      "tag": "0002_playlist_directory_indexes",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1792878795225,
-      "tag": "0003_playlist_songs_song_index",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1793200000000,
-      "tag": "0004_playlist_asc_and_vault_indexes",
-      "breakpoints": true
     }
   ]
 }
